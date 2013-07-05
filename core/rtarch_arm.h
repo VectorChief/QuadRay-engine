@@ -109,6 +109,60 @@
 #define stack_la()                                                          \
         EMITW(0xE8BD07FF)
 
+/* add */
+
+#define addxx_ri(RM, IM)                                                    \
+        IM                                                                  \
+        EMITW(0xE0800000 | MRM(REG(RM), REG(RM), TEG(TI)))
+
+#define addxx_mi(RM, DP, IM)                                                \
+        IM                                                                  \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE0800000 | MRM(TEG(TM), TEG(TM), TEG(TI)))                  \
+        EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
+
+#define addxx_rr(RG, RM)                                                    \
+        EMITW(0xE0800000 | MRM(REG(RG), REG(RG), REG(RM)))
+
+#define addxx_ld(RG, RM, DP)                                                \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE0800000 | MRM(REG(RG), REG(RG), TEG(TM)))
+
+#define addxx_st(RG, RM, DP)                                                \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE0800000 | MRM(TEG(TM), TEG(TM), REG(RG)))                  \
+        EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
+
+/* sub */
+
+#define subxx_ri(RM, IM)                                                    \
+        IM                                                                  \
+        EMITW(0xE0400000 | MRM(REG(RM), REG(RM), TEG(TI)))
+
+#define subxx_mi(RM, DP, IM)                                                \
+        IM                                                                  \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE0400000 | MRM(TEG(TM), TEG(TM), TEG(TI)))                  \
+        EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
+
+#define subxx_rr(RG, RM)                                                    \
+        EMITW(0xE0400000 | MRM(REG(RG), REG(RG), REG(RM)))
+
+#define subxx_ld(RG, RM, DP)                                                \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE0400000 | MRM(REG(RG), REG(RG), TEG(TM)))
+
+#define subxx_st(RG, RM, DP)                                                \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE0400000 | MRM(TEG(TM), TEG(TM), REG(RG)))                  \
+        EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
+
 #endif /* RT_RTARCH_ARM_H */
 
 /******************************************************************************/

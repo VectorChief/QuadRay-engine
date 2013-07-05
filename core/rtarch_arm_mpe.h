@@ -44,6 +44,26 @@
         EMITW(0xE2800F00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 2)           \
         EMITW(0xF4000AAF | MRM(REG(RG), TEG(TP), 0x00))
 
+
+#define addps_rr(RG, RM)                                                    \
+        EMITW(0xF2000D40 | MRM(REG(RG), REG(RG), REG(RM)))
+
+#define addps_ld(RG, RM, DP)                                                \
+        SIB(RM)                                                             \
+        EMITW(0xE2800F00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 2)           \
+        EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
+        EMITW(0xF2000D60 | MRM(REG(RG), REG(RG), TEG(T1)))
+
+
+#define subps_rr(RG, RM)                                                    \
+        EMITW(0xF2200D40 | MRM(REG(RG), REG(RG), REG(RM)))
+
+#define subps_ld(RG, RM, DP)                                                \
+        SIB(RM)                                                             \
+        EMITW(0xE2800F00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 2)           \
+        EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
+        EMITW(0xF2200D60 | MRM(REG(RG), REG(RG), TEG(T1)))
+
 #endif /* RT_RTARCH_ARM_MPE_H */
 
 /******************************************************************************/
