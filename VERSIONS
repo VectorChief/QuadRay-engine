@@ -1,2 +1,5 @@
+v0.0.1: SIMD test framework, run level 1
+  - SIMD tests for add, sub instructions pass successfully
+
 v0.0.0: Empty project
   - initial file set and directory structure is in place
