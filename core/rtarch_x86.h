@@ -91,6 +91,40 @@
 #define stack_la()                                                          \
         EMITB(0x9D) EMITB(0x61)
 
+/* add */
+
+#define addxx_ri(RM, IM)                                                    \
+        EMITB(0x81) MRM(MOD(RM),    0x00, REG(RM), SIB(RM)) IM
+
+#define addxx_mi(RM, DP, IM)                                                \
+        EMITB(0x81) MRM(MOD(RM),    0x00, REG(RM), SIB(RM)) DP IM
+
+#define addxx_rr(RG, RM)                                                    \
+        EMITB(0x03) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define addxx_ld(RG, RM, DP)                                                \
+        EMITB(0x03) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+#define addxx_st(RG, RM, DP)                                                \
+        EMITB(0x01) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+/* sub */
+
+#define subxx_ri(RM, IM)                                                    \
+        EMITB(0x81) MRM(MOD(RM),    0x05, REG(RM), SIB(RM)) IM
+
+#define subxx_mi(RM, DP, IM)                                                \
+        EMITB(0x81) MRM(MOD(RM),    0x05, REG(RM), SIB(RM)) DP IM
+
+#define subxx_rr(RG, RM)                                                    \
+        EMITB(0x2B) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define subxx_ld(RG, RM, DP)                                                \
+        EMITB(0x2B) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+#define subxx_st(RG, RM, DP)                                                \
+        EMITB(0x29) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
 #endif /* RT_RTARCH_X86_H */
 
 /******************************************************************************/

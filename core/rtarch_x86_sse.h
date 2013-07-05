@@ -35,6 +35,20 @@
 #define movps_st(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x29) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
 
+
+#define addps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x58) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define addps_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0x58) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+
+#define subps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x5C) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define subps_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0x5C) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
 #endif /* RT_RTARCH_X86_SSE_H */
 
 /******************************************************************************/
