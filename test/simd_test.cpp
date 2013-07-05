@@ -12,7 +12,7 @@
 #include "rtarch.h"
 #include "rtbase.h"
 
-#define RUN_LEVEL       0
+#define RUN_LEVEL       1
 #define VERBOSE         RT_FALSE
 #define CYC_SIZE        1000000
 
@@ -60,6 +60,140 @@ struct rt_INFO
     rt_cell size;
 #define inf_SIZE        DP(0x002C)
 
+};
+
+
+#if RUN_LEVEL >= 1
+
+rt_void C_run_level1(rt_INFO *p)
+{
+    rt_cell i, j, n = p->size;
+    rt_real *far0 = p->far0;
+    rt_real *fco1 = p->fco1;
+    rt_real *fco2 = p->fco2;
+
+    i = p->cyc;
+    while (i-->0)
+    {
+        j = n;
+        while (j-->0)
+        {
+            fco1[j] = far0[j] + far0[(j + 4) % n];
+            fco2[j] = far0[j] - far0[(j + 4) % n];
+        }
+    }
+}
+
+rt_void S_run_level1(rt_INFO *p)
+{
+    rt_cell i;
+    rt_INFO info = *p;
+
+#define AJ0         DP(0x0000)
+#define AJ1         DP(0x0010)
+#define AJ2         DP(0x0020)
+
+    i = p->cyc;
+    while (i-->0)
+    {
+        ASM_ENTER(info)
+
+        movxx_ld(Recx, Mebp, inf_FAR0)
+        movxx_ld(Redx, Mebp, inf_FSO1)
+        movxx_ld(Rebx, Mebp, inf_FSO2)
+
+        movps_ld(Xmm0, Mecx, AJ0)
+        movps_ld(Xmm1, Mecx, AJ1)
+        movps_rr(Xmm2, Xmm0)
+        addps_rr(Xmm2, Xmm1)
+        movps_rr(Xmm3, Xmm0)
+        subps_rr(Xmm3, Xmm1)
+        movps_st(Xmm2, Medx, AJ0)
+        movps_st(Xmm3, Mebx, AJ0)
+
+        movps_ld(Xmm0, Mecx, AJ1)
+        movps_ld(Xmm1, Mecx, AJ2)
+        movps_rr(Xmm2, Xmm0)
+        addps_rr(Xmm2, Xmm1)
+        movps_rr(Xmm3, Xmm0)
+        subps_rr(Xmm3, Xmm1)
+        movps_st(Xmm2, Medx, AJ1)
+        movps_st(Xmm3, Mebx, AJ1)
+
+        movps_ld(Xmm0, Mecx, AJ2)
+        movps_ld(Xmm1, Mecx, AJ0)
+        movps_rr(Xmm2, Xmm0)
+        addps_rr(Xmm2, Xmm1)
+        movps_rr(Xmm3, Xmm0)
+        subps_rr(Xmm3, Xmm1)
+        movps_st(Xmm2, Medx, AJ2)
+        movps_st(Xmm3, Mebx, AJ2)
+
+        ASM_LEAVE(info)
+    }
+}
+
+rt_void P_run_level1(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
+{
+    rt_cell j, n;
+
+    rt_real *far0 = p->far0;
+    rt_real *fco1 = p->fco1;
+    rt_real *fco2 = p->fco2;
+    rt_real *fso1 = p->fso1;
+    rt_real *fso2 = p->fso2;
+
+    RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 1);
+
+    j = n = p->size;
+    while (j-->0)
+    {
+        if (fco1[j] == fso1[j] && fco2[j] == fso2[j] && !v)
+        {
+            continue;
+        }
+
+        RT_LOGI("farr[%d] = %e\n", j, far0[j]);
+
+        RT_LOGI("C farr[%d]+farr[%d] = %e, farr[%d]-farr[%d] = %e\n",
+                j, (j + 4) % n, fco1[j], j, (j + 4) % n, fco2[j]);
+
+        RT_LOGI("S farr[%d]+farr[%d] = %e, farr[%d]-farr[%d] = %e\n",
+                j, (j + 4) % n, fso1[j], j, (j + 4) % n, fso2[j]);
+    }
+
+    RT_LOGI("Time C = %d\n", (rt_cell)tC);
+    RT_LOGI("Time S = %d\n", (rt_cell)tS);
+
+    RT_LOGI("----------------------------------------------------\n");
+}
+
+#endif /* RUN_LEVEL 1 */
+
+
+typedef rt_void (*C_run_levelX)(rt_INFO *);
+typedef rt_void (*S_run_levelX)(rt_INFO *);
+typedef rt_void (*P_run_levelX)(rt_INFO *, rt_long, rt_long, rt_bool);
+
+C_run_levelX Carr[RUN_LEVEL] =
+{
+#if RUN_LEVEL >= 1
+    C_run_level1,
+#endif /* RUN_LEVEL 1 */
+};
+
+S_run_levelX Sarr[RUN_LEVEL] =
+{
+#if RUN_LEVEL >= 1
+    S_run_level1,
+#endif /* RUN_LEVEL 1 */
+};
+
+P_run_levelX Parr[RUN_LEVEL] =
+{
+#if RUN_LEVEL >= 1
+    P_run_level1,
+#endif /* RUN_LEVEL 1 */
 };
 
 
@@ -132,6 +266,39 @@ int main ()
 
     memcpy(far0, farr, sizeof(farr));
     memcpy(iar0, iarr, sizeof(iarr));
+
+    rt_INFO     info =
+    {
+        far0,   fco1,   fco2,   fso1,   fso2,
+        iar0,   ico1,   ico2,   iso1,   iso2,
+        CYC_SIZE, ARR_SIZE
+    };
+
+    rt_long time1 = 0;
+    rt_long time2 = 0;
+    rt_long tC = 0;
+    rt_long tS = 0;
+
+    rt_cell i;
+
+    for (i = 0; i < RUN_LEVEL; i++)
+    {
+        time1 = get_time();
+
+        Carr[i](&info);
+
+        time2 = get_time();
+        tC = time2 - time1;
+
+        time1 = get_time();
+
+        Sarr[i](&info);
+
+        time2 = get_time();
+        tS = time2 - time1;
+
+        Parr[i](&info, tC, tS, VERBOSE);
+    }
 
 #if   defined (WIN32) /* Win32, MSC ----------------------------------------- */
 
