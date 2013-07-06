@@ -175,6 +175,9 @@
 #define shlxx_mi(RM, DP, IB)                                                \
         EMITB(0xC1) MRM(MOD(RM),    0x04, REG(RM), SIB(RM)) DP IB
 
+#define mulxx_ld(RH, RL, RM, DP)                                            \
+        EMITB(0xF7) MRM(MOD(RM),    0x05, REG(RM), SIB(RM)) DP
+
 /* shr */
 
 #define shrxx_ri(RM, IB)                                                    \
@@ -182,6 +185,9 @@
 
 #define shrxx_mi(RM, DP, IB)                                                \
         EMITB(0xC1) MRM(MOD(RM),    0x05, REG(RM), SIB(RM)) DP IB
+
+#define divxx_ld(RH, RL, RM, DP)                                            \
+        EMITB(0xF7) MRM(MOD(RM),    0x07, REG(RM), SIB(RM)) DP
 
 /* cmp */
 
@@ -199,6 +205,38 @@
 
 #define cmpxx_mr(RG, RM, DP)                                                \
         EMITB(0x39) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+/* jmp */
+
+#define jmpxx_mm(RM, DP)                                                    \
+        EMITB(0xFF) MRM(MOD(RM),    0x04, REG(RM), SIB(RM)) DP
+
+#define jmpxx_lb(LB)                                                        \
+        ASM_BEG ASM_OP1(jmp, LB) ASM_END
+
+#define jeqxx_lb(LB)                                                        \
+        ASM_BEG ASM_OP1(je,  LB) ASM_END
+
+#define jnexx_lb(LB)                                                        \
+        ASM_BEG ASM_OP1(jne, LB) ASM_END
+
+#define jnzxx_lb(LB)                                                        \
+        ASM_BEG ASM_OP1(jnz, LB) ASM_END
+
+#define jltxx_lb(LB)                                                        \
+        ASM_BEG ASM_OP1(jl,  LB) ASM_END
+
+#define jlexx_lb(LB)                                                        \
+        ASM_BEG ASM_OP1(jle, LB) ASM_END
+
+#define jgtxx_lb(LB)                                                        \
+        ASM_BEG ASM_OP1(jg,  LB) ASM_END
+
+#define jgexx_lb(LB)                                                        \
+        ASM_BEG ASM_OP1(jge, LB) ASM_END
+
+#define LBL(LB)                                                             \
+        ASM_BEG ASM_OP0(LB:) ASM_END
 
 #endif /* RT_RTARCH_X86_H */
 
