@@ -12,7 +12,7 @@
 #include "rtarch.h"
 #include "rtbase.h"
 
-#define RUN_LEVEL       2
+#define RUN_LEVEL       5
 #define VERBOSE         RT_FALSE
 #define CYC_SIZE        1000000
 
@@ -280,6 +280,330 @@ rt_void P_run_level2(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
 #endif /* RUN_LEVEL 2 */
 
 
+#if RUN_LEVEL >= 3
+
+rt_void C_run_level3(rt_INFO *p)
+{
+    rt_cell i, j, n = p->size;
+    rt_real *far0 = p->far0;
+    rt_cell *ico1 = p->ico1;
+    rt_cell *ico2 = p->ico2;
+
+    i = p->cyc;
+    while (i-->0)
+    {
+        j = n;
+        while (j-->0)
+        {
+            ico1[j] = (far0[j] >  far0[(j + 4) % n]) ? 0xFFFFFFFF : 0x00000000;
+            ico2[j] = (far0[j] >= far0[(j + 4) % n]) ? 0xFFFFFFFF : 0x00000000;
+        }
+    }
+}
+
+rt_void S_run_level3(rt_INFO *p)
+{
+    rt_cell i;
+    rt_INFO info = *p;
+
+#define AJ0         DP(0x0000)
+#define AJ1         DP(0x0010)
+#define AJ2         DP(0x0020)
+
+    i = p->cyc;
+    while (i-->0)
+    {
+        ASM_ENTER(info)
+
+        movxx_ld(Recx, Mebp, inf_FAR0)
+        movxx_ld(Redx, Mebp, inf_ISO1)
+        movxx_ld(Rebx, Mebp, inf_ISO2)
+
+        movps_ld(Xmm0, Mecx, AJ0)
+        movps_ld(Xmm1, Mecx, AJ1)
+        movps_rr(Xmm2, Xmm0)
+        cgtps_rr(Xmm2, Xmm1)
+        movps_rr(Xmm3, Xmm0)
+        cgeps_rr(Xmm3, Xmm1)
+        movps_st(Xmm2, Medx, AJ0)
+        movps_st(Xmm3, Mebx, AJ0)
+
+        movps_ld(Xmm0, Mecx, AJ1)
+        movps_ld(Xmm1, Mecx, AJ2)
+        movps_rr(Xmm2, Xmm0)
+        cgtps_rr(Xmm2, Xmm1)
+        movps_rr(Xmm3, Xmm0)
+        cgeps_rr(Xmm3, Xmm1)
+        movps_st(Xmm2, Medx, AJ1)
+        movps_st(Xmm3, Mebx, AJ1)
+
+        movps_ld(Xmm0, Mecx, AJ2)
+        movps_ld(Xmm1, Mecx, AJ0)
+        movps_rr(Xmm2, Xmm0)
+        cgtps_rr(Xmm2, Xmm1)
+        movps_rr(Xmm3, Xmm0)
+        cgeps_rr(Xmm3, Xmm1)
+        movps_st(Xmm2, Medx, AJ2)
+        movps_st(Xmm3, Mebx, AJ2)
+
+        ASM_LEAVE(info)
+    }
+}
+
+rt_void P_run_level3(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
+{
+    rt_cell j, n;
+
+    rt_real *far0 = p->far0;
+    rt_cell *ico1 = p->ico1;
+    rt_cell *ico2 = p->ico2;
+    rt_cell *iso1 = p->iso1;
+    rt_cell *iso2 = p->iso2;
+
+    RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 3);
+
+    j = n = p->size;
+    while (j-->0)
+    {
+        if (ico1[j] == iso1[j] && ico2[j] == iso2[j] && !v)
+        {
+            continue;
+        }
+
+        RT_LOGI("farr[%d] = %e\n", j, far0[j]);
+
+        RT_LOGI("C (farr[%d] > farr[%d]) = %X, (farr[%d] >= farr[%d]) = %X\n",
+                j, (j + 4) % n, ico1[j], j, (j + 4) % n, ico2[j]);
+
+        RT_LOGI("S (farr[%d] > farr[%d]) = %X, (farr[%d] >= farr[%d]) = %X\n",
+                j, (j + 4) % n, iso1[j], j, (j + 4) % n, iso2[j]);
+    }
+
+    RT_LOGI("Time C = %d\n", (rt_cell)tC);
+    RT_LOGI("Time S = %d\n", (rt_cell)tS);
+
+    RT_LOGI("----------------------------------------------------\n");
+}
+
+#endif /* RUN_LEVEL 3 */
+
+
+#if RUN_LEVEL >= 4
+
+rt_void C_run_level4(rt_INFO *p)
+{
+    rt_cell i, j, n = p->size;
+    rt_real *far0 = p->far0;
+    rt_cell *ico1 = p->ico1;
+    rt_cell *ico2 = p->ico2;
+
+    i = p->cyc;
+    while (i-->0)
+    {
+        j = n;
+        while (j-->0)
+        {
+            ico1[j] = (far0[j] <  far0[(j + 4) % n]) ? 0xFFFFFFFF : 0x00000000;
+            ico2[j] = (far0[j] <= far0[(j + 4) % n]) ? 0xFFFFFFFF : 0x00000000;
+        }
+    }
+}
+
+rt_void S_run_level4(rt_INFO *p)
+{
+    rt_cell i;
+    rt_INFO info = *p;
+
+#define AJ0         DP(0x0000)
+#define AJ1         DP(0x0010)
+#define AJ2         DP(0x0020)
+
+    i = p->cyc;
+    while (i-->0)
+    {
+        ASM_ENTER(info)
+
+        movxx_ld(Recx, Mebp, inf_FAR0)
+        movxx_ld(Redx, Mebp, inf_ISO1)
+        movxx_ld(Rebx, Mebp, inf_ISO2)
+
+        movps_ld(Xmm0, Mecx, AJ0)
+        movps_ld(Xmm1, Mecx, AJ1)
+        movps_rr(Xmm2, Xmm0)
+        cltps_rr(Xmm2, Xmm1)
+        movps_rr(Xmm3, Xmm0)
+        cleps_rr(Xmm3, Xmm1)
+        movps_st(Xmm2, Medx, AJ0)
+        movps_st(Xmm3, Mebx, AJ0)
+
+        movps_ld(Xmm0, Mecx, AJ1)
+        movps_ld(Xmm1, Mecx, AJ2)
+        movps_rr(Xmm2, Xmm0)
+        cltps_rr(Xmm2, Xmm1)
+        movps_rr(Xmm3, Xmm0)
+        cleps_rr(Xmm3, Xmm1)
+        movps_st(Xmm2, Medx, AJ1)
+        movps_st(Xmm3, Mebx, AJ1)
+
+        movps_ld(Xmm0, Mecx, AJ2)
+        movps_ld(Xmm1, Mecx, AJ0)
+        movps_rr(Xmm2, Xmm0)
+        cltps_rr(Xmm2, Xmm1)
+        movps_rr(Xmm3, Xmm0)
+        cleps_rr(Xmm3, Xmm1)
+        movps_st(Xmm2, Medx, AJ2)
+        movps_st(Xmm3, Mebx, AJ2)
+
+        ASM_LEAVE(info)
+    }
+}
+
+rt_void P_run_level4(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
+{
+    rt_cell j, n;
+
+    rt_real *far0 = p->far0;
+    rt_cell *ico1 = p->ico1;
+    rt_cell *ico2 = p->ico2;
+    rt_cell *iso1 = p->iso1;
+    rt_cell *iso2 = p->iso2;
+
+    RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 4);
+
+    j = n = p->size;
+    while (j-->0)
+    {
+        if (ico1[j] == iso1[j] && ico2[j] == iso2[j] && !v)
+        {
+            continue;
+        }
+
+        RT_LOGI("farr[%d] = %e\n", j, far0[j]);
+
+        RT_LOGI("C (farr[%d] < farr[%d]) = %X, (farr[%d] <= farr[%d]) = %X\n",
+                j, (j + 4) % n, ico1[j], j, (j + 4) % n, ico2[j]);
+
+        RT_LOGI("S (farr[%d] < farr[%d]) = %X, (farr[%d] <= farr[%d]) = %X\n",
+                j, (j + 4) % n, iso1[j], j, (j + 4) % n, iso2[j]);
+    }
+
+    RT_LOGI("Time C = %d\n", (rt_cell)tC);
+    RT_LOGI("Time S = %d\n", (rt_cell)tS);
+
+    RT_LOGI("----------------------------------------------------\n");
+}
+
+#endif /* RUN_LEVEL 4 */
+
+
+#if RUN_LEVEL >= 5
+
+rt_void C_run_level5(rt_INFO *p)
+{
+    rt_cell i, j, n = p->size;
+    rt_real *far0 = p->far0;
+    rt_cell *ico1 = p->ico1;
+    rt_cell *ico2 = p->ico2;
+
+    i = p->cyc;
+    while (i-->0)
+    {
+        j = n;
+        while (j-->0)
+        {
+            ico1[j] = (far0[j] == far0[(j + 4) % n]) ? 0xFFFFFFFF : 0x00000000;
+            ico2[j] = (far0[j] != far0[(j + 4) % n]) ? 0xFFFFFFFF : 0x00000000;
+        }
+    }
+}
+
+rt_void S_run_level5(rt_INFO *p)
+{
+    rt_cell i;
+    rt_INFO info = *p;
+
+#define AJ0         DP(0x0000)
+#define AJ1         DP(0x0010)
+#define AJ2         DP(0x0020)
+
+    i = p->cyc;
+    while (i-->0)
+    {
+        ASM_ENTER(info)
+
+        movxx_ld(Recx, Mebp, inf_FAR0)
+        movxx_ld(Redx, Mebp, inf_ISO1)
+        movxx_ld(Rebx, Mebp, inf_ISO2)
+
+        movps_ld(Xmm0, Mecx, AJ0)
+        movps_ld(Xmm1, Mecx, AJ1)
+        movps_rr(Xmm2, Xmm0)
+        ceqps_rr(Xmm2, Xmm1)
+        movps_rr(Xmm3, Xmm0)
+        cneps_rr(Xmm3, Xmm1)
+        movps_st(Xmm2, Medx, AJ0)
+        movps_st(Xmm3, Mebx, AJ0)
+
+        movps_ld(Xmm0, Mecx, AJ1)
+        movps_ld(Xmm1, Mecx, AJ2)
+        movps_rr(Xmm2, Xmm0)
+        ceqps_rr(Xmm2, Xmm1)
+        movps_rr(Xmm3, Xmm0)
+        cneps_rr(Xmm3, Xmm1)
+        movps_st(Xmm2, Medx, AJ1)
+        movps_st(Xmm3, Mebx, AJ1)
+
+        movps_ld(Xmm0, Mecx, AJ2)
+        movps_ld(Xmm1, Mecx, AJ0)
+        movps_rr(Xmm2, Xmm0)
+        ceqps_rr(Xmm2, Xmm1)
+        movps_rr(Xmm3, Xmm0)
+        cneps_rr(Xmm3, Xmm1)
+        movps_st(Xmm2, Medx, AJ2)
+        movps_st(Xmm3, Mebx, AJ2)
+
+        ASM_LEAVE(info)
+    }
+}
+
+rt_void P_run_level5(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
+{
+    rt_cell j, n;
+
+    rt_real *far0 = p->far0;
+    rt_cell *ico1 = p->ico1;
+    rt_cell *ico2 = p->ico2;
+    rt_cell *iso1 = p->iso1;
+    rt_cell *iso2 = p->iso2;
+
+    RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 5);
+
+    j = n = p->size;
+    while (j-->0)
+    {
+        if (ico1[j] == iso1[j] && ico2[j] == iso2[j] && !v)
+        {
+            continue;
+        }
+
+        RT_LOGI("farr[%d] = %e\n", j, far0[j]);
+
+        RT_LOGI("C (farr[%d] == farr[%d]) = %X, (farr[%d] != farr[%d]) = %X\n",
+                j, (j + 4) % n, ico1[j], j, (j + 4) % n, ico2[j]);
+
+        RT_LOGI("S (farr[%d] == farr[%d]) = %X, (farr[%d] != farr[%d]) = %X\n",
+                j, (j + 4) % n, iso1[j], j, (j + 4) % n, iso2[j]);
+    }
+
+    RT_LOGI("Time C = %d\n", (rt_cell)tC);
+    RT_LOGI("Time S = %d\n", (rt_cell)tS);
+
+    RT_LOGI("----------------------------------------------------\n");
+}
+
+#endif /* RUN_LEVEL 5 */
+
+
 typedef rt_void (*C_run_levelX)(rt_INFO *);
 typedef rt_void (*S_run_levelX)(rt_INFO *);
 typedef rt_void (*P_run_levelX)(rt_INFO *, rt_long, rt_long, rt_bool);
@@ -293,6 +617,18 @@ C_run_levelX Carr[RUN_LEVEL] =
 #if RUN_LEVEL >= 2
     C_run_level2,
 #endif /* RUN_LEVEL 2 */
+
+#if RUN_LEVEL >= 3
+    C_run_level3,
+#endif /* RUN_LEVEL 3 */
+
+#if RUN_LEVEL >= 4
+    C_run_level4,
+#endif /* RUN_LEVEL 4 */
+
+#if RUN_LEVEL >= 5
+    C_run_level5,
+#endif /* RUN_LEVEL 5 */
 };
 
 S_run_levelX Sarr[RUN_LEVEL] =
@@ -304,6 +640,18 @@ S_run_levelX Sarr[RUN_LEVEL] =
 #if RUN_LEVEL >= 2
     S_run_level2,
 #endif /* RUN_LEVEL 2 */
+
+#if RUN_LEVEL >= 3
+    S_run_level3,
+#endif /* RUN_LEVEL 3 */
+
+#if RUN_LEVEL >= 4
+    S_run_level4,
+#endif /* RUN_LEVEL 4 */
+
+#if RUN_LEVEL >= 5
+    S_run_level5,
+#endif /* RUN_LEVEL 5 */
 };
 
 P_run_levelX Parr[RUN_LEVEL] =
@@ -315,6 +663,18 @@ P_run_levelX Parr[RUN_LEVEL] =
 #if RUN_LEVEL >= 2
     P_run_level2,
 #endif /* RUN_LEVEL 2 */
+
+#if RUN_LEVEL >= 3
+    P_run_level3,
+#endif /* RUN_LEVEL 3 */
+
+#if RUN_LEVEL >= 4
+    P_run_level4,
+#endif /* RUN_LEVEL 4 */
+
+#if RUN_LEVEL >= 5
+    P_run_level5,
+#endif /* RUN_LEVEL 5 */
 };
 
 
