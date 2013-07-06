@@ -169,7 +169,7 @@
 
 /* int (SSE2) */
 
-#define cvtpi_rr(RG, RM)                                                    \
+#define cvtpn_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x5B) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
 
 #define cvtps_rr(RG, RM)                                                    \
@@ -177,29 +177,29 @@
                                 MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
 
 
-#define addpi_rr(RG, RM)                                                    \
+#define addpn_rr(RG, RM)                                                    \
         EMITB(0x66) EMITB(0x0F) EMITB(0xFE)                                 \
                                 MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
 
-#define addpi_ld(RG, RM, DP)                                                \
+#define addpn_ld(RG, RM, DP)                                                \
         EMITB(0x66) EMITB(0x0F) EMITB(0xFE)                                 \
                                 MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
 
 
-#define shlpi_ri(RM, IB)                                                    \
+#define shlpn_ri(RM, IB)                                                    \
         EMITB(0x66) EMITB(0x0F) EMITB(0x72)                                 \
                                 MRM(MOD(RM),    0x06, REG(RM), SIB(RM)) IB
 
-#define shlpi_ld(RG, RM, DP)                                                \
+#define shlpn_ld(RG, RM, DP)                                                \
         EMITB(0x66) EMITB(0x0F) EMITB(0xF2)                                 \
                                 MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
 
 
-#define shrpi_ri(RM, IB)                                                    \
+#define shrpn_ri(RM, IB)                                                    \
         EMITB(0x66) EMITB(0x0F) EMITB(0x72)                                 \
                                 MRM(MOD(RM),    0x02, REG(RM), SIB(RM)) IB
 
-#define shrpi_ld(RG, RM, DP)                                                \
+#define shrpn_ld(RG, RM, DP)                                                \
         EMITB(0x66) EMITB(0x0F) EMITB(0xD2)                                 \
                                 MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
 

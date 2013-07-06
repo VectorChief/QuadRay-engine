@@ -263,7 +263,7 @@
 
 /* int */
 
-#define cvtpi_rr(RG, RM)                                                    \
+#define cvtpn_rr(RG, RM)                                                    \
         EMITW(0xF3BB0640 | MRM(REG(RG), 0x00, REG(RM)))
 
 #define cvtps_rr(RG, RM)                                                    \
@@ -273,33 +273,33 @@
         EMITW(0xEEFD0A60 | MRM(REG(RG)+1, 0x00, REG(RM)+1))
 
 
-#define addpi_rr(RG, RM)                                                    \
+#define addpn_rr(RG, RM)                                                    \
         EMITW(0xF2200840 | MRM(REG(RG), REG(RG), REG(RM)))                  \
 
-#define addpi_ld(RG, RM, DP)                                                \
+#define addpn_ld(RG, RM, DP)                                                \
         SIB(RM)                                                             \
         EMITW(0xE2800F00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 2)           \
         EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
         EMITW(0xF2200860 | MRM(REG(RG), REG(RG), TEG(T1)))
 
 
-#define shlpi_ri(RM, IB)                                                    \
+#define shlpn_ri(RM, IB)                                                    \
         EMITW(0xF2A00550 | MRM(REG(RM), 0x00, REG(RM)) | (0x1F & IB) << 16)
 
-#define shlpi_ld(RG, RM, DP)                                                \
+#define shlpn_ld(RG, RM, DP)                                                \
         SIB(RM)                                                             \
         EMITW(0xE2800F00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 2)           \
         EMITW(0xF4E00CBF | MRM(TEG(T1), TEG(TP), 0x00))                     \
         EMITW(0xF32004C0 | MRM(REG(RG), TEG(T1), REG(RG)))
 
 
-#define shrpi_ri(RM, IB)                                                    \
+#define shrpn_ri(RM, IB)                                                    \
         EMITW(0xE3A00000 | MRM(TEG(TI), 0x00, 0x00) | (0xFF & IB))          \
         EMITW(0xEEA00B90 | MRM(TEG(TI), TEG(T1), 0x00))                     \
         EMITW(0xF3F903E0 | MRM(TEG(T1), 0x00, TEG(T1)))                     \
         EMITW(0xF32004C0 | MRM(REG(RM), TEG(T1), REG(RM)))
 
-#define shrpi_ld(RG, RM, DP)                                                \
+#define shrpn_ld(RG, RM, DP)                                                \
         SIB(RM)                                                             \
         EMITW(0xE2800F00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 2)           \
         EMITW(0xF4E00CBF | MRM(TEG(T1), TEG(TP), 0x00))                     \
