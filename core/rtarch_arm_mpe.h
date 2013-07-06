@@ -94,6 +94,23 @@
         EMITW(0xF3400DF0 | MRM(TEG(T2), TEG(T3), TEG(T2)))                  \
         EMITW(0xF3000D70 | MRM(REG(RG), REG(RG), TEG(T2)))
 
+
+#define sqrps_rr(RG, RM)                                                    \
+        EMITW(0xEEB10AC0 | MRM(REG(RG)+0, 0x00, REG(RM)+0))                 \
+        EMITW(0xEEF10AE0 | MRM(REG(RG)+0, 0x00, REG(RM)+0))                 \
+        EMITW(0xEEB10AC0 | MRM(REG(RG)+1, 0x00, REG(RM)+1))                 \
+        EMITW(0xEEF10AE0 | MRM(REG(RG)+1, 0x00, REG(RM)+1))
+
+#define rsqps_rr(RG, RT, RM)                                                \
+        EMITW(0xEEB10AC0 | MRM(REG(RT)+0, 0x00, REG(RM)+0))                 \
+        EMITW(0xEEF10AE0 | MRM(REG(RT)+0, 0x00, REG(RM)+0))                 \
+        EMITW(0xEEB10AC0 | MRM(REG(RT)+1, 0x00, REG(RM)+1))                 \
+        EMITW(0xEEF10AE0 | MRM(REG(RT)+1, 0x00, REG(RM)+1))                 \
+        EMITW(0xEE800A00 | MRM(REG(RG)+0, REG(RG)+0, REG(RT)+0))            \
+        EMITW(0xEEC00AA0 | MRM(REG(RG)+0, REG(RG)+0, REG(RT)+0))            \
+        EMITW(0xEE800A00 | MRM(REG(RG)+1, REG(RG)+1, REG(RT)+1))            \
+        EMITW(0xEEC00AA0 | MRM(REG(RG)+1, REG(RG)+1, REG(RT)+1))
+
 #else /* RT_USE_VFP */
 
 #define divps_rr(RG, RM)                                                    \
@@ -110,6 +127,23 @@
         EMITW(0xF2400FF0 | MRM(TEG(T3), TEG(T2), TEG(T1)))                  \
         EMITW(0xF3400DF0 | MRM(TEG(T2), TEG(T3), TEG(T2)))                  \
         EMITW(0xF3000D70 | MRM(REG(RG), REG(RG), TEG(T2)))
+
+
+#define sqrps_rr(RG, RM)                                                    \
+        EMITW(0xF3FB05C0 | MRM(TEG(T1), 0x00, REG(RM)))                     \
+        EMITW(0xF3400DF0 | MRM(TEG(T2), TEG(T1), TEG(T1)))                  \
+        EMITW(0xF2600FD0 | MRM(TEG(T2), TEG(T2), REG(RM)))                  \
+        EMITW(0xF3400DF0 | MRM(TEG(T1), TEG(T2), TEG(T1)))                  \
+        EMITW(0xF3FB0560 | MRM(TEG(T2), 0x00, TEG(T1)))                     \
+        EMITW(0xF2400FF0 | MRM(TEG(T3), TEG(T2), TEG(T1)))                  \
+        EMITW(0xF3000DF0 | MRM(REG(RG), TEG(T3), TEG(T2)))
+
+#define rsqps_rr(RG, RT, RM)                                                \
+        EMITW(0xF3FB05C0 | MRM(TEG(T1), 0x00, REG(RM)))                     \
+        EMITW(0xF3400DF0 | MRM(TEG(T2), TEG(T1), TEG(T1)))                  \
+        EMITW(0xF2600FD0 | MRM(TEG(T2), TEG(T2), REG(RM)))                  \
+        EMITW(0xF3400DF0 | MRM(TEG(T1), TEG(T2), TEG(T1)))                  \
+        EMITW(0xF3000D70 | MRM(REG(RG), REG(RG), TEG(T1)))
 
 #endif /* RT_USE_VFP */
 

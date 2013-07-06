@@ -64,6 +64,14 @@
         EMITB(0x0F) EMITB(0x5E) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
 
 
+#define sqrps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x51) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define rsqps_rr(RG, RT, RM)                                                \
+        EMITB(0x0F) EMITB(0x51) MRM(MOD(RM), REG(RT), REG(RM), SIB(RM))     \
+        EMITB(0x0F) EMITB(0x5E) MRM(MOD(RT), REG(RG), REG(RT), SIB(RT))
+
+
 #define andps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x54) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
 
