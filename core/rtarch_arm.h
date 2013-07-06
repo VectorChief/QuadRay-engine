@@ -217,6 +217,17 @@
         EMITW(0xE1800000 | MRM(TEG(TM), TEG(TM), REG(RG)))                  \
         EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
 
+/* not */
+
+#define notxx_rr(RM)                                                        \
+        EMITW(0xE1E00000 | MRM(REG(RM), 0x00, REG(RM)))
+
+#define notxx_mm(RM, DP)                                                    \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE1E00000 | MRM(TEG(TM), 0x00, TEG(TM)))                     \
+        EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
+
 /* shl */
 
 #define shlxx_ri(RM, IB)                                                    \
@@ -238,6 +249,31 @@
         EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
         EMITW(0xE1A00020 | MRM(REG(RM), 0x00, REG(RM)) | (0x1F & IB) << 7)  \
         EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
+
+/* cmp */
+
+#define cmpxx_ri(RM, IM)                                                    \
+        IM                                                                  \
+        EMITW(0xE1500000 | MRM(0x00, REG(RM), TEG(TI)))
+
+#define cmpxx_mi(RM, DP, IM)                                                \
+        IM                                                                  \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE1500000 | MRM(0x00, TEG(TM), TEG(TI)))
+
+#define cmpxx_rr(RG, RM)                                                    \
+        EMITW(0xE1500000 | MRM(0x00, REG(RG), REG(RM)))
+
+#define cmpxx_rm(RG, RM, DP)                                                \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE1500000 | MRM(0x00, REG(RG), TEG(TM)))
+
+#define cmpxx_mr(RG, RM, DP)                                                \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE1500000 | MRM(0x00, TEG(TM), REG(RG)))
 
 #endif /* RT_RTARCH_ARM_H */
 

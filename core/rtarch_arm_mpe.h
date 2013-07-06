@@ -153,6 +153,61 @@
         EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
         EMITW(0xF3000170 | MRM(REG(RG), REG(RG), TEG(T1)))
 
+
+#define minps_rr(RG, RM)                                                    \
+        EMITW(0xF2200F40 | MRM(REG(RG), REG(RG), REG(RM)))                  \
+
+#define minps_ld(RG, RM, DP)                                                \
+        SIB(RM)                                                             \
+        EMITW(0xE2800F00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 2)           \
+        EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
+        EMITW(0xF2200F60 | MRM(REG(RG), REG(RG), TEG(T1)))
+
+
+#define maxps_rr(RG, RM)                                                    \
+        EMITW(0xF2000F40 | MRM(REG(RG), REG(RG), REG(RM)))                  \
+
+#define maxps_ld(RG, RM, DP)                                                \
+        SIB(RM)                                                             \
+        EMITW(0xE2800F00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 2)           \
+        EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
+        EMITW(0xF2000F60 | MRM(REG(RG), REG(RG), TEG(T1)))
+
+
+#define ceqps_rr(RG, RM)                                                    \
+        EMITW(0xF2000E40 | MRM(REG(RG), REG(RG), REG(RM)))
+
+#define cltps_rr(RG, RM)                                                    \
+        EMITW(0xF3200E40 | MRM(REG(RG), REG(RM), REG(RG)))
+
+#define cleps_rr(RG, RM)                                                    \
+        EMITW(0xF3000E40 | MRM(REG(RG), REG(RM), REG(RG)))
+
+#define cneps_rr(RG, RM)                                                    \
+        EMITW(0xF2000E40 | MRM(REG(RG), REG(RG), REG(RM)))                  \
+        EMITW(0xF3B005C0 | MRM(REG(RG), 0x00, REG(RG)))
+
+#define cgeps_rr(RG, RM)                                                    \
+        EMITW(0xF3000E40 | MRM(REG(RG), REG(RG), REG(RM)))
+
+#define cgtps_rr(RG, RM)                                                    \
+        EMITW(0xF3200E40 | MRM(REG(RG), REG(RG), REG(RM)))
+
+
+#define movms_rr(RG, RM)                                                    \
+        EMITW(0xF3F60200 | MRM(TEG(T1)+0, 0x00, REG(RM)))                   \
+        EMITW(0xF3F20220 | MRM(TEG(T1)+0, 0x00, TEG(T1)))                   \
+        EMITW(0xEE100B90 | MRM(REG(RG), TEG(T1)+0, 0x00))
+
+#define NONE  0x00
+#define FULL  0x01
+
+#define CHECK_MASK(lb, cc)                                                  \
+        movms_rr(Reax, Xmm7)                                                \
+        addxx_ri(Reax, IM(cc))                                              \
+        cmpxx_ri(Reax, IM(0))                                               \
+        jeqxx_lb(lb)
+
 #endif /* RT_RTARCH_ARM_MPE_H */
 
 /******************************************************************************/
