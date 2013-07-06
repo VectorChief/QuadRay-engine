@@ -163,6 +163,82 @@
         EMITW(0xE0400000 | MRM(TEG(TM), TEG(TM), REG(RG)))                  \
         EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
 
+/* and */
+
+#define andxx_ri(RM, IM)                                                    \
+        IM                                                                  \
+        EMITW(0xE0000000 | MRM(REG(RM), REG(RM), TEG(TI)))
+
+#define andxx_mi(RM, DP, IM)                                                \
+        IM                                                                  \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE0000000 | MRM(TEG(TM), TEG(TM), TEG(TI)))                  \
+        EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
+
+#define andxx_rr(RG, RM)                                                    \
+        EMITW(0xE0000000 | MRM(REG(RG), REG(RG), REG(RM)))
+
+#define andxx_ld(RG, RM, DP)                                                \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE0000000 | MRM(REG(RG), REG(RG), TEG(TM)))
+
+#define andxx_st(RG, RM, DP)                                                \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE0000000 | MRM(TEG(TM), TEG(TM), REG(RG)))                  \
+        EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
+
+/* orr */
+
+#define orrxx_ri(RM, IM)                                                    \
+        IM                                                                  \
+        EMITW(0xE1800000 | MRM(REG(RM), REG(RM), TEG(TI)))
+
+#define orrxx_mi(RM, DP, IM)                                                \
+        IM                                                                  \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE1800000 | MRM(TEG(TM), TEG(TM), TEG(TI)))                  \
+        EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
+
+#define orrxx_rr(RG, RM)                                                    \
+        EMITW(0xE1800000 | MRM(REG(RG), REG(RG), REG(RM)))
+
+#define orrxx_ld(RG, RM, DP)                                                \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE1800000 | MRM(REG(RG), REG(RG), TEG(TM)))
+
+#define orrxx_st(RG, RM, DP)                                                \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE1800000 | MRM(TEG(TM), TEG(TM), REG(RG)))                  \
+        EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
+
+/* shl */
+
+#define shlxx_ri(RM, IB)                                                    \
+        EMITW(0xE1A00000 | MRM(REG(RM), 0x00, REG(RM)) | (0x1F & IB) << 7)
+
+#define shlxx_mi(RM, DP, IB)                                                \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE1A00000 | MRM(REG(RM), 0x00, REG(RM)) | (0x1F & IB) << 7)  \
+        EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
+
+/* shr */
+
+#define shrxx_ri(RM, IB)                                                    \
+        EMITW(0xE1A00020 | MRM(REG(RM), 0x00, REG(RM)) | (0x1F & IB) << 7)
+
+#define shrxx_mi(RM, DP, IB)                                                \
+        SIB(RM)                                                             \
+        EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
+        EMITW(0xE1A00020 | MRM(REG(RM), 0x00, REG(RM)) | (0x1F & IB) << 7)  \
+        EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
+
 #endif /* RT_RTARCH_ARM_H */
 
 /******************************************************************************/
