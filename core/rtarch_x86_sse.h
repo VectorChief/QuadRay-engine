@@ -176,6 +176,33 @@
         EMITB(0x66) EMITB(0x0F) EMITB(0x5B)                                 \
                                 MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
 
+
+#define addpi_rr(RG, RM)                                                    \
+        EMITB(0x66) EMITB(0x0F) EMITB(0xFE)                                 \
+                                MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define addpi_ld(RG, RM, DP)                                                \
+        EMITB(0x66) EMITB(0x0F) EMITB(0xFE)                                 \
+                                MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+
+#define shlpi_ri(RM, IB)                                                    \
+        EMITB(0x66) EMITB(0x0F) EMITB(0x72)                                 \
+                                MRM(MOD(RM),    0x06, REG(RM), SIB(RM)) IB
+
+#define shlpi_ld(RG, RM, DP)                                                \
+        EMITB(0x66) EMITB(0x0F) EMITB(0xF2)                                 \
+                                MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+
+#define shrpi_ri(RM, IB)                                                    \
+        EMITB(0x66) EMITB(0x0F) EMITB(0x72)                                 \
+                                MRM(MOD(RM),    0x02, REG(RM), SIB(RM)) IB
+
+#define shrpi_ld(RG, RM, DP)                                                \
+        EMITB(0x66) EMITB(0x0F) EMITB(0xD2)                                 \
+                                MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
 #endif /* RT_RTARCH_X86_SSE_H */
 
 /******************************************************************************/
