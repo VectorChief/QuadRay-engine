@@ -159,6 +159,14 @@
 #define orrxx_st(RG, RM, DP)                                                \
         EMITB(0x09) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
 
+/* not */
+
+#define notxx_rr(RM)                                                        \
+        EMITB(0xF7) MRM(MOD(RM),    0x02, REG(RM), SIB(RM))
+
+#define notxx_mm(RM, DP)                                                    \
+        EMITB(0xF7) MRM(MOD(RM),    0x02, REG(RM), SIB(RM)) DP
+
 /* shl */
 
 #define shlxx_ri(RM, IB)                                                    \
@@ -174,6 +182,23 @@
 
 #define shrxx_mi(RM, DP, IB)                                                \
         EMITB(0xC1) MRM(MOD(RM),    0x05, REG(RM), SIB(RM)) DP IB
+
+/* cmp */
+
+#define cmpxx_ri(RM, IM)                                                    \
+        EMITB(0x81) MRM(MOD(RM),    0x07, REG(RM), SIB(RM)) IM
+
+#define cmpxx_mi(RM, DP, IM)                                                \
+        EMITB(0x81) MRM(MOD(RM),    0x07, REG(RM), SIB(RM)) DP IM
+
+#define cmpxx_rr(RG, RM)                                                    \
+        EMITB(0x3B) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define cmpxx_rm(RG, RM, DP)                                                \
+        EMITB(0x3B) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+#define cmpxx_mr(RG, RM, DP)                                                \
+        EMITB(0x39) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
 
 #endif /* RT_RTARCH_X86_H */
 

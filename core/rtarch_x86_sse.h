@@ -91,6 +91,57 @@
 #define xorps_ld(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x57) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
 
+
+#define minps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x5D) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define minps_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0x5D) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+
+#define maxps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x5F) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define maxps_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0x5F) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+
+#define ceqps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0xC2) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))     \
+        EMITB(0x00)
+
+#define cltps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0xC2) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))     \
+        EMITB(0x01)
+
+#define cleps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0xC2) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))     \
+        EMITB(0x02)
+
+#define cneps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0xC2) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))     \
+        EMITB(0x04)
+
+#define cgeps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0xC2) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))     \
+        EMITB(0x05)
+
+#define cgtps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0xC2) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))     \
+        EMITB(0x06)
+
+
+#define movsn_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x50) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define NONE  0x00
+#define FULL  0x0F
+
+#define CHECK_MASK(lb, cc)                                                  \
+        movsn_rr(Reax, Xmm7)                                                \
+        cmpxx_ri(Reax, IM(cc))                                              \
+        jeqxx_lb(lb)
+
 #endif /* RT_RTARCH_X86_SSE_H */
 
 /******************************************************************************/
