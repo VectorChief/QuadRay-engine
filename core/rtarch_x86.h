@@ -125,6 +125,56 @@
 #define subxx_st(RG, RM, DP)                                                \
         EMITB(0x29) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
 
+/* and */
+
+#define andxx_ri(RM, IM)                                                    \
+        EMITB(0x81) MRM(MOD(RM),    0x04, REG(RM), SIB(RM)) IM
+
+#define andxx_mi(RM, DP, IM)                                                \
+        EMITB(0x81) MRM(MOD(RM),    0x04, REG(RM), SIB(RM)) DP IM
+
+#define andxx_rr(RG, RM)                                                    \
+        EMITB(0x23) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define andxx_ld(RG, RM, DP)                                                \
+        EMITB(0x23) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+#define andxx_st(RG, RM, DP)                                                \
+        EMITB(0x21) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+/* orr */
+
+#define orrxx_ri(RM, IM)                                                    \
+        EMITB(0x81) MRM(MOD(RM),    0x01, REG(RM), SIB(RM)) IM
+
+#define orrxx_mi(RM, DP, IM)                                                \
+        EMITB(0x81) MRM(MOD(RM),    0x01, REG(RM), SIB(RM)) DP IM
+
+#define orrxx_rr(RG, RM)                                                    \
+        EMITB(0x0B) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define orrxx_ld(RG, RM, DP)                                                \
+        EMITB(0x0B) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+#define orrxx_st(RG, RM, DP)                                                \
+        EMITB(0x09) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+/* shl */
+
+#define shlxx_ri(RM, IB)                                                    \
+        EMITB(0xC1) MRM(MOD(RM),    0x04, REG(RM), SIB(RM)) IB
+
+#define shlxx_mi(RM, DP, IB)                                                \
+        EMITB(0xC1) MRM(MOD(RM),    0x04, REG(RM), SIB(RM)) DP IB
+
+/* shr */
+
+#define shrxx_ri(RM, IB)                                                    \
+        EMITB(0xC1) MRM(MOD(RM),    0x05, REG(RM), SIB(RM)) IB
+
+#define shrxx_mi(RM, DP, IB)                                                \
+        EMITB(0xC1) MRM(MOD(RM),    0x05, REG(RM), SIB(RM)) DP IB
+
 #endif /* RT_RTARCH_X86_H */
 
 /******************************************************************************/

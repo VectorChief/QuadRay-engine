@@ -49,6 +49,48 @@
 #define subps_ld(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x5C) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
 
+
+#define mulps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x59) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define mulps_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0x59) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+
+#define divps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x5E) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define divps_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0x5E) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+
+#define andps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x54) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define andps_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0x54) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+
+#define annps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x55) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define annps_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0x55) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+
+#define orrps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x56) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define orrps_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0x56) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
+
+#define xorps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x57) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define xorps_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0x57) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM)) DP
+
 #endif /* RT_RTARCH_X86_SSE_H */
 
 /******************************************************************************/
