@@ -1,3 +1,6 @@
+v0.0.2: SIMD test framework, run level 5
+  - SIMD tests for mul, div, cmp instructions pass successfully
+
 v0.0.1: SIMD test framework, run level 1
   - SIMD tests for add, sub instructions pass successfully
 
