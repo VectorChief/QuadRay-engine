@@ -266,7 +266,7 @@
 #define cvtpn_rr(RG, RM)                                                    \
         EMITW(0xF3BB0640 | MRM(REG(RG), 0x00, REG(RM)))
 
-#define cvtps_rr(RG, RM)                                                    \
+#define cvtps_rr(RG, RM) /* fallback to VFP for float-to-integer cvt */     \
         EMITW(0xEEBD0A40 | MRM(REG(RG)+0, 0x00, REG(RM)+0))                 \
         EMITW(0xEEFD0A60 | MRM(REG(RG)+0, 0x00, REG(RM)+0))                 \
         EMITW(0xEEBD0A40 | MRM(REG(RG)+1, 0x00, REG(RM)+1))                 \

@@ -255,7 +255,7 @@
         EMITW(0xE1A00020 | MRM(REG(RM), 0x00, REG(RM)) | (0x1F & IB) << 7)  \
         EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
 
-#define divxx_ld(RH, RL, RM, DP)                                            \
+#define divxx_ld(RH, RL, RM, DP) /* fallback to VFP for integer div */      \
         SIB(RM)                                                             \
         EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
         EMITW(0xEC400B10 | MRM(REG(RL), TEG(TM), TEG(T0)+0))                \
