@@ -208,6 +208,36 @@
         cmpxx_ri(Reax, IM(0))                                               \
         jeqxx_lb(lb)
 
+
+#define fpscr_ld(RG)                                                        \
+        EMITW(0xEEE10A10 | MRM(REG(RG), 0x00, 0x00))
+
+#define fpscr_st(RG)                                                        \
+        EMITW(0xEEF10A10 | MRM(REG(RG), 0x00, 0x00))
+
+#define FCTRL_ENTER()                                                       \
+        fpscr_st(Reax)                                                      \
+        movxx_st(Reax, Mebp, inf_FCTRL)                                     \
+        movxx_ri(Redx, IM(1))                                               \
+        shlxx_ri(Redx, IB(23))                                              \
+        orrxx_rr(Reax, Redx)                                                \
+        fpscr_ld(Reax)
+
+#define FCTRL_LEAVE()                                                       \
+        movxx_ld(Reax, Mebp, inf_FCTRL)                                     \
+        fpscr_ld(Reax)
+
+/* int */
+
+#define cvtpi_rr(RG, RM)                                                    \
+        EMITW(0xF3BB0640 | MRM(REG(RG), 0x00, REG(RM)))
+
+#define cvtps_rr(RG, RM)                                                    \
+        EMITW(0xEEBD0A40 | MRM(REG(RG)+0, 0x00, REG(RM)+0))                 \
+        EMITW(0xEEFD0A60 | MRM(REG(RG)+0, 0x00, REG(RM)+0))                 \
+        EMITW(0xEEBD0A40 | MRM(REG(RG)+1, 0x00, REG(RM)+1))                 \
+        EMITW(0xEEFD0A60 | MRM(REG(RG)+1, 0x00, REG(RM)+1))
+
 #endif /* RT_RTARCH_ARM_MPE_H */
 
 /******************************************************************************/

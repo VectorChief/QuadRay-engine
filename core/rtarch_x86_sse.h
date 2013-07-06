@@ -142,6 +142,32 @@
         cmpxx_ri(Reax, IM(cc))                                              \
         jeqxx_lb(lb)
 
+
+#define mxcsr_ld(RM, DP)                                                    \
+        EMITB(0x0F) EMITB(0xAE) MRM(MOD(RM),    0x02, REG(RM), SIB(RM)) DP
+
+#define mxcsr_st(RM, DP)                                                    \
+        EMITB(0x0F) EMITB(0xAE) MRM(MOD(RM),    0x03, REG(RM), SIB(RM)) DP
+
+#define FCTRL_ENTER()                                                       \
+        mxcsr_st(Mebp, inf_FCTRL)                                           \
+        movxx_ld(Reax, Mebp, inf_FCTRL)                                     \
+        orrxx_mi(Mebp, inf_FCTRL, IM(1 << 13))                              \
+        mxcsr_ld(Mebp, inf_FCTRL)                                           \
+        movxx_st(Reax, Mebp, inf_FCTRL)
+
+#define FCTRL_LEAVE()                                                       \
+        mxcsr_ld(Mebp, inf_FCTRL)
+
+/* int (SSE2) */
+
+#define cvtpi_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x5B) MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
+#define cvtps_rr(RG, RM)                                                    \
+        EMITB(0x66) EMITB(0x0F) EMITB(0x5B)                                 \
+                                MRM(MOD(RM), REG(RG), REG(RM), SIB(RM))
+
 #endif /* RT_RTARCH_X86_SSE_H */
 
 /******************************************************************************/
