@@ -1,3 +1,8 @@
+v0.0.3: SIMD test framework, run level 9
+  - tests for integer mul, div, jmp  pass successfully
+  - SIMD tests for integer add, shl, shr instructions pass successfully
+  - SIMD tests for cvt, sqr, rsq instructions pass successfully
+
 v0.0.2: SIMD test framework, run level 5
   - SIMD tests for mul, div, cmp instructions pass successfully
 
