@@ -12,7 +12,7 @@
 #include "rtarch.h"
 #include "rtbase.h"
 
-#define RUN_LEVEL       5
+#define RUN_LEVEL       6
 #define VERBOSE         RT_FALSE
 #define CYC_SIZE        1000000
 
@@ -59,6 +59,9 @@ struct rt_INFO
 
     rt_cell size;
 #define inf_SIZE        DP(0x002C)
+
+    rt_cell fctrl;
+#define inf_FCTRL       DP(0x0030)
 
 };
 
@@ -604,6 +607,115 @@ rt_void P_run_level5(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
 #endif /* RUN_LEVEL 5 */
 
 
+#if RUN_LEVEL >= 6
+
+rt_void C_run_level6(rt_INFO *p)
+{
+    rt_cell i, j, n = p->size;
+    rt_real *far0 = p->far0;
+    rt_cell *iar0 = p->iar0;
+    rt_cell *ico1 = p->ico1;
+    rt_real *fco2 = p->fco2;
+
+    i = p->cyc;
+    while (i-->0)
+    {
+        j = n;
+        while (j-->0)
+        {
+            ico1[j] = (rt_cell)far0[j];
+            fco2[j] = (rt_real)iar0[j];
+        }
+    }
+}
+
+rt_void S_run_level6(rt_INFO *p)
+{
+    rt_cell i;
+    rt_INFO info = *p;
+
+#define AJ0         DP(0x0000)
+#define AJ1         DP(0x0010)
+#define AJ2         DP(0x0020)
+
+    i = p->cyc;
+    while (i-->0)
+    {
+        ASM_ENTER(info)
+
+        FCTRL_ENTER()
+
+        movxx_ld(Recx, Mebp, inf_FAR0)
+        movxx_ld(Resi, Mebp, inf_IAR0)
+        movxx_ld(Redx, Mebp, inf_ISO1)
+        movxx_ld(Rebx, Mebp, inf_FSO2)
+
+        movps_ld(Xmm0, Mecx, AJ0)
+        movps_ld(Xmm1, Mesi, AJ0)
+        cvtps_rr(Xmm2, Xmm0)
+        cvtpi_rr(Xmm3, Xmm1)
+        movps_st(Xmm2, Medx, AJ0)
+        movps_st(Xmm3, Mebx, AJ0)
+
+        movps_ld(Xmm0, Mecx, AJ1)
+        movps_ld(Xmm1, Mesi, AJ1)
+        cvtps_rr(Xmm2, Xmm0)
+        cvtpi_rr(Xmm3, Xmm1)
+        movps_st(Xmm2, Medx, AJ1)
+        movps_st(Xmm3, Mebx, AJ1)
+
+        movps_ld(Xmm0, Mecx, AJ2)
+        movps_ld(Xmm1, Mesi, AJ2)
+        cvtps_rr(Xmm2, Xmm0)
+        cvtpi_rr(Xmm3, Xmm1)
+        movps_st(Xmm2, Medx, AJ2)
+        movps_st(Xmm3, Mebx, AJ2)
+
+        FCTRL_LEAVE()
+
+        ASM_LEAVE(info)
+    }
+}
+
+rt_void P_run_level6(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
+{
+    rt_cell j, n;
+
+    rt_real *far0 = p->far0;
+    rt_cell *iar0 = p->iar0;
+    rt_cell *ico1 = p->ico1;
+    rt_real *fco2 = p->fco2;
+    rt_cell *iso1 = p->iso1;
+    rt_real *fso2 = p->fso2;
+
+    RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 6);
+
+    j = n = p->size;
+    while (j-->0)
+    {
+        if (ico1[j] == iso1[j] && fco2[j] == fso2[j] && !v)
+        {
+            continue;
+        }
+
+        RT_LOGI("farr[%d] = %e, iarr[%d] = %d\n", j, far0[j], j, iar0[j]);
+
+        RT_LOGI("C (rt_cell)farr[%d] = %d, (rt_real)iarr[%d] = %e\n",
+                j, ico1[j], j, fco2[j]);
+
+        RT_LOGI("S (rt_cell)farr[%d] = %d, (rt_real)iarr[%d] = %e\n",
+                j, iso1[j], j, fso2[j]);
+    }
+
+    RT_LOGI("Time C = %d\n", (rt_cell)tC);
+    RT_LOGI("Time S = %d\n", (rt_cell)tS);
+
+    RT_LOGI("----------------------------------------------------\n");
+}
+
+#endif /* RUN_LEVEL 6 */
+
+
 typedef rt_void (*C_run_levelX)(rt_INFO *);
 typedef rt_void (*S_run_levelX)(rt_INFO *);
 typedef rt_void (*P_run_levelX)(rt_INFO *, rt_long, rt_long, rt_bool);
@@ -629,6 +741,10 @@ C_run_levelX Carr[RUN_LEVEL] =
 #if RUN_LEVEL >= 5
     C_run_level5,
 #endif /* RUN_LEVEL 5 */
+
+#if RUN_LEVEL >= 6
+    C_run_level6,
+#endif /* RUN_LEVEL 6 */
 };
 
 S_run_levelX Sarr[RUN_LEVEL] =
@@ -652,6 +768,10 @@ S_run_levelX Sarr[RUN_LEVEL] =
 #if RUN_LEVEL >= 5
     S_run_level5,
 #endif /* RUN_LEVEL 5 */
+
+#if RUN_LEVEL >= 6
+    S_run_level6,
+#endif /* RUN_LEVEL 6 */
 };
 
 P_run_levelX Parr[RUN_LEVEL] =
@@ -675,6 +795,10 @@ P_run_levelX Parr[RUN_LEVEL] =
 #if RUN_LEVEL >= 5
     P_run_level5,
 #endif /* RUN_LEVEL 5 */
+
+#if RUN_LEVEL >= 6
+    P_run_level6,
+#endif /* RUN_LEVEL 6 */
 };
 
 
