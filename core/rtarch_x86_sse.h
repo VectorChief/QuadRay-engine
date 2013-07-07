@@ -147,7 +147,7 @@
 
 #define CHECK_MASK(lb, cc)                                                  \
         movsn_rr(Reax, Xmm7)                                                \
-        cmpxx_ri(Reax, IM(cc))                                              \
+        cmpxx_ri(Reax, IH(cc))                                              \
         jeqxx_lb(lb)
 
 
@@ -160,7 +160,7 @@
 #define FCTRL_ENTER()                                                       \
         mxcsr_st(Mebp, inf_FCTRL)                                           \
         movxx_ld(Reax, Mebp, inf_FCTRL)                                     \
-        orrxx_mi(Mebp, inf_FCTRL, IM(1 << 13))                              \
+        orrxx_mi(Mebp, inf_FCTRL, IH(1 << 13))                              \
         mxcsr_ld(Mebp, inf_FCTRL)                                           \
         movxx_st(Reax, Mebp, inf_FCTRL)
 

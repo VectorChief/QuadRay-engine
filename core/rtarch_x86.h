@@ -53,13 +53,13 @@
 
 /* immediate */
 
-#define IB(im)  EMITB((im) & 0xFF)
+#define IB(im)  EMITB((im) & 0xFF)      /* not compatible with IM param */
 
-#define IM(im)  EMITW((im) & 0xFFFF)
+#define IH(im)  EMITW((im) & 0xFFFF)
 
 #define IW(im)  EMITW((im) & 0xFFFFFFFF)
 
-#define DP(im)  EMITW((im) & 0xFFF)
+#define DP(im)  EMITW((im) & 0xFFF)     /* not compatible with IM param */
 
 #define PLAIN   EMPTY
 

@@ -26,30 +26,30 @@
 
 /* registers    MOD,  REG,  SIB */
 
-#define Reax    0x00, 0x00, EMPTY
-#define Recx    0x00, 0x01, EMPTY
-#define Redx    0x00, 0x02, EMPTY
-#define Rebx    0x00, 0x03, EMPTY
-#define Resp    0x00, 0x04, EMPTY
-#define Rebp    0x00, 0x05, EMPTY
-#define Resi    0x00, 0x06, EMPTY
-#define Redi    0x00, 0x07, EMPTY
+#define Reax    0x00, 0x00, EMPTY       /* r0 */
+#define Recx    0x00, 0x01, EMPTY       /* r1 */
+#define Redx    0x00, 0x02, EMPTY       /* r2 */
+#define Rebx    0x00, 0x03, EMPTY       /* r3 */
+#define Resp    0x00, 0x04, EMPTY       /* r4 */
+#define Rebp    0x00, 0x05, EMPTY       /* r5 */
+#define Resi    0x00, 0x06, EMPTY       /* r6 */
+#define Redi    0x00, 0x07, EMPTY       /* r7 */
 
-#define TM      0x00, 0x08, EMPTY
-#define TI      0x00, 0x09, EMPTY
-#define TP      0x00, 0x0A, EMPTY
-#define PC      0x00, 0x0F, EMPTY
+#define TM      0x00, 0x08, EMPTY       /* r8 */
+#define TI      0x00, 0x09, EMPTY       /* r8 */
+#define TP      0x00, 0x0A, EMPTY       /* r10 */
+#define PC      0x00, 0x0F, EMPTY       /* r15 */
 
 /* addressing   MOD,  REG,  SIB */
 
-#define Oeax    0x00, 0x00, EMPTY
+#define Oeax    0x00, 0x00, EMPTY       /* [r0] */
 
-#define Mecx    0x01, 0x01, EMPTY
-#define Medx    0x02, 0x02, EMPTY
-#define Mebx    0x03, 0x03, EMPTY
-#define Mebp    0x05, 0x05, EMPTY
-#define Mesi    0x06, 0x06, EMPTY
-#define Medi    0x07, 0x07, EMPTY
+#define Mecx    0x01, 0x01, EMPTY       /* [r1, DP] */
+#define Medx    0x02, 0x02, EMPTY       /* [r2, DP] */
+#define Mebx    0x03, 0x03, EMPTY       /* [r3, DP] */
+#define Mebp    0x05, 0x05, EMPTY       /* [r5, DP] */
+#define Mesi    0x06, 0x06, EMPTY       /* [r6, DP] */
+#define Medi    0x07, 0x07, EMPTY       /* [r7, DP] */
 
 #define Iecx    0x0A, 0x01, EMITW(0xE0800000 | MRM(0x0A, 0x01, 0x00))
 #define Iedx    0x0A, 0x02, EMITW(0xE0800000 | MRM(0x0A, 0x02, 0x00))
@@ -60,9 +60,9 @@
 
 /* immediate */
 
-#define IB(im)  ((im) & 0xFF)
+#define IB(im)  ((im) & 0xFF)           /* not compatible with IM param */
 
-#define IM(im)  EMITW(0xE3000000 | MRM(TEG(TI), 0x0, 0x0) |                 \
+#define IH(im)  EMITW(0xE3000000 | MRM(TEG(TI), 0x0, 0x0) |                 \
                      (0x000F0000 & (im) <<  4) | (0xFFF & (im)))
 
 #define IW(im)  EMITW(0xE3000000 | MRM(TEG(TI), 0x0, 0x0) |                 \
@@ -70,7 +70,7 @@
                 EMITW(0xE3400000 | MRM(TEG(TI), 0x0, 0x0) |                 \
                      (0x000F0000 & (im) >> 12) | (0xFFF & (im) >> 16))
 
-#define DP(im)  ((im) & 0xFFF)
+#define DP(im)  ((im) & 0xFFF)          /* not compatible with IM param */
 
 #define PLAIN   DP(0)
 

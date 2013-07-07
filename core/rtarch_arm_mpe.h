@@ -11,21 +11,21 @@
 
 /* registers    MOD,  REG,  SIB */
 
-#define Xmm0    0x00, 0x00, EMPTY
-#define Xmm1    0x00, 0x02, EMPTY
-#define Xmm2    0x00, 0x04, EMPTY
-#define Xmm3    0x00, 0x06, EMPTY
-#define Xmm4    0x00, 0x08, EMPTY
-#define Xmm5    0x00, 0x0A, EMPTY
-#define Xmm6    0x00, 0x0C, EMPTY
-#define Xmm7    0x00, 0x0E, EMPTY
+#define Xmm0    0x00, 0x00, EMPTY       /* q0 */
+#define Xmm1    0x00, 0x02, EMPTY       /* q1 */
+#define Xmm2    0x00, 0x04, EMPTY       /* q2 */
+#define Xmm3    0x00, 0x06, EMPTY       /* q3 */
+#define Xmm4    0x00, 0x08, EMPTY       /* q4 */
+#define Xmm5    0x00, 0x0A, EMPTY       /* q5 */
+#define Xmm6    0x00, 0x0C, EMPTY       /* q6 */
+#define Xmm7    0x00, 0x0E, EMPTY       /* q7 */
 
-#define T0      0x00, 0x00, EMPTY
-#define T1      0x01, 0x00, EMPTY
-#define T2      0x01, 0x02, EMPTY
-#define T3      0x01, 0x04, EMPTY
+#define T0      0x00, 0x00, EMPTY       /* s0, for integer div VFP fallback */
+#define T1      0x01, 0x00, EMPTY       /* q8 */
+#define T2      0x01, 0x02, EMPTY       /* q9 */
+#define T3      0x01, 0x04, EMPTY       /* q10 */
 
-#define RT_USE_VFP          0   /* use VFP instead of some MPE instructions */
+#define RT_USE_VFP          0           /* use VFP (slow) for div, sqr, rsq */
 
 /******************************************************************************/
 /**********************************   MPE   ***********************************/
@@ -238,8 +238,8 @@
 
 #define CHECK_MASK(lb, cc)                                                  \
         movms_rr(Reax, Xmm7)                                                \
-        addxx_ri(Reax, IM(cc))                                              \
-        cmpxx_ri(Reax, IM(0))                                               \
+        addxx_ri(Reax, IH(cc))                                              \
+        cmpxx_ri(Reax, IH(0))                                               \
         jeqxx_lb(lb)
 
 
@@ -252,8 +252,7 @@
 #define FCTRL_ENTER()                                                       \
         fpscr_st(Reax)                                                      \
         movxx_st(Reax, Mebp, inf_FCTRL)                                     \
-        movxx_ri(Redx, IM(1))                                               \
-        shlxx_ri(Redx, IB(23))                                              \
+        movxx_ri(Redx, IW(1 << 23))                                         \
         orrxx_rr(Reax, Redx)                                                \
         fpscr_ld(Reax)
 
