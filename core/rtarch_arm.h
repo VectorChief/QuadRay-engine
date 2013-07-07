@@ -9,19 +9,20 @@
 
 #define EMPTY   ASM_BEG ASM_END
 
-#define MRM(reg, ren, rem)  ((ren) << 16 | (reg) << 12 | (rem))
+#define EMITW(im) /* little endian */                                       \
+        EMITB((im) >> 0x00 & 0xFF)                                          \
+        EMITB((im) >> 0x08 & 0xFF)                                          \
+        EMITB((im) >> 0x10 & 0xFF)                                          \
+        EMITB((im) >> 0x18 & 0xFF)
+
+#define MRM(reg, ren, rem)                                                  \
+        ((ren) << 16 | (reg) << 12 | (rem))
 
 #define MOD(mod, reg, sib)  mod
 #define REG(mod, reg, sib)  reg
 #define SIB(mod, reg, sib)  sib
 
 #define TEG(TG)             REG(TG)
-
-#define EMITW(im)                   \
-        EMITB((im) >> 0x00 & 0xFF)  \
-        EMITB((im) >> 0x08 & 0xFF)  \
-        EMITB((im) >> 0x10 & 0xFF)  \
-        EMITB((im) >> 0x18 & 0xFF)
 
 /* registers    MOD,  REG,  SIB */
 
@@ -59,7 +60,7 @@
 
 /* immediate */
 
-#define IB(im)  (im)
+#define IB(im)  ((im) & 0xFF)
 
 #define IM(im)  EMITW(0xE3000000 | MRM(TEG(TI), 0x0, 0x0) |                 \
                      (0x000F0000 & (im) <<  4) | (0xFFF & (im)))
@@ -69,7 +70,7 @@
                 EMITW(0xE3400000 | MRM(TEG(TI), 0x0, 0x0) |                 \
                      (0x000F0000 & (im) >> 12) | (0xFFF & (im) >> 16))
 
-#define DP(im)  (im)
+#define DP(im)  ((im) & 0xFFF)
 
 #define PLAIN   DP(0)
 

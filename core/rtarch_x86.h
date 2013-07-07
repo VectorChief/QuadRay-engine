@@ -9,7 +9,14 @@
 
 #define EMPTY   ASM_BEG ASM_END
 
-#define MRM(mod, reg, rem, sib)   EMITB((mod) << 6 | (reg) << 3 | (rem)) sib
+#define EMITW(im) /* little endian */                                       \
+        EMITB((im) >> 0x00 & 0xFF)                                          \
+        EMITB((im) >> 0x08 & 0xFF)                                          \
+        EMITB((im) >> 0x10 & 0xFF)                                          \
+        EMITB((im) >> 0x18 & 0xFF)
+
+#define MRM(mod, reg, rem, sib)                                             \
+        EMITB((mod) << 6 | (reg) << 3 | (rem)) sib
 
 #define MOD(mod, reg, sib)  mod
 #define REG(mod, reg, sib)  reg
@@ -46,18 +53,13 @@
 
 /* immediate */
 
-#define IB(im)                      \
-        EMITB(im)
+#define IB(im)  EMITB((im) & 0xFF)
 
-#define IM(im)                      \
-        EMITB((im) >> 0x00 & 0xFF)  \
-        EMITB((im) >> 0x08 & 0xFF)  \
-        EMITB((im) >> 0x10 & 0xFF)  \
-        EMITB((im) >> 0x18 & 0xFF)
+#define IM(im)  EMITW((im) & 0xFFFF)
 
-#define IW(im)  IM(im)
+#define IW(im)  EMITW((im) & 0xFFFFFFFF)
 
-#define DP(im)  IM(im)
+#define DP(im)  EMITW((im) & 0xFFF)
 
 #define PLAIN   EMPTY
 
