@@ -9,16 +9,16 @@
 
 #include "rtarch_x86.h"
 
-/* registers    MOD,  REG,  SIB */
+/* registers    REG,  MOD,  SIB */
 
-#define Xmm0    0x03, 0x00, EMPTY
-#define Xmm1    0x03, 0x01, EMPTY
-#define Xmm2    0x03, 0x02, EMPTY
+#define Xmm0    0x00, 0x03, EMPTY
+#define Xmm1    0x01, 0x03, EMPTY
+#define Xmm2    0x02, 0x03, EMPTY
 #define Xmm3    0x03, 0x03, EMPTY
-#define Xmm4    0x03, 0x04, EMPTY
-#define Xmm5    0x03, 0x05, EMPTY
-#define Xmm6    0x03, 0x06, EMPTY
-#define Xmm7    0x03, 0x07, EMPTY
+#define Xmm4    0x04, 0x03, EMPTY
+#define Xmm5    0x05, 0x03, EMPTY
+#define Xmm6    0x06, 0x03, EMPTY
+#define Xmm7    0x07, 0x03, EMPTY
 
 /******************************************************************************/
 /**********************************   SSE   ***********************************/
@@ -192,7 +192,7 @@
 
 #define CHECK_MASK(lb, cc)                                                  \
         movsn_rr(Reax, Xmm7)                                                \
-        cmpxx_ri(Reax, IH(cc))                                              \
+        cmpxx_ri(Reax, IB(cc))                                              \
         jeqxx_lb(lb)
 
 
@@ -237,10 +237,10 @@
         SIB(RM) DP
 
 
-#define shlpn_ri(RM, IB)                                                    \
+#define shlpn_ri(RM, IM)                                                    \
         EMITB(0x66) EMITB(0x0F) EMITB(0x72)                                 \
         MRM(MOD(RM),    0x06, REG(RM))                                      \
-        IB
+        EMITB(VAL(IM))
 
 #define shlpn_ld(RG, RM, DP)                                                \
         EMITB(0x66) EMITB(0x0F) EMITB(0xF2)                                 \
@@ -248,10 +248,10 @@
         SIB(RM) DP
 
 
-#define shrpn_ri(RM, IB)                                                    \
+#define shrpn_ri(RM, IM)                                                    \
         EMITB(0x66) EMITB(0x0F) EMITB(0x72)                                 \
         MRM(MOD(RM),    0x02, REG(RM))                                      \
-        IB
+        EMITB(VAL(IM))
 
 #define shrpn_ld(RG, RM, DP)                                                \
         EMITB(0x66) EMITB(0x0F) EMITB(0xD2)                                 \

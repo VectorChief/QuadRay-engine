@@ -9,21 +9,21 @@
 
 #include "rtarch_arm.h"
 
-/* registers    MOD,  REG,  SIB */
+/* registers    REG,  MOD,  SIB */
 
 #define Xmm0    0x00, 0x00, EMPTY       /* q0 */
-#define Xmm1    0x00, 0x02, EMPTY       /* q1 */
-#define Xmm2    0x00, 0x04, EMPTY       /* q2 */
-#define Xmm3    0x00, 0x06, EMPTY       /* q3 */
-#define Xmm4    0x00, 0x08, EMPTY       /* q4 */
-#define Xmm5    0x00, 0x0A, EMPTY       /* q5 */
-#define Xmm6    0x00, 0x0C, EMPTY       /* q6 */
-#define Xmm7    0x00, 0x0E, EMPTY       /* q7 */
+#define Xmm1    0x02, 0x00, EMPTY       /* q1 */
+#define Xmm2    0x04, 0x00, EMPTY       /* q2 */
+#define Xmm3    0x06, 0x00, EMPTY       /* q3 */
+#define Xmm4    0x08, 0x00, EMPTY       /* q4 */
+#define Xmm5    0x0A, 0x00, EMPTY       /* q5 */
+#define Xmm6    0x0C, 0x00, EMPTY       /* q6 */
+#define Xmm7    0x0E, 0x00, EMPTY       /* q7 */
 
 #define T0      0x00, 0x00, EMPTY       /* s0, for integer div VFP fallback */
-#define T1      0x01, 0x00, EMPTY       /* q8 */
-#define T2      0x01, 0x02, EMPTY       /* q9 */
-#define T3      0x01, 0x04, EMPTY       /* q10 */
+#define T1      0x00, 0x01, EMPTY       /* q8 */
+#define T2      0x02, 0x01, EMPTY       /* q9 */
+#define T3      0x04, 0x01, EMPTY       /* q10 */
 
 #define RT_USE_VFP          0           /* use VFP (slow) for div, sqr, rsq */
 
@@ -238,8 +238,8 @@
 
 #define CHECK_MASK(lb, cc)                                                  \
         movms_rr(Reax, Xmm7)                                                \
-        addxx_ri(Reax, IH(cc))                                              \
-        cmpxx_ri(Reax, IH(0))                                               \
+        addxx_ri(Reax, IB(cc))                                              \
+        cmpxx_ri(Reax, IB(0))                                               \
         jeqxx_lb(lb)
 
 
@@ -282,8 +282,9 @@
         EMITW(0xF2200860 | MRM(REG(RG), REG(RG), TEG(T1)))
 
 
-#define shlpn_ri(RM, IB)                                                    \
-        EMITW(0xF2A00550 | MRM(REG(RM), 0x00, REG(RM)) | (0x1F & IB) << 16)
+#define shlpn_ri(RM, IM)                                                    \
+        EMITW(0xF2A00550 | MRM(REG(RM), 0x00, REG(RM)) |                    \
+                                        (0x1F & VAL(IM)) << 16)
 
 #define shlpn_ld(RG, RM, DP)                                                \
         SIB(RM)                                                             \
@@ -292,8 +293,8 @@
         EMITW(0xF32004C0 | MRM(REG(RG), TEG(T1), REG(RG)))
 
 
-#define shrpn_ri(RM, IB)                                                    \
-        EMITW(0xE3A00000 | MRM(TEG(TI), 0x00, 0x00) | (0xFF & IB))          \
+#define shrpn_ri(RM, IM)                                                    \
+        EMITW(0xE3A00000 | MRM(TEG(TI), 0x00, 0x00) | (0xFF & VAL(IM)))     \
         EMITW(0xEEA00B90 | MRM(TEG(TI), TEG(T1), 0x00))                     \
         EMITW(0xF3F903E0 | MRM(TEG(T1), 0x00, TEG(T1)))                     \
         EMITW(0xF32004C0 | MRM(REG(RM), TEG(T1), REG(RM)))

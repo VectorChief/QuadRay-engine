@@ -18,48 +18,52 @@
 #define MRM(mod, reg, rem)                                                  \
         EMITB((mod) << 6 | (reg) << 3 | (rem))
 
-#define MOD(mod, reg, sib)  mod
-#define REG(mod, reg, sib)  reg
-#define SIB(mod, reg, sib)  sib
+#define REG(reg, mod, sib)  reg
+#define MOD(reg, mod, sib)  mod
+#define SIB(reg, mod, sib)  sib
 
-/* registers    MOD,  REG,  SIB */
+/* registers    REG,  MOD,  SIB */
 
-#define Reax    0x03, 0x00, EMPTY
-#define Recx    0x03, 0x01, EMPTY
-#define Redx    0x03, 0x02, EMPTY
+#define Reax    0x00, 0x03, EMPTY
+#define Recx    0x01, 0x03, EMPTY
+#define Redx    0x02, 0x03, EMPTY
 #define Rebx    0x03, 0x03, EMPTY
-#define Resp    0x03, 0x04, EMPTY
-#define Rebp    0x03, 0x05, EMPTY
-#define Resi    0x03, 0x06, EMPTY
-#define Redi    0x03, 0x07, EMPTY
+#define Resp    0x04, 0x03, EMPTY
+#define Rebp    0x05, 0x03, EMPTY
+#define Resi    0x06, 0x03, EMPTY
+#define Redi    0x07, 0x03, EMPTY
 
-/* addressing   MOD,  REG,  SIB */
+/* addressing   REG,  MOD,  SIB */
 
 #define Oeax    0x00, 0x00, EMPTY       /* [eax] */
 
-#define Mecx    0x02, 0x01, EMPTY       /* [ecx + DP] */
+#define Mecx    0x01, 0x02, EMPTY       /* [ecx + DP] */
 #define Medx    0x02, 0x02, EMPTY       /* [edx + DP] */
-#define Mebx    0x02, 0x03, EMPTY       /* [ebx + DP] */
-#define Mebp    0x02, 0x05, EMPTY       /* [ebp + DP] */
-#define Mesi    0x02, 0x06, EMPTY       /* [esi + DP] */
-#define Medi    0x02, 0x07, EMPTY       /* [edi + DP] */
+#define Mebx    0x03, 0x02, EMPTY       /* [ebx + DP] */
+#define Mebp    0x05, 0x02, EMPTY       /* [ebp + DP] */
+#define Mesi    0x06, 0x02, EMPTY       /* [esi + DP] */
+#define Medi    0x07, 0x02, EMPTY       /* [edi + DP] */
 
-#define Iecx    0x02, 0x04, EMITB(0x01) /* [ecx + eax + DP] */
-#define Iedx    0x02, 0x04, EMITB(0x02) /* [edx + eax + DP] */
-#define Iebx    0x02, 0x04, EMITB(0x03) /* [ebx + eax + DP] */
-#define Iebp    0x02, 0x04, EMITB(0x05) /* [ebp + eax + DP] */
-#define Iesi    0x02, 0x04, EMITB(0x06) /* [esi + eax + DP] */
-#define Iedi    0x02, 0x04, EMITB(0x07) /* [edi + eax + DP] */
+#define Iecx    0x04, 0x02, EMITB(0x01) /* [ecx + eax + DP] */
+#define Iedx    0x04, 0x02, EMITB(0x02) /* [edx + eax + DP] */
+#define Iebx    0x04, 0x02, EMITB(0x03) /* [ebx + eax + DP] */
+#define Iebp    0x04, 0x02, EMITB(0x05) /* [ebp + eax + DP] */
+#define Iesi    0x04, 0x02, EMITB(0x06) /* [esi + eax + DP] */
+#define Iedi    0x04, 0x02, EMITB(0x07) /* [edi + eax + DP] */
 
 /* immediate */
 
-#define IB(im)  EMITB((im) & 0xFF)      /* not compatible with IM param */
+#define VAL(val, typ, cmd)  val
+#define TYP(val, typ, cmd)  typ
+#define CMD(val, typ, cmd)  cmd
 
-#define IH(im)  EMITW((im) & 0xFFFF)
+#define IB(im)  (im), 0x02, EMITB((im) & 0xFF)
 
-#define IW(im)  EMITW((im) & 0xFFFFFFFF)
+#define IH(im)  (im), 0x00, EMITW((im) & 0xFFFF)
 
-#define DP(im)  EMITW((im) & 0xFFF)     /* not compatible with IM param */
+#define IW(im)  (im), 0x00, EMITW((im) & 0xFFFFFFFF)
+
+#define DP(im)  EMITW((im) & 0xFFF)
 
 #define PLAIN   EMPTY
 
@@ -72,12 +76,12 @@
 #define movxx_ri(RM, IM)                                                    \
         EMITB(0xC7)                                                         \
         MRM(MOD(RM),    0x00, REG(RM))                                      \
-        IM
+        EMITW(VAL(IM))
 
 #define movxx_mi(RM, DP, IM)                                                \
         EMITB(0xC7)                                                         \
         MRM(MOD(RM),    0x00, REG(RM))                                      \
-        SIB(RM) DP IM
+        SIB(RM) DP EMITW(VAL(IM))
 
 #define movxx_rr(RG, RM)                                                    \
         EMITB(0x8B)                                                         \
@@ -107,14 +111,14 @@
 /* add */
 
 #define addxx_ri(RM, IM)                                                    \
-        EMITB(0x81)                                                         \
+        EMITB(0x81 | TYP(IM))                                               \
         MRM(MOD(RM),    0x00, REG(RM))                                      \
-        IM
+        CMD(IM)
 
 #define addxx_mi(RM, DP, IM)                                                \
-        EMITB(0x81)                                                         \
+        EMITB(0x81 | TYP(IM))                                               \
         MRM(MOD(RM),    0x00, REG(RM))                                      \
-        SIB(RM) DP IM
+        SIB(RM) DP CMD(IM)
 
 #define addxx_rr(RG, RM)                                                    \
         EMITB(0x03)                                                         \
@@ -133,14 +137,14 @@
 /* sub */
 
 #define subxx_ri(RM, IM)                                                    \
-        EMITB(0x81)                                                         \
+        EMITB(0x81 | TYP(IM))                                               \
         MRM(MOD(RM),    0x05, REG(RM))                                      \
-        IM
+        CMD(IM)
 
 #define subxx_mi(RM, DP, IM)                                                \
-        EMITB(0x81)                                                         \
+        EMITB(0x81 | TYP(IM))                                               \
         MRM(MOD(RM),    0x05, REG(RM))                                      \
-        SIB(RM) DP IM
+        SIB(RM) DP CMD(IM)
 
 #define subxx_rr(RG, RM)                                                    \
         EMITB(0x2B)                                                         \
@@ -159,14 +163,14 @@
 /* and */
 
 #define andxx_ri(RM, IM)                                                    \
-        EMITB(0x81)                                                         \
+        EMITB(0x81 | TYP(IM))                                               \
         MRM(MOD(RM),    0x04, REG(RM))                                      \
-        IM
+        CMD(IM)
 
 #define andxx_mi(RM, DP, IM)                                                \
-        EMITB(0x81)                                                         \
+        EMITB(0x81 | TYP(IM))                                               \
         MRM(MOD(RM),    0x04, REG(RM))                                      \
-        SIB(RM) DP IM
+        SIB(RM) DP CMD(IM)
 
 #define andxx_rr(RG, RM)                                                    \
         EMITB(0x23)                                                         \
@@ -185,14 +189,14 @@
 /* orr */
 
 #define orrxx_ri(RM, IM)                                                    \
-        EMITB(0x81)                                                         \
+        EMITB(0x81 | TYP(IM))                                               \
         MRM(MOD(RM),    0x01, REG(RM))                                      \
-        IM
+        CMD(IM)
 
 #define orrxx_mi(RM, DP, IM)                                                \
-        EMITB(0x81)                                                         \
+        EMITB(0x81 | TYP(IM))                                               \
         MRM(MOD(RM),    0x01, REG(RM))                                      \
-        SIB(RM) DP IM
+        SIB(RM) DP CMD(IM)
 
 #define orrxx_rr(RG, RM)                                                    \
         EMITB(0x0B)                                                         \
@@ -221,15 +225,15 @@
 
 /* shl */
 
-#define shlxx_ri(RM, IB)                                                    \
+#define shlxx_ri(RM, IM)                                                    \
         EMITB(0xC1)                                                         \
         MRM(MOD(RM),    0x04, REG(RM))                                      \
-        IB
+        EMITB(VAL(IM))
 
-#define shlxx_mi(RM, DP, IB)                                                \
+#define shlxx_mi(RM, DP, IM)                                                \
         EMITB(0xC1)                                                         \
         MRM(MOD(RM),    0x04, REG(RM))                                      \
-        SIB(RM) DP IB
+        SIB(RM) DP EMITB(VAL(IM))
 
 #define mulxx_ld(RH, RL, RM, DP)                                            \
         EMITB(0xF7)                                                         \
@@ -238,15 +242,15 @@
 
 /* shr */
 
-#define shrxx_ri(RM, IB)                                                    \
+#define shrxx_ri(RM, IM)                                                    \
         EMITB(0xC1)                                                         \
         MRM(MOD(RM),    0x05, REG(RM))                                      \
-        IB
+        EMITB(VAL(IM))
 
-#define shrxx_mi(RM, DP, IB)                                                \
+#define shrxx_mi(RM, DP, IM)                                                \
         EMITB(0xC1)                                                         \
         MRM(MOD(RM),    0x05, REG(RM))                                      \
-        SIB(RM) DP IB
+        SIB(RM) DP EMITB(VAL(IM))
 
 #define divxx_ld(RH, RL, RM, DP)                                            \
         EMITB(0xF7)                                                         \
@@ -256,14 +260,14 @@
 /* cmp */
 
 #define cmpxx_ri(RM, IM)                                                    \
-        EMITB(0x81)                                                         \
+        EMITB(0x81 | TYP(IM))                                               \
         MRM(MOD(RM),    0x07, REG(RM))                                      \
-        IM
+        CMD(IM)
 
 #define cmpxx_mi(RM, DP, IM)                                                \
-        EMITB(0x81)                                                         \
+        EMITB(0x81 | TYP(IM))                                               \
         MRM(MOD(RM),    0x07, REG(RM))                                      \
-        SIB(RM) DP IM
+        SIB(RM) DP CMD(IM)
 
 #define cmpxx_rr(RG, RM)                                                    \
         EMITB(0x3B)                                                         \
