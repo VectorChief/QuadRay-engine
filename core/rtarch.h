@@ -36,8 +36,8 @@
 #define ASM_LEAVE(info)         stack_la()                                  \
                             }
 
-#define EMITB(B)                ASM_BEG ASM_OP1(_emit, B) ASM_END
-#define label_ld(LB)            ASM_BEG ASM_OP2(lea, eax, LB) ASM_END
+#define EMITB(b)                ASM_BEG ASM_OP1(_emit, b) ASM_END
+#define label_ld(lb)            ASM_BEG ASM_OP2(lea, eax, lb) ASM_END
 
 #include "rtarch_x86_sse.h"
 
@@ -76,8 +76,8 @@
                               : "cc",  "memory"                             \
                             );
 
-#define EMITB(B)                ASM_BEG ASM_OP1(.byte, B) ASM_END
-#define label_ld(LB)            ASM_BEG ASM_OP2(leal, %%eax, LB) ASM_END
+#define EMITB(b)                ASM_BEG ASM_OP1(.byte, b) ASM_END
+#define label_ld(lb)            ASM_BEG ASM_OP2(leal, %%eax, lb) ASM_END
 
 #include "rtarch_x86_sse.h"
 
@@ -110,8 +110,8 @@
                                 "d20", "d21"                                \
                             );
 
-#define EMITB(B)                ASM_BEG ASM_OP1(.byte, B) ASM_END
-#define label_ld(LB)            ASM_BEG ASM_OP2(adr, r0, LB) ASM_END
+#define EMITB(b)                ASM_BEG ASM_OP1(.byte, b) ASM_END
+#define label_ld(lb)            ASM_BEG ASM_OP2(adr, r0, lb) ASM_END
 
 #include "rtarch_arm_mpe.h"
 

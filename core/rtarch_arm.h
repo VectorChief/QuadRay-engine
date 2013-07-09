@@ -9,11 +9,11 @@
 
 #define EMPTY   ASM_BEG ASM_END
 
-#define EMITW(im) /* little endian */                                       \
-        EMITB((im) >> 0x00 & 0xFF)                                          \
-        EMITB((im) >> 0x08 & 0xFF)                                          \
-        EMITB((im) >> 0x10 & 0xFF)                                          \
-        EMITB((im) >> 0x18 & 0xFF)
+#define EMITW(w) /* little endian */                                        \
+        EMITB((w) >> 0x00 & 0xFF)                                           \
+        EMITB((w) >> 0x08 & 0xFF)                                           \
+        EMITB((w) >> 0x10 & 0xFF)                                           \
+        EMITB((w) >> 0x18 & 0xFF)
 
 #define MRM(reg, ren, rem)                                                  \
         ((ren) << 16 | (reg) << 12 | (rem))
@@ -85,8 +85,7 @@
         EMITW(0xE1A00000 | MRM(REG(RM), 0x00, TEG(TI)))
 
 #define movxx_mi(RM, DP, IM)                                                \
-        IM                                                                  \
-        SIB(RM)                                                             \
+        SIB(RM) IM                                                          \
         EMITW(0xE5800000 | MRM(TEG(TI), MOD(RM), 0x00) | DP)
 
 #define movxx_rr(RG, RM)                                                    \
@@ -100,9 +99,9 @@
         SIB(RM)                                                             \
         EMITW(0xE5800000 | MRM(REG(RG), MOD(RM), 0x00) | DP)
 
-#define leaxx_ld(RG, RM, DP)                                                \
+#define leaxx_ld(RG, RM, DP) /* only for quads (16-byte alignment) */       \
         SIB(RM)                                                             \
-        EMITW(0xE2800F00 | MRM(REG(RG), MOD(RM), 0x00) | DP >> 2)
+        EMITW(0xE2800E00 | MRM(REG(RG), MOD(RM), 0x00) | DP >> 4)
 
 #define stack_sa()                                                          \
         EMITW(0xE92D07FF)
@@ -117,8 +116,7 @@
         EMITW(0xE0800000 | MRM(REG(RM), REG(RM), TEG(TI)))
 
 #define addxx_mi(RM, DP, IM)                                                \
-        IM                                                                  \
-        SIB(RM)                                                             \
+        SIB(RM) IM                                                          \
         EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
         EMITW(0xE0800000 | MRM(TEG(TM), TEG(TM), TEG(TI)))                  \
         EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
@@ -144,8 +142,7 @@
         EMITW(0xE0400000 | MRM(REG(RM), REG(RM), TEG(TI)))
 
 #define subxx_mi(RM, DP, IM)                                                \
-        IM                                                                  \
-        SIB(RM)                                                             \
+        SIB(RM) IM                                                          \
         EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
         EMITW(0xE0400000 | MRM(TEG(TM), TEG(TM), TEG(TI)))                  \
         EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
@@ -171,8 +168,7 @@
         EMITW(0xE0000000 | MRM(REG(RM), REG(RM), TEG(TI)))
 
 #define andxx_mi(RM, DP, IM)                                                \
-        IM                                                                  \
-        SIB(RM)                                                             \
+        SIB(RM) IM                                                          \
         EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
         EMITW(0xE0000000 | MRM(TEG(TM), TEG(TM), TEG(TI)))                  \
         EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
@@ -198,8 +194,7 @@
         EMITW(0xE1800000 | MRM(REG(RM), REG(RM), TEG(TI)))
 
 #define orrxx_mi(RM, DP, IM)                                                \
-        IM                                                                  \
-        SIB(RM)                                                             \
+        SIB(RM) IM                                                          \
         EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
         EMITW(0xE1800000 | MRM(TEG(TM), TEG(TM), TEG(TI)))                  \
         EMITW(0xE5800000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)
@@ -272,8 +267,7 @@
         EMITW(0xE1500000 | MRM(0x00, REG(RM), TEG(TI)))
 
 #define cmpxx_mi(RM, DP, IM)                                                \
-        IM                                                                  \
-        SIB(RM)                                                             \
+        SIB(RM) IM                                                          \
         EMITW(0xE5900000 | MRM(TEG(TM), MOD(RM), 0x00) | DP)                \
         EMITW(0xE1500000 | MRM(0x00, TEG(TM), TEG(TI)))
 
@@ -296,32 +290,32 @@
         SIB(RM)                                                             \
         EMITW(0xE5900000 | MRM(TEG(PC), MOD(RM), 0x00) | DP)                \
 
-#define jmpxx_lb(LB)                                                        \
-        ASM_BEG ASM_OP1(b, LB) ASM_END
+#define jmpxx_lb(lb)                                                        \
+        ASM_BEG ASM_OP1(b, lb) ASM_END
 
-#define jeqxx_lb(LB)                                                        \
-        ASM_BEG ASM_OP1(beq, LB) ASM_END
+#define jeqxx_lb(lb)                                                        \
+        ASM_BEG ASM_OP1(beq, lb) ASM_END
 
-#define jnexx_lb(LB)                                                        \
-        ASM_BEG ASM_OP1(bne, LB) ASM_END
+#define jnexx_lb(lb)                                                        \
+        ASM_BEG ASM_OP1(bne, lb) ASM_END
 
-#define jnzxx_lb(LB)                                                        \
-        ASM_BEG ASM_OP1(bne, LB) ASM_END
+#define jnzxx_lb(lb)                                                        \
+        ASM_BEG ASM_OP1(bne, lb) ASM_END
 
-#define jltxx_lb(LB)                                                        \
-        ASM_BEG ASM_OP1(blt, LB) ASM_END
+#define jltxx_lb(lb)                                                        \
+        ASM_BEG ASM_OP1(blt, lb) ASM_END
 
-#define jlexx_lb(LB)                                                        \
-        ASM_BEG ASM_OP1(ble, LB) ASM_END
+#define jlexx_lb(lb)                                                        \
+        ASM_BEG ASM_OP1(ble, lb) ASM_END
 
-#define jgtxx_lb(LB)                                                        \
-        ASM_BEG ASM_OP1(bgt, LB) ASM_END
+#define jgtxx_lb(lb)                                                        \
+        ASM_BEG ASM_OP1(bgt, lb) ASM_END
 
-#define jgexx_lb(LB)                                                        \
-        ASM_BEG ASM_OP1(bge, LB) ASM_END
+#define jgexx_lb(lb)                                                        \
+        ASM_BEG ASM_OP1(bge, lb) ASM_END
 
-#define LBL(LB)                                                             \
-        ASM_BEG ASM_OP0(LB:) ASM_END
+#define LBL(lb)                                                             \
+        ASM_BEG ASM_OP0(lb:) ASM_END
 
 #endif /* RT_RTARCH_ARM_H */
 
