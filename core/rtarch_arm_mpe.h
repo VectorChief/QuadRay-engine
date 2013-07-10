@@ -20,10 +20,10 @@
 #define Xmm6    0x0C, 0x00, EMPTY       /* q6 */
 #define Xmm7    0x0E, 0x00, EMPTY       /* q7 */
 
-#define T0      0x00, 0x00, EMPTY       /* s0, for integer div VFP fallback */
-#define T1      0x00, 0x01, EMPTY       /* q8 */
-#define T2      0x02, 0x01, EMPTY       /* q9 */
-#define T3      0x04, 0x01, EMPTY       /* q10 */
+#define T0xx    0x00                    /* s0, for integer div VFP fallback */
+#define T1xx    0x00                    /* q8 */
+#define T2xx    0x02                    /* q9 */
+#define T3xx    0x04                    /* q10 */
 
 #define RT_USE_VFP          0           /* use VFP (slow) for div, sqr, rsq */
 
@@ -37,44 +37,44 @@
         EMITW(0xF2200150 | MRM(REG(RG), REG(RM), REG(RM)))
 
 #define movps_ld(RG, RM, DP)                                                \
-        SIB(RM)                                                             \
-        EMITW(0xE2800E00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 4)           \
-        EMITW(0xF4200AAF | MRM(REG(RG), TEG(TP), 0x00))
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE2800E00 | MRM(TPxx,    MOD(RM), 0x00) | DP >> 4)           \
+        EMITW(0xF4200AAF | MRM(REG(RG), TPxx,    0x00))
 
 #define movps_st(RG, RM, DP)                                                \
-        SIB(RM)                                                             \
-        EMITW(0xE2800E00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 4)           \
-        EMITW(0xF4000AAF | MRM(REG(RG), TEG(TP), 0x00))
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE2800E00 | MRM(TPxx,    MOD(RM), 0x00) | DP >> 4)           \
+        EMITW(0xF4000AAF | MRM(REG(RG), TPxx,    0x00))
 
 
 #define addps_rr(RG, RM)                                                    \
         EMITW(0xF2000D40 | MRM(REG(RG), REG(RG), REG(RM)))
 
 #define addps_ld(RG, RM, DP)                                                \
-        SIB(RM)                                                             \
-        EMITW(0xE2800E00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 4)           \
-        EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
-        EMITW(0xF2000D60 | MRM(REG(RG), REG(RG), TEG(T1)))
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE2800E00 | MRM(TPxx,    MOD(RM), 0x00) | DP >> 4)           \
+        EMITW(0xF4600AAF | MRM(T1xx,    TPxx,    0x00))                     \
+        EMITW(0xF2000D60 | MRM(REG(RG), REG(RG), T1xx))
 
 
 #define subps_rr(RG, RM)                                                    \
         EMITW(0xF2200D40 | MRM(REG(RG), REG(RG), REG(RM)))
 
 #define subps_ld(RG, RM, DP)                                                \
-        SIB(RM)                                                             \
-        EMITW(0xE2800E00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 4)           \
-        EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
-        EMITW(0xF2200D60 | MRM(REG(RG), REG(RG), TEG(T1)))
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE2800E00 | MRM(TPxx,    MOD(RM), 0x00) | DP >> 4)           \
+        EMITW(0xF4600AAF | MRM(T1xx,    TPxx,    0x00))                     \
+        EMITW(0xF2200D60 | MRM(REG(RG), REG(RG), T1xx))
 
 
 #define mulps_rr(RG, RM)                                                    \
         EMITW(0xF3000D50 | MRM(REG(RG), REG(RG), REG(RM)))
 
 #define mulps_ld(RG, RM, DP)                                                \
-        SIB(RM)                                                             \
-        EMITW(0xE2800E00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 4)           \
-        EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
-        EMITW(0xF3000D70 | MRM(REG(RG), REG(RG), TEG(T1)))
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE2800E00 | MRM(TPxx,    MOD(RM), 0x00) | DP >> 4)           \
+        EMITW(0xF4600AAF | MRM(T1xx,    TPxx,    0x00))                     \
+        EMITW(0xF3000D70 | MRM(REG(RG), REG(RG), T1xx))
 
 
 #if RT_USE_VFP
@@ -86,26 +86,26 @@
         EMITW(0xEEC00AA0 | MRM(REG(RG)+1, REG(RG)+1, REG(RM)+1))
 
 #define divps_ld(RG, RM, DP)                                                \
-        SIB(RM)                                                             \
-        EMITW(0xE2800E00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 4)           \
-        EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
-        EMITW(0xF3FB0560 | MRM(TEG(T2), 0x00, TEG(T1)))                     \
-        EMITW(0xF2400FF0 | MRM(TEG(T3), TEG(T2), TEG(T1)))                  \
-        EMITW(0xF3400DF0 | MRM(TEG(T2), TEG(T3), TEG(T2)))                  \
-        EMITW(0xF3000D70 | MRM(REG(RG), REG(RG), TEG(T2)))
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE2800E00 | MRM(TPxx,    MOD(RM), 0x00) | DP >> 4)           \
+        EMITW(0xF4600AAF | MRM(T1xx,    TPxx,    0x00))                     \
+        EMITW(0xF3FB0560 | MRM(T2xx,    0x00,    T1xx))                     \
+        EMITW(0xF2400FF0 | MRM(T3xx,    T2xx,    T1xx))                     \
+        EMITW(0xF3400DF0 | MRM(T2xx,    T3xx,    T2xx))                     \
+        EMITW(0xF3000D70 | MRM(REG(RG), REG(RG), T2xx))
 
 
 #define sqrps_rr(RG, RM)                                                    \
-        EMITW(0xEEB10AC0 | MRM(REG(RG)+0, 0x00, REG(RM)+0))                 \
-        EMITW(0xEEF10AE0 | MRM(REG(RG)+0, 0x00, REG(RM)+0))                 \
-        EMITW(0xEEB10AC0 | MRM(REG(RG)+1, 0x00, REG(RM)+1))                 \
-        EMITW(0xEEF10AE0 | MRM(REG(RG)+1, 0x00, REG(RM)+1))
+        EMITW(0xEEB10AC0 | MRM(REG(RG)+0, 0x00,  REG(RM)+0))                \
+        EMITW(0xEEF10AE0 | MRM(REG(RG)+0, 0x00,  REG(RM)+0))                \
+        EMITW(0xEEB10AC0 | MRM(REG(RG)+1, 0x00,  REG(RM)+1))                \
+        EMITW(0xEEF10AE0 | MRM(REG(RG)+1, 0x00,  REG(RM)+1))
 
 #define rsqps_rr(RG, RT, RM)                                                \
-        EMITW(0xEEB10AC0 | MRM(REG(RT)+0, 0x00, REG(RM)+0))                 \
-        EMITW(0xEEF10AE0 | MRM(REG(RT)+0, 0x00, REG(RM)+0))                 \
-        EMITW(0xEEB10AC0 | MRM(REG(RT)+1, 0x00, REG(RM)+1))                 \
-        EMITW(0xEEF10AE0 | MRM(REG(RT)+1, 0x00, REG(RM)+1))                 \
+        EMITW(0xEEB10AC0 | MRM(REG(RT)+0, 0x00,  REG(RM)+0))                \
+        EMITW(0xEEF10AE0 | MRM(REG(RT)+0, 0x00,  REG(RM)+0))                \
+        EMITW(0xEEB10AC0 | MRM(REG(RT)+1, 0x00,  REG(RM)+1))                \
+        EMITW(0xEEF10AE0 | MRM(REG(RT)+1, 0x00,  REG(RM)+1))                \
         EMITW(0xEE800A00 | MRM(REG(RG)+0, REG(RG)+0, REG(RT)+0))            \
         EMITW(0xEEC00AA0 | MRM(REG(RG)+0, REG(RG)+0, REG(RT)+0))            \
         EMITW(0xEE800A00 | MRM(REG(RG)+1, REG(RG)+1, REG(RT)+1))            \
@@ -114,36 +114,36 @@
 #else /* RT_USE_VFP */
 
 #define divps_rr(RG, RM)                                                    \
-        EMITW(0xF3FB0540 | MRM(TEG(T1), 0x00, REG(RM)))                     \
-        EMITW(0xF2400FD0 | MRM(TEG(T2), TEG(T1), REG(RM)))                  \
-        EMITW(0xF3400DF0 | MRM(TEG(T1), TEG(T2), TEG(T1)))                  \
-        EMITW(0xF3000D70 | MRM(REG(RG), REG(RG), TEG(T1)))
+        EMITW(0xF3FB0540 | MRM(T1xx,    0x00,    REG(RM)))                  \
+        EMITW(0xF2400FD0 | MRM(T2xx,    T1xx,    REG(RM)))                  \
+        EMITW(0xF3400DF0 | MRM(T1xx,    T2xx,    T1xx))                     \
+        EMITW(0xF3000D70 | MRM(REG(RG), REG(RG), T1xx))
 
 #define divps_ld(RG, RM, DP)                                                \
-        SIB(RM)                                                             \
-        EMITW(0xE2800E00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 4)           \
-        EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
-        EMITW(0xF3FB0560 | MRM(TEG(T2), 0x00, TEG(T1)))                     \
-        EMITW(0xF2400FF0 | MRM(TEG(T3), TEG(T2), TEG(T1)))                  \
-        EMITW(0xF3400DF0 | MRM(TEG(T2), TEG(T3), TEG(T2)))                  \
-        EMITW(0xF3000D70 | MRM(REG(RG), REG(RG), TEG(T2)))
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE2800E00 | MRM(TPxx,    MOD(RM), 0x00) | DP >> 4)           \
+        EMITW(0xF4600AAF | MRM(T1xx,    TPxx,    0x00))                     \
+        EMITW(0xF3FB0560 | MRM(T2xx,    0x00,    T1xx))                     \
+        EMITW(0xF2400FF0 | MRM(T3xx,    T2xx,    T1xx))                     \
+        EMITW(0xF3400DF0 | MRM(T2xx,    T3xx,    T2xx))                     \
+        EMITW(0xF3000D70 | MRM(REG(RG), REG(RG), T2xx))
 
 
 #define sqrps_rr(RG, RM)                                                    \
-        EMITW(0xF3FB05C0 | MRM(TEG(T1), 0x00, REG(RM)))                     \
-        EMITW(0xF3400DF0 | MRM(TEG(T2), TEG(T1), TEG(T1)))                  \
-        EMITW(0xF2600FD0 | MRM(TEG(T2), TEG(T2), REG(RM)))                  \
-        EMITW(0xF3400DF0 | MRM(TEG(T1), TEG(T2), TEG(T1)))                  \
-        EMITW(0xF3FB0560 | MRM(TEG(T2), 0x00, TEG(T1)))                     \
-        EMITW(0xF2400FF0 | MRM(TEG(T3), TEG(T2), TEG(T1)))                  \
-        EMITW(0xF3000DF0 | MRM(REG(RG), TEG(T3), TEG(T2)))
+        EMITW(0xF3FB05C0 | MRM(T1xx,    0x00,    REG(RM)))                  \
+        EMITW(0xF3400DF0 | MRM(T2xx,    T1xx,    T1xx))                     \
+        EMITW(0xF2600FD0 | MRM(T2xx,    T2xx,    REG(RM)))                  \
+        EMITW(0xF3400DF0 | MRM(T1xx,    T2xx,    T1xx))                     \
+        EMITW(0xF3FB0560 | MRM(T2xx,    0x00,    T1xx))                     \
+        EMITW(0xF2400FF0 | MRM(T3xx,    T2xx,    T1xx))                     \
+        EMITW(0xF3000DF0 | MRM(REG(RG), T3xx,    T2xx))
 
 #define rsqps_rr(RG, RT, RM)                                                \
-        EMITW(0xF3FB05C0 | MRM(TEG(T1), 0x00, REG(RM)))                     \
-        EMITW(0xF3400DF0 | MRM(TEG(T2), TEG(T1), TEG(T1)))                  \
-        EMITW(0xF2600FD0 | MRM(TEG(T2), TEG(T2), REG(RM)))                  \
-        EMITW(0xF3400DF0 | MRM(TEG(T1), TEG(T2), TEG(T1)))                  \
-        EMITW(0xF3000D70 | MRM(REG(RG), REG(RG), TEG(T1)))
+        EMITW(0xF3FB05C0 | MRM(T1xx,    0x00,    REG(RM)))                  \
+        EMITW(0xF3400DF0 | MRM(T2xx,    T1xx,    T1xx))                     \
+        EMITW(0xF2600FD0 | MRM(T2xx,    T2xx,    REG(RM)))                  \
+        EMITW(0xF3400DF0 | MRM(T1xx,    T2xx,    T1xx))                     \
+        EMITW(0xF3000D70 | MRM(REG(RG), REG(RG), T1xx))
 
 #endif /* RT_USE_VFP */
 
@@ -152,60 +152,60 @@
         EMITW(0xF2000150 | MRM(REG(RG), REG(RG), REG(RM)))                  \
 
 #define andps_ld(RG, RM, DP)                                                \
-        SIB(RM)                                                             \
-        EMITW(0xE2800E00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 4)           \
-        EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
-        EMITW(0xF2000170 | MRM(REG(RG), REG(RG), TEG(T1)))
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE2800E00 | MRM(TPxx,    MOD(RM), 0x00) | DP >> 4)           \
+        EMITW(0xF4600AAF | MRM(T1xx,    TPxx,    0x00))                     \
+        EMITW(0xF2000170 | MRM(REG(RG), REG(RG), T1xx))
 
 
 #define annps_rr(RG, RM)                                                    \
         EMITW(0xF2100150 | MRM(REG(RG), REG(RM), REG(RG)))                  \
 
 #define annps_ld(RG, RM, DP)                                                \
-        SIB(RM)                                                             \
-        EMITW(0xE2800E00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 4)           \
-        EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
-        EMITW(0xF21001D0 | MRM(REG(RG), TEG(T1), REG(RG)))
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE2800E00 | MRM(TPxx,    MOD(RM), 0x00) | DP >> 4)           \
+        EMITW(0xF4600AAF | MRM(T1xx,    TPxx,    0x00))                     \
+        EMITW(0xF21001D0 | MRM(REG(RG), T1xx,    REG(RG)))
 
 
 #define orrps_rr(RG, RM)                                                    \
         EMITW(0xF2200150 | MRM(REG(RG), REG(RG), REG(RM)))                  \
 
 #define orrps_ld(RG, RM, DP)                                                \
-        SIB(RM)                                                             \
-        EMITW(0xE2800E00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 4)           \
-        EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
-        EMITW(0xF2200170 | MRM(REG(RG), REG(RG), TEG(T1)))
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE2800E00 | MRM(TPxx,    MOD(RM), 0x00) | DP >> 4)           \
+        EMITW(0xF4600AAF | MRM(T1xx,    TPxx,    0x00))                     \
+        EMITW(0xF2200170 | MRM(REG(RG), REG(RG), T1xx))
 
 
 #define xorps_rr(RG, RM)                                                    \
         EMITW(0xF3000150 | MRM(REG(RG), REG(RG), REG(RM)))                  \
 
 #define xorps_ld(RG, RM, DP)                                                \
-        SIB(RM)                                                             \
-        EMITW(0xE2800E00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 4)           \
-        EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
-        EMITW(0xF3000170 | MRM(REG(RG), REG(RG), TEG(T1)))
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE2800E00 | MRM(TPxx,    MOD(RM), 0x00) | DP >> 4)           \
+        EMITW(0xF4600AAF | MRM(T1xx,    TPxx,    0x00))                     \
+        EMITW(0xF3000170 | MRM(REG(RG), REG(RG), T1xx))
 
 
 #define minps_rr(RG, RM)                                                    \
         EMITW(0xF2200F40 | MRM(REG(RG), REG(RG), REG(RM)))                  \
 
 #define minps_ld(RG, RM, DP)                                                \
-        SIB(RM)                                                             \
-        EMITW(0xE2800E00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 4)           \
-        EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
-        EMITW(0xF2200F60 | MRM(REG(RG), REG(RG), TEG(T1)))
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE2800E00 | MRM(TPxx,    MOD(RM), 0x00) | DP >> 4)           \
+        EMITW(0xF4600AAF | MRM(T1xx,    TPxx,    0x00))                     \
+        EMITW(0xF2200F60 | MRM(REG(RG), REG(RG), T1xx))
 
 
 #define maxps_rr(RG, RM)                                                    \
         EMITW(0xF2000F40 | MRM(REG(RG), REG(RG), REG(RM)))                  \
 
 #define maxps_ld(RG, RM, DP)                                                \
-        SIB(RM)                                                             \
-        EMITW(0xE2800E00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 4)           \
-        EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
-        EMITW(0xF2000F60 | MRM(REG(RG), REG(RG), TEG(T1)))
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE2800E00 | MRM(TPxx,    MOD(RM), 0x00) | DP >> 4)           \
+        EMITW(0xF4600AAF | MRM(T1xx,    TPxx,    0x00))                     \
+        EMITW(0xF2000F60 | MRM(REG(RG), REG(RG), T1xx))
 
 
 #define ceqps_rr(RG, RM)                                                    \
@@ -219,7 +219,7 @@
 
 #define cneps_rr(RG, RM)                                                    \
         EMITW(0xF2000E40 | MRM(REG(RG), REG(RG), REG(RM)))                  \
-        EMITW(0xF3B005C0 | MRM(REG(RG), 0x00, REG(RG)))
+        EMITW(0xF3B005C0 | MRM(REG(RG), 0x00,    REG(RG)))
 
 #define cgeps_rr(RG, RM)                                                    \
         EMITW(0xF3000E40 | MRM(REG(RG), REG(RG), REG(RM)))
@@ -229,9 +229,9 @@
 
 
 #define movms_rr(RG, RM)                                                    \
-        EMITW(0xF3F60200 | MRM(TEG(T1)+0, 0x00, REG(RM)))                   \
-        EMITW(0xF3F20220 | MRM(TEG(T1)+0, 0x00, TEG(T1)))                   \
-        EMITW(0xEE100B90 | MRM(REG(RG), TEG(T1)+0, 0x00))
+        EMITW(0xF3F60200 | MRM(T1xx+0,  0x00,    REG(RM)))                  \
+        EMITW(0xF3F20220 | MRM(T1xx+0,  0x00,    T1xx))                     \
+        EMITW(0xEE100B90 | MRM(REG(RG), T1xx+0,  0x00))
 
 #define NONE  0x00
 #define FULL  0x01
@@ -244,10 +244,10 @@
 
 
 #define fpscr_ld(RG)                                                        \
-        EMITW(0xEEE10A10 | MRM(REG(RG), 0x00, 0x00))
+        EMITW(0xEEE10A10 | MRM(REG(RG), 0x00,    0x00))
 
 #define fpscr_st(RG)                                                        \
-        EMITW(0xEEF10A10 | MRM(REG(RG), 0x00, 0x00))
+        EMITW(0xEEF10A10 | MRM(REG(RG), 0x00,    0x00))
 
 #define FCTRL_ENTER()                                                       \
         fpscr_st(Reax)                                                      \
@@ -263,48 +263,49 @@
 /* int */
 
 #define cvtpn_rr(RG, RM)                                                    \
-        EMITW(0xF3BB0640 | MRM(REG(RG), 0x00, REG(RM)))
+        EMITW(0xF3BB0640 | MRM(REG(RG),   0x00,  REG(RM)))
 
 #define cvtps_rr(RG, RM) /* fallback to VFP for float-to-integer cvt */     \
-        EMITW(0xEEBD0A40 | MRM(REG(RG)+0, 0x00, REG(RM)+0))                 \
-        EMITW(0xEEFD0A60 | MRM(REG(RG)+0, 0x00, REG(RM)+0))                 \
-        EMITW(0xEEBD0A40 | MRM(REG(RG)+1, 0x00, REG(RM)+1))                 \
-        EMITW(0xEEFD0A60 | MRM(REG(RG)+1, 0x00, REG(RM)+1))
+        EMITW(0xEEBD0A40 | MRM(REG(RG)+0, 0x00,  REG(RM)+0))                \
+        EMITW(0xEEFD0A60 | MRM(REG(RG)+0, 0x00,  REG(RM)+0))                \
+        EMITW(0xEEBD0A40 | MRM(REG(RG)+1, 0x00,  REG(RM)+1))                \
+        EMITW(0xEEFD0A60 | MRM(REG(RG)+1, 0x00,  REG(RM)+1))
 
 
 #define addpn_rr(RG, RM)                                                    \
         EMITW(0xF2200840 | MRM(REG(RG), REG(RG), REG(RM)))                  \
 
 #define addpn_ld(RG, RM, DP)                                                \
-        SIB(RM)                                                             \
-        EMITW(0xE2800E00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 4)           \
-        EMITW(0xF4600AAF | MRM(TEG(T1), TEG(TP), 0x00))                     \
-        EMITW(0xF2200860 | MRM(REG(RG), REG(RG), TEG(T1)))
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE2800E00 | MRM(TPxx,    MOD(RM), 0x00) | DP >> 4)           \
+        EMITW(0xF4600AAF | MRM(T1xx,    TPxx,    0x00))                     \
+        EMITW(0xF2200860 | MRM(REG(RG), REG(RG), T1xx))
 
 
 #define shlpn_ri(RM, IM)                                                    \
-        EMITW(0xF2A00550 | MRM(REG(RM), 0x00, REG(RM)) |                    \
+        EMITW(0xF2A00550 | MRM(REG(RM), 0x00,    REG(RM)) |                 \
                                         (0x1F & VAL(IM)) << 16)
 
 #define shlpn_ld(RG, RM, DP)                                                \
-        SIB(RM)                                                             \
-        EMITW(0xE2800E00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 4)           \
-        EMITW(0xF4E00CBF | MRM(TEG(T1), TEG(TP), 0x00))                     \
-        EMITW(0xF32004C0 | MRM(REG(RG), TEG(T1), REG(RG)))
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE2800E00 | MRM(TPxx,    MOD(RM), 0x00) | DP >> 4)           \
+        EMITW(0xF4E00CBF | MRM(T1xx,    TPxx,    0x00))                     \
+        EMITW(0xF32004C0 | MRM(REG(RG), T1xx,    REG(RG)))
 
 
 #define shrpn_ri(RM, IM)                                                    \
-        EMITW(0xE3A00000 | MRM(TEG(TI), 0x00, 0x00) | (0xFF & VAL(IM)))     \
-        EMITW(0xEEA00B90 | MRM(TEG(TI), TEG(T1), 0x00))                     \
-        EMITW(0xF3F903E0 | MRM(TEG(T1), 0x00, TEG(T1)))                     \
-        EMITW(0xF32004C0 | MRM(REG(RM), TEG(T1), REG(RM)))
+        EMITW(0xE3A00000 | MRM(TIxx,    0x00,    0x00) |                    \
+                                        (0xFF & VAL(IM)))                   \
+        EMITW(0xEEA00B90 | MRM(TIxx,    T1xx,    0x00))                     \
+        EMITW(0xF3F903E0 | MRM(T1xx,    0x00,    T1xx))                     \
+        EMITW(0xF32004C0 | MRM(REG(RM), T1xx,    REG(RM)))
 
 #define shrpn_ld(RG, RM, DP)                                                \
-        SIB(RM)                                                             \
-        EMITW(0xE2800E00 | MRM(TEG(TP), MOD(RM), 0x00) | DP >> 4)           \
-        EMITW(0xF4E00CBF | MRM(TEG(T1), TEG(TP), 0x00))                     \
-        EMITW(0xF3F903E0 | MRM(TEG(T1), 0x00, TEG(T1)))                     \
-        EMITW(0xF32004C0 | MRM(REG(RG), TEG(T1), REG(RG)))
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE2800E00 | MRM(TPxx,    MOD(RM), 0x00) | DP >> 4)           \
+        EMITW(0xF4E00CBF | MRM(T1xx,    TPxx,    0x00))                     \
+        EMITW(0xF3F903E0 | MRM(T1xx,    0x00,    T1xx))                     \
+        EMITW(0xF32004C0 | MRM(REG(RG), T1xx,    REG(RG)))
 
 #endif /* RT_RTARCH_ARM_MPE_H */
 
