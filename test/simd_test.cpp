@@ -19,6 +19,17 @@
 #define ARR_SIZE        12 /* hardcoded in asm sections */
 #define MASK            15 /* hardcoded quad alignment */
 
+#define FRK(f)          (f < 10.0       ? 1.0           :                   \
+                         f < 100.0      ? 10.0          :                   \
+                         f < 1000.0     ? 100.0         :                   \
+                         f < 10000.0    ? 1000.0        :                   \
+                         f < 100000.0   ? 10000.0       :                   \
+                         f < 1000000.0  ? 100000.0      :                   \
+                                          1000000.0)
+
+#define FEQ(f1, f2)     (fabsf(f1 - f2) < 0.0002f * RT_MIN(FRK(f1), FRK(f2)))
+#define IEQ(i1, i2)     (i1 == i2)
+
 
 struct rt_INFO
 {
@@ -154,12 +165,13 @@ rt_void P_run_level1(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
     j = n = p->size;
     while (j-->0)
     {
-        if (fco1[j] == fso1[j] && fco2[j] == fso2[j] && !v)
+        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v)
         {
             continue;
         }
 
-        RT_LOGI("farr[%d] = %e\n", j, far0[j]);
+        RT_LOGI("farr[%d] = %e, farr[%d] = %e\n",
+                j, far0[j], (j + 4) % n, far0[(j + 4) % n]);
 
         RT_LOGI("C farr[%d]+farr[%d] = %e, farr[%d]-farr[%d] = %e\n",
                 j, (j + 4) % n, fco1[j], j, (j + 4) % n, fco2[j]);
@@ -262,12 +274,13 @@ rt_void P_run_level2(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
     j = n = p->size;
     while (j-->0)
     {
-        if (fco1[j] == fso1[j] && fco2[j] == fso2[j] && !v)
+        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v)
         {
             continue;
         }
 
-        RT_LOGI("farr[%d] = %e\n", j, far0[j]);
+        RT_LOGI("farr[%d] = %e, farr[%d] = %e\n",
+                j, far0[j], (j + 4) % n, far0[(j + 4) % n]);
 
         RT_LOGI("C farr[%d]*farr[%d] = %e, farr[%d]/farr[%d] = %e\n",
                 j, (j + 4) % n, fco1[j], j, (j + 4) % n, fco2[j]);
@@ -371,12 +384,13 @@ rt_void P_run_level3(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
     j = n = p->size;
     while (j-->0)
     {
-        if (ico1[j] == iso1[j] && ico2[j] == iso2[j] && !v)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
         {
             continue;
         }
 
-        RT_LOGI("farr[%d] = %e\n", j, far0[j]);
+        RT_LOGI("farr[%d] = %e, farr[%d] = %e\n",
+                j, far0[j], (j + 4) % n, far0[(j + 4) % n]);
 
         RT_LOGI("C (farr[%d] > farr[%d]) = %X, (farr[%d] >= farr[%d]) = %X\n",
                 j, (j + 4) % n, ico1[j], j, (j + 4) % n, ico2[j]);
@@ -479,12 +493,13 @@ rt_void P_run_level4(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
     j = n = p->size;
     while (j-->0)
     {
-        if (ico1[j] == iso1[j] && ico2[j] == iso2[j] && !v)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
         {
             continue;
         }
 
-        RT_LOGI("farr[%d] = %e\n", j, far0[j]);
+        RT_LOGI("farr[%d] = %e, farr[%d] = %e\n",
+                j, far0[j], (j + 4) % n, far0[(j + 4) % n]);
 
         RT_LOGI("C (farr[%d] < farr[%d]) = %X, (farr[%d] <= farr[%d]) = %X\n",
                 j, (j + 4) % n, ico1[j], j, (j + 4) % n, ico2[j]);
@@ -587,12 +602,13 @@ rt_void P_run_level5(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
     j = n = p->size;
     while (j-->0)
     {
-        if (ico1[j] == iso1[j] && ico2[j] == iso2[j] && !v)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
         {
             continue;
         }
 
-        RT_LOGI("farr[%d] = %e\n", j, far0[j]);
+        RT_LOGI("farr[%d] = %e, farr[%d] = %e\n",
+                j, far0[j], (j + 4) % n, far0[(j + 4) % n]);
 
         RT_LOGI("C (farr[%d] == farr[%d]) = %X, (farr[%d] != farr[%d]) = %X\n",
                 j, (j + 4) % n, ico1[j], j, (j + 4) % n, ico2[j]);
@@ -696,12 +712,13 @@ rt_void P_run_level6(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
     j = n = p->size;
     while (j-->0)
     {
-        if (ico1[j] == iso1[j] && fco2[j] == fso2[j] && !v)
+        if (IEQ(ico1[j], iso1[j]) && FEQ(fco2[j], fso2[j]) && !v)
         {
             continue;
         }
 
-        RT_LOGI("farr[%d] = %e, iarr[%d] = %d\n", j, far0[j], j, iar0[j]);
+        RT_LOGI("farr[%d] = %e, iarr[%d] = %d\n",
+                j, far0[j], j, iar0[j]);
 
         RT_LOGI("C (rt_cell)farr[%d] = %d, (rt_real)iarr[%d] = %e\n",
                 j, ico1[j], j, fco2[j]);
@@ -795,12 +812,13 @@ rt_void P_run_level7(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
     j = n = p->size;
     while (j-->0)
     {
-        if (fco1[j] == fso1[j] && fco2[j] == fso2[j] && !v)
+        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v)
         {
             continue;
         }
 
-        RT_LOGI("farr[%d] = %e\n", j, far0[j]);
+        RT_LOGI("farr[%d] = %e\n",
+                j, far0[j]);
 
         RT_LOGI("C sqrt(farr[%d]) = %e, 1.0/farr[%d] = %e\n",
                 j, fco1[j], j, fco2[j]);
@@ -909,12 +927,13 @@ rt_void P_run_level8(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
     j = n = p->size;
     while (j-->0)
     {
-        if (ico1[j] == iso1[j] && ico2[j] == iso2[j] && !v)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
         {
             continue;
         }
 
-        RT_LOGI("iarr[%d] = %d\n", j, iar0[j]);
+        RT_LOGI("iarr[%d] = %d\n",
+                j, iar0[j]);
 
         RT_LOGI("C iarr[%d]+(iarr[%d]<<1) = %d, iarr[%d]+(iarr[%d]>>2) = %d\n",
                 j, j, ico1[j], j, j, ico2[j]);
@@ -1047,12 +1066,13 @@ rt_void P_run_level9(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
     j = n = p->size;
     while (j-->0)
     {
-        if (ico1[j] == iso1[j] && ico2[j] == iso2[j] && !v)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
         {
             continue;
         }
 
-        RT_LOGI("iarr[%d] = %d\n", j, iar0[j]);
+        RT_LOGI("iarr[%d] = %d, iarr[%d] = %d\n",
+                j, iar0[j], (j + 4) % n, iar0[(j + 4) % n]);
 
         RT_LOGI("C iarr[%d]*iarr[%d] = %d, iarr[%d]/iarr[%d] = %d\n",
                 j, (j + 4) % n, ico1[j], j, (j + 4) % n, ico2[j]);
@@ -1228,8 +1248,8 @@ int main ()
         578986.23,
         8764.7534,
         113.98764,
-        7653765.0,
-        431874873.,
+        0.0765376,
+        43187.487,
     };
 
     rt_real *far0 = (rt_real*)((rt_cell)((rt_char*)&marr[0]   + MASK) & ~MASK);
@@ -1249,7 +1269,7 @@ int main ()
         7,
         57896,
         2347875,
-        8764753,
+        87647531,
         7665,
         318773,
     };

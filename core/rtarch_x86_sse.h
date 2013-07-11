@@ -28,197 +28,197 @@
 
 #define movps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x28)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))
+            MRM(REG(RG), MOD(RM), REG(RM))
 
 #define movps_ld(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x28)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 #define movps_st(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x29)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 #define adrpx_ld(RG, RM, DP) /* only for quads (16-byte alignment) */       \
         EMITB(0x8D)                                                         \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        AUX(SIB(RM), EMITW(VAL(DP) & 0xFFFFFFF0), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), EMITW(VAL(DP) & 0xFFFFFFF0), EMPTY)
 
 
 #define addps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x58)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))
+            MRM(REG(RG), MOD(RM), REG(RM))
 
 #define addps_ld(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x58)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 
 #define subps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x5C)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))
+            MRM(REG(RG), MOD(RM), REG(RM))
 
 #define subps_ld(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x5C)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 
 #define mulps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x59)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))
+            MRM(REG(RG), MOD(RM), REG(RM))
 
 #define mulps_ld(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x59)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 
 #define divps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x5E)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))
+            MRM(REG(RG), MOD(RM), REG(RM))
 
 #define divps_ld(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x5E)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 
 #define sqrps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x51)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))
+            MRM(REG(RG), MOD(RM), REG(RM))
 
 #define sqrps_ld(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x51)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 
 #define rcpps_rr(RG, RM)             /* destroys value in RM */             \
         EMITB(0x0F) EMITB(0x53)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
         EMITB(0x0F) EMITB(0x59)                                             \
-        MRM(MOD(RG), REG(RM), REG(RG))                                      \
+            MRM(REG(RM), MOD(RG), REG(RG))                                  \
         EMITB(0x0F) EMITB(0x59)                                             \
-        MRM(MOD(RG), REG(RM), REG(RG))                                      \
+            MRM(REG(RM), MOD(RG), REG(RG))                                  \
         EMITB(0x0F) EMITB(0x58)                                             \
-        MRM(MOD(RG), REG(RG), REG(RG))                                      \
+            MRM(REG(RG), MOD(RG), REG(RG))                                  \
         EMITB(0x0F) EMITB(0x5C)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))
+            MRM(REG(RG), MOD(RM), REG(RM))
 
 #define rsqps_rr(RG, RM, RD, D1, D2) /* destroys value in RM */             \
         EMITB(0x0F) EMITB(0x52)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
         EMITB(0x0F) EMITB(0x59)                                             \
-        MRM(MOD(RG), REG(RM), REG(RG))                                      \
+            MRM(REG(RM), MOD(RG), REG(RG))                                  \
         EMITB(0x0F) EMITB(0x59)                                             \
-        MRM(MOD(RG), REG(RM), REG(RG))                                      \
+            MRM(REG(RM), MOD(RG), REG(RG))                                  \
         EMITB(0x0F) EMITB(0x58)                                             \
-        MRM(MOD(RD), REG(RM), REG(RD))                                      \
-        AUX(SIB(RD), CMD(D1), EMPTY)                                        \
+            MRM(REG(RM), MOD(RD), REG(RD))                                  \
+            AUX(SIB(RD), CMD(D1), EMPTY)                                    \
         EMITB(0x0F) EMITB(0x59)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
         EMITB(0x0F) EMITB(0x59)                                             \
-        MRM(MOD(RD), REG(RG), REG(RD))                                      \
-        AUX(SIB(RD), CMD(D2), EMPTY)
+            MRM(REG(RG), MOD(RD), REG(RD))                                  \
+            AUX(SIB(RD), CMD(D2), EMPTY)
 
 
 #define andps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x54)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))
+            MRM(REG(RG), MOD(RM), REG(RM))
 
 #define andps_ld(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x54)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 
 #define annps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x55)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))
+            MRM(REG(RG), MOD(RM), REG(RM))
 
 #define annps_ld(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x55)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 
 #define orrps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x56)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))
+            MRM(REG(RG), MOD(RM), REG(RM))
 
 #define orrps_ld(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x56)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 
 #define xorps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x57)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))
+            MRM(REG(RG), MOD(RM), REG(RM))
 
 #define xorps_ld(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x57)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 
 #define minps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x5D)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))
+            MRM(REG(RG), MOD(RM), REG(RM))
 
 #define minps_ld(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x5D)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 
 #define maxps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x5F)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))
+            MRM(REG(RG), MOD(RM), REG(RM))
 
 #define maxps_ld(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x5F)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 
 #define ceqps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0xC2)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        EMITB(0x00)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(EMPTY,   EMPTY,   EMITB(0x00))
 
 #define cltps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0xC2)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        EMITB(0x01)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(EMPTY,   EMPTY,   EMITB(0x01))
 
 #define cleps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0xC2)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        EMITB(0x02)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(EMPTY,   EMPTY,   EMITB(0x02))
 
 #define cneps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0xC2)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        EMITB(0x04)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(EMPTY,   EMPTY,   EMITB(0x04))
 
 #define cgeps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0xC2)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        EMITB(0x05)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(EMPTY,   EMPTY,   EMITB(0x05))
 
 #define cgtps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0xC2)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        EMITB(0x06)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(EMPTY,   EMPTY,   EMITB(0x06))
 
 
 #define movsn_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x50)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))
+            MRM(REG(RG), MOD(RM), REG(RM))
 
 #define NONE  0x00
 #define FULL  0x0F
@@ -231,13 +231,13 @@
 
 #define mxcsr_ld(RM, DP)                                                    \
         EMITB(0x0F) EMITB(0xAE)                                             \
-        MRM(MOD(RM), 0x02,    REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(0x02,    MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 #define mxcsr_st(RM, DP)                                                    \
         EMITB(0x0F) EMITB(0xAE)                                             \
-        MRM(MOD(RM), 0x03,    REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(0x03,    MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 #define FCTRL_ENTER()                                                       \
         mxcsr_st(Mebp, inf_FCTRL)                                           \
@@ -253,43 +253,43 @@
 
 #define cvtpn_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x5B)                                             \
-        MRM(MOD(RM), REG(RG), REG(RM))
+            MRM(REG(RG), MOD(RM), REG(RM))
 
 #define cvtps_rr(RG, RM)                                                    \
         EMITB(0x66) EMITB(0x0F) EMITB(0x5B)                                 \
-        MRM(MOD(RM), REG(RG), REG(RM))
+            MRM(REG(RG), MOD(RM), REG(RM))
 
 
 #define addpn_rr(RG, RM)                                                    \
         EMITB(0x66) EMITB(0x0F) EMITB(0xFE)                                 \
-        MRM(MOD(RM), REG(RG), REG(RM))
+            MRM(REG(RG), MOD(RM), REG(RM))
 
 #define addpn_ld(RG, RM, DP)                                                \
         EMITB(0x66) EMITB(0x0F) EMITB(0xFE)                                 \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 
 #define shlpn_ri(RM, IM)                                                    \
         EMITB(0x66) EMITB(0x0F) EMITB(0x72)                                 \
-        MRM(MOD(RM), 0x06,    REG(RM))                                      \
-        AUX(EMPTY,   EMPTY,   EMITB(VAL(IM)))
+            MRM(0x06,    MOD(RM), REG(RM))                                  \
+            AUX(EMPTY,   EMPTY,   EMITB(VAL(IM)))
 
 #define shlpn_ld(RG, RM, DP)                                                \
         EMITB(0x66) EMITB(0x0F) EMITB(0xF2)                                 \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 
 #define shrpn_ri(RM, IM)                                                    \
         EMITB(0x66) EMITB(0x0F) EMITB(0x72)                                 \
-        MRM(MOD(RM), 0x02,    REG(RM))                                      \
-        AUX(EMPTY,   EMPTY,   EMITB(VAL(IM)))
+            MRM(0x02,    MOD(RM), REG(RM))                                  \
+            AUX(EMPTY,   EMPTY,   EMITB(VAL(IM)))
 
 #define shrpn_ld(RG, RM, DP)                                                \
         EMITB(0x66) EMITB(0x0F) EMITB(0xD2)                                 \
-        MRM(MOD(RM), REG(RG), REG(RM))                                      \
-        AUX(SIB(RM), CMD(DP), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
 
 #endif /* RT_RTARCH_X86_SSE_H */
 
