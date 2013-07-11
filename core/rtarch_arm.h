@@ -34,9 +34,9 @@
 #define Redi    0x07, 0x00, EMPTY       /* r7 */
 
 #define TMxx    0x08                    /* r8 */
-#define TIxx    0x09                    /* r8 */
+#define TIxx    0x09                    /* r9, not used along with TDxx */
+#define TDxx    0x09                    /* r9, not used along with TIxx */
 #define TPxx    0x0A                    /* r10 */
-#define TDxx    0x0B                    /* r11 */
 #define PCxx    0x0F                    /* r15 */
 
 /* addressing   REG,  MOD,  SIB */
@@ -126,11 +126,17 @@
         EMITW(0xE2800F00 | MRM(REG(RG), MOD(RM), 0x00) |                    \
                                         (VAL(DP) >> 2 & 0xFF)
 
-#define stack_sa()                                                          \
-        EMITW(0xE92D07FF)
+#define stack_st(RM)                                                        \
+        EMITW(0xE52D0004 | MRM(REG(RM), 0x00,    0x00))
 
-#define stack_la()                                                          \
-        EMITW(0xE8BD07FF)
+#define stack_ld(RM)                                                        \
+        EMITW(0xE49D0004 | MRM(REG(RM), 0x00,    0x00))
+
+#define stack_sa() /* save all [r0 - r11], 12 regs in total */              \
+        EMITW(0xE92D0FFF)
+
+#define stack_la() /* load all [r0 - r11], 12 regs in total */              \
+        EMITW(0xE8BD0FFF)
 
 /* add */
 

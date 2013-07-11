@@ -106,11 +106,19 @@
         MRM(MOD(RM), REG(RG), REG(RM))                                      \
         AUX(SIB(RM), EMITW(VAL(DP) & 0x3FC), EMPTY)
 
-#define stack_sa()                                                          \
-        EMITB(0x60) EMITB(0x9C) 
+#define stack_st(RM)                                                        \
+        EMITB(0xFF)                                                         \
+        MRM(MOD(RM), 0x06,    REG(RM))
 
-#define stack_la()                                                          \
-        EMITB(0x9D) EMITB(0x61)
+#define stack_ld(RM)                                                        \
+        EMITB(0x8F)                                                         \
+        MRM(MOD(RM), 0x00,    REG(RM))
+
+#define stack_sa() /* save all [EAX - EDI], 8 regs in total */              \
+        EMITB(0x60)
+
+#define stack_la() /* load all [EAX - EDI], 8 regs in total */              \
+        EMITB(0x61)
 
 /* add */
 
