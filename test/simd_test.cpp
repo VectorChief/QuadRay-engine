@@ -735,7 +735,7 @@ rt_void C_run_level7(rt_INFO *p)
         while (j-->0)
         {
             fco1[j] = sqrtf(far0[j]);
-            fco2[j] = far0[j] / sqrtf(far0[(j + 4) % n]);
+            fco2[j] = 1.0f / far0[j];
         }
     }
 }
@@ -759,26 +759,20 @@ rt_void S_run_level7(rt_INFO *p)
         movxx_ld(Rebx, Mebp, inf_FSO2)
 
         movps_ld(Xmm0, Mecx, AJ0)
-        movps_ld(Xmm1, Mecx, AJ1)
         sqrps_rr(Xmm2, Xmm0)
-        movps_rr(Xmm3, Xmm0)
-        rsqps_rr(Xmm3, Xmm0, Xmm1)
+        rcpps_rr(Xmm3, Xmm0)
         movps_st(Xmm2, Medx, AJ0)
         movps_st(Xmm3, Mebx, AJ0)
 
         movps_ld(Xmm0, Mecx, AJ1)
-        movps_ld(Xmm1, Mecx, AJ2)
         sqrps_rr(Xmm2, Xmm0)
-        movps_rr(Xmm3, Xmm0)
-        rsqps_rr(Xmm3, Xmm0, Xmm1)
+        rcpps_rr(Xmm3, Xmm0)
         movps_st(Xmm2, Medx, AJ1)
         movps_st(Xmm3, Mebx, AJ1)
 
         movps_ld(Xmm0, Mecx, AJ2)
-        movps_ld(Xmm1, Mecx, AJ0)
         sqrps_rr(Xmm2, Xmm0)
-        movps_rr(Xmm3, Xmm0)
-        rsqps_rr(Xmm3, Xmm0, Xmm1)
+        rcpps_rr(Xmm3, Xmm0)
         movps_st(Xmm2, Medx, AJ2)
         movps_st(Xmm3, Mebx, AJ2)
 
@@ -808,11 +802,11 @@ rt_void P_run_level7(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
 
         RT_LOGI("farr[%d] = %e\n", j, far0[j]);
 
-        RT_LOGI("C sqrt(farr[%d]) = %e, farr[%d]/sqrt(farr[%d]) = %e\n",
-                j, fco1[j], j, (j + 4) % n, fco2[j]);
+        RT_LOGI("C sqrt(farr[%d]) = %e, 1.0/farr[%d] = %e\n",
+                j, fco1[j], j, fco2[j]);
 
-        RT_LOGI("S sqrt(farr[%d]) = %e, farr[%d]/sqrt(farr[%d]) = %e\n",
-                j, fso1[j], j, (j + 4) % n, fso2[j]);
+        RT_LOGI("S sqrt(farr[%d]) = %e, 1.0/farr[%d] = %e\n",
+                j, fso1[j], j, fso2[j]);
     }
 
     RT_LOGI("Time C = %d\n", (rt_cell)tC);
@@ -1255,7 +1249,7 @@ int main ()
         7,
         57896,
         2347875,
-        87647534,
+        8764753,
         7665,
         318773,
     };
