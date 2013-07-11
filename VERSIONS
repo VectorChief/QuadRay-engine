@@ -1,3 +1,8 @@
+v0.0.4: SIMD test framework, macro assembler overhaul
+  - macro expansion reworked for better compatibility
+  - immediate/displacement parameters handling redesigned
+  - added reciprocal support for SSE, MPE support refined
+
 v0.0.3: SIMD test framework, run level 9
   - tests for integer mul, div, jmp  pass successfully
   - SIMD tests for integer add, shl, shr instructions pass successfully
