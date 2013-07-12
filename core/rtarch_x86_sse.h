@@ -216,37 +216,37 @@
             AUX(EMPTY,   EMPTY,   EMITB(0x06))
 
 
-#define movsn_rr(RG, RM)                                                    \
+#define movsn_rr(RG, RM) /* not portable, do not use outside */             \
         EMITB(0x0F) EMITB(0x50)                                             \
             MRM(REG(RG), MOD(RM), REG(RM))
 
 #define NONE  0x00
 #define FULL  0x0F
 
-#define CHECK_MASK(lb, cc)                                                  \
-        movsn_rr(Reax, Xmm7)                                                \
+#define CHECK_MASK(lb, cc, RG) /* destroys value in Reax */                 \
+        movsn_rr(Reax, W(RG))                                               \
         cmpxx_ri(Reax, IB(cc))                                              \
         jeqxx_lb(lb)
 
 
-#define mxcsr_ld(RM, DP)                                                    \
+#define mxcsr_ld(RM, DP) /* not portable, do not use outside */             \
         EMITB(0x0F) EMITB(0xAE)                                             \
             MRM(0x02,    MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
 
-#define mxcsr_st(RM, DP)                                                    \
+#define mxcsr_st(RM, DP) /* not portable, do not use outside */             \
         EMITB(0x0F) EMITB(0xAE)                                             \
             MRM(0x03,    MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
 
-#define FCTRL_ENTER()                                                       \
+#define FCTRL_ENTER() /* destroys value in Reax */                          \
         mxcsr_st(Mebp, inf_FCTRL)                                           \
         movxx_ld(Reax, Mebp, inf_FCTRL)                                     \
         orrxx_mi(Mebp, inf_FCTRL, IH(1 << 13))                              \
         mxcsr_ld(Mebp, inf_FCTRL)                                           \
         movxx_st(Reax, Mebp, inf_FCTRL)
 
-#define FCTRL_LEAVE()                                                       \
+#define FCTRL_LEAVE() /* destroys value in Reax (in ARM version) */         \
         mxcsr_ld(Mebp, inf_FCTRL)
 
 /* int (SSE2) */
