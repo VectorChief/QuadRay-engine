@@ -11,7 +11,7 @@
 /***************************   OS, COMPILER, ARCH   ***************************/
 /******************************************************************************/
 
-/*******************************   WIN32, MSC   *******************************/
+/*******************************   WIN32, MSVC   ******************************/
 
 #if   defined (WIN32)
 
@@ -31,7 +31,8 @@
 #define ASM_ENTER(info)     __asm                                           \
                             {                                               \
                                 stack_sa()                                  \
-                                ASM_BEG ASM_OP2(lea, ebp, info) ASM_END
+                                ASM_BEG ASM_OP2(lea, eax, info) ASM_END     \
+                                movxx_ld(Rebp, Oeax, PLAIN)
 
 #define ASM_LEAVE(info)         stack_la()                                  \
                             }
@@ -68,7 +69,8 @@
 #define ASM_ENTER(info)     asm volatile                                    \
                             (                                               \
                                 stack_sa()                                  \
-                                ASM_BEG ASM_OP2(movl, %%ebp, %[info]) ASM_END
+                                ASM_BEG ASM_OP2(movl, %%eax, %[info]) ASM_END \
+                                movxx_ld(Rebp, Oeax, PLAIN)
 
 #define ASM_LEAVE(info)         stack_la()                                  \
                               :                                             \
@@ -96,7 +98,8 @@
 #define ASM_ENTER(info)     asm volatile                                    \
                             (                                               \
                                 stack_sa()                                  \
-                                ASM_BEG ASM_OP2(mov, r5, %[info]) ASM_END
+                                ASM_BEG ASM_OP2(mov, r0, %[info]) ASM_END   \
+                                movxx_ld(Rebp, Oeax, PLAIN)
 
 #define ASM_LEAVE(info)         stack_la()                                  \
                               :                                             \
@@ -118,15 +121,6 @@
 #endif /* RT_X86, RT_ARM */
 
 #endif /* OS, COMPILER, ARCH */
-
-/******************************************************************************/
-/********************************   LOGGING   *********************************/
-/******************************************************************************/
-
-#include "stdio.h"
-
-#define RT_LOGI     printf
-#define RT_LOGE     printf
 
 #endif /* RT_RTARCH_H */
 

@@ -17,7 +17,7 @@
 #define CYC_SIZE        1000000
 
 #define ARR_SIZE        12 /* hardcoded in asm sections */
-#define MASK            15 /* hardcoded quad alignment */
+#define MASK            (RT_QUAD_ALIGN - 1) /* quad alignment mask */
 
 #define FRK(f)          (f < 10.0       ? 1.0           :                   \
                          f < 100.0      ? 10.0          :                   \
@@ -30,66 +30,68 @@
 #define FEQ(f1, f2)     (fabsf(f1 - f2) < 0.0002f * RT_MIN(FRK(f1), FRK(f2)))
 #define IEQ(i1, i2)     (i1 == i2)
 
+#define RT_LOGI         printf
+#define RT_LOGE         printf
 
-struct rt_INFO
+
+/* NOTE: displacements start where rt_QUAD_INFO ends (at 0x100) */
+
+struct rt_QUAD_INFO_EXT : public rt_QUAD_INFO
 {
     rt_real*far0;
-#define inf_FAR0        DP(0x0000)
+#define inf_FAR0            DP(0x100)
 
     rt_real*fco1;
-#define inf_FCO1        DP(0x0004)
+#define inf_FCO1            DP(0x104)
 
     rt_real*fco2;
-#define inf_FCO2        DP(0x0008)
+#define inf_FCO2            DP(0x108)
 
     rt_real*fso1;
-#define inf_FSO1        DP(0x000C)
+#define inf_FSO1            DP(0x10C)
 
     rt_real*fso2;
-#define inf_FSO2        DP(0x0010)
+#define inf_FSO2            DP(0x110)
 
 
     rt_cell*iar0;
-#define inf_IAR0        DP(0x0014)
+#define inf_IAR0            DP(0x114)
 
     rt_cell*ico1;
-#define inf_ICO1        DP(0x0018)
+#define inf_ICO1            DP(0x118)
 
     rt_cell*ico2;
-#define inf_ICO2        DP(0x001C)
+#define inf_ICO2            DP(0x11C)
 
     rt_cell*iso1;
-#define inf_ISO1        DP(0x0020)
+#define inf_ISO1            DP(0x120)
 
     rt_cell*iso2;
-#define inf_ISO2        DP(0x0024)
+#define inf_ISO2            DP(0x124)
 
 
     rt_cell cyc;
-#define inf_CYC         DP(0x0028)
+#define inf_CYC             DP(0x128)
 
     rt_cell size;
-#define inf_SIZE        DP(0x002C)
-
-    rt_cell fctrl;
-#define inf_FCTRL       DP(0x0030)
+#define inf_SIZE            DP(0x12C)
 
     rt_pntr label;
-#define inf_LABEL       DP(0x0034)
+#define inf_LABEL           DP(0x130)
 
 };
 
 
 #if RUN_LEVEL >= 1
 
-rt_void C_run_level1(rt_INFO *p)
+rt_void C_run_level1(rt_QUAD_INFO_EXT *info)
 {
-    rt_cell i, j, n = p->size;
-    rt_real *far0 = p->far0;
-    rt_real *fco1 = p->fco1;
-    rt_real *fco2 = p->fco2;
+    rt_cell i, j, n = info->size;
+    rt_real *far0 = info->far0;
+    rt_real *fco1 = info->fco1;
+    rt_real *fco2 = info->fco2;
 
-    i = p->cyc;
+    i = info->cyc;
     while (i-->0)
     {
         j = n;
@@ -101,16 +103,16 @@ rt_void C_run_level1(rt_INFO *p)
     }
 }
 
-rt_void S_run_level1(rt_INFO *p)
+rt_void S_run_level1(rt_QUAD_INFO_EXT *info)
 {
     rt_cell i;
-    rt_INFO info = *p;
+
 
 #define AJ0         DP(0x0000)
 #define AJ1         DP(0x0010)
 #define AJ2         DP(0x0020)
 
-    i = p->cyc;
+    i = info->cyc;
     while (i-->0)
     {
         ASM_ENTER(info)
@@ -150,19 +152,19 @@ rt_void S_run_level1(rt_INFO *p)
     }
 }
 
-rt_void P_run_level1(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level1(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
-    rt_real *far0 = p->far0;
-    rt_real *fco1 = p->fco1;
-    rt_real *fco2 = p->fco2;
-    rt_real *fso1 = p->fso1;
-    rt_real *fso2 = p->fso2;
+    rt_real *far0 = info->far0;
+    rt_real *fco1 = info->fco1;
+    rt_real *fco2 = info->fco2;
+    rt_real *fso1 = info->fso1;
+    rt_real *fso2 = info->fso2;
 
     RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 1);
 
-    j = n = p->size;
+    j = n = info->size;
     while (j-->0)
     {
         if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v)
@@ -191,14 +193,14 @@ rt_void P_run_level1(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 2
 
-rt_void C_run_level2(rt_INFO *p)
+rt_void C_run_level2(rt_QUAD_INFO_EXT *info)
 {
-    rt_cell i, j, n = p->size;
-    rt_real *far0 = p->far0;
-    rt_real *fco1 = p->fco1;
-    rt_real *fco2 = p->fco2;
+    rt_cell i, j, n = info->size;
+    rt_real *far0 = info->far0;
+    rt_real *fco1 = info->fco1;
+    rt_real *fco2 = info->fco2;
 
-    i = p->cyc;
+    i = info->cyc;
     while (i-->0)
     {
         j = n;
@@ -210,16 +212,16 @@ rt_void C_run_level2(rt_INFO *p)
     }
 }
 
-rt_void S_run_level2(rt_INFO *p)
+rt_void S_run_level2(rt_QUAD_INFO_EXT *info)
 {
     rt_cell i;
-    rt_INFO info = *p;
+
 
 #define AJ0         DP(0x0000)
 #define AJ1         DP(0x0010)
 #define AJ2         DP(0x0020)
 
-    i = p->cyc;
+    i = info->cyc;
     while (i-->0)
     {
         ASM_ENTER(info)
@@ -259,19 +261,19 @@ rt_void S_run_level2(rt_INFO *p)
     }
 }
 
-rt_void P_run_level2(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level2(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
-    rt_real *far0 = p->far0;
-    rt_real *fco1 = p->fco1;
-    rt_real *fco2 = p->fco2;
-    rt_real *fso1 = p->fso1;
-    rt_real *fso2 = p->fso2;
+    rt_real *far0 = info->far0;
+    rt_real *fco1 = info->fco1;
+    rt_real *fco2 = info->fco2;
+    rt_real *fso1 = info->fso1;
+    rt_real *fso2 = info->fso2;
 
     RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 2);
 
-    j = n = p->size;
+    j = n = info->size;
     while (j-->0)
     {
         if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v)
@@ -301,14 +303,14 @@ rt_void P_run_level2(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 3
 
-rt_void C_run_level3(rt_INFO *p)
+rt_void C_run_level3(rt_QUAD_INFO_EXT *info)
 {
-    rt_cell i, j, n = p->size;
-    rt_real *far0 = p->far0;
-    rt_cell *ico1 = p->ico1;
-    rt_cell *ico2 = p->ico2;
+    rt_cell i, j, n = info->size;
+    rt_real *far0 = info->far0;
+    rt_cell *ico1 = info->ico1;
+    rt_cell *ico2 = info->ico2;
 
-    i = p->cyc;
+    i = info->cyc;
     while (i-->0)
     {
         j = n;
@@ -320,16 +322,16 @@ rt_void C_run_level3(rt_INFO *p)
     }
 }
 
-rt_void S_run_level3(rt_INFO *p)
+rt_void S_run_level3(rt_QUAD_INFO_EXT *info)
 {
     rt_cell i;
-    rt_INFO info = *p;
+
 
 #define AJ0         DP(0x0000)
 #define AJ1         DP(0x0010)
 #define AJ2         DP(0x0020)
 
-    i = p->cyc;
+    i = info->cyc;
     while (i-->0)
     {
         ASM_ENTER(info)
@@ -369,19 +371,19 @@ rt_void S_run_level3(rt_INFO *p)
     }
 }
 
-rt_void P_run_level3(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level3(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
-    rt_real *far0 = p->far0;
-    rt_cell *ico1 = p->ico1;
-    rt_cell *ico2 = p->ico2;
-    rt_cell *iso1 = p->iso1;
-    rt_cell *iso2 = p->iso2;
+    rt_real *far0 = info->far0;
+    rt_cell *ico1 = info->ico1;
+    rt_cell *ico2 = info->ico2;
+    rt_cell *iso1 = info->iso1;
+    rt_cell *iso2 = info->iso2;
 
     RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 3);
 
-    j = n = p->size;
+    j = n = info->size;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
@@ -410,14 +412,14 @@ rt_void P_run_level3(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 4
 
-rt_void C_run_level4(rt_INFO *p)
+rt_void C_run_level4(rt_QUAD_INFO_EXT *info)
 {
-    rt_cell i, j, n = p->size;
-    rt_real *far0 = p->far0;
-    rt_cell *ico1 = p->ico1;
-    rt_cell *ico2 = p->ico2;
+    rt_cell i, j, n = info->size;
+    rt_real *far0 = info->far0;
+    rt_cell *ico1 = info->ico1;
+    rt_cell *ico2 = info->ico2;
 
-    i = p->cyc;
+    i = info->cyc;
     while (i-->0)
     {
         j = n;
@@ -429,16 +431,16 @@ rt_void C_run_level4(rt_INFO *p)
     }
 }
 
-rt_void S_run_level4(rt_INFO *p)
+rt_void S_run_level4(rt_QUAD_INFO_EXT *info)
 {
     rt_cell i;
-    rt_INFO info = *p;
+
 
 #define AJ0         DP(0x0000)
 #define AJ1         DP(0x0010)
 #define AJ2         DP(0x0020)
 
-    i = p->cyc;
+    i = info->cyc;
     while (i-->0)
     {
         ASM_ENTER(info)
@@ -478,19 +480,19 @@ rt_void S_run_level4(rt_INFO *p)
     }
 }
 
-rt_void P_run_level4(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level4(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
-    rt_real *far0 = p->far0;
-    rt_cell *ico1 = p->ico1;
-    rt_cell *ico2 = p->ico2;
-    rt_cell *iso1 = p->iso1;
-    rt_cell *iso2 = p->iso2;
+    rt_real *far0 = info->far0;
+    rt_cell *ico1 = info->ico1;
+    rt_cell *ico2 = info->ico2;
+    rt_cell *iso1 = info->iso1;
+    rt_cell *iso2 = info->iso2;
 
     RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 4);
 
-    j = n = p->size;
+    j = n = info->size;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
@@ -519,14 +521,14 @@ rt_void P_run_level4(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 5
 
-rt_void C_run_level5(rt_INFO *p)
+rt_void C_run_level5(rt_QUAD_INFO_EXT *info)
 {
-    rt_cell i, j, n = p->size;
-    rt_real *far0 = p->far0;
-    rt_cell *ico1 = p->ico1;
-    rt_cell *ico2 = p->ico2;
+    rt_cell i, j, n = info->size;
+    rt_real *far0 = info->far0;
+    rt_cell *ico1 = info->ico1;
+    rt_cell *ico2 = info->ico2;
 
-    i = p->cyc;
+    i = info->cyc;
     while (i-->0)
     {
         j = n;
@@ -538,16 +540,16 @@ rt_void C_run_level5(rt_INFO *p)
     }
 }
 
-rt_void S_run_level5(rt_INFO *p)
+rt_void S_run_level5(rt_QUAD_INFO_EXT *info)
 {
     rt_cell i;
-    rt_INFO info = *p;
+
 
 #define AJ0         DP(0x0000)
 #define AJ1         DP(0x0010)
 #define AJ2         DP(0x0020)
 
-    i = p->cyc;
+    i = info->cyc;
     while (i-->0)
     {
         ASM_ENTER(info)
@@ -587,19 +589,19 @@ rt_void S_run_level5(rt_INFO *p)
     }
 }
 
-rt_void P_run_level5(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level5(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
-    rt_real *far0 = p->far0;
-    rt_cell *ico1 = p->ico1;
-    rt_cell *ico2 = p->ico2;
-    rt_cell *iso1 = p->iso1;
-    rt_cell *iso2 = p->iso2;
+    rt_real *far0 = info->far0;
+    rt_cell *ico1 = info->ico1;
+    rt_cell *ico2 = info->ico2;
+    rt_cell *iso1 = info->iso1;
+    rt_cell *iso2 = info->iso2;
 
     RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 5);
 
-    j = n = p->size;
+    j = n = info->size;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
@@ -628,15 +630,15 @@ rt_void P_run_level5(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 6
 
-rt_void C_run_level6(rt_INFO *p)
+rt_void C_run_level6(rt_QUAD_INFO_EXT *info)
 {
-    rt_cell i, j, n = p->size;
-    rt_real *far0 = p->far0;
-    rt_cell *iar0 = p->iar0;
-    rt_cell *ico1 = p->ico1;
-    rt_real *fco2 = p->fco2;
+    rt_cell i, j, n = info->size;
+    rt_real *far0 = info->far0;
+    rt_cell *iar0 = info->iar0;
+    rt_cell *ico1 = info->ico1;
+    rt_real *fco2 = info->fco2;
 
-    i = p->cyc;
+    i = info->cyc;
     while (i-->0)
     {
         j = n;
@@ -648,16 +650,16 @@ rt_void C_run_level6(rt_INFO *p)
     }
 }
 
-rt_void S_run_level6(rt_INFO *p)
+rt_void S_run_level6(rt_QUAD_INFO_EXT *info)
 {
     rt_cell i;
-    rt_INFO info = *p;
+
 
 #define AJ0         DP(0x0000)
 #define AJ1         DP(0x0010)
 #define AJ2         DP(0x0020)
 
-    i = p->cyc;
+    i = info->cyc;
     while (i-->0)
     {
         ASM_ENTER(info)
@@ -696,20 +698,20 @@ rt_void S_run_level6(rt_INFO *p)
     }
 }
 
-rt_void P_run_level6(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level6(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
-    rt_real *far0 = p->far0;
-    rt_cell *iar0 = p->iar0;
-    rt_cell *ico1 = p->ico1;
-    rt_real *fco2 = p->fco2;
-    rt_cell *iso1 = p->iso1;
-    rt_real *fso2 = p->fso2;
+    rt_real *far0 = info->far0;
+    rt_cell *iar0 = info->iar0;
+    rt_cell *ico1 = info->ico1;
+    rt_real *fco2 = info->fco2;
+    rt_cell *iso1 = info->iso1;
+    rt_real *fso2 = info->fso2;
 
     RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 6);
 
-    j = n = p->size;
+    j = n = info->size;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && FEQ(fco2[j], fso2[j]) && !v)
@@ -738,14 +740,14 @@ rt_void P_run_level6(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 7
 
-rt_void C_run_level7(rt_INFO *p)
+rt_void C_run_level7(rt_QUAD_INFO_EXT *info)
 {
-    rt_cell i, j, n = p->size;
-    rt_real *far0 = p->far0;
-    rt_real *fco1 = p->fco1;
-    rt_real *fco2 = p->fco2;
+    rt_cell i, j, n = info->size;
+    rt_real *far0 = info->far0;
+    rt_real *fco1 = info->fco1;
+    rt_real *fco2 = info->fco2;
 
-    i = p->cyc;
+    i = info->cyc;
     while (i-->0)
     {
         j = n;
@@ -757,16 +759,16 @@ rt_void C_run_level7(rt_INFO *p)
     }
 }
 
-rt_void S_run_level7(rt_INFO *p)
+rt_void S_run_level7(rt_QUAD_INFO_EXT *info)
 {
     rt_cell i;
-    rt_INFO info = *p;
+
 
 #define AJ0         DP(0x0000)
 #define AJ1         DP(0x0010)
 #define AJ2         DP(0x0020)
 
-    i = p->cyc;
+    i = info->cyc;
     while (i-->0)
     {
         ASM_ENTER(info)
@@ -797,19 +799,19 @@ rt_void S_run_level7(rt_INFO *p)
     }
 }
 
-rt_void P_run_level7(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level7(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
-    rt_real *far0 = p->far0;
-    rt_real *fco1 = p->fco1;
-    rt_real *fco2 = p->fco2;
-    rt_real *fso1 = p->fso1;
-    rt_real *fso2 = p->fso2;
+    rt_real *far0 = info->far0;
+    rt_real *fco1 = info->fco1;
+    rt_real *fco2 = info->fco2;
+    rt_real *fso1 = info->fso1;
+    rt_real *fso2 = info->fso2;
 
     RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 7);
 
-    j = n = p->size;
+    j = n = info->size;
     while (j-->0)
     {
         if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v)
@@ -838,14 +840,14 @@ rt_void P_run_level7(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 8
 
-rt_void C_run_level8(rt_INFO *p)
+rt_void C_run_level8(rt_QUAD_INFO_EXT *info)
 {
-    rt_cell i, j, n = p->size;
-    rt_cell *iar0 = p->iar0;
-    rt_cell *ico1 = p->ico1;
-    rt_cell *ico2 = p->ico2;
+    rt_cell i, j, n = info->size;
+    rt_cell *iar0 = info->iar0;
+    rt_cell *ico1 = info->ico1;
+    rt_cell *ico2 = info->ico2;
 
-    i = p->cyc;
+    i = info->cyc;
     while (i-->0)
     {
         j = n;
@@ -857,16 +859,16 @@ rt_void C_run_level8(rt_INFO *p)
     }
 }
 
-rt_void S_run_level8(rt_INFO *p)
+rt_void S_run_level8(rt_QUAD_INFO_EXT *info)
 {
     rt_cell i;
-    rt_INFO info = *p;
+
 
 #define AJ0         DP(0x0000)
 #define AJ1         DP(0x0010)
 #define AJ2         DP(0x0020)
 
-    i = p->cyc;
+    i = info->cyc;
     while (i-->0)
     {
         ASM_ENTER(info)
@@ -912,19 +914,19 @@ rt_void S_run_level8(rt_INFO *p)
     }
 }
 
-rt_void P_run_level8(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level8(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
-    rt_cell *iar0 = p->iar0;
-    rt_cell *ico1 = p->ico1;
-    rt_cell *ico2 = p->ico2;
-    rt_cell *iso1 = p->iso1;
-    rt_cell *iso2 = p->iso2;
+    rt_cell *iar0 = info->iar0;
+    rt_cell *ico1 = info->ico1;
+    rt_cell *ico2 = info->ico2;
+    rt_cell *iso1 = info->iso1;
+    rt_cell *iso2 = info->iso2;
 
     RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 8);
 
-    j = n = p->size;
+    j = n = info->size;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
@@ -954,14 +956,14 @@ rt_void P_run_level8(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 9
 
-rt_void C_run_level9(rt_INFO *p)
+rt_void C_run_level9(rt_QUAD_INFO_EXT *info)
 {
-    rt_cell i, j, n = p->size;
-    rt_cell *iar0 = p->iar0;
-    rt_cell *ico1 = p->ico1;
-    rt_cell *ico2 = p->ico2;
+    rt_cell i, j, n = info->size;
+    rt_cell *iar0 = info->iar0;
+    rt_cell *ico1 = info->ico1;
+    rt_cell *ico2 = info->ico2;
 
-    i = p->cyc;
+    i = info->cyc;
     while (i-->0)
     {
         j = n;
@@ -973,9 +975,9 @@ rt_void C_run_level9(rt_INFO *p)
     }
 }
 
-rt_void S_run_level9(rt_INFO *p)
+rt_void S_run_level9(rt_QUAD_INFO_EXT *info)
 {
-    rt_INFO info = *p;
+
 
     ASM_ENTER(info)
 
@@ -1051,19 +1053,19 @@ rt_void S_run_level9(rt_INFO *p)
     ASM_LEAVE(info)
 }
 
-rt_void P_run_level9(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level9(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
-    rt_cell *iar0 = p->iar0;
-    rt_cell *ico1 = p->ico1;
-    rt_cell *ico2 = p->ico2;
-    rt_cell *iso1 = p->iso1;
-    rt_cell *iso2 = p->iso2;
+    rt_cell *iar0 = info->iar0;
+    rt_cell *ico1 = info->ico1;
+    rt_cell *ico2 = info->ico2;
+    rt_cell *iso1 = info->iso1;
+    rt_cell *iso2 = info->iso2;
 
     RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 9);
 
-    j = n = p->size;
+    j = n = info->size;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
@@ -1091,9 +1093,9 @@ rt_void P_run_level9(rt_INFO *p, rt_long tC, rt_long tS, rt_bool v)
 #endif /* RUN_LEVEL 9 */
 
 
-typedef rt_void (*C_run_levelX)(rt_INFO *);
-typedef rt_void (*S_run_levelX)(rt_INFO *);
-typedef rt_void (*P_run_levelX)(rt_INFO *, rt_long, rt_long, rt_bool);
+typedef rt_void (*C_run_levelX)(rt_QUAD_INFO_EXT *);
+typedef rt_void (*S_run_levelX)(rt_QUAD_INFO_EXT *);
+typedef rt_void (*P_run_levelX)(rt_QUAD_INFO_EXT *, rt_long, rt_long, rt_bool);
 
 C_run_levelX Carr[RUN_LEVEL] =
 {
@@ -1216,7 +1218,10 @@ P_run_levelX Parr[RUN_LEVEL] =
 rt_long get_time();
 
 /*
- * marr - memory array
+ * info - info original pointer
+ * inf0 - info aligned pointer
+ * marr - memory original pointer
+ * mar0 - memory aligned pointer
  *
  * farr - float original array
  * far0 - float aligned array 0
@@ -1234,7 +1239,8 @@ rt_long get_time();
  */
 int main ()
 {
-    rt_real marr[500] = {0};
+    rt_pntr marr = malloc(10 * ARR_SIZE * sizeof(rt_word) + MASK);
+    rt_pntr mar0 = (rt_pntr)(((rt_word)marr + MASK) & ~MASK);
 
     rt_real farr[ARR_SIZE] =
     {
@@ -1252,11 +1258,13 @@ int main ()
         43187.487,
     };
 
-    rt_real *far0 = (rt_real*)((rt_cell)((rt_char*)&marr[0]   + MASK) & ~MASK);
-    rt_real *fco1 = (rt_real*)((rt_cell)((rt_char*)&marr[100] + MASK) & ~MASK);
-    rt_real *fco2 = (rt_real*)((rt_cell)((rt_char*)&marr[200] + MASK) & ~MASK);
-    rt_real *fso1 = (rt_real*)((rt_cell)((rt_char*)&marr[300] + MASK) & ~MASK);
-    rt_real *fso2 = (rt_real*)((rt_cell)((rt_char*)&marr[400] + MASK) & ~MASK);
+    rt_real *far0 = (rt_real *)mar0 + ARR_SIZE * 0;
+    rt_real *fco1 = (rt_real *)mar0 + ARR_SIZE * 1;
+    rt_real *fco2 = (rt_real *)mar0 + ARR_SIZE * 2;
+    rt_real *fso1 = (rt_real *)mar0 + ARR_SIZE * 3;
+    rt_real *fso2 = (rt_real *)mar0 + ARR_SIZE * 4;
+
+    memcpy(far0, farr, sizeof(farr));
 
     rt_cell iarr[ARR_SIZE] =
     {
@@ -1274,21 +1282,31 @@ int main ()
         318773,
     };
 
-    rt_cell *iar0 = (rt_cell*)((rt_cell)((rt_char*)&marr[50]  + MASK) & ~MASK);
-    rt_cell *ico1 = (rt_cell*)((rt_cell)((rt_char*)&marr[150] + MASK) & ~MASK);
-    rt_cell *ico2 = (rt_cell*)((rt_cell)((rt_char*)&marr[250] + MASK) & ~MASK);
-    rt_cell *iso1 = (rt_cell*)((rt_cell)((rt_char*)&marr[350] + MASK) & ~MASK);
-    rt_cell *iso2 = (rt_cell*)((rt_cell)((rt_char*)&marr[450] + MASK) & ~MASK);
+    rt_cell *iar0 = (rt_cell *)mar0 + ARR_SIZE * 5;
+    rt_cell *ico1 = (rt_cell *)mar0 + ARR_SIZE * 6;
+    rt_cell *ico2 = (rt_cell *)mar0 + ARR_SIZE * 7;
+    rt_cell *iso1 = (rt_cell *)mar0 + ARR_SIZE * 8;
+    rt_cell *iso2 = (rt_cell *)mar0 + ARR_SIZE * 9;
 
-    memcpy(far0, farr, sizeof(farr));
     memcpy(iar0, iarr, sizeof(iarr));
 
-    rt_INFO     info =
-    {
-        far0,   fco1,   fco2,   fso1,   fso2,
-        iar0,   ico1,   ico2,   iso1,   iso2,
-        CYC_SIZE, ARR_SIZE
-    };
+    rt_pntr info = malloc(sizeof(rt_QUAD_INFO_EXT) + MASK);
+    rt_QUAD_INFO_EXT *inf0 = (rt_QUAD_INFO_EXT *)(((rt_word)info + MASK) & ~MASK);
+
+    inf0->far0 = far0;
+    inf0->fco1 = fco1;
+    inf0->fco2 = fco2;
+    inf0->fso1 = fso1;
+    inf0->fso2 = fso2;
+
+    inf0->iar0 = iar0;
+    inf0->ico1 = ico1;
+    inf0->ico2 = ico2;
+    inf0->iso1 = iso1;
+    inf0->iso2 = iso2;
+
+    inf0->cyc  = CYC_SIZE;
+    inf0->size = ARR_SIZE;
 
     rt_long time1 = 0;
     rt_long time2 = 0;
@@ -1301,20 +1319,23 @@ int main ()
     {
         time1 = get_time();
 
-        Carr[i](&info);
+        Carr[i](inf0);
 
         time2 = get_time();
         tC = time2 - time1;
 
         time1 = get_time();
 
-        Sarr[i](&info);
+        Sarr[i](inf0);
 
         time2 = get_time();
         tS = time2 - time1;
 
-        Parr[i](&info, tC, tS, VERBOSE);
+        Parr[i](inf0, tC, tS, VERBOSE);
     }
+
+    free(info);
+    free(marr);
 
 #if   defined (WIN32) /* Win32, MSC ----------------------------------------- */
 
