@@ -664,7 +664,7 @@ rt_void S_run_level6(rt_SIMD_INFO_EXT *info)
     {
         ASM_ENTER(info)
 
-        FCTRL_ENTER()
+        FCTRL_ENTER(ROUNDM)
 
         movxx_ld(Recx, Mebp, inf_FAR0)
         movxx_ld(Resi, Mebp, inf_IAR0)
@@ -692,7 +692,7 @@ rt_void S_run_level6(rt_SIMD_INFO_EXT *info)
         movps_st(Xmm2, Medx, AJ2)
         movps_st(Xmm3, Mebx, AJ2)
 
-        FCTRL_LEAVE()
+        FCTRL_LEAVE(ROUNDM)
 
         ASM_LEAVE(info)
     }

@@ -232,12 +232,12 @@
         EMITW(0xF3B20200 | MTM(Tmm1+0,  0x00,    Tmm1))                     \
         EMITW(0xEE100B10 | MTM(REG(RG), Tmm1+0,  0x00))
 
-#define NONE  0x00
-#define FULL  0x01
+#define RT_SIMD_MASK_NONE       0x00    /* none satisfy the condition */
+#define RT_SIMD_MASK_FULL       0x01    /*  all satisfy the condition */
 
-#define CHECK_MASK(lb, cc, RG) /* destroys value in Reax */                 \
+#define CHECK_MASK(lb, mask, RG) /* destroys value in Reax */               \
         movms_rr(Reax, W(RG))                                               \
-        addxx_ri(Reax, IB(cc))                                              \
+        addxx_ri(Reax, IB(RT_SIMD_MASK_##mask))                             \
         cmpxx_ri(Reax, IB(0))                                               \
         jeqxx_lb(lb)
 
@@ -248,13 +248,18 @@
 #define fpscr_st(RG) /* not portable, do not use outside */                 \
         EMITW(0xEEF10A10 | MRM(REG(RG), 0x00,    0x00))
 
-#define FCTRL_ENTER() /* destroys value in Reax */                          \
+#define RT_SIMD_MODE_ROUNDN     0x00    /* round to nearest */
+#define RT_SIMD_MODE_ROUNDM     0x02    /* round towards minus infinity */
+#define RT_SIMD_MODE_ROUNDP     0x01    /* round towards plus  infinity */
+#define RT_SIMD_MODE_ROUNDZ     0x03    /* round towards zero */
+
+#define FCTRL_ENTER(mode) /* destroys value in Reax */                      \
         fpscr_st(Reax)                                                      \
         movxx_st(Reax, Mebp, inf_FCTRL)                                     \
-        orrxx_ri(Reax, IW(1 << 23))                                         \
+        orrxx_ri(Reax, IW(RT_SIMD_MODE_##mode << 22))                       \
         fpscr_ld(Reax)
 
-#define FCTRL_LEAVE() /* destroys value in Reax */                          \
+#define FCTRL_LEAVE(mode) /* destroys value in Reax */                      \
         movxx_ld(Reax, Mebp, inf_FCTRL)                                     \
         fpscr_ld(Reax)
 
