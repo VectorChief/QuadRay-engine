@@ -41,7 +41,7 @@ typedef const char         *rt_pstr;
 
 /* Complex types */
 
-struct rt_QUAD_INFO
+struct rt_SIMD_INFO
 {
     /* general purpose constants */
 
@@ -73,17 +73,14 @@ typedef rt_void (*rt_FUNC_FREE)(rt_pntr ptr);
 /* Generic definitions */
 
 #define RT_NULL             ((rt_pntr)0)
+#define RT_ALIGN            4
 
 #define RT_FALSE            0
 #define RT_TRUE             1
 
-#define RT_ALIGN            4
-#define RT_QUAD_ALIGN       16
-
 /* Generic macros */
 
 #define RT_ARR_SIZE(a)      (sizeof(a) / sizeof(a[0]))
-#define RT_QUAD_SET(a, v)   a[0] = v; a[1] = v; a[2] = v; a[3] = v
 
 #define RT_MIN(a, b)        ((a) < (b) ? (a) : (b))
 #define RT_MAX(a, b)        ((a) > (b) ? (a) : (b))

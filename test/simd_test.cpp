@@ -17,7 +17,7 @@
 #define CYC_SIZE        1000000
 
 #define ARR_SIZE        12 /* hardcoded in asm sections */
-#define MASK            (RT_QUAD_ALIGN - 1) /* quad alignment mask */
+#define MASK            (RT_SIMD_ALIGN - 1) /* SIMD alignment mask */
 
 #define FRK(f)          (f < 10.0       ? 1.0           :                   \
                          f < 100.0      ? 10.0          :                   \
@@ -34,9 +34,9 @@
 #define RT_LOGE         printf
 
 
-/* NOTE: displacements start where rt_QUAD_INFO ends (at 0x100) */
+/* NOTE: displacements start where rt_SIMD_INFO ends (at 0x100) */
 
-struct rt_QUAD_INFO_EXT : public rt_QUAD_INFO
+struct rt_SIMD_INFO_EXT : public rt_SIMD_INFO
 {
     rt_real*far0;
 #define inf_FAR0            DP(0x100)
@@ -84,7 +84,7 @@ struct rt_QUAD_INFO_EXT : public rt_QUAD_INFO
 
 #if RUN_LEVEL >= 1
 
-rt_void C_run_level1(rt_QUAD_INFO_EXT *info)
+rt_void C_run_level1(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -103,7 +103,7 @@ rt_void C_run_level1(rt_QUAD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level1(rt_QUAD_INFO_EXT *info)
+rt_void S_run_level1(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
@@ -152,7 +152,7 @@ rt_void S_run_level1(rt_QUAD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level1(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level1(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -193,7 +193,7 @@ rt_void P_run_level1(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 2
 
-rt_void C_run_level2(rt_QUAD_INFO_EXT *info)
+rt_void C_run_level2(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -212,7 +212,7 @@ rt_void C_run_level2(rt_QUAD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level2(rt_QUAD_INFO_EXT *info)
+rt_void S_run_level2(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
@@ -261,7 +261,7 @@ rt_void S_run_level2(rt_QUAD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level2(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level2(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -303,7 +303,7 @@ rt_void P_run_level2(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 3
 
-rt_void C_run_level3(rt_QUAD_INFO_EXT *info)
+rt_void C_run_level3(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -322,7 +322,7 @@ rt_void C_run_level3(rt_QUAD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level3(rt_QUAD_INFO_EXT *info)
+rt_void S_run_level3(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
@@ -371,7 +371,7 @@ rt_void S_run_level3(rt_QUAD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level3(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level3(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -412,7 +412,7 @@ rt_void P_run_level3(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 4
 
-rt_void C_run_level4(rt_QUAD_INFO_EXT *info)
+rt_void C_run_level4(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -431,7 +431,7 @@ rt_void C_run_level4(rt_QUAD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level4(rt_QUAD_INFO_EXT *info)
+rt_void S_run_level4(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
@@ -480,7 +480,7 @@ rt_void S_run_level4(rt_QUAD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level4(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level4(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -521,7 +521,7 @@ rt_void P_run_level4(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 5
 
-rt_void C_run_level5(rt_QUAD_INFO_EXT *info)
+rt_void C_run_level5(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -540,7 +540,7 @@ rt_void C_run_level5(rt_QUAD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level5(rt_QUAD_INFO_EXT *info)
+rt_void S_run_level5(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
@@ -589,7 +589,7 @@ rt_void S_run_level5(rt_QUAD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level5(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level5(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -630,7 +630,7 @@ rt_void P_run_level5(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 6
 
-rt_void C_run_level6(rt_QUAD_INFO_EXT *info)
+rt_void C_run_level6(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -650,7 +650,7 @@ rt_void C_run_level6(rt_QUAD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level6(rt_QUAD_INFO_EXT *info)
+rt_void S_run_level6(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
@@ -698,7 +698,7 @@ rt_void S_run_level6(rt_QUAD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level6(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level6(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -740,7 +740,7 @@ rt_void P_run_level6(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 7
 
-rt_void C_run_level7(rt_QUAD_INFO_EXT *info)
+rt_void C_run_level7(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -759,7 +759,7 @@ rt_void C_run_level7(rt_QUAD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level7(rt_QUAD_INFO_EXT *info)
+rt_void S_run_level7(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
@@ -799,7 +799,7 @@ rt_void S_run_level7(rt_QUAD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level7(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level7(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -840,7 +840,7 @@ rt_void P_run_level7(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 8
 
-rt_void C_run_level8(rt_QUAD_INFO_EXT *info)
+rt_void C_run_level8(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_cell *iar0 = info->iar0;
@@ -859,7 +859,7 @@ rt_void C_run_level8(rt_QUAD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level8(rt_QUAD_INFO_EXT *info)
+rt_void S_run_level8(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
@@ -914,7 +914,7 @@ rt_void S_run_level8(rt_QUAD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level8(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level8(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -956,7 +956,7 @@ rt_void P_run_level8(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 9
 
-rt_void C_run_level9(rt_QUAD_INFO_EXT *info)
+rt_void C_run_level9(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_cell *iar0 = info->iar0;
@@ -975,7 +975,7 @@ rt_void C_run_level9(rt_QUAD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level9(rt_QUAD_INFO_EXT *info)
+rt_void S_run_level9(rt_SIMD_INFO_EXT *info)
 {
 
 
@@ -1053,7 +1053,7 @@ rt_void S_run_level9(rt_QUAD_INFO_EXT *info)
     ASM_LEAVE(info)
 }
 
-rt_void P_run_level9(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level9(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -1093,9 +1093,9 @@ rt_void P_run_level9(rt_QUAD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 #endif /* RUN_LEVEL 9 */
 
 
-typedef rt_void (*C_run_levelX)(rt_QUAD_INFO_EXT *);
-typedef rt_void (*S_run_levelX)(rt_QUAD_INFO_EXT *);
-typedef rt_void (*P_run_levelX)(rt_QUAD_INFO_EXT *, rt_long, rt_long, rt_bool);
+typedef rt_void (*C_run_levelX)(rt_SIMD_INFO_EXT *);
+typedef rt_void (*S_run_levelX)(rt_SIMD_INFO_EXT *);
+typedef rt_void (*P_run_levelX)(rt_SIMD_INFO_EXT *, rt_long, rt_long, rt_bool);
 
 C_run_levelX Carr[RUN_LEVEL] =
 {
@@ -1290,8 +1290,8 @@ int main ()
 
     memcpy(iar0, iarr, sizeof(iarr));
 
-    rt_pntr info = malloc(sizeof(rt_QUAD_INFO_EXT) + MASK);
-    rt_QUAD_INFO_EXT *inf0 = (rt_QUAD_INFO_EXT *)(((rt_word)info + MASK) & ~MASK);
+    rt_pntr info = malloc(sizeof(rt_SIMD_INFO_EXT) + MASK);
+    rt_SIMD_INFO_EXT *inf0 = (rt_SIMD_INFO_EXT *)(((rt_word)info + MASK) & ~MASK);
 
     inf0->far0 = far0;
     inf0->fco1 = fco1;

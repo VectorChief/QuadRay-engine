@@ -9,6 +9,9 @@
 
 #include "rtarch_x86.h"
 
+#define RT_SIMD_ALIGN       16
+#define RT_SIMD_SET(a, v)   a[0] = v; a[1] = v; a[2] = v; a[3] = v
+
 /* registers    REG,  MOD,  SIB */
 
 #define Xmm0    0x00, 0x03, EMPTY
@@ -40,7 +43,7 @@
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
 
-#define adrpx_ld(RG, RM, DP) /* only for quads (16-byte alignment) */       \
+#define adrpx_ld(RG, RM, DP) /* only for SIMD-aligned displacements */      \
         EMITB(0x8D)                                                         \
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), EMITW(VAL(DP) & 0xFFFFFFF0), EMPTY)

@@ -9,6 +9,9 @@
 
 #include "rtarch_arm.h"
 
+#define RT_SIMD_ALIGN       16
+#define RT_SIMD_SET(a, v)   a[0] = v; a[1] = v; a[2] = v; a[3] = v
+
 #define MTM(reg, ren, rem)                                                  \
         (((rem) & 0x0F) <<  0 | ((rem) & 0x10) <<  1 |                      \
          ((ren) & 0x0F) << 16 | ((ren) & 0x10) <<  3 |                      \
@@ -51,7 +54,7 @@
                            TYP(DP))                                         \
         EMITW(0xF4000AAF | MTM(REG(RG), TPxx,    0x00))
 
-#define adrpx_ld(RG, RM, DP) /* only for quads (16-byte alignment) */       \
+#define adrpx_ld(RG, RM, DP) /* only for SIMD-aligned displacements */      \
         AUX(SIB(RM), CMD(DP), EMPTY)                                        \
         EMITW(0xE0800000 | MTM(REG(RG), MOD(RM), 0x00) |                    \
                            TYP(DP))
