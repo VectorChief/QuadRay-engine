@@ -129,16 +129,29 @@
         EMITW(0xF3000D50 | MTM(REG(RG), Tmm3,    Tmm1))
 
 
-#define rcpps_rr(RG, RM)             /* destroys value in RM */             \
-        EMITW(0xF3BB0540 | MTM(REG(RG), 0x00,    REG(RM)))                  \
-        EMITW(0xF2000F50 | MTM(REG(RM), REG(RG), REG(RM)))                  \
-        EMITW(0xF3000D50 | MTM(REG(RG), REG(RG), REG(RM)))
+#define rceps_rr(RG, RM)                                                    \
+        EMITW(0xF3BB0540 | MTM(REG(RG), 0x00,    REG(RM)))
 
-#define rsqps_rr(RG, RM, RD, D1, D2) /* destroys value in RM */             \
-        EMITW(0xF3BB05C0 | MTM(REG(RG), 0x00,    REG(RM)))                  \
-        EMITW(0xF3000D50 | MTM(REG(RM), REG(RM), REG(RG)))                  \
-        EMITW(0xF2200F50 | MTM(REG(RM), REG(RM), REG(RG)))                  \
-        EMITW(0xF3000D50 | MTM(REG(RG), REG(RG), REG(RM)))
+#define rcsps_rr(RG, RM) /* not portable, do not use outside */             \
+        EMITW(0xF2000F50 | MTM(REG(RG), REG(RG), REG(RM)))
+
+#define rcpps_rr(RG, RM) /* destroys value in RM */                         \
+        rceps_rr(W(RG), W(RM))                                              \
+        rcsps_rr(W(RM), W(RG))                                              \
+        mulps_rr(W(RG), W(RM))
+
+
+#define rseps_rr(RG, RM)                                                    \
+        EMITW(0xF3BB05C0 | MTM(REG(RG), 0x00,    REG(RM)))
+
+#define rssps_rr(RG, RM) /* not portable, do not use outside */             \
+        EMITW(0xF2200F50 | MTM(REG(RG), REG(RG), REG(RM)))
+
+#define rsqps_rr(RG, RM) /* destroys value in RM */                         \
+        rseps_rr(W(RG), W(RM))                                              \
+        mulps_rr(W(RM), W(RG))                                              \
+        rssps_rr(W(RM), W(RG))                                              \
+        mulps_rr(W(RG), W(RM))
 
 
 #define andps_rr(RG, RM)                                                    \

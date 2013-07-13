@@ -99,33 +99,29 @@
             AUX(SIB(RM), CMD(DP), EMPTY)
 
 
-#define rcpps_rr(RG, RM)             /* destroys value in RM */             \
+#define rceps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x53)                                             \
-            MRM(REG(RG), MOD(RM), REG(RM))                                  \
-        EMITB(0x0F) EMITB(0x59)                                             \
-            MRM(REG(RM), MOD(RG), REG(RG))                                  \
-        EMITB(0x0F) EMITB(0x59)                                             \
-            MRM(REG(RM), MOD(RG), REG(RG))                                  \
-        EMITB(0x0F) EMITB(0x58)                                             \
-            MRM(REG(RG), MOD(RG), REG(RG))                                  \
-        EMITB(0x0F) EMITB(0x5C)                                             \
             MRM(REG(RG), MOD(RM), REG(RM))
 
-#define rsqps_rr(RG, RM, RD, D1, D2) /* destroys value in RM */             \
+#define rcpps_rr(RG, RM) /* destroys value in RM */                         \
+        rceps_rr(W(RG), W(RM))                                              \
+        mulps_rr(W(RM), W(RG))                                              \
+        mulps_rr(W(RM), W(RG))                                              \
+        addps_rr(W(RG), W(RG))                                              \
+        subps_rr(W(RG), W(RM))
+
+
+#define rseps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x52)                                             \
-            MRM(REG(RG), MOD(RM), REG(RM))                                  \
-        EMITB(0x0F) EMITB(0x59)                                             \
-            MRM(REG(RM), MOD(RG), REG(RG))                                  \
-        EMITB(0x0F) EMITB(0x59)                                             \
-            MRM(REG(RM), MOD(RG), REG(RG))                                  \
-        EMITB(0x0F) EMITB(0x58)                                             \
-            MRM(REG(RM), MOD(RD), REG(RD))                                  \
-            AUX(SIB(RD), CMD(D1), EMPTY)                                    \
-        EMITB(0x0F) EMITB(0x59)                                             \
-            MRM(REG(RG), MOD(RM), REG(RM))                                  \
-        EMITB(0x0F) EMITB(0x59)                                             \
-            MRM(REG(RG), MOD(RD), REG(RD))                                  \
-            AUX(SIB(RD), CMD(D2), EMPTY)
+            MRM(REG(RG), MOD(RM), REG(RM))
+
+#define rsqps_rr(RG, RM) /* destroys value in RM */                         \
+        rseps_rr(W(RG), W(RM))                                              \
+        mulps_rr(W(RM), W(RG))                                              \
+        mulps_rr(W(RM), W(RG))                                              \
+        subps_ld(W(RM), Mebp, inf_GPC03)                                    \
+        mulps_rr(W(RG), W(RM))                                              \
+        mulps_ld(W(RG), Mebp, inf_GPC02)
 
 
 #define andps_rr(RG, RM)                                                    \

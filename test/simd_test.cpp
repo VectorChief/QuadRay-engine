@@ -107,7 +107,6 @@ rt_void S_run_level1(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
-
 #define AJ0         DP(0x0000)
 #define AJ1         DP(0x0010)
 #define AJ2         DP(0x0020)
@@ -215,7 +214,6 @@ rt_void C_run_level2(rt_SIMD_INFO_EXT *info)
 rt_void S_run_level2(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
-
 
 #define AJ0         DP(0x0000)
 #define AJ1         DP(0x0010)
@@ -326,7 +324,6 @@ rt_void S_run_level3(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
-
 #define AJ0         DP(0x0000)
 #define AJ1         DP(0x0010)
 #define AJ2         DP(0x0020)
@@ -435,7 +432,6 @@ rt_void S_run_level4(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
-
 #define AJ0         DP(0x0000)
 #define AJ1         DP(0x0010)
 #define AJ2         DP(0x0020)
@@ -543,7 +539,6 @@ rt_void C_run_level5(rt_SIMD_INFO_EXT *info)
 rt_void S_run_level5(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
-
 
 #define AJ0         DP(0x0000)
 #define AJ1         DP(0x0010)
@@ -654,7 +649,6 @@ rt_void S_run_level6(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
-
 #define AJ0         DP(0x0000)
 #define AJ1         DP(0x0010)
 #define AJ2         DP(0x0020)
@@ -763,7 +757,6 @@ rt_void S_run_level7(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
-
 #define AJ0         DP(0x0000)
 #define AJ1         DP(0x0010)
 #define AJ2         DP(0x0020)
@@ -778,20 +771,26 @@ rt_void S_run_level7(rt_SIMD_INFO_EXT *info)
         movxx_ld(Rebx, Mebp, inf_FSO2)
 
         movps_ld(Xmm0, Mecx, AJ0)
-        sqrps_rr(Xmm2, Xmm0)
-        rcpps_rr(Xmm3, Xmm0)
+        movps_rr(Xmm1, Xmm0)
+        rsqps_rr(Xmm2, Xmm0) /* destroys Xmm0 */
+        mulps_rr(Xmm2, Xmm1)
+        rcpps_rr(Xmm3, Xmm1) /* destroys Xmm1 */
         movps_st(Xmm2, Medx, AJ0)
         movps_st(Xmm3, Mebx, AJ0)
 
         movps_ld(Xmm0, Mecx, AJ1)
-        sqrps_rr(Xmm2, Xmm0)
-        rcpps_rr(Xmm3, Xmm0)
+        movps_rr(Xmm1, Xmm0)
+        rsqps_rr(Xmm2, Xmm0) /* destroys Xmm0 */
+        mulps_rr(Xmm2, Xmm1)
+        rcpps_rr(Xmm3, Xmm1) /* destroys Xmm1 */
         movps_st(Xmm2, Medx, AJ1)
         movps_st(Xmm3, Mebx, AJ1)
 
         movps_ld(Xmm0, Mecx, AJ2)
-        sqrps_rr(Xmm2, Xmm0)
-        rcpps_rr(Xmm3, Xmm0)
+        movps_rr(Xmm1, Xmm0)
+        rsqps_rr(Xmm2, Xmm0) /* destroys Xmm0 */
+        mulps_rr(Xmm2, Xmm1)
+        rcpps_rr(Xmm3, Xmm1) /* destroys Xmm1 */
         movps_st(Xmm2, Medx, AJ2)
         movps_st(Xmm3, Mebx, AJ2)
 
@@ -862,7 +861,6 @@ rt_void C_run_level8(rt_SIMD_INFO_EXT *info)
 rt_void S_run_level8(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
-
 
 #define AJ0         DP(0x0000)
 #define AJ1         DP(0x0010)
@@ -977,8 +975,6 @@ rt_void C_run_level9(rt_SIMD_INFO_EXT *info)
 
 rt_void S_run_level9(rt_SIMD_INFO_EXT *info)
 {
-
-
     ASM_ENTER(info)
 
         label_ld(cyc_beg) /* load to Reax */
@@ -1292,6 +1288,10 @@ int main ()
 
     rt_pntr info = malloc(sizeof(rt_SIMD_INFO_EXT) + MASK);
     rt_SIMD_INFO_EXT *inf0 = (rt_SIMD_INFO_EXT *)(((rt_word)info + MASK) & ~MASK);
+
+    RT_SIMD_SET(inf0->gpc01, +1.0f);
+    RT_SIMD_SET(inf0->gpc02, -0.5f);
+    RT_SIMD_SET(inf0->gpc03, +3.0f);
 
     inf0->far0 = far0;
     inf0->fco1 = fco1;
