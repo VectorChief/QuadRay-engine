@@ -335,24 +335,24 @@
 
 /* mul */
 
-#define mulxx_ld(RH, RL, RM, DP) /* destroys RH (in x86), only RL valid */  \
+#define mulxx_ld(RM, DP) /* Reax is in/out, destroys Redx (in x86) */       \
         AUX(SIB(RM), EMPTY,   EMPTY)                                        \
         EMITW(0xE5900000 | MRM(TMxx,    MOD(RM), 0x00) |                    \
-             (0x00000FFF & VAL(DP)))                                        \
-        EMITW(0xE0000090 | MRM(0x00,    REG(RL), REG(RL)) |                 \
+             (0x00000FFF & VAL(DP))) /* Reax  v  Reax */                    \
+        EMITW(0xE0000090 | MRM(0x00,    0x00,    0x00) |                    \
                            TMxx << 8)
 
 /* div */
 
-#define divxx_ld(RH, RL, RM, DP) /* fallback to VFP for integer div */      \
-        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+#define divxx_ld(RM, DP) /* Reax is in/out, Redx must be zero (in x86) */   \
+        AUX(SIB(RM), EMPTY,   EMPTY) /* destroys Xmm0, fallback to VFP */   \
         EMITW(0xE5900000 | MRM(TMxx,    MOD(RM), 0x00) |                    \
-             (0x00000FFF & VAL(DP)))                                        \
-        EMITW(0xEC400B10 | MRM(REG(RL), TMxx,    Tmm0+0))                   \
+             (0x00000FFF & VAL(DP))) /* leftmost 0x00 in MRM is Reax */     \
+        EMITW(0xEC400B10 | MRM(0x00,    TMxx,    Tmm0+0))                   \
         EMITW(0xF3BB0680 | MRM(Tmm0+1,  0x00,    Tmm0+0))                   \
         EMITW(0xEE800A20 | MRM(Tmm0+1,  Tmm0+1,  Tmm0+1))                   \
         EMITW(0xF3BB0780 | MRM(Tmm0+0,  0x00,    Tmm0+1))                   \
-        EMITW(0xEE100B10 | MRM(REG(RL), Tmm0+0,  0x00))
+        EMITW(0xEE100B10 | MRM(0x00,    Tmm0+0,  0x00))
 
 /* cmp */
 

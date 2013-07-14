@@ -37,6 +37,8 @@ typedef unsigned int        rt_word;
 
 typedef void                rt_void;
 typedef void               *rt_pntr;
+
+typedef const char          rt_astr[];
 typedef const char         *rt_pstr;
 
 /* Complex types */
@@ -72,7 +74,7 @@ typedef rt_void (*rt_FUNC_FREE)(rt_pntr ptr);
 
 /* Generic definitions */
 
-#define RT_NULL             ((rt_pntr)0)
+#define RT_NULL             0
 #define RT_ALIGN            4
 
 #define RT_FALSE            0

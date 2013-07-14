@@ -327,8 +327,11 @@
 /* shr */
 
 #define shrpx_ri(RM, IM)                                                    \
-        EMITW(0xF3A00050 | MTM(REG(RM), 0x00,    REG(RM)) |                 \
-             (0x0000001F & (32 - (VAL(IM) & 0x1F))) << 16)
+        EMITW(0xE3A00000 | MRM(TIxx,    0x00,    0x00) |                    \
+             (0x0000001F & VAL(IM)))                                        \
+        EMITW(0xEEA00B10 | MTM(TIxx,    Tmm1,    0x00))                     \
+        EMITW(0xF3B903C0 | MTM(Tmm1,    0x00,    Tmm1))                     \
+        EMITW(0xF3200440 | MTM(REG(RM), Tmm1,    REG(RM)))
 
 #define shrpx_ld(RG, RM, DP)                                                \
         AUX(SIB(RM), CMD(DP), EMPTY)                                        \
@@ -339,8 +342,11 @@
         EMITW(0xF3200440 | MTM(REG(RG), Tmm1,    REG(RG)))
 
 #define shrpn_ri(RM, IM)                                                    \
-        EMITW(0xF2A00050 | MTM(REG(RM), 0x00,    REG(RM)) |                 \
-             (0x0000001F & (32 - (VAL(IM) & 0x1F))) << 16)
+        EMITW(0xE3A00000 | MRM(TIxx,    0x00,    0x00) |                    \
+             (0x0000001F & VAL(IM)))                                        \
+        EMITW(0xEEA00B10 | MTM(TIxx,    Tmm1,    0x00))                     \
+        EMITW(0xF3B903C0 | MTM(Tmm1,    0x00,    Tmm1))                     \
+        EMITW(0xF2200440 | MTM(REG(RM), Tmm1,    REG(RM)))
 
 #define shrpn_ld(RG, RM, DP)                                                \
         AUX(SIB(RM), CMD(DP), EMPTY)                                        \

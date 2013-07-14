@@ -273,15 +273,15 @@
 
 /* mul */
 
-#define mulxx_ld(RH, RL, RM, DP) /* destroys RH, only RL valid (in ARM) */  \
+#define mulxx_ld(RM, DP) /* Reax is in/out, destroys Redx */                \
         EMITB(0xF7)                                                         \
             MRM(0x05,    MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
 
 /* div */
 
-#define divxx_ld(RH, RL, RM, DP) /* RH must be zero (ignored in ARM) */     \
-        EMITB(0xF7)                                                         \
+#define divxx_ld(RM, DP) /* Reax is in/out, Redx must be zero */            \
+        EMITB(0xF7)      /* destroys Xmm0 (in ARM) */                       \
             MRM(0x07,    MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
 
