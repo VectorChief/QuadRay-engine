@@ -27,18 +27,20 @@
 /**********************************   SSE   ***********************************/
 /******************************************************************************/
 
-/* fpu (SSE1) */
+/* ---- cmdpx_** - packed generic (SSE1) ------------------------------------ */
 
-#define movps_rr(RG, RM)                                                    \
+/* mov */
+
+#define movpx_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x28)                                             \
             MRM(REG(RG), MOD(RM), REG(RM))
 
-#define movps_ld(RG, RM, DP)                                                \
+#define movpx_ld(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x28)                                             \
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
 
-#define movps_st(RG, RM, DP)                                                \
+#define movpx_st(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0x29)                                             \
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
@@ -48,6 +50,53 @@
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), EMITW(VAL(DP) & 0xFFFFFFF0), EMPTY)
 
+/* and */
+
+#define andpx_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x54)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))
+
+#define andpx_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0x54)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
+
+/* ann */
+
+#define annpx_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x55)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))
+
+#define annpx_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0x55)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
+
+/* orr */
+
+#define orrpx_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x56)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))
+
+#define orrpx_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0x56)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
+
+/* xor */
+
+#define xorpx_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x57)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))
+
+#define xorpx_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0x57)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
+
+/* ---- cmdps_** - packed single precision floating point (SSE1) ------------ */
+
+/* add */
 
 #define addps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x58)                                             \
@@ -58,6 +107,7 @@
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
 
+/* sub */
 
 #define subps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x5C)                                             \
@@ -68,6 +118,7 @@
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
 
+/* mul */
 
 #define mulps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x59)                                             \
@@ -78,6 +129,7 @@
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
 
+/* div */
 
 #define divps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x5E)                                             \
@@ -88,6 +140,7 @@
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
 
+/* sqr */
 
 #define sqrps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x51)                                             \
@@ -98,6 +151,7 @@
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
 
+/* rcp */
 
 #define rceps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x53)                                             \
@@ -110,6 +164,7 @@
         addps_rr(W(RG), W(RG))                                              \
         subps_rr(W(RG), W(RM))
 
+/* rsq */
 
 #define rseps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x52)                                             \
@@ -123,46 +178,7 @@
         mulps_rr(W(RG), W(RM))                                              \
         mulps_ld(W(RG), Mebp, inf_GPC02)
 
-
-#define andps_rr(RG, RM)                                                    \
-        EMITB(0x0F) EMITB(0x54)                                             \
-            MRM(REG(RG), MOD(RM), REG(RM))
-
-#define andps_ld(RG, RM, DP)                                                \
-        EMITB(0x0F) EMITB(0x54)                                             \
-            MRM(REG(RG), MOD(RM), REG(RM))                                  \
-            AUX(SIB(RM), CMD(DP), EMPTY)
-
-
-#define annps_rr(RG, RM)                                                    \
-        EMITB(0x0F) EMITB(0x55)                                             \
-            MRM(REG(RG), MOD(RM), REG(RM))
-
-#define annps_ld(RG, RM, DP)                                                \
-        EMITB(0x0F) EMITB(0x55)                                             \
-            MRM(REG(RG), MOD(RM), REG(RM))                                  \
-            AUX(SIB(RM), CMD(DP), EMPTY)
-
-
-#define orrps_rr(RG, RM)                                                    \
-        EMITB(0x0F) EMITB(0x56)                                             \
-            MRM(REG(RG), MOD(RM), REG(RM))
-
-#define orrps_ld(RG, RM, DP)                                                \
-        EMITB(0x0F) EMITB(0x56)                                             \
-            MRM(REG(RG), MOD(RM), REG(RM))                                  \
-            AUX(SIB(RM), CMD(DP), EMPTY)
-
-
-#define xorps_rr(RG, RM)                                                    \
-        EMITB(0x0F) EMITB(0x57)                                             \
-            MRM(REG(RG), MOD(RM), REG(RM))
-
-#define xorps_ld(RG, RM, DP)                                                \
-        EMITB(0x0F) EMITB(0x57)                                             \
-            MRM(REG(RG), MOD(RM), REG(RM))                                  \
-            AUX(SIB(RM), CMD(DP), EMPTY)
-
+/* min */
 
 #define minps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x5D)                                             \
@@ -173,6 +189,7 @@
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
 
+/* max */
 
 #define maxps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0x5F)                                             \
@@ -183,6 +200,7 @@
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
 
+/* cmp */
 
 #define ceqps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0xC2)                                             \
@@ -214,19 +232,106 @@
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
             AUX(EMPTY,   EMPTY,   EMITB(0x06))
 
+/* ---- cmdpn_** - packed sint32, cmdpx_** - packed generic (VFP, MPE) ------ */
+
+/* cvt */
+
+#define cvtps_rr(RG, RM)                                                    \
+        EMITB(0x66) EMITB(0x0F) EMITB(0x5B)                                 \
+            MRM(REG(RG), MOD(RM), REG(RM))
+
+#define cvtps_ld(RG, RM, DP)                                                \
+        EMITB(0x66) EMITB(0x0F) EMITB(0x5B)                                 \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
+
+#define cvtpn_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0x5B)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))
+
+#define cvtpn_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0x5B)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
+
+/* add */
+
+#define addpx_rr(RG, RM)                                                    \
+        EMITB(0x66) EMITB(0x0F) EMITB(0xFE)                                 \
+            MRM(REG(RG), MOD(RM), REG(RM))
+
+#define addpx_ld(RG, RM, DP)                                                \
+        EMITB(0x66) EMITB(0x0F) EMITB(0xFE)                                 \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
+
+/* sub */
+
+#define subpx_rr(RG, RM)                                                    \
+        EMITB(0x66) EMITB(0x0F) EMITB(0xFA)                                 \
+            MRM(REG(RG), MOD(RM), REG(RM))
+
+#define subpx_ld(RG, RM, DP)                                                \
+        EMITB(0x66) EMITB(0x0F) EMITB(0xFA)                                 \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
+
+/* shl */
+
+#define shlpx_ri(RM, IM)                                                    \
+        EMITB(0x66) EMITB(0x0F) EMITB(0x72)                                 \
+            MRM(0x06,    MOD(RM), REG(RM))                                  \
+            AUX(EMPTY,   EMPTY,   EMITB(VAL(IM)))
+
+#define shlpx_ld(RG, RM, DP)                                                \
+        EMITB(0x66) EMITB(0x0F) EMITB(0xF2)                                 \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
+
+/* shr */
+
+#define shrpx_ri(RM, IM)                                                    \
+        EMITB(0x66) EMITB(0x0F) EMITB(0x72)                                 \
+            MRM(0x02,    MOD(RM), REG(RM))                                  \
+            AUX(EMPTY,   EMPTY,   EMITB(VAL(IM)))
+
+#define shrpx_ld(RG, RM, DP)                                                \
+        EMITB(0x66) EMITB(0x0F) EMITB(0xD2)                                 \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
+
+#define shrpn_ri(RM, IM)                                                    \
+        EMITB(0x66) EMITB(0x0F) EMITB(0x72)                                 \
+            MRM(0x04,    MOD(RM), REG(RM))                                  \
+            AUX(EMPTY,   EMPTY,   EMITB(VAL(IM)))
+
+#define shrpn_ld(RG, RM, DP)                                                \
+        EMITB(0x66) EMITB(0x0F) EMITB(0xE2)                                 \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
+
+/* ---- helper macros ------------------------------------------------------- */
+
+/* simd mask */
+
+#define RT_SIMD_MASK_NONE       0x00    /* none satisfy the condition */
+#define RT_SIMD_MASK_FULL       0x0F    /*  all satisfy the condition */
 
 #define movsn_rr(RG, RM) /* not portable, do not use outside */             \
         EMITB(0x0F) EMITB(0x50)                                             \
             MRM(REG(RG), MOD(RM), REG(RM))
-
-#define RT_SIMD_MASK_NONE       0x00    /* none satisfy the condition */
-#define RT_SIMD_MASK_FULL       0x0F    /*  all satisfy the condition */
 
 #define CHECK_MASK(lb, mask, RG) /* destroys value in Reax */               \
         movsn_rr(Reax, W(RG))                                               \
         cmpxx_ri(Reax, IB(RT_SIMD_MASK_##mask))                             \
         jeqxx_lb(lb)
 
+/* simd mode */
+
+#define RT_SIMD_MODE_ROUNDN     0x00    /* round to nearest */
+#define RT_SIMD_MODE_ROUNDM     0x01    /* round towards minus infinity */
+#define RT_SIMD_MODE_ROUNDP     0x02    /* round towards plus  infinity */
+#define RT_SIMD_MODE_ROUNDZ     0x03    /* round towards zero */
 
 #define mxcsr_ld(RM, DP) /* not portable, do not use outside */             \
         EMITB(0x0F) EMITB(0xAE)                                             \
@@ -238,11 +343,6 @@
             MRM(0x03,    MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
 
-#define RT_SIMD_MODE_ROUNDN     0x00    /* round to nearest */
-#define RT_SIMD_MODE_ROUNDM     0x01    /* round towards minus infinity */
-#define RT_SIMD_MODE_ROUNDP     0x02    /* round towards plus  infinity */
-#define RT_SIMD_MODE_ROUNDZ     0x03    /* round towards zero */
-
 #define FCTRL_ENTER(mode) /* destroys value in Reax */                      \
         mxcsr_st(Mebp, inf_FCTRL)                                           \
         movxx_ld(Reax, Mebp, inf_FCTRL)                                     \
@@ -252,48 +352,6 @@
 
 #define FCTRL_LEAVE(mode) /* destroys value in Reax (in ARM version) */     \
         mxcsr_ld(Mebp, inf_FCTRL)
-
-/* int (SSE2) */
-
-#define cvtpn_rr(RG, RM)                                                    \
-        EMITB(0x0F) EMITB(0x5B)                                             \
-            MRM(REG(RG), MOD(RM), REG(RM))
-
-#define cvtps_rr(RG, RM)                                                    \
-        EMITB(0x66) EMITB(0x0F) EMITB(0x5B)                                 \
-            MRM(REG(RG), MOD(RM), REG(RM))
-
-
-#define addpn_rr(RG, RM)                                                    \
-        EMITB(0x66) EMITB(0x0F) EMITB(0xFE)                                 \
-            MRM(REG(RG), MOD(RM), REG(RM))
-
-#define addpn_ld(RG, RM, DP)                                                \
-        EMITB(0x66) EMITB(0x0F) EMITB(0xFE)                                 \
-            MRM(REG(RG), MOD(RM), REG(RM))                                  \
-            AUX(SIB(RM), CMD(DP), EMPTY)
-
-
-#define shlpn_ri(RM, IM)                                                    \
-        EMITB(0x66) EMITB(0x0F) EMITB(0x72)                                 \
-            MRM(0x06,    MOD(RM), REG(RM))                                  \
-            AUX(EMPTY,   EMPTY,   EMITB(VAL(IM)))
-
-#define shlpn_ld(RG, RM, DP)                                                \
-        EMITB(0x66) EMITB(0x0F) EMITB(0xF2)                                 \
-            MRM(REG(RG), MOD(RM), REG(RM))                                  \
-            AUX(SIB(RM), CMD(DP), EMPTY)
-
-
-#define shrpn_ri(RM, IM)                                                    \
-        EMITB(0x66) EMITB(0x0F) EMITB(0x72)                                 \
-            MRM(0x02,    MOD(RM), REG(RM))                                  \
-            AUX(EMPTY,   EMPTY,   EMITB(VAL(IM)))
-
-#define shrpn_ld(RG, RM, DP)                                                \
-        EMITB(0x66) EMITB(0x0F) EMITB(0xD2)                                 \
-            MRM(REG(RG), MOD(RM), REG(RM))                                  \
-            AUX(SIB(RM), CMD(DP), EMPTY)
 
 #endif /* RT_RTARCH_X86_SSE_H */
 
