@@ -977,7 +977,7 @@ rt_void S_run_level09(rt_SIMD_INFO_EXT *info)
 {
     ASM_ENTER(info)
 
-        adrxx_lb(cyc_beg) /* load to Reax */
+        adrxx_xl(cyc_beg) /* load to Reax */
         movxx_st(Reax, Mebp, inf_LABEL)
 
     LBL(cyc_beg)
@@ -1041,7 +1041,7 @@ rt_void S_run_level09(rt_SIMD_INFO_EXT *info)
         subxx_mi(Mebp, inf_CYC, IB(1))
         cmpxx_mi(Mebp, inf_CYC, IB(0))
         jeqxx_lb(cyc_end)
-        jmpxx_xm(Mebp, inf_LABEL)
+        jmpxx_mm(Mebp, inf_LABEL)
         jmpxx_lb(cyc_beg) /* the same jump as above */
 
     LBL(cyc_end)

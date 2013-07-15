@@ -35,7 +35,7 @@
                             }
 
 #define EMITB(b)              ASM_BEG ASM_OP1(_emit, b) ASM_END
-#define adrxx_lb(lb)/*Reax*/  ASM_BEG ASM_OP2(lea, eax, lb) ASM_END
+#define adrxx_xl(lb)/*Reax*/  ASM_BEG ASM_OP2(lea, eax, lb) ASM_END
 
 #include "rtarch_x86_sse.h"
 
@@ -74,7 +74,7 @@
                             );
 
 #define EMITB(b)              ASM_BEG ASM_OP1(.byte, b) ASM_END
-#define adrxx_lb(lb)/*Reax*/  ASM_BEG ASM_OP2(leal, %%eax, lb) ASM_END
+#define adrxx_xl(lb)/*Reax*/  ASM_BEG ASM_OP2(leal, %%eax, lb) ASM_END
 
 #include "rtarch_x86_sse.h"
 
@@ -107,7 +107,7 @@
                             );
 
 #define EMITB(b)              ASM_BEG ASM_OP1(.byte, b) ASM_END
-#define adrxx_lb(lb)/*Reax*/  ASM_BEG ASM_OP2(adr, r0, lb) ASM_END
+#define adrxx_xl(lb)/*Reax*/  ASM_BEG ASM_OP2(adr, r0, lb) ASM_END
 
 #include "rtarch_arm_mpe.h"
 

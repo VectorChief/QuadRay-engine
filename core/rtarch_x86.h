@@ -7,6 +7,12 @@
 #ifndef RT_RTARCH_X86_H
 #define RT_RTARCH_X86_H
 
+/******************************************************************************/
+/********************************   INTERNAL   ********************************/
+/******************************************************************************/
+
+/* emitters */
+
 #define EMPTY   ASM_BEG ASM_END
 
 #define EMITW(w) /* little endian */                                        \
@@ -15,12 +21,26 @@
         EMITB((w) >> 0x10 & 0xFF)                                           \
         EMITB((w) >> 0x18 & 0xFF)
 
+/* structural */
+
 #define MRM(reg, mod, rem)                                                  \
         EMITB((mod) << 6 | (reg) << 3 | (rem))
+
+#define AUX(sib, cdp, cim)  sib  cdp  cim
+
+/* selectors  */
 
 #define REG(reg, mod, sib)  reg
 #define MOD(reg, mod, sib)  mod
 #define SIB(reg, mod, sib)  sib
+
+#define VAL(val, typ, cmd)  val
+#define TYP(val, typ, cmd)  typ
+#define CMD(val, typ, cmd)  cmd
+
+/******************************************************************************/
+/********************************   EXTERNAL   ********************************/
+/******************************************************************************/
 
 /* registers    REG,  MOD,  SIB */
 
@@ -51,15 +71,13 @@
 #define Iesi    0x04, 0x02, EMITB(0x06) /* [esi + eax + DP] */
 #define Iedi    0x04, 0x02, EMITB(0x07) /* [edi + eax + DP] */
 
-/* immediate */
-
-#define VAL(val, typ, cmd)  val
-#define TYP(val, typ, cmd)  typ
-#define CMD(val, typ, cmd)  cmd
+/* immediate    VAL,  TYP,  CMD */
 
 #define IB(im)  (im), 0x02, EMITB((im) & 0xFF)
 #define IH(im)  (im), 0x00, EMITW((im) & 0xFFFF)
 #define IW(im)  (im), 0x00, EMITW((im) & 0xFFFFFFFF)
+
+/* displacement VAL,  TYP,  CMD */
 
 #define DP(im)  (im), 0x00, EMITW((im) & 0xFFF)
 #define DH(im)  (im), 0x00, EMITW((im) & 0xFFFF)
@@ -69,9 +87,39 @@
 
 /* wrappers */
 
-#define AUX(sib, cdp, cim)  sib  cdp  cim
-
 #define W(p1, p2, p3)       p1,  p2,  p3
+
+/******************************************************************************/
+/*********************************   LEGEND   *********************************/
+/******************************************************************************/
+
+/* cmdxx_ri - applies [cmd] to [r]egister from [i]mmediate  */
+/* cmdxx_mi - applies [cmd] to [m]emory   from [i]mmediate  */
+
+/* cmdxx_rr - applies [cmd] to [r]egister from [r]egister   */
+/* cmdxx_rl - applies [cmd] to [r]egister from [l]abel      */
+
+/* cmdxx_rm - applies [cmd] to [r]egister from [m]emory     */
+/* cmdxx_ld - applies [cmd] as above                        */
+
+/* cmdxx_mr - applies [cmd] to [m]emory   from [r]egister   */
+/* cmdxx_st - applies [cmd] as above (arg list as cmdxx_ld) */
+
+/* cmdxx_rg - applies [cmd] to [reg]ister (one operand cmd) */
+/* cmdxx_mm - applies [cmd] to [mem]ory   (one operand cmd) */
+/* cmdxx_lb - applies [cmd] to [lab]el    (one operand cmd) */
+
+/* cmdxx_rx - applies [cmd] to [r]egister from * register   */
+/* cmdxx_mx - applies [cmd] to [m]emory   from * register   */
+
+/* cmdxx_xr - applies [cmd] to * register from [r]egister   */
+/* cmdxx_xm - applies [cmd] to * register from [m]emory     */
+/* cmdxx_xl - applies [cmd] to * register from [l]abel      */
+
+/* cmd*x_** - applies [cmd] to unsigned integer argument(s) */
+/* cmd*n_** - applies [cmd] to   signed integer argument(s) */
+/* cmdx*_** - applies [cmd] in default  mode                */
+/* cmde*_** - applies [cmd] in extended mode (takes DH, DW) */
 
 /******************************************************************************/
 /**********************************   X86   ***********************************/
@@ -176,11 +224,11 @@
 
 /* not */
 
-#define notxx_xr(RM)                                                        \
+#define notxx_rg(RM)                                                        \
         EMITB(0xF7)                                                         \
             MRM(0x02,    MOD(RM), REG(RM))
 
-#define notxx_xm(RM, DP)                                                    \
+#define notxx_mm(RM, DP)                                                    \
         EMITB(0xF7)                                                         \
             MRM(0x02,    MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
@@ -327,7 +375,7 @@
 
 /* jmp */
 
-#define jmpxx_xm(RM, DP)                                                    \
+#define jmpxx_mm(RM, DP)                                                    \
         EMITB(0xFF)                                                         \
             MRM(0x04,    MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)

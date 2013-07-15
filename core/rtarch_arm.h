@@ -7,6 +7,12 @@
 #ifndef RT_RTARCH_ARM_H
 #define RT_RTARCH_ARM_H
 
+/******************************************************************************/
+/********************************   INTERNAL   ********************************/
+/******************************************************************************/
+
+/* emitters */
+
 #define EMPTY   ASM_BEG ASM_END
 
 #define EMITW(w) /* little endian */                                        \
@@ -15,12 +21,34 @@
         EMITB((w) >> 0x10 & 0xFF)                                           \
         EMITB((w) >> 0x18 & 0xFF)
 
+/* structural */
+
 #define MRM(reg, ren, rem)                                                  \
         ((ren) << 16 | (reg) << 12 | (rem))
+
+#define AUX(sib, cdp, cim)  sib  cdp  cim
+
+/* selectors  */
 
 #define REG(reg, mod, sib)  reg
 #define MOD(reg, mod, sib)  mod
 #define SIB(reg, mod, sib)  sib
+
+#define VAL(val, typ, cmd)  val
+#define TYP(val, typ, cmd)  typ
+#define CMD(val, typ, cmd)  cmd
+
+/* registers    REG */
+
+#define TMxx    0x08                    /* r8 */
+#define TIxx    0x09                    /* r9, not used together with TDxx */
+#define TDxx    0x09                    /* r9, not used together with TIxx */
+#define TPxx    0x0A                    /* r10 */
+#define PCxx    0x0F                    /* r15 */
+
+/******************************************************************************/
+/********************************   EXTERNAL   ********************************/
+/******************************************************************************/
 
 /* registers    REG,  MOD,  SIB */
 
@@ -32,12 +60,6 @@
 #define Rebp    0x05, 0x00, EMPTY       /* r5 */
 #define Resi    0x06, 0x00, EMPTY       /* r6 */
 #define Redi    0x07, 0x00, EMPTY       /* r7 */
-
-#define TMxx    0x08                    /* r8 */
-#define TIxx    0x09                    /* r9, not used along with TDxx */
-#define TDxx    0x09                    /* r9, not used along with TIxx */
-#define TPxx    0x0A                    /* r10 */
-#define PCxx    0x0F                    /* r15 */
 
 /* addressing   REG,  MOD,  SIB */
 
@@ -57,11 +79,7 @@
 #define Iesi    0x06, TPxx, EMITW(0xE0800000 | MRM(TPxx,    0x06,    0x00))
 #define Iedi    0x07, TPxx, EMITW(0xE0800000 | MRM(TPxx,    0x07,    0x00))
 
-/* immediate */
-
-#define VAL(val, typ, cmd)  val
-#define TYP(val, typ, cmd)  typ
-#define CMD(val, typ, cmd)  cmd
+/* immediate    VAL,  TYP,  CMD */
 
 #define IB(im)  (im), 0x02000000 | ((im) & 0xFF),                           \
                 EMPTY
@@ -75,6 +93,8 @@
                      (0x000F0000 & (im) <<  4) | (0xFFF & (im)))            \
                 EMITW(0xE3400000 | MRM(TIxx,    0x00,    0x00) |            \
                      (0x000F0000 & (im) >> 12) | (0xFFF & (im) >> 16))
+
+/* displacement VAL,  TYP,  CMD */
 
 #define DP(im)  (im), 0x02000E00 | ((im) >> 4 & 0xFF),                      \
                 EMPTY
@@ -93,9 +113,39 @@
 
 /* wrappers */
 
-#define AUX(sib, cdp, cim)  sib  cdp  cim
-
 #define W(p1, p2, p3)       p1,  p2,  p3
+
+/******************************************************************************/
+/*********************************   LEGEND   *********************************/
+/******************************************************************************/
+
+/* cmdxx_ri - applies [cmd] to [r]egister from [i]mmediate  */
+/* cmdxx_mi - applies [cmd] to [m]emory   from [i]mmediate  */
+
+/* cmdxx_rr - applies [cmd] to [r]egister from [r]egister   */
+/* cmdxx_rl - applies [cmd] to [r]egister from [l]abel      */
+
+/* cmdxx_rm - applies [cmd] to [r]egister from [m]emory     */
+/* cmdxx_ld - applies [cmd] as above                        */
+
+/* cmdxx_mr - applies [cmd] to [m]emory   from [r]egister   */
+/* cmdxx_st - applies [cmd] as above (arg list as cmdxx_ld) */
+
+/* cmdxx_rg - applies [cmd] to [reg]ister (one operand cmd) */
+/* cmdxx_mm - applies [cmd] to [mem]ory   (one operand cmd) */
+/* cmdxx_lb - applies [cmd] to [lab]el    (one operand cmd) */
+
+/* cmdxx_rx - applies [cmd] to [r]egister from * register   */
+/* cmdxx_mx - applies [cmd] to [m]emory   from * register   */
+
+/* cmdxx_xr - applies [cmd] to * register from [r]egister   */
+/* cmdxx_xm - applies [cmd] to * register from [m]emory     */
+/* cmdxx_xl - applies [cmd] to * register from [l]abel      */
+
+/* cmd*x_** - applies [cmd] to unsigned integer argument(s) */
+/* cmd*n_** - applies [cmd] to   signed integer argument(s) */
+/* cmdx*_** - applies [cmd] in default  mode                */
+/* cmde*_** - applies [cmd] in extended mode (takes DH, DW) */
 
 /******************************************************************************/
 /**********************************   ARM   ***********************************/
@@ -213,10 +263,10 @@
 
 /* not */
 
-#define notxx_xr(RM)                                                        \
+#define notxx_rg(RM)                                                        \
         EMITW(0xE1F00000 | MRM(REG(RM), 0x00,    REG(RM)))
 
-#define notxx_xm(RM, DP)                                                    \
+#define notxx_mm(RM, DP)                                                    \
         AUX(SIB(RM), EMPTY,   EMPTY)                                        \
         EMITW(0xE5900000 | MRM(TMxx,    MOD(RM), 0x00) |                    \
              (0x00000FFF & VAL(DP)))                                        \
@@ -402,7 +452,7 @@
 
 /* jmp */
 
-#define jmpxx_xm(RM, DP)                                                    \
+#define jmpxx_mm(RM, DP)                                                    \
         AUX(SIB(RM), EMPTY,   EMPTY)                                        \
         EMITW(0xE5900000 | MRM(PCxx,    MOD(RM), 0x00) |                    \
              (0x00000FFF & VAL(DP)))                                        \

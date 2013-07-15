@@ -12,10 +12,27 @@
 #define RT_SIMD_ALIGN       16
 #define RT_SIMD_SET(a, v)   a[0] = v; a[1] = v; a[2] = v; a[3] = v
 
+/******************************************************************************/
+/********************************   INTERNAL   ********************************/
+/******************************************************************************/
+
+/* structural */
+
 #define MTM(reg, ren, rem)                                                  \
         (((rem) & 0x0F) <<  0 | ((rem) & 0x10) <<  1 |                      \
          ((ren) & 0x0F) << 16 | ((ren) & 0x10) <<  3 |                      \
          ((reg) & 0x0F) << 12 | ((reg) & 0x10) << 18 )
+
+/* registers    REG */
+
+#define Tmm0    0x00                    /* q0, for integer div VFP fallback */
+#define Tmm1    0x10                    /* q8 */
+#define Tmm2    0x12                    /* q9 */
+#define Tmm3    0x14                    /* q10 */
+
+/******************************************************************************/
+/********************************   EXTERNAL   ********************************/
+/******************************************************************************/
 
 /* registers    REG,  MOD,  SIB */
 
@@ -28,16 +45,29 @@
 #define Xmm6    0x0C, 0x00, EMPTY       /* q6 */
 #define Xmm7    0x0E, 0x00, EMPTY       /* q7 */
 
-#define Tmm0    0x00                    /* q0, for integer div VFP fallback */
-#define Tmm1    0x10                    /* q8 */
-#define Tmm2    0x12                    /* q9 */
-#define Tmm3    0x14                    /* q10 */
+/******************************************************************************/
+/*********************************   LEGEND   *********************************/
+/******************************************************************************/
+
+/* cmdpx_ri - applies [cmd] to [r]egister from [i]mmediate  */
+/* cmdpx_rr - applies [cmd] to [r]egister from [r]egister   */
+
+/* cmdpx_rm - applies [cmd] to [r]egister from [m]emory     */
+/* cmdpx_ld - applies [cmd] as above                        */
+
+/* cmdpx_mr - applies [cmd] to [m]emory   from [r]egister   */
+/* cmdpx_st - applies [cmd] as above (arg list as cmdxx_ld) */
+
+/* cmdpx_** - applies [cmd] to packed unsigned integer args */
+/* cmdpn_** - applies [cmd] to packed   signed integer args */
+/* cmdps_** - applies [cmd] to packed single precision args */
+/* cmdpd_** - applies [cmd] to packed double precision args */
 
 /******************************************************************************/
 /**********************************   MPE   ***********************************/
 /******************************************************************************/
 
-/* ---- cmdpx_** - packed generic (MPE) ------------------------------------- */
+/**************************   packed generic (MPE)   **************************/
 
 /* mov */
 
@@ -109,7 +139,7 @@
         EMITW(0xF4200AAF | MTM(Tmm1,    TPxx,    0x00))                     \
         EMITW(0xF3000150 | MTM(REG(RG), REG(RG), Tmm1))
 
-/* ---- cmdps_** - packed single precision floating point (MPE) ------------ */
+/**************   packed single precision floating point (MPE)   **************/
 
 /* add */
 
@@ -300,7 +330,7 @@
         EMITW(0xF4200AAF | MTM(Tmm1,    TPxx,    0x00))                     \
         EMITW(0xF3000E40 | MTM(REG(RG), REG(RG), Tmm1))
 
-/* ---- cmdpn_** - packed sint32, cmdpx_** - packed generic (VFP, MPE) ------ */
+/**************************   packed integer (MPE)   **************************/
 
 /* cvt */
 
@@ -399,7 +429,7 @@
         EMITW(0xF3B903C0 | MTM(Tmm1,    0x00,    Tmm1))                     \
         EMITW(0xF2200440 | MTM(REG(RG), Tmm1,    REG(RG)))
 
-/* ---- helper macros ------------------------------------------------------- */
+/*****************************   helper macros   ******************************/
 
 /* simd mask */
 
