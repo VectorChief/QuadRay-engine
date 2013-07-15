@@ -213,10 +213,10 @@
 
 /* not */
 
-#define notxx_rr(RM)                                                        \
+#define notxx_xr(RM)                                                        \
         EMITW(0xE1E00000 | MRM(REG(RM), 0x00,    REG(RM)))
 
-#define notxx_mm(RM, DP)                                                    \
+#define notxx_xm(RM, DP)                                                    \
         AUX(SIB(RM), EMPTY,   EMPTY)                                        \
         EMITW(0xE5900000 | MRM(TMxx,    MOD(RM), 0x00) |                    \
              (0x00000FFF & VAL(DP)))                                        \
@@ -335,16 +335,33 @@
 
 /* mul */
 
-#define mulxx_ld(RM, DP) /* Reax is in/out, destroys Redx (in x86) */       \
+#define mulxn_ri(RM, IM) /* one unnecessary op for IH, IW */                \
+        EMITW(0xE1A00000 | MRM(TIxx,    0x00,    0x00) |                    \
+                           TYP(IM))                                         \
+        AUX(EMPTY,   EMPTY,   CMD(IM))                                      \
+        EMITW(0xE0000090 | REG(RG) << 16 | REG(RG) << 8 |                   \
+                           TIxx)
+
+#define mulxn_rr(RG, RM)                                                    \
+        EMITW(0xE0000090 | REG(RG) << 16 | REG(RG) << 8 |                   \
+                           REG(RM))
+
+#define mulxn_ld(RG, RM, DP)                                                \
         AUX(SIB(RM), EMPTY,   EMPTY)                                        \
         EMITW(0xE5900000 | MRM(TMxx,    MOD(RM), 0x00) |                    \
-             (0x00000FFF & VAL(DP))) /* Reax  v  Reax */                    \
-        EMITW(0xE0000090 | MRM(0x00,    0x00,    0x00) |                    \
-                           TMxx << 8)
+             (0x00000FFF & VAL(DP)))                                        \
+        EMITW(0xE0000090 | REG(RG) << 16 | REG(RG) << 8 |                   \
+                           TMxx)
+
+#define mulxn_xm(RM, DP) /* Reax is in/out, destroys Redx (in x86) */       \
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE5900000 | MRM(TMxx,    MOD(RM), 0x00) |                    \
+             (0x00000FFF & VAL(DP)))                                        \
+        EMITW(0xE0000090 | TMxx)
 
 /* div */
 
-#define divxx_ld(RM, DP) /* Reax is in/out, Redx must be zero (in x86) */   \
+#define divxn_xm(RM, DP) /* Reax is in/out, Redx is Reax-sign-extended */   \
         AUX(SIB(RM), EMPTY,   EMPTY) /* destroys Xmm0, fallback to VFP */   \
         EMITW(0xE5900000 | MRM(TMxx,    MOD(RM), 0x00) |                    \
              (0x00000FFF & VAL(DP))) /* leftmost 0x00 in MRM is Reax */     \
@@ -385,7 +402,7 @@
 
 /* jmp */
 
-#define jmpxx_mm(RM, DP)                                                    \
+#define jmpxx_xm(RM, DP)                                                    \
         AUX(SIB(RM), EMPTY,   EMPTY)                                        \
         EMITW(0xE5900000 | MRM(PCxx,    MOD(RM), 0x00) |                    \
              (0x00000FFF & VAL(DP)))                                        \
@@ -403,15 +420,27 @@
         ASM_BEG ASM_OP1(bne, lb) ASM_END
 
 #define jltxx_lb(lb)                                                        \
-        ASM_BEG ASM_OP1(blt, lb) ASM_END
+        ASM_BEG ASM_OP1(blo, lb) ASM_END
 
 #define jlexx_lb(lb)                                                        \
-        ASM_BEG ASM_OP1(ble, lb) ASM_END
+        ASM_BEG ASM_OP1(bls, lb) ASM_END
 
 #define jgtxx_lb(lb)                                                        \
-        ASM_BEG ASM_OP1(bgt, lb) ASM_END
+        ASM_BEG ASM_OP1(bhi, lb) ASM_END
 
 #define jgexx_lb(lb)                                                        \
+        ASM_BEG ASM_OP1(bhs, lb) ASM_END
+
+#define jltxn_lb(lb)                                                        \
+        ASM_BEG ASM_OP1(blt, lb) ASM_END
+
+#define jlexn_lb(lb)                                                        \
+        ASM_BEG ASM_OP1(ble, lb) ASM_END
+
+#define jgtxn_lb(lb)                                                        \
+        ASM_BEG ASM_OP1(bgt, lb) ASM_END
+
+#define jgexn_lb(lb)                                                        \
         ASM_BEG ASM_OP1(bge, lb) ASM_END
 
 #define LBL(lb)                                                             \

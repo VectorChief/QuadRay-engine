@@ -241,21 +241,64 @@
 #define ceqps_rr(RG, RM)                                                    \
         EMITW(0xF2000E40 | MTM(REG(RG), REG(RG), REG(RM)))
 
-#define cltps_rr(RG, RM)                                                    \
-        EMITW(0xF3200E40 | MTM(REG(RG), REG(RM), REG(RG)))
-
-#define cleps_rr(RG, RM)                                                    \
-        EMITW(0xF3000E40 | MTM(REG(RG), REG(RM), REG(RG)))
+#define ceqps_ld(RG, RM, DP)                                                \
+        AUX(SIB(RM), CMD(DP), EMPTY)                                        \
+        EMITW(0xE0800000 | MRM(TPxx,    MOD(RM), 0x00) |                    \
+                           TYP(DP))                                         \
+        EMITW(0xF4200AAF | MTM(Tmm1,    TPxx,    0x00))                     \
+        EMITW(0xF2000E40 | MTM(REG(RG), REG(RG), Tmm1))
 
 #define cneps_rr(RG, RM)                                                    \
         EMITW(0xF2000E40 | MTM(REG(RG), REG(RG), REG(RM)))                  \
         EMITW(0xF3B005C0 | MTM(REG(RG), 0x00,    REG(RG)))
 
-#define cgeps_rr(RG, RM)                                                    \
-        EMITW(0xF3000E40 | MTM(REG(RG), REG(RG), REG(RM)))
+#define cneps_ld(RG, RM, DP)                                                \
+        AUX(SIB(RM), CMD(DP), EMPTY)                                        \
+        EMITW(0xE0800000 | MRM(TPxx,    MOD(RM), 0x00) |                    \
+                           TYP(DP))                                         \
+        EMITW(0xF4200AAF | MTM(Tmm1,    TPxx,    0x00))                     \
+        EMITW(0xF2000E40 | MTM(REG(RG), REG(RG), Tmm1))                     \
+        EMITW(0xF3B005C0 | MTM(REG(RG), 0x00,    REG(RG)))
+
+#define cltps_rr(RG, RM)                                                    \
+        EMITW(0xF3200E40 | MTM(REG(RG), REG(RM), REG(RG)))
+
+#define cltps_ld(RG, RM, DP)                                                \
+        AUX(SIB(RM), CMD(DP), EMPTY)                                        \
+        EMITW(0xE0800000 | MRM(TPxx,    MOD(RM), 0x00) |                    \
+                           TYP(DP))                                         \
+        EMITW(0xF4200AAF | MTM(Tmm1,    TPxx,    0x00))                     \
+        EMITW(0xF3200E40 | MTM(REG(RG), Tmm1,    REG(RG)))
+
+#define cleps_rr(RG, RM)                                                    \
+        EMITW(0xF3000E40 | MTM(REG(RG), REG(RM), REG(RG)))
+
+#define cleps_ld(RG, RM, DP)                                                \
+        AUX(SIB(RM), CMD(DP), EMPTY)                                        \
+        EMITW(0xE0800000 | MRM(TPxx,    MOD(RM), 0x00) |                    \
+                           TYP(DP))                                         \
+        EMITW(0xF4200AAF | MTM(Tmm1,    TPxx,    0x00))                     \
+        EMITW(0xF3000E40 | MTM(REG(RG), Tmm1,    REG(RG)))
 
 #define cgtps_rr(RG, RM)                                                    \
         EMITW(0xF3200E40 | MTM(REG(RG), REG(RG), REG(RM)))
+
+#define cgtps_ld(RG, RM, DP)                                                \
+        AUX(SIB(RM), CMD(DP), EMPTY)                                        \
+        EMITW(0xE0800000 | MRM(TPxx,    MOD(RM), 0x00) |                    \
+                           TYP(DP))                                         \
+        EMITW(0xF4200AAF | MTM(Tmm1,    TPxx,    0x00))                     \
+        EMITW(0xF3200E40 | MTM(REG(RG), REG(RG), Tmm1))
+
+#define cgeps_rr(RG, RM)                                                    \
+        EMITW(0xF3000E40 | MTM(REG(RG), REG(RG), REG(RM)))
+
+#define cgeps_ld(RG, RM, DP)                                                \
+        AUX(SIB(RM), CMD(DP), EMPTY)                                        \
+        EMITW(0xE0800000 | MRM(TPxx,    MOD(RM), 0x00) |                    \
+                           TYP(DP))                                         \
+        EMITW(0xF4200AAF | MTM(Tmm1,    TPxx,    0x00))                     \
+        EMITW(0xF3000E40 | MTM(REG(RG), REG(RG), Tmm1))
 
 /* ---- cmdpn_** - packed sint32, cmdpx_** - packed generic (VFP, MPE) ------ */
 

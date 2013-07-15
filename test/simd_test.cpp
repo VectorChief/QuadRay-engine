@@ -39,52 +39,52 @@
 struct rt_SIMD_INFO_EXT : public rt_SIMD_INFO
 {
     rt_real*far0;
-#define inf_FAR0            DP(0x100)
+#define inf_FAR0        DP(0x100)
 
     rt_real*fco1;
-#define inf_FCO1            DP(0x104)
+#define inf_FCO1        DP(0x104)
 
     rt_real*fco2;
-#define inf_FCO2            DP(0x108)
+#define inf_FCO2        DP(0x108)
 
     rt_real*fso1;
-#define inf_FSO1            DP(0x10C)
+#define inf_FSO1        DP(0x10C)
 
     rt_real*fso2;
-#define inf_FSO2            DP(0x110)
+#define inf_FSO2        DP(0x110)
 
 
     rt_cell*iar0;
-#define inf_IAR0            DP(0x114)
+#define inf_IAR0        DP(0x114)
 
     rt_cell*ico1;
-#define inf_ICO1            DP(0x118)
+#define inf_ICO1        DP(0x118)
 
     rt_cell*ico2;
-#define inf_ICO2            DP(0x11C)
+#define inf_ICO2        DP(0x11C)
 
     rt_cell*iso1;
-#define inf_ISO1            DP(0x120)
+#define inf_ISO1        DP(0x120)
 
     rt_cell*iso2;
-#define inf_ISO2            DP(0x124)
+#define inf_ISO2        DP(0x124)
 
 
     rt_cell cyc;
-#define inf_CYC             DP(0x128)
+#define inf_CYC         DP(0x128)
 
     rt_cell size;
-#define inf_SIZE            DP(0x12C)
+#define inf_SIZE        DP(0x12C)
 
     rt_pntr label;
-#define inf_LABEL           DP(0x130)
+#define inf_LABEL       DP(0x130)
 
 };
 
 
-#if RUN_LEVEL >= 1
+#if RUN_LEVEL >=  1
 
-rt_void C_run_level1(rt_SIMD_INFO_EXT *info)
+rt_void C_run_level01(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -103,13 +103,13 @@ rt_void C_run_level1(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level1(rt_SIMD_INFO_EXT *info)
+rt_void S_run_level01(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
-#define AJ0         DP(0x0000)
-#define AJ1         DP(0x0010)
-#define AJ2         DP(0x0020)
+#define AJ0             DP(0x000)
+#define AJ1             DP(0x010)
+#define AJ2             DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -151,7 +151,7 @@ rt_void S_run_level1(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level1(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level01(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -161,7 +161,7 @@ rt_void P_run_level1(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_real *fso1 = info->fso1;
     rt_real *fso2 = info->fso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 1);
+    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  1);
 
     j = n = info->size;
     while (j-->0)
@@ -187,12 +187,12 @@ rt_void P_run_level1(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     RT_LOGI("----------------------------------------------------\n");
 }
 
-#endif /* RUN_LEVEL 1 */
+#endif /* RUN_LEVEL  1 */
 
 
-#if RUN_LEVEL >= 2
+#if RUN_LEVEL >=  2
 
-rt_void C_run_level2(rt_SIMD_INFO_EXT *info)
+rt_void C_run_level02(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -211,13 +211,13 @@ rt_void C_run_level2(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level2(rt_SIMD_INFO_EXT *info)
+rt_void S_run_level02(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
-#define AJ0         DP(0x0000)
-#define AJ1         DP(0x0010)
-#define AJ2         DP(0x0020)
+#define AJ0             DP(0x000)
+#define AJ1             DP(0x010)
+#define AJ2             DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -259,7 +259,7 @@ rt_void S_run_level2(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level2(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level02(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -269,7 +269,7 @@ rt_void P_run_level2(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_real *fso1 = info->fso1;
     rt_real *fso2 = info->fso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 2);
+    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  2);
 
     j = n = info->size;
     while (j-->0)
@@ -296,12 +296,12 @@ rt_void P_run_level2(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     RT_LOGI("----------------------------------------------------\n");
 }
 
-#endif /* RUN_LEVEL 2 */
+#endif /* RUN_LEVEL  2 */
 
 
-#if RUN_LEVEL >= 3
+#if RUN_LEVEL >=  3
 
-rt_void C_run_level3(rt_SIMD_INFO_EXT *info)
+rt_void C_run_level03(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -320,13 +320,13 @@ rt_void C_run_level3(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level3(rt_SIMD_INFO_EXT *info)
+rt_void S_run_level03(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
-#define AJ0         DP(0x0000)
-#define AJ1         DP(0x0010)
-#define AJ2         DP(0x0020)
+#define AJ0             DP(0x000)
+#define AJ1             DP(0x010)
+#define AJ2             DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -368,7 +368,7 @@ rt_void S_run_level3(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level3(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level03(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -378,7 +378,7 @@ rt_void P_run_level3(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 3);
+    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  3);
 
     j = n = info->size;
     while (j-->0)
@@ -404,12 +404,12 @@ rt_void P_run_level3(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     RT_LOGI("----------------------------------------------------\n");
 }
 
-#endif /* RUN_LEVEL 3 */
+#endif /* RUN_LEVEL  3 */
 
 
-#if RUN_LEVEL >= 4
+#if RUN_LEVEL >=  4
 
-rt_void C_run_level4(rt_SIMD_INFO_EXT *info)
+rt_void C_run_level04(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -428,13 +428,13 @@ rt_void C_run_level4(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level4(rt_SIMD_INFO_EXT *info)
+rt_void S_run_level04(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
-#define AJ0         DP(0x0000)
-#define AJ1         DP(0x0010)
-#define AJ2         DP(0x0020)
+#define AJ0             DP(0x000)
+#define AJ1             DP(0x010)
+#define AJ2             DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -476,7 +476,7 @@ rt_void S_run_level4(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level4(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level04(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -486,7 +486,7 @@ rt_void P_run_level4(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 4);
+    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  4);
 
     j = n = info->size;
     while (j-->0)
@@ -512,12 +512,12 @@ rt_void P_run_level4(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     RT_LOGI("----------------------------------------------------\n");
 }
 
-#endif /* RUN_LEVEL 4 */
+#endif /* RUN_LEVEL  4 */
 
 
-#if RUN_LEVEL >= 5
+#if RUN_LEVEL >=  5
 
-rt_void C_run_level5(rt_SIMD_INFO_EXT *info)
+rt_void C_run_level05(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -536,13 +536,13 @@ rt_void C_run_level5(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level5(rt_SIMD_INFO_EXT *info)
+rt_void S_run_level05(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
-#define AJ0         DP(0x0000)
-#define AJ1         DP(0x0010)
-#define AJ2         DP(0x0020)
+#define AJ0             DP(0x000)
+#define AJ1             DP(0x010)
+#define AJ2             DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -584,7 +584,7 @@ rt_void S_run_level5(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level5(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level05(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -594,7 +594,7 @@ rt_void P_run_level5(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 5);
+    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  5);
 
     j = n = info->size;
     while (j-->0)
@@ -620,12 +620,12 @@ rt_void P_run_level5(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     RT_LOGI("----------------------------------------------------\n");
 }
 
-#endif /* RUN_LEVEL 5 */
+#endif /* RUN_LEVEL  5 */
 
 
-#if RUN_LEVEL >= 6
+#if RUN_LEVEL >=  6
 
-rt_void C_run_level6(rt_SIMD_INFO_EXT *info)
+rt_void C_run_level06(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -645,13 +645,13 @@ rt_void C_run_level6(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level6(rt_SIMD_INFO_EXT *info)
+rt_void S_run_level06(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
-#define AJ0         DP(0x0000)
-#define AJ1         DP(0x0010)
-#define AJ2         DP(0x0020)
+#define AJ0             DP(0x000)
+#define AJ1             DP(0x010)
+#define AJ2             DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -692,7 +692,7 @@ rt_void S_run_level6(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level6(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level06(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -703,7 +703,7 @@ rt_void P_run_level6(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_cell *iso1 = info->iso1;
     rt_real *fso2 = info->fso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 6);
+    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  6);
 
     j = n = info->size;
     while (j-->0)
@@ -729,12 +729,12 @@ rt_void P_run_level6(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     RT_LOGI("----------------------------------------------------\n");
 }
 
-#endif /* RUN_LEVEL 6 */
+#endif /* RUN_LEVEL  6 */
 
 
-#if RUN_LEVEL >= 7
+#if RUN_LEVEL >=  7
 
-rt_void C_run_level7(rt_SIMD_INFO_EXT *info)
+rt_void C_run_level07(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -753,13 +753,13 @@ rt_void C_run_level7(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level7(rt_SIMD_INFO_EXT *info)
+rt_void S_run_level07(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
-#define AJ0         DP(0x0000)
-#define AJ1         DP(0x0010)
-#define AJ2         DP(0x0020)
+#define AJ0             DP(0x000)
+#define AJ1             DP(0x010)
+#define AJ2             DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -798,7 +798,7 @@ rt_void S_run_level7(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level7(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level07(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -808,7 +808,7 @@ rt_void P_run_level7(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_real *fso1 = info->fso1;
     rt_real *fso2 = info->fso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 7);
+    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  7);
 
     j = n = info->size;
     while (j-->0)
@@ -834,12 +834,12 @@ rt_void P_run_level7(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     RT_LOGI("----------------------------------------------------\n");
 }
 
-#endif /* RUN_LEVEL 7 */
+#endif /* RUN_LEVEL  7 */
 
 
-#if RUN_LEVEL >= 8
+#if RUN_LEVEL >=  8
 
-rt_void C_run_level8(rt_SIMD_INFO_EXT *info)
+rt_void C_run_level08(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_cell *iar0 = info->iar0;
@@ -858,13 +858,13 @@ rt_void C_run_level8(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level8(rt_SIMD_INFO_EXT *info)
+rt_void S_run_level08(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i;
 
-#define AJ0         DP(0x0000)
-#define AJ1         DP(0x0010)
-#define AJ2         DP(0x0020)
+#define AJ0             DP(0x000)
+#define AJ1             DP(0x010)
+#define AJ2             DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -912,7 +912,7 @@ rt_void S_run_level8(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level8(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level08(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -922,7 +922,7 @@ rt_void P_run_level8(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 8);
+    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  8);
 
     j = n = info->size;
     while (j-->0)
@@ -949,12 +949,12 @@ rt_void P_run_level8(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     RT_LOGI("----------------------------------------------------\n");
 }
 
-#endif /* RUN_LEVEL 8 */
+#endif /* RUN_LEVEL  8 */
 
 
-#if RUN_LEVEL >= 9
+#if RUN_LEVEL >=  9
 
-rt_void C_run_level9(rt_SIMD_INFO_EXT *info)
+rt_void C_run_level09(rt_SIMD_INFO_EXT *info)
 {
     rt_cell i, j, n = info->size;
     rt_cell *iar0 = info->iar0;
@@ -973,11 +973,11 @@ rt_void C_run_level9(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level9(rt_SIMD_INFO_EXT *info)
+rt_void S_run_level09(rt_SIMD_INFO_EXT *info)
 {
     ASM_ENTER(info)
 
-        label_ld(cyc_beg) /* load to Reax */
+        adrxx_lb(cyc_beg) /* load to Reax */
         movxx_st(Reax, Mebp, inf_LABEL)
 
     LBL(cyc_beg)
@@ -990,11 +990,11 @@ rt_void S_run_level9(rt_SIMD_INFO_EXT *info)
     LBL(loc_beg)
 
         movxx_ld(Reax, Mecx, DP(0x00))
-        mulxx_ld(Mecx, DP(0x10))
+        mulxn_xm(Mecx, DP(0x10))
         movxx_st(Reax, Mebx, DP(0x00))
         movxx_ld(Reax, Mecx, DP(0x00))
         movxx_ri(Redx, IB(0))
-        divxx_ld(Mecx, DP(0x10))
+        divxn_xm(Mecx, DP(0x10))
         movxx_st(Reax, Mesi, DP(0x00))
 
         addxx_ri(Recx, IB(4))
@@ -1007,41 +1007,41 @@ rt_void S_run_level9(rt_SIMD_INFO_EXT *info)
         movxx_ld(Redi, Mebp, inf_IAR0)
 
         movxx_ld(Reax, Mecx, DP(0x00))
-        mulxx_ld(Medi, DP(0x00))
+        mulxn_xm(Medi, DP(0x00))
         movxx_st(Reax, Mebx, DP(0x00))
         movxx_ld(Reax, Mecx, DP(0x00))
         movxx_ri(Redx, IB(0))
-        divxx_ld(Medi, DP(0x00))
+        divxn_xm(Medi, DP(0x00))
         movxx_st(Reax, Mesi, DP(0x00))
 
         movxx_ld(Reax, Mecx, DP(0x04))
-        mulxx_ld(Medi, DP(0x04))
+        mulxn_xm(Medi, DP(0x04))
         movxx_st(Reax, Mebx, DP(0x04))
         movxx_ld(Reax, Mecx, DP(0x04))
         movxx_ri(Redx, IB(0))
-        divxx_ld(Medi, DP(0x04))
+        divxn_xm(Medi, DP(0x04))
         movxx_st(Reax, Mesi, DP(0x04))
 
         movxx_ld(Reax, Mecx, DP(0x08))
-        mulxx_ld(Medi, DP(0x08))
+        mulxn_xm(Medi, DP(0x08))
         movxx_st(Reax, Mebx, DP(0x08))
         movxx_ld(Reax, Mecx, DP(0x08))
         movxx_ri(Redx, IB(0))
-        divxx_ld(Medi, DP(0x08))
+        divxn_xm(Medi, DP(0x08))
         movxx_st(Reax, Mesi, DP(0x08))
 
         movxx_ld(Reax, Mecx, DP(0x0C))
-        mulxx_ld(Medi, DP(0x0C))
+        mulxn_xm(Medi, DP(0x0C))
         movxx_st(Reax, Mebx, DP(0x0C))
         movxx_ld(Reax, Mecx, DP(0x0C))
         movxx_ri(Redx, IB(0))
-        divxx_ld(Medi, DP(0x0C))
+        divxn_xm(Medi, DP(0x0C))
         movxx_st(Reax, Mesi, DP(0x0C))
 
         subxx_mi(Mebp, inf_CYC, IB(1))
         cmpxx_mi(Mebp, inf_CYC, IB(0))
         jeqxx_lb(cyc_end)
-        jmpxx_mm(Mebp, inf_LABEL)
+        jmpxx_xm(Mebp, inf_LABEL)
         jmpxx_lb(cyc_beg) /* the same jump as above */
 
     LBL(cyc_end)
@@ -1049,7 +1049,7 @@ rt_void S_run_level9(rt_SIMD_INFO_EXT *info)
     ASM_LEAVE(info)
 }
 
-rt_void P_run_level9(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void P_run_level09(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 {
     rt_cell j, n;
 
@@ -1059,7 +1059,7 @@ rt_void P_run_level9(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %d  ------------------\n", 9);
+    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  9);
 
     j = n = info->size;
     while (j-->0)
@@ -1086,128 +1086,128 @@ rt_void P_run_level9(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     RT_LOGI("----------------------------------------------------\n");
 }
 
-#endif /* RUN_LEVEL 9 */
+#endif /* RUN_LEVEL  9 */
 
 
-typedef rt_void (*C_run_levelX)(rt_SIMD_INFO_EXT *);
-typedef rt_void (*S_run_levelX)(rt_SIMD_INFO_EXT *);
-typedef rt_void (*P_run_levelX)(rt_SIMD_INFO_EXT *, rt_long, rt_long, rt_bool);
+typedef rt_void (*C_run_levelXX)(rt_SIMD_INFO_EXT *);
+typedef rt_void (*S_run_levelXX)(rt_SIMD_INFO_EXT *);
+typedef rt_void (*P_run_levelXX)(rt_SIMD_INFO_EXT *, rt_long, rt_long, rt_bool);
 
-C_run_levelX Carr[RUN_LEVEL] =
+C_run_levelXX Carr[RUN_LEVEL] =
 {
-#if RUN_LEVEL >= 1
-    C_run_level1,
-#endif /* RUN_LEVEL 1 */
+#if RUN_LEVEL >=  1
+    C_run_level01,
+#endif /* RUN_LEVEL  1 */
 
-#if RUN_LEVEL >= 2
-    C_run_level2,
-#endif /* RUN_LEVEL 2 */
+#if RUN_LEVEL >=  2
+    C_run_level02,
+#endif /* RUN_LEVEL  2 */
 
-#if RUN_LEVEL >= 3
-    C_run_level3,
-#endif /* RUN_LEVEL 3 */
+#if RUN_LEVEL >=  3
+    C_run_level03,
+#endif /* RUN_LEVEL  3 */
 
-#if RUN_LEVEL >= 4
-    C_run_level4,
-#endif /* RUN_LEVEL 4 */
+#if RUN_LEVEL >=  4
+    C_run_level04,
+#endif /* RUN_LEVEL  4 */
 
-#if RUN_LEVEL >= 5
-    C_run_level5,
-#endif /* RUN_LEVEL 5 */
+#if RUN_LEVEL >=  5
+    C_run_level05,
+#endif /* RUN_LEVEL  5 */
 
-#if RUN_LEVEL >= 6
-    C_run_level6,
-#endif /* RUN_LEVEL 6 */
+#if RUN_LEVEL >=  6
+    C_run_level06,
+#endif /* RUN_LEVEL  6 */
 
-#if RUN_LEVEL >= 7
-    C_run_level7,
-#endif /* RUN_LEVEL 7 */
+#if RUN_LEVEL >=  7
+    C_run_level07,
+#endif /* RUN_LEVEL  7 */
 
-#if RUN_LEVEL >= 8
-    C_run_level8,
-#endif /* RUN_LEVEL 8 */
+#if RUN_LEVEL >=  8
+    C_run_level08,
+#endif /* RUN_LEVEL  8 */
 
-#if RUN_LEVEL >= 9
-    C_run_level9,
-#endif /* RUN_LEVEL 9 */
+#if RUN_LEVEL >=  9
+    C_run_level09,
+#endif /* RUN_LEVEL  9 */
 };
 
-S_run_levelX Sarr[RUN_LEVEL] =
+S_run_levelXX Sarr[RUN_LEVEL] =
 {
-#if RUN_LEVEL >= 1
-    S_run_level1,
-#endif /* RUN_LEVEL 1 */
+#if RUN_LEVEL >=  1
+    S_run_level01,
+#endif /* RUN_LEVEL  1 */
 
-#if RUN_LEVEL >= 2
-    S_run_level2,
-#endif /* RUN_LEVEL 2 */
+#if RUN_LEVEL >=  2
+    S_run_level02,
+#endif /* RUN_LEVEL  2 */
 
-#if RUN_LEVEL >= 3
-    S_run_level3,
-#endif /* RUN_LEVEL 3 */
+#if RUN_LEVEL >=  3
+    S_run_level03,
+#endif /* RUN_LEVEL  3 */
 
-#if RUN_LEVEL >= 4
-    S_run_level4,
-#endif /* RUN_LEVEL 4 */
+#if RUN_LEVEL >=  4
+    S_run_level04,
+#endif /* RUN_LEVEL  4 */
 
-#if RUN_LEVEL >= 5
-    S_run_level5,
-#endif /* RUN_LEVEL 5 */
+#if RUN_LEVEL >=  5
+    S_run_level05,
+#endif /* RUN_LEVEL  5 */
 
-#if RUN_LEVEL >= 6
-    S_run_level6,
-#endif /* RUN_LEVEL 6 */
+#if RUN_LEVEL >=  6
+    S_run_level06,
+#endif /* RUN_LEVEL  6 */
 
-#if RUN_LEVEL >= 7
-    S_run_level7,
-#endif /* RUN_LEVEL 7 */
+#if RUN_LEVEL >=  7
+    S_run_level07,
+#endif /* RUN_LEVEL  7 */
 
-#if RUN_LEVEL >= 8
-    S_run_level8,
-#endif /* RUN_LEVEL 8 */
+#if RUN_LEVEL >=  8
+    S_run_level08,
+#endif /* RUN_LEVEL  8 */
 
-#if RUN_LEVEL >= 9
-    S_run_level9,
-#endif /* RUN_LEVEL 9 */
+#if RUN_LEVEL >=  9
+    S_run_level09,
+#endif /* RUN_LEVEL  9 */
 };
 
-P_run_levelX Parr[RUN_LEVEL] =
+P_run_levelXX Parr[RUN_LEVEL] =
 {
-#if RUN_LEVEL >= 1
-    P_run_level1,
-#endif /* RUN_LEVEL 1 */
+#if RUN_LEVEL >=  1
+    P_run_level01,
+#endif /* RUN_LEVEL  1 */
 
-#if RUN_LEVEL >= 2
-    P_run_level2,
-#endif /* RUN_LEVEL 2 */
+#if RUN_LEVEL >=  2
+    P_run_level02,
+#endif /* RUN_LEVEL  2 */
 
-#if RUN_LEVEL >= 3
-    P_run_level3,
-#endif /* RUN_LEVEL 3 */
+#if RUN_LEVEL >=  3
+    P_run_level03,
+#endif /* RUN_LEVEL  3 */
 
-#if RUN_LEVEL >= 4
-    P_run_level4,
-#endif /* RUN_LEVEL 4 */
+#if RUN_LEVEL >=  4
+    P_run_level04,
+#endif /* RUN_LEVEL  4 */
 
-#if RUN_LEVEL >= 5
-    P_run_level5,
-#endif /* RUN_LEVEL 5 */
+#if RUN_LEVEL >=  5
+    P_run_level05,
+#endif /* RUN_LEVEL  5 */
 
-#if RUN_LEVEL >= 6
-    P_run_level6,
-#endif /* RUN_LEVEL 6 */
+#if RUN_LEVEL >=  6
+    P_run_level06,
+#endif /* RUN_LEVEL  6 */
 
-#if RUN_LEVEL >= 7
-    P_run_level7,
-#endif /* RUN_LEVEL 7 */
+#if RUN_LEVEL >=  7
+    P_run_level07,
+#endif /* RUN_LEVEL  7 */
 
-#if RUN_LEVEL >= 8
-    P_run_level8,
-#endif /* RUN_LEVEL 8 */
+#if RUN_LEVEL >=  8
+    P_run_level08,
+#endif /* RUN_LEVEL  8 */
 
-#if RUN_LEVEL >= 9
-    P_run_level9,
-#endif /* RUN_LEVEL 9 */
+#if RUN_LEVEL >=  9
+    P_run_level09,
+#endif /* RUN_LEVEL  9 */
 };
 
 

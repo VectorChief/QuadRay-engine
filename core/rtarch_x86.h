@@ -176,11 +176,11 @@
 
 /* not */
 
-#define notxx_rr(RM)                                                        \
+#define notxx_xr(RM)                                                        \
         EMITB(0xF7)                                                         \
             MRM(0x02,    MOD(RM), REG(RM))
 
-#define notxx_mm(RM, DP)                                                    \
+#define notxx_xm(RM, DP)                                                    \
         EMITB(0xF7)                                                         \
             MRM(0x02,    MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
@@ -273,14 +273,28 @@
 
 /* mul */
 
-#define mulxx_ld(RM, DP) /* Reax is in/out, destroys Redx */                \
+#define mulxn_ri(RM, IM)                                                    \
+        EMITB(0x69 | TYP(IM))                                               \
+            MRM(0x00,    MOD(RM), REG(RM))                                  \
+            AUX(EMPTY,   EMPTY,   CMD(IM))
+
+#define mulxn_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0xAF)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))
+
+#define mulxn_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0xAF)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMPTY)
+
+#define mulxn_xm(RM, DP) /* Reax is in/out, destroys Redx */                \
         EMITB(0xF7)                                                         \
             MRM(0x05,    MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
 
 /* div */
 
-#define divxx_ld(RM, DP) /* Reax is in/out, Redx must be zero */            \
+#define divxn_xm(RM, DP) /* Reax is in/out, Redx is Reax-sign-extended */   \
         EMITB(0xF7)      /* destroys Xmm0 (in ARM) */                       \
             MRM(0x07,    MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
@@ -313,7 +327,7 @@
 
 /* jmp */
 
-#define jmpxx_mm(RM, DP)                                                    \
+#define jmpxx_xm(RM, DP)                                                    \
         EMITB(0xFF)                                                         \
             MRM(0x04,    MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
@@ -331,15 +345,27 @@
         ASM_BEG ASM_OP1(jnz, lb) ASM_END
 
 #define jltxx_lb(lb)                                                        \
-        ASM_BEG ASM_OP1(jl,  lb) ASM_END
+        ASM_BEG ASM_OP1(jb,  lb) ASM_END
 
 #define jlexx_lb(lb)                                                        \
-        ASM_BEG ASM_OP1(jle, lb) ASM_END
+        ASM_BEG ASM_OP1(jbe, lb) ASM_END
 
 #define jgtxx_lb(lb)                                                        \
-        ASM_BEG ASM_OP1(jg,  lb) ASM_END
+        ASM_BEG ASM_OP1(ja,  lb) ASM_END
 
 #define jgexx_lb(lb)                                                        \
+        ASM_BEG ASM_OP1(jae, lb) ASM_END
+
+#define jltxn_lb(lb)                                                        \
+        ASM_BEG ASM_OP1(jl,  lb) ASM_END
+
+#define jlexn_lb(lb)                                                        \
+        ASM_BEG ASM_OP1(jle, lb) ASM_END
+
+#define jgtxn_lb(lb)                                                        \
+        ASM_BEG ASM_OP1(jg,  lb) ASM_END
+
+#define jgexn_lb(lb)                                                        \
         ASM_BEG ASM_OP1(jge, lb) ASM_END
 
 #define LBL(lb)                                                             \

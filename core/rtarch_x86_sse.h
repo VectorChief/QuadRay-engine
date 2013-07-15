@@ -207,30 +207,60 @@
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
             AUX(EMPTY,   EMPTY,   EMITB(0x00))
 
-#define cltps_rr(RG, RM)                                                    \
+#define ceqps_ld(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0xC2)                                             \
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
-            AUX(EMPTY,   EMPTY,   EMITB(0x01))
-
-#define cleps_rr(RG, RM)                                                    \
-        EMITB(0x0F) EMITB(0xC2)                                             \
-            MRM(REG(RG), MOD(RM), REG(RM))                                  \
-            AUX(EMPTY,   EMPTY,   EMITB(0x02))
+            AUX(SIB(RM), CMD(DP), EMITB(0x00))
 
 #define cneps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0xC2)                                             \
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
             AUX(EMPTY,   EMPTY,   EMITB(0x04))
 
-#define cgeps_rr(RG, RM)                                                    \
+#define cneps_ld(RG, RM, DP)                                                \
         EMITB(0x0F) EMITB(0xC2)                                             \
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
-            AUX(EMPTY,   EMPTY,   EMITB(0x05))
+            AUX(SIB(RM), CMD(DP), EMITB(0x04))
+
+#define cltps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0xC2)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(EMPTY,   EMPTY,   EMITB(0x01))
+
+#define cltps_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0xC2)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMITB(0x01))
+
+#define cleps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0xC2)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(EMPTY,   EMPTY,   EMITB(0x02))
+
+#define cleps_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0xC2)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMITB(0x02))
 
 #define cgtps_rr(RG, RM)                                                    \
         EMITB(0x0F) EMITB(0xC2)                                             \
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
             AUX(EMPTY,   EMPTY,   EMITB(0x06))
+
+#define cgtps_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0xC2)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMITB(0x06))
+
+#define cgeps_rr(RG, RM)                                                    \
+        EMITB(0x0F) EMITB(0xC2)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(EMPTY,   EMPTY,   EMITB(0x05))
+
+#define cgeps_ld(RG, RM, DP)                                                \
+        EMITB(0x0F) EMITB(0xC2)                                             \
+            MRM(REG(RG), MOD(RM), REG(RM))                                  \
+            AUX(SIB(RM), CMD(DP), EMITB(0x05))
 
 /* ---- cmdpn_** - packed sint32, cmdpx_** - packed generic (VFP, MPE) ------ */
 
