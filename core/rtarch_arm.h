@@ -122,37 +122,39 @@
 /* cmdxx_ri - applies [cmd] to [r]egister from [i]mmediate  */
 /* cmdxx_mi - applies [cmd] to [m]emory   from [i]mmediate  */
 
-/* cmdxx_rr - applies [cmd] to [r]egister from [r]egister   */
-/* cmdxx_rl - applies [cmd] to [r]egister from [l]abel      */
-
 /* cmdxx_rm - applies [cmd] to [r]egister from [m]emory     */
 /* cmdxx_ld - applies [cmd] as above                        */
-
 /* cmdxx_mr - applies [cmd] to [m]emory   from [r]egister   */
 /* cmdxx_st - applies [cmd] as above (arg list as cmdxx_ld) */
 
-/* cmdxx_rg - applies [cmd] to [reg]ister (one operand cmd) */
-/* cmdxx_rr - applies [cmd] as above   (to/from [register]) */
-/* cmdxx_mm - applies [cmd] to [mem]ory   (one operand cmd) */
+/* cmdxx_rr - applies [cmd] to [r]egister from [r]egister   */
+/* cmdxx_mm - applies [cmd] to [m]emory   from [m]emory     */
+/* cmdxx_rr - applies [cmd] to [r]egister (one operand cmd) */
+/* cmdxx_mm - applies [cmd] to [m]emory   (one operand cmd) */
 
 /* cmdxx_rx - applies [cmd] to [r]egister from * register   */
 /* cmdxx_mx - applies [cmd] to [m]emory   from * register   */
-
 /* cmdxx_xr - applies [cmd] to * register from [r]egister   */
 /* cmdxx_xm - applies [cmd] to * register from [m]emory     */
-/* cmdxx_xl - applies [cmd] to * register from [l]abel      */
-/* cmdxx_lb - applies [cmd] as above     (from [lab]el)     */
-/* label_ld - applies [cmd] as above (load label to Reax)   */
 
-/* stack_st - applies [cmd] to stack from register (push)   */
-/* stack_ld - applies [cmd] to register from stack (pop)    */
-/* stack_sa - applies [cmd] to stack from all registers     */
-/* stack_la - applies [cmd] to all registers from stack     */
+/* cmdxx_rl - applies [cmd] to [r]egister from [l]abel      */
+/* cmdxx_xl - applies [cmd] to * register from [l]abel      */
+/* cmdxx_lb - applies [cmd] as above                        */
+/* label_ld - applies [adr] as above                        */
+
+/* stack_st - applies [mov] to stack from register (push)   */
+/* stack_ld - applies [mov] to register from stack (pop)    */
+/* stack_sa - applies [mov] to stack from all registers     */
+/* stack_la - applies [mov] to all registers from stack     */
 
 /* cmd*x_** - applies [cmd] to unsigned integer argument(s) */
 /* cmd*n_** - applies [cmd] to   signed integer argument(s) */
 /* cmdx*_** - applies [cmd] in default  mode                */
 /* cmde*_** - applies [cmd] in extended mode (takes DH, DW) */
+
+/* Argument [* register] is fixed by the implementation.    */
+/* Some formal definitions are not given below to encourage */
+/* the use of friendly aliases for better code readability. */
 
 /******************************************************************************/
 /**********************************   ARM   ***********************************/
@@ -191,10 +193,7 @@
              (0x000000FF & VAL(DP) >> 2))
 
 #define adrxx_lb(lb) /* load label to Reax */                               \
-        adrxx_xl(lb)
-
-#define label_ld(lb) /* load label to Reax */                               \
-        adrxx_xl(lb)
+        label_ld(lb)
 
 #define stack_st(RM)                                                        \
         EMITW(0xE52D0004 | MRM(REG(RM), 0x00,    0x00))
@@ -276,11 +275,8 @@
 
 /* not */
 
-#define notxx_rg(RM)                                                        \
-        EMITW(0xE1F00000 | MRM(REG(RM), 0x00,    REG(RM)))
-
 #define notxx_rr(RM)                                                        \
-        notxx_rg(W(RM))
+        EMITW(0xE1F00000 | MRM(REG(RM), 0x00,    REG(RM)))
 
 #define notxx_mm(RM, DP)                                                    \
         AUX(SIB(RM), EMPTY,   EMPTY)                                        \

@@ -977,7 +977,7 @@ rt_void S_run_level09(rt_SIMD_INFO_EXT *info)
 {
     ASM_ENTER(info)
 
-        adrxx_xl(cyc_beg) /* load to Reax */
+        label_ld(cyc_beg) /* load to Reax */
         movxx_st(Reax, Mebp, inf_LABEL)
 
     LBL(cyc_beg)

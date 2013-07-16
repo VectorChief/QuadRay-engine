@@ -19,25 +19,25 @@
 
 #if   defined (RT_X86)
 
-#define ASM_OP0(op)           op
-#define ASM_OP1(op, p1)       op  p1
-#define ASM_OP2(op, p1, p2)   op  p1, p2
+#define ASM_OP0(op)             op
+#define ASM_OP1(op, p1)         op  p1
+#define ASM_OP2(op, p1, p2)     op  p1, p2
 
-#define ASM_BEG /*internal*/  __asm {
-#define ASM_END /*internal*/  }
+#define ASM_BEG /*internal*/    __asm {
+#define ASM_END /*internal*/    }
+
+#define EMITB(b)                ASM_BEG ASM_OP1(_emit, b) ASM_END
+#define label_ld(lb)/*Reax*/    ASM_BEG ASM_OP2(lea, eax, lb) ASM_END
+
+#include "rtarch_x86_sse.h"
 
 #define ASM_ENTER(info)     __asm                                           \
                             {                                               \
-                              stack_sa()                                    \
-                              ASM_BEG ASM_OP2(lea, eax, info) ASM_END       \
-                              movxx_ld(Rebp, Oeax, PLAIN)
-#define ASM_LEAVE(info)       stack_la()                                    \
+                                stack_sa()                                  \
+                                label_ld(info)                              \
+                                movxx_ld(Rebp, Oeax, PLAIN)
+#define ASM_LEAVE(info)         stack_la()                                  \
                             }
-
-#define EMITB(b)              ASM_BEG ASM_OP1(_emit, b) ASM_END
-#define adrxx_xl(lb)/*Reax*/  ASM_BEG ASM_OP2(lea, eax, lb) ASM_END
-
-#include "rtarch_x86_sse.h"
 
 /* ---------------------------------   ARM   -------------------------------- */
 
@@ -55,61 +55,60 @@
 
 #if   defined (RT_X86)
 
-#define ASM_OP0(op)           #op
-#define ASM_OP1(op, p1)       #op"  "#p1
-#define ASM_OP2(op, p1, p2)   #op"  "#p2", "#p1
+#define ASM_OP0(op)             #op
+#define ASM_OP1(op, p1)         #op"  "#p1
+#define ASM_OP2(op, p1, p2)     #op"  "#p2", "#p1
 
-#define ASM_BEG /*internal*/  ""
-#define ASM_END /*internal*/  "\n"
+#define ASM_BEG /*internal*/    ""
+#define ASM_END /*internal*/    "\n"
+
+#define EMITB(b)                ASM_BEG ASM_OP1(.byte, b) ASM_END
+#define label_ld(lb)/*Reax*/    ASM_BEG ASM_OP2(leal, %%eax, lb) ASM_END
+
+#include "rtarch_x86_sse.h"
 
 #define ASM_ENTER(info)     asm volatile                                    \
                             (                                               \
-                              stack_sa()                                    \
-                              ASM_BEG ASM_OP2(movl, %%eax, %[info]) ASM_END \
-                              movxx_ld(Rebp, Oeax, PLAIN)
-#define ASM_LEAVE(info)       stack_la()                                    \
-                            :                                               \
-                            : [info] "r" (&info)                            \
-                            : "cc",  "memory"                               \
+                                stack_sa()                                  \
+                                movxx_ld(Rebp, Oeax, PLAIN)
+#define ASM_LEAVE(info)         stack_la()                                  \
+                                :                                           \
+                                : "a" (&info)                               \
+                                : "cc",  "memory"                           \
                             );
-
-#define EMITB(b)              ASM_BEG ASM_OP1(.byte, b) ASM_END
-#define adrxx_xl(lb)/*Reax*/  ASM_BEG ASM_OP2(leal, %%eax, lb) ASM_END
-
-#include "rtarch_x86_sse.h"
 
 /* ---------------------------------   ARM   -------------------------------- */
 
 #elif defined (RT_ARM)
 
-#define ASM_OP0(op)           #op
-#define ASM_OP1(op, p1)       #op"  "#p1
-#define ASM_OP2(op, p1, p2)   #op"  "#p1", "#p2
+#define ASM_OP0(op)             #op
+#define ASM_OP1(op, p1)         #op"  "#p1
+#define ASM_OP2(op, p1, p2)     #op"  "#p1", "#p2
 
-#define ASM_BEG /*internal*/  ""
-#define ASM_END /*internal*/  "\n"
+#define ASM_BEG /*internal*/    ""
+#define ASM_END /*internal*/    "\n"
+
+#define EMITB(b)                ASM_BEG ASM_OP1(.byte, b) ASM_END
+#define label_ld(lb)/*Reax*/    ASM_BEG ASM_OP2(adr, r0, lb) ASM_END
+
+#include "rtarch_arm_mpe.h"
 
 #define ASM_ENTER(info)     asm volatile                                    \
                             (                                               \
-                              stack_sa()                                    \
-                              ASM_BEG ASM_OP2(mov, r0, %[info]) ASM_END     \
-                              movxx_ld(Rebp, Oeax, PLAIN)
-#define ASM_LEAVE(info)       stack_la()                                    \
-                            :                                               \
-                            : [info] "r" (&info)                            \
-                            : "cc",  "memory",                              \
-                              "d0",  "d1",  "d2",  "d3",                    \
-                              "d4",  "d5",  "d6",  "d7",                    \
-                              "d8",  "d9",  "d10", "d11",                   \
-                              "d12", "d13", "d14", "d15",                   \
-                              "d16", "d17", "d18", "d19",                   \
-                              "d20", "d21"                                  \
+                                stack_sa()                                  \
+                                ASM_BEG ASM_OP2(mov, r0, %[info]) ASM_END   \
+                                movxx_ld(Rebp, Oeax, PLAIN)
+#define ASM_LEAVE(info)         stack_la()                                  \
+                                :                                           \
+                                : [info] "r" (&info)                        \
+                                : "cc",  "memory",                          \
+                                  "d0",  "d1",  "d2",  "d3",                \
+                                  "d4",  "d5",  "d6",  "d7",                \
+                                  "d8",  "d9",  "d10", "d11",               \
+                                  "d12", "d13", "d14", "d15",               \
+                                  "d16", "d17", "d18", "d19",               \
+                                  "d20", "d21"                              \
                             );
-
-#define EMITB(b)              ASM_BEG ASM_OP1(.byte, b) ASM_END
-#define adrxx_xl(lb)/*Reax*/  ASM_BEG ASM_OP2(adr, r0, lb) ASM_END
-
-#include "rtarch_arm_mpe.h"
 
 #endif /* RT_X86, RT_ARM */
 
