@@ -1337,18 +1337,18 @@ int main ()
     free(info);
     free(marr);
 
-#if   defined (WIN32) /* Win32, MSC ----------------------------------------- */
+#if   defined (WIN32) /* Win32, MSVC ---------------------------------------- */
 
     RT_LOGI("Type any letter and press ENTER to exit:");
-    rt_char str[256];
-    scanf("%s", str);
+    rt_char str[256]; /* not secure, do not inherit this practice */
+    scanf("%s", str); /* not secure, do not inherit this practice */
 
 #endif /* ------------- OS specific ----------------------------------------- */
 
     return 0;
 }
 
-#if   defined (WIN32) /* Win32, MSC ----------------------------------------- */
+#if   defined (WIN32) /* Win32, MSVC ---------------------------------------- */
 
 #include <windows.h>
 

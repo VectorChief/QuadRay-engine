@@ -350,7 +350,7 @@
             MRM(REG(RG), MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
 
-#define mulxn_xm(RM, DP) /* Reax is in/out, destroys Redx */                \
+#define mulxn_xm(RM, DP) /* Reax is in/out, destroys value in Redx */       \
         EMITB(0xF7)                                                         \
             MRM(0x05,    MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
@@ -358,7 +358,7 @@
 /* div */
 
 #define divxn_xm(RM, DP) /* Reax is in/out, Redx is Reax-sign-extended */   \
-        EMITB(0xF7)      /* destroys Xmm0 (in ARM) */                       \
+        EMITB(0xF7)      /* destroys value in Xmm0 (in ARM) */              \
             MRM(0x07,    MOD(RM), REG(RM))                                  \
             AUX(SIB(RM), CMD(DP), EMPTY)
 

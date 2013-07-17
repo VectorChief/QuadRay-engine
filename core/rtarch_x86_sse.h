@@ -40,7 +40,6 @@
 
 /* cmdpx_rm - applies [cmd] to [r]egister from [m]emory     */
 /* cmdpx_ld - applies [cmd] as above                        */
-
 /* cmdpx_mr - applies [cmd] to [m]emory   from [r]egister   */
 /* cmdpx_st - applies [cmd] as above (arg list as cmdxx_ld) */
 
@@ -406,7 +405,7 @@
         mxcsr_ld(Mebp, inf_FCTRL)                                           \
         movxx_st(Reax, Mebp, inf_FCTRL)
 
-#define FCTRL_LEAVE(mode) /* destroys value in Reax (in ARM version) */     \
+#define FCTRL_LEAVE(mode) /* destroys value in Reax (in ARM) */             \
         mxcsr_ld(Mebp, inf_FCTRL)
 
 #endif /* RT_RTARCH_X86_SSE_H */

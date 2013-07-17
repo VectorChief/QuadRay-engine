@@ -54,7 +54,6 @@
 
 /* cmdpx_rm - applies [cmd] to [r]egister from [m]emory     */
 /* cmdpx_ld - applies [cmd] as above                        */
-
 /* cmdpx_mr - applies [cmd] to [m]emory   from [r]egister   */
 /* cmdpx_st - applies [cmd] as above (arg list as cmdxx_ld) */
 
@@ -399,7 +398,7 @@
 
 /* shr */
 
-#define shrpx_ri(RM, IM)                                                    \
+#define shrpx_ri(RM, IM) /* few extra ops to support shifts by zero */      \
         EMITW(0xE3A00000 | MRM(TIxx,    0x00,    0x00) |                    \
              (0x0000001F & VAL(IM)))                                        \
         EMITW(0xEEA00B10 | MTM(TIxx,    Tmm1,    0x00))                     \
@@ -414,7 +413,7 @@
         EMITW(0xF3B903C0 | MTM(Tmm1,    0x00,    Tmm1))                     \
         EMITW(0xF3200440 | MTM(REG(RG), Tmm1,    REG(RG)))
 
-#define shrpn_ri(RM, IM)                                                    \
+#define shrpn_ri(RM, IM) /* few extra ops to support shifts by zero */      \
         EMITW(0xE3A00000 | MRM(TIxx,    0x00,    0x00) |                    \
              (0x0000001F & VAL(IM)))                                        \
         EMITW(0xEEA00B10 | MTM(TIxx,    Tmm1,    0x00))                     \
