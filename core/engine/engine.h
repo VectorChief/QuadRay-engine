@@ -7,7 +7,10 @@
 #ifndef RT_ENGINE_H
 #define RT_ENGINE_H
 
+#include "rtarch.h"
 #include "rtbase.h"
+#include "rtconf.h"
+#include "system.h"
 #include "tracer.h"
 
 /* Classes */
@@ -18,7 +21,7 @@ class rt_Scene;
 /*********************************   SCENE   **********************************/
 /******************************************************************************/
 
-class rt_Scene
+class rt_Scene : public rt_Heap
 {
 /*  fields */
 
@@ -29,10 +32,6 @@ class rt_Scene
     rt_cell             x_row;
     rt_word            *frame;
 
-    rt_FUNC_ALLOC       f_alloc;
-    rt_FUNC_FREE        f_free;
-
-    rt_pntr             heap;
     rt_SIMD_INFO_EXT   *info;
 
 /*  methods */

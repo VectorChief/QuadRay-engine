@@ -12,21 +12,17 @@
 /*********************************   SCENE   **********************************/
 /******************************************************************************/
 
-#define MASK    (RT_SIMD_ALIGN - 1)
-
 rt_Scene::rt_Scene(rt_word x_res, rt_word y_res, rt_cell x_row, rt_word *frame,
-                   rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free)
+                   rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free) : 
+
+    rt_Heap(f_alloc, f_free)
 {
     this->x_res = x_res;
     this->y_res = y_res;
     this->x_row = x_row;
     this->frame = frame;
 
-    this->f_alloc = f_alloc;
-    this->f_free  = f_free;
-
-    heap = f_alloc(sizeof(rt_SIMD_INFO_EXT) + MASK);
-    info = (rt_SIMD_INFO_EXT *)(((rt_word)heap + MASK) & ~MASK);
+    info = (rt_SIMD_INFO_EXT *)alloc(sizeof(rt_SIMD_INFO_EXT), RT_SIMD_ALIGN);
 
     RT_SIMD_SET(info->gpc01, +1.0);
     RT_SIMD_SET(info->gpc02, -0.5);
@@ -48,7 +44,7 @@ rt_void rt_Scene::render(rt_long time)
 
 rt_Scene::~rt_Scene()
 {
-    f_free(heap);
+
 }
 
 /******************************************************************************/
@@ -169,6 +165,7 @@ rt_void rt_Scene::render_number(rt_word x, rt_word y,
         k = num % 10;
         num /= 10;
         arr[i] = k;
+
         if (k != 0)
         {
             c = i;
