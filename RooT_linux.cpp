@@ -10,10 +10,9 @@
 /**************************   PLATFORM - LINUX   ******************************/
 /******************************************************************************/
 
+#include <malloc.h>
 #include <string.h>
 #include <sys/time.h>
-
-rt_word    *data = RT_NULL;
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -22,6 +21,7 @@ rt_word    *data = RT_NULL;
 
 Display    *disp;
 Window      win;
+rt_word     depth;
 
 #include <sys/shm.h>
 #include <X11/extensions/XShm.h>
@@ -35,7 +35,7 @@ XGCValues   gc_values   = {0};
 /********************************   MAIN   ************************************/
 /******************************************************************************/
 
-rt_cell main_init(rt_word *data, rt_word w, rt_word h);
+rt_cell main_init();
 rt_cell main_loop();
 rt_cell main_done();
 
@@ -92,11 +92,13 @@ int main()
     XGetGeometry(disp, win, &win_root, &win_x, &win_y,
                 (rt_word *)&x_res, (rt_word *)&y_res,
                 &win_b, &win_d);
-
+    /*
     RT_LOGI("XWindow W = %d\n", x_res);
     RT_LOGI("XWindow H = %d\n", y_res);
     RT_LOGI("XWindow B = %d\n", win_b);
     RT_LOGI("XWindow D = %d\n", win_d);
+    */
+    depth = win_d;
 
     /* create image */
     ximage = XShmCreateImage(disp,
@@ -121,10 +123,9 @@ int main()
         return 1;
     }
 
-    shminfo.shmaddr = ximage->data = (char*)shmat(shminfo.shmid, 0, 0);
-    data = (rt_word *)ximage->data;
+    shminfo.shmaddr = ximage->data = (rt_char *)shmat(shminfo.shmid, 0, 0);
 
-    if (shminfo.shmaddr == (char *) -1)
+    if (shminfo.shmaddr == (rt_char *)-1)
     {
         RT_LOGE("shmat failed!\n");
         XDestroyImage(ximage);
@@ -139,9 +140,25 @@ int main()
 
     gc = XCreateGC (disp, win, 0, &gc_values);
 
-    main_init(data, x_res, y_res);
+    if (depth == 16)
+    {
+        frame = (rt_word *)malloc(x_res * y_res * sizeof(rt_word));
+    }
+    else
+    if (depth > 16)
+    {
+        frame = (rt_word *)ximage->data;
+        x_row = ximage->bytes_per_line / 4;
+    }
+
+    main_init();
     main_loop();
     main_done();
+
+    if (depth == 16)
+    {
+        free(frame);
+    }
 
     /* destroy image */
     XShmDetach(disp, &shminfo);
@@ -162,8 +179,11 @@ int main()
 /******************************   RENDERING   *********************************/
 /******************************************************************************/
 
-rt_cell main_init(rt_word *data, rt_word w, rt_word h)
+rt_cell main_init()
 {
+    scene = new rt_Scene(x_res, y_res, x_row, frame,
+                         malloc, free);
+
     return 1;
 }
 
@@ -213,6 +233,22 @@ rt_cell main_step()
     }
     memset(t_keys, 0, sizeof(t_keys));
 
+    scene->render(time);
+    scene->render_number(x_res - 10, 10, -1, 2, fps);
+
+    if (depth == 16)
+    {
+        rt_half *idata = (rt_half *)ximage->data;
+        rt_cell i = x_res * y_res;
+
+        while (i-->0)
+        {
+            idata[i] = (frame[i] & 0x00F80000) >> 8 |
+                       (frame[i] & 0x0000FC00) >> 5 |
+                       (frame[i] & 0x000000F8) >> 3;
+        }
+    }
+
     XShmPutImage(disp, win, gc, ximage, 0, 0, 0, 0, x_res, y_res, False);
     XSync(disp, False);
 
@@ -221,6 +257,8 @@ rt_cell main_step()
 
 rt_cell main_done()
 {
+    delete scene;
+
     return 1;
 }
 

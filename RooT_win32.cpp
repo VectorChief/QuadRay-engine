@@ -10,8 +10,7 @@
 /**************************   PLATFORM - WIN32   ******************************/
 /******************************************************************************/
 
-rt_word    *data = RT_NULL;
-
+#include <malloc.h>
 #include <windows.h>
 
 HINSTANCE   hInst;
@@ -28,7 +27,7 @@ BITMAPINFO  DIBinfo =
     1,                                  /* biPlanes */
     32,                                 /* biBitCount */
     BI_RGB,                             /* biCompression */
-    x_res * y_res * sizeof(rt_cell),    /* biSizeImage */
+    x_res * y_res * sizeof(rt_word),    /* biSizeImage */
     0,                                  /* biXPelsPerMeter */
     0,                                  /* biYPelsPerMeter */
     0,                                  /* biClrUsed */
@@ -103,23 +102,30 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     return msg.wParam;
 }
 
-
 /******************************************************************************/
 /******************************   RENDERING   *********************************/
 /******************************************************************************/
 
-rt_cell main_init(rt_word *data, rt_word w, rt_word h)
+rt_cell main_init()
 {
+    scene = new rt_Scene(x_res, y_res, x_row, frame,
+                         malloc, free);
+
     return 1;
 }
 
 rt_cell main_step(rt_long time, rt_word fps)
 {
+    scene->render(time);
+    scene->render_number(x_res - 10, 10, -1, 2, fps);
+
     return 1;
 }
 
 rt_cell main_done()
 {
+    delete scene;
+
     return 1;
 }
 
@@ -153,9 +159,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
 
             hFrm = CreateDIBSection(NULL, &DIBinfo, DIB_RGB_COLORS,
-                                            (void **)&data, NULL, 0); 
+                                            (void **)&frame, NULL, 0); 
 
-            if (hFrm == NULL || data == NULL)
+            if (hFrm == NULL || frame == NULL)
             {
                 return -1;
             }
@@ -169,7 +175,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             SelectObject(hFrmDC, hFrm);
 
-            if (main_init(data, x_res, y_res) == 0)
+            if (main_init() == 0)
             {
                 return -1;
             }
@@ -229,7 +235,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             main_step(time, fps);
 
             SetDIBitsToDevice(hWndDC, 0, 0, x_res, y_res, 0, 0, 0, y_res,
-                                            data, &DIBinfo, DIB_RGB_COLORS);
+                                            frame, &DIBinfo, DIB_RGB_COLORS);
         }
         break;
 
