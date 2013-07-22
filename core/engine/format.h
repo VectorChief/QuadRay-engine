@@ -182,6 +182,9 @@ struct rt_MATERIAL
 {
     rt_cell             tag;
     rt_TEX              tex;
+
+    rt_real             lgt[4];
+    rt_real             prp[4];
 };
 
 struct rt_SIDE
