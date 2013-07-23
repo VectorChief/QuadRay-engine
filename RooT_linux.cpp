@@ -7,7 +7,7 @@
 #include "RooT.h"
 
 /******************************************************************************/
-/**************************   PLATFORM - LINUX   ******************************/
+/****************************   PLATFORM - LINUX   ****************************/
 /******************************************************************************/
 
 #include <malloc.h>
@@ -32,7 +32,7 @@ GC          gc;
 XGCValues   gc_values   = {0};
 
 /******************************************************************************/
-/********************************   MAIN   ************************************/
+/**********************************   MAIN   **********************************/
 /******************************************************************************/
 
 rt_cell main_init();
@@ -83,7 +83,7 @@ int main()
     XSelectInput(disp, win, ExposureMask | KeyPressMask | KeyReleaseMask);
     /* map (show) the window */
     XMapWindow(disp, win);
-    XSync (disp, False);
+    XSync(disp, False);
 
     Window win_root;
     rt_cell win_x = 0, win_y = 0;
@@ -138,33 +138,25 @@ int main()
 
     shmctl(shminfo.shmid, IPC_RMID, 0);
 
-    gc = XCreateGC (disp, win, 0, &gc_values);
+    gc = XCreateGC(disp, win, 0, &gc_values);
 
-    if (depth == 16)
-    {
-        frame = (rt_word *)malloc(x_res * y_res * sizeof(rt_word));
-    }
-    else
     if (depth > 16)
     {
         frame = (rt_word *)ximage->data;
         x_row = ximage->bytes_per_line / 4;
     }
 
-    main_init();
-    main_loop();
-    main_done();
+    rt_cell ret;
 
-    if (depth == 16)
-    {
-        free(frame);
-    }
+    ret = main_init();
+    ret = main_loop();
+    ret = main_done();
 
     /* destroy image */
     XShmDetach(disp, &shminfo);
     XDestroyImage(ximage);
     shmdt(shminfo.shmaddr);
-    XFreeGC (disp, gc);
+    XFreeGC(disp, gc);
 
     /* destroy window */
     XDestroyWindow(disp, win);
@@ -176,20 +168,40 @@ int main()
 }
 
 /******************************************************************************/
-/******************************   RENDERING   *********************************/
+/********************************   RENDERING   *******************************/
 /******************************************************************************/
 
 rt_cell main_init()
 {
-    scene = new rt_Scene(x_res, y_res, x_row, frame,
-                         malloc, free);
+    try
+    {
+        scene = new rt_Scene(&sc_root,
+                            x_res, y_res, x_row, frame,
+                            malloc, free);
+    }
+    catch (rt_Exception e)
+    {
+        RT_LOGE("Exception: %s\n", e.err);
+
+        return 0;
+    }
 
     return 1;
 }
 
-/* virtual keys array */
+/* performance variables */
+static struct timeval tm;
+
+/* time counter varibales */
+static rt_long init_time = 0;
+static rt_long last_time = 0;
+static rt_long time = 0;
+static rt_word fps = 0;
+static rt_word cnt = 0;
+
+/* virtual keys arrays */
 static rt_byte x_keys[512];
-static rt_char t_keys[512];
+static rt_char t_keys[512]; /* toggle keys */
 
 #define KEY_MASK    0x01FF
 #define X_KEYS(k)   x_keys[(k) & KEY_MASK]
@@ -198,15 +210,10 @@ static rt_char t_keys[512];
 
 rt_cell main_step()
 {
-    /* performance variables */
-    static struct timeval tm;
-
-    /* time counter varibales */
-    static rt_long init_time = 0;
-    static rt_long last_time = 0;
-    static rt_long time = 0;
-    static rt_word fps = 0;
-    static rt_word cnt = 0;
+    if (scene == RT_NULL)
+    {
+        return 0;
+    }
 
     gettimeofday(&tm, NULL);
     time = tm.tv_sec * 1000 + tm.tv_usec / 1000;
@@ -227,6 +234,16 @@ rt_cell main_step()
         last_time = time;
     }
 
+    if (X_KEYS(XK_w))       scene->update(time, RT_CAMERA_MOVE_FORWARD);
+    if (X_KEYS(XK_s))       scene->update(time, RT_CAMERA_MOVE_BACK);
+    if (X_KEYS(XK_a))       scene->update(time, RT_CAMERA_MOVE_LEFT);
+    if (X_KEYS(XK_d))       scene->update(time, RT_CAMERA_MOVE_RIGHT);
+
+    if (X_KEYS(XK_Up))      scene->update(time, RT_CAMERA_ROTATE_DOWN);
+    if (X_KEYS(XK_Down))    scene->update(time, RT_CAMERA_ROTATE_UP);
+    if (X_KEYS(XK_Left))    scene->update(time, RT_CAMERA_ROTATE_LEFT);
+    if (X_KEYS(XK_Right))   scene->update(time, RT_CAMERA_ROTATE_RIGHT);
+
     if (T_KEYS(XK_Escape))
     {
         return 0;
@@ -234,10 +251,11 @@ rt_cell main_step()
     memset(t_keys, 0, sizeof(t_keys));
 
     scene->render(time);
-    scene->render_number(x_res - 10, 10, -1, 2, fps);
+    scene->render_fps(x_res - 10, 10, -1, 2, fps);
 
     if (depth == 16)
     {
+        frame = scene->get_frame();
         rt_half *idata = (rt_half *)ximage->data;
         rt_cell i = x_res * y_res;
 
@@ -257,6 +275,11 @@ rt_cell main_step()
 
 rt_cell main_done()
 {
+    if (scene == RT_NULL)
+    {
+        return 0;
+    }
+
     delete scene;
 
     return 1;
@@ -264,6 +287,8 @@ rt_cell main_done()
 
 rt_cell main_loop()
 {
+    rt_cell ret;
+
     /* event loop */
     while (1)
     {
@@ -304,7 +329,9 @@ rt_cell main_loop()
             }
         }
 
-        if (!main_step())
+        ret = main_step();
+
+        if (ret == 0)
         {
             break;
         }

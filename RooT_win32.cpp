@@ -7,7 +7,7 @@
 #include "RooT.h"
 
 /******************************************************************************/
-/**************************   PLATFORM - WIN32   ******************************/
+/****************************   PLATFORM - WIN32   ****************************/
 /******************************************************************************/
 
 #include <malloc.h>
@@ -35,7 +35,7 @@ BITMAPINFO  DIBinfo =
 };
 
 /******************************************************************************/
-/********************************   MAIN   ************************************/
+/**********************************   MAIN   **********************************/
 /******************************************************************************/
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -103,27 +103,97 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 }
 
 /******************************************************************************/
-/******************************   RENDERING   *********************************/
+/********************************   RENDERING   *******************************/
 /******************************************************************************/
 
 rt_cell main_init()
 {
-    scene = new rt_Scene(x_res, y_res, x_row, frame,
-                         malloc, free);
+    try
+    {
+        scene = new rt_Scene(&sc_root,
+                            x_res, y_res, x_row, frame,
+                            malloc, free);
+    }
+    catch (rt_Exception e)
+    {
+        RT_LOGE("Exception: %s\n", e.err);
+
+        return 0;
+    }
 
     return 1;
 }
 
-rt_cell main_step(rt_long time, rt_word fps)
-{
-    scene->render(time);
-    scene->render_number(x_res - 10, 10, -1, 2, fps);
+/* performance variables */
+static LARGE_INTEGER tm;
+static LARGE_INTEGER fr;
 
+/* time counter varibales */
+static rt_long init_time = 0;
+static rt_long last_time = 0;
+static rt_long time = 0;
+static rt_word fps = 0;
+static rt_word cnt = 0;
+
+/* virtual keys array */
+static rt_cell v_keys[256];
+
+rt_cell main_step()
+{
+    if (scene == RT_NULL)
+    {
+        return 0;
+    }
+
+    QueryPerformanceCounter(&tm);
+    time = (rt_long)(tm.QuadPart * 1000 / fr.QuadPart);
+
+    if (init_time == 0)
+    {
+        init_time = time;
+    }
+
+    time = time - init_time;
+    cnt++;
+
+    if (time - last_time >= 500)
+    {
+        fps = cnt * 1000 / (time - last_time);
+        RT_LOGI("FPS = %d\n", fps);
+        cnt = 0;
+        last_time = time;
+    }
+
+    if (v_keys['W'])        scene->update(time, RT_CAMERA_MOVE_FORWARD);
+    if (v_keys['S'])        scene->update(time, RT_CAMERA_MOVE_BACK);
+    if (v_keys['A'])        scene->update(time, RT_CAMERA_MOVE_LEFT);
+    if (v_keys['D'])        scene->update(time, RT_CAMERA_MOVE_RIGHT);
+
+    if (v_keys[VK_UP])      scene->update(time, RT_CAMERA_ROTATE_DOWN);
+    if (v_keys[VK_DOWN])    scene->update(time, RT_CAMERA_ROTATE_UP);
+    if (v_keys[VK_LEFT])    scene->update(time, RT_CAMERA_ROTATE_LEFT);
+    if (v_keys[VK_RIGHT])   scene->update(time, RT_CAMERA_ROTATE_RIGHT);
+
+    if (v_keys[VK_ESCAPE])
+    {
+        return 0;
+    }
+
+    scene->render(time);
+    scene->render_fps(x_res - 10, 10, -1, 2, fps);
+
+    SetDIBitsToDevice(hWndDC, 0, 0, x_res, y_res, 0, 0, 0, y_res,
+                                    scene->get_frame(), &DIBinfo, DIB_RGB_COLORS);
     return 1;
 }
 
 rt_cell main_done()
 {
+    if (scene == RT_NULL)
+    {
+        return 0;
+    }
+
     delete scene;
 
     return 1;
@@ -131,19 +201,7 @@ rt_cell main_done()
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    /* virtual keys array */
-    static rt_cell v_keys[256];
-
-    /* performance variables */
-    static LARGE_INTEGER tm;
-    static LARGE_INTEGER fr;
-
-    /* time counter varibales */
-    static rt_long init_time = 0;
-    static rt_long last_time = 0;
-    static rt_long time = 0;
-    static rt_word fps = 0;
-    static rt_word cnt = 0;
+    rt_cell ret;
 
     switch (message) 
     {
@@ -175,7 +233,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             SelectObject(hFrmDC, hFrm);
 
-            if (main_init() == 0)
+            ret = main_init();
+
+            if (ret == 0)
             {
                 return -1;
             }
@@ -189,11 +249,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (wParam < 256)
             {
                 v_keys[wParam] = 1;
-            }
-
-            if (wParam == VK_ESCAPE)
-            {
-                DestroyWindow(hWnd);
             }
         }
         break;
@@ -212,36 +267,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         case WM_PAINT:
         {
-            /* acquire perf counter */
-            QueryPerformanceCounter(&tm);
-            time = (rt_long)(tm.QuadPart * 1000 / fr.QuadPart);
+            ret = main_step();
 
-            if (init_time == 0)
+            if (ret == 0)
             {
-                init_time = time;
+                DestroyWindow(hWnd);
             }
-
-            time = time - init_time;
-            cnt++;
-
-            if (time - last_time >= 500)
-            {
-                fps = cnt * 1000 / (time - last_time);
-                RT_LOGI("FPS = %d\n", fps);
-                cnt = 0;
-                last_time = time;
-            }
-
-            main_step(time, fps);
-
-            SetDIBitsToDevice(hWndDC, 0, 0, x_res, y_res, 0, 0, 0, y_res,
-                                            frame, &DIBinfo, DIB_RGB_COLORS);
         }
         break;
 
         case WM_DESTROY:
         {
-            main_done();
+            ret = main_done();
 
             if (hFrmDC != NULL)
             {
