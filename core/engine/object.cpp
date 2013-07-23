@@ -1,0 +1,408 @@
+/******************************************************************************/
+/* Copyright (c) 2013 VectorChief (at github, bitbucket, sourceforge)         */
+/* Distributed under the MIT software license, see the accompanying           */
+/* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
+/******************************************************************************/
+
+#include <string.h>
+
+#include "object.h"
+#include "rtgeom.h"
+#include "system.h"
+
+/******************************************************************************/
+/*********************************   OBJECT   *********************************/
+/******************************************************************************/
+
+rt_Object::rt_Object(rt_Object *parent, rt_OBJECT *obj)
+{
+    if (obj == RT_NULL)
+    {
+        throw rt_Exception("NULL pointer in Object");
+    }
+
+    this->obj = obj;
+    this->trm = &obj->trm;
+    pos = this->mtx[3];
+    this->tag = obj->obj.tag;
+
+    this->parent = parent;
+}
+
+rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+{
+    if (obj->f_anim != RT_NULL)
+    {
+        obj->f_anim(time, obj->time, trm, RT_NULL);
+    }
+
+    obj->time = time;
+
+    rt_mat4 obj_mtx;
+    matrix_from_transform(obj_mtx, trm);
+    matrix_mul_matrix(this->mtx, mtx, obj_mtx);
+}
+
+rt_Object::~rt_Object()
+{
+
+}
+
+/******************************************************************************/
+/*********************************   CAMERA   *********************************/
+/******************************************************************************/
+
+rt_Camera::rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
+
+    rt_Object(parent, obj),
+    rt_List<rt_Camera>(rg->get_cam())
+{
+    rg->put_cam(this);
+
+    this->cam = (rt_CAMERA *)obj->obj.pobj;
+
+    if (cam->col.val != 0x0)
+    {
+        cam->col.hdr[RT_R] = ((cam->col.val >> 0x10) & 0xFF) / 255.0f;
+        cam->col.hdr[RT_G] = ((cam->col.val >> 0x08) & 0xFF) / 255.0f;
+        cam->col.hdr[RT_B] = ((cam->col.val >> 0x00) & 0xFF) / 255.0f;
+    }
+
+    hor = this->mtx[0];
+    ver = this->mtx[1];
+    nrm = this->mtx[2];
+
+    user_input = 0;
+}
+
+rt_void rt_Camera::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+{
+    rt_Object::update(time, mtx, flags | user_input);
+
+    pov = cam->vpt[0] ? cam->vpt[0] : 1.0f;
+
+    hor_sin = RT_SINA(trm->rot[RT_Z]);
+    hor_cos = RT_COSA(trm->rot[RT_Z]);
+
+    ver_sin = RT_SINA(trm->rot[RT_X]);
+    ver_cos = RT_COSA(trm->rot[RT_X]);
+
+    user_input = 0;
+}
+
+rt_void rt_Camera::update(rt_long time, rt_cell action)
+{
+    rt_real t = (time - obj->time) / 50.0f;
+
+    switch (action)
+    {
+        /* vertical movement */
+
+        case RT_CAMERA_MOVE_UP:
+        trm->pos[RT_Z] += cam->dps[RT_K] * t;
+        break;
+
+        case RT_CAMERA_MOVE_DOWN:
+        trm->pos[RT_Z] -= cam->dps[RT_K] * t;
+        break;
+
+        /* horizontal movement */
+
+        case RT_CAMERA_MOVE_LEFT:
+        trm->pos[RT_X] -= cam->dps[RT_I] * t * hor_cos;
+        trm->pos[RT_Y] -= cam->dps[RT_I] * t * hor_sin;
+        break;
+
+        case RT_CAMERA_MOVE_RIGHT:
+        trm->pos[RT_X] += cam->dps[RT_I] * t * hor_cos;
+        trm->pos[RT_Y] += cam->dps[RT_I] * t * hor_sin;
+        break;
+
+        case RT_CAMERA_MOVE_BACK:
+        trm->pos[RT_X] += cam->dps[RT_J] * t * hor_sin;
+        trm->pos[RT_Y] -= cam->dps[RT_J] * t * hor_cos;
+        break;
+
+        case RT_CAMERA_MOVE_FORWARD:
+        trm->pos[RT_X] -= cam->dps[RT_J] * t * hor_sin;
+        trm->pos[RT_Y] += cam->dps[RT_J] * t * hor_cos;
+        break;
+
+        /* horizontal rotation */
+
+        case RT_CAMERA_ROTATE_LEFT:
+        trm->rot[RT_Z] += cam->drt[RT_I] * t;
+        if (trm->rot[RT_Z] >= +180.0f)
+        {
+            trm->rot[RT_Z] -= +360.0f;
+        }
+        break;
+
+        case RT_CAMERA_ROTATE_RIGHT:
+        trm->rot[RT_Z] -= cam->drt[RT_I] * t;
+        if (trm->rot[RT_Z] <= -180.0f)
+        {
+            trm->rot[RT_Z] += +360.0f;
+        }
+        break;
+
+        /* vertical rotation */
+
+        case RT_CAMERA_ROTATE_UP:
+        if (trm->rot[RT_X] <  0.0f)
+        {
+            trm->rot[RT_X] += cam->drt[RT_J] * t;
+            if (trm->rot[RT_X] >  0.0f)
+                trm->rot[RT_X] =  0.0f;
+        }
+        break;
+
+        case RT_CAMERA_ROTATE_DOWN:
+        if (trm->rot[RT_X] > -180.0f)
+        {
+            trm->rot[RT_X] -= cam->drt[RT_J] * t;
+            if (trm->rot[RT_X] < -180.0f)
+                trm->rot[RT_X] = -180.0f;
+        }
+        break;
+
+        default:
+        break;
+    }
+
+    user_input = 1;
+}
+
+rt_Camera::~rt_Camera()
+{
+
+}
+
+/******************************************************************************/
+/**********************************   ARRAY   *********************************/
+/******************************************************************************/
+
+rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
+
+    rt_Object(parent, obj),
+    rt_List<rt_Array>(rg->get_srf())
+{
+    this->rg = rg;
+
+    rg->put_srf(this);
+
+    obj_num = 0;
+    obj_arr = RT_NULL;
+
+    if (obj->obj.tag != RT_TAG_ARRAY)
+    {
+        return;
+    }
+
+    obj_num = obj->obj.obj_num;
+    obj_arr = (rt_Object **)rg->alloc(obj_num * sizeof(rt_Object *), RT_ALIGN);
+
+    rt_OBJECT *arr = (rt_OBJECT *)obj->obj.pobj;
+
+    rt_cell i, j; /* for skipping unsupported object tags */
+
+    for (i = 0, j = 0; i < obj->obj.obj_num; i++, j++)
+    {
+        switch (arr[i].obj.tag)
+        {
+            case RT_TAG_CAMERA:
+            obj_arr[j] = new rt_Camera(rg, this, &arr[i]);
+            break;
+
+            case RT_TAG_ARRAY:
+            obj_arr[j] = new rt_Array(rg, this, &arr[i]);
+            break;
+
+            case RT_TAG_PLANE:
+            obj_arr[j] = new rt_Plane(rg, this, &arr[i]);
+            break;
+
+            default:
+            j--;
+            obj_num--;
+            break;
+        }
+    }
+}
+
+rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+{
+    rt_Object::update(time, mtx, flags);
+
+    rt_cell i;
+
+    for (i = 0; i < obj_num; i++)
+    {
+        obj_arr[i]->update(time, this->mtx, flags);
+    }
+}
+
+rt_Array::~rt_Array()
+{
+    rt_cell i;
+
+    for (i = 0; i < obj_num; i++)
+    {
+        delete obj_arr[i];
+    }
+}
+
+/******************************************************************************/
+/*********************************   SURFACE   ********************************/
+/******************************************************************************/
+
+rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
+                       rt_OBJECT *obj, rt_cell wsize) :
+
+    rt_Array(rg, parent, obj)
+{
+    this->srf = (rt_SURFACE *)obj->obj.pobj;
+
+/*  rt_SIMD_SURFACE */
+
+    s_srf = (rt_SIMD_SURFACE *)rg->alloc(wsize, RT_SIMD_ALIGN);
+
+    this->outer = new rt_Material(rg, &srf->side_outer,
+                    obj->obj.pmat_outer ? obj->obj.pmat_outer :
+                                          srf->side_outer.pmat);
+
+    this->inner = new rt_Material(rg, &srf->side_inner,
+                    obj->obj.pmat_inner ? obj->obj.pmat_inner :
+                                          srf->side_inner.pmat);
+
+    s_srf->mat_p[-1 + 1] = outer->s_mat;
+    s_srf->mat_p[-1 + 2] = (rt_pntr)0;
+    s_srf->mat_p[+1 + 1] = inner->s_mat;
+    s_srf->mat_p[+1 + 2] = (rt_pntr)0;
+
+    s_srf->srf_p[0] = RT_NULL; /* surf ptr */
+    s_srf->srf_p[1] = RT_NULL; /* reserved */
+    s_srf->srf_p[2] = RT_NULL; /* reserved */
+    s_srf->srf_p[3] = (rt_pntr)tag; /* tag */
+
+    RT_SIMD_SET(s_srf->sbase, 0x00000000);
+    RT_SIMD_SET(s_srf->smask, 0x80000000);
+}
+
+rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+{
+    rt_Object::update(time, mtx, flags);
+
+    rt_cell match = 0;
+
+    rt_cell i, j;
+
+    for (i = 0; i < 3; i++)
+    {
+        for (j = 0; j < 3; j++)
+        {
+            if ((this->mtx[i][0] != 0.0f) == (iden4[j][0] != 0.0f)
+            &&  (this->mtx[i][1] != 0.0f) == (iden4[j][1] != 0.0f)
+            &&  (this->mtx[i][2] != 0.0f) == (iden4[j][2] != 0.0f))
+            {
+                map[i] = j;
+                sgn[i] = RT_SIGN(this->mtx[i][j]);
+                scl[j] = RT_FABS(this->mtx[i][j]);
+                match++;
+            }
+        }
+    }
+
+    if (match < 3
+    ||  RT_FABS(scl[RT_X] - 1.0f) > 0.0001f
+    ||  RT_FABS(scl[RT_Y] - 1.0f) > 0.0001f
+    ||  RT_FABS(scl[RT_Z] - 1.0f) > 0.0001f)
+    {
+        map[RT_I] = RT_X;
+        sgn[RT_I] = 1;
+        scl[RT_X] = 1.0f;
+
+        map[RT_J] = RT_Y;
+        sgn[RT_J] = 1;
+        scl[RT_Y] = 1.0f;
+
+        map[RT_K] = RT_Z;
+        sgn[RT_K] = 1;
+        scl[RT_Z] = 1.0f;
+    }
+
+    mp_i = map[RT_I];
+    mp_j = map[RT_J];
+    mp_k = map[RT_K];
+
+    /*---------------------------------*/
+
+    s_srf->a_map[RT_I] = mp_i << 4;
+    s_srf->a_map[RT_J] = mp_j << 4;
+    s_srf->a_map[RT_K] = mp_k << 4;
+    s_srf->a_map[RT_L] = 0;
+
+    s_srf->a_sgn[RT_I] = (sgn[RT_I] > 0 ? 0 : 1) << 4;
+    s_srf->a_sgn[RT_J] = (sgn[RT_J] > 0 ? 0 : 1) << 4;
+    s_srf->a_sgn[RT_K] = (sgn[RT_K] > 0 ? 0 : 1) << 4;
+    s_srf->a_sgn[RT_L] = 0;
+
+    RT_SIMD_SET(s_srf->pos_x, pos[RT_X]);
+    RT_SIMD_SET(s_srf->pos_y, pos[RT_Y]);
+    RT_SIMD_SET(s_srf->pos_z, pos[RT_Z]);
+}
+
+rt_Surface::~rt_Surface()
+{
+    delete outer;
+    delete inner;
+}
+
+/******************************************************************************/
+/**********************************   PLANE   *********************************/
+/******************************************************************************/
+
+rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
+                   rt_OBJECT *obj, rt_cell wsize) :
+
+    rt_Surface(rg, parent, obj, RT_MAX(wsize, sizeof(rt_SIMD_PLANE)))
+{
+    this->xpl = (rt_PLANE *)obj->obj.pobj;
+
+/*  rt_SIMD_PLANE */
+
+    rt_SIMD_PLANE *s_xpl = (rt_SIMD_PLANE *)s_srf;
+
+    RT_SIMD_SET(s_xpl->nrm_k, +1.0f);
+}
+
+/******************************************************************************/
+/********************************   MATERIAL   ********************************/
+/******************************************************************************/
+
+rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
+
+    rt_List<rt_Material>(rg->get_mat())
+{
+    if (mat == RT_NULL)
+    {
+        throw rt_Exception("NULL pointer in Material");
+    }
+
+    rg->put_mat(this);
+
+    this->mat = mat;
+
+    rt_TEX *tex = &mat->tex;
+
+/*  rt_SIMD_MATERIAL */
+
+    s_mat = (rt_SIMD_MATERIAL *)rg->alloc(sizeof(rt_SIMD_MATERIAL),
+                                                RT_SIMD_ALIGN);
+
+    RT_SIMD_SET(s_mat->tex_p, &tex->col.val);
+}
+
+/******************************************************************************/
+/******************************************************************************/
+/******************************************************************************/
