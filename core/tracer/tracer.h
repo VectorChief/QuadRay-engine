@@ -15,7 +15,7 @@
 /**********************************   MISC   **********************************/
 /******************************************************************************/
 
-struct rt_SIMD_INFO_EXT : public rt_SIMD_INFO
+struct rt_SIMD_INFOX : public rt_SIMD_INFO
 {
     /* external parameters */
 
@@ -51,7 +51,7 @@ struct rt_SIMD_INFO_EXT : public rt_SIMD_INFO
 /***************************   GLOBAL ENTRY POINTS   **************************/
 /******************************************************************************/
 
-rt_cell render0(rt_SIMD_INFO_EXT *info);
+rt_void render0(rt_SIMD_INFOX *s_inf);
 
 #endif /* RT_TRACER_H */
 

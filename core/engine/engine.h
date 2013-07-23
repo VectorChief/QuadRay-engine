@@ -32,7 +32,7 @@ class rt_Scene : public rt_Heap
     rt_cell             x_row;
     rt_word            *frame;
 
-    rt_SIMD_INFO_EXT   *info;
+    rt_SIMD_INFOX      *s_inf;
 
 /*  methods */
 

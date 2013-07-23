@@ -22,16 +22,16 @@ rt_Scene::rt_Scene(rt_word x_res, rt_word y_res, rt_cell x_row, rt_word *frame,
     this->x_row = x_row;
     this->frame = frame;
 
-    info = (rt_SIMD_INFO_EXT *)alloc(sizeof(rt_SIMD_INFO_EXT), RT_SIMD_ALIGN);
+    s_inf = (rt_SIMD_INFOX *)alloc(sizeof(rt_SIMD_INFOX), RT_SIMD_ALIGN);
 
-    RT_SIMD_SET(info->gpc01, +1.0);
-    RT_SIMD_SET(info->gpc02, -0.5);
-    RT_SIMD_SET(info->gpc03, +3.0);
+    RT_SIMD_SET(s_inf->gpc01, +1.0);
+    RT_SIMD_SET(s_inf->gpc02, -0.5);
+    RT_SIMD_SET(s_inf->gpc03, +3.0);
 
-    info->frm_w   = x_res;
-    info->frm_h   = y_res;
-    info->frm_row = x_row;
-    info->frame   = frame;
+    s_inf->frm_w   = x_res;
+    s_inf->frm_h   = y_res;
+    s_inf->frm_row = x_row;
+    s_inf->frame   = frame;
 }
 
 /*
@@ -39,7 +39,7 @@ rt_Scene::rt_Scene(rt_word x_res, rt_word y_res, rt_cell x_row, rt_word *frame,
  */
 rt_void rt_Scene::render(rt_long time)
 {
-    render0(info);
+    render0(s_inf);
 }
 
 rt_Scene::~rt_Scene()
