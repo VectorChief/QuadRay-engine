@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "rtgeom.h"
+#include "system.h"
 
 /******************************************************************************/
 /********************************   MATRICES   ********************************/
@@ -25,7 +26,7 @@ rt_mat4 iden4 =
 
 #if RT_DEBUG == 1
 /*
- * This algorithm checks if given address ranges overlap.
+ * Check if given address ranges overlap.
  */
 static
 rt_bool in_range(rt_real *p1, rt_cell n1, rt_real *p2, rt_cell n2)
@@ -40,17 +41,15 @@ rt_bool in_range(rt_real *p1, rt_cell n1, rt_real *p2, rt_cell n2)
 #endif /* RT_DEBUG */
 
 /*
- * This algorithm multiplies matrix by vector.
+ * Multiply matrix by vector.
  */
 rt_void matrix_mul_vector(rt_vec4 vp, rt_mat4 m1, rt_vec4 v1)
 {
 #if RT_DEBUG == 1
-
     if (in_range(vp, 4, m1[0], 16) || in_range(vp, 4, v1, 4))
     {
         throw rt_Exception("Attempting to multiply vectors in place");
     }
-
 #endif /* RT_DEBUG */
 
     rt_cell i;
@@ -65,17 +64,15 @@ rt_void matrix_mul_vector(rt_vec4 vp, rt_mat4 m1, rt_vec4 v1)
 }
 
 /*
- * This algorithm multiplies matrix by matrix.
+ * Multiply matrix by matrix.
  */
 rt_void matrix_mul_matrix(rt_mat4 mp, rt_mat4 m1, rt_mat4 m2)
 {
 #if RT_DEBUG == 1
-
     if (in_range(mp[0], 16, m1[0], 16) || in_range(mp[0], 16, m2[0], 16))
     {
         throw rt_Exception("Attempting to multiply matrices in place");
     }
-
 #endif /* RT_DEBUG */
 
     rt_cell i;
@@ -87,7 +84,7 @@ rt_void matrix_mul_matrix(rt_mat4 mp, rt_mat4 m1, rt_mat4 m2)
 }
 
 /*
- * This algorithm computes matrix from transform.
+ * Compute matrix from transform.
  */
 rt_void matrix_from_transform(rt_mat4 mp, rt_TRANSFORM3D *t1)
 {
