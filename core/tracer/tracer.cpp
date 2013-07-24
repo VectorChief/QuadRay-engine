@@ -12,6 +12,11 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
+/* Conditional compilation flags
+ * for respective segments of code.
+ */
+#define RT_CLIPPING_MINMAX      1
+
 /* Byte-offsets within SIMD-field
  * for packed scalar fields.
  */
@@ -23,7 +28,8 @@
 /*********************************   MACROS   *********************************/
 /******************************************************************************/
 
-/* Perform axis mapping when
+/* Axis mapping.
+ * Perform axis mapping when
  * transform is a multiple of 90 degree rotation.
  */
 #define INDEX_AXIS(nx)                                                      \
@@ -43,14 +49,23 @@
         xorpx_rr(W(RG), W(RG))                                              \
         movpx_st(W(RG), W(RM), W(DP))
 
-/* Context flags.
- * Check if flag "fl" is set in the context's field "pl",
+/* Axis clipping.
+ * Check if axis clipping (minmax) is needed,
  * jump to "lb" otherwise.
+ */
+#define CHECK_CLIP(lb, pl, nx)                                              \
+        cmpxx_mi(Mebx, srf_##pl(nx * 4), IB(0))                             \
+        jeqxx_lb(lb)
+
+/* Context flags.
  */
 #define FLAG_SIDE_OUTER     0
 #define FLAG_SIDE_INNER     1
 #define FLAG_SIDE           1
 
+/* Check if flag "fl" is set in the context's field "pl",
+ * jump to "lb" otherwise.
+ */
 #define CHECK_FLAG(lb, pl, fl)                                              \
         movxx_ld(Reax, Mecx, ctx_##pl(FLG))                                 \
         andxx_ri(Reax, IB(fl))                                              \
@@ -238,7 +253,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cgtps_rr(Xmm0, Xmm4)                    /* t_buf >! t_rt1 */
         andpx_rr(Xmm7, Xmm0)                    /* tmask &= gmask */
 
-        /* ray clipping */
+        /* near plane clipping */
         movpx_ld(Xmm0, Mecx, ctx_T_MIN)         /* t_min <- T_MIN */
         cltps_rr(Xmm0, Xmm4)                    /* t_min <! t_rt1 */
         andpx_rr(Xmm7, Xmm0)                    /* tmask &= lmask */
@@ -248,18 +263,84 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm4, Mecx, ctx_T_VAL(0))      /* ray_x *= t_rt1 */
         addps_ld(Xmm4, Mecx, ctx_ORG_X)         /* hit_x += ORG_X */
         movpx_st(Xmm4, Mecx, ctx_HIT_X)         /* hit_x -> HIT_X */
+        subps_ld(Xmm4, Mebx, srf_POS_X)         /* loc_x -= POS_X */
+        movpx_st(Xmm4, Mecx, ctx_NEW_X)         /* loc_x -> NEW_X */
+
+#if RT_CLIPPING_MINMAX
+
+        CHECK_CLIP(CX_min, MIN_T, RT_X)
+
+        movpx_ld(Xmm0, Mebx, srf_MIN_X)         /* min_x <- MIN_X */
+        cleps_rr(Xmm0, Xmm4)                    /* min_x <= pos_x */
+        andpx_rr(Xmm7, Xmm0)                    /* tmask &= lmask */
+
+    LBL(CX_min)
+
+        CHECK_CLIP(CX_max, MAX_T, RT_X)
+
+        movpx_ld(Xmm0, Mebx, srf_MAX_X)         /* max_x <- MAX_X */
+        cgeps_rr(Xmm0, Xmm4)                    /* max_x >= pos_x */
+        andpx_rr(Xmm7, Xmm0)                    /* tmask &= gmask */
+
+    LBL(CX_max)
+
+#endif /* RT_CLIPPING_MINMAX */
 
         /* "y" section */
         movpx_ld(Xmm5, Mecx, ctx_RAY_Y)         /* ray_y <- RAY_Y */
         mulps_ld(Xmm5, Mecx, ctx_T_VAL(0))      /* ray_y *= t_rt1 */
         addps_ld(Xmm5, Mecx, ctx_ORG_Y)         /* hit_y += ORG_Y */
         movpx_st(Xmm5, Mecx, ctx_HIT_Y)         /* hit_y -> HIT_Y */
+        subps_ld(Xmm5, Mebx, srf_POS_Y)         /* loc_y -= POS_Y */
+        movpx_st(Xmm5, Mecx, ctx_NEW_Y)         /* loc_y -> NEW_Y */
+
+#if RT_CLIPPING_MINMAX
+
+        CHECK_CLIP(CY_min, MIN_T, RT_Y)
+
+        movpx_ld(Xmm0, Mebx, srf_MIN_Y)         /* min_y <- MIN_Y */
+        cleps_rr(Xmm0, Xmm5)                    /* min_y <= pos_y */
+        andpx_rr(Xmm7, Xmm0)                    /* tmask &= lmask */
+
+    LBL(CY_min)
+
+        CHECK_CLIP(CY_max, MAX_T, RT_Y)
+
+        movpx_ld(Xmm0, Mebx, srf_MAX_Y)         /* max_y <- MAX_Y */
+        cgeps_rr(Xmm0, Xmm5)                    /* max_y >= pos_y */
+        andpx_rr(Xmm7, Xmm0)                    /* tmask &= gmask */
+
+    LBL(CY_max)
+
+#endif /* RT_CLIPPING_MINMAX */
 
         /* "z" section */
         movpx_ld(Xmm6, Mecx, ctx_RAY_Z)         /* ray_z <- RAY_Z */
         mulps_ld(Xmm6, Mecx, ctx_T_VAL(0))      /* ray_z *= t_rt1 */
         addps_ld(Xmm6, Mecx, ctx_ORG_Z)         /* hit_z += ORG_Z */
         movpx_st(Xmm6, Mecx, ctx_HIT_Z)         /* hit_z -> HIT_Z */
+        subps_ld(Xmm6, Mebx, srf_POS_Z)         /* loc_z -= POS_Z */
+        movpx_st(Xmm6, Mecx, ctx_NEW_Z)         /* loc_z -> NEW_Z */
+
+#if RT_CLIPPING_MINMAX
+
+        CHECK_CLIP(CZ_min, MIN_T, RT_Z)
+
+        movpx_ld(Xmm0, Mebx, srf_MIN_Z)         /* min_z <- MIN_Z */
+        cleps_rr(Xmm0, Xmm6)                    /* min_z <= pos_z */
+        andpx_rr(Xmm7, Xmm0)                    /* tmask &= lmask */
+
+    LBL(CZ_min)
+
+        CHECK_CLIP(CZ_max, MAX_T, RT_Z)
+
+        movpx_ld(Xmm0, Mebx, srf_MAX_Z)         /* max_z <- MAX_Z */
+        cgeps_rr(Xmm0, Xmm6)                    /* max_z >= pos_z */
+        andpx_rr(Xmm7, Xmm0)                    /* tmask &= gmask */
+
+    LBL(CZ_max)
+
+#endif /* RT_CLIPPING_MINMAX */
 
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
@@ -274,11 +355,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         shlxx_ri(Reax, IB(3))
         movxx_ld(Redx, Iebx, srf_MAT_P(PTR))
 
-        /* load color */
         movpx_ld(Xmm0, Medx, mat_TEX_P)         /* tex_p <- TEX_P */
-
-        /* store result */
-        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))      /* tex_c -> C_PTR */
+        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))      /* tex_p -> C_PTR */
         PAINT_SIMD(MT_rtx)
 
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))
@@ -311,7 +389,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* clipping */
         SUBROUTINE(PL_cp1, CC_clp)
         CHECK_MASK(OO_end, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_WMASK)         /* xmask -> WMASK */
+        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
         INDEX_AXIS(RT_K)
         MOVXR_LD(Xmm3, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
@@ -335,7 +413,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* inner side */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_WMASK)         /* tmask ^= WMASK */
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
