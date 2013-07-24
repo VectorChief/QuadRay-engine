@@ -1,3 +1,8 @@
+v0.1.1: Plane solver, axis clipping
+  - add axis clipping to backend structures, object classes
+  - implement axis clipping in rendering backend
+  - adjust scene data for clipped plane to be visible
+
 v0.1.0: Plane solver, first rays out!
   - reorganize directory structure for the engine
   - add backend structures, object classes, scene management
