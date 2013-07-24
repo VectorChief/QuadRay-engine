@@ -165,7 +165,7 @@ struct rt_SIMD_CONTEXT
     rt_cell wmask[4];
 #define ctx_WMASK           DP(0x1F0)
 
-    rt_word pad04[40];
+    rt_word pad04[64];
 #define ctx_PAD04           DP(0x200)
 
     /* hit, overlapping next context */
@@ -179,8 +179,26 @@ struct rt_SIMD_CONTEXT
     rt_real hit_z[4];
 #define ctx_HIT_Z           DP(0x320)
 
-    rt_word pad05[28];
-#define ctx_PAD05           DP(0x330)
+
+    rt_real t_new[4];
+#define ctx_T_NEW           DP(0x330)
+
+    /* new */
+
+#define ctx_NEW_O           DP(0x340)
+
+    rt_real new_x[4];
+#define ctx_NEW_X           DP(0x340)
+
+    rt_real new_y[4];
+#define ctx_NEW_Y           DP(0x350)
+
+    rt_real new_z[4];
+#define ctx_NEW_Z           DP(0x360)
+
+
+    rt_word pad05[12];
+#define ctx_PAD05           DP(0x370)
 
 };
 
@@ -251,8 +269,38 @@ struct rt_SIMD_SURFACE
 
     /* reserved area 1 */
 
-    rt_word pad01[36];
+    rt_word pad01[4];
 #define srf_PAD01           DP(0x030)
+
+    /* axis min clippers */
+
+    rt_real min_x[4];
+#define srf_MIN_X           DP(0x040)
+
+    rt_real min_y[4];
+#define srf_MIN_Y           DP(0x050)
+
+    rt_real min_z[4];
+#define srf_MIN_Z           DP(0x060)
+
+    /* axis max clippers */
+
+    rt_real max_x[4];
+#define srf_MAX_X           DP(0x070)
+
+    rt_real max_y[4];
+#define srf_MAX_Y           DP(0x080)
+
+    rt_real max_z[4];
+#define srf_MAX_Z           DP(0x090)
+
+    /* axis clippers toggles (on/off) */
+
+    rt_cell min_t[4];
+#define srf_MIN_T(nx)       DP(0x0A0 + nx)
+
+    rt_cell max_t[4];
+#define srf_MAX_T(nx)       DP(0x0B0 + nx)
 
     /* surface axis mapping */
 
