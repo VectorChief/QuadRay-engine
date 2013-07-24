@@ -165,7 +165,7 @@ struct rt_SIMD_CONTEXT
     rt_cell xmask[4];
 #define ctx_XMASK           DP(0x1F0)
 
-    rt_word pad04[40];
+    rt_word pad04[64];
 #define ctx_PAD04           DP(0x200)
 
     /* hit, overlapping next context */
