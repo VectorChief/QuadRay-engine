@@ -205,14 +205,14 @@ class rt_Surface : public rt_Array
 
     protected:
 
-    rt_cell             map[4];
-    rt_cell             sgn[4];
-    rt_real             scl[4];
+    rt_cell             map[3];
+    rt_cell             sgn[3];
+    rt_vec3             scl;
 
 /*  methods */
 
     rt_Surface(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-               rt_cell wsize);
+               rt_cell ssize);
 
     public:
 
@@ -238,7 +238,7 @@ class rt_Plane : public rt_Surface
 /*  methods */
 
     rt_Plane(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-             rt_cell wsize = sizeof(rt_SIMD_SURFACE));
+             rt_cell ssize = sizeof(rt_SIMD_SURFACE));
 };
 
 /******************************************************************************/

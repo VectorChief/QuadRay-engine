@@ -43,12 +43,12 @@ class rt_Scene : public rt_Registry
     rt_real             aspect;
     rt_real             factor;
 
-    rt_real             pos[4];
-    rt_real             dir[4];
-    rt_real             hor[4];
-    rt_real             ver[4];
-    rt_real             org[4];
-    rt_real             nrm[4];
+    rt_vec3             pos;
+    rt_vec3             dir;
+    rt_vec3             hor;
+    rt_vec3             ver;
+    rt_vec3             org;
+    rt_vec3             nrm;
 
     rt_Object          *root;
     rt_Camera          *cam;

@@ -204,7 +204,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 
     rt_OBJECT *arr = (rt_OBJECT *)obj->obj.pobj;
 
-    rt_cell i, j; /* for skipping unsupported object tags */
+    rt_cell i, j; /* j - for skipping unsupported object tags */
 
     for (i = 0, j = 0; i < obj->obj.obj_num; i++, j++)
     {
@@ -257,7 +257,7 @@ rt_Array::~rt_Array()
 /******************************************************************************/
 
 rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
-                       rt_OBJECT *obj, rt_cell wsize) :
+                       rt_OBJECT *obj, rt_cell ssize) :
 
     rt_Array(rg, parent, obj)
 {
@@ -265,7 +265,7 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
 
 /*  rt_SIMD_SURFACE */
 
-    s_srf = (rt_SIMD_SURFACE *)rg->alloc(wsize, RT_SIMD_ALIGN);
+    s_srf = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
 
     this->outer = new rt_Material(rg, &srf->side_outer,
                     obj->obj.pmat_outer ? obj->obj.pmat_outer :
@@ -363,9 +363,9 @@ rt_Surface::~rt_Surface()
 /******************************************************************************/
 
 rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
-                   rt_OBJECT *obj, rt_cell wsize) :
+                   rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Surface(rg, parent, obj, RT_MAX(wsize, sizeof(rt_SIMD_PLANE)))
+    rt_Surface(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_PLANE)))
 {
     this->xpl = (rt_PLANE *)obj->obj.pobj;
 
@@ -397,8 +397,9 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
 
 /*  rt_SIMD_MATERIAL */
 
-    s_mat = (rt_SIMD_MATERIAL *)rg->alloc(sizeof(rt_SIMD_MATERIAL),
-                                                RT_SIMD_ALIGN);
+    s_mat = (rt_SIMD_MATERIAL *)
+            rg->alloc(sizeof(rt_SIMD_MATERIAL),
+                                RT_SIMD_ALIGN);
 
     RT_SIMD_SET(s_mat->tex_p, &tex->col.val);
 }
