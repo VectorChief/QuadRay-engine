@@ -311,7 +311,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* clipping */
         SUBROUTINE(PL_cp1, CC_clp)
         CHECK_MASK(OO_end, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_WMASK)         /* xmask -> WMASK */
+        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
         INDEX_AXIS(RT_K)
         MOVXR_LD(Xmm3, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
@@ -335,7 +335,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* inner side */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_WMASK)         /* tmask ^= WMASK */
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 

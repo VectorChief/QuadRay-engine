@@ -162,8 +162,8 @@ struct rt_SIMD_CONTEXT
     rt_cell tmask[4];
 #define ctx_TMASK(nx)       DP(0x1E0 + nx)
 
-    rt_cell wmask[4];
-#define ctx_WMASK           DP(0x1F0)
+    rt_cell xmask[4];
+#define ctx_XMASK           DP(0x1F0)
 
     rt_word pad04[40];
 #define ctx_PAD04           DP(0x200)
