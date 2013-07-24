@@ -196,6 +196,13 @@ class rt_Surface : public rt_Object, public rt_List<rt_Surface>
     rt_cell             mp_j;
     rt_cell             mp_k;
 
+    /* bounding box - all sides clipped or non-clipped are boundaries */
+    rt_vec3             bmin;
+    rt_vec3             bmax;
+    /* clipping box - non-clipped sides are at respective +/-infinity */
+    rt_vec3             cmin;
+    rt_vec3             cmax;
+
     rt_SIMD_SURFACE    *s_srf;
 
     private:
@@ -221,6 +228,11 @@ class rt_Surface : public rt_Object, public rt_List<rt_Surface>
 
     virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
+
+    rt_void direct_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
+                          rt_vec3 dmin, rt_vec3 dmax); /* dst */
+
+    rt_void update_minmax();
 };
 
 /******************************************************************************/
