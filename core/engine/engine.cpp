@@ -85,16 +85,9 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
 /*
  * Insert element into a list for a given object.
  */
-rt_void rt_Scene::insert(rt_Object *obj, rt_ELEM **ptr, rt_Array *arr)
+rt_void rt_Scene::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
 {
     rt_ELEM *elm = RT_NULL;
-
-    if (arr != RT_NULL && RT_IS_ARRAY(arr))
-    {
-        return;
-    }
-
-    rt_Surface *srf = (rt_Surface *)arr;
 
     if (srf != RT_NULL)
     {
@@ -112,13 +105,13 @@ rt_void rt_Scene::insert(rt_Object *obj, rt_ELEM **ptr, rt_Array *arr)
  */
 rt_ELEM* rt_Scene::ssort(rt_Object *obj)
 {
-    rt_Array *arr = RT_NULL;
+    rt_Surface *srf = RT_NULL;
     rt_ELEM *lst = RT_NULL;
     rt_ELEM **ptr = &lst;
 
-    for (arr = srf_head; arr != RT_NULL; arr = arr->next)
+    for (srf = srf_head; srf != RT_NULL; srf = srf->next)
     {
-        insert(obj, ptr, arr);
+        insert(obj, ptr, srf);
     }
 
     return lst;
@@ -133,18 +126,13 @@ rt_void rt_Scene::render(rt_long time)
 
     root->update(time, iden4, 0);
 
-    rt_Array *arr = RT_NULL;
-
     /* update backend-related parts */
 
-    for (arr = srf_head; arr != RT_NULL; arr = arr->next)
-    {
-        if (RT_IS_SURFACE(arr))
-        {
-            rt_Surface *srf = (rt_Surface *)arr;
+    rt_Surface *srf = RT_NULL;
 
-            update0(srf->s_srf);
-        }
+    for (srf = srf_head; srf != RT_NULL; srf = srf->next)
+    {
+        update0(srf->s_srf);
     }
 
     /* prepare for rendering */

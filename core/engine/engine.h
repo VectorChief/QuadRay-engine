@@ -63,7 +63,7 @@ class rt_Scene : public rt_Registry
 
    ~rt_Scene();
 
-    rt_void     insert(rt_Object *obj, rt_ELEM **ptr, rt_Array *arr);
+    rt_void     insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf);
     rt_ELEM*    ssort(rt_Object *obj);
 
     rt_void     update(rt_long time, rt_cell action);

@@ -184,12 +184,9 @@ rt_Camera::~rt_Camera()
 
 rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 
-    rt_Object(parent, obj),
-    rt_List<rt_Array>(rg->get_srf())
+    rt_Object(parent, obj)
 {
     this->rg = rg;
-
-    rg->put_srf(this);
 
     obj_num = 0;
     obj_arr = RT_NULL;
@@ -259,8 +256,11 @@ rt_Array::~rt_Array()
 rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
                        rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Array(rg, parent, obj)
+    rt_Object(parent, obj),
+    rt_List<rt_Surface>(rg->get_srf())
 {
+    rg->put_srf(this);
+
     this->srf = (rt_SURFACE *)obj->obj.pobj;
 
 /*  rt_SIMD_SURFACE */

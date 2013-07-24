@@ -57,7 +57,7 @@ class rt_Registry : public rt_Heap
     rt_Camera          *cam_head;
     rt_cell             cam_num;
 
-    rt_Array           *srf_head;
+    rt_Surface         *srf_head;
     rt_cell             srf_num;
 
     rt_Material        *mat_head;
@@ -77,11 +77,11 @@ class rt_Registry : public rt_Heap
    ~rt_Registry() { }
 
     rt_Camera      *get_cam() { return cam_head; }
-    rt_Array       *get_srf() { return srf_head; }
+    rt_Surface     *get_srf() { return srf_head; }
     rt_Material    *get_mat() { return mat_head; }
 
     rt_void         put_cam(rt_Camera *cam)     { cam_head = cam; cam_num++; }
-    rt_void         put_srf(rt_Array *srf)      { srf_head = srf; srf_num++; }
+    rt_void         put_srf(rt_Surface *srf)    { srf_head = srf; srf_num++; }
     rt_void         put_mat(rt_Material *mat)   { mat_head = mat; mat_num++; }
 };
 
@@ -158,7 +158,7 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
 /**********************************   ARRAY   *********************************/
 /******************************************************************************/
 
-class rt_Array : public rt_Object, public rt_List<rt_Array>
+class rt_Array : public rt_Object
 {
     public:
 
@@ -184,7 +184,7 @@ class rt_Array : public rt_Object, public rt_List<rt_Array>
 /*********************************   SURFACE   ********************************/
 /******************************************************************************/
 
-class rt_Surface : public rt_Array
+class rt_Surface : public rt_Object, public rt_List<rt_Surface>
 {
     public:
 
