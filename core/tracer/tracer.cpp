@@ -23,7 +23,8 @@
 /*********************************   MACROS   *********************************/
 /******************************************************************************/
 
-/* Perform axis mapping when
+/* Axis mapping.
+ * Perform axis mapping when
  * transform is a multiple of 90 degree rotation.
  */
 #define INDEX_AXIS(nx)                                                      \
@@ -44,13 +45,14 @@
         movpx_st(W(RG), W(RM), W(DP))
 
 /* Context flags.
- * Check if flag "fl" is set in the context's field "pl",
- * jump to "lb" otherwise.
  */
 #define FLAG_SIDE_OUTER     0
 #define FLAG_SIDE_INNER     1
 #define FLAG_SIDE           1
 
+/* Check if flag "fl" is set in the context's field "pl",
+ * jump to "lb" otherwise.
+ */
 #define CHECK_FLAG(lb, pl, fl)                                              \
         movxx_ld(Reax, Mecx, ctx_##pl(FLG))                                 \
         andxx_ri(Reax, IB(fl))                                              \
@@ -274,11 +276,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         shlxx_ri(Reax, IB(3))
         movxx_ld(Redx, Iebx, srf_MAT_P(PTR))
 
-        /* load color */
         movpx_ld(Xmm0, Medx, mat_TEX_P)         /* tex_p <- TEX_P */
-
-        /* store result */
-        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))      /* tex_c -> C_PTR */
+        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))      /* tex_p -> C_PTR */
         PAINT_SIMD(MT_rtx)
 
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))
