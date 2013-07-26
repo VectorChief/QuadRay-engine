@@ -1,3 +1,9 @@
+v0.1.2: Plane solver, basic texturing
+  - add basic texturing to backend structures, object classes
+  - implement basic texturing in rendering backend
+  - add simple tile texture to scene data
+  - implement BMP texture loader and texture conversion for embedding
+
 v0.1.1: Plane solver, axis clipping
   - add axis clipping to backend structures, object classes
   - implement axis clipping in rendering backend
