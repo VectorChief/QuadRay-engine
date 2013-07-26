@@ -23,11 +23,11 @@ rt_PLANE pl_floor01 =
 /* max */   {   +5.0,       +5.0,      +RT_INF  },
         {
 /* OUTER        RT_U,       RT_V    */
-/* scl */   {    1.0,        1.0    },
+/* scl */   {    2.0,        2.0    },
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_blue01,
+/* mat */   &mt_tile01,
         },
         {
 /* INNER        RT_U,       RT_V    */
