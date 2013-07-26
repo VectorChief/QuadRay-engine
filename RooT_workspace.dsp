@@ -203,7 +203,7 @@ SOURCE=.\core\tracer\tracer.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\data\materials\all_materials.h
+SOURCE=.\data\materials\all_mat.h
 # End Source File
 # End Group
 # Begin Group "objects"
@@ -211,7 +211,7 @@ SOURCE=.\data\materials\all_materials.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\data\objects\all_objects.h
+SOURCE=.\data\objects\all_obj.h
 # End Source File
 # End Group
 # Begin Group "scenes"
@@ -219,11 +219,11 @@ SOURCE=.\data\objects\all_objects.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\data\scenes\all_scenes.h
+SOURCE=.\data\scenes\all_scn.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\data\scenes\demo01.h
+SOURCE=.\data\scenes\scn_demo01.h
 # End Source File
 # End Group
 # Begin Group "textures"
@@ -231,7 +231,7 @@ SOURCE=.\data\scenes\demo01.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\data\textures\all_textures.h
+SOURCE=.\data\textures\all_tex.h
 # End Source File
 # End Group
 # End Group
