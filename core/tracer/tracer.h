@@ -131,8 +131,18 @@ struct rt_SIMD_CONTEXT
     rt_real dff_z[4];
 #define ctx_DFF_Z           DP(0x0C0)
 
-    rt_word pad02[20];
+    rt_word pad02[12];
 #define ctx_PAD02           DP(0x0D0)
+
+    /* texture coords */
+
+#define ctx_TEX_O           DP(0x100)
+
+    rt_real tex_u[4];
+#define ctx_TEX_U           DP(0x100)
+
+    rt_real tex_v[4];
+#define ctx_TEX_V           DP(0x110)
 
     /* color buffer */
 
@@ -357,10 +367,46 @@ struct rt_SIMD_PLANE: public rt_SIMD_SURFACE
 /********************************   MATERIAL   ********************************/
 /******************************************************************************/
 
+/* Material properties.
+ * Value range must not overlap with context flags (defined in tracer.cpp),
+ * as they are packed together into the same context field.
+ */
+#define RT_PROP_TEXTURE     0x00000010
+
 struct rt_SIMD_MATERIAL
 {
+    /* texture scaling */
+
+    rt_real xscal[4];
+#define mat_XSCAL           DP(0x000)
+
+    rt_real yscal[4];
+#define mat_YSCAL           DP(0x010)
+
+    rt_real xoffs[4];
+#define mat_XOFFS           DP(0x020)
+
+    rt_real yoffs[4];
+#define mat_YOFFS           DP(0x030)
+
+    /* texture mapping */
+
+    rt_cell xmask[4];
+#define mat_XMASK           DP(0x040)
+
+    rt_cell ymask[4];
+#define mat_YMASK           DP(0x050)
+
+    rt_cell yshft[4];
+#define mat_YSHFT           DP(0x060)
+
     rt_pntr tex_p[4];
-#define mat_TEX_P           DP(0x000)
+#define mat_TEX_P           DP(0x070)
+
+    /* texture axis mapping */
+
+    rt_cell t_map[4];
+#define mat_T_MAP(nx)       DP(0x080 + nx)
 
 };
 
