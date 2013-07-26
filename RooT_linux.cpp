@@ -46,12 +46,11 @@ rt_cell main(rt_cell argc, rt_char *argv[])
     if (argc > 1)
     {
         RT_LOGI("\n");
-        RT_LOGI("main(argc = %d)\n", argc);
-    }
-
-    for (i = 0; i < argc; i++)
-    {
-        RT_LOGI("argv[%d] = %s\n", i, argv[i]);
+        RT_LOGI("argc = %d\n", argc);
+        for (i = 0; i < argc; i++)
+        {
+            RT_LOGI("argv[%d] = %s\n", i, argv[i]);
+        }
     }
 
     if (argc >= 3 && strcmp(argv[1], "-t") == 0)
