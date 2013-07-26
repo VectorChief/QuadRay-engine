@@ -39,8 +39,32 @@ rt_cell main_init();
 rt_cell main_loop();
 rt_cell main_done();
 
-int main()
+rt_cell main(rt_cell argc, rt_char *argv[])
 {
+    rt_cell i;
+
+    if (argc > 1)
+    {
+        RT_LOGI("\n");
+        RT_LOGI("main(argc = %d)\n", argc);
+    }
+
+    for (i = 0; i < argc; i++)
+    {
+        RT_LOGI("argv[%d] = %s\n", i, argv[i]);
+    }
+
+    if (argc >= 3 && strcmp(argv[1], "-t") == 0)
+    {
+        RT_LOGI("Converting textures\n");
+        for (i = 2; i < argc; i++)
+        {
+            convert_texture(argv[i]);
+        }
+        RT_LOGI("\nDone!\n");
+        return 0;
+    }
+
     /* open connection to Xserver */
     disp = XOpenDisplay(NULL);
     /* RT_LOGI("Display = %p\n", disp); */

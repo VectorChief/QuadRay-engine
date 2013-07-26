@@ -15,6 +15,11 @@
 /********************************   TEXTURE   *********************************/
 /******************************************************************************/
 
+/* Convert texture from file to static array initializer.
+ * Parameter fullpath must be editable char array.
+ */
+rt_void convert_texture(rt_char *fullpath);
+
 /* Load texture from file to memory.
  */
 rt_void load_texture(rt_Registry *rg, rt_pstr name, rt_TEX *tx);
