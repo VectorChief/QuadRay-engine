@@ -138,6 +138,8 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
         return;
     }
 
+    /* Save surface's entry point from local pointer table
+     * filled during backend's one-time initialization */
     s_srf->srf_p[0] = t_ptr[tag];
 }
 
@@ -158,6 +160,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     ASM_ENTER(s_inf)
 
+        /* if CTX is NULL fetch surface entry points
+         * into the local pointer tables
+         * as a part of backend's one-time initialization */
         cmpxx_mi(Mebp, inf_CTX, IB(0))
         jeqxx_lb(fetch_ptr)
 
@@ -182,7 +187,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_RAY_Z)         /* ray_z -> RAY_Z */
 
 /******************************************************************************/
-/********************************   VER SCAN   ********************************/
+/********************************   VER INIT   ********************************/
 /******************************************************************************/
 
         movxx_mi(Mebp, inf_FRM_Y, IB(0))
@@ -196,7 +201,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_st(Reax, Mebp, inf_FRM)
 
 /******************************************************************************/
-/********************************   HOR SCAN   ********************************/
+/********************************   HOR INIT   ********************************/
 /******************************************************************************/
 
         movxx_mi(Mebp, inf_FRM_X, IB(0))
@@ -265,6 +270,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm4, Mecx, ctx_HIT_X)         /* hit_x -> HIT_X */
         subps_ld(Xmm4, Mebx, srf_POS_X)         /* loc_x -= POS_X */
         movpx_st(Xmm4, Mecx, ctx_NEW_X)         /* loc_x -> NEW_X */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
 
 #if RT_CLIPPING_MINMAX
 
@@ -293,6 +300,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm5, Mecx, ctx_HIT_Y)         /* hit_y -> HIT_Y */
         subps_ld(Xmm5, Mebx, srf_POS_Y)         /* loc_y -= POS_Y */
         movpx_st(Xmm5, Mecx, ctx_NEW_Y)         /* loc_y -> NEW_Y */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
 
 #if RT_CLIPPING_MINMAX
 
@@ -321,6 +330,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm6, Mecx, ctx_HIT_Z)         /* hit_z -> HIT_Z */
         subps_ld(Xmm6, Mebx, srf_POS_Z)         /* loc_z -= POS_Z */
         movpx_st(Xmm6, Mecx, ctx_NEW_Z)         /* loc_z -> NEW_Z */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
 
 #if RT_CLIPPING_MINMAX
 
@@ -424,7 +435,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(OO_end)
 
 /******************************************************************************/
-/*********************************   OBJECT   *********************************/
+/********************************   OBJ DONE   ********************************/
 /******************************************************************************/
 
     LBL(OO_end)
@@ -437,7 +448,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_mm(Mecx, ctx_PARAM(PTR))
 
 /******************************************************************************/
-/*********************************   CAMERA   *********************************/
+/********************************   HOR SCAN   ********************************/
 /******************************************************************************/
 
     LBL(XX_set)
@@ -477,7 +488,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(XX_cyc)
 
 /******************************************************************************/
-/*********************************   CAMERA   *********************************/
+/********************************   VER SCAN   ********************************/
 /******************************************************************************/
 
     LBL(YY_end)
