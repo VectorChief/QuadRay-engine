@@ -125,6 +125,8 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
         return;
     }
 
+    /* Save surface's entry point from local pointer table
+     * filled during backend's one-time initialization */
     s_srf->srf_p[0] = t_ptr[tag];
 }
 
@@ -145,6 +147,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     ASM_ENTER(s_inf)
 
+        /* if CTX is NULL fetch surface entry points
+         * into the local pointer tables
+         * as a part of backend's one-time initialization */
         cmpxx_mi(Mebp, inf_CTX, IB(0))
         jeqxx_lb(fetch_ptr)
 
@@ -169,7 +174,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_RAY_Z)         /* ray_z -> RAY_Z */
 
 /******************************************************************************/
-/********************************   VER SCAN   ********************************/
+/********************************   VER INIT   ********************************/
 /******************************************************************************/
 
         movxx_mi(Mebp, inf_FRM_Y, IB(0))
@@ -183,7 +188,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_st(Reax, Mebp, inf_FRM)
 
 /******************************************************************************/
-/********************************   HOR SCAN   ********************************/
+/********************************   HOR INIT   ********************************/
 /******************************************************************************/
 
         movxx_mi(Mebp, inf_FRM_X, IB(0))
@@ -240,7 +245,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cgtps_rr(Xmm0, Xmm4)                    /* t_buf >! t_rt1 */
         andpx_rr(Xmm7, Xmm0)                    /* tmask &= gmask */
 
-        /* ray clipping */
+        /* near plane clipping */
         movpx_ld(Xmm0, Mecx, ctx_T_MIN)         /* t_min <- T_MIN */
         cltps_rr(Xmm0, Xmm4)                    /* t_min <! t_rt1 */
         andpx_rr(Xmm7, Xmm0)                    /* tmask &= lmask */
@@ -345,7 +350,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(OO_end)
 
 /******************************************************************************/
-/*********************************   OBJECT   *********************************/
+/********************************   OBJ DONE   ********************************/
 /******************************************************************************/
 
     LBL(OO_end)
@@ -358,7 +363,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_mm(Mecx, ctx_PARAM(PTR))
 
 /******************************************************************************/
-/*********************************   CAMERA   *********************************/
+/********************************   HOR SCAN   ********************************/
 /******************************************************************************/
 
     LBL(XX_set)
@@ -398,7 +403,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(XX_cyc)
 
 /******************************************************************************/
-/*********************************   CAMERA   *********************************/
+/********************************   VER SCAN   ********************************/
 /******************************************************************************/
 
     LBL(YY_end)
