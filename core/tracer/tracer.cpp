@@ -16,6 +16,7 @@
  * for respective segments of code.
  */
 #define RT_CLIPPING_MINMAX      1
+#define RT_TEXTURING            1
 
 /* Byte-offsets within SIMD-field
  * for packed scalar fields.
@@ -49,6 +50,9 @@
         xorpx_rr(W(RG), W(RG))                                              \
         movpx_st(W(RG), W(RM), W(DP))
 
+#define INDEX_TMAP(nx)                                                      \
+        movxx_ld(Reax, Medx, mat_T_MAP(nx * 4))
+
 /* Axis clipping.
  * Check if axis clipping (minmax) is needed,
  * jump to "lb" otherwise.
@@ -58,6 +62,9 @@
         jeqxx_lb(lb)
 
 /* Context flags.
+ * Value bit-range must not overlap with material props (defined in tracer.h),
+ * as they are packed together into the same context field.
+ * Current CHECK_FLAG macro (defined below) accepts values upto 8-bit.
  */
 #define FLAG_SIDE_OUTER     0
 #define FLAG_SIDE_INNER     1
@@ -69,6 +76,28 @@
 #define CHECK_FLAG(lb, pl, fl)                                              \
         movxx_ld(Reax, Mecx, ctx_##pl(FLG))                                 \
         andxx_ri(Reax, IB(fl))                                              \
+        cmpxx_ri(Reax, IB(0))                                               \
+        jeqxx_lb(lb)
+
+/* Material properties.
+ * Fetch properties from material into the context's local FLG field
+ * based on the currently set SIDE flag.
+ */
+#define FETCH_PROP()                                                        \
+        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
+        andxx_ri(Reax, IB(FLAG_SIDE))                                       \
+        shlxx_ri(Reax, IB(4))                                               \
+        shrxx_ri(Reax, IB(1))                                               \
+        movxx_ld(Reax, Iebx, srf_MAT_P(FLG))                                \
+        orrxx_st(Reax, Mecx, ctx_LOCAL(FLG))
+
+/* Check if property "pr" previously
+ * fetched from material is set in the context,
+ * jump to "lb" otherwise.
+ */
+#define CHECK_PROP(lb, pr)                                                  \
+        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
+        andxx_ri(Reax, IH(pr))                                              \
         cmpxx_ri(Reax, IB(0))                                               \
         jeqxx_lb(lb)
 
@@ -138,6 +167,8 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
         return;
     }
 
+    /* Save surface's entry point from local pointer table
+     * filled during backend's one-time initialization */
     s_srf->srf_p[0] = t_ptr[tag];
 }
 
@@ -158,8 +189,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     ASM_ENTER(s_inf)
 
+        /* if CTX is NULL fetch surface entry points
+         * into the local pointer tables
+         * as a part of backend's one-time initialization */
         cmpxx_mi(Mebp, inf_CTX, IB(0))
         jeqxx_lb(fetch_ptr)
+
+        /* enable "rounding towards minus infinity"
+         * for texture coords float-to-integer conversion */
+        FCTRL_ENTER(ROUNDM)
 
         movxx_ld(Recx, Mebp, inf_CTX)
         movxx_ld(Redx, Mebp, inf_CAM)
@@ -265,6 +303,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm4, Mecx, ctx_HIT_X)         /* hit_x -> HIT_X */
         subps_ld(Xmm4, Mebx, srf_POS_X)         /* loc_x -= POS_X */
         movpx_st(Xmm4, Mecx, ctx_NEW_X)         /* loc_x -> NEW_X */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
 
 #if RT_CLIPPING_MINMAX
 
@@ -293,6 +333,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm5, Mecx, ctx_HIT_Y)         /* hit_y -> HIT_Y */
         subps_ld(Xmm5, Mebx, srf_POS_Y)         /* loc_y -= POS_Y */
         movpx_st(Xmm5, Mecx, ctx_NEW_Y)         /* loc_y -> NEW_Y */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
 
 #if RT_CLIPPING_MINMAX
 
@@ -321,6 +363,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm6, Mecx, ctx_HIT_Z)         /* hit_z -> HIT_Z */
         subps_ld(Xmm6, Mebx, srf_POS_Z)         /* loc_z -= POS_Z */
         movpx_st(Xmm6, Mecx, ctx_NEW_Z)         /* loc_z -> NEW_Z */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
 
 #if RT_CLIPPING_MINMAX
 
@@ -356,6 +400,43 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ld(Redx, Iebx, srf_MAT_P(PTR))
 
         movpx_ld(Xmm0, Medx, mat_TEX_P)         /* tex_p <- TEX_P */
+
+#if RT_TEXTURING
+
+        CHECK_PROP(MT_tex, RT_PROP_TEXTURE)
+
+        /* transform surface's UV coords
+         *        to texture's XY coords */
+
+        INDEX_TMAP(RT_X)
+        movpx_ld(Xmm4, Iecx, ctx_TEX_O)         /* tex_x <- TEX_X */
+        INDEX_TMAP(RT_Y)
+        movpx_ld(Xmm5, Iecx, ctx_TEX_O)         /* tex_y <- TEX_Y */
+
+        /* texture offset */
+        subps_ld(Xmm4, Medx, mat_XOFFS)         /* tex_x -= XOFFS */
+        subps_ld(Xmm5, Medx, mat_YOFFS)         /* tex_y -= YOFFS */
+
+        /* texture scale */
+        mulps_ld(Xmm4, Medx, mat_XSCAL)         /* tex_x *= XSCAL */
+        mulps_ld(Xmm5, Medx, mat_YSCAL)         /* tex_y *= YSCAL */
+
+        /* texture mapping */
+        cvtps_rr(Xmm1, Xmm4)                    /* tex_x ii tex_x */
+        andpx_ld(Xmm1, Medx, mat_XMASK)         /* tex_y &= XMASK */
+
+        cvtps_rr(Xmm2, Xmm5)                    /* tex_y ii tex_y */
+        andpx_ld(Xmm2, Medx, mat_YMASK)         /* tex_y &= YMASK */
+        shlpx_ld(Xmm2, Medx, mat_YSHFT)         /* tex_y << YSHFT */
+
+        addpx_rr(Xmm1, Xmm2)                    /* tex_x += tex_y */
+        shlpx_ri(Xmm1, IB(2))                   /* tex_x << 2     */
+        addpx_rr(Xmm0, Xmm1)                    /* tex_x += tex_p */
+
+    LBL(MT_tex)
+
+#endif /* RT_TEXTURING */
+
         movpx_st(Xmm0, Mecx, ctx_C_PTR(0))      /* tex_p -> C_PTR */
         PAINT_SIMD(MT_rtx)
 
@@ -406,7 +487,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_OUTER))
-        SUBROUTINE(PL_mt1, MT_mat)
+        SUBROUTINE(PL_mt1, PL_mat)
 
 /******************************************************************************/
     LBL(PL_rt2)
@@ -419,9 +500,39 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_INNER))
-        SUBROUTINE(PL_mt2, MT_mat)
+        SUBROUTINE(PL_mt2, PL_mat)
 
         jmpxx_lb(OO_end)
+
+/******************************************************************************/
+    LBL(PL_mat)
+
+        FETCH_PROP()
+
+#if RT_TEXTURING
+
+        CHECK_PROP(PL_tex, RT_PROP_TEXTURE)
+
+        /* compute surface's UV coords
+         * for texturing */
+
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        MOVXR_LD(Xmm4, Iecx, ctx_NEW_O)         /* loc_i <- NEW_I */
+        movpx_st(Xmm4, Mecx, ctx_TEX_U)         /* loc_i -> TEX_U */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        MOVXR_LD(Xmm5, Iecx, ctx_NEW_O)         /* loc_j <- NEW_J */
+        movpx_st(Xmm5, Mecx, ctx_TEX_V)         /* loc_j -> TEX_V */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+
+    LBL(PL_tex)
+
+#endif /* RT_TEXTURING */
+
+        jmpxx_lb(MT_mat)
 
 /******************************************************************************/
 /*********************************   OBJECT   *********************************/
@@ -505,6 +616,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ld(Reax, Mebp, inf_FRM_Y)
         cmpxx_rm(Reax, Mebp, inf_FRM_H)
         jltxx_lb(YY_cyc)
+
+        /* restore default "rounding to nearest" */
+        FCTRL_LEAVE(ROUNDM)
 
     LBL(fetch_end)
 

@@ -368,8 +368,9 @@ struct rt_SIMD_PLANE: public rt_SIMD_SURFACE
 /******************************************************************************/
 
 /* Material properties.
- * Value range must not overlap with context flags (defined in tracer.cpp),
+ * Value bit-range must not overlap with context flags (defined in tracer.cpp),
  * as they are packed together into the same context field.
+ * Current CHECK_PROP macro (defined in tracer.cpp) accepts values upto 16-bit.
  */
 #define RT_PROP_TEXTURE     0x00000010
 
