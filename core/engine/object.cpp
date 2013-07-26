@@ -456,35 +456,9 @@ rt_Texture::rt_Texture(rt_Registry *rg, rt_pstr name) :
     load_texture(rg, name, &tex);
 }
 
-rt_void resolve_texture(rt_Registry *rg, rt_TEX *tx)
-{
-    if (tx->x_dim == 0 && tx->y_dim == 0 && tx->ptex == RT_NULL)
-    {
-        tx->ptex  = &tx->col.val;
-        tx->x_dim = 1;
-        tx->y_dim = 1;
-    }
-
-    if (tx->x_dim == 0 && tx->y_dim == 0 && tx->ptex != RT_NULL)
-    {
-        rt_pstr name = (rt_pstr)tx->ptex;
-        rt_Texture *tex = NULL;
-
-        for (tex = rg->get_tex(); tex != NULL; tex = tex->next)
-        {
-            if (strcmp(name, tex->name) == 0)
-            {
-                break;
-            }
-        }
-        if (tex == NULL)
-        {
-            tex = new rt_Texture(rg, name);
-        }
-        *tx = tex->tex;
-    }
-}
-
+/* For surface's UV coords
+ *  to texture's XY coords mapping
+ */
 #define RT_U                0
 #define RT_V                1
 
@@ -501,9 +475,9 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
 
     this->mat = mat;
 
-    rt_TEX *tx = &mat->tex;
+    resolve_texture(rg);
 
-    resolve_texture(rg, tx);
+    rt_TEX *tx = &mat->tex;
 
     props  = 0;
     props |= tx->x_dim == 1 && tx->y_dim == 1 ? 0 : RT_PROP_TEXTURE;
@@ -577,6 +551,39 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     s_mat->yshft[3] = 0;
 
     RT_SIMD_SET(s_mat->tex_p, tx->ptex);
+}
+
+rt_void rt_Material::resolve_texture(rt_Registry *rg)
+{
+    rt_TEX *tx = &mat->tex;
+
+    if (tx->x_dim == 0 && tx->y_dim == 0 && tx->ptex == RT_NULL)
+    {
+        tx->ptex  = &tx->col.val;
+        tx->x_dim = 1;
+        tx->y_dim = 1;
+    }
+
+    if (tx->x_dim == 0 && tx->y_dim == 0 && tx->ptex != RT_NULL)
+    {
+        rt_pstr name = (rt_pstr)tx->ptex;
+        rt_Texture *tex = NULL;
+
+        for (tex = rg->get_tex(); tex != NULL; tex = tex->next)
+        {
+            if (strcmp(name, tex->name) == 0)
+            {
+                break;
+            }
+        }
+
+        if (tex == NULL)
+        {
+            tex = new rt_Texture(rg, name);
+        }
+
+        *tx = tex->tex;
+    }
 }
 
 /******************************************************************************/

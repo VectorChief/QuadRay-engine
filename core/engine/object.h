@@ -295,6 +295,8 @@ class rt_Material : public rt_List<rt_Material>
 /*  methods */
 
     rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat);
+
+    rt_void resolve_texture(rt_Registry *rg);
 };
 
 #endif /* RT_OBJECT_H */
