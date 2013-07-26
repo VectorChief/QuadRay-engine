@@ -42,6 +42,7 @@ class rt_Array;
 class rt_Surface;
 class rt_Plane;
 
+class rt_Texture;
 class rt_Material;
 
 /******************************************************************************/
@@ -60,6 +61,9 @@ class rt_Registry : public rt_Heap
     rt_Surface         *srf_head;
     rt_cell             srf_num;
 
+    rt_Texture         *tex_head;
+    rt_cell             tex_num;
+
     rt_Material        *mat_head;
     rt_cell             mat_num;
 
@@ -71,6 +75,7 @@ class rt_Registry : public rt_Heap
                     rt_Heap(f_alloc, f_free),
                     cam_head(RT_NULL), cam_num(0),
                     srf_head(RT_NULL), srf_num(0),
+                    tex_head(RT_NULL), tex_num(0),
                     mat_head(RT_NULL), mat_num(0) { }
 
     virtual
@@ -78,10 +83,12 @@ class rt_Registry : public rt_Heap
 
     rt_Camera      *get_cam() { return cam_head; }
     rt_Surface     *get_srf() { return srf_head; }
+    rt_Texture     *get_tex() { return tex_head; }
     rt_Material    *get_mat() { return mat_head; }
 
     rt_void         put_cam(rt_Camera *cam)     { cam_head = cam; cam_num++; }
     rt_void         put_srf(rt_Surface *srf)    { srf_head = srf; srf_num++; }
+    rt_void         put_tex(rt_Texture *tex)    { tex_head = tex; tex_num++; }
     rt_void         put_mat(rt_Material *mat)   { mat_head = mat; mat_num++; }
 };
 
@@ -257,6 +264,21 @@ class rt_Plane : public rt_Surface
 /********************************   MATERIAL   ********************************/
 /******************************************************************************/
 
+class rt_Texture : public rt_List<rt_Texture>
+{
+    public:
+
+/*  fields */
+
+    rt_TEX              tex;
+
+    rt_pstr             name;
+
+/*  methods */
+
+    rt_Texture(rt_Registry *rg, rt_pstr name);
+};
+
 class rt_Material : public rt_List<rt_Material>
 {
     public:
@@ -266,6 +288,9 @@ class rt_Material : public rt_List<rt_Material>
     rt_MATERIAL        *mat;
 
     rt_SIMD_MATERIAL   *s_mat;
+    rt_cell             props;
+
+    rt_mat2             mtx;
 
 /*  methods */
 

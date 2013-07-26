@@ -8,6 +8,7 @@
 
 #include "object.h"
 #include "rtgeom.h"
+#include "rtload.h"
 #include "system.h"
 
 /******************************************************************************/
@@ -276,9 +277,9 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
                                           srf->side_inner.pmat);
 
     s_srf->mat_p[-1 + 1] = outer->s_mat;
-    s_srf->mat_p[-1 + 2] = (rt_pntr)0;
+    s_srf->mat_p[-1 + 2] = (rt_pntr)outer->props;
     s_srf->mat_p[+1 + 1] = inner->s_mat;
-    s_srf->mat_p[+1 + 2] = (rt_pntr)0;
+    s_srf->mat_p[+1 + 2] = (rt_pntr)inner->props;
 
     s_srf->srf_p[0] = RT_NULL; /* surf ptr */
     s_srf->srf_p[1] = RT_NULL; /* reserved */
@@ -444,6 +445,49 @@ rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
 /********************************   MATERIAL   ********************************/
 /******************************************************************************/
 
+rt_Texture::rt_Texture(rt_Registry *rg, rt_pstr name) :
+
+    rt_List<rt_Texture>(rg->get_tex())
+{
+    rg->put_tex(this);
+
+    this->name = name;
+
+    load_texture(rg, name, &tex);
+}
+
+rt_void resolve_texture(rt_Registry *rg, rt_TEX *tx)
+{
+    if (tx->x_dim == 0 && tx->y_dim == 0 && tx->ptex == RT_NULL)
+    {
+        tx->ptex  = &tx->col.val;
+        tx->x_dim = 1;
+        tx->y_dim = 1;
+    }
+
+    if (tx->x_dim == 0 && tx->y_dim == 0 && tx->ptex != RT_NULL)
+    {
+        rt_pstr name = (rt_pstr)tx->ptex;
+        rt_Texture *tex = NULL;
+
+        for (tex = rg->get_tex(); tex != NULL; tex = tex->next)
+        {
+            if (strcmp(name, tex->name) == 0)
+            {
+                break;
+            }
+        }
+        if (tex == NULL)
+        {
+            tex = new rt_Texture(rg, name);
+        }
+        *tx = tex->tex;
+    }
+}
+
+#define RT_U                0
+#define RT_V                1
+
 rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
 
     rt_List<rt_Material>(rg->get_mat())
@@ -457,7 +501,45 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
 
     this->mat = mat;
 
-    rt_TEX *tex = &mat->tex;
+    rt_TEX *tx = &mat->tex;
+
+    resolve_texture(rg, tx);
+
+    props  = 0;
+    props |= tx->x_dim == 1 && tx->y_dim == 1 ? 0 : RT_PROP_TEXTURE;
+
+    mtx[0][0] = +RT_COSA(sd->rot);
+    mtx[0][1] = +RT_SINA(sd->rot);
+    mtx[1][0] = -RT_SINA(sd->rot);
+    mtx[1][1] = +RT_COSA(sd->rot);
+
+    rt_cell map[2], sgn[2];
+    rt_cell match = 0;
+
+    rt_cell i, j;
+
+    for (i = 0; i < 2; i++)
+    {
+        for (j = 0; j < 2; j++)
+        {
+            if (RT_FABS(this->mtx[i][0]) == iden4[j][0]
+            &&  RT_FABS(this->mtx[i][1]) == iden4[j][1])
+            {
+                map[i] = j;
+                sgn[i] = RT_SIGN(this->mtx[i][j]);
+                match++;
+            }
+        }
+    }
+
+    if (match < 2)
+    {
+        map[RT_X] = RT_U;
+        sgn[RT_X] = 1;
+
+        map[RT_Y] = RT_V;
+        sgn[RT_Y] = 1;
+    }
 
 /*  rt_SIMD_MATERIAL */
 
@@ -465,7 +547,36 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
             rg->alloc(sizeof(rt_SIMD_MATERIAL),
                                 RT_SIMD_ALIGN);
 
-    RT_SIMD_SET(s_mat->tex_p, &tex->col.val);
+    s_mat->t_map[RT_X] = map[RT_X] << 4;
+    s_mat->t_map[RT_Y] = map[RT_Y] << 4;
+    s_mat->t_map[2] = 0;
+    s_mat->t_map[3] = 0;
+
+    RT_SIMD_SET(s_mat->xscal, tx->x_dim / sd->scl[RT_X] * sgn[RT_X]);
+    RT_SIMD_SET(s_mat->yscal, tx->y_dim / sd->scl[RT_Y] * sgn[RT_Y]);
+
+    RT_SIMD_SET(s_mat->xoffs, sd->pos[map[RT_X]]);
+    RT_SIMD_SET(s_mat->yoffs, sd->pos[map[RT_Y]]);
+
+    rt_word x_mask = tx->x_dim - 1;
+    rt_word y_mask = tx->y_dim - 1;
+
+    RT_SIMD_SET(s_mat->xmask, x_mask);
+    RT_SIMD_SET(s_mat->ymask, y_mask);
+
+    rt_cell x_dim = tx->x_dim;
+    rt_cell x_lg2 = 0;
+    while (x_dim >>= 1)
+    {
+        x_lg2++;
+    }
+
+    s_mat->yshft[0] = x_lg2;
+    s_mat->yshft[1] = 0;
+    s_mat->yshft[2] = 0;
+    s_mat->yshft[3] = 0;
+
+    RT_SIMD_SET(s_mat->tex_p, tx->ptex);
 }
 
 /******************************************************************************/
