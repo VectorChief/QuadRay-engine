@@ -220,6 +220,26 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
             obj_arr[j] = new rt_Plane(rg, this, &arr[i]);
             break;
 
+            case RT_TAG_CYLINDER:
+            obj_arr[j] = new rt_Cylinder(rg, this, &arr[i]);
+            break;
+
+            case RT_TAG_SPHERE:
+            obj_arr[j] = new rt_Sphere(rg, this, &arr[i]);
+            break;
+
+            case RT_TAG_CONE:
+            obj_arr[j] = new rt_Cone(rg, this, &arr[i]);
+            break;
+
+            case RT_TAG_PARABOLOID:
+            obj_arr[j] = new rt_Paraboloid(rg, this, &arr[i]);
+            break;
+
+            case RT_TAG_HYPERBOLOID:
+            obj_arr[j] = new rt_Hyperboloid(rg, this, &arr[i]);
+            break;
+
             default:
             j--;
             obj_num--;
@@ -439,6 +459,133 @@ rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
     rt_SIMD_PLANE *s_xpl = (rt_SIMD_PLANE *)s_srf;
 
     RT_SIMD_SET(s_xpl->nrm_k, +1.0f);
+}
+
+/******************************************************************************/
+/********************************   QUADRIC   *********************************/
+/******************************************************************************/
+
+rt_Quadric::rt_Quadric(rt_Registry *rg, rt_Object *parent,
+                       rt_OBJECT *obj, rt_cell ssize) :
+
+    rt_Surface(rg, parent, obj, ssize)
+{
+
+}
+
+/******************************************************************************/
+/********************************   CYLINDER   ********************************/
+/******************************************************************************/
+
+rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
+                         rt_OBJECT *obj, rt_cell ssize) :
+
+    rt_Quadric(rg, parent, obj,
+               RT_MAX(ssize, sizeof(rt_SIMD_CYLINDER)))
+{
+    this->xcl = (rt_CYLINDER *)obj->obj.pobj;
+
+/*  rt_SIMD_CYLINDER */
+
+    rt_SIMD_CYLINDER *s_xcl = (rt_SIMD_CYLINDER *)s_srf;
+
+    rt_real rad = RT_FABS(xcl->rad);
+
+    RT_SIMD_SET(s_xcl->rad_2, rad * rad);
+    RT_SIMD_SET(s_xcl->i_rad, 1.0f / rad);
+}
+
+/******************************************************************************/
+/*********************************   SPHERE   *********************************/
+/******************************************************************************/
+
+rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
+                     rt_OBJECT *obj, rt_cell ssize) :
+
+    rt_Quadric(rg, parent, obj,
+               RT_MAX(ssize, sizeof(rt_SIMD_SPHERE)))
+{
+    this->xsp = (rt_SPHERE *)obj->obj.pobj;
+
+/*  rt_SIMD_SPHERE */
+
+    rt_SIMD_SPHERE *s_xsp = (rt_SIMD_SPHERE *)s_srf;
+
+    rt_real rad = RT_FABS(xsp->rad);
+
+    RT_SIMD_SET(s_xsp->rad_2, rad * rad);
+    RT_SIMD_SET(s_xsp->i_rad, 1.0f / rad);
+}
+
+/******************************************************************************/
+/**********************************   CONE   **********************************/
+/******************************************************************************/
+
+rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
+                 rt_OBJECT *obj, rt_cell ssize) :
+
+    rt_Quadric(rg, parent, obj,
+               RT_MAX(ssize, sizeof(rt_SIMD_CONE)))
+{
+    this->xcn = (rt_CONE *)obj->obj.pobj;
+
+/*  rt_SIMD_CONE */
+
+    rt_SIMD_CONE *s_xcn = (rt_SIMD_CONE *)s_srf;
+
+    rt_real rat = RT_FABS(xcn->rat);
+
+    RT_SIMD_SET(s_xcn->rat_2, rat * rat);
+    RT_SIMD_SET(s_xcn->i_rat, 1.0f / (rat * sqrtf(rat * rat + 1.0f)));
+}
+
+/******************************************************************************/
+/*******************************   PARABOLOID   *******************************/
+/******************************************************************************/
+
+rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
+                             rt_OBJECT *obj, rt_cell ssize) :
+
+    rt_Quadric(rg, parent, obj,
+               RT_MAX(ssize, sizeof(rt_SIMD_PARABOLOID)))
+{
+    this->xpb = (rt_PARABOLOID *)obj->obj.pobj;
+
+/*  rt_SIMD_PARABOLOID */
+
+    rt_SIMD_PARABOLOID *s_xpb = (rt_SIMD_PARABOLOID *)s_srf;
+
+    rt_real par = xpb->par;
+
+    RT_SIMD_SET(s_xpb->par_2, par / 2.0f);
+    RT_SIMD_SET(s_xpb->i_par, par * par / 4.0f);
+    RT_SIMD_SET(s_xpb->par_k, par);
+    RT_SIMD_SET(s_xpb->one_k, 1.0f);
+}
+
+/******************************************************************************/
+/*******************************   HYPERBOLOID   ******************************/
+/******************************************************************************/
+
+rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
+                               rt_OBJECT *obj, rt_cell ssize) :
+
+    rt_Quadric(rg, parent, obj,
+               RT_MAX(ssize, sizeof(rt_SIMD_HYPERBOLOID)))
+{
+    this->xhb = (rt_HYPERBOLOID *)obj->obj.pobj;
+
+/*  rt_SIMD_HYPERBOLOID */
+
+    rt_SIMD_HYPERBOLOID *s_xhb = (rt_SIMD_HYPERBOLOID *)s_srf;
+
+    rt_real rat = xhb->rat;
+    rt_real hyp = xhb->hyp;
+
+    RT_SIMD_SET(s_xhb->rat_2, rat * rat);
+    RT_SIMD_SET(s_xhb->i_rat, (1.0f + rat * rat) * rat * rat);
+    RT_SIMD_SET(s_xhb->hyp_k, hyp);
+    RT_SIMD_SET(s_xhb->one_k, 1.0f);
 }
 
 /******************************************************************************/

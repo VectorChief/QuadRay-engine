@@ -41,6 +41,12 @@ class rt_Camera;
 class rt_Array;
 class rt_Surface;
 class rt_Plane;
+class rt_Quadric;
+class rt_Cylinder;
+class rt_Sphere;
+class rt_Cone;
+class rt_Paraboloid;
+class rt_Hyperboloid;
 
 class rt_Texture;
 class rt_Material;
@@ -258,6 +264,114 @@ class rt_Plane : public rt_Surface
 
     rt_Plane(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
              rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+};
+
+/******************************************************************************/
+/*********************************   QUADRIC   ********************************/
+/******************************************************************************/
+
+class rt_Quadric : public rt_Surface
+{
+    public:
+
+/*  fields */
+
+/*  methods */
+
+    protected:
+
+    rt_Quadric(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
+               rt_cell ssize);
+};
+
+/******************************************************************************/
+/********************************   CYLINDER   ********************************/
+/******************************************************************************/
+
+class rt_Cylinder : public rt_Quadric
+{
+    public:
+
+/*  fields */
+
+    rt_CYLINDER        *xcl;
+
+/*  methods */
+
+    rt_Cylinder(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
+                rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+};
+
+/******************************************************************************/
+/*********************************   SPHERE   *********************************/
+/******************************************************************************/
+
+class rt_Sphere : public rt_Quadric
+{
+    public:
+
+/*  fields */
+
+    rt_SPHERE          *xsp;
+
+/*  methods */
+
+    rt_Sphere(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
+              rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+};
+
+/******************************************************************************/
+/**********************************   CONE   **********************************/
+/******************************************************************************/
+
+class rt_Cone : public rt_Quadric
+{
+    public:
+
+/*  fields */
+
+    rt_CONE            *xcn;
+
+/*  methods */
+
+    rt_Cone(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
+            rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+};
+
+/******************************************************************************/
+/*******************************   PARABOLOID   *******************************/
+/******************************************************************************/
+
+class rt_Paraboloid : public rt_Quadric
+{
+    public:
+
+/*  fields */
+
+    rt_PARABOLOID      *xpb;
+
+/*  methods */
+
+    rt_Paraboloid(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
+                  rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+};
+
+/******************************************************************************/
+/*******************************   HYPERBOLOID   ******************************/
+/******************************************************************************/
+
+class rt_Hyperboloid : public rt_Quadric
+{
+    public:
+
+/*  fields */
+
+    rt_HYPERBOLOID     *xhb;
+
+/*  methods */
+
+    rt_Hyperboloid(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
+                   rt_cell ssize = sizeof(rt_SIMD_SURFACE));
 };
 
 /******************************************************************************/
