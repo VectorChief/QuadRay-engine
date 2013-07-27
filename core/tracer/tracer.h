@@ -347,7 +347,7 @@ struct rt_SIMD_SURFACE
 /**********************************   PLANE   *********************************/
 /******************************************************************************/
 
-struct rt_SIMD_PLANE: public rt_SIMD_SURFACE
+struct rt_SIMD_PLANE : public rt_SIMD_SURFACE
 {
     rt_real nrm_k[4];
 #define xpl_NRM_K           DP(0x200)
@@ -360,6 +360,106 @@ struct rt_SIMD_PLANE: public rt_SIMD_SURFACE
 
     rt_real msc_3[4];
 #define xpl_MSC_3           DP(0x230)
+
+};
+
+/******************************************************************************/
+/********************************   CYLINDER   ********************************/
+/******************************************************************************/
+
+struct rt_SIMD_CYLINDER : public rt_SIMD_SURFACE
+{
+    rt_real rad_2[4];
+#define xcl_RAD_2           DP(0x200)
+
+    rt_real i_rad[4];
+#define xcl_I_RAD           DP(0x210)
+
+    rt_real msc_2[4];
+#define xcl_MSC_2           DP(0x220)
+
+    rt_real msc_3[4];
+#define xcl_MSC_3           DP(0x230)
+
+};
+
+/******************************************************************************/
+/*********************************   SPHERE   *********************************/
+/******************************************************************************/
+
+struct rt_SIMD_SPHERE : public rt_SIMD_SURFACE
+{
+    rt_real rad_2[4];
+#define xsp_RAD_2           DP(0x200)
+
+    rt_real i_rad[4];
+#define xsp_I_RAD           DP(0x210)
+
+    rt_real msc_2[4];
+#define xsp_MSC_2           DP(0x220)
+
+    rt_real msc_3[4];
+#define xsp_MSC_3           DP(0x230)
+
+};
+
+/******************************************************************************/
+/**********************************   CONE   **********************************/
+/******************************************************************************/
+
+struct rt_SIMD_CONE : public rt_SIMD_SURFACE
+{
+    rt_real rat_2[4];
+#define xcn_RAT_2           DP(0x200)
+
+    rt_real i_rat[4];
+#define xcn_I_RAT           DP(0x210)
+
+    rt_real msc_2[4];
+#define xcn_MSC_2           DP(0x220)
+
+    rt_real msc_3[4];
+#define xcn_MSC_3           DP(0x230)
+
+};
+
+/******************************************************************************/
+/*******************************   PARABOLOID   *******************************/
+/******************************************************************************/
+
+struct rt_SIMD_PARABOLOID : public rt_SIMD_SURFACE
+{
+    rt_real par_2[4];
+#define xpb_PAR_2           DP(0x200)
+
+    rt_real i_par[4];
+#define xpb_I_PAR           DP(0x210)
+
+    rt_real par_k[4];
+#define xpb_PAR_K           DP(0x220)
+
+    rt_real one_k[4];
+#define xpb_ONE_K           DP(0x230)
+
+};
+
+/******************************************************************************/
+/*******************************   HYPERBOLOID   ******************************/
+/******************************************************************************/
+
+struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
+{
+    rt_real rat_2[4];
+#define xhb_RAT_2           DP(0x200)
+
+    rt_real i_rat[4];
+#define xhb_I_RAT           DP(0x210)
+
+    rt_real hyp_k[4];
+#define xhb_HYP_K           DP(0x220)
+
+    rt_real one_k[4];
+#define xhb_ONE_K           DP(0x230)
 
 };
 
