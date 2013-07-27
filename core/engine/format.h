@@ -16,11 +16,20 @@
 #define RT_TAG_ARRAY   /* generic tag  */  -1 /* used for textures as well */
 
 #define RT_TAG_PLANE                        0
-#define RT_TAG_SURFACE_MAX                  1
+#define RT_TAG_CYLINDER                     1
+#define RT_TAG_SPHERE                       2
+#define RT_TAG_CONE                         3
+#define RT_TAG_PARABOLOID                   4
+#define RT_TAG_HYPERBOLOID                  5
+#define RT_TAG_SURFACE_MAX                  6
 
 #define RT_TAG_CAMERA                       100
 #define RT_TAG_LIGHT                        101
 #define RT_TAG_MAX                          102
+
+/******************************************************************************/
+/*********************************   MACROS   *********************************/
+/******************************************************************************/
 
 #define RT_IS_ARRAY(o)                                                      \
         ((o)->tag == RT_TAG_ARRAY)
@@ -92,7 +101,7 @@ struct rt_COL
 #define RT_TEX_HDR_ACOLOR                   11  /* alpha-color, ARGB */
 #define RT_TEX_HDR_PALPHA                   12  /* plain-alpha, A    */
 
-/* add HDR16, HDR24, HDR32, HDR64 later if needed, default is HDR32 */
+/* default HDR format is 32-bit fp, add other variants later if needed */
 
 #define RT_TEX(tag, val)                                                    \
 {                                                                           \
@@ -356,6 +365,167 @@ rt_cell PL_(rt_PLANE *pobj)
 #define RT_OBJ_PLANE_MAT(pobj, pmat_outer, pmat_inner)                      \
 {                                                                           \
     PL_(pobj),                                                              \
+    pobj,                   1,                                              \
+    RT_NULL,                0,                                              \
+    pmat_outer,             pmat_inner                                      \
+}
+
+/******************************************************************************/
+/********************************   CYLINDER   ********************************/
+/******************************************************************************/
+
+struct rt_CYLINDER
+{
+    rt_SURFACE          srf;
+    rt_real             rad;
+};
+
+static /* needed for strict typization */
+rt_cell CL_(rt_CYLINDER *pobj)
+{
+    return RT_TAG_CYLINDER;
+}
+
+#define RT_OBJ_CYLINDER(pobj)                                               \
+{                                                                           \
+    CL_(pobj),                                                              \
+    pobj,                   1,                                              \
+    RT_NULL,                0,                                              \
+    RT_NULL,                RT_NULL                                         \
+}
+
+#define RT_OBJ_CYLINDER_MAT(pobj, pmat_outer, pmat_inner)                   \
+{                                                                           \
+    CL_(pobj),                                                              \
+    pobj,                   1,                                              \
+    RT_NULL,                0,                                              \
+    pmat_outer,             pmat_inner                                      \
+}
+
+/******************************************************************************/
+/*********************************   SPHERE   *********************************/
+/******************************************************************************/
+
+struct rt_SPHERE
+{
+    rt_SURFACE          srf;
+    rt_real             rad;
+};
+
+static /* needed for strict typization */
+rt_cell SP_(rt_SPHERE *pobj)
+{
+    return RT_TAG_SPHERE;
+}
+
+#define RT_OBJ_SPHERE(pobj)                                                 \
+{                                                                           \
+    SP_(pobj),                                                              \
+    pobj,                   1,                                              \
+    RT_NULL,                0,                                              \
+    RT_NULL,                RT_NULL                                         \
+}
+
+#define RT_OBJ_SPHERE_MAT(pobj, pmat_outer, pmat_inner)                     \
+{                                                                           \
+    SP_(pobj),                                                              \
+    pobj,                   1,                                              \
+    RT_NULL,                0,                                              \
+    pmat_outer,             pmat_inner                                      \
+}
+
+/******************************************************************************/
+/**********************************   CONE   **********************************/
+/******************************************************************************/
+
+struct rt_CONE
+{
+    rt_SURFACE          srf;
+    rt_real             rat;
+};
+
+static /* needed for strict typization */
+rt_cell CN_(rt_CONE *pobj)
+{
+    return RT_TAG_CONE;
+}
+
+#define RT_OBJ_CONE(pobj)                                                   \
+{                                                                           \
+    CN_(pobj),                                                              \
+    pobj,                   1,                                              \
+    RT_NULL,                0,                                              \
+    RT_NULL,                RT_NULL                                         \
+}
+
+#define RT_OBJ_CONE_MAT(pobj, pmat_outer, pmat_inner)                       \
+{                                                                           \
+    CN_(pobj),                                                              \
+    pobj,                   1,                                              \
+    RT_NULL,                0,                                              \
+    pmat_outer,             pmat_inner                                      \
+}
+
+/******************************************************************************/
+/*******************************   PARABOLOID   *******************************/
+/******************************************************************************/
+
+struct rt_PARABOLOID
+{
+    rt_SURFACE          srf;
+    rt_real             par;
+};
+
+static /* needed for strict typization */
+rt_cell PB_(rt_PARABOLOID *pobj)
+{
+    return RT_TAG_PARABOLOID;
+}
+
+#define RT_OBJ_PARABOLOID(pobj)                                             \
+{                                                                           \
+    PB_(pobj),                                                              \
+    pobj,                   1,                                              \
+    RT_NULL,                0,                                              \
+    RT_NULL,                RT_NULL                                         \
+}
+
+#define RT_OBJ_PARABOLOID_MAT(pobj, pmat_outer, pmat_inner)                 \
+{                                                                           \
+    PB_(pobj),                                                              \
+    pobj,                   1,                                              \
+    RT_NULL,                0,                                              \
+    pmat_outer,             pmat_inner                                      \
+}
+
+/******************************************************************************/
+/*******************************   HYPERBOLOID   ******************************/
+/******************************************************************************/
+
+struct rt_HYPERBOLOID
+{
+    rt_SURFACE          srf;
+    rt_real             rat;
+    rt_real             hyp;
+};
+
+static /* needed for strict typization */
+rt_cell HB_(rt_HYPERBOLOID *pobj)
+{
+    return RT_TAG_HYPERBOLOID;
+}
+
+#define RT_OBJ_HYPERBOLOID(pobj)                                            \
+{                                                                           \
+    HB_(pobj),                                                              \
+    pobj,                   1,                                              \
+    RT_NULL,                0,                                              \
+    RT_NULL,                RT_NULL                                         \
+}
+
+#define RT_OBJ_HYPERBOLOID_MAT(pobj, pmat_outer, pmat_inner)                \
+{                                                                           \
+    HB_(pobj),                                                              \
     pobj,                   1,                                              \
     RT_NULL,                0,                                              \
     pmat_outer,             pmat_inner                                      \
