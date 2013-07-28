@@ -40,6 +40,31 @@ rt_PLANE pl_floor01 =
     },
 };
 
+rt_CYLINDER  cl_tube01 =
+{
+    {      /*   RT_I,       RT_J,       RT_K    */
+/* min */   {  -RT_INF,    -RT_INF,      0.0    },
+/* max */   {  +RT_INF,    +RT_INF,     +4.5    },
+        {
+/* OUTER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_pink01,
+        },
+        {
+/* INNER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_gray01,
+        },
+    },
+/* rad */   0.5,
+};
+
 rt_OBJECT ob_base01[] =
 {
     {
@@ -49,6 +74,136 @@ rt_OBJECT ob_base01[] =
 /* pos */   {    0.0,        0.0,        0.0    },
         },
             RT_OBJ_PLANE(&pl_floor01)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {   -4.5,       -4.5,        0.0    },
+        },
+            RT_OBJ_CYLINDER(&cl_tube01)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {   +4.5,       -4.5,        0.0    },
+        },
+            RT_OBJ_CYLINDER(&cl_tube01)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {   +4.5,       +4.5,        0.0    },
+        },
+            RT_OBJ_CYLINDER(&cl_tube01)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {   -4.5,       +4.5,        0.0    },
+        },
+            RT_OBJ_CYLINDER(&cl_tube01)
+    },
+};
+
+/******************************************************************************/
+/********************************   BALLS   ***********************************/
+/******************************************************************************/
+
+rt_SPHERE  sp_ball01 =
+{
+    {      /*   RT_I,       RT_J,       RT_K    */
+/* min */   {  -RT_INF,    -RT_INF,    -RT_INF  },
+/* max */   {  +RT_INF,    +RT_INF,    +RT_INF  },
+        {
+/* OUTER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_cyan01,
+        },
+        {
+/* INNER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_gray01,
+        },
+    },
+/* rad */   1.5,
+};
+
+rt_SPHERE  sp_ball02 =
+{
+    {      /*   RT_I,       RT_J,       RT_K    */
+/* min */   {  -RT_INF,    -RT_INF,    -RT_INF  },
+/* max */   {  +RT_INF,    +RT_INF,    +RT_INF  },
+        {
+/* OUTER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_blue02,
+        },
+        {
+/* INNER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_gray01,
+        },
+    },
+/* rad */   0.5,
+};
+
+rt_OBJECT  ob_balls01[] =
+{
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {    0.0,        0.0,        1.5    },
+        },
+            RT_OBJ_SPHERE(&sp_ball01)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {   -2.0,       -2.0,        0.5    },
+        },
+            RT_OBJ_SPHERE(&sp_ball02)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {   +2.0,       -2.0,        0.5    },
+        },
+            RT_OBJ_SPHERE(&sp_ball02)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {   +2.0,       +2.0,        0.5    },
+        },
+            RT_OBJ_SPHERE(&sp_ball02)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {   -2.0,       +2.0,        0.5    },
+        },
+            RT_OBJ_SPHERE(&sp_ball02)
     },
 };
 
@@ -81,6 +236,14 @@ rt_OBJECT ob_tree[] =
 /* pos */   {    0.0,        0.0,        0.0    },
         },
             RT_OBJ_ARRAY(&ob_base01),
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {    0.0,        0.0,        0.0    },
+        },
+            RT_OBJ_ARRAY(&ob_balls01),
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */

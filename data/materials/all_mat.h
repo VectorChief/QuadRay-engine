@@ -51,6 +51,34 @@ rt_MATERIAL mt_blue01 =
     },
 };
 
+rt_MATERIAL mt_blue02 =
+{
+    RT_MAT(PLAIN),
+
+    RT_TEX(PCOLOR, 0xFF0080D0),
+
+    {/* dff     spc     pow */
+        1.0,    0.0,    1.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    0.0,    1.0
+    },
+};
+
+rt_MATERIAL mt_cyan01 =
+{
+    RT_MAT(PLAIN),
+
+    RT_TEX(PCOLOR, 0xFFA0F0D0),
+
+    {/* dff     spc     pow */
+        1.0,    0.0,    1.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    0.0,    1.0
+    },
+};
+
 rt_MATERIAL mt_gray01 =
 {
     RT_MAT(PLAIN),
@@ -98,6 +126,20 @@ rt_MATERIAL mt_orange01 =
     RT_MAT(PLAIN),
 
     RT_TEX(PCOLOR, 0xFFFF8F00),
+
+    {/* dff     spc     pow */
+        1.0,    0.0,    1.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    0.0,    1.0
+    },
+};
+
+rt_MATERIAL mt_pink01 =
+{
+    RT_MAT(PLAIN),
+
+    RT_TEX(PCOLOR, 0xFFF6C6C6),
 
     {/* dff     spc     pow */
         1.0,    0.0,    1.0
