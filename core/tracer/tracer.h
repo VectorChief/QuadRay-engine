@@ -78,6 +78,21 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr ptr_pl;
 #define inf_PTR_PL          DP(0x130)
 
+    rt_pntr ptr_cl;
+#define inf_PTR_CL          DP(0x134)
+
+    rt_pntr ptr_sp;
+#define inf_PTR_SP          DP(0x138)
+
+    rt_pntr ptr_cn;
+#define inf_PTR_CN          DP(0x13C)
+
+    rt_pntr ptr_pb;
+#define inf_PTR_PB          DP(0x140)
+
+    rt_pntr ptr_hb;
+#define inf_PTR_HB          DP(0x144)
+
 };
 
 /******************************************************************************/
@@ -175,8 +190,17 @@ struct rt_SIMD_CONTEXT
     rt_cell xmask[4];
 #define ctx_XMASK           DP(0x1F0)
 
-    rt_word pad04[64];
-#define ctx_PAD04           DP(0x200)
+    rt_cell xtmp1[4];
+#define ctx_XTMP1           DP(0x200)
+
+    rt_cell xtmp2[4];
+#define ctx_XTMP2           DP(0x210)
+
+    rt_cell xtmp3[4];
+#define ctx_XTMP3           DP(0x220)
+
+    rt_word pad04[52];
+#define ctx_PAD04           DP(0x230)
 
     /* hit, overlapping next context */
 
