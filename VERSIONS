@@ -1,3 +1,8 @@
+v0.2.0: Quadric solvers, multiple of 90 degree rotation
+  - add quadric surfaces to backend structures, object classes
+  - implement quadric surfaces in rendering backend
+  - add cylinders and spheres to scene data
+
 v0.1.2: Plane solver, basic texturing
   - add basic texturing to backend structures, object classes
   - implement basic texturing in rendering backend
