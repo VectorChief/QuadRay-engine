@@ -70,28 +70,46 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr frm;
 #define inf_FRM             DP(0x128)
 
-    rt_word pad11;
+    rt_word pad11[53];
 #define inf_PAD11           DP(0x12C)
 
     /* surface entry points */
 
     rt_pntr ptr_pl;
-#define inf_PTR_PL          DP(0x130)
+#define inf_PTR_PL          DP(0x200)
+
+    rt_pntr clp_pl;
+#define inf_CLP_PL          DP(0x204)
 
     rt_pntr ptr_cl;
-#define inf_PTR_CL          DP(0x134)
+#define inf_PTR_CL          DP(0x208)
+
+    rt_pntr clp_cl;
+#define inf_CLP_CL          DP(0x20C)
 
     rt_pntr ptr_sp;
-#define inf_PTR_SP          DP(0x138)
+#define inf_PTR_SP          DP(0x210)
+
+    rt_pntr clp_sp;
+#define inf_CLP_SP          DP(0x214)
 
     rt_pntr ptr_cn;
-#define inf_PTR_CN          DP(0x13C)
+#define inf_PTR_CN          DP(0x218)
+
+    rt_pntr clp_cn;
+#define inf_CLP_CN          DP(0x21C)
 
     rt_pntr ptr_pb;
-#define inf_PTR_PB          DP(0x140)
+#define inf_PTR_PB          DP(0x220)
+
+    rt_pntr clp_pb;
+#define inf_CLP_PB          DP(0x224)
 
     rt_pntr ptr_hb;
-#define inf_PTR_HB          DP(0x144)
+#define inf_PTR_HB          DP(0x228)
+
+    rt_pntr clp_hb;
+#define inf_CLP_HB          DP(0x22C)
 
 };
 
@@ -360,10 +378,13 @@ struct rt_SIMD_SURFACE
     rt_pntr srf_p[4];
 #define srf_SRF_P(nx)       DP(0x110 + nx)
 
+    rt_pntr msc_p[4];
+#define srf_MSC_P(nx)       DP(0x120 + nx)
+
     /* reserved area 2 */
 
-    rt_word pad02[56];
-#define srf_PAD02           DP(0x120)
+    rt_word pad02[52];
+#define srf_PAD02           DP(0x130)
 
 };
 
