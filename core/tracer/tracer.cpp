@@ -16,6 +16,7 @@
  * for respective segments of code.
  */
 #define RT_CLIPPING_MINMAX      1
+#define RT_CLIPPING_CUSTOM      1
 #define RT_TEXTURING            1
 
 /* Byte-offsets within SIMD-field
@@ -23,6 +24,7 @@
  */
 #define PTR   0x00 /* LOCAL, PARAM, MAT_P, SRF_P */
 #define FLG   0x04 /* LOCAL, MAT_P */
+#define CLP   0x08 /* MSC_P, SRF_P */
 #define TAG   0x0C /* SRF_P */
 
 /******************************************************************************/
@@ -54,12 +56,28 @@
         movxx_ld(Reax, Medx, mat_T_MAP(nx * 4))
 
 /* Axis clipping.
- * Check if axis clipping (minmax) is needed,
+ * Check if axis clipping (minmax) is needed for given axis "nx",
  * jump to "lb" otherwise.
  */
 #define CHECK_CLIP(lb, pl, nx)                                              \
         cmpxx_mi(Mebx, srf_##pl(nx * 4), IB(0))                             \
         jeqxx_lb(lb)
+
+/* Custom clipping.
+ * Apply custom clipping (by surface) to ray's hit point
+ * based on the side of the clipping surface.
+ */
+#define APPLY_CLIP(lb, RG, RM)                                              \
+        movxx_ri(Reax, IB(1))                                               \
+        subxx_ld(Reax, Medi, elm_DATA)                                      \
+        shlxx_ri(Reax, IB(3))                                               \
+        cmpxx_ri(Reax, IB(0))                                               \
+        jgtxx_lb(lb##_cs1)                                                  \
+        cleps_rr(W(RG), W(RM))                                              \
+        jmpxx_lb(lb##_cs2)                                                  \
+    LBL(lb##_cs1)                                                           \
+        cgtps_rr(W(RG), W(RM))                                              \
+    LBL(lb##_cs2)
 
 /* Context flags.
  * Value bit-range must not overlap with material props (defined in tracer.h),
@@ -154,6 +172,9 @@
 static
 rt_pntr t_ptr[RT_TAG_SURFACE_MAX];
 
+static
+rt_pntr t_clp[RT_TAG_SURFACE_MAX];
+
 /* Backend's global entry point (hence 0).
  * Update surfaces's backend data.
  */
@@ -166,9 +187,10 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
         return;
     }
 
-    /* Save surface's entry point from local pointer table
+    /* Save surface's entry points from local pointer tables
      * filled during backend's one-time initialization */
     s_srf->srf_p[0] = t_ptr[tag];
+    s_srf->srf_p[2] = t_clp[tag];
 }
 
 /******************************************************************************/
@@ -385,6 +407,49 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_CLIPPING_MINMAX */
 
+#if RT_CLIPPING_CUSTOM
+
+        movxx_ri(Redx, IB(0))
+        movxx_ld(Redi, Mebx, srf_MSC_P(CLP))
+
+    LBL(CC_cyc)
+
+        cmpxx_ri(Redi, IB(0))
+        jeqxx_lb(CC_out)
+
+        movxx_ld(Rebx, Medi, elm_SIMD)
+
+        movpx_ld(Xmm1, Mecx, ctx_HIT_X)
+        movpx_ld(Xmm2, Mecx, ctx_HIT_Y)
+        movpx_ld(Xmm3, Mecx, ctx_HIT_Z)
+
+        subps_ld(Xmm1, Mebx, srf_POS_X)
+        subps_ld(Xmm2, Mebx, srf_POS_Y)
+        subps_ld(Xmm3, Mebx, srf_POS_Z)
+
+        movpx_st(Xmm1, Mecx, ctx_NRM_X)
+        movpx_st(Xmm2, Mecx, ctx_NRM_Y)
+        movpx_st(Xmm3, Mecx, ctx_NRM_Z)
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+
+        jmpxx_mm(Mebx, srf_SRF_P(CLP))
+
+    LBL(CC_ret)
+
+        andpx_rr(Xmm7, Xmm4)
+
+    LBL(CC_end)
+
+        movxx_ld(Redi, Medi, elm_NEXT)
+        jmpxx_lb(CC_cyc)
+
+    LBL(CC_out)
+
+        movxx_ld(Rebx, Mesi, elm_SIMD)
+
+#endif /* RT_CLIPPING_CUSTOM */
+
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
 /******************************************************************************/
@@ -449,7 +514,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         adrxx_lb(PL_ptr)
         movxx_st(Reax, Mebp, inf_PTR_PL)
-        jmpxx_lb(fetch_CL_ptr)
+        jmpxx_lb(fetch_PL_clp)
 
     LBL(PL_ptr)
 
@@ -471,7 +536,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
-        INDEX_AXIS(RT_K)
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
         MOVXR_LD(Xmm3, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
         xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <- 0     */
 
@@ -516,22 +581,45 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * for texturing */
 
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
         MOVXR_LD(Xmm4, Iecx, ctx_NEW_O)         /* loc_i <- NEW_I */
         movpx_st(Xmm4, Mecx, ctx_TEX_U)         /* loc_i -> TEX_U */
-        /* use next context's RAY fields (NEW)
-         * as temporary storage for local HIT */
 
         INDEX_AXIS(RT_J)                        /* eax   <-     j */
-        MOVXR_LD(Xmm5, Iecx, ctx_NEW_O)         /* loc_j <- NEW_J */
-        movpx_st(Xmm5, Mecx, ctx_TEX_V)         /* loc_j -> TEX_V */
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
+        MOVXR_LD(Xmm5, Iecx, ctx_NEW_O)         /* loc_j <- NEW_J */
+        movpx_st(Xmm5, Mecx, ctx_TEX_V)         /* loc_j -> TEX_V */
 
     LBL(PL_tex)
 
 #endif /* RT_TEXTURING */
 
         jmpxx_lb(MT_mat)
+
+/******************************************************************************/
+    LBL(fetch_PL_clp)
+
+        adrxx_lb(PL_clp)
+        movxx_st(Reax, Mebp, inf_CLP_PL)
+        jmpxx_lb(fetch_CL_ptr)
+
+    LBL(PL_clp)
+
+#if RT_CLIPPING_CUSTOM
+
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        MOVXR_LD(Xmm4, Iecx, ctx_NRM_O)         /* dff_k <- NRM_K */
+        xorpx_rr(Xmm6, Xmm6)                    /* tmp_k <-     0 */
+
+        APPLY_CLIP(PL, Xmm4, Xmm6)
+
+        jmpxx_lb(CC_ret)
+
+#endif /* RT_CLIPPING_CUSTOM */
 
 /******************************************************************************/
 /********************************   CYLINDER   ********************************/
@@ -541,7 +629,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         adrxx_lb(CL_ptr)
         movxx_st(Reax, Mebp, inf_PTR_CL)
-        jmpxx_lb(fetch_SP_ptr)
+        jmpxx_lb(fetch_CL_clp)
 
     LBL(CL_ptr)
 
@@ -637,6 +725,38 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(OO_end)
 
 /******************************************************************************/
+    LBL(fetch_CL_clp)
+
+        adrxx_lb(CL_clp)
+        movxx_st(Reax, Mebp, inf_CLP_CL)
+        jmpxx_lb(fetch_SP_ptr)
+
+    LBL(CL_clp)
+
+#if RT_CLIPPING_CUSTOM
+
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        MOVXR_LD(Xmm4, Iecx, ctx_NRM_O)         /* dff_i <- NRM_I */
+        mulps_rr(Xmm4, Xmm4)                    /* dff_i *= dff_i */
+
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        MOVXR_LD(Xmm5, Iecx, ctx_NRM_O)         /* dff_j <- NRM_J */
+        mulps_rr(Xmm5, Xmm5)                    /* dff_j *= dff_j */
+
+        addps_rr(Xmm4, Xmm5)
+        movpx_ld(Xmm6, Mebx, xcl_RAD_2)
+
+        APPLY_CLIP(CL, Xmm4, Xmm6)
+
+        jmpxx_lb(CC_ret)
+
+#endif /* RT_CLIPPING_CUSTOM */
+
+/******************************************************************************/
 /*********************************   SPHERE   *********************************/
 /******************************************************************************/
 
@@ -644,7 +764,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         adrxx_lb(SP_ptr)
         movxx_st(Reax, Mebp, inf_PTR_SP)
-        jmpxx_lb(fetch_CN_ptr)
+        jmpxx_lb(fetch_SP_clp)
 
     LBL(SP_ptr)
 
@@ -754,6 +874,46 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(OO_end)
 
 /******************************************************************************/
+    LBL(fetch_SP_clp)
+
+        adrxx_lb(SP_clp)
+        movxx_st(Reax, Mebp, inf_CLP_SP)
+        jmpxx_lb(fetch_CN_ptr)
+
+    LBL(SP_clp)
+
+#if RT_CLIPPING_CUSTOM
+
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        MOVXR_LD(Xmm4, Iecx, ctx_NRM_O)         /* dff_i <- NRM_I */
+        mulps_rr(Xmm4, Xmm4)                    /* dff_i *= dff_i */
+
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        MOVXR_LD(Xmm5, Iecx, ctx_NRM_O)         /* dff_j <- NRM_J */
+        mulps_rr(Xmm5, Xmm5)                    /* dff_j *= dff_j */
+
+        addps_rr(Xmm4, Xmm5)
+
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        MOVXR_LD(Xmm6, Iecx, ctx_NRM_O)         /* dff_k <- NRM_K */
+        mulps_rr(Xmm6, Xmm6)                    /* dff_k *= dff_k */
+
+        addps_rr(Xmm4, Xmm6)
+        movpx_ld(Xmm6, Mebx, xsp_RAD_2)
+
+        APPLY_CLIP(SP, Xmm4, Xmm6)
+
+        jmpxx_lb(CC_ret)
+
+#endif /* RT_CLIPPING_CUSTOM */
+
+/******************************************************************************/
 /**********************************   CONE   **********************************/
 /******************************************************************************/
 
@@ -761,7 +921,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         adrxx_lb(CN_ptr)
         movxx_st(Reax, Mebp, inf_PTR_CN)
-        jmpxx_lb(fetch_PB_ptr)
+        jmpxx_lb(fetch_CN_clp)
 
     LBL(CN_ptr)
 
@@ -869,6 +1029,44 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(OO_end)
 
 /******************************************************************************/
+    LBL(fetch_CN_clp)
+
+        adrxx_lb(CN_clp)
+        movxx_st(Reax, Mebp, inf_CLP_CN)
+        jmpxx_lb(fetch_PB_ptr)
+
+    LBL(CN_clp)
+
+#if RT_CLIPPING_CUSTOM
+
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        MOVXR_LD(Xmm4, Iecx, ctx_NRM_O)         /* dff_i <- NRM_I */
+        mulps_rr(Xmm4, Xmm4)                    /* dff_i *= dff_i */
+
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        MOVXR_LD(Xmm5, Iecx, ctx_NRM_O)         /* dff_j <- NRM_J */
+        mulps_rr(Xmm5, Xmm5)                    /* dff_j *= dff_j */
+
+        addps_rr(Xmm4, Xmm5)
+
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        MOVXR_LD(Xmm6, Iecx, ctx_NRM_O)         /* dff_k <- NRM_K */
+        mulps_rr(Xmm6, Xmm6)                    /* dff_k *= dff_k */
+        mulps_ld(Xmm6, Mebx, xcn_RAT_2)
+
+        APPLY_CLIP(CN, Xmm4, Xmm6)
+
+        jmpxx_lb(CC_ret)
+
+#endif /* RT_CLIPPING_CUSTOM */
+
+/******************************************************************************/
 /*******************************   PARABOLOID   *******************************/
 /******************************************************************************/
 
@@ -876,7 +1074,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         adrxx_lb(PB_ptr)
         movxx_st(Reax, Mebp, inf_PTR_PB)
-        jmpxx_lb(fetch_HB_ptr)
+        jmpxx_lb(fetch_PB_clp)
 
     LBL(PB_ptr)
 
@@ -979,6 +1177,43 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(OO_end)
 
 /******************************************************************************/
+    LBL(fetch_PB_clp)
+
+        adrxx_lb(PB_clp)
+        movxx_st(Reax, Mebp, inf_CLP_PB)
+        jmpxx_lb(fetch_HB_ptr)
+
+    LBL(PB_clp)
+
+#if RT_CLIPPING_CUSTOM
+
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        MOVXR_LD(Xmm4, Iecx, ctx_NRM_O)         /* dff_i <- NRM_I */
+        mulps_rr(Xmm4, Xmm4)                    /* dff_i *= dff_i */
+
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        MOVXR_LD(Xmm5, Iecx, ctx_NRM_O)         /* dff_j <- NRM_J */
+        mulps_rr(Xmm5, Xmm5)                    /* dff_j *= dff_j */
+
+        addps_rr(Xmm4, Xmm5)
+
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        MOVXR_LD(Xmm6, Iecx, ctx_NRM_O)         /* dff_k <- NRM_K */
+        mulps_ld(Xmm6, Mebx, xpb_PAR_K)
+
+        APPLY_CLIP(PB, Xmm4, Xmm6)
+
+        jmpxx_lb(CC_ret)
+
+#endif /* RT_CLIPPING_CUSTOM */
+
+/******************************************************************************/
 /*******************************   HYPERBOLOID   ******************************/
 /******************************************************************************/
 
@@ -986,7 +1221,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         adrxx_lb(HB_ptr)
         movxx_st(Reax, Mebp, inf_PTR_HB)
-        jmpxx_lb(fetch_end)
+        jmpxx_lb(fetch_HB_clp)
 
     LBL(HB_ptr)
 
@@ -1096,6 +1331,45 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(OO_end)
 
 /******************************************************************************/
+    LBL(fetch_HB_clp)
+
+        adrxx_lb(HB_clp)
+        movxx_st(Reax, Mebp, inf_CLP_HB)
+        jmpxx_lb(fetch_end)
+
+    LBL(HB_clp)
+
+#if RT_CLIPPING_CUSTOM
+
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        MOVXR_LD(Xmm4, Iecx, ctx_NRM_O)         /* dff_i <- NRM_I */
+        mulps_rr(Xmm4, Xmm4)                    /* dff_i *= dff_i */
+
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        MOVXR_LD(Xmm5, Iecx, ctx_NRM_O)         /* dff_j <- NRM_J */
+        mulps_rr(Xmm5, Xmm5)                    /* dff_j *= dff_j */
+
+        addps_rr(Xmm4, Xmm5)
+
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        MOVXR_LD(Xmm6, Iecx, ctx_NRM_O)         /* dff_k <- NRM_K */
+        mulps_rr(Xmm6, Xmm6)                    /* dff_k *= dff_k */
+        mulps_ld(Xmm6, Mebx, xhb_RAT_2)
+        addps_ld(Xmm6, Mebx, xhb_HYP_K)
+
+        APPLY_CLIP(HB, Xmm4, Xmm6)
+
+        jmpxx_lb(CC_ret)
+
+#endif /* RT_CLIPPING_CUSTOM */
+
+/******************************************************************************/
 /********************************   OBJ DONE   ********************************/
 /******************************************************************************/
 
@@ -1201,12 +1475,26 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     t_ptr[RT_TAG_PARABOLOID]        = s_inf->ptr_pb;
     t_ptr[RT_TAG_HYPERBOLOID]       = s_inf->ptr_hb;
 
+    t_clp[RT_TAG_PLANE]             = s_inf->clp_pl;
+    t_clp[RT_TAG_CYLINDER]          = s_inf->clp_cl;
+    t_clp[RT_TAG_SPHERE]            = s_inf->clp_sp;
+    t_clp[RT_TAG_CONE]              = s_inf->clp_cn;
+    t_clp[RT_TAG_PARABOLOID]        = s_inf->clp_pb;
+    t_clp[RT_TAG_HYPERBOLOID]       = s_inf->clp_hb;
+
     /* RT_LOGI("PL ptr = %p\n", s_inf->ptr_pl); */
     /* RT_LOGI("CL ptr = %p\n", s_inf->ptr_cl); */
     /* RT_LOGI("SP ptr = %p\n", s_inf->ptr_sp); */
     /* RT_LOGI("CN ptr = %p\n", s_inf->ptr_cn); */
     /* RT_LOGI("PB ptr = %p\n", s_inf->ptr_pb); */
     /* RT_LOGI("HB ptr = %p\n", s_inf->ptr_hb); */
+
+    /* RT_LOGI("PL clp = %p\n", s_inf->clp_pl); */
+    /* RT_LOGI("CL clp = %p\n", s_inf->clp_cl); */
+    /* RT_LOGI("SP clp = %p\n", s_inf->clp_sp); */
+    /* RT_LOGI("CN clp = %p\n", s_inf->clp_cn); */
+    /* RT_LOGI("PB clp = %p\n", s_inf->clp_pb); */
+    /* RT_LOGI("HB clp = %p\n", s_inf->clp_hb); */
 }
 
 /******************************************************************************/

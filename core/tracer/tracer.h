@@ -217,8 +217,24 @@ struct rt_SIMD_CONTEXT
     rt_cell xtmp3[4];
 #define ctx_XTMP3           DP(0x220)
 
-    rt_word pad04[52];
+    rt_word pad04[4];
 #define ctx_PAD04           DP(0x230)
+
+    /* normal */
+
+#define ctx_NRM_O           DP(0x240)
+
+    rt_real nrm_x[4];
+#define ctx_NRM_X           DP(0x240)
+
+    rt_real nrm_y[4];
+#define ctx_NRM_Y           DP(0x250)
+
+    rt_real nrm_z[4];
+#define ctx_NRM_Z           DP(0x260)
+
+    rt_word pad05[36];
+#define ctx_PAD05           DP(0x270)
 
     /* hit, overlapping next context */
 
@@ -231,11 +247,12 @@ struct rt_SIMD_CONTEXT
     rt_real hit_z[4];
 #define ctx_HIT_Z           DP(0x320)
 
+    /* new depth min */
 
     rt_real t_new[4];
 #define ctx_T_NEW           DP(0x330)
 
-    /* new */
+    /* new ray */
 
 #define ctx_NEW_O           DP(0x340)
 
@@ -248,9 +265,8 @@ struct rt_SIMD_CONTEXT
     rt_real new_z[4];
 #define ctx_NEW_Z           DP(0x360)
 
-
-    rt_word pad05[12];
-#define ctx_PAD05           DP(0x370)
+    rt_word pad06[12];
+#define ctx_PAD06           DP(0x370)
 
 };
 
