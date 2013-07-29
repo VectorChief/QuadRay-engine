@@ -30,6 +30,11 @@ rt_Object::rt_Object(rt_Object *parent, rt_OBJECT *obj)
     this->parent = parent;
 }
 
+rt_void rt_Object::add_relation(rt_ELEM *lst)
+{
+
+}
+
 rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     if (obj->f_anim != RT_NULL)
@@ -246,6 +251,59 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
             break;
         }
     }
+
+    if (obj->obj.rel_num > 0)
+    {
+        rt_RELATION *rel = obj->obj.prel;
+
+        rt_cell i;
+
+        for (i = 0; i < obj->obj.rel_num; i++)
+        {
+            if (rel[i].obj1 >= obj_num
+            ||  rel[i].obj2 >= obj_num)
+            {
+                continue;
+            }
+
+            rt_ELEM *elm = RT_NULL;
+
+            switch (rel[i].rel)
+            {
+                case RT_REL_MINUS_INNER:
+                case RT_REL_MINUS_OUTER:
+                if (rel[i].obj1 >= 0 && rel[i].obj2 >= 0)
+                {
+                    elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
+                    elm->data = rel[i].rel;
+                    elm->simd = RT_NULL;
+                    elm->temp = obj_arr[rel[i].obj2];
+                    elm->next = RT_NULL;
+                }
+                break;
+
+                default:
+                break;
+            }
+
+            if (elm != RT_NULL)
+            {
+                obj_arr[rel[i].obj1]->add_relation(elm);
+            }
+        }
+    }
+}
+
+rt_void rt_Array::add_relation(rt_ELEM *lst)
+{
+    rt_Object::add_relation(lst);
+
+    rt_cell i;
+
+    for (i = 0; i < obj_num; i++)
+    {
+        obj_arr[i]->add_relation(lst);
+    }
 }
 
 rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
@@ -280,6 +338,8 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
     rt_Object(parent, obj),
     rt_List<rt_Surface>(rg->get_srf())
 {
+    this->rg = rg;
+
     rg->put_srf(this);
 
     this->srf = (rt_SURFACE *)obj->obj.pobj;
@@ -296,18 +356,65 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
                     obj->obj.pmat_inner ? obj->obj.pmat_inner :
                                           srf->side_inner.pmat);
 
-    s_srf->mat_p[-1 + 1] = outer->s_mat;
-    s_srf->mat_p[-1 + 2] = (rt_pntr)outer->props;
-    s_srf->mat_p[+1 + 1] = inner->s_mat;
-    s_srf->mat_p[+1 + 2] = (rt_pntr)inner->props;
+    s_srf->mat_p[-(+1) + 1] = outer->s_mat;
+    s_srf->mat_p[-(+1) + 2] = (rt_pntr)outer->props;
+    s_srf->mat_p[-(-1) + 1] = inner->s_mat;
+    s_srf->mat_p[-(-1) + 2] = (rt_pntr)inner->props;
 
     s_srf->srf_p[0] = RT_NULL; /* surf ptr */
     s_srf->srf_p[1] = RT_NULL; /* reserved */
-    s_srf->srf_p[2] = RT_NULL; /* reserved */
+    s_srf->srf_p[2] = RT_NULL; /* clip ptr */
     s_srf->srf_p[3] = (rt_pntr)tag; /* tag */
+
+    s_srf->msc_p[0] = RT_NULL; /* reserved */
+    s_srf->msc_p[1] = RT_NULL; /* reserved */
+    s_srf->msc_p[2] = RT_NULL; /* custom clippers */
+    s_srf->msc_p[3] = RT_NULL; /* reserved */
 
     RT_SIMD_SET(s_srf->sbase, 0x00000000);
     RT_SIMD_SET(s_srf->smask, 0x80000000);
+}
+
+rt_void rt_Surface::add_relation(rt_ELEM *lst)
+{
+    rt_Object::add_relation(lst);
+
+    for (; lst != RT_NULL; lst = lst->next)
+    {
+        rt_ELEM *elm = RT_NULL;
+        rt_cell rel = lst->data;
+        rt_Object *obj = (rt_Object *)lst->temp;
+
+        if (RT_IS_ARRAY(obj))
+        {
+            rt_Array *arr = (rt_Array *)obj;
+            rt_cell i;
+
+            for (i = 0; i < arr->obj_num; i++)
+            {
+                elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
+                elm->data = rel;
+                elm->simd = RT_NULL;
+                elm->temp = arr->obj_arr[i];
+                elm->next = RT_NULL;
+
+                add_relation(elm);
+            }
+        }
+        else
+        if (RT_IS_SURFACE(obj))
+        {
+            rt_Surface *srf = (rt_Surface *)obj;
+
+            elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
+            elm->data = rel;
+            elm->simd = srf->s_srf;
+            elm->temp = srf;
+            elm->next = (rt_ELEM *)s_srf->msc_p[2];
+
+            s_srf->msc_p[2] = elm;
+        }
+    }
 }
 
 rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)

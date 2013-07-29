@@ -125,6 +125,8 @@ class rt_Object
    ~rt_Object();
 
     virtual
+    rt_void add_relation(rt_ELEM *lst);
+    virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
 };
 
@@ -190,6 +192,8 @@ class rt_Array : public rt_Object
    ~rt_Array();
 
     virtual
+    rt_void add_relation(rt_ELEM *lst);
+    virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
 };
 
@@ -202,6 +206,8 @@ class rt_Surface : public rt_Object, public rt_List<rt_Surface>
     public:
 
 /*  fields */
+
+    rt_Registry        *rg;
 
     rt_SURFACE         *srf;
 
@@ -239,6 +245,8 @@ class rt_Surface : public rt_Object, public rt_List<rt_Surface>
     virtual
    ~rt_Surface();
 
+    virtual
+    rt_void add_relation(rt_ELEM *lst);
     virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
 
