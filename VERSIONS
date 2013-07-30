@@ -1,3 +1,7 @@
+v0.2.2: Quadric solvers, compute normals
+  - add normals computation to rendering backend
+  - add camera animator to scene data
+
 v0.2.1: Quadric solvers, custom clipping by surface
   - add custom clipping to backend structures, object classes
   - implement custom clipping in rendering backend
