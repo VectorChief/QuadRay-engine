@@ -272,6 +272,19 @@ rt_OBJECT ob_camera01[] =
     },
 };
 
+rt_void an_camera01(rt_long time, rt_long last_time,
+                    rt_TRANSFORM3D *trm, rt_pntr pobj)
+{
+    rt_real t = (time - last_time) / 50.0f;
+
+    trm->rot[RT_Z] += t;
+
+    if (trm->rot[RT_Z] >= 360.0f)
+    {
+        trm->rot[RT_Z] -= 360.0f;
+    }
+}
+
 /******************************************************************************/
 /**********************************   TREE   **********************************/
 /******************************************************************************/
@@ -301,6 +314,7 @@ rt_OBJECT ob_tree[] =
 /* pos */   {    0.0,        0.0,        5.0    },
         },
             RT_OBJ_ARRAY(&ob_camera01),
+            &an_camera01,
     },
 };
 
