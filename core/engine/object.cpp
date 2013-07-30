@@ -735,6 +735,7 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
 
     props  = 0;
     props |= tx->x_dim == 1 && tx->y_dim == 1 ? 0 : RT_PROP_TEXTURE;
+    props |= RT_PROP_NORMAL;
 
     mtx[0][0] = +RT_COSA(sd->rot);
     mtx[0][1] = +RT_SINA(sd->rot);

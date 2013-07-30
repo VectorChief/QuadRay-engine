@@ -18,6 +18,7 @@
 #define RT_CLIPPING_MINMAX      1
 #define RT_CLIPPING_CUSTOM      1
 #define RT_TEXTURING            1
+#define RT_NORMALS              1
 
 /* Byte-offsets within SIMD-field
  * for packed scalar fields.
@@ -100,11 +101,14 @@
 /* Material properties.
  * Fetch properties from material into the context's local FLG field
  * based on the currently set SIDE flag.
+ * Load SIDE's sign into Xmm7 for normals.
  */
 #define FETCH_PROP()                                                        \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         andxx_ri(Reax, IB(FLAG_SIDE))                                       \
-        shlxx_ri(Reax, IB(3))                                               \
+        shlxx_ri(Reax, IB(4))                                               \
+        movpx_ld(Xmm7, Iebx, srf_SBASE)                                     \
+        shrxx_ri(Reax, IB(1))                                               \
         movxx_ld(Reax, Iebx, srf_MAT_P(FLG))                                \
         orrxx_st(Reax, Mecx, ctx_LOCAL(FLG))
 
@@ -267,7 +271,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm0, Medx, cam_T_MAX)         /* tmp_v <- T_MAX */
         movpx_st(Xmm0, Mecx, ctx_T_BUF(0))      /* tmp_v -> T_BUF */
 
-        xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <- 0     */
+        xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
         movpx_st(Xmm0, Mecx, ctx_C_BUF(0))      /* tmp_v -> C_BUF */
 
 /******************************************************************************/
@@ -494,7 +498,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         shlpx_ld(Xmm2, Medx, mat_YSHFT)         /* tex_y << YSHFT */
 
         addpx_rr(Xmm1, Xmm2)                    /* tex_x += tex_y */
-        shlpx_ri(Xmm1, IB(2))                   /* tex_x << 2     */
+        shlpx_ri(Xmm1, IB(2))                   /* tex_x <<     2 */
         addpx_rr(Xmm0, Xmm1)                    /* tex_x += tex_p */
 
     LBL(MT_tex)
@@ -524,7 +528,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         MOVXR_LD(Xmm3, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
 
         /* create xmask */
-        xorpx_rr(Xmm7, Xmm7)                    /* xmask <- 0     */
+        xorpx_rr(Xmm7, Xmm7)                    /* xmask <-     0 */
         cneps_rr(Xmm7, Xmm3)                    /* xmask != ray_k */
 
         /* "tt" section */
@@ -538,7 +542,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
         MOVXR_LD(Xmm3, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
-        xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <- 0     */
+        xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
 
 /******************************************************************************/
 /*  LBL(PL_rt1)  */
@@ -571,7 +575,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
     LBL(PL_mat)
 
-        FETCH_PROP()
+        FETCH_PROP()                            /* Xmm7  <- ssign */
 
 #if RT_TEXTURING
 
@@ -595,6 +599,27 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(PL_tex)
 
 #endif /* RT_TEXTURING */
+
+#if RT_NORMALS
+
+        CHECK_PROP(PL_nrm, RT_PROP_NORMAL)
+
+        /* compute normal */
+
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        MOVZR_ST(Xmm4, Iecx, ctx_NRM_O)         /* 0     -> NRM_I */
+
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        MOVZR_ST(Xmm5, Iecx, ctx_NRM_O)         /* 0     -> NRM_J */
+
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        movpx_ld(Xmm6, Mebx, xpl_NRM_K)         /* tmp_v <-     1 */
+        xorpx_rr(Xmm6, Xmm7)                    /* tmp_v ^= ssign */
+        MOVXR_ST(Xmm6, Iecx, ctx_NRM_O)         /* tmp_v -> NRM_K */
+
+    LBL(PL_nrm)
+
+#endif /* RT_NORMALS */
 
         jmpxx_lb(MT_mat)
 
@@ -665,7 +690,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
         /* create xmask */
-        xorpx_rr(Xmm7, Xmm7)                    /* d_min <- 0     */
+        xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
@@ -695,7 +720,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_OUTER))
-        SUBROUTINE(CL_mt1, MT_mat)
+        SUBROUTINE(CL_mt1, CL_mat)
 
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
@@ -720,9 +745,45 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_INNER))
-        SUBROUTINE(CL_mt2, MT_mat)
+        SUBROUTINE(CL_mt2, CL_mat)
 
         jmpxx_lb(OO_end)
+
+/******************************************************************************/
+    LBL(CL_mat)
+
+        FETCH_PROP()                            /* Xmm7  <- ssign */
+
+#if RT_NORMALS
+
+        CHECK_PROP(CL_nrm, RT_PROP_NORMAL)
+
+        /* compute normal */
+
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        MOVXR_LD(Xmm4, Iecx, ctx_NEW_O)         /* loc_i <- NEW_I */
+        mulps_ld(Xmm4, Mebx, xcl_I_RAD)         /* loc_i *= i_rad */
+        xorpx_rr(Xmm4, Xmm7)                    /* loc_i ^= ssign */
+        MOVXR_ST(Xmm4, Iecx, ctx_NRM_O)         /* nrm_i -> NRM_I */
+
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        MOVXR_LD(Xmm5, Iecx, ctx_NEW_O)         /* loc_j <- NEW_J */
+        mulps_ld(Xmm5, Mebx, xcl_I_RAD)         /* loc_j *= i_rad */
+        xorpx_rr(Xmm5, Xmm7)                    /* loc_j ^= ssign */
+        MOVXR_ST(Xmm5, Iecx, ctx_NRM_O)         /* nrm_j -> NRM_J */
+
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        MOVZR_ST(Xmm6, Iecx, ctx_NRM_O)         /* 0     -> NRM_K */
+
+    LBL(CL_nrm)
+
+#endif /* RT_NORMALS */
+
+        jmpxx_lb(MT_mat)
 
 /******************************************************************************/
     LBL(fetch_CL_clp)
@@ -814,7 +875,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
         /* create xmask */
-        xorpx_rr(Xmm7, Xmm7)                    /* d_min <- 0     */
+        xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
@@ -844,7 +905,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_OUTER))
-        SUBROUTINE(SP_mt1, MT_mat)
+        SUBROUTINE(SP_mt1, SP_mat)
 
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
@@ -869,9 +930,50 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_INNER))
-        SUBROUTINE(SP_mt2, MT_mat)
+        SUBROUTINE(SP_mt2, SP_mat)
 
         jmpxx_lb(OO_end)
+
+/******************************************************************************/
+    LBL(SP_mat)
+
+        FETCH_PROP()                            /* Xmm7  <- ssign */
+
+#if RT_NORMALS
+
+        CHECK_PROP(SP_nrm, RT_PROP_NORMAL)
+
+        /* compute normal */
+
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        MOVXR_LD(Xmm4, Iecx, ctx_NEW_O)         /* loc_i <- NEW_I */
+        mulps_ld(Xmm4, Mebx, xsp_I_RAD)         /* loc_i *= i_rad */
+        xorpx_rr(Xmm4, Xmm7)                    /* loc_i ^= ssign */
+        MOVXR_ST(Xmm4, Iecx, ctx_NRM_O)         /* nrm_i -> NRM_I */
+
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        MOVXR_LD(Xmm5, Iecx, ctx_NEW_O)         /* loc_j <- NEW_J */
+        mulps_ld(Xmm5, Mebx, xsp_I_RAD)         /* loc_j *= i_rad */
+        xorpx_rr(Xmm5, Xmm7)                    /* loc_j ^= ssign */
+        MOVXR_ST(Xmm5, Iecx, ctx_NRM_O)         /* nrm_j -> NRM_J */
+
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        MOVXR_LD(Xmm6, Iecx, ctx_NEW_O)         /* loc_k <- NEW_K */
+        mulps_ld(Xmm6, Mebx, xsp_I_RAD)         /* loc_k *= i_rad */
+        xorpx_rr(Xmm6, Xmm7)                    /* loc_k ^= ssign */
+        MOVXR_ST(Xmm6, Iecx, ctx_NRM_O)         /* nrm_k -> NRM_K */
+
+    LBL(SP_nrm)
+
+#endif /* RT_NORMALS */
+
+        jmpxx_lb(MT_mat)
 
 /******************************************************************************/
     LBL(fetch_SP_clp)
@@ -973,7 +1075,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
         /* create xmask */
-        xorpx_rr(Xmm7, Xmm7)                    /* d_min <- 0     */
+        xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
@@ -1003,7 +1105,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_OUTER))
-        SUBROUTINE(CN_mt1, MT_mat)
+        SUBROUTINE(CN_mt1, CN_mat)
 
 /******************************************************************************/
     LBL(CN_rt2)
@@ -1024,9 +1126,56 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_INNER))
-        SUBROUTINE(CN_mt2, MT_mat)
+        SUBROUTINE(CN_mt2, CN_mat)
 
         jmpxx_lb(OO_end)
+
+/******************************************************************************/
+    LBL(CN_mat)
+
+        FETCH_PROP()                            /* Xmm7  <- ssign */
+
+#if RT_NORMALS
+
+        CHECK_PROP(CN_nrm, RT_PROP_NORMAL)
+
+        /* compute normal */
+
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        MOVXR_LD(Xmm6, Iecx, ctx_NEW_O)         /* loc_k <- NEW_K */
+        movpx_ld(Xmm1, Mebx, srf_SMASK)         /* smask <- SMASK */
+        xorpx_rr(Xmm6, Xmm1)                    /* loc_k = -loc_k */
+        annpx_rr(Xmm1, Xmm6)                    /* tmp_v = |loc_k|*/
+        movpx_ld(Xmm3, Mebx, xcn_I_RAT)         /* i_rat <- I_RAT */
+        divps_rr(Xmm3, Xmm1)                    /* i_rat /= tmp_v */
+        mulps_ld(Xmm6, Mebx, xcn_RAT_2)         /* loc_k *= rat_2 */
+        mulps_rr(Xmm6, Xmm3)                    /* loc_k *= i_rat */
+        xorpx_rr(Xmm6, Xmm7)                    /* loc_k ^= ssign */
+        MOVXR_ST(Xmm6, Iecx, ctx_NRM_O)         /* nrm_k -> NRM_K */
+
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        MOVXR_LD(Xmm4, Iecx, ctx_NEW_O)         /* loc_i <- NEW_I */
+        mulps_rr(Xmm4, Xmm3)                    /* loc_i *= i_rat */
+        xorpx_rr(Xmm4, Xmm7)                    /* loc_i ^= ssign */
+        MOVXR_ST(Xmm4, Iecx, ctx_NRM_O)         /* nrm_i -> NRM_I */
+
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        MOVXR_LD(Xmm5, Iecx, ctx_NEW_O)         /* loc_j <- NEW_J */
+        mulps_rr(Xmm5, Xmm3)                    /* loc_j *= i_rat */
+        xorpx_rr(Xmm5, Xmm7)                    /* loc_j ^= ssign */
+        MOVXR_ST(Xmm5, Iecx, ctx_NRM_O)         /* nrm_j -> NRM_J */
+
+    LBL(CN_nrm)
+
+#endif /* RT_NORMALS */
+
+        jmpxx_lb(MT_mat)
 
 /******************************************************************************/
     LBL(fetch_CN_clp)
@@ -1121,7 +1270,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
         /* create xmask */
-        xorpx_rr(Xmm7, Xmm7)                    /* d_min <- 0     */
+        xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
@@ -1151,7 +1300,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_OUTER))
-        SUBROUTINE(PB_mt1, MT_mat)
+        SUBROUTINE(PB_mt1, PB_mat)
 
 /******************************************************************************/
     LBL(PB_rt2)
@@ -1172,9 +1321,57 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_INNER))
-        SUBROUTINE(PB_mt2, MT_mat)
+        SUBROUTINE(PB_mt2, PB_mat)
 
         jmpxx_lb(OO_end)
+
+/******************************************************************************/
+    LBL(PB_mat)
+
+        FETCH_PROP()                            /* Xmm7  <- ssign */
+
+#if RT_NORMALS
+
+        CHECK_PROP(PB_nrm, RT_PROP_NORMAL)
+
+        /* compute normal */
+
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        MOVXR_LD(Xmm1, Iecx, ctx_NEW_O)         /* loc_k <- NEW_K */
+        mulps_ld(Xmm1, Mebx, xpb_PAR_K)         /* loc_k *= PAR_K */
+        addps_ld(Xmm1, Mebx, xpb_I_PAR)         /* loc_k += I_PAR */
+        sqrps_rr(Xmm1, Xmm1)                    /* loc_k sq loc_k */
+        movpx_ld(Xmm3, Mebx, xpb_ONE_K)         /* i_par <-     1 */
+        divps_rr(Xmm3, Xmm1)                    /* i_par /= loc_k */
+        movpx_ld(Xmm6, Mebx, xpb_PAR_2)         /* par_2 <- PAR_2 */
+        xorpx_ld(Xmm6, Mebx, srf_SMASK)         /* par_2 = -par_2 */
+        mulps_rr(Xmm6, Xmm3)                    /* par_2 *= i_par */
+        xorpx_rr(Xmm6, Xmm7)                    /* par_2 ^= ssign */
+        MOVXR_ST(Xmm6, Iecx, ctx_NRM_O)         /* nrm_k -> NRM_K */
+
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        MOVXR_LD(Xmm4, Iecx, ctx_NEW_O)         /* loc_i <- NEW_I */
+        mulps_rr(Xmm4, Xmm3)                    /* loc_i *= i_par */
+        xorpx_rr(Xmm4, Xmm7)                    /* loc_i ^= ssign */
+        MOVXR_ST(Xmm4, Iecx, ctx_NRM_O)         /* nrm_i -> NRM_I */
+
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        MOVXR_LD(Xmm5, Iecx, ctx_NEW_O)         /* loc_j <- NEW_J */
+        mulps_rr(Xmm5, Xmm3)                    /* loc_j *= i_par */
+        xorpx_rr(Xmm5, Xmm7)                    /* loc_j ^= ssign */
+        MOVXR_ST(Xmm5, Iecx, ctx_NRM_O)         /* nrm_j -> NRM_J */
+
+    LBL(PB_nrm)
+
+#endif /* RT_NORMALS */
+
+        jmpxx_lb(MT_mat)
 
 /******************************************************************************/
     LBL(fetch_PB_clp)
@@ -1274,7 +1471,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
         /* create xmask */
-        xorpx_rr(Xmm7, Xmm7)                    /* d_min <- 0     */
+        xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
@@ -1304,7 +1501,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_OUTER))
-        SUBROUTINE(HB_mt1, MT_mat)
+        SUBROUTINE(HB_mt1, HB_mat)
 
 /******************************************************************************/
     LBL(HB_rt2)
@@ -1326,9 +1523,59 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_INNER))
-        SUBROUTINE(HB_mt2, MT_mat)
+        SUBROUTINE(HB_mt2, HB_mat)
 
         jmpxx_lb(OO_end)
+
+/******************************************************************************/
+    LBL(HB_mat)
+
+        FETCH_PROP()                            /* Xmm7  <- ssign */
+
+#if RT_NORMALS
+
+        CHECK_PROP(HB_nrm, RT_PROP_NORMAL)
+
+        /* compute normal */
+
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        MOVXR_LD(Xmm6, Iecx, ctx_NEW_O)         /* loc_k <- NEW_K */
+        xorpx_ld(Xmm6, Mebx, srf_SMASK)         /* loc_k = -loc_k */
+        movpx_ld(Xmm1, Mebx, xhb_I_RAT)         /* hyp_k <- I_RAT */
+        mulps_rr(Xmm1, Xmm6)                    /* hyp_k *= loc_k */
+        mulps_rr(Xmm1, Xmm6)                    /* hyp_k *= loc_k */
+        addps_ld(Xmm1, Mebx, xhb_HYP_K)         /* hyp_k += HYP_K */
+        sqrps_rr(Xmm1, Xmm1)                    /* hyp_k sq hyp_k */
+        movpx_ld(Xmm3, Mebx, xhb_ONE_K)         /* i_rat <-     1 */
+        divps_rr(Xmm3, Xmm1)                    /* i_rat /= hyp_k */
+        mulps_ld(Xmm6, Mebx, xhb_RAT_2)         /* rat_2 <- RAT_2 */
+        mulps_rr(Xmm6, Xmm3)                    /* rat_2 *= i_rat */
+        xorpx_rr(Xmm6, Xmm7)                    /* rat_2 ^= ssign */
+        MOVXR_ST(Xmm6, Iecx, ctx_NRM_O)         /* nrm_k -> NRM_K */
+
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        MOVXR_LD(Xmm4, Iecx, ctx_NEW_O)         /* loc_i <- NEW_I */
+        mulps_rr(Xmm4, Xmm3)                    /* loc_i *= i_rat */
+        xorpx_rr(Xmm4, Xmm7)                    /* loc_i ^= ssign */
+        MOVXR_ST(Xmm4, Iecx, ctx_NRM_O)         /* nrm_i -> NRM_I */
+
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        MOVXR_LD(Xmm5, Iecx, ctx_NEW_O)         /* loc_j <- NEW_J */
+        mulps_rr(Xmm5, Xmm3)                    /* loc_j *= i_rat */
+        xorpx_rr(Xmm5, Xmm7)                    /* loc_j ^= ssign */
+        MOVXR_ST(Xmm5, Iecx, ctx_NRM_O)         /* nrm_j -> NRM_J */
+
+    LBL(HB_nrm)
+
+#endif /* RT_NORMALS */
+
+        jmpxx_lb(MT_mat)
 
 /******************************************************************************/
     LBL(fetch_HB_clp)

@@ -534,6 +534,7 @@ struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
  * Current CHECK_PROP macro (defined in tracer.cpp) accepts values upto 16-bit.
  */
 #define RT_PROP_TEXTURE     0x00000010
+#define RT_PROP_NORMAL      0x00000020
 
 struct rt_SIMD_MATERIAL
 {
