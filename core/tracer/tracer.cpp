@@ -19,14 +19,49 @@
 #define RT_CLIPPING_CUSTOM      1
 #define RT_TEXTURING            1
 #define RT_NORMALS              1
+#define RT_LIGHTING             1
 
 /* Byte-offsets within SIMD-field
  * for packed scalar fields.
  */
 #define PTR   0x00 /* LOCAL, PARAM, MAT_P, SRF_P */
-#define FLG   0x04 /* LOCAL, MAT_P */
+#define LGT   0x00 /* LST_P */
+#define FLG   0x04 /* LOCAL, PARAM, MAT_P */
+#define SRF   0x04 /* LST_P */
 #define CLP   0x08 /* MSC_P, SRF_P */
+#define LST   0x08 /* LOCAL, PARAM */
+#define OBJ   0x0C /* LOCAL, PARAM */
 #define TAG   0x0C /* SRF_P */
+
+/* Manual register allocation table
+ * for respective segments of code
+ * with the following legend:
+ *   field above - load register in the middle from
+ *   field below - save register in the middle into
+ */
+/******************************************************************************/
+/*    **      list      **    sub-list    **     object     **   sub-object   */
+/******************************************************************************/
+/*    **    inf_LST     **                ** elm_SIMD(Mesi) **    inf_CAM     */
+/* OO **      Resi      **      Redi      **      Rebx      **      Redx      */
+/*    **                **                **                **                */
+/******************************************************************************/
+/*    **                ** srf_MSC_P(CLP) ** elm_SIMD(Medi) **                */
+/* CC **      Resi      **      Redi      **      Rebx      **      Redx      */
+/*    **                **                **                **                */
+/******************************************************************************/
+/*    **                **                ** elm_SIMD(Mesi) ** srf_MAT_P(PTR) */
+/* MT **      Resi      **      Redi      **      Rebx      **      Redx      */
+/*    ** ctx_LOCAL(LST) **                **                **                */
+/******************************************************************************/
+/*    **                ** srf_LST_P(LGT) **                **    inf_CAM     */
+/* LT **      Resi      **      Redi      **      Rebx      **      Redx      */
+/*    **                **                **                **                */
+/******************************************************************************/
+/*    ** ctx_LOCAL(LST) **                **                **                */
+/* MT **      Resi      **      Redi      **      Rebx      **      Redx      */
+/*    **                **                **                **                */
+/******************************************************************************/
 
 /******************************************************************************/
 /*********************************   MACROS   *********************************/
@@ -122,6 +157,24 @@
         cmpxx_ri(Reax, IB(0))                                               \
         jeqxx_lb(lb)
 
+/* Update only relevant fragments of a given
+ * SIMD-field accumulating values over multiple passes
+ * from the temporary SIMD-field in the context
+ * based on the current SIMD-mask.
+ */
+#define STORE_FRAG(lb, pn, pl)                                              \
+        cmpxx_mi(Mecx, ctx_TMASK(0x##pn), IB(0))                            \
+        jeqxx_lb(lb##pn)                                                    \
+        movxx_ld(Reax, Mecx, ctx_C_PTR(0x##pn))                             \
+        movxx_st(Reax, Mecx, ctx_##pl(0x##pn))                              \
+    LBL(lb##pn)
+
+#define STORE_SIMD(lb, pl)                                                  \
+        STORE_FRAG(lb, 00, pl)                                              \
+        STORE_FRAG(lb, 04, pl)                                              \
+        STORE_FRAG(lb, 08, pl)                                              \
+        STORE_FRAG(lb, 0C, pl)
+
 /* Update relevant fragments of the
  * color and depth SIMD-fields accumulating values
  * over multiple passes from the respective SIMD-fields
@@ -139,18 +192,42 @@
         movxx_st(Reax, Mecx, ctx_C_BUF(0x##pn))                             \
     LBL(lb##pn)
 
+#define PAINT_COLX(cl, pl)                                                  \
+        movpx_ld(Xmm0, Mecx, ctx_C_BUF(0))                                  \
+        shrpx_ri(Xmm0, IB(0x##cl))                                          \
+        andpx_rr(Xmm0, Xmm7)                                                \
+        cvtpn_rr(Xmm0, Xmm0)                                                \
+        movpx_st(Xmm0, Mecx, ctx_##pl)
+
 #define PAINT_SIMD(lb)                                                      \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 04)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
-        PAINT_FRAG(lb, 0C)
+        PAINT_FRAG(lb, 0C)                                                  \
+        movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
+        PAINT_COLX(10, TEX_R)                                               \
+        PAINT_COLX(08, TEX_G)                                               \
+        PAINT_COLX(00, TEX_B)
 
 /* Flush all fragments of
  * the fully computed color SIMD-field from the context
  * into the framebuffer.
  */
+#define FRAME_COLX(cl, pl)                                                  \
+        movpx_ld(Xmm1, Mecx, ctx_##pl(0))                                   \
+        minps_rr(Xmm1, Xmm2)                                                \
+        cvtps_rr(Xmm1, Xmm1)                                                \
+        andpx_rr(Xmm1, Xmm7)                                                \
+        shlpx_ri(Xmm1, IB(0x##cl))                                          \
+        addpx_rr(Xmm0, Xmm1)
+
 #define FRAME_SIMD()                                                        \
-        movpx_ld(Xmm0, Mecx, ctx_C_BUF(0))                                  \
+        xorpx_rr(Xmm0, Xmm0)                                                \
+        movpx_ld(Xmm2, Medx, cam_CLAMP)                                     \
+        movpx_ld(Xmm7, Medx, cam_CMASK)                                     \
+        FRAME_COLX(10, COL_R)                                               \
+        FRAME_COLX(08, COL_G)                                               \
+        FRAME_COLX(00, COL_B)                                               \
         movpx_st(Xmm0, Oeax, PLAIN)
 
 /* Replicate subroutine calling behaviour
@@ -227,6 +304,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ld(Recx, Mebp, inf_CTX)
         movxx_ld(Redx, Mebp, inf_CAM)
 
+        movxx_ri(Reax, IB(0))
+        movxx_st(Reax, Mecx, ctx_PARAM(FLG))
+        movxx_st(Reax, Mecx, ctx_PARAM(LST))
+        movxx_st(Reax, Mecx, ctx_PARAM(OBJ))
+        movxx_st(Reax, Mecx, ctx_LOCAL(LST))
+        movxx_st(Reax, Mecx, ctx_LOCAL(OBJ))
+
         jmpxx_lb(XX_set)
 
     LBL(XX_ret)
@@ -273,6 +357,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
         movpx_st(Xmm0, Mecx, ctx_C_BUF(0))      /* tmp_v -> C_BUF */
+        movpx_st(Xmm0, Mecx, ctx_COL_R(0))      /* tmp_v -> COL_R */
+        movpx_st(Xmm0, Mecx, ctx_COL_G(0))      /* tmp_v -> COL_G */
+        movpx_st(Xmm0, Mecx, ctx_COL_B(0))      /* tmp_v -> COL_B */
 
 /******************************************************************************/
 /********************************   OBJ LIST   ********************************/
@@ -462,6 +549,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(MT_mat)
 
+        movxx_st(Resi, Mecx, ctx_LOCAL(LST))
+
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
         andxx_ri(Reax, IB(FLAG_SIDE))
         shlxx_ri(Reax, IB(3))
@@ -507,6 +596,161 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_st(Xmm0, Mecx, ctx_C_PTR(0))      /* tex_p -> C_PTR */
         PAINT_SIMD(MT_rtx)
+
+/******************************************************************************/
+/********************************   LIGHTING   ********************************/
+/******************************************************************************/
+
+        CHECK_PROP(LT_lgt, RT_PROP_LIGHT)
+
+        jmpxx_lb(LT_set)
+
+    LBL(LT_lgt)
+
+#if RT_LIGHTING
+
+        movxx_ld(Redx, Mebp, inf_CAM)
+
+        movpx_ld(Xmm0, Mecx, ctx_TEX_R)
+        mulps_ld(Xmm0, Medx, cam_COL_R)
+        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_amR, COL_R)
+
+        movpx_ld(Xmm0, Mecx, ctx_TEX_G)
+        mulps_ld(Xmm0, Medx, cam_COL_G)
+        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_amG, COL_G)
+
+        movpx_ld(Xmm0, Mecx, ctx_TEX_B)
+        mulps_ld(Xmm0, Medx, cam_COL_B)
+        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_amB, COL_B)
+
+        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
+        andxx_ri(Reax, IB(FLAG_SIDE))
+        shlxx_ri(Reax, IB(3))
+        movxx_ld(Redi, Iebx, srf_LST_P(LGT))
+
+    LBL(LT_cyc)
+
+        cmpxx_ri(Redi, IB(0))
+        jeqxx_lb(LT_end)
+        movxx_ld(Redx, Medi, elm_SIMD)
+
+        /* compute common */
+        movpx_ld(Xmm1, Medx, lgt_POS_X)         /* hit_x <- POS_X */
+        subps_ld(Xmm1, Mecx, ctx_HIT_X)         /* hit_x -= HIT_X */
+        movpx_st(Xmm1, Mecx, ctx_NEW_X)         /* hit_x -> NEW_X */
+        mulps_ld(Xmm1, Mecx, ctx_NRM_X)         /* hit_x *= NRM_X */
+
+        movpx_ld(Xmm2, Medx, lgt_POS_Y)         /* hit_y <- POS_Y */
+        subps_ld(Xmm2, Mecx, ctx_HIT_Y)         /* hit_y -= HIT_Y */
+        movpx_st(Xmm2, Mecx, ctx_NEW_Y)         /* hit_y -> NEW_Y */
+        mulps_ld(Xmm2, Mecx, ctx_NRM_Y)         /* hit_y *= NRM_Y */
+
+        movpx_ld(Xmm3, Medx, lgt_POS_Z)         /* hit_z <- POS_Z */
+        subps_ld(Xmm3, Mecx, ctx_HIT_Z)         /* hit_z -= HIT_Z */
+        movpx_st(Xmm3, Mecx, ctx_NEW_Z)         /* hit_z -> NEW_Z */
+        mulps_ld(Xmm3, Mecx, ctx_NRM_Z)         /* hit_z *= NRM_Z */
+
+        movpx_rr(Xmm0, Xmm1)
+        addps_rr(Xmm0, Xmm2)
+        addps_rr(Xmm0, Xmm3)
+
+        xorpx_rr(Xmm7, Xmm7)                    /* tmp_v <- 0     */
+        cltps_rr(Xmm7, Xmm0)                    /* tmp_v <! r_dot */
+        andpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* lmask &= TMASK */
+        CHECK_MASK(LT_amb, NONE, Xmm7)
+        andpx_rr(Xmm0, Xmm7)                    /* r_dot &= lmask */
+
+        xorpx_rr(Xmm7, Xmm7)                    /* no shadows */
+
+        CHECK_MASK(LT_amb, FULL, Xmm7)
+
+        /* compute diffuse */
+        movpx_ld(Xmm1, Mecx, ctx_NEW_X)
+        movpx_rr(Xmm4, Xmm1)
+        mulps_rr(Xmm4, Xmm4)
+
+        movpx_ld(Xmm2, Mecx, ctx_NEW_Y)
+        movpx_rr(Xmm5, Xmm2)
+        mulps_rr(Xmm5, Xmm5)
+
+        movpx_ld(Xmm3, Mecx, ctx_NEW_Z)
+        movpx_rr(Xmm6, Xmm3)
+        mulps_rr(Xmm6, Xmm6)
+
+        addps_rr(Xmm4, Xmm5)
+        addps_rr(Xmm4, Xmm6)
+
+        movpx_st(Xmm4, Mecx, ctx_C_PTR(0))
+
+        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
+        andxx_ri(Reax, IB(FLAG_SIDE))
+        shlxx_ri(Reax, IB(3))
+        movxx_ld(Redx, Iebx, srf_MAT_P(PTR))
+
+        xorpx_rr(Xmm1, Xmm1)                    /* no specular */
+
+        rsqps_rr(Xmm5, Xmm4)                    /* no attenuation */
+        mulps_rr(Xmm0, Xmm5)
+
+        mulps_ld(Xmm0, Medx, mat_L_DFF)
+
+        addps_rr(Xmm0, Xmm1)
+        annpx_rr(Xmm7, Xmm0)
+
+        movxx_ld(Redx, Medi, elm_SIMD)
+
+        movpx_ld(Xmm0, Mecx, ctx_TEX_R)
+        mulps_ld(Xmm0, Medx, lgt_COL_R)
+        mulps_rr(Xmm0, Xmm7)
+        addps_ld(Xmm0, Mecx, ctx_COL_R(0))
+        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_mcR, COL_R)
+
+        movpx_ld(Xmm0, Mecx, ctx_TEX_G)
+        mulps_ld(Xmm0, Medx, lgt_COL_G)
+        mulps_rr(Xmm0, Xmm7)
+        addps_ld(Xmm0, Mecx, ctx_COL_G(0))
+        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_mcG, COL_G)
+
+        movpx_ld(Xmm0, Mecx, ctx_TEX_B)
+        mulps_ld(Xmm0, Medx, lgt_COL_B)
+        mulps_rr(Xmm0, Xmm7)
+        addps_ld(Xmm0, Mecx, ctx_COL_B(0))
+        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_mcB, COL_B)
+
+    LBL(LT_amb)
+
+        movxx_ld(Redi, Medi, elm_NEXT)
+        jmpxx_lb(LT_cyc)
+
+#endif /* RT_LIGHTING */
+
+    LBL(LT_set)
+
+        movpx_ld(Xmm0, Mecx, ctx_TEX_R)
+        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_txR, COL_R)
+
+        movpx_ld(Xmm0, Mecx, ctx_TEX_G)
+        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_txG, COL_G)
+
+        movpx_ld(Xmm0, Mecx, ctx_TEX_B)
+        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_txB, COL_B)
+
+    LBL(LT_end)
+
+/******************************************************************************/
+/********************************   MATERIAL   ********************************/
+/******************************************************************************/
+
+        movxx_ld(Resi, Mecx, ctx_LOCAL(LST))
 
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
