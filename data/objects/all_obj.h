@@ -48,6 +48,31 @@ rt_LIGHT lt_light01 =
     },
 };
 
+rt_SPHERE sp_bulb01 =
+{
+    {      /*   RT_I,       RT_J,       RT_K    */
+/* min */   {  -RT_INF,    -RT_INF,    -RT_INF  },
+/* max */   {  +RT_INF,    +RT_INF,    +RT_INF  },
+        {
+/* OUTER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_bulb01,
+        },
+        {
+/* INNER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_bulb01,
+        },
+    },
+/* rad */   0.05,
+};
+
 #endif /* RT_ALL_OBJ_H */
 
 /******************************************************************************/
