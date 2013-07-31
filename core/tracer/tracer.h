@@ -177,16 +177,35 @@ struct rt_SIMD_CONTEXT
     rt_real tex_v[4];
 #define ctx_TEX_V           DP(0x110)
 
+    /* texture color */
+
+    rt_real tex_r[4];
+#define ctx_TEX_R           DP(0x120)
+
+    rt_real tex_g[4];
+#define ctx_TEX_G           DP(0x130)
+
+    rt_real tex_b[4];
+#define ctx_TEX_B           DP(0x140)
+
     /* color buffer */
 
     rt_cell c_ptr[4];
-#define ctx_C_PTR(nx)       DP(0x120 + nx)
+#define ctx_C_PTR(nx)       DP(0x150 + nx)
 
     rt_cell c_buf[4];
-#define ctx_C_BUF(nx)       DP(0x130 + nx)
+#define ctx_C_BUF(nx)       DP(0x160 + nx)
 
-    rt_word pad03[24];
-#define ctx_PAD03           DP(0x140 + nx)
+    /* result color */
+
+    rt_real col_r[4];
+#define ctx_COL_R(nx)       DP(0x170 + nx)
+
+    rt_real col_g[4];
+#define ctx_COL_G(nx)       DP(0x180 + nx)
+
+    rt_real col_b[4];
+#define ctx_COL_B(nx)       DP(0x190 + nx)
 
     /* misc */
 
@@ -316,6 +335,60 @@ struct rt_SIMD_CAMERA
     rt_real ver_z[4];
 #define cam_VER_Z           DP(0x090)
 
+    /* color masks */
+
+    rt_real clamp[4];
+#define cam_CLAMP           DP(0x0A0)
+
+    rt_cell cmask[4];
+#define cam_CMASK           DP(0x0B0)
+
+    /* ambient color */
+
+    rt_real col_r[4];
+#define cam_COL_R           DP(0x0C0)
+
+    rt_real col_g[4];
+#define cam_COL_G           DP(0x0D0)
+
+    rt_real col_b[4];
+#define cam_COL_B           DP(0x0E0)
+
+};
+
+/******************************************************************************/
+/**********************************   LIGHT   *********************************/
+/******************************************************************************/
+
+struct rt_SIMD_LIGHT
+{
+    /* light position */
+
+    rt_real pos_x[4];
+#define lgt_POS_X           DP(0x000)
+
+    rt_real pos_y[4];
+#define lgt_POS_Y           DP(0x010)
+
+    rt_real pos_z[4];
+#define lgt_POS_Z           DP(0x020)
+
+    /* depth max value */
+
+    rt_real t_max[4];
+#define lgt_T_MAX           DP(0x030)
+
+    /* light color */
+
+    rt_real col_r[4];
+#define lgt_COL_R           DP(0x040)
+
+    rt_real col_g[4];
+#define lgt_COL_G           DP(0x050)
+
+    rt_real col_b[4];
+#define lgt_COL_B           DP(0x060)
+
 };
 
 /******************************************************************************/
@@ -397,10 +470,13 @@ struct rt_SIMD_SURFACE
     rt_pntr msc_p[4];
 #define srf_MSC_P(nx)       DP(0x120 + nx)
 
+    rt_pntr lst_p[4];
+#define srf_LST_P(nx)       DP(0x130 + nx)
+
     /* reserved area 2 */
 
-    rt_word pad02[52];
-#define srf_PAD02           DP(0x130)
+    rt_word pad02[48];
+#define srf_PAD02           DP(0x140)
 
 };
 
@@ -534,7 +610,8 @@ struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
  * Current CHECK_PROP macro (defined in tracer.cpp) accepts values upto 16-bit.
  */
 #define RT_PROP_TEXTURE     0x00000010
-#define RT_PROP_NORMAL      0x00000020
+#define RT_PROP_NORMAL      0x00000100
+#define RT_PROP_LIGHT       0x00001000
 
 struct rt_SIMD_MATERIAL
 {
@@ -570,6 +647,16 @@ struct rt_SIMD_MATERIAL
 
     rt_cell t_map[4];
 #define mat_T_MAP(nx)       DP(0x080 + nx)
+
+    /* color masks */
+
+    rt_cell cmask[4];
+#define mat_CMASK           DP(0x090)
+
+    /* properties */
+
+    rt_real l_dff[4];
+#define mat_L_DFF           DP(0x0A0)
 
 };
 
