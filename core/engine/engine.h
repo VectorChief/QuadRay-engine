@@ -39,6 +39,7 @@ class rt_Scene : public rt_Registry
     rt_SIMD_CONTEXT    *s_ctx;
 
     rt_ELEM            *slist;
+    rt_ELEM            *llist;
 
     rt_real             aspect;
     rt_real             factor;
@@ -49,6 +50,7 @@ class rt_Scene : public rt_Registry
     rt_vec3             ver;
     rt_vec3             org;
     rt_vec3             nrm;
+    rt_vec3             amb;
 
     rt_Object          *root;
     rt_Camera          *cam;
@@ -65,6 +67,7 @@ class rt_Scene : public rt_Registry
 
     rt_void     insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf);
     rt_ELEM*    ssort(rt_Object *obj);
+    rt_ELEM*    lsort(rt_Object *obj);
 
     rt_void     update(rt_long time, rt_cell action);
     rt_void     render(rt_long time);

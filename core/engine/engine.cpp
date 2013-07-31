@@ -80,6 +80,9 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
 
     /* setup surface list */
     slist = ssort(cam);
+
+    /* setup lighting */
+    llist = lsort(cam);
 }
 
 /*
@@ -97,6 +100,18 @@ rt_void rt_Scene::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         elm->temp = srf;
         elm->next = *ptr;
        *ptr = elm;
+    }
+    else
+    if (obj->tag == RT_TAG_LIGHT)
+    {
+        elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+        elm->data = 0;
+        elm->simd = ((rt_Light *)obj)->s_lgt;
+        elm->temp = RT_NULL; /* no shadows */
+        elm->next = *ptr;
+       *ptr = elm;
+
+        return;
     }
 }
 
@@ -118,6 +133,41 @@ rt_ELEM* rt_Scene::ssort(rt_Object *obj)
 }
 
 /*
+ * Build light lists for a given object.
+ * Surfaces have separate light lists for each side.
+ */
+rt_ELEM* rt_Scene::lsort(rt_Object *obj)
+{
+    rt_Surface *srf = RT_NULL;
+    rt_ELEM **pto = RT_NULL;
+    rt_ELEM **pti = RT_NULL;
+
+    if (RT_IS_SURFACE(obj))
+    {
+        srf = (rt_Surface *)obj;
+
+        pto = (rt_ELEM **)&srf->s_srf->lst_p[0];
+        pti = (rt_ELEM **)&srf->s_srf->lst_p[2];
+
+       *pto = llist;
+       *pti = llist;
+
+        return RT_NULL;
+    }
+
+    rt_Light *lgt = RT_NULL;
+    rt_ELEM *lst = RT_NULL;
+    rt_ELEM **ptr = &lst;
+
+    for (lgt = lgt_head; lgt != RT_NULL; lgt = lgt->next)
+    {
+        insert(lgt, ptr, RT_NULL);
+    }
+
+    return lst;
+}
+
+/*
  * Update backend data structures and render the frame.
  */
 rt_void rt_Scene::render(rt_long time)
@@ -126,12 +176,14 @@ rt_void rt_Scene::render(rt_long time)
 
     root->update(time, iden4, 0);
 
-    /* update backend-related parts */
-
     rt_Surface *srf = RT_NULL;
 
     for (srf = srf_head; srf != RT_NULL; srf = srf->next)
     {
+        /* setup lighting */
+        lsort(srf);
+
+        /* update backend-related parts */
         update0(srf->s_srf);
     }
 
@@ -178,6 +230,19 @@ rt_void rt_Scene::render(rt_long time)
     dir[RT_Y] += (hor[RT_Y] + ver[RT_Y]) * 0.5f;
     dir[RT_Z] += (hor[RT_Z] + ver[RT_Z]) * 0.5f;
 
+    amb[RT_R] = cam->cam->col.hdr[RT_R] * cam->cam->lum[0];
+    amb[RT_G] = cam->cam->col.hdr[RT_G] * cam->cam->lum[0];
+    amb[RT_B] = cam->cam->col.hdr[RT_B] * cam->cam->lum[0];
+
+    rt_Light *lgt = RT_NULL;
+
+    for (lgt = lgt_head; lgt != RT_NULL; lgt = lgt->next)
+    {
+        amb[RT_R] += lgt->lgt->col.hdr[RT_R] * lgt->lgt->lum[0];
+        amb[RT_G] += lgt->lgt->col.hdr[RT_G] * lgt->lgt->lum[0];
+        amb[RT_B] += lgt->lgt->col.hdr[RT_B] * lgt->lgt->lum[0];
+    }
+
     rt_real fdh[4], fdv[4];
     rt_real fhr, fvr = 1.0f;
 
@@ -219,6 +284,13 @@ rt_void rt_Scene::render(rt_long time)
     RT_SIMD_SET(s_cam->ver_x, ver[RT_X] * fvr);
     RT_SIMD_SET(s_cam->ver_y, ver[RT_Y] * fvr);
     RT_SIMD_SET(s_cam->ver_z, ver[RT_Z] * fvr);
+
+    RT_SIMD_SET(s_cam->clamp, 255.0f);
+    RT_SIMD_SET(s_cam->cmask, 0xFF);
+
+    RT_SIMD_SET(s_cam->col_r, amb[RT_R]);
+    RT_SIMD_SET(s_cam->col_g, amb[RT_G]);
+    RT_SIMD_SET(s_cam->col_b, amb[RT_B]);
 
 /*  rt_SIMD_CONTEXT */
 
