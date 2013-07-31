@@ -38,6 +38,7 @@ class rt_Registry;
 
 class rt_Object;
 class rt_Camera;
+class rt_Light;
 class rt_Array;
 class rt_Surface;
 class rt_Plane;
@@ -64,6 +65,9 @@ class rt_Registry : public rt_Heap
     rt_Camera          *cam_head;
     rt_cell             cam_num;
 
+    rt_Light           *lgt_head;
+    rt_cell             lgt_num;
+
     rt_Surface         *srf_head;
     rt_cell             srf_num;
 
@@ -80,6 +84,7 @@ class rt_Registry : public rt_Heap
     rt_Registry(rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free) :
                     rt_Heap(f_alloc, f_free),
                     cam_head(RT_NULL), cam_num(0),
+                    lgt_head(RT_NULL), lgt_num(0),
                     srf_head(RT_NULL), srf_num(0),
                     tex_head(RT_NULL), tex_num(0),
                     mat_head(RT_NULL), mat_num(0) { }
@@ -88,11 +93,13 @@ class rt_Registry : public rt_Heap
    ~rt_Registry() { }
 
     rt_Camera      *get_cam() { return cam_head; }
+    rt_Light       *get_lgt() { return lgt_head; }
     rt_Surface     *get_srf() { return srf_head; }
     rt_Texture     *get_tex() { return tex_head; }
     rt_Material    *get_mat() { return mat_head; }
 
     rt_void         put_cam(rt_Camera *cam)     { cam_head = cam; cam_num++; }
+    rt_void         put_lgt(rt_Light *lgt)      { lgt_head = lgt; lgt_num++; }
     rt_void         put_srf(rt_Surface *srf)    { srf_head = srf; srf_num++; }
     rt_void         put_tex(rt_Texture *tex)    { tex_head = tex; tex_num++; }
     rt_void         put_mat(rt_Material *mat)   { mat_head = mat; mat_num++; }
@@ -165,6 +172,28 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
 
     virtual
     rt_void update(rt_long time, rt_cell action);
+    virtual
+    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
+};
+
+/******************************************************************************/
+/**********************************   LIGHT   *********************************/
+/******************************************************************************/
+
+class rt_Light : public rt_Object, public rt_List<rt_Light>
+{
+    public:
+
+/*  fields */
+
+    rt_LIGHT           *lgt;
+
+    rt_SIMD_LIGHT      *s_lgt;
+
+/*  methods */
+
+    rt_Light(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj);
+
     virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
 };

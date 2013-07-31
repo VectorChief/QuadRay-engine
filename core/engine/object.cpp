@@ -185,6 +185,46 @@ rt_Camera::~rt_Camera()
 }
 
 /******************************************************************************/
+/**********************************   LIGHT   *********************************/
+/******************************************************************************/
+
+rt_Light::rt_Light(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
+
+    rt_Object(parent, obj),
+    rt_List<rt_Light>(rg->get_lgt())
+{
+    rg->put_lgt(this);
+
+    this->lgt = (rt_LIGHT *)obj->obj.pobj;
+
+    if (lgt->col.val != 0x0)
+    {
+        lgt->col.hdr[RT_R] = ((lgt->col.val >> 0x10) & 0xFF) / 255.0f;
+        lgt->col.hdr[RT_G] = ((lgt->col.val >> 0x08) & 0xFF) / 255.0f;
+        lgt->col.hdr[RT_B] = ((lgt->col.val >> 0x00) & 0xFF) / 255.0f;
+    }
+
+/*  rt_SIMD_LIGHT */
+
+    s_lgt = (rt_SIMD_LIGHT *)rg->alloc(sizeof(rt_SIMD_LIGHT), RT_SIMD_ALIGN);
+
+    RT_SIMD_SET(s_lgt->t_max, 1.0f);
+
+    RT_SIMD_SET(s_lgt->col_r, lgt->col.hdr[RT_R] * lgt->lum[1]);
+    RT_SIMD_SET(s_lgt->col_g, lgt->col.hdr[RT_G] * lgt->lum[1]);
+    RT_SIMD_SET(s_lgt->col_b, lgt->col.hdr[RT_B] * lgt->lum[1]);
+}
+
+rt_void rt_Light::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+{
+    rt_Object::update(time, mtx, flags);
+
+    RT_SIMD_SET(s_lgt->pos_x, pos[RT_X]);
+    RT_SIMD_SET(s_lgt->pos_y, pos[RT_Y]);
+    RT_SIMD_SET(s_lgt->pos_z, pos[RT_Z]);
+}
+
+/******************************************************************************/
 /**********************************   ARRAY   *********************************/
 /******************************************************************************/
 
@@ -215,6 +255,10 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
         {
             case RT_TAG_CAMERA:
             obj_arr[j] = new rt_Camera(rg, this, &arr[i]);
+            break;
+
+            case RT_TAG_LIGHT:
+            obj_arr[j] = new rt_Light(rg, this, &arr[i]);
             break;
 
             case RT_TAG_ARRAY:
@@ -356,20 +400,25 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
                     obj->obj.pmat_inner ? obj->obj.pmat_inner :
                                           srf->side_inner.pmat);
 
-    s_srf->mat_p[-(+1) + 1] = outer->s_mat;
-    s_srf->mat_p[-(+1) + 2] = (rt_pntr)outer->props;
-    s_srf->mat_p[-(-1) + 1] = inner->s_mat;
-    s_srf->mat_p[-(-1) + 2] = (rt_pntr)inner->props;
+    s_srf->mat_p[0] = outer->s_mat;
+    s_srf->mat_p[1] = (rt_pntr)outer->props;
+    s_srf->mat_p[2] = inner->s_mat;
+    s_srf->mat_p[3] = (rt_pntr)inner->props;
 
-    s_srf->srf_p[0] = RT_NULL; /* surf ptr */
+    s_srf->srf_p[0] = RT_NULL; /* surf ptr, filled in update0 */
     s_srf->srf_p[1] = RT_NULL; /* reserved */
-    s_srf->srf_p[2] = RT_NULL; /* clip ptr */
+    s_srf->srf_p[2] = RT_NULL; /* clip ptr, filled in update0 */
     s_srf->srf_p[3] = (rt_pntr)tag; /* tag */
 
     s_srf->msc_p[0] = RT_NULL; /* reserved */
     s_srf->msc_p[1] = RT_NULL; /* reserved */
     s_srf->msc_p[2] = RT_NULL; /* custom clippers */
     s_srf->msc_p[3] = RT_NULL; /* reserved */
+
+    s_srf->lst_p[0] = RT_NULL; /* outer light sources */
+    s_srf->lst_p[1] = RT_NULL; /* reserved */
+    s_srf->lst_p[2] = RT_NULL; /* inner light sources */
+    s_srf->lst_p[3] = RT_NULL; /* reserved */
 
     RT_SIMD_SET(s_srf->sbase, 0x00000000);
     RT_SIMD_SET(s_srf->smask, 0x80000000);
@@ -735,7 +784,7 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
 
     props  = 0;
     props |= tx->x_dim == 1 && tx->y_dim == 1 ? 0 : RT_PROP_TEXTURE;
-    props |= RT_PROP_NORMAL;
+    props |= mat->tag == RT_MAT_LIGHT ? RT_PROP_LIGHT : RT_PROP_NORMAL;
 
     mtx[0][0] = +RT_COSA(sd->rot);
     mtx[0][1] = +RT_SINA(sd->rot);
@@ -806,6 +855,9 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     s_mat->yshft[3] = 0;
 
     RT_SIMD_SET(s_mat->tex_p, tx->ptex);
+    RT_SIMD_SET(s_mat->cmask, 0xFF);
+
+    RT_SIMD_SET(s_mat->l_dff, mat->lgt[0]);
 }
 
 rt_void rt_Material::resolve_texture(rt_Registry *rg)
