@@ -174,7 +174,7 @@ rt_SPHERE  sp_ball02 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_blue02,
+/* mat */   &mt_air_to_glass_blue02,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -182,7 +182,7 @@ rt_SPHERE  sp_ball02 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray01,
+/* mat */   &mt_glass_blue02_to_air,
         },
     },
 /* rad */   0.5,
