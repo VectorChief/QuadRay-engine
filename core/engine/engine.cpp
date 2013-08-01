@@ -65,7 +65,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
                             RT_SIMD_ALIGN);
 
     s_ctx = (rt_SIMD_CONTEXT *)
-            alloc(sizeof(rt_SIMD_CONTEXT),
+            alloc(sizeof(rt_SIMD_CONTEXT) + /* +1 context step for shadows */
+                            RT_STACK_STEP,
                             RT_SIMD_ALIGN);
 
     memset(&rootobj, 0, sizeof(rt_OBJECT));
@@ -81,7 +82,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     /* setup surface list */
     slist = ssort(cam);
 
-    /* setup lighting */
+    /* setup lighting (slist is needed inside) */
     llist = lsort(cam);
 }
 
@@ -107,7 +108,7 @@ rt_void rt_Scene::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
         elm->data = 0;
         elm->simd = ((rt_Light *)obj)->s_lgt;
-        elm->temp = RT_NULL; /* no shadows */
+        elm->temp = slist; /* all srf are potential shadows */
         elm->next = *ptr;
        *ptr = elm;
 
@@ -133,8 +134,8 @@ rt_ELEM* rt_Scene::ssort(rt_Object *obj)
 }
 
 /*
- * Build light lists for a given object.
- * Surfaces have separate light lists for each side.
+ * Build light/shadow lists for a given object.
+ * Surfaces have separate light/shadow lists for each side.
  */
 rt_ELEM* rt_Scene::lsort(rt_Object *obj)
 {
