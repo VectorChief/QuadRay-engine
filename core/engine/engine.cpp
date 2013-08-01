@@ -43,6 +43,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     factor = 1.0f / (rt_real)x_res;
     aspect = (rt_real)y_res * factor;
 
+    depth = RT_STACK_DEPTH;
+
     s_inf = (rt_SIMD_INFOX *)
             alloc(sizeof(rt_SIMD_INFOX),
                             RT_SIMD_ALIGN);
@@ -52,6 +54,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     RT_SIMD_SET(s_inf->gpc01, +1.0);
     RT_SIMD_SET(s_inf->gpc02, -0.5);
     RT_SIMD_SET(s_inf->gpc03, +3.0);
+
+    s_inf->depth   = depth;
 
     s_inf->frm_w   = x_res;
     s_inf->frm_h   = y_res;
@@ -66,7 +70,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
 
     s_ctx = (rt_SIMD_CONTEXT *)
             alloc(sizeof(rt_SIMD_CONTEXT) + /* +1 context step for shadows */
-                            RT_STACK_STEP,
+                            RT_STACK_STEP * (1 + depth),
                             RT_SIMD_ALIGN);
 
     memset(&rootobj, 0, sizeof(rt_OBJECT));
@@ -82,12 +86,15 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     /* setup surface list */
     slist = ssort(cam);
 
-    /* setup lighting (slist is needed inside) */
+    /* setup light/shadow list,
+     * slist is needed inside */
     llist = lsort(cam);
 }
 
 /*
- * Insert element into a list for a given object.
+ * Insert new element derived from "srf" to a list "ptr"
+ * for a given object "obj". If "srf" is NULL and "obj" is LIGHT,
+ * insert new element derived from "obj" to a list "ptr".
  */
 rt_void rt_Scene::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
 {
@@ -111,17 +118,32 @@ rt_void rt_Scene::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         elm->temp = slist; /* all srf are potential shadows */
         elm->next = *ptr;
        *ptr = elm;
-
-        return;
     }
 }
 
 /*
- * Build surface lists for a given object.
+ * Build surface lists for a given object "obj".
+ * Surfaces have separate surface lists for each side.
  */
 rt_ELEM* rt_Scene::ssort(rt_Object *obj)
 {
     rt_Surface *srf = RT_NULL;
+    rt_ELEM **pto = RT_NULL;
+    rt_ELEM **pti = RT_NULL;
+
+    if (RT_IS_SURFACE(obj))
+    {
+        srf = (rt_Surface *)obj;
+
+        pto = (rt_ELEM**)&srf->s_srf->lst_p[1];
+        pti = (rt_ELEM**)&srf->s_srf->lst_p[3];
+
+       *pto = slist;
+       *pti = slist;
+
+        return RT_NULL;
+    }
+
     rt_ELEM *lst = RT_NULL;
     rt_ELEM **ptr = &lst;
 
@@ -134,7 +156,7 @@ rt_ELEM* rt_Scene::ssort(rt_Object *obj)
 }
 
 /*
- * Build light/shadow lists for a given object.
+ * Build light/shadow lists for a given object "obj".
  * Surfaces have separate light/shadow lists for each side.
  */
 rt_ELEM* rt_Scene::lsort(rt_Object *obj)
@@ -169,7 +191,7 @@ rt_ELEM* rt_Scene::lsort(rt_Object *obj)
 }
 
 /*
- * Update backend data structures and render the frame.
+ * Update backend data structures and render the frame for given "time".
  */
 rt_void rt_Scene::render(rt_long time)
 {
@@ -181,7 +203,10 @@ rt_void rt_Scene::render(rt_long time)
 
     for (srf = srf_head; srf != RT_NULL; srf = srf->next)
     {
-        /* setup lighting */
+        /* setup surface lists */
+        ssort(srf);
+
+        /* setup light/shadow lists */
         lsort(srf);
 
         /* update backend-related parts */
@@ -245,7 +270,7 @@ rt_void rt_Scene::render(rt_long time)
     }
 
     rt_real fdh[4], fdv[4];
-    rt_real fhr, fvr = 1.0f;
+    rt_real fhr = 4.0f, fvr = 1.0f;
 
     fdh[0] = 0.0f;
     fdh[1] = 1.0f;
@@ -256,8 +281,6 @@ rt_void rt_Scene::render(rt_long time)
     fdv[1] = 1.0f;
     fdv[2] = 1.0f;
     fdv[3] = 1.0f;
-
-    fhr = 4.0f;
 
 /*  rt_SIMD_CAMERA */
 
@@ -311,7 +334,7 @@ rt_void rt_Scene::render(rt_long time)
 }
 
 /*
- * Update current camera with given action.
+ * Update current camera with given "action" for given "time".
  */
 rt_void rt_Scene::update(rt_long time, rt_cell action)
 {
@@ -436,8 +459,8 @@ rt_word digits[10][dH][dW] =
 };
 
 /*
- * Render given number on the screen at given coords.
- * Parameters d and z specify direction and zoom respectively.
+ * Render given number "num" on the screen at given coords "x" and "y".
+ * Parameters "d" and "z" specify direction and zoom respectively.
  */
 rt_void rt_Scene::render_fps(rt_word x, rt_word y,
                              rt_cell d, rt_word z, rt_word num)

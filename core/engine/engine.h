@@ -44,6 +44,8 @@ class rt_Scene : public rt_Registry
     rt_real             aspect;
     rt_real             factor;
 
+    rt_word             depth;
+
     rt_vec3             pos;
     rt_vec3             dir;
     rt_vec3             hor;
