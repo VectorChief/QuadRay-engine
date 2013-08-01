@@ -51,7 +51,7 @@ rt_CYLINDER  cl_tube01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_pink01,
+/* mat */   &mt_metal_pink01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -124,7 +124,7 @@ rt_SPHERE  sp_ball01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_cyan01,
+/* mat */   &mt_metal_cyan01,
         },
         {
 /* INNER        RT_U,       RT_V    */
