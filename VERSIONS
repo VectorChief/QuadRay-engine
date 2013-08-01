@@ -1,3 +1,9 @@
+v0.3.2: Lighting & effects, compute reflections
+  - add surface lists to scene management
+  - add reflection properties to backend structures, object classes
+  - implement reflections in rendering backend
+  - add reflections to scene data
+
 v0.3.1: Lighting & effects, hard shadows
   - add shadows to scene management
   - implement shadows in rendering backend
