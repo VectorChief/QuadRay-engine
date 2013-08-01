@@ -415,10 +415,10 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
     s_srf->msc_p[2] = RT_NULL; /* custom clippers */
     s_srf->msc_p[3] = RT_NULL; /* reserved */
 
-    s_srf->lst_p[0] = RT_NULL; /* outer light sources */
-    s_srf->lst_p[1] = RT_NULL; /* reserved */
-    s_srf->lst_p[2] = RT_NULL; /* inner light sources */
-    s_srf->lst_p[3] = RT_NULL; /* reserved */
+    s_srf->lst_p[0] = RT_NULL; /* outer lights/shadows */
+    s_srf->lst_p[1] = RT_NULL; /* outer surfaces for rfl/rfr */
+    s_srf->lst_p[2] = RT_NULL; /* inner lights/shadows */
+    s_srf->lst_p[3] = RT_NULL; /* inner surfaces for rfl/rfr */
 
     RT_SIMD_SET(s_srf->sbase, 0x00000000);
     RT_SIMD_SET(s_srf->smask, 0x80000000);
@@ -784,6 +784,7 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
 
     props  = 0;
     props |= tx->x_dim == 1 && tx->y_dim == 1 ? 0 : RT_PROP_TEXTURE;
+    props |= mat->prp[0] == 0.0f ? 0 : RT_PROP_REFLECT;
     props |= mat->tag == RT_MAT_LIGHT ? RT_PROP_LIGHT : RT_PROP_NORMAL;
 
     mtx[0][0] = +RT_COSA(sd->rot);
@@ -858,6 +859,10 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     RT_SIMD_SET(s_mat->cmask, 0xFF);
 
     RT_SIMD_SET(s_mat->l_dff, mat->lgt[0]);
+
+    RT_SIMD_SET(s_mat->c_rfl, mat->prp[0]);
+
+    RT_SIMD_SET(s_mat->c_one, 1.0f);
 }
 
 rt_void rt_Material::resolve_texture(rt_Registry *rg)
