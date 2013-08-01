@@ -613,7 +613,10 @@ struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
  */
 #define RT_PROP_TEXTURE     0x00000010
 #define RT_PROP_REFLECT     0x00000020
+#define RT_PROP_REFRACT     0x00000040
 #define RT_PROP_NORMAL      0x00000100
+#define RT_PROP_OPAQUE      0x00000200
+#define RT_PROP_TRANSP      0x00000400
 #define RT_PROP_LIGHT       0x00001000
 
 struct rt_SIMD_MATERIAL
@@ -664,8 +667,17 @@ struct rt_SIMD_MATERIAL
     rt_real c_rfl[4];
 #define mat_C_RFL           DP(0x0B0)
 
+    rt_real c_trn[4];
+#define mat_C_TRN           DP(0x0C0)
+
+    rt_real c_rfr[4];
+#define mat_C_RFR           DP(0x0D0)
+
+    rt_real rfr_2[4];
+#define mat_RFR_2           DP(0x0E0)
+
     rt_real c_one[4];
-#define mat_C_ONE           DP(0x0C0)
+#define mat_C_ONE           DP(0x0F0)
 
 };
 
