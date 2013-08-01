@@ -21,6 +21,7 @@
 #define RT_NORMALS              1
 #define RT_LIGHTING             1
 #define RT_SHADOWS              1
+#define RT_REFLECT              1
 
 /* Byte-offsets within SIMD-field
  * for packed scalar fields.
@@ -59,7 +60,15 @@
 /* LT **      Resi      **      Redi      **      Rebx      **      Redx      */
 /*    **                **                **                **                */
 /******************************************************************************/
-/*    ** ctx_LOCAL(LST) **                **                **                */
+/*    ** elm_TEMP(Medi) **                **                ** elm_SIMD(Medi) */
+/* SH **      Resi      **      Redi      **      Rebx      **      Redx      */
+/*    **                ** ctx_PARAM(LST) ** ctx_PARAM(OBJ) **                */
+/******************************************************************************/
+/*    ** srf_LST_P(SRF) ** ctx_PARAM(LST) ** ctx_PARAM(OBJ) ** srf_MAT_P(PTR) */
+/* RF **      Resi      **      Redi      **      Rebx      **      Redx      */
+/*    **                **                ** ctx_PARAM(OBJ) ** ctx_PARAM(LST) */
+/******************************************************************************/
+/*    ** ctx_LOCAL(LST) **                ** ctx_PARAM(OBJ) ** ctx_PARAM(LST) */
 /* MT **      Resi      **      Redi      **      Rebx      **      Redx      */
 /*    **                **                **                **                */
 /******************************************************************************/
@@ -199,6 +208,15 @@
         andxx_ri(Reax, IH(pr))                                              \
         cmpxx_ri(Reax, IB(0))                                               \
         jeqxx_lb(lb)
+
+/* Fetch pointer into given register "RG" from surface's field "pl"
+ * based on the currently set SIDE flag.
+ */
+#define FETCH_XPTR(RG, pl)                                                  \
+        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
+        andxx_ri(Reax, IB(FLAG_SIDE))                                       \
+        shlxx_ri(Reax, IB(3))                                               \
+        movxx_ld(W(RG), Iebx, srf_##pl)
 
 /* Update only relevant fragments of a given
  * SIMD-field accumulating values over multiple passes
@@ -594,10 +612,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movxx_st(Resi, Mecx, ctx_LOCAL(LST))
 
-        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
-        andxx_ri(Reax, IB(FLAG_SIDE))
-        shlxx_ri(Reax, IB(3))
-        movxx_ld(Redx, Iebx, srf_MAT_P(PTR))
+        FETCH_XPTR(Redx, MAT_P(PTR))
 
         movpx_ld(Xmm0, Medx, mat_TEX_P)         /* tex_p <- TEX_P */
 
@@ -669,10 +684,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_amB, COL_B)
 
-        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
-        andxx_ri(Reax, IB(FLAG_SIDE))
-        shlxx_ri(Reax, IB(3))
-        movxx_ld(Redi, Iebx, srf_LST_P(LGT))
+        FETCH_XPTR(Redi, LST_P(LGT))
 
     LBL(LT_cyc)
 
@@ -778,10 +790,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_st(Xmm4, Mecx, ctx_C_PTR(0))
 
-        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
-        andxx_ri(Reax, IB(FLAG_SIDE))
-        shlxx_ri(Reax, IB(3))
-        movxx_ld(Redx, Iebx, srf_MAT_P(PTR))
+        FETCH_XPTR(Redx, MAT_P(PTR))
 
         xorpx_rr(Xmm1, Xmm1)                    /* no specular */
 
@@ -800,21 +809,21 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm0, Xmm7)
         addps_ld(Xmm0, Mecx, ctx_COL_R(0))
         movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_mcR, COL_R)
+        STORE_SIMD(LT_clR, COL_R)
 
         movpx_ld(Xmm0, Mecx, ctx_TEX_G)
         mulps_ld(Xmm0, Medx, lgt_COL_G)
         mulps_rr(Xmm0, Xmm7)
         addps_ld(Xmm0, Mecx, ctx_COL_G(0))
         movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_mcG, COL_G)
+        STORE_SIMD(LT_clG, COL_G)
 
         movpx_ld(Xmm0, Mecx, ctx_TEX_B)
         mulps_ld(Xmm0, Medx, lgt_COL_B)
         mulps_rr(Xmm0, Xmm7)
         addps_ld(Xmm0, Mecx, ctx_COL_B(0))
         movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_mcB, COL_B)
+        STORE_SIMD(LT_clB, COL_B)
 
     LBL(LT_amb)
 
@@ -838,6 +847,139 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         STORE_SIMD(LT_txB, COL_B)
 
     LBL(LT_end)
+
+/******************************************************************************/
+/*********************************   REFLECT   ********************************/
+/******************************************************************************/
+
+#if RT_REFLECT
+
+        FETCH_XPTR(Redx, MAT_P(PTR))
+
+        CHECK_PROP(RF_end, RT_PROP_REFLECT)
+
+        /* compute reflection */
+
+        xorpx_rr(Xmm0, Xmm0)
+        movpx_st(Xmm0, Mecx, ctx_T_NEW)
+
+        movpx_ld(Xmm1, Mecx, ctx_RAY_X)
+        movpx_ld(Xmm4, Mecx, ctx_NRM_X)
+        movpx_rr(Xmm7, Xmm1)
+        mulps_rr(Xmm7, Xmm4)
+        addps_rr(Xmm0, Xmm7)
+
+        movpx_ld(Xmm2, Mecx, ctx_RAY_Y)
+        movpx_ld(Xmm5, Mecx, ctx_NRM_Y)
+        movpx_rr(Xmm7, Xmm2)
+        mulps_rr(Xmm7, Xmm5)
+        addps_rr(Xmm0, Xmm7)
+
+        movpx_ld(Xmm3, Mecx, ctx_RAY_Z)
+        movpx_ld(Xmm6, Mecx, ctx_NRM_Z)
+        movpx_rr(Xmm7, Xmm3)
+        mulps_rr(Xmm7, Xmm6)
+        addps_rr(Xmm0, Xmm7)
+
+        mulps_rr(Xmm4, Xmm0)
+        subps_rr(Xmm1, Xmm4)
+        subps_rr(Xmm1, Xmm4)
+        movpx_st(Xmm1, Mecx, ctx_NEW_X)
+
+        mulps_rr(Xmm5, Xmm0)
+        subps_rr(Xmm2, Xmm5)
+        subps_rr(Xmm2, Xmm5)
+        movpx_st(Xmm2, Mecx, ctx_NEW_Y)
+
+        mulps_rr(Xmm6, Xmm0)
+        subps_rr(Xmm3, Xmm6)
+        subps_rr(Xmm3, Xmm6)
+        movpx_st(Xmm3, Mecx, ctx_NEW_Z)
+
+        xorpx_rr(Xmm1, Xmm1)
+        xorpx_rr(Xmm2, Xmm2)
+        xorpx_rr(Xmm3, Xmm3)
+
+/************************************ ENTER ***********************************/
+
+        cmpxx_mi(Mebp, inf_DEPTH, IB(0))
+        jeqxx_lb(RF_mix)
+
+        FETCH_XPTR(Resi, LST_P(SRF))
+
+        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
+        orrxx_ri(Reax, IB(FLAG_PASS_BACK))
+        addxx_ri(Recx, IH(RT_STACK_STEP))
+        subxx_mi(Mebp, inf_DEPTH, IB(1))
+
+        movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
+        movxx_st(Redx, Mecx, ctx_PARAM(LST))    /* save material */
+        movxx_st(Rebx, Mecx, ctx_PARAM(OBJ))    /* originating surface */
+        adrxx_lb(RF_ret)
+        movxx_st(Reax, Mecx, ctx_PARAM(PTR))    /* return pointer */
+
+        movxx_ld(Redx, Mebp, inf_CAM)
+        movpx_ld(Xmm0, Medx, cam_T_MAX)         /* tmp_v <- T_MAX */
+        movpx_st(Xmm0, Mecx, ctx_T_BUF(0))      /* tmp_v -> T_BUF */
+
+        xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
+        movpx_st(Xmm0, Mecx, ctx_C_BUF(0))      /* tmp_v -> C_BUF */
+        movpx_st(Xmm0, Mecx, ctx_COL_R(0))      /* tmp_v -> COL_R */
+        movpx_st(Xmm0, Mecx, ctx_COL_G(0))      /* tmp_v -> COL_G */
+        movpx_st(Xmm0, Mecx, ctx_COL_B(0))      /* tmp_v -> COL_B */
+
+        movpx_st(Xmm0, Mecx, ctx_T_MIN)         /* tmp_v -> T_MIN */
+        movpx_st(Xmm0, Mecx, ctx_LOCAL(0))      /* tmp_v -> LOCAL */
+
+        jmpxx_lb(OO_cyc)
+
+    LBL(RF_ret)
+
+        movxx_ld(Redx, Mecx, ctx_PARAM(LST))    /* restore material */
+        movxx_ld(Rebx, Mecx, ctx_PARAM(OBJ))    /* restore surface */
+
+        movpx_ld(Xmm0, Medx, mat_C_RFL)
+
+        movpx_ld(Xmm1, Mecx, ctx_COL_R(0))
+        mulps_rr(Xmm1, Xmm0)
+
+        movpx_ld(Xmm2, Mecx, ctx_COL_G(0))
+        mulps_rr(Xmm2, Xmm0)
+
+        movpx_ld(Xmm3, Mecx, ctx_COL_B(0))
+        mulps_rr(Xmm3, Xmm0)
+
+        addxx_mi(Mebp, inf_DEPTH, IB(1))
+        subxx_ri(Recx, IH(RT_STACK_STEP))
+
+/************************************ LEAVE ***********************************/
+
+    LBL(RF_mix)
+
+        movpx_ld(Xmm0, Medx, mat_C_ONE)
+        subps_ld(Xmm0, Medx, mat_C_RFL)
+
+        movpx_ld(Xmm4, Mecx, ctx_COL_R(0))
+        mulps_rr(Xmm4, Xmm0)
+        addps_rr(Xmm1, Xmm4)
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(RF_clR, COL_R)
+
+        movpx_ld(Xmm5, Mecx, ctx_COL_G(0))
+        mulps_rr(Xmm5, Xmm0)
+        addps_rr(Xmm2, Xmm5)
+        movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(RF_clG, COL_G)
+
+        movpx_ld(Xmm6, Mecx, ctx_COL_B(0))
+        mulps_rr(Xmm6, Xmm0)
+        addps_rr(Xmm3, Xmm6)
+        movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(RF_clB, COL_B)
+
+    LBL(RF_end)
+
+#endif /* RT_REFLECT */
 
 /******************************************************************************/
 /********************************   MATERIAL   ********************************/
