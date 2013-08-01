@@ -1,3 +1,7 @@
+v0.3.1: Lighting & effects, hard shadows
+  - add shadows to scene management
+  - implement shadows in rendering backend
+
 v0.3.0: Lighting & effects, compute diffuse
   - add lighting to backend structures, object classes
   - implement lighting in rendering backend
