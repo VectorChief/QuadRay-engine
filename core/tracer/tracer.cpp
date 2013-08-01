@@ -20,6 +20,7 @@
 #define RT_TEXTURING            1
 #define RT_NORMALS              1
 #define RT_LIGHTING             1
+#define RT_SHADOWS              1
 
 /* Byte-offsets within SIMD-field
  * for packed scalar fields.
@@ -124,6 +125,12 @@
 #define FLAG_SIDE_INNER     1
 #define FLAG_SIDE           1
 
+#define FLAG_PASS_BACK      0
+#define FLAG_PASS_THRU      2
+#define FLAG_PASS           2
+
+#define FLAG_SHAD           4
+
 /* Check if flag "fl" is set in the context's field "pl",
  * jump to "lb" otherwise.
  */
@@ -132,6 +139,42 @@
         andxx_ri(Reax, IB(fl))                                              \
         cmpxx_ri(Reax, IB(0))                                               \
         jeqxx_lb(lb)
+
+/* Combine ray's attack side with ray's pass behavior (back or thru),
+ * so that secondary ray emitted from the same surface doesn't
+ * hit it from the wrong side due to computational inaccuracy,
+ * jump to "lb" if ray doesn't originate from the same surface,
+ * jump to "lo" if ray cannot possibly hit the same surface from side "sd"
+ * under given circumstances (even though it would due to hit inaccuracy).
+ */
+#define CHECK_SIDE(lb, lo, sd)                                              \
+        cmpxx_rm(Rebx, Mecx, ctx_PARAM(OBJ))                                \
+        jnexx_lb(lb)                                                        \
+        movxx_ld(Reax, Mecx, ctx_PARAM(FLG))                                \
+        andxx_ri(Reax, IB(FLAG_SIDE | FLAG_PASS))                           \
+        cmpxx_ri(Reax, IB(1 - sd))                                          \
+        jeqxx_lb(lo)                                                        \
+        cmpxx_ri(Reax, IB(2 + sd))                                          \
+        jeqxx_lb(lo)                                                        \
+    LBL(lb)
+
+/* Check if ray is a shadow ray, then check
+ * material properties to see if shadow is applicable.
+ * After applying previously computed shadow mask
+ * check if all rays within SIMD are already in the shadow,
+ * if so skip the rest of the shadow list.
+ */
+#define CHECK_SHAD(lb)                                                      \
+        CHECK_FLAG(lb, PARAM, FLAG_SHAD)                                    \
+        CHECK_PROP(lb##_lgt, RT_PROP_LIGHT)                                 \
+        jmpxx_mm(Mecx, ctx_LOCAL(PTR))                                      \
+    LBL(lb##_lgt)                                                           \
+        movpx_ld(Xmm7, Mecx, ctx_C_BUF(0))                                  \
+        orrpx_ld(Xmm7, Mecx, ctx_TMASK(0))                                  \
+        movpx_st(Xmm7, Mecx, ctx_C_BUF(0))                                  \
+        CHECK_MASK(OO_out, FULL, Xmm7)                                      \
+        jmpxx_mm(Mecx, ctx_LOCAL(PTR))                                      \
+    LBL(lb)
 
 /* Material properties.
  * Fetch properties from material into the context's local FLG field
@@ -638,6 +681,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ld(Redx, Medi, elm_SIMD)
 
         /* compute common */
+
         movpx_ld(Xmm1, Medx, lgt_POS_X)         /* hit_x <- POS_X */
         subps_ld(Xmm1, Mecx, ctx_HIT_X)         /* hit_x -= HIT_X */
         movpx_st(Xmm1, Mecx, ctx_NEW_X)         /* hit_x -> NEW_X */
@@ -663,11 +707,60 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_MASK(LT_amb, NONE, Xmm7)
         andpx_rr(Xmm0, Xmm7)                    /* r_dot &= lmask */
 
-        xorpx_rr(Xmm7, Xmm7)                    /* no shadows */
+        xorpx_rr(Xmm7, Xmm7)                    /* reset shadow mask */
+
+#if RT_SHADOWS
+
+        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))      /* save dot product */
+
+/************************************ ENTER ***********************************/
+
+        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
+        orrxx_ri(Reax, IB(FLAG_SHAD | FLAG_PASS_BACK))
+        addxx_ri(Recx, IH(RT_STACK_STEP))
+        subxx_mi(Mebp, inf_DEPTH, IB(1))
+
+        movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
+        movxx_st(Redi, Mecx, ctx_PARAM(LST))    /* save light/shadow list */
+        movxx_st(Rebx, Mecx, ctx_PARAM(OBJ))    /* originating surface */
+        adrxx_lb(LT_ret)
+        movxx_st(Reax, Mecx, ctx_PARAM(PTR))    /* return ptr */
+
+        movpx_ld(Xmm0, Medx, lgt_T_MAX)         /* tmp_v <- T_MAX */
+        movpx_st(Xmm0, Mecx, ctx_T_BUF(0))      /* tmp_v -> T_BUF */
+
+        xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <- 0     */
+        movpx_st(Xmm0, Mecx, ctx_C_BUF(0))      /* tmp_v -> C_BUF */
+        movpx_st(Xmm0, Mecx, ctx_COL_R(0))      /* tmp_v -> COL_R */
+        movpx_st(Xmm0, Mecx, ctx_COL_G(0))      /* tmp_v -> COL_G */
+        movpx_st(Xmm0, Mecx, ctx_COL_B(0))      /* tmp_v -> COL_B */
+
+        movpx_st(Xmm0, Mecx, ctx_T_MIN)         /* tmp_v -> T_MIN */
+        movpx_st(Xmm0, Mecx, ctx_LOCAL(0))      /* tmp_v -> LOCAL */
+
+        movxx_ld(Resi, Medi, elm_TEMP)          /* load shadow list */
+        jmpxx_lb(OO_cyc)
+
+    LBL(LT_ret)
+
+        movxx_ld(Redi, Mecx, ctx_PARAM(LST))    /* restore light/shadow list */
+        movxx_ld(Rebx, Mecx, ctx_PARAM(OBJ))    /* restore surface */
+
+        movpx_ld(Xmm7, Mecx, ctx_C_BUF(0))      /* load shadow mask */
+
+        addxx_mi(Mebp, inf_DEPTH, IB(1))
+        subxx_ri(Recx, IH(RT_STACK_STEP))
+
+/************************************ LEAVE ***********************************/
+
+        movpx_ld(Xmm0, Mecx, ctx_C_PTR(0))      /* restore dot product */
+
+#endif /* RT_SHADOWS */
 
         CHECK_MASK(LT_amb, FULL, Xmm7)
 
         /* compute diffuse */
+
         movpx_ld(Xmm1, Mecx, ctx_NEW_X)
         movpx_rr(Xmm4, Xmm1)
         mulps_rr(Xmm4, Xmm4)
@@ -766,6 +859,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(PL_ptr)
 
+        /* plane ignores secondary rays originating from itself
+         * as it cannot possibly interact with them directly */
+        cmpxx_rm(Rebx, Mecx, ctx_PARAM(OBJ))
+        jeqxx_lb(OO_end)
+
         /* "k" section */
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
         MOVXR_LD(Xmm4, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
@@ -820,6 +918,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(PL_mat)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
+
+#if RT_SHADOWS
+
+        CHECK_SHAD(PL_shd)
+
+#endif /* RT_SHADOWS */
 
 #if RT_TEXTURING
 
@@ -950,6 +1054,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /*  LBL(CL_rt1)  */
 
         /* outer side */
+        CHECK_SIDE(CL_sd1, CL_rt2, FLAG_SIDE_OUTER)
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
@@ -974,6 +1079,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(CL_rt2)
 
         /* inner side */
+        CHECK_SIDE(CL_sd2, OO_end, FLAG_SIDE_INNER)
 
         /* "t2" section */
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
@@ -997,6 +1103,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(CL_mat)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
+
+#if RT_SHADOWS
+
+        CHECK_SHAD(CL_shd)
+
+#endif /* RT_SHADOWS */
 
 #if RT_NORMALS
 
@@ -1135,6 +1247,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /*  LBL(SP_rt1)  */
 
         /* outer side */
+        CHECK_SIDE(SP_sd1, SP_rt2, FLAG_SIDE_OUTER)
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
@@ -1159,6 +1272,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(SP_rt2)
 
         /* inner side */
+        CHECK_SIDE(SP_sd2, OO_end, FLAG_SIDE_INNER)
 
         /* "t2" section */
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
@@ -1182,6 +1296,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(SP_mat)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
+
+#if RT_SHADOWS
+
+        CHECK_SHAD(SP_shd)
+
+#endif /* RT_SHADOWS */
 
 #if RT_NORMALS
 
@@ -1335,6 +1455,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /*  LBL(CN_rt1)  */
 
         /* outer side */
+        CHECK_SIDE(CN_sd1, CN_rt2, FLAG_SIDE_OUTER)
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
@@ -1355,6 +1476,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(CN_rt2)
 
         /* inner side */
+        CHECK_SIDE(CN_sd2, OO_end, FLAG_SIDE_INNER)
 
         /* "t2" section */
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
@@ -1378,6 +1500,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(CN_mat)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
+
+#if RT_SHADOWS
+
+        CHECK_SHAD(CN_shd)
+
+#endif /* RT_SHADOWS */
 
 #if RT_NORMALS
 
@@ -1530,6 +1658,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /*  LBL(PB_rt1)  */
 
         /* outer side */
+        CHECK_SIDE(PB_sd1, PB_rt2, FLAG_SIDE_OUTER)
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
@@ -1550,6 +1679,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(PB_rt2)
 
         /* inner side */
+        CHECK_SIDE(PB_sd2, OO_end, FLAG_SIDE_INNER)
 
         /* "t2" section */
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
@@ -1573,6 +1703,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(PB_mat)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
+
+#if RT_SHADOWS
+
+        CHECK_SHAD(PB_shd)
+
+#endif /* RT_SHADOWS */
 
 #if RT_NORMALS
 
@@ -1731,6 +1867,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /*  LBL(HB_rt1)  */
 
         /* outer side */
+        CHECK_SIDE(HB_sd1, HB_rt2, FLAG_SIDE_OUTER)
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
@@ -1751,6 +1888,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(HB_rt2)
 
         /* inner side */
+        CHECK_SIDE(HB_sd2, OO_end, FLAG_SIDE_INNER)
 
         /* "t2" section */
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
@@ -1775,6 +1913,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(HB_mat)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
+
+#if RT_SHADOWS
+
+        CHECK_SHAD(HB_shd)
+
+#endif /* RT_SHADOWS */
 
 #if RT_NORMALS
 

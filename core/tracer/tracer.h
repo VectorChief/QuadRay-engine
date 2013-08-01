@@ -43,8 +43,8 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr lst;
 #define inf_LST             DP(0x108)
 
-    rt_pntr pad10;
-#define inf_PAD10           DP(0x10C)
+    rt_word depth;
+#define inf_DEPTH           DP(0x10C)
 
 
     rt_word frm_w;
@@ -167,7 +167,8 @@ struct rt_SIMD_CONTEXT
     rt_word pad02[12];
 #define ctx_PAD02           DP(0x0D0)
 
-    /* texture coords */
+    /* surface coords
+     * for texturing */
 
 #define ctx_TEX_O           DP(0x100)
 
@@ -255,7 +256,8 @@ struct rt_SIMD_CONTEXT
     rt_word pad05[36];
 #define ctx_PAD05           DP(0x270)
 
-    /* hit, overlapping next context */
+    /* hit, overlapping next context,
+     * new origin */
 
     rt_real hit_x[4];
 #define ctx_HIT_X           DP(0x300)
