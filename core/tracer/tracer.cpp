@@ -21,7 +21,9 @@
 #define RT_NORMALS              1
 #define RT_LIGHTING             1
 #define RT_SHADOWS              1
-#define RT_REFLECT              1
+#define RT_REFLECTIONS          1
+#define RT_TRANSPARENCY         1
+#define RT_REFRACTIONS          1
 
 /* Byte-offsets within SIMD-field
  * for packed scalar fields.
@@ -40,6 +42,8 @@
  * with the following legend:
  *   field above - load register in the middle from
  *   field below - save register in the middle into
+ * If register is loaded/saved in the end of one code section
+ * it may appear in the table in the beginning of the next section.
  */
 /******************************************************************************/
 /*    **      list      **    sub-list    **     object     **   sub-object   */
@@ -66,6 +70,10 @@
 /******************************************************************************/
 /*    ** srf_LST_P(SRF) ** ctx_PARAM(LST) ** ctx_PARAM(OBJ) ** srf_MAT_P(PTR) */
 /* RF **      Resi      **      Redi      **      Rebx      **      Redx      */
+/*    **                **                ** ctx_PARAM(OBJ) ** ctx_PARAM(LST) */
+/******************************************************************************/
+/*    ** srf_LST_P(SRF) **                ** ctx_PARAM(OBJ) ** srf_MAT_P(PTR) */
+/* TR **      Resi      **      Redi      **      Rebx      **      Redx      */
 /*    **                **                ** ctx_PARAM(OBJ) ** ctx_PARAM(LST) */
 /******************************************************************************/
 /*    ** ctx_LOCAL(LST) **                ** ctx_PARAM(OBJ) ** ctx_PARAM(LST) */
@@ -178,6 +186,9 @@
         CHECK_PROP(lb##_lgt, RT_PROP_LIGHT)                                 \
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))                                      \
     LBL(lb##_lgt)                                                           \
+        CHECK_PROP(lb##_trn, RT_PROP_TRANSP)                                \
+        jmpxx_mm(Mecx, ctx_LOCAL(PTR))                                      \
+    LBL(lb##_trn)                                                           \
         movpx_ld(Xmm7, Mecx, ctx_C_BUF(0))                                  \
         orrpx_ld(Xmm7, Mecx, ctx_TMASK(0))                                  \
         movpx_st(Xmm7, Mecx, ctx_C_BUF(0))                                  \
@@ -214,6 +225,16 @@
  */
 #define FETCH_XPTR(RG, pl)                                                  \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
+        andxx_ri(Reax, IB(FLAG_SIDE))                                       \
+        shlxx_ri(Reax, IB(3))                                               \
+        movxx_ld(W(RG), Iebx, srf_##pl)
+
+/* Fetch pointer into given register "RG" from surface's field "pl"
+ * based on the currently set inverted SIDE flag.
+ */
+#define FETCH_IPTR(RG, pl)                                                  \
+        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
+        notxx_rr(Reax)                                                      \
         andxx_ri(Reax, IB(FLAG_SIDE))                                       \
         shlxx_ri(Reax, IB(3))                                               \
         movxx_ld(W(RG), Iebx, srf_##pl)
@@ -849,10 +870,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(LT_end)
 
 /******************************************************************************/
-/*********************************   REFLECT   ********************************/
+/*******************************   REFLECTIONS   ******************************/
 /******************************************************************************/
 
-#if RT_REFLECT
+#if RT_REFLECTIONS
 
         FETCH_XPTR(Redx, MAT_P(PTR))
 
@@ -979,7 +1000,178 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(RF_end)
 
-#endif /* RT_REFLECT */
+#endif /* RT_REFLECTIONS */
+
+/******************************************************************************/
+/******************************   TRANSPARENCY   ******************************/
+/******************************************************************************/
+
+#if RT_TRANSPARENCY
+
+        FETCH_XPTR(Redx, MAT_P(PTR))
+
+        CHECK_PROP(TR_opq, RT_PROP_OPAQUE)
+
+        jmpxx_lb(TR_end)
+
+    LBL(TR_opq)
+
+#if RT_REFRACTIONS
+
+        CHECK_PROP(TR_rfr, RT_PROP_REFRACT)
+
+        /* compute refraction */
+
+        xorpx_rr(Xmm0, Xmm0)
+        movpx_st(Xmm0, Mecx, ctx_T_NEW)
+
+        movpx_ld(Xmm1, Mecx, ctx_RAY_X)
+        movpx_ld(Xmm4, Mecx, ctx_NRM_X)
+        movpx_rr(Xmm7, Xmm1)
+        mulps_rr(Xmm7, Xmm4)
+        addps_rr(Xmm0, Xmm7)
+
+        movpx_ld(Xmm2, Mecx, ctx_RAY_Y)
+        movpx_ld(Xmm5, Mecx, ctx_NRM_Y)
+        movpx_rr(Xmm7, Xmm2)
+        mulps_rr(Xmm7, Xmm5)
+        addps_rr(Xmm0, Xmm7)
+
+        movpx_ld(Xmm3, Mecx, ctx_RAY_Z)
+        movpx_ld(Xmm6, Mecx, ctx_NRM_Z)
+        movpx_rr(Xmm7, Xmm3)
+        mulps_rr(Xmm7, Xmm6)
+        addps_rr(Xmm0, Xmm7)
+
+        mulps_ld(Xmm0, Medx, mat_C_RFR)
+        movpx_rr(Xmm7, Xmm0)
+        mulps_rr(Xmm7, Xmm7)
+        addps_ld(Xmm7, Medx, mat_C_ONE)
+        subps_ld(Xmm7, Medx, mat_RFR_2)
+        sqrps_rr(Xmm7, Xmm7)
+        addps_rr(Xmm0, Xmm7)
+        movpx_ld(Xmm7, Medx, mat_C_RFR)
+
+        mulps_rr(Xmm4, Xmm0)
+        mulps_rr(Xmm1, Xmm7)
+        subps_rr(Xmm1, Xmm4)
+        movpx_st(Xmm1, Mecx, ctx_NEW_X)
+
+        mulps_rr(Xmm5, Xmm0)
+        mulps_rr(Xmm2, Xmm7)
+        subps_rr(Xmm2, Xmm5)
+        movpx_st(Xmm2, Mecx, ctx_NEW_Y)
+
+        mulps_rr(Xmm6, Xmm0)
+        mulps_rr(Xmm3, Xmm7)
+        subps_rr(Xmm3, Xmm6)
+        movpx_st(Xmm3, Mecx, ctx_NEW_Z)
+
+        jmpxx_lb(TR_beg)
+
+    LBL(TR_rfr)
+
+#endif /* RT_REFRACTIONS */
+
+        /* propagate ray */
+
+        xorpx_rr(Xmm0, Xmm0)
+        movpx_st(Xmm0, Mecx, ctx_T_NEW)
+
+        movpx_ld(Xmm1, Mecx, ctx_RAY_X)
+        movpx_ld(Xmm2, Mecx, ctx_RAY_Y)
+        movpx_ld(Xmm3, Mecx, ctx_RAY_Z)
+
+        movpx_st(Xmm1, Mecx, ctx_NEW_X)
+        movpx_st(Xmm2, Mecx, ctx_NEW_Y)
+        movpx_st(Xmm3, Mecx, ctx_NEW_Z)
+
+    LBL(TR_beg)
+
+        xorpx_rr(Xmm1, Xmm1)
+        xorpx_rr(Xmm2, Xmm2)
+        xorpx_rr(Xmm3, Xmm3)
+
+/************************************ ENTER ***********************************/
+
+        cmpxx_mi(Mebp, inf_DEPTH, IB(0))
+        jeqxx_lb(TR_mix)
+
+        FETCH_IPTR(Resi, LST_P(SRF))
+
+        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
+        orrxx_ri(Reax, IB(FLAG_PASS_THRU))
+        addxx_ri(Recx, IH(RT_STACK_STEP))
+        subxx_mi(Mebp, inf_DEPTH, IB(1))
+
+        movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
+        movxx_st(Redx, Mecx, ctx_PARAM(LST))    /* save material */
+        movxx_st(Rebx, Mecx, ctx_PARAM(OBJ))    /* originating surface */
+        adrxx_lb(TR_ret)
+        movxx_st(Reax, Mecx, ctx_PARAM(PTR))    /* return pointer */
+
+        movxx_ld(Redx, Mebp, inf_CAM)
+        movpx_ld(Xmm0, Medx, cam_T_MAX)         /* tmp_v <- T_MAX */
+        movpx_st(Xmm0, Mecx, ctx_T_BUF(0))      /* tmp_v -> T_BUF */
+
+        xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
+        movpx_st(Xmm0, Mecx, ctx_C_BUF(0))      /* tmp_v -> C_BUF */
+        movpx_st(Xmm0, Mecx, ctx_COL_R(0))      /* tmp_v -> COL_R */
+        movpx_st(Xmm0, Mecx, ctx_COL_G(0))      /* tmp_v -> COL_G */
+        movpx_st(Xmm0, Mecx, ctx_COL_B(0))      /* tmp_v -> COL_B */
+
+        movpx_st(Xmm0, Mecx, ctx_T_MIN)         /* tmp_v -> T_MIN */
+        movpx_st(Xmm0, Mecx, ctx_LOCAL(0))      /* tmp_v -> LOCAL */
+
+        jmpxx_lb(OO_cyc)
+
+    LBL(TR_ret)
+
+        movxx_ld(Redx, Mecx, ctx_PARAM(LST))    /* restore material */
+        movxx_ld(Rebx, Mecx, ctx_PARAM(OBJ))    /* restore surface */
+
+        movpx_ld(Xmm0, Medx, mat_C_TRN)
+
+        movpx_ld(Xmm1, Mecx, ctx_COL_R(0))
+        mulps_rr(Xmm1, Xmm0)
+
+        movpx_ld(Xmm2, Mecx, ctx_COL_G(0))
+        mulps_rr(Xmm2, Xmm0)
+
+        movpx_ld(Xmm3, Mecx, ctx_COL_B(0))
+        mulps_rr(Xmm3, Xmm0)
+
+        addxx_mi(Mebp, inf_DEPTH, IB(1))
+        subxx_ri(Recx, IH(RT_STACK_STEP))
+
+/************************************ LEAVE ***********************************/
+
+    LBL(TR_mix)
+
+        movpx_ld(Xmm0, Medx, mat_C_ONE)
+        subps_ld(Xmm0, Medx, mat_C_TRN)
+
+        movpx_ld(Xmm4, Mecx, ctx_COL_R(0))
+        mulps_rr(Xmm4, Xmm0)
+        addps_rr(Xmm1, Xmm4)
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(TR_clR, COL_R)
+
+        movpx_ld(Xmm5, Mecx, ctx_COL_G(0))
+        mulps_rr(Xmm5, Xmm0)
+        addps_rr(Xmm2, Xmm5)
+        movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(TR_clG, COL_G)
+
+        movpx_ld(Xmm6, Mecx, ctx_COL_B(0))
+        mulps_rr(Xmm6, Xmm0)
+        addps_rr(Xmm3, Xmm6)
+        movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(TR_clB, COL_B)
+
+    LBL(TR_end)
+
+#endif /* RT_TRANSPARENCY */
 
 /******************************************************************************/
 /********************************   MATERIAL   ********************************/
