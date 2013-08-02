@@ -20,6 +20,7 @@
 #define RT_TEXTURING            1
 #define RT_NORMALS              1
 #define RT_LIGHTING             1
+#define RT_SPECULAR             1
 #define RT_SHADOWS              1
 #define RT_REFLECTIONS          1
 #define RT_TRANSPARENCY         1
@@ -338,8 +339,53 @@ rt_pntr t_ptr[RT_TAG_SURFACE_MAX];
 static
 rt_pntr t_clp[RT_TAG_SURFACE_MAX];
 
+static
+rt_pntr t_pow[6];
+
+/* Update material's backend-specific fields.
+ */
+static
+rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
+{
+    if (s_mat == RT_NULL || s_mat->pow_p[0] != RT_NULL)
+    {
+        return;
+    }
+
+    rt_cell i;
+    rt_word pow = s_mat->l_pow[0], exp = 0;
+
+    for (i = 0; i < 32; i++)
+    {
+        if (pow == ((rt_word)1 << i))
+        {
+            exp = i;
+            break;
+        }
+    }
+
+    if (i < 32)
+    {
+        pow = exp / 4;
+        exp = exp % 4;
+
+        if (pow > 0 && exp == 0)
+        {
+            pow--;
+            exp = 4;
+        }
+    }
+    else
+    {
+        exp = 5;
+    }
+
+    s_mat->l_pow[0] = pow;
+    s_mat->pow_p[0] = t_pow[exp];
+}
+
 /* Backend's global entry point (hence 0).
- * Update surfaces's backend data.
+ * Update surfaces's backend-specific fields.
  */
 rt_void update0(rt_SIMD_SURFACE *s_srf)
 {
@@ -354,6 +400,10 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
      * filled during backend's one-time initialization */
     s_srf->srf_p[0] = t_ptr[tag];
     s_srf->srf_p[2] = t_clp[tag];
+
+    /* Update surface's materials for each side */
+    update_mat((rt_SIMD_MATERIAL *)s_srf->mat_p[0]);
+    update_mat((rt_SIMD_MATERIAL *)s_srf->mat_p[2]);
 }
 
 /******************************************************************************/
@@ -472,7 +522,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_ptr)
 
+#if RT_SPECULAR
+
+        jmpxx_lb(fetch_PW_ptr)
+
+#else /* RT_SPECULAR */
+
         jmpxx_lb(fetch_PL_ptr)
+
+#endif /* RT_SPECULAR */
 
 /******************************************************************************/
 /********************************   CLIPPING   ********************************/
@@ -734,7 +792,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm0, Xmm2)
         addps_rr(Xmm0, Xmm3)
 
-        xorpx_rr(Xmm7, Xmm7)                    /* tmp_v <- 0     */
+        xorpx_rr(Xmm7, Xmm7)                    /* tmp_v <-     0 */
         cltps_rr(Xmm7, Xmm0)                    /* tmp_v <! r_dot */
         andpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* lmask &= TMASK */
         CHECK_MASK(LT_amb, NONE, Xmm7)
@@ -762,7 +820,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm0, Medx, lgt_T_MAX)         /* tmp_v <- T_MAX */
         movpx_st(Xmm0, Mecx, ctx_T_BUF(0))      /* tmp_v -> T_BUF */
 
-        xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <- 0     */
+        xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
         movpx_st(Xmm0, Mecx, ctx_C_BUF(0))      /* tmp_v -> C_BUF */
         movpx_st(Xmm0, Mecx, ctx_COL_R(0))      /* tmp_v -> COL_R */
         movpx_st(Xmm0, Mecx, ctx_COL_G(0))      /* tmp_v -> COL_G */
@@ -813,15 +871,151 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_XPTR(Redx, MAT_P(PTR))
 
-        xorpx_rr(Xmm1, Xmm1)                    /* no specular */
-
         rsqps_rr(Xmm5, Xmm4)                    /* no attenuation */
-        mulps_rr(Xmm0, Xmm5)
 
+        movpx_rr(Xmm4, Xmm0)
+
+        mulps_rr(Xmm0, Xmm5)
         mulps_ld(Xmm0, Medx, mat_L_DFF)
 
+        movpx_rr(Xmm5, Xmm4)
+        movpx_rr(Xmm6, Xmm4)
+
+#if RT_SPECULAR
+
+        CHECK_PROP(LT_spc, RT_PROP_SPECULAR)
+
+        /* compute specular */
+
+        mulps_ld(Xmm4, Mecx, ctx_NRM_X)
+        subps_rr(Xmm1, Xmm4)
+        subps_rr(Xmm1, Xmm4)
+
+        mulps_ld(Xmm5, Mecx, ctx_NRM_Y)
+        subps_rr(Xmm2, Xmm5)
+        subps_rr(Xmm2, Xmm5)
+
+        mulps_ld(Xmm6, Mecx, ctx_NRM_Z)
+        subps_rr(Xmm3, Xmm6)
+        subps_rr(Xmm3, Xmm6)
+
+        movpx_ld(Xmm4, Mecx, ctx_RAY_X)
+        mulps_rr(Xmm1, Xmm4)
+        mulps_rr(Xmm4, Xmm4)
+
+        movpx_ld(Xmm5, Mecx, ctx_RAY_Y)
+        mulps_rr(Xmm2, Xmm5)
+        mulps_rr(Xmm5, Xmm5)
+
+        movpx_ld(Xmm6, Mecx, ctx_RAY_Z)
+        mulps_rr(Xmm3, Xmm6)
+        mulps_rr(Xmm6, Xmm6)
+
+        addps_rr(Xmm6, Xmm4)
+        addps_rr(Xmm6, Xmm5)
+
+        addps_rr(Xmm1, Xmm2)
+        addps_rr(Xmm1, Xmm3)
+
+        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
+        cltps_rr(Xmm2, Xmm1)                    /* tmp_v <! r_dot */
+        andpx_rr(Xmm1, Xmm2)                    /* r_dot &= lmask */
+
+        movpx_ld(Xmm4, Mecx, ctx_C_PTR(0))
+        rsqps_rr(Xmm5, Xmm6)
+        mulps_rr(Xmm1, Xmm5)
+        rsqps_rr(Xmm5, Xmm4)
+        mulps_rr(Xmm1, Xmm5)
+
+        /* compute specular pow,
+         * integers only for now */
+
+        movxx_ld(Reax, Medx, mat_L_POW)
+        jmpxx_mm(Medx, mat_POW_P)
+
+    LBL(fetch_PW_ptr)
+
+        adrxx_lb(LT_pw4)
+        movxx_st(Reax, Mebp, inf_POW_E4)
+
+        adrxx_lb(LT_pw3)
+        movxx_st(Reax, Mebp, inf_POW_E3)
+
+        adrxx_lb(LT_pw2)
+        movxx_st(Reax, Mebp, inf_POW_E2)
+
+        adrxx_lb(LT_pw1)
+        movxx_st(Reax, Mebp, inf_POW_E1)
+
+        adrxx_lb(LT_pw0)
+        movxx_st(Reax, Mebp, inf_POW_E0)
+
+        adrxx_lb(LT_pwn)
+        movxx_st(Reax, Mebp, inf_POW_EN)
+
+        jmpxx_lb(fetch_PL_ptr)
+
+    LBL(LT_pw4)
+
+        mulps_rr(Xmm1, Xmm1)
+
+    LBL(LT_pw3)
+
+        mulps_rr(Xmm1, Xmm1)
+
+    LBL(LT_pw2)
+
+        mulps_rr(Xmm1, Xmm1)
+
+    LBL(LT_pw1)
+
+        mulps_rr(Xmm1, Xmm1)
+
+        cmpxx_ri(Reax, IB(0))
+        jeqxx_lb(LT_pwe)
+        subxx_ri(Reax, IB(1))
+        jmpxx_lb(LT_pw4)
+
+    LBL(LT_pw0)
+
+        jmpxx_lb(LT_pwe)
+
+    LBL(LT_pwn)
+
+        movpx_rr(Xmm2, Xmm1)
+        movpx_ld(Xmm1, Medx, mat_C_ONE)
+
+    LBL(LT_pwc)
+
+        movxx_ri(Resi, IB(1))
+        andxx_rr(Resi, Reax)
+        shrxx_ri(Reax, IB(1))
+        cmpxx_ri(Resi, IB(0))
+        jeqxx_lb(LT_pws)
+        mulps_rr(Xmm1, Xmm2)
+
+    LBL(LT_pws)
+
+        mulps_rr(Xmm2, Xmm2)
+        cmpxx_ri(Reax, IB(0))
+        jnexx_lb(LT_pwc)
+
+    LBL(LT_pwe)
+
+        mulps_ld(Xmm1, Medx, mat_L_SPC)
+
+        CHECK_PROP(LT_mtl, RT_PROP_METAL)
+
         addps_rr(Xmm0, Xmm1)
+
+    LBL(LT_spc)
+
+#endif /* RT_SPECULAR */
+
         annpx_rr(Xmm7, Xmm0)
+
+        /* apply lighting to metal color,
+         * only affects diffuse-specular blending */
 
         movxx_ld(Redx, Medi, elm_SIMD)
 
@@ -830,21 +1024,67 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm0, Xmm7)
         addps_ld(Xmm0, Mecx, ctx_COL_R(0))
         movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_clR, COL_R)
+        STORE_SIMD(LT_mcR, COL_R)
 
         movpx_ld(Xmm0, Mecx, ctx_TEX_G)
         mulps_ld(Xmm0, Medx, lgt_COL_G)
         mulps_rr(Xmm0, Xmm7)
         addps_ld(Xmm0, Mecx, ctx_COL_G(0))
         movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_clG, COL_G)
+        STORE_SIMD(LT_mcG, COL_G)
 
         movpx_ld(Xmm0, Mecx, ctx_TEX_B)
         mulps_ld(Xmm0, Medx, lgt_COL_B)
         mulps_rr(Xmm0, Xmm7)
         addps_ld(Xmm0, Mecx, ctx_COL_B(0))
         movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_clB, COL_B)
+        STORE_SIMD(LT_mcB, COL_B)
+
+        jmpxx_lb(LT_amb)
+
+    LBL(LT_mtl)
+
+        movpx_rr(Xmm6, Xmm7)
+        annpx_rr(Xmm7, Xmm0)
+        annpx_rr(Xmm6, Xmm1)
+
+        movxx_ld(Redx, Mebp, inf_CAM)
+        mulps_ld(Xmm6, Medx, cam_CLAMP)
+
+        /* apply lighting to plain color,
+         * only affects diffuse-specular blending */
+
+        movxx_ld(Redx, Medi, elm_SIMD)
+
+        movpx_ld(Xmm0, Mecx, ctx_TEX_R)
+        movpx_ld(Xmm1, Medx, lgt_COL_R)
+        mulps_rr(Xmm0, Xmm7)
+        mulps_rr(Xmm0, Xmm1)
+        mulps_rr(Xmm1, Xmm6)
+        addps_rr(Xmm0, Xmm1)
+        addps_ld(Xmm0, Mecx, ctx_COL_R(0))
+        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_pcR, COL_R)
+
+        movpx_ld(Xmm0, Mecx, ctx_TEX_G)
+        movpx_ld(Xmm1, Medx, lgt_COL_G)
+        mulps_rr(Xmm0, Xmm7)
+        mulps_rr(Xmm0, Xmm1)
+        mulps_rr(Xmm1, Xmm6)
+        addps_rr(Xmm0, Xmm1)
+        addps_ld(Xmm0, Mecx, ctx_COL_G(0))
+        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_pcG, COL_G)
+
+        movpx_ld(Xmm0, Mecx, ctx_TEX_B)
+        movpx_ld(Xmm1, Medx, lgt_COL_B)
+        mulps_rr(Xmm0, Xmm7)
+        mulps_rr(Xmm0, Xmm1)
+        mulps_rr(Xmm1, Xmm6)
+        addps_rr(Xmm0, Xmm1)
+        addps_ld(Xmm0, Mecx, ctx_COL_B(0))
+        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_pcB, COL_B)
 
     LBL(LT_amb)
 
@@ -2451,6 +2691,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     t_clp[RT_TAG_PARABOLOID]        = s_inf->clp_pb;
     t_clp[RT_TAG_HYPERBOLOID]       = s_inf->clp_hb;
 
+    t_pow[0]                        = s_inf->pow_e0;
+    t_pow[1]                        = s_inf->pow_e1;
+    t_pow[2]                        = s_inf->pow_e2;
+    t_pow[3]                        = s_inf->pow_e3;
+    t_pow[4]                        = s_inf->pow_e4;
+    t_pow[5]                        = s_inf->pow_en;
+
     /* RT_LOGI("PL ptr = %p\n", s_inf->ptr_pl); */
     /* RT_LOGI("CL ptr = %p\n", s_inf->ptr_cl); */
     /* RT_LOGI("SP ptr = %p\n", s_inf->ptr_sp); */
@@ -2464,6 +2711,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     /* RT_LOGI("CN clp = %p\n", s_inf->clp_cn); */
     /* RT_LOGI("PB clp = %p\n", s_inf->clp_pb); */
     /* RT_LOGI("HB clp = %p\n", s_inf->clp_hb); */
+
+    /* RT_LOGI("E0 pow = %p\n", s_inf->pow_e0); */
+    /* RT_LOGI("E1 pow = %p\n", s_inf->pow_e1); */
+    /* RT_LOGI("E2 pow = %p\n", s_inf->pow_e2); */
+    /* RT_LOGI("E3 pow = %p\n", s_inf->pow_e3); */
+    /* RT_LOGI("E4 pow = %p\n", s_inf->pow_e4); */
+    /* RT_LOGI("EN pow = %p\n", s_inf->pow_en); */
 }
 
 /******************************************************************************/
