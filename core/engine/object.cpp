@@ -786,9 +786,11 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     props |= tx->x_dim == 1 && tx->y_dim == 1 ? 0 : RT_PROP_TEXTURE;
     props |= mat->prp[0] == 0.0f ? 0 : RT_PROP_REFLECT;
     props |= mat->prp[2] == 1.0f ? 0 : RT_PROP_REFRACT;
+    props |= mat->lgt[1] == 0.0f ? 0 : RT_PROP_SPECULAR;
     props |= mat->prp[1] == 0.0f ? RT_PROP_OPAQUE : 0;
     props |= mat->prp[1] == 1.0f ? RT_PROP_TRANSP : 0;
     props |= mat->tag == RT_MAT_LIGHT ? RT_PROP_LIGHT : RT_PROP_NORMAL;
+    props |= mat->tag == RT_MAT_METAL ? RT_PROP_METAL : 0;
 
     mtx[0][0] = +RT_COSA(sd->rot);
     mtx[0][1] = +RT_SINA(sd->rot);
@@ -862,6 +864,9 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     RT_SIMD_SET(s_mat->cmask, 0xFF);
 
     RT_SIMD_SET(s_mat->l_dff, mat->lgt[0]);
+    RT_SIMD_SET(s_mat->l_spc, mat->lgt[1]);
+    RT_SIMD_SET(s_mat->l_pow, (rt_word)mat->lgt[2]);
+    RT_SIMD_SET(s_mat->pow_p, RT_NULL);
 
     RT_SIMD_SET(s_mat->c_rfl, mat->prp[0]);
     RT_SIMD_SET(s_mat->c_trn, mat->prp[1]);
