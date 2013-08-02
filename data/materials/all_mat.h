@@ -10,6 +10,31 @@
 #include "format.h"
 
 /******************************************************************************/
+/*********************************   LEGEND   *********************************/
+/******************************************************************************/
+
+/* Recommended naming scheme for materials:
+ *
+ * - All material names start with mt_ followed by 1 or 2 parts.
+ *
+ * - 1st part is material's property set and can be omitted if default.
+ *   Non-default property sets are denoted by material's type followed
+ *   by a number designating a particular set of properties.
+ *   It is recommended to use the same numbers for identical property sets
+ *   across all material types. Some property sets might be assigned
+ *   custom material types (not present in format.h) as their names,
+ *   in this case it is recommended to keep these names consistent
+ *   across all materials.
+ *
+ * - 2nd part is material's color or texture set and must be present.
+ *   Colors and textures are denoted by their respective names followed
+ *   by a number designating a particular set of RGB values for color
+ *   or particular combination of bitmaps for texture arrays.
+ *   It is recommended to use the same numbers for identical colors or
+ *   texture sets across all materials.
+ */
+
+/******************************************************************************/
 /**********************************   TILES   *********************************/
 /******************************************************************************/
 
@@ -128,7 +153,21 @@ rt_MATERIAL mt_orange01 =
     RT_TEX(PCOLOR, 0xFFFF8F00),
 
     {/* dff     spc     pow */
-        1.0,    0.0,    1.0
+        0.5,    0.5,   32.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    0.0,    1.0
+    },
+};
+
+rt_MATERIAL mt_plain01_orange01 =
+{
+    RT_MAT(PLAIN),
+
+    RT_TEX(PCOLOR, 0xFFFF8F00),
+
+    {/* dff     spc     pow */
+        0.5,    0.5,   32.0
     },
     {/* rfl     trn     rfr */
         0.0,    0.0,    1.0
@@ -143,6 +182,20 @@ rt_MATERIAL mt_pink01 =
 
     {/* dff     spc     pow */
         1.0,    0.0,    1.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    0.0,    1.0
+    },
+};
+
+rt_MATERIAL mt_plain01_pink01 =
+{
+    RT_MAT(PLAIN),
+
+    RT_TEX(PCOLOR, 0xFFF6C6C6),
+
+    {/* dff     spc     pow */
+        0.5,    0.5,   32.0
     },
     {/* rfl     trn     rfr */
         0.0,    0.0,    1.0
@@ -167,7 +220,35 @@ rt_MATERIAL mt_white01 =
 /**********************************   METAL   *********************************/
 /******************************************************************************/
 
-rt_MATERIAL mt_metal_pink01 =
+rt_MATERIAL mt_metal01_orange01 =
+{
+    RT_MAT(METAL),
+
+    RT_TEX(PCOLOR, 0xFFFF8F00),
+
+    {/* dff     spc     pow */
+        0.5,    0.5,   32.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    0.0,    1.0
+    },
+};
+
+rt_MATERIAL mt_metal01_pink01 =
+{
+    RT_MAT(METAL),
+
+    RT_TEX(PCOLOR, 0xFFF6C6C6),
+
+    {/* dff     spc     pow */
+        0.5,    0.5,   32.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    0.0,    1.0
+    },
+};
+
+rt_MATERIAL mt_metal02_pink01 =
 {
     RT_MAT(METAL),
 
@@ -181,7 +262,7 @@ rt_MATERIAL mt_metal_pink01 =
     },
 };
 
-rt_MATERIAL mt_metal_cyan01 =
+rt_MATERIAL mt_metal02_cyan01 =
 {
     RT_MAT(METAL),
 
@@ -199,7 +280,7 @@ rt_MATERIAL mt_metal_cyan01 =
 /**********************************   GLASS   *********************************/
 /******************************************************************************/
 
-rt_MATERIAL mt_glass_orange01 =
+rt_MATERIAL mt_glass01_orange01 =
 {
     RT_MAT(PLAIN),
 
@@ -213,7 +294,7 @@ rt_MATERIAL mt_glass_orange01 =
     },
 };
 
-rt_MATERIAL mt_air_to_glass_blue02 =
+rt_MATERIAL mt_air_to_glass01_blue02 =
 {
     RT_MAT(PLAIN),
 
@@ -227,7 +308,7 @@ rt_MATERIAL mt_air_to_glass_blue02 =
     },
 };
 
-rt_MATERIAL mt_glass_blue02_to_air =
+rt_MATERIAL mt_glass01_to_air_blue02 =
 {
     RT_MAT(PLAIN),
 
