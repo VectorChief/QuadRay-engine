@@ -70,8 +70,31 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr frm;
 #define inf_FRM             DP(0x128)
 
-    rt_word pad11[53];
+    rt_word pad11[45];
 #define inf_PAD11           DP(0x12C)
+
+    /* specular pow entry points */
+
+    rt_pntr pow_e0;
+#define inf_POW_E0          DP(0x1E0)
+
+    rt_pntr pow_e1;
+#define inf_POW_E1          DP(0x1E4)
+
+    rt_pntr pow_e2;
+#define inf_POW_E2          DP(0x1E8)
+
+    rt_pntr pow_e3;
+#define inf_POW_E3          DP(0x1EC)
+
+    rt_pntr pow_e4;
+#define inf_POW_E4          DP(0x1F0)
+
+    rt_pntr pow_en;
+#define inf_POW_EN          DP(0x1F4)
+
+    rt_word pad12[2];
+#define inf_PAD12           DP(0x1F8)
 
     /* surface entry points */
 
@@ -618,6 +641,8 @@ struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
 #define RT_PROP_OPAQUE      0x00000200
 #define RT_PROP_TRANSP      0x00000400
 #define RT_PROP_LIGHT       0x00001000
+#define RT_PROP_SPECULAR    0x00002000
+#define RT_PROP_METAL       0x00004000
 
 struct rt_SIMD_MATERIAL
 {
@@ -664,20 +689,29 @@ struct rt_SIMD_MATERIAL
     rt_real l_dff[4];
 #define mat_L_DFF           DP(0x0A0)
 
+    rt_real l_spc[4];
+#define mat_L_SPC           DP(0x0B0)
+
+    rt_word l_pow[4];
+#define mat_L_POW           DP(0x0C0)
+
+    rt_pntr pow_p[4];
+#define mat_POW_P           DP(0x0D0)
+
     rt_real c_rfl[4];
-#define mat_C_RFL           DP(0x0B0)
+#define mat_C_RFL           DP(0x0E0)
 
     rt_real c_trn[4];
-#define mat_C_TRN           DP(0x0C0)
+#define mat_C_TRN           DP(0x0F0)
 
     rt_real c_rfr[4];
-#define mat_C_RFR           DP(0x0D0)
+#define mat_C_RFR           DP(0x100)
 
     rt_real rfr_2[4];
-#define mat_RFR_2           DP(0x0E0)
+#define mat_RFR_2           DP(0x110)
 
     rt_real c_one[4];
-#define mat_C_ONE           DP(0x0F0)
+#define mat_C_ONE           DP(0x120)
 
 };
 
