@@ -237,13 +237,11 @@ rt_void rt_Scene::render(rt_long time)
             h = (1.0f);
             v = (aspect);
 
+    /* aim rays at camera's top-left corner */
+
     dir[RT_X] = (nrm[RT_X] * cam->pov - (hor[RT_X] * h + ver[RT_X] * v) * 0.5f);
     dir[RT_Y] = (nrm[RT_Y] * cam->pov - (hor[RT_Y] * h + ver[RT_Y] * v) * 0.5f);
     dir[RT_Z] = (nrm[RT_Z] * cam->pov - (hor[RT_Z] * h + ver[RT_Z] * v) * 0.5f);
-
-    org[RT_X] = (pos[RT_X] + dir[RT_X]);
-    org[RT_Y] = (pos[RT_Y] + dir[RT_Y]);
-    org[RT_Z] = (pos[RT_Z] + dir[RT_Z]);
 
     hor[RT_X] *= factor;
     hor[RT_Y] *= factor;
@@ -253,29 +251,16 @@ rt_void rt_Scene::render(rt_long time)
     ver[RT_Y] *= factor;
     ver[RT_Z] *= factor;
 
+    /* aim rays at pixel centers */
+
     dir[RT_X] += (hor[RT_X] + ver[RT_X]) * 0.5f;
     dir[RT_Y] += (hor[RT_Y] + ver[RT_Y]) * 0.5f;
     dir[RT_Z] += (hor[RT_Z] + ver[RT_Z]) * 0.5f;
 
-    /* accumulate ambient from camera and all light sources */
-
-    amb[RT_R] = cam->cam->col.hdr[RT_R] * cam->cam->lum[0];
-    amb[RT_G] = cam->cam->col.hdr[RT_G] * cam->cam->lum[0];
-    amb[RT_B] = cam->cam->col.hdr[RT_B] * cam->cam->lum[0];
-
-    rt_Light *lgt = RT_NULL;
-
-    for (lgt = lgt_head; lgt != RT_NULL; lgt = lgt->next)
-    {
-        amb[RT_R] += lgt->lgt->col.hdr[RT_R] * lgt->lgt->lum[0];
-        amb[RT_G] += lgt->lgt->col.hdr[RT_G] * lgt->lgt->lum[0];
-        amb[RT_B] += lgt->lgt->col.hdr[RT_B] * lgt->lgt->lum[0];
-    }
-
     /* adjust ray steppers according to anti-aliasing mode */
 
     rt_real fdh[4], fdv[4];
-    rt_real fhr, fvr = 1.0f;
+    rt_real fhr, fvr;
 
     if (fsaa == RT_FSAA_4X)
     {
@@ -293,6 +278,7 @@ rt_void rt_Scene::render(rt_long time)
         fdv[3] = (-Ar+As);
 
         fhr = 1.0f;
+        fvr = 1.0f;
     }
     else
     {
@@ -301,12 +287,28 @@ rt_void rt_Scene::render(rt_long time)
         fdh[2] = 2.0f;
         fdh[3] = 3.0f;
 
-        fdv[0] = 1.0f;
-        fdv[1] = 1.0f;
-        fdv[2] = 1.0f;
-        fdv[3] = 1.0f;
+        fdv[0] = 0.0f;
+        fdv[1] = 0.0f;
+        fdv[2] = 0.0f;
+        fdv[3] = 0.0f;
 
         fhr = 4.0f;
+        fvr = 1.0f;
+    }
+
+    /* accumulate ambient from camera and all light sources */
+
+    amb[RT_R] = cam->cam->col.hdr[RT_R] * cam->cam->lum[0];
+    amb[RT_G] = cam->cam->col.hdr[RT_G] * cam->cam->lum[0];
+    amb[RT_B] = cam->cam->col.hdr[RT_B] * cam->cam->lum[0];
+
+    rt_Light *lgt = RT_NULL;
+
+    for (lgt = lgt_head; lgt != RT_NULL; lgt = lgt->next)
+    {
+        amb[RT_R] += lgt->lgt->col.hdr[RT_R] * lgt->lgt->lum[0];
+        amb[RT_G] += lgt->lgt->col.hdr[RT_G] * lgt->lgt->lum[0];
+        amb[RT_B] += lgt->lgt->col.hdr[RT_B] * lgt->lgt->lum[0];
     }
 
 /*  rt_SIMD_CAMERA */

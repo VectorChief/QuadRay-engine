@@ -60,7 +60,6 @@ class rt_Scene : public rt_Registry
     rt_vec3             dir;
     rt_vec3             hor;
     rt_vec3             ver;
-    rt_vec3             org;
     rt_vec3             nrm;
     rt_vec3             amb;
 
