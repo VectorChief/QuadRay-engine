@@ -1,3 +1,8 @@
+v0.3.5: Lighting & effects, compute attenuation
+  - add attenuation properties to backend structures, object classes
+  - implement attenuation in rendering backend
+  - add attenuation to scene data
+
 v0.3.4: Lighting & effects, specular highlights for metals and non-metals
   - add specular properties to backend structures, object classes
   - implement specular highlights in rendering backend
