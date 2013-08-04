@@ -1,3 +1,9 @@
+v0.3.6: Lighting & effects, full screen anti-aliasing
+  - add anti-aliasing mode to backend structures, scene management
+  - implement anti-aliasing in rendering backend
+  - add anti-aliasing selection to demo app, refactor key handling
+  - fix ray vertical positioning for non-aa mode
+
 v0.3.5: Lighting & effects, compute attenuation
   - add attenuation properties to backend structures, object classes
   - implement attenuation in rendering backend
