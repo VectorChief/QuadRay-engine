@@ -18,6 +18,8 @@ rt_cell     y_res   = RT_Y_RES;
 rt_cell     x_row   = RT_X_RES;
 rt_word    *frame   = RT_NULL;
 
+rt_cell     fsaa    = RT_FSAA_NO;
+
 rt_Scene   *scene   = RT_NULL;
 
 /******************************************************************************/

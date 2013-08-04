@@ -136,7 +136,17 @@ static rt_word fps = 0;
 static rt_word cnt = 0;
 
 /* virtual keys array */
-static rt_cell v_keys[256];
+#define KEY_MASK    0x00FF
+static rt_byte h_keys[KEY_MASK + 1];
+static rt_byte t_keys[KEY_MASK + 1];
+static rt_byte r_keys[KEY_MASK + 1];
+
+/* hold keys */
+#define H_KEYS(k)   (h_keys[(k) & KEY_MASK])
+/* toggle on press */
+#define T_KEYS(k)   (t_keys[(k) & KEY_MASK])
+/* toggle on release */
+#define R_KEYS(k)   (r_keys[(k) & KEY_MASK])
 
 rt_cell main_step()
 {
@@ -164,21 +174,25 @@ rt_cell main_step()
         last_time = time;
     }
 
-    if (v_keys['W'])        scene->update(time, RT_CAMERA_MOVE_FORWARD);
-    if (v_keys['S'])        scene->update(time, RT_CAMERA_MOVE_BACK);
-    if (v_keys['A'])        scene->update(time, RT_CAMERA_MOVE_LEFT);
-    if (v_keys['D'])        scene->update(time, RT_CAMERA_MOVE_RIGHT);
+    if (H_KEYS('W'))        scene->update(time, RT_CAMERA_MOVE_FORWARD);
+    if (H_KEYS('S'))        scene->update(time, RT_CAMERA_MOVE_BACK);
+    if (H_KEYS('A'))        scene->update(time, RT_CAMERA_MOVE_LEFT);
+    if (H_KEYS('D'))        scene->update(time, RT_CAMERA_MOVE_RIGHT);
 
-    if (v_keys[VK_UP])      scene->update(time, RT_CAMERA_ROTATE_DOWN);
-    if (v_keys[VK_DOWN])    scene->update(time, RT_CAMERA_ROTATE_UP);
-    if (v_keys[VK_LEFT])    scene->update(time, RT_CAMERA_ROTATE_LEFT);
-    if (v_keys[VK_RIGHT])   scene->update(time, RT_CAMERA_ROTATE_RIGHT);
+    if (H_KEYS(VK_UP))      scene->update(time, RT_CAMERA_ROTATE_DOWN);
+    if (H_KEYS(VK_DOWN))    scene->update(time, RT_CAMERA_ROTATE_UP);
+    if (H_KEYS(VK_LEFT))    scene->update(time, RT_CAMERA_ROTATE_LEFT);
+    if (H_KEYS(VK_RIGHT))   scene->update(time, RT_CAMERA_ROTATE_RIGHT);
 
-    if (v_keys[VK_ESCAPE])
+    if (T_KEYS(VK_F2))      fsaa = RT_FSAA_4X - fsaa;
+    if (T_KEYS(VK_ESCAPE))
     {
         return 0;
     }
+    memset(t_keys, 0, sizeof(t_keys));
+    memset(r_keys, 0, sizeof(r_keys));
 
+    scene->set_fsaa(fsaa);
     scene->render(time);
     scene->render_fps(x_res - 10, 10, -1, 2, fps);
 
@@ -201,7 +215,7 @@ rt_cell main_done()
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    rt_cell ret;
+    rt_cell ret, key;
 
     switch (message) 
     {
@@ -246,19 +260,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         case WM_KEYDOWN:
         {
-            if (wParam < 256)
+            key = wParam;
+            /* RT_LOGI("Key press   = %X\n", key); */
+
+            key &= KEY_MASK;
+            if (h_keys[key] == 0)
             {
-                v_keys[wParam] = 1;
+                t_keys[key] = 1;
             }
+            h_keys[key] = 1;
         }
         break;
 
         case WM_KEYUP:
         {
-            if (wParam < 256)
-            {
-                v_keys[wParam] = 0;
-            }
+            key = wParam;
+            /* RT_LOGI("Key release = %X\n", key); */
+
+            key &= KEY_MASK;
+            h_keys[key] = 0;
+            r_keys[key] = 1;
         }
         break;
 

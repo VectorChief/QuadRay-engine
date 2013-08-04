@@ -223,13 +223,17 @@ static rt_word fps = 0;
 static rt_word cnt = 0;
 
 /* virtual keys arrays */
-static rt_byte x_keys[512];
-static rt_char t_keys[512]; /* toggle keys */
-
 #define KEY_MASK    0x01FF
-#define X_KEYS(k)   x_keys[(k) & KEY_MASK]
-#define T_KEYS(k)   t_keys[(k) & KEY_MASK]
-#define R_KEYS(k)   T_KEYS(k) > 0 ? T_KEYS(k) - X_KEYS(k) : -T_KEYS(k)
+static rt_byte h_keys[KEY_MASK + 1];
+static rt_byte t_keys[KEY_MASK + 1];
+static rt_byte r_keys[KEY_MASK + 1];
+
+/* hold keys */
+#define H_KEYS(k)   (h_keys[(k) & KEY_MASK])
+/* toggle on press */
+#define T_KEYS(k)   (t_keys[(k) & KEY_MASK])
+/* toggle on release */
+#define R_KEYS(k)   (r_keys[(k) & KEY_MASK])
 
 rt_cell main_step()
 {
@@ -257,22 +261,25 @@ rt_cell main_step()
         last_time = time;
     }
 
-    if (X_KEYS(XK_w))       scene->update(time, RT_CAMERA_MOVE_FORWARD);
-    if (X_KEYS(XK_s))       scene->update(time, RT_CAMERA_MOVE_BACK);
-    if (X_KEYS(XK_a))       scene->update(time, RT_CAMERA_MOVE_LEFT);
-    if (X_KEYS(XK_d))       scene->update(time, RT_CAMERA_MOVE_RIGHT);
+    if (H_KEYS(XK_w))       scene->update(time, RT_CAMERA_MOVE_FORWARD);
+    if (H_KEYS(XK_s))       scene->update(time, RT_CAMERA_MOVE_BACK);
+    if (H_KEYS(XK_a))       scene->update(time, RT_CAMERA_MOVE_LEFT);
+    if (H_KEYS(XK_d))       scene->update(time, RT_CAMERA_MOVE_RIGHT);
 
-    if (X_KEYS(XK_Up))      scene->update(time, RT_CAMERA_ROTATE_DOWN);
-    if (X_KEYS(XK_Down))    scene->update(time, RT_CAMERA_ROTATE_UP);
-    if (X_KEYS(XK_Left))    scene->update(time, RT_CAMERA_ROTATE_LEFT);
-    if (X_KEYS(XK_Right))   scene->update(time, RT_CAMERA_ROTATE_RIGHT);
+    if (H_KEYS(XK_Up))      scene->update(time, RT_CAMERA_ROTATE_DOWN);
+    if (H_KEYS(XK_Down))    scene->update(time, RT_CAMERA_ROTATE_UP);
+    if (H_KEYS(XK_Left))    scene->update(time, RT_CAMERA_ROTATE_LEFT);
+    if (H_KEYS(XK_Right))   scene->update(time, RT_CAMERA_ROTATE_RIGHT);
 
+    if (T_KEYS(XK_F2))      fsaa = RT_FSAA_4X - fsaa;
     if (T_KEYS(XK_Escape))
     {
         return 0;
     }
     memset(t_keys, 0, sizeof(t_keys));
+    memset(r_keys, 0, sizeof(r_keys));
 
+    scene->set_fsaa(fsaa);
     scene->render(time);
     scene->render_fps(x_res - 10, 10, -1, 2, fps);
 
@@ -310,45 +317,46 @@ rt_cell main_done()
 
 rt_cell main_loop()
 {
-    rt_cell ret;
-
     /* event loop */
     while (1)
     {
-        XEvent event;
-        rt_word key;
+        rt_cell ret, key;
 
         while (XPending(disp))
         {
+            XEvent event;
+
             XNextEvent(disp, &event);
 
-            /* handle key press */
             if (event.type == KeyPress)
             {
-                key = XLookupKeysym((XKeyEvent*)&event, 0) & KEY_MASK;
+                key = XLookupKeysym((XKeyEvent *)&event, 0);
                 /* RT_LOGI("Key press   = %X\n", key); */
 
-                if (key < 512)
+                key &= KEY_MASK;
+                if (h_keys[key] == 0)
                 {
-                    x_keys[key] = 1;
-                    t_keys[key]++;
+                    t_keys[key] = 1;
                 }
+                h_keys[key] = 1;
             }
 
-            /* handle key release */
             if (event.type == KeyRelease)
             {
-                key = XLookupKeysym((XKeyEvent*)&event, 0) & KEY_MASK;
+                key = XLookupKeysym((XKeyEvent *)&event, 0);
                 /* RT_LOGI("Key release = %X\n", key); */
 
-                if (key < 512)
+                /* eat key release from repetitions */
+                if (XPending(disp) && XPeekEvent(disp, &event)
+                &&  event.type == KeyPress
+                &&  XLookupKeysym((XKeyEvent *)&event, 0) == key)
                 {
-                    x_keys[key] = 0;
-                    if (t_keys[key] == 0)
-                    {
-                        t_keys[key]--;
-                    }
+                    continue;
                 }
+
+                key &= KEY_MASK;
+                h_keys[key] = 0;
+                r_keys[key] = 1;
             }
         }
 
