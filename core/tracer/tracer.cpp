@@ -26,6 +26,7 @@
 #define RT_REFLECTIONS          1
 #define RT_TRANSPARENCY         1
 #define RT_REFRACTIONS          1
+#define RT_ANTIALIASING         1
 
 /* Byte-offsets within SIMD-field
  * for packed scalar fields.
@@ -44,11 +45,11 @@
  * with the following legend:
  *   field above - load register in the middle from
  *   field below - save register in the middle into
- * If register is loaded/saved in the end of one code section
+ * If register is loaded in the end of one code section
  * it may appear in the table in the beginning of the next section.
  */
 /******************************************************************************/
-/*    **      list      **    sub-list    **     object     **   sub-object   */
+/*    **      list      **    aux-list    **     object     **   aux-object   */
 /******************************************************************************/
 /*    **    inf_LST     **                ** elm_SIMD(Mesi) **    inf_CAM     */
 /* OO **      Resi      **      Redi      **      Rebx      **      Redx      */
@@ -2636,13 +2637,66 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(XX_end)
 
-        movxx_ld(Redx, Mebp, inf_CAM)
+        movxx_ld(Redx, Mebp, inf_CAM)           /* edx needed in FRAME_SIMD */
+
+#if RT_ANTIALIASING
+
+        cmpxx_mi(Mebp, inf_FSAA, IB(0))
+        jeqxx_lb(FF_put)
+
+        adrpx_ld(Reax, Mecx, ctx_C_BUF(0))
+        FRAME_SIMD()
+
+        movxx_ld(Rebx, Mecx, ctx_C_BUF(0x00))
+        andxx_ri(Rebx, IW(0x00F0F0F0))
+        movxx_rr(Reax, Rebx)
+        movxx_ld(Rebx, Mecx, ctx_C_BUF(0x04))
+        andxx_ri(Rebx, IW(0x00F0F0F0))
+        addxx_rr(Reax, Rebx)
+        movxx_ld(Rebx, Mecx, ctx_C_BUF(0x08))
+        andxx_ri(Rebx, IW(0x00F0F0F0))
+        addxx_rr(Reax, Rebx)
+        movxx_ld(Rebx, Mecx, ctx_C_BUF(0x0C))
+        andxx_ri(Rebx, IW(0x00F0F0F0))
+        addxx_rr(Reax, Rebx)
+        shrxx_ri(Reax, IB(2))
+
+        movxx_ld(Rebx, Mecx, ctx_C_BUF(0x00))
+        andxx_ri(Rebx, IW(0x000F0F0F))
+        movxx_rr(Redx, Rebx)
+        movxx_ld(Rebx, Mecx, ctx_C_BUF(0x04))
+        andxx_ri(Rebx, IW(0x000F0F0F))
+        addxx_rr(Redx, Rebx)
+        movxx_ld(Rebx, Mecx, ctx_C_BUF(0x08))
+        andxx_ri(Rebx, IW(0x000F0F0F))
+        addxx_rr(Redx, Rebx)
+        movxx_ld(Rebx, Mecx, ctx_C_BUF(0x0C))
+        andxx_ri(Rebx, IW(0x000F0F0F))
+        addxx_rr(Redx, Rebx)
+        shrxx_ri(Redx, IB(2))
+
+        andxx_ri(Redx, IW(0x000F0F0F))
+        addxx_rr(Redx, Reax)
+
+        movxx_ld(Reax, Mebp, inf_FRM_X)
+        shlxx_ri(Reax, IB(2))
+        addxx_ld(Reax, Mebp, inf_FRM)
+        movxx_st(Redx, Oeax, PLAIN)
+        addxx_mi(Mebp, inf_FRM_X, IB(1))
+
+        jmpxx_lb(FF_end)
+
+    LBL(FF_put)
+
+#endif /* RT_ANTIALIASING */
 
         movxx_ld(Reax, Mebp, inf_FRM_X)
         shlxx_ri(Reax, IB(2))
         addxx_ld(Reax, Mebp, inf_FRM)
         FRAME_SIMD()
         addxx_mi(Mebp, inf_FRM_X, IB(4))
+
+    LBL(FF_end)
 
         movxx_ld(Reax, Mebp, inf_FRM_X)
         cmpxx_rm(Reax, Mebp, inf_FRM_W)
