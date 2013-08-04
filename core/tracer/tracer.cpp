@@ -20,6 +20,7 @@
 #define RT_TEXTURING            1
 #define RT_NORMALS              1
 #define RT_LIGHTING             1
+#define RT_ATTENUATION          1
 #define RT_SPECULAR             1
 #define RT_SHADOWS              1
 #define RT_REFLECTIONS          1
@@ -869,17 +870,45 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_st(Xmm4, Mecx, ctx_C_PTR(0))
 
+#if RT_ATTENUATION
+
+        movpx_rr(Xmm6, Xmm4)                    /* Xmm6  <-   r^2 */
+
+#endif /* RT_ATTENUATION */
+
+        rsqps_rr(Xmm5, Xmm4)                    /* Xmm5  <-   1/r */
+
+#if RT_ATTENUATION
+
+        movpx_rr(Xmm4, Xmm5)                    /* Xmm4  <-   1/r */
+        mulps_rr(Xmm4, Xmm6)                    /* Xmm4  <-   r^1 */
+
+        movxx_ld(Redx, Medi, elm_SIMD)
+
+        mulps_ld(Xmm6, Medx, lgt_A_QDR)
+        mulps_ld(Xmm4, Medx, lgt_A_LNR)
+        addps_ld(Xmm6, Medx, lgt_A_CNT)
+        addps_rr(Xmm6, Xmm4)
+        rsqps_rr(Xmm4, Xmm6)                    /* Xmm4  <-   1/a */
+
+#endif /* RT_ATTENUATION */
+
+        movpx_rr(Xmm6, Xmm0)
+
+#if RT_ATTENUATION
+
+        mulps_rr(Xmm0, Xmm4)                    /* r_dot *=   1/a */
+
+#endif /* RT_ATTENUATION */
+
+        mulps_rr(Xmm0, Xmm5)                    /* r_dot *=   1/r */
+
         FETCH_XPTR(Redx, MAT_P(PTR))
 
-        rsqps_rr(Xmm5, Xmm4)                    /* no attenuation */
-
-        movpx_rr(Xmm4, Xmm0)
-
-        mulps_rr(Xmm0, Xmm5)
         mulps_ld(Xmm0, Medx, mat_L_DFF)
 
-        movpx_rr(Xmm5, Xmm4)
-        movpx_rr(Xmm6, Xmm4)
+        movpx_rr(Xmm4, Xmm6)
+        movpx_rr(Xmm5, Xmm6)
 
 #if RT_SPECULAR
 
@@ -1042,6 +1071,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         jmpxx_lb(LT_amb)
 
+#if RT_SPECULAR
+
     LBL(LT_mtl)
 
         movpx_rr(Xmm6, Xmm7)
@@ -1085,6 +1116,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm0, Mecx, ctx_COL_B(0))
         movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_pcB, COL_B)
+
+#endif /* RT_SPECULAR */
 
     LBL(LT_amb)
 
