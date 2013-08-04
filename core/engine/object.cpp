@@ -213,6 +213,11 @@ rt_Light::rt_Light(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
     RT_SIMD_SET(s_lgt->col_r, lgt->col.hdr[RT_R] * lgt->lum[1]);
     RT_SIMD_SET(s_lgt->col_g, lgt->col.hdr[RT_G] * lgt->lum[1]);
     RT_SIMD_SET(s_lgt->col_b, lgt->col.hdr[RT_B] * lgt->lum[1]);
+
+    RT_SIMD_SET(s_lgt->a_qdr, lgt->atn[3]);
+    RT_SIMD_SET(s_lgt->a_lnr, lgt->atn[2]);
+    RT_SIMD_SET(s_lgt->a_cnt, lgt->atn[1] + 1.0f);
+    RT_SIMD_SET(s_lgt->a_rng, lgt->atn[0]);
 }
 
 rt_void rt_Light::update(rt_long time, rt_mat4 mtx, rt_cell flags)
