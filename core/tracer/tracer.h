@@ -43,8 +43,8 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr lst;
 #define inf_LST             DP(0x108)
 
-    rt_word depth;
-#define inf_DEPTH           DP(0x10C)
+    rt_word pad10;
+#define inf_PAD10           DP(0x10C)
 
 
     rt_word frm_w;
@@ -59,19 +59,29 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr frame;
 #define inf_FRAME           DP(0x11C)
 
+
+    rt_word depth;
+#define inf_DEPTH           DP(0x120)
+
+    rt_cell fsaa;
+#define inf_FSAA            DP(0x124)
+
+    rt_word pad11[6];
+#define inf_PAD11           DP(0x128)
+
     /* internal variables */
 
     rt_word frm_x;
-#define inf_FRM_X           DP(0x120)
+#define inf_FRM_X           DP(0x140)
 
     rt_word frm_y;
-#define inf_FRM_Y           DP(0x124)
+#define inf_FRM_Y           DP(0x144)
 
     rt_pntr frm;
-#define inf_FRM             DP(0x128)
+#define inf_FRM             DP(0x148)
 
-    rt_word pad11[45];
-#define inf_PAD11           DP(0x12C)
+    rt_word pad12[37];
+#define inf_PAD12           DP(0x14C)
 
     /* specular pow entry points */
 
@@ -93,8 +103,8 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr pow_en;
 #define inf_POW_EN          DP(0x1F4)
 
-    rt_word pad12[2];
-#define inf_PAD12           DP(0x1F8)
+    rt_word pad13[2];
+#define inf_PAD13           DP(0x1F8)
 
     /* surface entry points */
 
