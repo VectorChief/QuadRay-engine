@@ -12,6 +12,15 @@
 #include "object.h"
 #include "tracer.h"
 
+/******************************************************************************/
+/*******************************   DEFINITIONS   ******************************/
+/******************************************************************************/
+
+/* Full screen anti-aliasing modes */
+
+#define RT_FSAA_NO                  0
+#define RT_FSAA_4X                  1
+
 /* Classes */
 
 class rt_Scene;
@@ -45,6 +54,7 @@ class rt_Scene : public rt_Registry
     rt_real             factor;
 
     rt_word             depth;
+    rt_cell             fsaa;
 
     rt_vec3             pos;
     rt_vec3             dir;
@@ -77,6 +87,7 @@ class rt_Scene : public rt_Registry
                            rt_cell d, rt_word z, rt_word num);
 
     rt_word*    get_frame();
+    rt_void     set_fsaa(rt_cell fsaa);
 };
 
 #endif /* RT_ENGINE_H */

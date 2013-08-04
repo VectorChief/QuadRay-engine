@@ -44,6 +44,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     aspect = (rt_real)y_res * factor;
 
     depth = RT_STACK_DEPTH;
+    fsaa  = RT_FSAA_NO;
 
     s_inf = (rt_SIMD_INFOX *)
             alloc(sizeof(rt_SIMD_INFOX),
@@ -256,6 +257,8 @@ rt_void rt_Scene::render(rt_long time)
     dir[RT_Y] += (hor[RT_Y] + ver[RT_Y]) * 0.5f;
     dir[RT_Z] += (hor[RT_Z] + ver[RT_Z]) * 0.5f;
 
+    /* accumulate ambient from camera and all light sources */
+
     amb[RT_R] = cam->cam->col.hdr[RT_R] * cam->cam->lum[0];
     amb[RT_G] = cam->cam->col.hdr[RT_G] * cam->cam->lum[0];
     amb[RT_B] = cam->cam->col.hdr[RT_B] * cam->cam->lum[0];
@@ -269,18 +272,42 @@ rt_void rt_Scene::render(rt_long time)
         amb[RT_B] += lgt->lgt->col.hdr[RT_B] * lgt->lgt->lum[0];
     }
 
+    /* adjust ray steppers according to anti-aliasing mode */
+
     rt_real fdh[4], fdv[4];
-    rt_real fhr = 4.0f, fvr = 1.0f;
+    rt_real fhr, fvr = 1.0f;
 
-    fdh[0] = 0.0f;
-    fdh[1] = 1.0f;
-    fdh[2] = 2.0f;
-    fdh[3] = 3.0f;
+    if (fsaa == RT_FSAA_4X)
+    {
+        rt_real As = 0.25f;
+        rt_real Ar = 0.08f;
 
-    fdv[0] = 1.0f;
-    fdv[1] = 1.0f;
-    fdv[2] = 1.0f;
-    fdv[3] = 1.0f;
+        fdh[0] = (-Ar-As);
+        fdh[1] = (-Ar+As);
+        fdh[2] = (+Ar-As);
+        fdh[3] = (+Ar+As);
+
+        fdv[0] = (+Ar-As);
+        fdv[1] = (-Ar-As);
+        fdv[2] = (+Ar+As);
+        fdv[3] = (-Ar+As);
+
+        fhr = 1.0f;
+    }
+    else
+    {
+        fdh[0] = 0.0f;
+        fdh[1] = 1.0f;
+        fdh[2] = 2.0f;
+        fdh[3] = 3.0f;
+
+        fdv[0] = 1.0f;
+        fdv[1] = 1.0f;
+        fdv[2] = 1.0f;
+        fdv[3] = 1.0f;
+
+        fhr = 4.0f;
+    }
 
 /*  rt_SIMD_CAMERA */
 
@@ -330,6 +357,9 @@ rt_void rt_Scene::render(rt_long time)
     s_inf->cam = s_cam;
     s_inf->lst = slist;
 
+    s_inf->depth = depth;
+    s_inf->fsaa  = fsaa;
+
     render0(s_inf);
 }
 
@@ -347,6 +377,14 @@ rt_void rt_Scene::update(rt_long time, rt_cell action)
 rt_word* rt_Scene::get_frame()
 {
     return frame;
+}
+
+/*
+ * Set full screen anti-aliasing mode.
+ */
+rt_void rt_Scene::set_fsaa(rt_cell fsaa)
+{
+    this->fsaa = fsaa;
 }
 
 rt_Scene::~rt_Scene()
