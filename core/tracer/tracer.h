@@ -414,6 +414,20 @@ struct rt_SIMD_LIGHT
     rt_real col_b[4];
 #define lgt_COL_B           DP(0x060)
 
+    /* light attenuation */
+
+    rt_real a_qdr[4];
+#define lgt_A_QDR           DP(0x070)
+
+    rt_real a_lnr[4];
+#define lgt_A_LNR           DP(0x080)
+
+    rt_real a_cnt[4];
+#define lgt_A_CNT           DP(0x090)
+
+    rt_real a_rng[4];
+#define lgt_A_RNG           DP(0x0A0)
+
 };
 
 /******************************************************************************/
@@ -637,12 +651,12 @@ struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
 #define RT_PROP_TEXTURE     0x00000010
 #define RT_PROP_REFLECT     0x00000020
 #define RT_PROP_REFRACT     0x00000040
+#define RT_PROP_SPECULAR    0x00000080
 #define RT_PROP_NORMAL      0x00000100
 #define RT_PROP_OPAQUE      0x00000200
 #define RT_PROP_TRANSP      0x00000400
 #define RT_PROP_LIGHT       0x00001000
-#define RT_PROP_SPECULAR    0x00002000
-#define RT_PROP_METAL       0x00004000
+#define RT_PROP_METAL       0x00002000
 
 struct rt_SIMD_MATERIAL
 {
