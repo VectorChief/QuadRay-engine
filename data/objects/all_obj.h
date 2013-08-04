@@ -44,7 +44,10 @@ rt_LIGHT lt_light01 =
     RT_COL(0xFFFFFFFF),
 
     {/* amb     src */
-        0.1,    0.7
+        0.1,    1.7
+    },
+    {/* rng     cnt     lnr     qdr */
+        0.0,    0.7,    0.5,    0.1
     },
 };
 
