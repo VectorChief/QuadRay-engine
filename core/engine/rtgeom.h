@@ -34,6 +34,11 @@ rt_void matrix_mul_matrix(rt_mat4 mp, rt_mat4 m1, rt_mat4 m2);
  */
 rt_void matrix_from_transform(rt_mat4 mp, rt_TRANSFORM3D *t1);
 
+/*
+ * Compute inverse matrix.
+ */
+rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1);
+
 #endif /* RT_RTGEOM_H */
 
 /******************************************************************************/

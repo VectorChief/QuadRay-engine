@@ -148,6 +148,89 @@ rt_void matrix_from_transform(rt_mat4 mp, rt_TRANSFORM3D *t1)
     matrix_mul_matrix(mp, ps, mt);
 }
 
+/*
+ * Compute inverse matrix.
+ */
+rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
+{
+    memset(mp, 0, sizeof(rt_real) * 16);
+
+    rt_real A = m1[1][1] * m1[2][2] - m1[2][1] * m1[1][2];
+    rt_real B = m1[2][1] * m1[0][2] - m1[0][1] * m1[2][2];
+    rt_real C = m1[0][1] * m1[1][2] - m1[1][1] * m1[0][2];
+
+    rt_real D = m1[2][0] * m1[1][2] - m1[1][0] * m1[2][2];
+    rt_real E = m1[0][0] * m1[2][2] - m1[2][0] * m1[0][2];
+    rt_real F = m1[0][2] * m1[1][0] - m1[0][0] * m1[1][2];
+
+    rt_real G = m1[1][0] * m1[2][1] - m1[2][0] * m1[1][1];
+    rt_real H = m1[2][0] * m1[0][1] - m1[0][0] * m1[2][1];
+    rt_real K = m1[0][0] * m1[1][1] - m1[1][0] * m1[0][1];
+
+    rt_real q = 1.0f / (m1[0][0] * A + m1[1][0] * B + m1[2][0] * C);
+
+    mp[0][0] = A * q;
+    mp[0][1] = B * q;
+    mp[0][2] = C * q;
+
+    mp[1][0] = D * q;
+    mp[1][1] = E * q;
+    mp[1][2] = F * q;
+
+    mp[2][0] = G * q;
+    mp[2][1] = H * q;
+    mp[2][2] = K * q;
+
+#if RT_DEBUG == 1
+    rt_cell i, j, k = 0;
+
+    rt_mat4 tm;
+
+    matrix_mul_matrix(tm, mp, m1);
+
+    for (i = 0; i < 3; i++)
+    {
+        for (j = 0; j < 3; j++)
+        {
+            if (RT_FABS(tm[i][j] - iden_m[i][j]) > 0.00001)
+            {
+                k = 1;
+                break;
+            }
+        }
+    }
+
+    if (k == 0)
+    {
+        return;
+    }
+
+    RT_LOGE("Original matrix\n");
+
+    for (i = 0; i < 4; i++)
+    {
+        for (j = 0; j < 4; j++)
+        {
+            RT_LOGE("%f ", m1[j][i]);
+        }
+        RT_LOGE("\n");
+    }
+
+    RT_LOGE("Inverted matrix\n");
+
+    for (i = 0; i < 4; i++)
+    {
+        for (j = 0; j < 4; j++)
+        {
+            RT_LOGE("%f ", mp[j][i]);
+        }
+        RT_LOGE("\n");
+    }
+
+    throw rt_Exception("Inverted matrix mismatch detected.");
+#endif /* RT_DEBUG */
+}
+
 /******************************************************************************/
 /******************************************************************************/
 /******************************************************************************/
