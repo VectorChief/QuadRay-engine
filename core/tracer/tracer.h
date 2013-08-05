@@ -181,8 +181,14 @@ struct rt_SIMD_CONTEXT
     rt_real ray_z[4];
 #define ctx_RAY_Z           DP(0x060)
 
-    rt_word pad01[12];
-#define ctx_PAD01           DP(0x070)
+    rt_real ray_i[4];
+#define ctx_RAY_I           DP(0x070)
+
+    rt_real ray_j[4];
+#define ctx_RAY_J           DP(0x080)
+
+    rt_real ray_k[4];
+#define ctx_RAY_K           DP(0x090)
 
     /* diff */
 
@@ -197,8 +203,14 @@ struct rt_SIMD_CONTEXT
     rt_real dff_z[4];
 #define ctx_DFF_Z           DP(0x0C0)
 
-    rt_word pad02[12];
-#define ctx_PAD02           DP(0x0D0)
+    rt_real dff_i[4];
+#define ctx_DFF_I           DP(0x0D0)
+
+    rt_real dff_j[4];
+#define ctx_DFF_J           DP(0x0E0)
+
+    rt_real dff_k[4];
+#define ctx_DFF_K           DP(0x0F0)
 
     /* surface coords
      * for texturing */
@@ -286,8 +298,17 @@ struct rt_SIMD_CONTEXT
     rt_real nrm_z[4];
 #define ctx_NRM_Z           DP(0x260)
 
-    rt_word pad05[36];
-#define ctx_PAD05           DP(0x270)
+    rt_real nrm_i[4];
+#define ctx_NRM_I           DP(0x270)
+
+    rt_real nrm_j[4];
+#define ctx_NRM_J           DP(0x280)
+
+    rt_real nrm_k[4];
+#define ctx_NRM_K           DP(0x290)
+
+    rt_word pad05[24];
+#define ctx_PAD05           DP(0x2A0)
 
     /* hit, overlapping next context,
      * new origin */
@@ -319,8 +340,14 @@ struct rt_SIMD_CONTEXT
     rt_real new_z[4];
 #define ctx_NEW_Z           DP(0x360)
 
-    rt_word pad06[12];
-#define ctx_PAD06           DP(0x370)
+    rt_real new_i[4];
+#define ctx_NEW_I           DP(0x370)
+
+    rt_real new_j[4];
+#define ctx_NEW_J           DP(0x380)
+
+    rt_real new_k[4];
+#define ctx_NEW_K           DP(0x390)
 
 };
 
@@ -522,10 +549,45 @@ struct rt_SIMD_SURFACE
     rt_pntr lst_p[4];
 #define srf_LST_P(nx)       DP(0x130 + nx)
 
+    /* transform coeffs */
+
+    rt_real tci_x[4];
+#define srf_TCI_X           DP(0x140)
+
+    rt_real tci_y[4];
+#define srf_TCI_Y           DP(0x150)
+
+    rt_real tci_z[4];
+#define srf_TCI_Z           DP(0x160)
+
+
+    rt_real tcj_x[4];
+#define srf_TCJ_X           DP(0x170)
+
+    rt_real tcj_y[4];
+#define srf_TCJ_Y           DP(0x180)
+
+    rt_real tcj_z[4];
+#define srf_TCJ_Z           DP(0x190)
+
+
+    rt_real tck_x[4];
+#define srf_TCK_X           DP(0x1A0)
+
+    rt_real tck_y[4];
+#define srf_TCK_Y           DP(0x1B0)
+
+    rt_real tck_z[4];
+#define srf_TCK_Z           DP(0x1C0)
+
+
+    rt_real c_one[4];
+#define srf_C_ONE           DP(0x1D0)
+
     /* reserved area 2 */
 
-    rt_word pad02[48];
-#define srf_PAD02           DP(0x140)
+    rt_real pad02[8];
+#define srf_PAD02           DP(0x1E0)
 
 };
 
@@ -670,7 +732,7 @@ struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
 
 struct rt_SIMD_MATERIAL
 {
-    /* texture scaling */
+    /* texture transform */
 
     rt_real xscal[4];
 #define mat_XSCAL           DP(0x000)
