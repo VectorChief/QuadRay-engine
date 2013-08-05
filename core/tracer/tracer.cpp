@@ -27,6 +27,7 @@
 #define RT_TRANSPARENCY         1
 #define RT_REFRACTIONS          1
 #define RT_ANTIALIASING         1
+#define RT_TRANSFORM            1
 
 /* Byte-offsets within SIMD-field
  * for packed scalar fields.
@@ -520,6 +521,93 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm2, Mecx, ctx_DFF_Y)
         movpx_st(Xmm3, Mecx, ctx_DFF_Z)
 
+#if RT_TRANSFORM
+
+        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        jeqxx_lb(OO_rot)
+
+        /* transform diff */
+
+        movpx_ld(Xmm0, Mebx, srf_TCI_X)
+        mulps_rr(Xmm0, Xmm1)
+        movpx_rr(Xmm4, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCI_Y)
+        mulps_rr(Xmm0, Xmm2)
+        addps_rr(Xmm4, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCI_Z)
+        mulps_rr(Xmm0, Xmm3)
+        addps_rr(Xmm4, Xmm0)
+
+        movpx_ld(Xmm0, Mebx, srf_TCJ_X)
+        mulps_rr(Xmm0, Xmm1)
+        movpx_rr(Xmm5, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCJ_Y)
+        mulps_rr(Xmm0, Xmm2)
+        addps_rr(Xmm5, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCJ_Z)
+        mulps_rr(Xmm0, Xmm3)
+        addps_rr(Xmm5, Xmm0)
+
+        movpx_ld(Xmm0, Mebx, srf_TCK_X)
+        mulps_rr(Xmm0, Xmm1)
+        movpx_rr(Xmm6, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCK_Y)
+        mulps_rr(Xmm0, Xmm2)
+        addps_rr(Xmm6, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCK_Z)
+        mulps_rr(Xmm0, Xmm3)
+        addps_rr(Xmm6, Xmm0)
+
+        movpx_st(Xmm4, Mecx, ctx_DFF_I)
+        movpx_st(Xmm5, Mecx, ctx_DFF_J)
+        movpx_st(Xmm6, Mecx, ctx_DFF_K)
+
+        /* transform ray */
+
+        movpx_ld(Xmm1, Mecx, ctx_RAY_X)
+        movpx_ld(Xmm2, Mecx, ctx_RAY_Y)
+        movpx_ld(Xmm3, Mecx, ctx_RAY_Z)
+
+        movpx_ld(Xmm4, Mebx, srf_TCI_X)
+        movpx_ld(Xmm5, Mebx, srf_TCI_Y)
+        movpx_ld(Xmm6, Mebx, srf_TCI_Z)
+
+        mulps_rr(Xmm4, Xmm1)
+        mulps_rr(Xmm5, Xmm2)
+        mulps_rr(Xmm6, Xmm3)
+
+        addps_rr(Xmm4, Xmm5)
+        addps_rr(Xmm4, Xmm6)
+        movpx_st(Xmm4, Mecx, ctx_RAY_I)
+
+        movpx_ld(Xmm4, Mebx, srf_TCJ_X)
+        movpx_ld(Xmm5, Mebx, srf_TCJ_Y)
+        movpx_ld(Xmm6, Mebx, srf_TCJ_Z)
+
+        mulps_rr(Xmm4, Xmm1)
+        mulps_rr(Xmm5, Xmm2)
+        mulps_rr(Xmm6, Xmm3)
+
+        addps_rr(Xmm4, Xmm5)
+        addps_rr(Xmm4, Xmm6)
+        movpx_st(Xmm4, Mecx, ctx_RAY_J)
+
+        movpx_ld(Xmm4, Mebx, srf_TCK_X)
+        movpx_ld(Xmm5, Mebx, srf_TCK_Y)
+        movpx_ld(Xmm6, Mebx, srf_TCK_Z)
+
+        mulps_rr(Xmm4, Xmm1)
+        mulps_rr(Xmm5, Xmm2)
+        mulps_rr(Xmm6, Xmm3)
+
+        addps_rr(Xmm4, Xmm5)
+        addps_rr(Xmm4, Xmm6)
+        movpx_st(Xmm4, Mecx, ctx_RAY_K)
+
+    LBL(OO_rot)
+
+#endif /* RT_TRANSFORM */
+
         jmpxx_mm(Mebx, srf_SRF_P(PTR))
 
     LBL(fetch_ptr)
@@ -560,6 +648,22 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
 
+#if RT_TRANSFORM
+
+        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        jeqxx_lb(CX_rot)
+
+        movpx_ld(Xmm4, Mecx, ctx_RAY_I)         /* ray_i <- RAY_I */
+        mulps_ld(Xmm4, Mecx, ctx_T_VAL(0))      /* ray_i *= t_rt1 */
+        subps_ld(Xmm4, Mecx, ctx_DFF_I)         /* ray_i -= DFF_I */
+        movpx_st(Xmm4, Mecx, ctx_NEW_I)         /* loc_i -> NEW_I */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+
+    LBL(CX_rot)
+
+#endif /* RT_TRANSFORM */
+
 #if RT_CLIPPING_MINMAX
 
         CHECK_CLIP(CX_min, MIN_T, RT_X)
@@ -590,6 +694,22 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
 
+#if RT_TRANSFORM
+
+        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        jeqxx_lb(CY_rot)
+
+        movpx_ld(Xmm5, Mecx, ctx_RAY_J)         /* ray_j <- RAY_J */
+        mulps_ld(Xmm5, Mecx, ctx_T_VAL(0))      /* ray_j *= t_rt1 */
+        subps_ld(Xmm5, Mecx, ctx_DFF_J)         /* ray_j -= DFF_J */
+        movpx_st(Xmm5, Mecx, ctx_NEW_J)         /* loc_j -> NEW_J */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+
+    LBL(CY_rot)
+
+#endif /* RT_TRANSFORM */
+
 #if RT_CLIPPING_MINMAX
 
         CHECK_CLIP(CY_min, MIN_T, RT_Y)
@@ -619,6 +739,22 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm6, Mecx, ctx_NEW_Z)         /* loc_z -> NEW_Z */
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
+
+#if RT_TRANSFORM
+
+        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        jeqxx_lb(CZ_rot)
+
+        movpx_ld(Xmm6, Mecx, ctx_RAY_K)         /* ray_k <- RAY_K */
+        mulps_ld(Xmm6, Mecx, ctx_T_VAL(0))      /* ray_k *= t_rt1 */
+        subps_ld(Xmm6, Mecx, ctx_DFF_K)         /* ray_k -= DFF_K */
+        movpx_st(Xmm6, Mecx, ctx_NEW_K)         /* loc_k -> NEW_K */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+
+    LBL(CZ_rot)
+
+#endif /* RT_TRANSFORM */
 
 #if RT_CLIPPING_MINMAX
 
@@ -666,6 +802,51 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use context's normal fields (NRM)
          * as temporary storage for clipping */
 
+#if RT_TRANSFORM
+
+        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        jeqxx_lb(CC_rot)
+
+        /* transform clip */
+
+        movpx_ld(Xmm0, Mebx, srf_TCI_X)
+        mulps_rr(Xmm0, Xmm1)
+        movpx_rr(Xmm4, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCI_Y)
+        mulps_rr(Xmm0, Xmm2)
+        addps_rr(Xmm4, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCI_Z)
+        mulps_rr(Xmm0, Xmm3)
+        addps_rr(Xmm4, Xmm0)
+
+        movpx_ld(Xmm0, Mebx, srf_TCJ_X)
+        mulps_rr(Xmm0, Xmm1)
+        movpx_rr(Xmm5, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCJ_Y)
+        mulps_rr(Xmm0, Xmm2)
+        addps_rr(Xmm5, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCJ_Z)
+        mulps_rr(Xmm0, Xmm3)
+        addps_rr(Xmm5, Xmm0)
+
+        movpx_ld(Xmm0, Mebx, srf_TCK_X)
+        mulps_rr(Xmm0, Xmm1)
+        movpx_rr(Xmm6, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCK_Y)
+        mulps_rr(Xmm0, Xmm2)
+        addps_rr(Xmm6, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCK_Z)
+        mulps_rr(Xmm0, Xmm3)
+        addps_rr(Xmm6, Xmm0)
+
+        movpx_st(Xmm4, Mecx, ctx_NRM_I)
+        movpx_st(Xmm5, Mecx, ctx_NRM_J)
+        movpx_st(Xmm6, Mecx, ctx_NRM_K)
+
+    LBL(CC_rot)
+
+#endif /* RT_TRANSFORM */
+
         jmpxx_mm(Mebx, srf_SRF_P(CLP))
 
     LBL(CC_ret)
@@ -690,6 +871,86 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
 
     LBL(MT_mat)
+
+#if RT_TRANSFORM
+
+        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        jeqxx_lb(MT_nrm)
+
+        /* transform normal */
+
+        movpx_ld(Xmm1, Mecx, ctx_NRM_I)
+        movpx_ld(Xmm2, Mecx, ctx_NRM_J)
+        movpx_ld(Xmm3, Mecx, ctx_NRM_K)
+
+        movpx_ld(Xmm4, Mebx, srf_TCI_X)
+        movpx_ld(Xmm5, Mebx, srf_TCJ_X)
+        movpx_ld(Xmm6, Mebx, srf_TCK_X)
+
+        mulps_rr(Xmm4, Xmm1)
+        mulps_rr(Xmm5, Xmm2)
+        mulps_rr(Xmm6, Xmm3)
+
+        addps_rr(Xmm4, Xmm5)
+        addps_rr(Xmm4, Xmm6)
+        movpx_st(Xmm4, Mecx, ctx_NRM_X)
+
+        movpx_ld(Xmm4, Mebx, srf_TCI_Y)
+        movpx_ld(Xmm5, Mebx, srf_TCJ_Y)
+        movpx_ld(Xmm6, Mebx, srf_TCK_Y)
+
+        mulps_rr(Xmm4, Xmm1)
+        mulps_rr(Xmm5, Xmm2)
+        mulps_rr(Xmm6, Xmm3)
+
+        addps_rr(Xmm5, Xmm4)
+        addps_rr(Xmm5, Xmm6)
+        movpx_st(Xmm5, Mecx, ctx_NRM_Y)
+
+        movpx_ld(Xmm4, Mebx, srf_TCI_Z)
+        movpx_ld(Xmm5, Mebx, srf_TCJ_Z)
+        movpx_ld(Xmm6, Mebx, srf_TCK_Z)
+
+        mulps_rr(Xmm4, Xmm1)
+        mulps_rr(Xmm5, Xmm2)
+        mulps_rr(Xmm6, Xmm3)
+
+        addps_rr(Xmm6, Xmm4)
+        addps_rr(Xmm6, Xmm5)
+        movpx_st(Xmm6, Mecx, ctx_NRM_Z)
+
+        /* renormalize normal */
+
+        movpx_ld(Xmm4, Mecx, ctx_NRM_X)
+        movpx_ld(Xmm5, Mecx, ctx_NRM_Y)
+        movpx_ld(Xmm6, Mecx, ctx_NRM_Z)
+
+        movpx_rr(Xmm1, Xmm4)
+        mulps_rr(Xmm1, Xmm4)
+
+        movpx_rr(Xmm2, Xmm5)
+        mulps_rr(Xmm2, Xmm5)
+
+        movpx_rr(Xmm3, Xmm6)
+        mulps_rr(Xmm3, Xmm6)
+
+        addps_rr(Xmm1, Xmm2)
+        addps_rr(Xmm1, Xmm3)
+
+        rsqps_rr(Xmm0, Xmm1)
+
+        mulps_rr(Xmm4, Xmm0)
+        movpx_st(Xmm4, Mecx, ctx_NRM_X)
+
+        mulps_rr(Xmm5, Xmm0)
+        movpx_st(Xmm5, Mecx, ctx_NRM_Y)
+
+        mulps_rr(Xmm6, Xmm0)
+        movpx_st(Xmm6, Mecx, ctx_NRM_Z)
+
+    LBL(MT_nrm)
+
+#endif /* RT_TRANSFORM */
 
         movxx_st(Resi, Mecx, ctx_LOCAL(LST))
 
