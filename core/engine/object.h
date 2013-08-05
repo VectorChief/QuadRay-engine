@@ -122,6 +122,7 @@ class rt_Object
     rt_OBJECT          *obj;
     rt_TRANSFORM3D     *trm;
 
+    rt_mat4             inv;
     rt_mat4             mtx;
     rt_real            *pos;
     rt_cell             tag;
@@ -248,10 +249,13 @@ class rt_Surface : public rt_Object, public rt_List<rt_Surface>
     rt_cell             mp_j;
     rt_cell             mp_k;
 
-    /* bounding box - all sides clipped or non-clipped are boundaries */
+    /* bounding box,
+     * all sides clipped or non-clipped are boundaries */
     rt_vec3             bmin;
     rt_vec3             bmax;
-    /* clipping box - non-clipped sides are at respective +/-infinity */
+
+    /* clipping box,
+     * non-clipped sides are at respective +/-infinity */
     rt_vec3             cmin;
     rt_vec3             cmax;
 
@@ -263,6 +267,10 @@ class rt_Surface : public rt_Object, public rt_List<rt_Surface>
     rt_Material        *inner;
 
     protected:
+
+    /* enables generic matrix transform if non-zero,
+     * selects aux vector sets in backend structures */
+    rt_cell             shift;
 
     rt_cell             map[3];
     rt_cell             sgn[3];

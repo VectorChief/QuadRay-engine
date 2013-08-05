@@ -393,6 +393,8 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
 
     this->srf = (rt_SURFACE *)obj->obj.pobj;
 
+    this->shift = 0;
+
 /*  rt_SIMD_SURFACE */
 
     s_srf = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
@@ -427,6 +429,8 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
 
     RT_SIMD_SET(s_srf->sbase, 0x00000000);
     RT_SIMD_SET(s_srf->smask, 0x80000000);
+
+    RT_SIMD_SET(s_srf->c_one, 1.0f);
 }
 
 rt_void rt_Surface::add_relation(rt_ELEM *lst)
@@ -495,11 +499,17 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         }
     }
 
+    shift = 0;
+
     if (match < 3
-    ||  RT_FABS(scl[RT_X] - 1.0f) > 0.0001f
-    ||  RT_FABS(scl[RT_Y] - 1.0f) > 0.0001f
-    ||  RT_FABS(scl[RT_Z] - 1.0f) > 0.0001f)
+    /* axis scaling goes through generic
+     * matrix transform for now (slow) */
+    ||  scl[RT_X] != 1.0f
+    ||  scl[RT_Y] != 1.0f
+    ||  scl[RT_Z] != 1.0f)
     {
+        shift = 3;
+
         map[RT_I] = RT_X;
         sgn[RT_I] = 1;
         scl[RT_X] = 1.0f;
@@ -521,10 +531,10 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     update_minmax();
 
-    s_srf->a_map[RT_I] = mp_i << 4;
-    s_srf->a_map[RT_J] = mp_j << 4;
-    s_srf->a_map[RT_K] = mp_k << 4;
-    s_srf->a_map[RT_L] = 0;
+    s_srf->a_map[RT_I] = (mp_i + shift) << 4;
+    s_srf->a_map[RT_J] = (mp_j + shift) << 4;
+    s_srf->a_map[RT_K] = (mp_k + shift) << 4;
+    s_srf->a_map[RT_L] = shift > 0 ? 1 : 0;
 
     s_srf->a_sgn[RT_I] = (sgn[RT_I] > 0 ? 0 : 1) << 4;
     s_srf->a_sgn[RT_J] = (sgn[RT_J] > 0 ? 0 : 1) << 4;
@@ -539,17 +549,37 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     s_srf->max_t[RT_Y] = cmax[RT_Y] == +RT_INF ? 0 : 1;
     s_srf->max_t[RT_Z] = cmax[RT_Z] == +RT_INF ? 0 : 1;
 
-    RT_SIMD_SET(s_srf->min_x, bmin[RT_X] - pos[RT_X]);
-    RT_SIMD_SET(s_srf->min_y, bmin[RT_Y] - pos[RT_Y]);
-    RT_SIMD_SET(s_srf->min_z, bmin[RT_Z] - pos[RT_Z]);
+    rt_vec3  zro = {0.0f, 0.0f, 0.0f};
+    rt_real *pps = shift > 0 ? zro : pos;
 
-    RT_SIMD_SET(s_srf->max_x, bmax[RT_X] - pos[RT_X]);
-    RT_SIMD_SET(s_srf->max_y, bmax[RT_Y] - pos[RT_Y]);
-    RT_SIMD_SET(s_srf->max_z, bmax[RT_Z] - pos[RT_Z]);
+    RT_SIMD_SET(s_srf->min_x, bmin[RT_X] - pps[RT_X]);
+    RT_SIMD_SET(s_srf->min_y, bmin[RT_Y] - pps[RT_Y]);
+    RT_SIMD_SET(s_srf->min_z, bmin[RT_Z] - pps[RT_Z]);
+
+    RT_SIMD_SET(s_srf->max_x, bmax[RT_X] - pps[RT_X]);
+    RT_SIMD_SET(s_srf->max_y, bmax[RT_Y] - pps[RT_Y]);
+    RT_SIMD_SET(s_srf->max_z, bmax[RT_Z] - pps[RT_Z]);
 
     RT_SIMD_SET(s_srf->pos_x, pos[RT_X]);
     RT_SIMD_SET(s_srf->pos_y, pos[RT_Y]);
     RT_SIMD_SET(s_srf->pos_z, pos[RT_Z]);
+
+    if (shift > 0)
+    {
+        matrix_inverse(this->inv, this->mtx);
+
+        RT_SIMD_SET(s_srf->tci_x, this->inv[RT_X][RT_I]);
+        RT_SIMD_SET(s_srf->tci_y, this->inv[RT_Y][RT_I]);
+        RT_SIMD_SET(s_srf->tci_z, this->inv[RT_Z][RT_I]);
+
+        RT_SIMD_SET(s_srf->tcj_x, this->inv[RT_X][RT_J]);
+        RT_SIMD_SET(s_srf->tcj_y, this->inv[RT_Y][RT_J]);
+        RT_SIMD_SET(s_srf->tcj_z, this->inv[RT_Z][RT_J]);
+
+        RT_SIMD_SET(s_srf->tck_x, this->inv[RT_X][RT_K]);
+        RT_SIMD_SET(s_srf->tck_y, this->inv[RT_Y][RT_K]);
+        RT_SIMD_SET(s_srf->tck_z, this->inv[RT_Z][RT_K]);
+    }
 }
 
 rt_void rt_Surface::direct_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
@@ -573,13 +603,16 @@ rt_void rt_Surface::direct_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
     tmax[RT_Y] = tmax[RT_Y] == +RT_INF ? +RT_INF : tmax[RT_Y] * scl[RT_Y];
     tmax[RT_Z] = tmax[RT_Z] == +RT_INF ? +RT_INF : tmax[RT_Z] * scl[RT_Z];
 
-    dmin[RT_X] = tmin[RT_X] == -RT_INF ? -RT_INF : tmin[RT_X] + pos[RT_X];
-    dmin[RT_Y] = tmin[RT_Y] == -RT_INF ? -RT_INF : tmin[RT_Y] + pos[RT_Y];
-    dmin[RT_Z] = tmin[RT_Z] == -RT_INF ? -RT_INF : tmin[RT_Z] + pos[RT_Z];
+    rt_vec3  zro = {0.0f, 0.0f, 0.0f};
+    rt_real *pps = shift > 0 ? zro : pos;
 
-    dmax[RT_X] = tmax[RT_X] == +RT_INF ? +RT_INF : tmax[RT_X] + pos[RT_X];
-    dmax[RT_Y] = tmax[RT_Y] == +RT_INF ? +RT_INF : tmax[RT_Y] + pos[RT_Y];
-    dmax[RT_Z] = tmax[RT_Z] == +RT_INF ? +RT_INF : tmax[RT_Z] + pos[RT_Z];
+    dmin[RT_X] = tmin[RT_X] == -RT_INF ? -RT_INF : tmin[RT_X] + pps[RT_X];
+    dmin[RT_Y] = tmin[RT_Y] == -RT_INF ? -RT_INF : tmin[RT_Y] + pps[RT_Y];
+    dmin[RT_Z] = tmin[RT_Z] == -RT_INF ? -RT_INF : tmin[RT_Z] + pps[RT_Z];
+
+    dmax[RT_X] = tmax[RT_X] == +RT_INF ? +RT_INF : tmax[RT_X] + pps[RT_X];
+    dmax[RT_Y] = tmax[RT_Y] == +RT_INF ? +RT_INF : tmax[RT_Y] + pps[RT_Y];
+    dmax[RT_Z] = tmax[RT_Z] == +RT_INF ? +RT_INF : tmax[RT_Z] + pps[RT_Z];
 }
 
 rt_void rt_Surface::update_minmax()
