@@ -1,3 +1,9 @@
+v0.4.0: Geometry transform, free-angle rotation and axis scaling
+  - add transform matrix to backend structures, object classes
+  - add inverse matrix computation to geometry utils
+  - implement transform in rendering backend
+  - add transform to scene data, adjust formatting
+
 v0.3.6: Lighting & effects, full screen anti-aliasing
   - add anti-aliasing mode to backend structures, scene management
   - implement anti-aliasing in rendering backend
