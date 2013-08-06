@@ -273,6 +273,7 @@ struct rt_SIMD_CONTEXT
     rt_cell xmask[4];
 #define ctx_XMASK           DP(0x1F0)
 
+
     rt_cell xtmp1[4];
 #define ctx_XTMP1           DP(0x200)
 
@@ -282,8 +283,8 @@ struct rt_SIMD_CONTEXT
     rt_cell xtmp3[4];
 #define ctx_XTMP3           DP(0x220)
 
-    rt_word pad04[4];
-#define ctx_PAD04           DP(0x230)
+    rt_cell c_tmp[4];
+#define ctx_C_TMP           DP(0x230)
 
     /* normal */
 
@@ -484,10 +485,10 @@ struct rt_SIMD_SURFACE
     rt_real pos_z[4];
 #define srf_POS_Z           DP(0x020)
 
-    /* reserved area 1 */
+    /* constant for clipping */
 
-    rt_word pad01[4];
-#define srf_PAD01           DP(0x030)
+    rt_cell c_tmp[4];
+#define srf_C_TMP           DP(0x030)
 
     /* axis min clippers */
 
@@ -580,14 +581,10 @@ struct rt_SIMD_SURFACE
     rt_real tck_z[4];
 #define srf_TCK_Z           DP(0x1C0)
 
+    /* reserved area 1 */
 
-    rt_real c_one[4];
-#define srf_C_ONE           DP(0x1D0)
-
-    /* reserved area 2 */
-
-    rt_real pad02[8];
-#define srf_PAD02           DP(0x1E0)
+    rt_real pad01[12];
+#define srf_PAD01           DP(0x1D0)
 
 };
 
