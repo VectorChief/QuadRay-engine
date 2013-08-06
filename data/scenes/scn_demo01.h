@@ -147,7 +147,7 @@ rt_OBJECT ob_base01[] =
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    0.5,        1.0,        1.0    },
-/* rot */   {    0.0,        0.0,        0.0    },
+/* rot */   {    0.0,      -10.0,        0.0    },
 /* pos */   {   -4.5,       -4.5,        0.0    },
         },
         RT_OBJ_ARRAY(&ob_column01)
@@ -155,7 +155,7 @@ rt_OBJECT ob_base01[] =
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    0.5,        1.0,        1.0    },
-/* rot */   {    0.0,        0.0,        0.0    },
+/* rot */   {    0.0,      +10.0,        0.0    },
 /* pos */   {   +4.5,       -4.5,        0.0    },
         },
         RT_OBJ_ARRAY(&ob_column01)
