@@ -233,6 +233,9 @@ rt_void rt_Light::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 /**********************************   ARRAY   *********************************/
 /******************************************************************************/
 
+#define RT_ACCUM_ENTER  -1
+#define RT_ACCUM_LEAVE  +1
+
 rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 
     rt_Object(parent, obj)
@@ -305,12 +308,21 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
     {
         rt_RELATION *rel = obj->obj.prel;
 
+        rt_ELEM *lst = RT_NULL;
+        rt_cell acc  = 0;
+
+        rt_Object **obj_arr_l = obj_arr; /* left  sub-array */
+        rt_Object **obj_arr_r = obj_arr; /* right sub-array */
+
+        rt_cell     obj_num_l = obj_num; /* left  sub-array size */
+        rt_cell     obj_num_r = obj_num; /* right sub-array size */
+
         rt_cell i;
 
         for (i = 0; i < obj->obj.rel_num; i++)
         {
-            if (rel[i].obj1 >= obj_num
-            ||  rel[i].obj2 >= obj_num)
+            if (rel[i].obj1 >= obj_num_l
+            ||  rel[i].obj2 >= obj_num_r)
             {
                 continue;
             }
@@ -319,15 +331,70 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 
             switch (rel[i].rel)
             {
+                case RT_REL_INDEX_ARRAY:
+                if (rel[i].obj1 >= 0 && rel[i].obj2 >= -1)
+                {
+                    rt_Object *obj = (rt_Object *)obj_arr_l[rel[i].obj1];
+
+                    if (RT_IS_ARRAY(obj))
+                    {
+                        rt_Array *arr = (rt_Array *)obj;
+                        obj_arr_l = arr->obj_arr; /* select left  sub-array */
+                        obj_num_l = arr->obj_num;   /* for next left  index */
+                    }
+                }
+                if (rel[i].obj1 >= -1 && rel[i].obj2 >= 0)
+                {
+                    rt_Object *obj = (rt_Object *)obj_arr_r[rel[i].obj2];
+
+                    if (RT_IS_ARRAY(obj))
+                    {
+                        rt_Array *arr = (rt_Array *)obj;
+                        obj_arr_r = arr->obj_arr; /* select right sub-array */
+                        obj_num_r = arr->obj_num;   /* for next right index */
+                    }
+                }
+                break;
+
                 case RT_REL_MINUS_INNER:
                 case RT_REL_MINUS_OUTER:
-                if (rel[i].obj1 >= 0 && rel[i].obj2 >= 0)
+                if (rel[i].obj1 == -1 && rel[i].obj2 >= 0 && acc == 0)
+                {
+                    acc = 1;
+                    elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
+                    elm->data = RT_ACCUM_ENTER;
+                    elm->simd = RT_NULL;
+                    elm->temp = RT_NULL; /* accum marker */
+                    elm->next = lst;
+                    lst = elm;
+                }
+                if (rel[i].obj1 >= -1 && rel[i].obj2 >= 0)
                 {
                     elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
                     elm->data = rel[i].rel;
                     elm->simd = RT_NULL;
-                    elm->temp = obj_arr[rel[i].obj2];
+                    elm->temp = obj_arr_r[rel[i].obj2];
                     elm->next = RT_NULL;
+                    obj_arr_r = obj_arr; /* reset right sub-array after use */
+                    obj_num_r = obj_num;
+                }
+                if (rel[i].obj1 == -1 && rel[i].obj2 >= 0)
+                {
+                    elm->next = lst;
+                    lst = elm;
+                }
+                break;
+
+                case RT_REL_MINUS_ACCUM:
+                if (rel[i].obj1 >= 0 && rel[i].obj2 == -1 && acc == 1)
+                {
+                    acc = 0;
+                    elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
+                    elm->data = RT_ACCUM_LEAVE;
+                    elm->simd = RT_NULL;
+                    elm->temp = RT_NULL; /* accum marker */
+                    elm->next = lst;
+                    lst = RT_NULL;
                 }
                 break;
 
@@ -335,9 +402,11 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
                 break;
             }
 
-            if (elm != RT_NULL)
+            if (rel[i].obj1 >= 0 && elm != RT_NULL)
             {
-                obj_arr[rel[i].obj1]->add_relation(elm);
+                obj_arr_l[rel[i].obj1]->add_relation(elm);
+                obj_arr_l = obj_arr; /* reset left  sub-array after use */
+                obj_num_l = obj_num;
             }
         }
     }
@@ -430,7 +499,7 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_srf->sbase, 0x00000000);
     RT_SIMD_SET(s_srf->smask, 0x80000000);
 
-    RT_SIMD_SET(s_srf->c_one, 1.0f);
+    RT_SIMD_SET(s_srf->c_tmp, 0xFFFFFFFF);
 }
 
 rt_void rt_Surface::add_relation(rt_ELEM *lst)
@@ -443,6 +512,16 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
         rt_cell rel = lst->data;
         rt_Object *obj = (rt_Object *)lst->temp;
 
+        if (obj == RT_NULL)
+        {
+            elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
+            elm->data = rel;
+            elm->simd = RT_NULL; /* accum marker */
+            elm->temp = RT_NULL;
+            elm->next = (rt_ELEM *)s_srf->msc_p[2];
+            s_srf->msc_p[2] = elm;
+        }
+        else
         if (RT_IS_ARRAY(obj))
         {
             rt_Array *arr = (rt_Array *)obj;
