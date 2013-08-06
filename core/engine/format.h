@@ -43,6 +43,8 @@
 
 #define RT_REL_MINUS_INNER                 -1 /* subtract srf inner subspace */
 #define RT_REL_MINUS_OUTER                 +1 /* subtract srf outer subspace */
+#define RT_REL_MINUS_ACCUM                  2 /* subtract accum subspace */
+#define RT_REL_INDEX_ARRAY                  3 /* next index in sub-array */
 
 struct rt_RELATION
 {
