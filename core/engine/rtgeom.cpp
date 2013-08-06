@@ -192,7 +192,7 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
     {
         for (j = 0; j < 3; j++)
         {
-            if (RT_FABS(tm[i][j] - iden_m[i][j]) > 0.00001)
+            if (RT_FABS(tm[i][j] - iden4[i][j]) > 0.00001)
             {
                 k = 1;
                 break;
