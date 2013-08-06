@@ -17,6 +17,7 @@
  */
 #define RT_CLIPPING_MINMAX      1
 #define RT_CLIPPING_CUSTOM      1
+#define RT_CLIPPING_ACCUM       1
 #define RT_TEXTURING            1
 #define RT_NORMALS              1
 #define RT_LIGHTING             1
@@ -787,6 +788,28 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jeqxx_lb(CC_out)
 
         movxx_ld(Rebx, Medi, elm_SIMD)
+
+#if RT_CLIPPING_ACCUM
+
+        cmpxx_ri(Rebx, IB(0))                   /* check accum marker */
+        jnexx_lb(CC_acc)
+
+        cmpxx_mi(Medi, elm_DATA, IB(0))         /* check accum enter/leave */
+        jgtxn_lb(CC_acl)                        /* signed comparison */
+
+        movpx_st(Xmm7, Mecx, ctx_C_TMP)         /* save current clip mask */
+        movxx_ld(Rebx, Mesi, elm_SIMD)
+        movpx_ld(Xmm7, Mebx, srf_C_TMP)         /* load default clip mask */
+        jmpxx_lb(CC_end)                        /* accum enter */
+
+    LBL(CC_acl)
+
+        annpx_ld(Xmm7, Mecx, ctx_C_TMP)         /* apply accum clip mask */
+        jmpxx_lb(CC_end)                        /* accum leave */
+
+    LBL(CC_acc)
+
+#endif /* RT_CLIPPING_ACCUM */
 
         movpx_ld(Xmm1, Mecx, ctx_HIT_X)
         movpx_ld(Xmm2, Mecx, ctx_HIT_Y)
