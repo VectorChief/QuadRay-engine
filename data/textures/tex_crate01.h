@@ -8,7 +8,7 @@
  * Original texture source:
  * http://free-texture-site.blogspot.ru/search/label/Crate
  */
-rt_word dt_crate01[256][256] =
+rt_word dt_tex_crate01[256][256] =
 {
     0x00574D4C, 0x005D5352, 0x00594F4E, 0x005F5554, 0x005F5554, 0x005B5150,
     0x004E4744, 0x00443F3B, 0x0046413D, 0x004A4541, 0x003F3A36, 0x00514C48,

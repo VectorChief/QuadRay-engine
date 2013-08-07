@@ -10,7 +10,7 @@
 #include "format.h"
 
 #if RT_EMBED_TEX == 1
-#include "crate01.h"
+#include "tex_crate01.h"
 #endif /* RT_EMBED_TEX */
 
 #endif /* RT_ALL_TEX_H */

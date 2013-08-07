@@ -241,6 +241,10 @@ SOURCE=.\data\scenes\scn_demo01.h
 
 SOURCE=.\data\textures\all_tex.h
 # End Source File
+# Begin Source File
+
+SOURCE=.\data\textures\tex_crate01.h
+# End Source File
 # End Group
 # End Group
 # End Target

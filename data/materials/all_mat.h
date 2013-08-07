@@ -45,9 +45,9 @@ rt_MATERIAL mt_crate01 =
     RT_MAT(PLAIN),
 
 #if RT_EMBED_TEX == 1
-    RT_TEX_BIND(PCOLOR, &dt_crate01),
+    RT_TEX_BIND(PCOLOR, &dt_tex_crate01),
 #else /* RT_EMBED_TEX */
-    RT_TEX_LOAD(PCOLOR, "crate01.bmp"),
+    RT_TEX_LOAD(PCOLOR, "tex_crate01.bmp"),
 #endif /* RT_EMBED_TEX */
 
     {/* dff     spc     pow */
