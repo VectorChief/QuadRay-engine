@@ -1,3 +1,12 @@
+v0.4.1: Geometry transform, custom clipping with accumulator
+  - add clipping accum to backend structures, scene format, object classes
+  - add sub-array indexing to scene format, object classes
+  - implement clipping accum in rendering backend
+  - fix texture load macro, add texture crate01, texture embedding flag
+  - add box object to scene data, material for crate01, red01, adjust ambient
+  - add scene namespaces to resolve name collisions
+  - add clipping accum with boxes, quadric shapes to scene data
+
 v0.4.0: Geometry transform, free-angle rotation and axis scaling
   - add transform matrix to backend structures, object classes
   - add inverse matrix computation to geometry utils
