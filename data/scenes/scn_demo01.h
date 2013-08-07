@@ -134,6 +134,41 @@ rt_OBJECT ob_column01[] =
     },
 };
 
+rt_OBJECT ob_column02[] =
+{
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {    0.0,        0.0,        0.0    },
+        },
+        RT_OBJ_CYLINDER(&cl_tube01)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {    0.0,        0.0,        3.0    },
+        },
+        RT_OBJ_SPHERE(&sp_ball03)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        0.2,        0.2    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {    0.0,        0.0,        1.0    },
+        },
+        RT_OBJ_ARRAY(&ob_cube01)
+    },
+};
+
+rt_RELATION rl_column02[] =
+{
+    {  -1,  RT_REL_MINUS_OUTER,   2   },
+    {   0,  RT_REL_MINUS_ACCUM,  -1   },
+    {   2,  RT_REL_MINUS_OUTER,   0   },
+};
+
 rt_OBJECT ob_base01[] =
 {
     {
@@ -146,19 +181,19 @@ rt_OBJECT ob_base01[] =
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    0.5,        1.0,        1.0    },
-/* rot */   {    0.0,      -10.0,        0.0    },
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   -4.5,       -4.5,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_column01)
+        RT_OBJ_ARRAY_REL(&ob_column02, &rl_column02)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    0.5,        1.0,        1.0    },
-/* rot */   {    0.0,      +10.0,        0.0    },
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   +4.5,       -4.5,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_column01)
+        RT_OBJ_ARRAY_REL(&ob_column02, &rl_column02)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -179,24 +214,32 @@ rt_OBJECT ob_base01[] =
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {   55.0,        0.0,        0.0    },
-/* pos */   {    0.0,        4.5,        0.7    },
+/* rot */   { -125.0,        0.0,        0.0    },
+/* pos */   {    0.0,       +4.5,        0.7    },
         },
         RT_OBJ_PLANE(&pl_pane01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {   55.0,        0.0,        0.0    },
-/* pos */   {    0.0,        4.5,        1.7    },
+/* rot */   { -125.0,        0.0,        0.0    },
+/* pos */   {    0.0,       +4.5,        1.7    },
         },
         RT_OBJ_PLANE(&pl_pane01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {   55.0,        0.0,        0.0    },
-/* pos */   {    0.0,        4.5,        2.7    },
+/* rot */   { -125.0,        0.0,        0.0    },
+/* pos */   {    0.0,       +4.5,        2.7    },
+        },
+        RT_OBJ_PLANE(&pl_pane01)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {   90.0,        0.0,        0.0    },
+/* pos */   {    0.0,       -4.5,        2.7    },
         },
         RT_OBJ_PLANE(&pl_pane01)
     },
@@ -292,7 +335,7 @@ rt_CONE cn_cone01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_plain01_orange01,
+/* mat */   &mt_plain01_red01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -510,6 +553,14 @@ rt_OBJECT ob_tree[] =
 /* pos */   {    0.0,        7.5,        1.5    },
         },
         RT_OBJ_SPHERE(&sp_ball04),
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,       15.0    },
+/* pos */   {    0.0,       -7.5,        1.0    },
+        },
+        RT_OBJ_ARRAY(&ob_cube01),
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */

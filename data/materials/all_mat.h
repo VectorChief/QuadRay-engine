@@ -226,6 +226,34 @@ rt_MATERIAL mt_plain01_pink01 =
     },
 };
 
+rt_MATERIAL mt_red01 =
+{
+    RT_MAT(PLAIN),
+
+    RT_TEX(PCOLOR, 0xFFF63F2F),
+
+    {/* dff     spc     pow */
+        1.0,    0.0,    1.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    0.0,    1.0
+    },
+};
+
+rt_MATERIAL mt_plain01_red01 =
+{
+    RT_MAT(PLAIN),
+
+    RT_TEX(PCOLOR, 0xFFF63F2F),
+
+    {/* dff     spc     pow */
+        0.5,    0.5,   32.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    0.0,    1.0
+    },
+};
+
 rt_MATERIAL mt_white01 =
 {
     RT_MAT(PLAIN),
