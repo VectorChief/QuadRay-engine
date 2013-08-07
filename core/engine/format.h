@@ -124,7 +124,7 @@ struct rt_COL
 #define RT_TEX_LOAD(tag, pstr)                                              \
 {                                                                           \
     RT_TEX_##tag,           RT_COL(0x0),                                    \
-    pstr,                   0,                                              \
+    (rt_pntr)pstr,          0,                                              \
     RT_NULL,                0,                                              \
     0,                      0                                               \
 }
