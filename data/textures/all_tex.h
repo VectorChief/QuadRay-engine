@@ -9,6 +9,7 @@
 
 #include "format.h"
 
+#include "crate01.h"
 
 #endif /* RT_ALL_TEX_H */
 
