@@ -96,13 +96,25 @@ struct rt_COL
 /*********************************   TEXTURE   ********************************/
 /******************************************************************************/
 
-#define RT_TEX_PCOLOR                       0   /* plain-color, XRGB */
-#define RT_TEX_ACOLOR                       1   /* alpha-color, ARGB */
-#define RT_TEX_PALPHA                       2   /* plain-alpha, A    */
+#define RT_TEX_PCOLOR                       0   /* plain-color,     XRGB */
+#define RT_TEX_ACOLOR                       1   /* alpha-color,     ARGB */
+#define RT_TEX_PALPHA                       2   /* plain-alpha,     A    */
+#define RT_TEX_NORMAL                       3   /* normal map,      TBD  */
+#define RT_TEX_SPECUL                       4   /* specular map,    TBD  */
+#define RT_TEX_REFLEC                       5   /* reflection map,  TBD  */
+#define RT_TEX_REFRAC                       6   /* refraction map,  TBD  */
+#define RT_TEX_LUMINA                       7   /* luminosity map,  TBD  */
+#define RT_TEX_DETAIL                       8   /* detail texture,  TBD  */
 
-#define RT_TEX_HDR_PCOLOR                   10  /* plain-color, XRGB */
-#define RT_TEX_HDR_ACOLOR                   11  /* alpha-color, ARGB */
-#define RT_TEX_HDR_PALPHA                   12  /* plain-alpha, A    */
+#define RT_TEX_HDR_PCOLOR                   10  /* plain-color,     XRGB */
+#define RT_TEX_HDR_ACOLOR                   11  /* alpha-color,     ARGB */
+#define RT_TEX_HDR_PALPHA                   12  /* plain-alpha,     A    */
+#define RT_TEX_HDR_NORMAL                   13  /* normal map,      TBD  */
+#define RT_TEX_HDR_SPECUL                   14  /* specular map,    TBD  */
+#define RT_TEX_HDR_REFLEC                   15  /* reflection map,  TBD  */
+#define RT_TEX_HDR_REFRAC                   16  /* refraction map,  TBD  */
+#define RT_TEX_HDR_LUMINA                   17  /* luminosity map,  TBD  */
+#define RT_TEX_HDR_DETAIL                   18  /* detail texture,  TBD  */
 
 /* default HDR format is 32-bit fp, add other variants later if needed */
 
