@@ -13,6 +13,10 @@
 
 #define RT_PATH_TEXTURES    "data/textures/"
 
+#if RT_EMBED == 1
+#define RT_EMBED_TEX        1
+#endif /* RT_EMBED */
+
 #endif /* RT_RTCONF_H */
 
 /******************************************************************************/

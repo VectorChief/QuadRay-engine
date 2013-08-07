@@ -27,5 +27,5 @@ LIB_LIST =                          \
 
 RooT:
 	g++ -O3 -g \
-        -DRT_X86 -DRT_DEBUG=0 -DRT_EMBED=0 -DRT_FULLSCREEN=0 \
+        -DRT_X86 -DRT_DEBUG=0 -DRT_EMBED=0 -DRT_EMBED_TEX=1 -DRT_FULLSCREEN=0 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x86
