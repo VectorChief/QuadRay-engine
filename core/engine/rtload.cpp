@@ -14,7 +14,7 @@
 /******************************************************************************/
 
 /* Convert texture from file to static array initializer.
- * Parameter fullpath must be editable char array.
+ * Parameter "fullpath" must be editable char array.
  */
 rt_void convert_texture(rt_char *fullpath)
 {
@@ -95,8 +95,8 @@ rt_void convert_texture(rt_char *fullpath)
         for (len = len - 4; len > 0 && fullpath[len - 1] != '\\'
                                     && fullpath[len - 1] != '/'; len--);
 
-        o->print("rt_word  dt_%s[%d][%d] =\n", &fullpath[len],
-                                                bheight, bwidth);
+        o->print("rt_word dt_%s[%d][%d] =\n", &fullpath[len],
+                                               bheight, bwidth);
         o->print("{");
 
         n = bwidth * bheight;
