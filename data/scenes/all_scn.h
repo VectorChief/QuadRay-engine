@@ -9,6 +9,7 @@
 
 #include "format.h"
 
+#include "scn_demo01.h"
 
 #endif /* RT_ALL_SCN_H */
 

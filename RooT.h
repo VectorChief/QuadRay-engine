@@ -6,7 +6,9 @@
 
 #include "rtload.h"
 #include "engine.h"
+
 #include "scn_demo01.h"
+using namespace scn_demo01;
 
 #define RT_X_RES    800
 #define RT_Y_RES    480

@@ -12,6 +12,9 @@
 #include "all_mat.h"
 #include "all_obj.h"
 
+namespace scn_demo01
+{
+
 /******************************************************************************/
 /**********************************   BASE   **********************************/
 /******************************************************************************/
@@ -503,31 +506,6 @@ rt_void an_light01(rt_long time, rt_long last_time,
 /**********************************   TREE   **********************************/
 /******************************************************************************/
 
-rt_SPHERE sp_ball04 =
-{
-    {      /*   RT_I,       RT_J,       RT_K    */
-/* min */   {  -RT_INF,    -RT_INF,    -RT_INF  },
-/* max */   {  +RT_INF,    +RT_INF,    +RT_INF  },
-        {
-/* OUTER        RT_U,       RT_V    */
-/* scl */   {    1.0,        1.0    },
-/* rot */              0.0           ,
-/* pos */   {    0.0,        0.0    },
-
-/* mat */   &mt_white01,
-        },
-        {
-/* INNER        RT_U,       RT_V    */
-/* scl */   {    1.0,        1.0    },
-/* rot */              0.0           ,
-/* pos */   {    0.0,        0.0    },
-
-/* mat */   &mt_gray01,
-        },
-    },
-/* rad */   1.5,
-};
-
 rt_OBJECT ob_tree[] =
 {
     {
@@ -552,7 +530,7 @@ rt_OBJECT ob_tree[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {    0.0,        7.5,        1.5    },
         },
-        RT_OBJ_SPHERE(&sp_ball04),
+        RT_OBJ_SPHERE(&::sp_ball01),
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -590,6 +568,8 @@ rt_SCENE sc_root =
 {
     RT_OBJ_ARRAY(&ob_tree),
 };
+
+} /* namespace scn_demo01 */
 
 #endif /* RT_SCN_DEMO01_H */
 
