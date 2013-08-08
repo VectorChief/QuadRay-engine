@@ -18,6 +18,7 @@
  * - tex for PCOLOR, ACOLOR
  * - trn for PALPHA
  * - nrm for NORMAL
+ * - dff for DIFFUS
  * - spc for SPECUL
  * - rfl for REFLEC
  * - rfr for REFRAC

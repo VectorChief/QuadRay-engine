@@ -10,6 +10,36 @@
 #include "format.h"
 
 /******************************************************************************/
+/*********************************   LEGEND   *********************************/
+/******************************************************************************/
+
+/* Recommended naming scheme for objects:
+ *
+ * - All object names start with **_ followed by object's specific name,
+ *   where ** is a two-letter code corresponding to object's type, like below:
+ *
+ *   pl_ for PLANE
+ *   cl_ for CYLINDER
+ *   sp_ for SPHERE
+ *   cn_ for CONE
+ *   pb_ for PARABOLOID
+ *   hb_ for HYPERBOLOID
+ *   cm_ for CAMERA
+ *   lt_ for LIGHT
+ *   ob_ for OBJECT array
+ *   an_ for OBJECT's animator function
+ *   sc_ for SCENE
+ *
+ * - If object is constructed from other objects it is recommended to have
+ *   parent's name as prefix in all sub-objects names to avoid name collisions
+ *   in global namespace (for example pl_cube01side01).
+ *
+ * - Complex objects can be placed in separate files obj_*.h, where * is
+ *   objects's name (for example obj_cube01.h), objects names in this
+ *   case follow the same rules as described above (for example ob_cube01)
+ */
+
+/******************************************************************************/
 /**********************************   BOXES   *********************************/
 /******************************************************************************/
 
@@ -171,7 +201,7 @@ rt_SPHERE sp_bulb01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_bulb01,
+/* mat */   &mt_light01_bulb01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -179,7 +209,7 @@ rt_SPHERE sp_bulb01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_bulb01,
+/* mat */   &mt_light01_bulb01,
         },
     },
 /* rad */   0.05,

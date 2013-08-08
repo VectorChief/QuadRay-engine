@@ -78,7 +78,7 @@ rt_CYLINDER cl_tube01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_metal01_pink01,
+/* mat */   &mt_metal02_pink01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -103,7 +103,7 @@ rt_SPHERE sp_ball03 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_metal01_pink01,
+/* mat */   &mt_metal02_pink01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -263,7 +263,7 @@ rt_SPHERE sp_ball01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_metal02_cyan01,
+/* mat */   &mt_metal01_cyan01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -363,7 +363,7 @@ rt_CONE cn_cone01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_plain01_red01,
+/* mat */   &mt_plain02_red01,
         },
         {
 /* INNER        RT_U,       RT_V    */

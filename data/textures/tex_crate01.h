@@ -4,6 +4,9 @@
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
 
+#ifndef RT_TEX_CRATE01_H
+#define RT_TEX_CRATE01_H
+
 /* Texture data below was converted with "./RooT.x86 -t <fullpath>" option.
  * Original texture source:
  * http://free-texture-site.blogspot.ru/search/label/Crate
@@ -10934,6 +10937,8 @@ rt_word dt_tex_crate01[256][256] =
     0x0038372E, 0x0048493B, 0x0037342E, 0x00383231, 0x004A463B, 0x003B372C,
     0x003E372D, 0x00474036, 0x00484137, 0x0050493F,
 };
+
+#endif /* RT_TEX_CRATE01_H */
 
 /******************************************************************************/
 /******************************************************************************/

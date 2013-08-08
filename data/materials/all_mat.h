@@ -34,6 +34,10 @@
  *   or particular combination of bitmaps for texture arrays.
  *   It is recommended to use the same numbers for identical colors or
  *   texture sets across all materials.
+ *
+ * - Complex materials can be placed in separate files mat_*.h, where * is
+ *   material's name (for example mat_crate01.h), materials names in this
+ *   case follow the same rules as described above (for example mt_crate01)
  */
 
 /******************************************************************************/
@@ -62,7 +66,7 @@ rt_MATERIAL mt_crate01 =
 /**********************************   TILES   *********************************/
 /******************************************************************************/
 
-rt_word dt_tile01[2][2] =
+rt_word dt_tex_tile01[2][2] =
 {
     0xFFFFFFFF, 0xFF888800,
     0xFF222222, 0xFFFFFFFF,
@@ -72,7 +76,7 @@ rt_MATERIAL mt_tile01 =
 {
     RT_MAT(PLAIN),
 
-    RT_TEX_BIND(PCOLOR, &dt_tile01),
+    RT_TEX_BIND(PCOLOR, &dt_tex_tile01),
 
     {/* dff     spc     pow */
         1.0,    0.0,    1.0
@@ -177,14 +181,14 @@ rt_MATERIAL mt_orange01 =
     RT_TEX(PCOLOR, 0xFFFF8F00),
 
     {/* dff     spc     pow */
-        0.5,    0.5,   32.0
+        1.0,    0.0,    1.0
     },
     {/* rfl     trn     rfr */
         0.0,    0.0,    1.0
     },
 };
 
-rt_MATERIAL mt_plain01_orange01 =
+rt_MATERIAL mt_plain02_orange01 =
 {
     RT_MAT(PLAIN),
 
@@ -212,7 +216,7 @@ rt_MATERIAL mt_pink01 =
     },
 };
 
-rt_MATERIAL mt_plain01_pink01 =
+rt_MATERIAL mt_plain02_pink01 =
 {
     RT_MAT(PLAIN),
 
@@ -240,7 +244,7 @@ rt_MATERIAL mt_red01 =
     },
 };
 
-rt_MATERIAL mt_plain01_red01 =
+rt_MATERIAL mt_plain02_red01 =
 {
     RT_MAT(PLAIN),
 
@@ -272,17 +276,17 @@ rt_MATERIAL mt_white01 =
 /**********************************   METAL   *********************************/
 /******************************************************************************/
 
-rt_MATERIAL mt_metal01_orange01 =
+rt_MATERIAL mt_metal01_cyan01 =
 {
     RT_MAT(METAL),
 
-    RT_TEX(PCOLOR, 0xFFFF8F00),
+    RT_TEX(PCOLOR, 0xFFA0F0D0),
 
     {/* dff     spc     pow */
-        0.5,    0.5,   32.0
+        1.0,    0.0,    1.0
     },
     {/* rfl     trn     rfr */
-        0.0,    0.0,    1.0
+        0.5,    0.0,    1.0
     },
 };
 
@@ -291,6 +295,20 @@ rt_MATERIAL mt_metal01_pink01 =
     RT_MAT(METAL),
 
     RT_TEX(PCOLOR, 0xFFF6C6C6),
+
+    {/* dff     spc     pow */
+        1.0,    0.0,    1.0
+    },
+    {/* rfl     trn     rfr */
+        0.5,    0.0,    1.0
+    },
+};
+
+rt_MATERIAL mt_metal02_orange01 =
+{
+    RT_MAT(METAL),
+
+    RT_TEX(PCOLOR, 0xFFFF8F00),
 
     {/* dff     spc     pow */
         0.5,    0.5,   32.0
@@ -307,24 +325,10 @@ rt_MATERIAL mt_metal02_pink01 =
     RT_TEX(PCOLOR, 0xFFF6C6C6),
 
     {/* dff     spc     pow */
-        1.0,    0.0,    1.0
+        0.5,    0.5,   32.0
     },
     {/* rfl     trn     rfr */
-        0.5,    0.0,    1.0
-    },
-};
-
-rt_MATERIAL mt_metal02_cyan01 =
-{
-    RT_MAT(METAL),
-
-    RT_TEX(PCOLOR, 0xFFA0F0D0),
-
-    {/* dff     spc     pow */
-        1.0,    0.0,    1.0
-    },
-    {/* rfl     trn     rfr */
-        0.5,    0.0,    1.0
+        0.0,    0.0,    1.0
     },
 };
 
@@ -378,7 +382,7 @@ rt_MATERIAL mt_glass01_to_air_blue02 =
 /**********************************   LIGHT   *********************************/
 /******************************************************************************/
 
-rt_MATERIAL mt_bulb01 =
+rt_MATERIAL mt_light01_bulb01 =
 {
     RT_MAT(LIGHT),
 
