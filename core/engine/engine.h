@@ -77,11 +77,13 @@ class rt_Scene : public rt_Registry
    ~rt_Scene();
 
     rt_void     insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf);
+
     rt_ELEM*    ssort(rt_Object *obj);
     rt_ELEM*    lsort(rt_Object *obj);
 
     rt_void     update(rt_long time, rt_cell action);
     rt_void     render(rt_long time);
+
     rt_void     render_fps(rt_word x, rt_word y,
                            rt_cell d, rt_word z, rt_word num);
 

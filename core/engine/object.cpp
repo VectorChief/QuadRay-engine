@@ -562,6 +562,8 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     rt_cell i, j;
 
+    /* determine axis mapping for trivial transform
+     * (multiple of 90 degree rotation, +/-1.0 scalers) */
     for (i = 0; i < 3; i++)
     {
         for (j = 0; j < 3; j++)
@@ -580,6 +582,9 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     shift = 0;
 
+    /* if object has non-trivial transform
+     * all rotation and scaling is already in the matrix,
+     * reset axis mapping to identity */
     if (match < 3
     /* axis scaling goes through generic
      * matrix transform for now (slow) */
@@ -602,6 +607,7 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         scl[RT_Z] = 1.0f;
     }
 
+    /* axis mapping shorteners */
     mp_i = map[RT_I];
     mp_j = map[RT_J];
     mp_k = map[RT_K];

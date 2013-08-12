@@ -46,6 +46,9 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     depth = RT_STACK_DEPTH;
     fsaa  = RT_FSAA_NO;
 
+    /* allocate root SIMD structure,
+     * initialize rendering backend */
+
     s_inf = (rt_SIMD_INFOX *)
             alloc(sizeof(rt_SIMD_INFOX),
                             RT_SIMD_ALIGN);
@@ -73,6 +76,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
             alloc(sizeof(rt_SIMD_CONTEXT) + /* +1 context step for shadows */
                             RT_STACK_STEP * (1 + depth),
                             RT_SIMD_ALIGN);
+
+    /* instantiate objects hierarchy */
 
     memset(&rootobj, 0, sizeof(rt_OBJECT));
 
@@ -123,7 +128,7 @@ rt_void rt_Scene::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
 }
 
 /*
- * Build surface lists for a given object "obj".
+ * Build surface lists for a given "obj".
  * Surfaces have separate surface lists for each side.
  */
 rt_ELEM* rt_Scene::ssort(rt_Object *obj)
@@ -157,7 +162,7 @@ rt_ELEM* rt_Scene::ssort(rt_Object *obj)
 }
 
 /*
- * Build light/shadow lists for a given object "obj".
+ * Build light/shadow lists for a given "obj".
  * Surfaces have separate light/shadow lists for each side.
  */
 rt_ELEM* rt_Scene::lsort(rt_Object *obj)
@@ -192,7 +197,15 @@ rt_ELEM* rt_Scene::lsort(rt_Object *obj)
 }
 
 /*
- * Update backend data structures and render the frame for given "time".
+ * Update current camera with given "action" for a given "time".
+ */
+rt_void rt_Scene::update(rt_long time, rt_cell action)
+{
+    cam->update(time, action);
+}
+
+/*
+ * Update backend data structures and render the frame for a given "time".
  */
 rt_void rt_Scene::render(rt_long time)
 {
@@ -363,14 +376,6 @@ rt_void rt_Scene::render(rt_long time)
     s_inf->fsaa  = fsaa;
 
     render0(s_inf);
-}
-
-/*
- * Update current camera with given "action" for given "time".
- */
-rt_void rt_Scene::update(rt_long time, rt_cell action)
-{
-    cam->update(time, action);
 }
 
 /*

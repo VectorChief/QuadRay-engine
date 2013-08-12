@@ -102,6 +102,8 @@ class rt_Registry : public rt_Heap
     rt_Texture     *get_tex() { return tex_head; }
     rt_Material    *get_mat() { return mat_head; }
 
+    /* object's "next" field (from rt_List) must be initialized
+     * with get_* before calling put_*, usually done in constructors. */
     rt_void         put_cam(rt_Camera *cam)     { cam_head = cam; cam_num++; }
     rt_void         put_lgt(rt_Light *lgt)      { lgt_head = lgt; lgt_num++; }
     rt_void         put_srf(rt_Surface *srf)    { srf_head = srf; srf_num++; }
@@ -127,6 +129,8 @@ class rt_Object
     rt_real            *pos;
     rt_cell             tag;
 
+    /* object's immediate parent
+     * in the hierarchy */
     rt_Object          *parent;
 
 /*  methods */
