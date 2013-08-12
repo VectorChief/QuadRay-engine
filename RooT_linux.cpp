@@ -110,14 +110,19 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 
     Window win_root;
     rt_cell win_x = 0, win_y = 0;
+    rt_word win_w = 0, win_h = 0;
     rt_word win_b = 0, win_d = 0;
 
-    XGetGeometry(disp, win, &win_root, &win_x, &win_y,
-                (rt_word *)&x_res, (rt_word *)&y_res,
+    /* Not reliable query mechanism to determine fullscreen window size.
+     * It sporadically returns either original size or fullscreen size,
+     * therefore always use original x_res, y_res for rendering. */
+    XGetGeometry(disp, win, &win_root,
+                &win_x, &win_y,
+                &win_w, &win_h,
                 &win_b, &win_d);
     /*
-    RT_LOGI("XWindow W = %d\n", x_res);
-    RT_LOGI("XWindow H = %d\n", y_res);
+    RT_LOGI("XWindow W = %d\n", win_w);
+    RT_LOGI("XWindow H = %d\n", win_h);
     RT_LOGI("XWindow B = %d\n", win_b);
     RT_LOGI("XWindow D = %d\n", win_d);
     */
@@ -218,7 +223,7 @@ static struct timeval tm;
 /* time counter varibales */
 static rt_long init_time = 0;
 static rt_long last_time = 0;
-static rt_long time = 0;
+static rt_long cur_time = 0;
 static rt_word fps = 0;
 static rt_word cnt = 0;
 
@@ -243,33 +248,33 @@ rt_cell main_step()
     }
 
     gettimeofday(&tm, NULL);
-    time = tm.tv_sec * 1000 + tm.tv_usec / 1000;
+    cur_time = tm.tv_sec * 1000 + tm.tv_usec / 1000;
 
     if (init_time == 0)
     {
-        init_time = time;
+        init_time = cur_time;
     }
 
-    time = time - init_time;
+    cur_time = cur_time - init_time;
     cnt++;
 
-    if (time - last_time >= 500)
+    if (cur_time - last_time >= 500)
     {
-        fps = cnt * 1000 / (time - last_time);
-        RT_LOGI("FPS = %.1f\n", (rt_real)(cnt * 1000) / (time - last_time));
+        fps = cnt * 1000 / (cur_time - last_time);
+        RT_LOGI("FPS = %.1f\n", (rt_real)(cnt * 1000) / (cur_time - last_time));
         cnt = 0;
-        last_time = time;
+        last_time = cur_time;
     }
 
-    if (H_KEYS(XK_w))       scene->update(time, RT_CAMERA_MOVE_FORWARD);
-    if (H_KEYS(XK_s))       scene->update(time, RT_CAMERA_MOVE_BACK);
-    if (H_KEYS(XK_a))       scene->update(time, RT_CAMERA_MOVE_LEFT);
-    if (H_KEYS(XK_d))       scene->update(time, RT_CAMERA_MOVE_RIGHT);
+    if (H_KEYS(XK_w))       scene->update(cur_time, RT_CAMERA_MOVE_FORWARD);
+    if (H_KEYS(XK_s))       scene->update(cur_time, RT_CAMERA_MOVE_BACK);
+    if (H_KEYS(XK_a))       scene->update(cur_time, RT_CAMERA_MOVE_LEFT);
+    if (H_KEYS(XK_d))       scene->update(cur_time, RT_CAMERA_MOVE_RIGHT);
 
-    if (H_KEYS(XK_Up))      scene->update(time, RT_CAMERA_ROTATE_DOWN);
-    if (H_KEYS(XK_Down))    scene->update(time, RT_CAMERA_ROTATE_UP);
-    if (H_KEYS(XK_Left))    scene->update(time, RT_CAMERA_ROTATE_LEFT);
-    if (H_KEYS(XK_Right))   scene->update(time, RT_CAMERA_ROTATE_RIGHT);
+    if (H_KEYS(XK_Up))      scene->update(cur_time, RT_CAMERA_ROTATE_DOWN);
+    if (H_KEYS(XK_Down))    scene->update(cur_time, RT_CAMERA_ROTATE_UP);
+    if (H_KEYS(XK_Left))    scene->update(cur_time, RT_CAMERA_ROTATE_LEFT);
+    if (H_KEYS(XK_Right))   scene->update(cur_time, RT_CAMERA_ROTATE_RIGHT);
 
     if (T_KEYS(XK_F2))      fsaa = RT_FSAA_4X - fsaa;
     if (T_KEYS(XK_Escape))
@@ -280,7 +285,7 @@ rt_cell main_step()
     memset(r_keys, 0, sizeof(r_keys));
 
     scene->set_fsaa(fsaa);
-    scene->render(time);
+    scene->render(cur_time);
     scene->render_fps(x_res - 10, 10, -1, 2, fps);
 
     if (depth == 16)
