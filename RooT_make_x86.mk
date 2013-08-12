@@ -23,7 +23,8 @@ SRC_LIST =                          \
 
 LIB_LIST =                          \
         -lX11                       \
-        -lXext
+        -lXext                      \
+        -lpthread
 
 RooT:
 	g++ -O3 -g \
