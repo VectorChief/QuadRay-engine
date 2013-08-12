@@ -131,7 +131,7 @@ static LARGE_INTEGER fr;
 /* time counter varibales */
 static rt_long init_time = 0;
 static rt_long last_time = 0;
-static rt_long time = 0;
+static rt_long cur_time = 0;
 static rt_word fps = 0;
 static rt_word cnt = 0;
 
@@ -156,33 +156,33 @@ rt_cell main_step()
     }
 
     QueryPerformanceCounter(&tm);
-    time = (rt_long)(tm.QuadPart * 1000 / fr.QuadPart);
+    cur_time = (rt_long)(tm.QuadPart * 1000 / fr.QuadPart);
 
     if (init_time == 0)
     {
-        init_time = time;
+        init_time = cur_time;
     }
 
-    time = time - init_time;
+    cur_time = cur_time - init_time;
     cnt++;
 
-    if (time - last_time >= 500)
+    if (cur_time - last_time >= 500)
     {
-        fps = cnt * 1000 / (time - last_time);
-        RT_LOGI("FPS = %d\n", fps);
+        fps = cnt * 1000 / (cur_time - last_time);
+        RT_LOGI("FPS = %.1f\n", (rt_real)fps);
         cnt = 0;
-        last_time = time;
+        last_time = cur_time;
     }
 
-    if (H_KEYS('W'))        scene->update(time, RT_CAMERA_MOVE_FORWARD);
-    if (H_KEYS('S'))        scene->update(time, RT_CAMERA_MOVE_BACK);
-    if (H_KEYS('A'))        scene->update(time, RT_CAMERA_MOVE_LEFT);
-    if (H_KEYS('D'))        scene->update(time, RT_CAMERA_MOVE_RIGHT);
+    if (H_KEYS('W'))        scene->update(cur_time, RT_CAMERA_MOVE_FORWARD);
+    if (H_KEYS('S'))        scene->update(cur_time, RT_CAMERA_MOVE_BACK);
+    if (H_KEYS('A'))        scene->update(cur_time, RT_CAMERA_MOVE_LEFT);
+    if (H_KEYS('D'))        scene->update(cur_time, RT_CAMERA_MOVE_RIGHT);
 
-    if (H_KEYS(VK_UP))      scene->update(time, RT_CAMERA_ROTATE_DOWN);
-    if (H_KEYS(VK_DOWN))    scene->update(time, RT_CAMERA_ROTATE_UP);
-    if (H_KEYS(VK_LEFT))    scene->update(time, RT_CAMERA_ROTATE_LEFT);
-    if (H_KEYS(VK_RIGHT))   scene->update(time, RT_CAMERA_ROTATE_RIGHT);
+    if (H_KEYS(VK_UP))      scene->update(cur_time, RT_CAMERA_ROTATE_DOWN);
+    if (H_KEYS(VK_DOWN))    scene->update(cur_time, RT_CAMERA_ROTATE_UP);
+    if (H_KEYS(VK_LEFT))    scene->update(cur_time, RT_CAMERA_ROTATE_LEFT);
+    if (H_KEYS(VK_RIGHT))   scene->update(cur_time, RT_CAMERA_ROTATE_RIGHT);
 
     if (T_KEYS(VK_F2))      fsaa = RT_FSAA_4X - fsaa;
     if (T_KEYS(VK_ESCAPE))
@@ -193,7 +193,7 @@ rt_cell main_step()
     memset(r_keys, 0, sizeof(r_keys));
 
     scene->set_fsaa(fsaa);
-    scene->render(time);
+    scene->render(cur_time);
     scene->render_fps(x_res - 10, 10, -1, 2, fps);
 
     SetDIBitsToDevice(hWndDC, 0, 0, x_res, y_res, 0, 0, 0, y_res,
