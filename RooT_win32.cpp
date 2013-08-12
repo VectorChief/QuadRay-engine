@@ -293,7 +293,7 @@ static LARGE_INTEGER fr;
 static rt_long init_time = 0;
 static rt_long last_time = 0;
 static rt_long cur_time = 0;
-static rt_word fps = 0;
+static rt_real fps = 0.0f;
 static rt_word cnt = 0;
 
 /* virtual keys array */
@@ -329,8 +329,8 @@ rt_cell main_step()
 
     if (cur_time - last_time >= 500)
     {
-        fps = cnt * 1000 / (cur_time - last_time);
-        RT_LOGI("FPS = %.1f\n", (rt_real)fps);
+        fps = (rt_real)cnt * 1000 / (cur_time - last_time);
+        RT_LOGI("FPS = %.1f\n", fps);
         cnt = 0;
         last_time = cur_time;
     }
@@ -355,7 +355,7 @@ rt_cell main_step()
 
     scene->set_fsaa(fsaa);
     scene->render(cur_time);
-    scene->render_fps(x_res - 10, 10, -1, 2, fps);
+    scene->render_fps(x_res - 10, 10, -1, 2, (rt_word)fps);
 
     SetDIBitsToDevice(hWndDC, 0, 0, x_res, y_res, 0, 0, 0, y_res,
                                     scene->get_frame(), &DIBinfo, DIB_RGB_COLORS);
