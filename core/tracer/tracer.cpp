@@ -468,7 +468,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /********************************   VER INIT   ********************************/
 /******************************************************************************/
 
-        movxx_mi(Mebp, inf_FRM_Y, IB(0))
+        movxx_ld(Reax, Mebp, inf_INDEX)
+        movxx_st(Reax, Mebp, inf_FRM_Y)
 
     LBL(YY_cyc)
 
@@ -3025,7 +3026,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm2, Medx, cam_DIR_Z)         /* ray_z -> DIR_Z */
         movpx_st(Xmm2, Mecx, ctx_RAY_Z)         /* ray_z -> RAY_Z */
 
-        movxx_ri(Reax, IB(1))
+        movxx_ld(Reax, Mebp, inf_THNUM)
         addxx_st(Reax, Mebp, inf_FRM_Y)
 
         movxx_ld(Reax, Mebp, inf_FRM_Y)

@@ -219,8 +219,6 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     RT_SIMD_SET(s_inf->gpc02, -0.5);
     RT_SIMD_SET(s_inf->gpc03, +3.0);
 
-    s_inf->depth   = depth;
-
     s_inf->frm_w   = x_res;
     s_inf->frm_h   = y_res;
     s_inf->frm_row = x_row;
@@ -481,6 +479,8 @@ rt_void rt_Scene::render_slice(rt_cell index)
     s_inf->cam = s_cam;
     s_inf->lst = slist;
 
+    s_inf->index = index;
+    s_inf->thnum = thnum;
     s_inf->depth = depth;
     s_inf->fsaa  = fsaa;
 

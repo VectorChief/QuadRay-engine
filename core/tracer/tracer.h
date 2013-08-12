@@ -60,14 +60,21 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
 #define inf_FRAME           DP(0x11C)
 
 
+    rt_cell index;
+#define inf_INDEX           DP(0x120)
+
+    rt_word thnum;
+#define inf_THNUM           DP(0x124)
+
     rt_word depth;
-#define inf_DEPTH           DP(0x120)
+#define inf_DEPTH           DP(0x128)
 
     rt_cell fsaa;
-#define inf_FSAA            DP(0x124)
+#define inf_FSAA            DP(0x12C)
 
-    rt_word pad11[6];
-#define inf_PAD11           DP(0x128)
+
+    rt_word pad11[4];
+#define inf_PAD11           DP(0x130)
 
     /* internal variables */
 
