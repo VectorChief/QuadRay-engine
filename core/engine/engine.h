@@ -23,7 +23,41 @@
 
 /* Classes */
 
+class rt_SceneThread;
 class rt_Scene;
+
+/******************************************************************************/
+/*********************************   THREAD   *********************************/
+/******************************************************************************/
+
+class rt_SceneThread : public rt_Heap
+{
+/*  fields */
+
+    public:
+
+    rt_Scene           *scene;
+    rt_cell             index;
+
+    rt_SIMD_CAMERA     *s_cam;
+    rt_SIMD_CONTEXT    *s_ctx;
+
+/*  methods */
+
+    public:
+
+    rt_SceneThread(rt_Scene *scene, rt_cell index);
+
+    rt_void     insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf);
+
+    rt_ELEM*    ssort(rt_Object *obj);
+    rt_ELEM*    lsort(rt_Object *obj);
+};
+
+typedef rt_pntr (*rt_FUNC_INIT)(rt_cell thnum, rt_Scene *scn);
+typedef rt_void (*rt_FUNC_TERM)(rt_pntr tdata, rt_cell thnum);
+typedef rt_void (*rt_FUNC_UPDATE)(rt_pntr tdata, rt_cell thnum);
+typedef rt_void (*rt_FUNC_RENDER)(rt_pntr tdata, rt_cell thnum);
 
 /******************************************************************************/
 /**********************************   SCENE   *********************************/
@@ -44,8 +78,14 @@ class rt_Scene : public rt_Registry
     rt_word            *frame;
 
     rt_SIMD_INFOX      *s_inf;
-    rt_SIMD_CAMERA     *s_cam;
-    rt_SIMD_CONTEXT    *s_ctx;
+    rt_word             thnum;
+    rt_SceneThread    **tharr;
+    rt_pntr             tdata;
+
+    rt_FUNC_INIT        f_init;
+    rt_FUNC_TERM        f_term;
+    rt_FUNC_UPDATE      f_update;
+    rt_FUNC_RENDER      f_render;
 
     rt_ELEM            *slist;
     rt_ELEM            *llist;
@@ -72,23 +112,25 @@ class rt_Scene : public rt_Registry
 
     rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
              rt_word x_res, rt_word y_res, rt_cell x_row, rt_word *frame,
-             rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free);
+             rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
+             rt_FUNC_INIT f_init = 0, rt_FUNC_TERM f_term = 0,
+             rt_FUNC_UPDATE f_update = 0, rt_FUNC_RENDER f_render = 0);
 
    ~rt_Scene();
 
-    rt_void     insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf);
-
-    rt_ELEM*    ssort(rt_Object *obj);
-    rt_ELEM*    lsort(rt_Object *obj);
-
     rt_void     update(rt_long time, rt_cell action);
     rt_void     render(rt_long time);
+
+    rt_void     update_slice(rt_cell index);
+    rt_void     render_slice(rt_cell index);
 
     rt_void     render_fps(rt_word x, rt_word y,
                            rt_cell d, rt_word z, rt_word num);
 
     rt_word*    get_frame();
     rt_void     set_fsaa(rt_cell fsaa);
+
+    friend      class rt_SceneThread;
 };
 
 #endif /* RT_ENGINE_H */

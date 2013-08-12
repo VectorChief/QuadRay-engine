@@ -11,12 +11,172 @@
 #include "system.h"
 
 /******************************************************************************/
+/*********************************   THREAD   *********************************/
+/******************************************************************************/
+
+rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_cell index) :
+
+    rt_Heap(scene->f_alloc, scene->f_free)
+{
+    this->scene = scene;
+    this->index = index;
+
+    s_cam = (rt_SIMD_CAMERA *)
+            alloc(sizeof(rt_SIMD_CAMERA),
+                            RT_SIMD_ALIGN);
+
+    s_ctx = (rt_SIMD_CONTEXT *)
+            alloc(sizeof(rt_SIMD_CONTEXT) + /* +1 context step for shadows */
+                            RT_STACK_STEP * (1 + scene->depth),
+                            RT_SIMD_ALIGN);
+}
+
+/*
+ * Insert new element derived from "srf" to a list "ptr"
+ * for a given object "obj". If "srf" is NULL and "obj" is LIGHT,
+ * insert new element derived from "obj" to a list "ptr".
+ */
+rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
+{
+    rt_ELEM *elm = RT_NULL;
+
+    if (srf != RT_NULL)
+    {
+        elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+        elm->data = 0;
+        elm->simd = srf->s_srf;
+        elm->temp = srf;
+        elm->next = *ptr;
+       *ptr = elm;
+    }
+    else
+    if (obj->tag == RT_TAG_LIGHT)
+    {
+        elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+        elm->data = 0;
+        elm->simd = ((rt_Light *)obj)->s_lgt;
+        elm->temp = scene->slist; /* all srf are potential shadows */
+        elm->next = *ptr;
+       *ptr = elm;
+    }
+}
+
+/*
+ * Build surface lists for a given "obj".
+ * Surfaces have separate surface lists for each side.
+ */
+rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
+{
+    rt_Surface *srf = RT_NULL;
+    rt_ELEM **pto = RT_NULL;
+    rt_ELEM **pti = RT_NULL;
+
+    if (RT_IS_SURFACE(obj))
+    {
+        srf = (rt_Surface *)obj;
+
+        pto = (rt_ELEM**)&srf->s_srf->lst_p[1];
+        pti = (rt_ELEM**)&srf->s_srf->lst_p[3];
+
+       *pto = scene->slist;
+       *pti = scene->slist;
+
+        return RT_NULL;
+    }
+
+    rt_ELEM *lst = RT_NULL;
+    rt_ELEM **ptr = &lst;
+
+    for (srf = scene->srf_head; srf != RT_NULL; srf = srf->next)
+    {
+        insert(obj, ptr, srf);
+    }
+
+    return lst;
+}
+
+/*
+ * Build light/shadow lists for a given "obj".
+ * Surfaces have separate light/shadow lists for each side.
+ */
+rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
+{
+    rt_Surface *srf = RT_NULL;
+    rt_ELEM **pto = RT_NULL;
+    rt_ELEM **pti = RT_NULL;
+
+    if (RT_IS_SURFACE(obj))
+    {
+        srf = (rt_Surface *)obj;
+
+        pto = (rt_ELEM **)&srf->s_srf->lst_p[0];
+        pti = (rt_ELEM **)&srf->s_srf->lst_p[2];
+
+       *pto = scene->llist;
+       *pti = scene->llist;
+
+        return RT_NULL;
+    }
+
+    rt_Light *lgt = RT_NULL;
+    rt_ELEM *lst = RT_NULL;
+    rt_ELEM **ptr = &lst;
+
+    for (lgt = scene->lgt_head; lgt != RT_NULL; lgt = lgt->next)
+    {
+        insert(lgt, ptr, RT_NULL);
+    }
+
+    return lst;
+}
+
+static
+rt_void* init_threads(rt_cell thnum, rt_Scene *scn)
+{
+    return scn;
+}
+
+static
+rt_void term_threads(rt_void *tdata, rt_cell thnum)
+{
+
+}
+
+static
+rt_void update_scene(rt_void *tdata, rt_cell thnum)
+{
+    rt_Scene *scn = (rt_Scene *)tdata;
+
+    rt_cell i;
+
+    for (i = 0; i < thnum; i++)
+    {
+        scn->update_slice(i);
+    }
+}
+
+static
+rt_void render_scene(rt_void *tdata, rt_cell thnum)
+{
+    rt_Scene *scn = (rt_Scene *)tdata;
+
+    rt_cell i;
+
+    for (i = 0; i < thnum; i++)
+    {
+        scn->render_slice(i);
+    }
+}
+
+/******************************************************************************/
 /**********************************   SCENE   *********************************/
 /******************************************************************************/
 
 rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
                    rt_word x_res, rt_word y_res, rt_cell x_row, rt_word *frame,
-                   rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free) : 
+                   rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
+                   rt_FUNC_INIT f_init, rt_FUNC_TERM f_term,
+                   rt_FUNC_UPDATE f_update, rt_FUNC_RENDER f_render) : 
 
     rt_Registry(f_alloc, f_free)
 {
@@ -68,14 +228,37 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
 
     render0(s_inf);
 
-    s_cam = (rt_SIMD_CAMERA *)
-            alloc(sizeof(rt_SIMD_CAMERA),
-                            RT_SIMD_ALIGN);
+    /* create worker threads */
 
-    s_ctx = (rt_SIMD_CONTEXT *)
-            alloc(sizeof(rt_SIMD_CONTEXT) + /* +1 context step for shadows */
-                            RT_STACK_STEP * (1 + depth),
-                            RT_SIMD_ALIGN);
+    if (f_init != RT_NULL && f_term != RT_NULL
+    &&  f_update != RT_NULL && f_render != RT_NULL)
+    {
+        this->f_init = f_init;
+        this->f_term = f_term;
+        this->f_update = f_update;
+        this->f_render = f_render;
+    }
+    else
+    {
+        this->f_init = init_threads;
+        this->f_term = term_threads;
+        this->f_update = update_scene;
+        this->f_render = render_scene;
+    }
+
+    thnum = RT_THREADS_NUM;
+
+    tharr = (rt_SceneThread **)
+            alloc(sizeof(rt_SceneThread *) * thnum,
+                            RT_ALIGN);
+    rt_cell i;
+
+    for (i = 0; i < thnum; i++)
+    {
+        tharr[i] = new rt_SceneThread(this, i);
+    }
+
+    tdata = this->f_init(thnum, this);
 
     /* instantiate objects hierarchy */
 
@@ -90,110 +273,11 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     cam  = cam_head;
 
     /* setup surface list */
-    slist = ssort(cam);
+    slist = tharr[0]->ssort(cam);
 
     /* setup light/shadow list,
      * slist is needed inside */
-    llist = lsort(cam);
-}
-
-/*
- * Insert new element derived from "srf" to a list "ptr"
- * for a given object "obj". If "srf" is NULL and "obj" is LIGHT,
- * insert new element derived from "obj" to a list "ptr".
- */
-rt_void rt_Scene::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
-{
-    rt_ELEM *elm = RT_NULL;
-
-    if (srf != RT_NULL)
-    {
-        elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
-        elm->data = 0;
-        elm->simd = srf->s_srf;
-        elm->temp = srf;
-        elm->next = *ptr;
-       *ptr = elm;
-    }
-    else
-    if (obj->tag == RT_TAG_LIGHT)
-    {
-        elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
-        elm->data = 0;
-        elm->simd = ((rt_Light *)obj)->s_lgt;
-        elm->temp = slist; /* all srf are potential shadows */
-        elm->next = *ptr;
-       *ptr = elm;
-    }
-}
-
-/*
- * Build surface lists for a given "obj".
- * Surfaces have separate surface lists for each side.
- */
-rt_ELEM* rt_Scene::ssort(rt_Object *obj)
-{
-    rt_Surface *srf = RT_NULL;
-    rt_ELEM **pto = RT_NULL;
-    rt_ELEM **pti = RT_NULL;
-
-    if (RT_IS_SURFACE(obj))
-    {
-        srf = (rt_Surface *)obj;
-
-        pto = (rt_ELEM**)&srf->s_srf->lst_p[1];
-        pti = (rt_ELEM**)&srf->s_srf->lst_p[3];
-
-       *pto = slist;
-       *pti = slist;
-
-        return RT_NULL;
-    }
-
-    rt_ELEM *lst = RT_NULL;
-    rt_ELEM **ptr = &lst;
-
-    for (srf = srf_head; srf != RT_NULL; srf = srf->next)
-    {
-        insert(obj, ptr, srf);
-    }
-
-    return lst;
-}
-
-/*
- * Build light/shadow lists for a given "obj".
- * Surfaces have separate light/shadow lists for each side.
- */
-rt_ELEM* rt_Scene::lsort(rt_Object *obj)
-{
-    rt_Surface *srf = RT_NULL;
-    rt_ELEM **pto = RT_NULL;
-    rt_ELEM **pti = RT_NULL;
-
-    if (RT_IS_SURFACE(obj))
-    {
-        srf = (rt_Surface *)obj;
-
-        pto = (rt_ELEM **)&srf->s_srf->lst_p[0];
-        pti = (rt_ELEM **)&srf->s_srf->lst_p[2];
-
-       *pto = llist;
-       *pti = llist;
-
-        return RT_NULL;
-    }
-
-    rt_Light *lgt = RT_NULL;
-    rt_ELEM *lst = RT_NULL;
-    rt_ELEM **ptr = &lst;
-
-    for (lgt = lgt_head; lgt != RT_NULL; lgt = lgt->next)
-    {
-        insert(lgt, ptr, RT_NULL);
-    }
-
-    return lst;
+    llist = tharr[0]->lsort(cam);
 }
 
 /*
@@ -213,19 +297,9 @@ rt_void rt_Scene::render(rt_long time)
 
     root->update(time, iden4, 0);
 
-    rt_Surface *srf = RT_NULL;
+    /* multi-threaded update */
 
-    for (srf = srf_head; srf != RT_NULL; srf = srf->next)
-    {
-        /* setup surface lists */
-        ssort(srf);
-
-        /* setup light/shadow lists */
-        lsort(srf);
-
-        /* update backend-related parts */
-        update0(srf->s_srf);
-    }
+    this->f_update(tdata, thnum);
 
     /* prepare for rendering */
 
@@ -270,45 +344,6 @@ rt_void rt_Scene::render(rt_long time)
     dir[RT_Y] += (hor[RT_Y] + ver[RT_Y]) * 0.5f;
     dir[RT_Z] += (hor[RT_Z] + ver[RT_Z]) * 0.5f;
 
-    /* adjust ray steppers according to anti-aliasing mode */
-
-    rt_real fdh[4], fdv[4];
-    rt_real fhr, fvr;
-
-    if (fsaa == RT_FSAA_4X)
-    {
-        rt_real As = 0.25f;
-        rt_real Ar = 0.08f;
-
-        fdh[0] = (-Ar-As);
-        fdh[1] = (-Ar+As);
-        fdh[2] = (+Ar-As);
-        fdh[3] = (+Ar+As);
-
-        fdv[0] = (+Ar-As);
-        fdv[1] = (-Ar-As);
-        fdv[2] = (+Ar+As);
-        fdv[3] = (-Ar+As);
-
-        fhr = 1.0f;
-        fvr = 1.0f;
-    }
-    else
-    {
-        fdh[0] = 0.0f;
-        fdh[1] = 1.0f;
-        fdh[2] = 2.0f;
-        fdh[3] = 3.0f;
-
-        fdv[0] = 0.0f;
-        fdv[1] = 0.0f;
-        fdv[2] = 0.0f;
-        fdv[3] = 0.0f;
-
-        fhr = 4.0f;
-        fvr = 1.0f;
-    }
-
     /* accumulate ambient from camera and all light sources */
 
     amb[RT_R] = cam->cam->col.hdr[RT_R] * cam->cam->lum[0];
@@ -324,7 +359,79 @@ rt_void rt_Scene::render(rt_long time)
         amb[RT_B] += lgt->lgt->col.hdr[RT_B] * lgt->lgt->lum[0];
     }
 
+    /* multi-threaded render */
+
+    this->f_render(tdata, thnum);
+}
+
+rt_void rt_Scene::update_slice(rt_cell index)
+{
+    rt_cell i;
+
+    rt_Surface *srf = RT_NULL;
+
+    for (srf = srf_head, i = 0; srf != RT_NULL; srf = srf->next, i++)
+    {
+        if ((i % thnum) != index)
+        {
+            continue;
+        }
+
+        /* setup surface lists */
+        tharr[index]->ssort(srf);
+
+        /* setup light/shadow lists */
+        tharr[index]->lsort(srf);
+
+        /* update backend-related parts */
+        update0(srf->s_srf);
+    }
+}
+
+rt_void rt_Scene::render_slice(rt_cell index)
+{
+    /* adjust ray steppers according to anti-aliasing mode */
+
+    rt_real fdh[4], fdv[4];
+    rt_real fhr, fvr;
+
+    if (fsaa == RT_FSAA_4X)
+    {
+        rt_real as = 0.25f;
+        rt_real ar = 0.08f;
+
+        fdh[0] = (-ar-as);
+        fdh[1] = (-ar+as);
+        fdh[2] = (+ar-as);
+        fdh[3] = (+ar+as);
+
+        fdv[0] = (+ar-as) + index;
+        fdv[1] = (-ar-as) + index;
+        fdv[2] = (+ar+as) + index;
+        fdv[3] = (-ar+as) + index;
+
+        fhr = 1.0f;
+        fvr = 1.0f;
+    }
+    else
+    {
+        fdh[0] = 0.0f;
+        fdh[1] = 1.0f;
+        fdh[2] = 2.0f;
+        fdh[3] = 3.0f;
+
+        fdv[0] = (rt_real)index;
+        fdv[1] = (rt_real)index;
+        fdv[2] = (rt_real)index;
+        fdv[3] = (rt_real)index;
+
+        fhr = 4.0f;
+        fvr = 1.0f;
+    }
+
 /*  rt_SIMD_CAMERA */
+
+    rt_SIMD_CAMERA *s_cam = tharr[index]->s_cam;
 
     RT_SIMD_SET(s_cam->t_max, RT_INF);
 
@@ -359,6 +466,8 @@ rt_void rt_Scene::render(rt_long time)
     RT_SIMD_SET(s_cam->col_b, amb[RT_B]);
 
 /*  rt_SIMD_CONTEXT */
+
+    rt_SIMD_CONTEXT *s_ctx = tharr[index]->s_ctx;
 
     RT_SIMD_SET(s_ctx->t_min, cam->pov);
 
@@ -396,7 +505,29 @@ rt_void rt_Scene::set_fsaa(rt_cell fsaa)
 
 rt_Scene::~rt_Scene()
 {
+    /* destroy worker threads */
 
+    this->f_term(tdata, thnum);
+
+    rt_cell i;
+
+    for (i = 0; i < thnum; i++)
+    {
+        delete tharr[i];
+    }
+
+    /* destroy objects hierarchy */
+
+    delete root;
+
+    /* destroy textures */
+
+    while (tex_head)
+    {
+        rt_Texture *tex = tex_head->next;
+        delete tex_head;
+        tex_head = tex;
+    }
 }
 
 /******************************************************************************/
