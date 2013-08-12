@@ -103,6 +103,165 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 }
 
 /******************************************************************************/
+/********************************   THREADING   *******************************/
+/******************************************************************************/
+
+struct rt_THREAD
+{
+    rt_cell    *cmd;
+    rt_cell     index;
+    rt_Scene   *scene;
+    HANDLE      pevent;
+    HANDLE     *cevent;
+    HANDLE      pthr;
+};
+
+DWORD WINAPI worker_thread(void *p)
+{
+    rt_THREAD *thread = (rt_THREAD *)p;
+    rt_cell i = 0;
+
+    while (1)
+    {
+        WaitForSingleObject(thread->cevent[i], INFINITE);
+
+        if (!thread->scene)
+        {
+            break;
+        }
+
+        switch (thread->cmd[0])
+        {
+            case 1:
+            thread->scene->update_slice(thread->index);
+            break;
+
+            case 2:
+            thread->scene->render_slice(thread->index);
+            break;
+
+            default:
+            break;
+        };
+
+        SetEvent(thread->pevent);
+        i = 1 - i;
+    }
+
+    SetEvent(thread->pevent);
+    return 1;
+}
+
+struct rt_THREAD_POOL
+{
+    rt_Scene   *scene;
+    rt_THREAD  *thread;
+    HANDLE     *edata;
+    HANDLE      cevent[2];
+    rt_cell     cindex;
+    rt_cell     cmd;
+    rt_cell     thnum;
+};
+
+rt_pntr init_threads(rt_cell thnum, rt_Scene *scn)
+{
+    DWORD  pam, sam;
+    HANDLE process = GetCurrentProcess();
+    GetProcessAffinityMask(process, &pam, &sam);
+
+    rt_cell i, a;
+    rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)malloc(sizeof(rt_THREAD_POOL));
+
+    tpool->scene = scn;
+    tpool->thread = (rt_THREAD *)malloc(sizeof(rt_THREAD) * thnum);
+    tpool->edata = (HANDLE *)malloc(sizeof(HANDLE) * thnum);
+
+    tpool->cevent[0] = CreateEvent(NULL, TRUE, FALSE, NULL);
+    tpool->cevent[1] = CreateEvent(NULL, TRUE, FALSE, NULL);
+
+    tpool->cindex = 0;
+    tpool->cmd = 0;
+    tpool->thnum = thnum;
+
+    for (i = 0, a = 0; i < thnum; i++, a++)
+    {
+        rt_THREAD *thread = tpool->thread;
+
+        thread[i].cmd    = &tpool->cmd;
+        thread[i].index  = i;
+        thread[i].scene  = scn;
+        thread[i].pevent = CreateEvent(NULL, FALSE, FALSE, NULL);
+        thread[i].cevent = tpool->cevent;
+        thread[i].pthr = CreateThread(NULL, 0, worker_thread,
+                                &thread[i], 0, NULL);
+
+        tpool->edata[i] = thread[i].pevent;
+
+        while (((pam & (1 << a)) == 0))
+        {
+            a++;
+            if (a == 32) a = 0;
+        }
+        SetThreadAffinityMask(thread[i].pthr, 1 << a);
+    }
+
+    return tpool;
+}
+
+rt_void term_threads(rt_pntr tdata, rt_cell thnum)
+{
+    rt_cell i;
+    rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
+
+    for (i = 0; i < tpool->thnum; i++)
+    {
+        rt_THREAD *thread = tpool->thread;
+
+        thread[i].scene = NULL;
+    }
+
+    SetEvent(tpool->cevent[tpool->cindex]);
+    WaitForMultipleObjects(tpool->thnum, tpool->edata, TRUE, INFINITE);
+
+    for (i = 0; i < tpool->thnum; i++)
+    {
+        rt_THREAD *thread = tpool->thread;
+
+        CloseHandle(thread[i].pthr);
+        CloseHandle(thread[i].pevent);
+    }
+
+    CloseHandle(tpool->cevent[0]);
+    CloseHandle(tpool->cevent[1]);
+
+    free(tpool->thread);
+    free(tpool->edata);
+    free(tpool);
+}
+
+rt_void update_scene(rt_pntr tdata, rt_cell thnum)
+{
+    rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
+
+    tpool->cmd = 1;
+    SetEvent(tpool->cevent[tpool->cindex]);
+    WaitForMultipleObjects(tpool->thnum, tpool->edata, TRUE, INFINITE);
+    ResetEvent(tpool->cevent[tpool->cindex]);
+    tpool->cindex = 1 - tpool->cindex;
+}
+
+rt_void render_scene(rt_pntr tdata, rt_cell thnum)
+{
+    rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
+
+    tpool->cmd = 2;
+    SetEvent(tpool->cevent[tpool->cindex]);
+    WaitForMultipleObjects(tpool->thnum, tpool->edata, TRUE, INFINITE);
+    ResetEvent(tpool->cevent[tpool->cindex]);
+    tpool->cindex = 1 - tpool->cindex;
+}
+
+/******************************************************************************/
 /********************************   RENDERING   *******************************/
 /******************************************************************************/
 
@@ -112,7 +271,9 @@ rt_cell main_init()
     {
         scene = new rt_Scene(&sc_root,
                             x_res, y_res, x_row, frame,
-                            malloc, free);
+                            malloc, free,
+                            init_threads, term_threads,
+                            update_scene, render_scene);
     }
     catch (rt_Exception e)
     {
