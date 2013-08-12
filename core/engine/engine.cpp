@@ -21,9 +21,30 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_cell index) :
     this->scene = scene;
     this->index = index;
 
+    /* allocate root SIMD structure */
+
+    s_inf = (rt_SIMD_INFOX *)
+            alloc(sizeof(rt_SIMD_INFOX),
+                            RT_SIMD_ALIGN);
+
+    memset(s_inf, 0, sizeof(rt_SIMD_INFOX));
+
+    RT_SIMD_SET(s_inf->gpc01, +1.0);
+    RT_SIMD_SET(s_inf->gpc02, -0.5);
+    RT_SIMD_SET(s_inf->gpc03, +3.0);
+
+    s_inf->frm_w   = scene->x_res;
+    s_inf->frm_h   = scene->y_res;
+    s_inf->frm_row = scene->x_row;
+    s_inf->frame   = scene->frame;
+
+    /* allocate cam SIMD structure */
+
     s_cam = (rt_SIMD_CAMERA *)
             alloc(sizeof(rt_SIMD_CAMERA),
                             RT_SIMD_ALIGN);
+
+    /* allocate ctx SIMD structure */
 
     s_ctx = (rt_SIMD_CONTEXT *)
             alloc(sizeof(rt_SIMD_CONTEXT) + /* +1 context step for shadows */
@@ -206,26 +227,6 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     depth = RT_STACK_DEPTH;
     fsaa  = RT_FSAA_NO;
 
-    /* allocate root SIMD structure,
-     * initialize rendering backend */
-
-    s_inf = (rt_SIMD_INFOX *)
-            alloc(sizeof(rt_SIMD_INFOX),
-                            RT_SIMD_ALIGN);
-
-    memset(s_inf, 0, sizeof(rt_SIMD_INFOX));
-
-    RT_SIMD_SET(s_inf->gpc01, +1.0);
-    RT_SIMD_SET(s_inf->gpc02, -0.5);
-    RT_SIMD_SET(s_inf->gpc03, +3.0);
-
-    s_inf->frm_w   = x_res;
-    s_inf->frm_h   = y_res;
-    s_inf->frm_row = x_row;
-    s_inf->frame   = frame;
-
-    render0(s_inf);
-
     /* create worker threads */
 
     if (f_init != RT_NULL && f_term != RT_NULL
@@ -257,6 +258,10 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     }
 
     tdata = this->f_init(thnum, this);
+
+    /* initialize rendering backend */
+
+    render0(tharr[0]->s_inf);
 
     /* instantiate objects hierarchy */
 
@@ -409,7 +414,7 @@ rt_void rt_Scene::render_slice(rt_cell index)
         fdv[3] = (-ar+as) + index;
 
         fhr = 1.0f;
-        fvr = 1.0f;
+        fvr = (rt_real)thnum;
     }
     else
     {
@@ -424,7 +429,7 @@ rt_void rt_Scene::render_slice(rt_cell index)
         fdv[3] = (rt_real)index;
 
         fhr = 4.0f;
-        fvr = 1.0f;
+        fvr = (rt_real)thnum;
     }
 
 /*  rt_SIMD_CAMERA */
@@ -473,7 +478,9 @@ rt_void rt_Scene::render_slice(rt_cell index)
     RT_SIMD_SET(s_ctx->org_y, pos[RT_Y]);
     RT_SIMD_SET(s_ctx->org_z, pos[RT_Z]);
 
-   /* render based on surface-list */
+/*  rt_SIMD_INFOX */
+
+    rt_SIMD_INFOX *s_inf = tharr[index]->s_inf;
 
     s_inf->ctx = s_ctx;
     s_inf->cam = s_cam;
@@ -483,6 +490,8 @@ rt_void rt_Scene::render_slice(rt_cell index)
     s_inf->thnum = thnum;
     s_inf->depth = depth;
     s_inf->fsaa  = fsaa;
+
+   /* render based on surface-list */
 
     render0(s_inf);
 }

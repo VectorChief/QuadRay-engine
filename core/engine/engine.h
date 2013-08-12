@@ -39,6 +39,7 @@ class rt_SceneThread : public rt_Heap
     rt_Scene           *scene;
     rt_cell             index;
 
+    rt_SIMD_INFOX      *s_inf;
     rt_SIMD_CAMERA     *s_cam;
     rt_SIMD_CONTEXT    *s_ctx;
 
@@ -77,7 +78,6 @@ class rt_Scene : public rt_Registry
     rt_cell             x_row;
     rt_word            *frame;
 
-    rt_SIMD_INFOX      *s_inf;
     rt_word             thnum;
     rt_SceneThread    **tharr;
     rt_pntr             tdata;
