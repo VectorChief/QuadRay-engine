@@ -412,7 +412,7 @@ rt_cell main_step()
     if (cur_time - last_time >= 500)
     {
         fps = cnt * 1000 / (cur_time - last_time);
-        RT_LOGI("FPS = %.1f\n", (rt_real)(cnt * 1000) / (cur_time - last_time));
+        RT_LOGI("FPS = %.1f\n", (rt_real)fps);
         cnt = 0;
         last_time = cur_time;
     }
