@@ -93,13 +93,17 @@ rt_Heap::rt_Heap(rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free)
     chunk_alloc(0, RT_ALIGN);
 }
 
+/* Allocate new chunk at least "size" bytes with given "align",
+ * and link it to the list as head. */
 rt_void rt_Heap::chunk_alloc(rt_word size, rt_word align)
 {
+    /* Compute align and new chunk's size. */
     rt_word mask = align > 0 ? align - 1 : 0;
     rt_word real_size = size + mask + sizeof(rt_CHUNK) + (RT_CHUNK_SIZE - 1);
     real_size = (real_size / RT_CHUNK_SIZE) * RT_CHUNK_SIZE;
     rt_CHUNK *chunk = (rt_CHUNK *)f_alloc(real_size);
 
+    /* Prepare new chunk. */
     chunk->ptr = (rt_byte *)chunk + sizeof(rt_CHUNK);
     chunk->ptr = (rt_byte *)(((rt_word)chunk->ptr + mask) & ~mask);
     chunk->end = (rt_byte *)chunk + real_size;
@@ -109,20 +113,62 @@ rt_void rt_Heap::chunk_alloc(rt_word size, rt_word align)
     head = chunk;
 }
 
+/* Reserve given "size" bytes of memory with given "align",
+ * move heap pointer ahead for next alloc. */
 rt_pntr rt_Heap::alloc(rt_word size, rt_word align)
 {
+    rt_byte *ptr = (rt_byte *)reserve(size, align);
+
+    head->ptr = ptr + size;
+
+    return ptr;
+}
+
+/* Reserve given "size" bytes of memory with given "align",
+ * don't move heap pointer. Next alloc will begin in reserved area. */
+rt_pntr rt_Heap::reserve(rt_word size, rt_word align)
+{
+    /* Compute align. */
     rt_word mask = align > 0 ? align - 1 : 0;
     rt_byte *ptr = (rt_byte *)(((rt_word)head->ptr + mask) & ~mask);
 
+    /* Allocate bigger chunk, if current doesn't fit */
     if (head->end < ptr + size)
     {
         chunk_alloc(size, align);
         ptr = head->ptr;
     }
-
-    head->ptr = ptr + size;
+    /* Move heap pointer to newly aligned "ptr" */
+    else
+    {
+        head->ptr = ptr;
+    }
 
     return ptr;
+}
+
+/* Release all allocs made after given "ptr" was reserved.
+ * Next alloc will start from "ptr" if align fits. */
+rt_pntr rt_Heap::release(rt_pntr ptr)
+{
+    /* Search chunk where "ptr" belongs,
+     * free chunks allocated afterwards */
+    while (head != RT_NULL && (ptr < head + 1 || ptr >= head->end))
+    {
+        rt_CHUNK *chunk = head->next;
+        f_free(head);
+        head = chunk;
+    }
+
+    /* Reset heap pointer to "ptr" */
+    if (head != RT_NULL && ptr >= head + 1 && ptr < head->end)
+    {
+        head->ptr = (rt_byte *)ptr;
+        return ptr;
+    }
+
+    /* Chunk with "ptr" was not found. */
+    return RT_NULL;
 }
 
 rt_Heap::~rt_Heap()

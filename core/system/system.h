@@ -84,6 +84,8 @@ class rt_Heap
    ~rt_Heap();
 
     rt_pntr alloc(rt_word size, rt_word align);
+    rt_pntr reserve(rt_word size, rt_word align);
+    rt_pntr release(rt_pntr ptr);
 };
 
 /******************************************************************************/

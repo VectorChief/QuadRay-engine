@@ -36,12 +36,18 @@ class rt_SceneThread : public rt_Heap
 
     public:
 
+    /* scene pointer and thread index */
     rt_Scene           *scene;
     rt_cell             index;
 
+    /* backend specific structures */
     rt_SIMD_INFOX      *s_inf;
     rt_SIMD_CAMERA     *s_cam;
     rt_SIMD_CONTEXT    *s_ctx;
+
+    /* memory pool in the heap
+     * for temporary per-frame allocs */
+    rt_pntr             mpool;
 
 /*  methods */
 
@@ -70,32 +76,50 @@ class rt_Scene : public rt_Registry
 
     public:
 
+    /* root scene object from scene data */
     rt_SCENE           *scn;
+    /* dummy for root's identity transform */
     rt_OBJECT           rootobj;
 
+    /* frame's dimensions and pointer */
     rt_word             x_res;
     rt_word             y_res;
     rt_cell             x_row;
     rt_word            *frame;
 
-    rt_word             thnum;
-    rt_SceneThread    **tharr;
-    rt_pntr             tdata;
+    /* aspect ratio and pixel width */
+    rt_real             aspect;
+    rt_real             factor;
 
+    /* rays depth and anti-aliasing */
+    rt_word             depth;
+    rt_cell             fsaa;
+
+    /* threads management functions */
     rt_FUNC_INIT        f_init;
     rt_FUNC_TERM        f_term;
     rt_FUNC_UPDATE      f_update;
     rt_FUNC_RENDER      f_render;
 
+    /* scene threads array and its
+     * platform specific handle */
+    rt_word             thnum;
+    rt_SceneThread    **tharr;
+    rt_pntr             tdata;
+
+    /* memory pool in the heap
+     * for temporary per-frame allocs */
+    rt_pntr             mpool;
+    rt_word             msize;
+
+    /* global surface list and
+     * global light/shadow list
+     * for rendering backend */
     rt_ELEM            *slist;
     rt_ELEM            *llist;
 
-    rt_real             aspect;
-    rt_real             factor;
-
-    rt_word             depth;
-    rt_cell             fsaa;
-
+    /* rays positioning variables
+     * from camera object */
     rt_vec3             pos;
     rt_vec3             dir;
     rt_vec3             hor;
@@ -103,7 +127,9 @@ class rt_Scene : public rt_Registry
     rt_vec3             nrm;
     rt_vec3             amb;
 
+    /* root of the objects hierarchy */
     rt_Object          *root;
+    /* current camera */
     rt_Camera          *cam;
 
 /*  methods */

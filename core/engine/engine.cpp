@@ -259,6 +259,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
 
     tdata = this->f_init(thnum, this);
 
+    msize = 0; /* estimate per-frame allocs here */
+
     /* initialize rendering backend */
 
     render0(tharr[0]->s_inf);
@@ -296,6 +298,17 @@ rt_void rt_Scene::update(rt_long time, rt_cell action)
  */
 rt_void rt_Scene::render(rt_long time)
 {
+    rt_cell i;
+
+    /* reserve memory for temporary per-frame allocs */
+
+    mpool = reserve(msize, RT_ALIGN);
+
+    for (i = 0; i < thnum; i++)
+    {
+        tharr[i]->mpool = tharr[i]->reserve(msize, RT_ALIGN);
+    }
+
     /* update the whole objects hierarchy */
 
     root->update(time, iden4, 0);
@@ -365,6 +378,15 @@ rt_void rt_Scene::render(rt_long time)
     /* multi-threaded render */
 
     this->f_render(tdata, thnum);
+
+    /* release memory from temporary per-frame allocs */
+
+    for (i = 0; i < thnum; i++)
+    {
+        tharr[i]->release(tharr[i]->mpool);
+    }
+
+    release(mpool);
 }
 
 rt_void rt_Scene::update_slice(rt_cell index)
