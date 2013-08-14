@@ -427,6 +427,7 @@ rt_cell main_step()
     if (H_KEYS(XK_Left))    scene->update(cur_time, RT_CAMERA_ROTATE_LEFT);
     if (H_KEYS(XK_Right))   scene->update(cur_time, RT_CAMERA_ROTATE_RIGHT);
 
+    if (T_KEYS(XK_F1))      scene->print_state();
     if (T_KEYS(XK_F2))      fsaa = RT_FSAA_4X - fsaa;
     if (T_KEYS(XK_Escape))
     {

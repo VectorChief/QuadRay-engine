@@ -46,6 +46,7 @@ class rt_File
     rt_word read(rt_pntr data, rt_word size, rt_word num);
     rt_word write(rt_pntr data, rt_word size, rt_word num);
     rt_cell print(rt_pstr format, ...);
+    rt_cell vprint(rt_pstr format, va_list args);
     rt_cell error(); /* 0 - no error */
 };
 

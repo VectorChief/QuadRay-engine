@@ -69,7 +69,7 @@
 /* LT **      Resi      **      Redi      **      Rebx      **      Redx      */
 /*    **                **                **                **                */
 /******************************************************************************/
-/*    ** elm_TEMP(Medi) **                **                ** elm_SIMD(Medi) */
+/*    ** elm_DATA(Medi) **                **                ** elm_SIMD(Medi) */
 /* SH **      Resi      **      Redi      **      Rebx      **      Redx      */
 /*    **                ** ctx_PARAM(LST) ** ctx_PARAM(OBJ) **                */
 /******************************************************************************/
@@ -1116,7 +1116,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_T_MIN)         /* tmp_v -> T_MIN */
         movpx_st(Xmm0, Mecx, ctx_LOCAL(0))      /* tmp_v -> LOCAL */
 
-        movxx_ld(Resi, Medi, elm_TEMP)          /* load shadow list */
+        movxx_ld(Resi, Medi, elm_DATA)          /* load shadow list */
         jmpxx_lb(OO_cyc)
 
     LBL(LT_ret)

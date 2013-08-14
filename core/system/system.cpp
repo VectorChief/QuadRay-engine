@@ -63,6 +63,17 @@ rt_cell rt_File::print(rt_pstr format, ...)
     return ret;
 }
 
+rt_cell rt_File::vprint(rt_pstr format, va_list args)
+{
+    rt_cell ret = 0;
+#if RT_EMBED == 0
+    ret = vfprintf(file, format, args);
+
+    fflush(file);
+#endif /* RT_EMBED */
+    return ret;
+}
+
 rt_cell rt_File::error()
 {
     return file == RT_NULL;

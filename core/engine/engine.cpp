@@ -11,6 +11,285 @@
 #include "system.h"
 
 /******************************************************************************/
+/*********************************   LOGGING   ********************************/
+/******************************************************************************/
+
+rt_bool g_print = RT_FALSE;
+
+#define PRINT_STATE_BEG()                                                   \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("************** print state beg **************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n")
+
+#define PRINT_TIME(time)                                                    \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("---------- update time -- %08u ----------", (rt_word)time);\
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n")
+
+static
+rt_void print_cam(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
+{
+    RT_LOGI("%s", mgn);
+    RT_LOGI("cam: %08X, ", (rt_word)obj);
+    RT_LOGI("CAM: %08X, ", (rt_word)RT_NULL);
+    RT_LOGI("elm: %08X, ", (rt_word)elm);
+    if (obj != RT_NULL)
+    {
+        RT_LOGI("    ");
+        RT_LOGI("rot: {%f, %f, %f}",
+            obj->trm->rot[RT_X], obj->trm->rot[RT_Y], obj->trm->rot[RT_Z]);
+        RT_LOGI("    ");
+        RT_LOGI("pos: {%f, %f, %f}",
+            obj->pos[RT_X], obj->pos[RT_Y], obj->pos[RT_Z]);
+    }
+    else
+    {
+        RT_LOGI("    ");
+        RT_LOGI("empty object");
+    }
+    RT_LOGI("\n");
+}
+
+#define PRINT_CAM(cam)                                                      \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("******************* CAMERA ******************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n");                                                      \
+        print_cam("    ", RT_NULL, cam);                                    \
+        RT_LOGI("\n")
+
+static
+rt_void print_lgt(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
+{
+    rt_SIMD_LIGHT *s_lgt = elm != RT_NULL ? (rt_SIMD_LIGHT *)elm->simd :
+                           obj != RT_NULL ?   ((rt_Light *)obj)->s_lgt :
+                                                                RT_NULL;
+    RT_LOGI("%s", mgn);
+    RT_LOGI("lgt: %08X, ", (rt_word)obj);
+    RT_LOGI("LGT: %08X, ", (rt_word)s_lgt);
+    RT_LOGI("elm: %08X, ", (rt_word)elm);
+    if (s_lgt != RT_NULL)
+    {
+        RT_LOGI("    ");
+        RT_LOGI("                                       ");
+        RT_LOGI("    ");
+        RT_LOGI("pos: {%f, %f, %f}",
+            s_lgt->pos_x[0], s_lgt->pos_y[0], s_lgt->pos_z[0]);
+    }
+    else
+    {
+        RT_LOGI("    ");
+        RT_LOGI("empty object");
+    }
+    RT_LOGI("\n");
+}
+
+#define PRINT_LGT(elm, lgt)                                                 \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("-------------------- lgt --------------------");           \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n");                                                      \
+        print_lgt("    ", elm, lgt);                                        \
+        RT_LOGI("\n")
+
+#define PRINT_LGT_INNER(elm, lgt)                                           \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("-------------------- lgt - inner ------------");           \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n");                                                      \
+        print_lgt("    ", elm, lgt);                                        \
+        RT_LOGI("\n")
+
+#define PRINT_LGT_OUTER(elm, lgt)                                           \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("-------------------- lgt - outer ------------");           \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n");                                                      \
+        print_lgt("    ", elm, lgt);                                        \
+        RT_LOGI("\n")
+
+static
+rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
+{
+    rt_SIMD_SURFACE *s_srf = elm != RT_NULL ? (rt_SIMD_SURFACE *)elm->simd :
+                             obj != RT_NULL ?   ((rt_Surface *)obj)->s_srf :
+                                                                    RT_NULL;
+    RT_LOGI("%s", mgn);
+    RT_LOGI("srf: %08X, ", (rt_word)obj);
+    RT_LOGI("SRF: %08X, ", (rt_word)s_srf);
+    RT_LOGI("elm: %08X, ", (rt_word)elm);
+    if (s_srf != RT_NULL && obj != RT_NULL)
+    {
+        RT_LOGI("    ");
+        RT_LOGI("tag: %d, trm: %d,                        ",
+            obj->tag, s_srf->a_map[3]);
+        RT_LOGI("    ");
+        RT_LOGI("pos: {%f, %f, %f}",
+            obj->pos[RT_X], obj->pos[RT_Y], obj->pos[RT_Z]);
+    }
+    else
+    {
+        RT_LOGI("    ");
+        RT_LOGI("empty object, data = %d", elm != RT_NULL ? elm->data : 0);
+    }
+    RT_LOGI("\n");
+}
+
+#define PRINT_SRF(srf)                                                      \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("****************** SURFACE ******************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n");                                                      \
+        print_srf("    ", RT_NULL, srf);                                    \
+        RT_LOGI("\n")
+
+static
+rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
+{
+    for (; elm != RT_NULL; elm = elm->next)
+    {
+        rt_Object *obj = (rt_Object *)elm->temp;
+
+        if (obj != RT_NULL && RT_IS_LIGHT(obj))
+        {
+            print_lgt(mgn, elm, obj);
+        }
+        else
+        {
+            print_srf(mgn, elm, obj);
+        }
+    }
+}
+
+#define PRINT_CLP(lst)                                                      \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("-------------------- clp --------------------");           \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n");                                                      \
+        print_lst("    ", lst);                                             \
+        RT_LOGI("\n")
+
+#define PRINT_LST(lst)                                                      \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("-------------------- lst --------------------");           \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n");                                                      \
+        print_lst("    ", lst);                                             \
+        RT_LOGI("\n")
+
+#define PRINT_LST_INNER(lst)                                                \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("-------------------- lst - inner ------------");           \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n");                                                      \
+        print_lst("    ", lst);                                             \
+        RT_LOGI("\n")
+
+#define PRINT_LST_OUTER(lst)                                                \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("-------------------- lst - outer ------------");           \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n");                                                      \
+        print_lst("    ", lst);                                             \
+        RT_LOGI("\n")
+
+#define PRINT_SHW(lst)                                                      \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("-------------------- shw --------------------");           \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n");                                                      \
+        print_lst("    ", lst);                                             \
+        RT_LOGI("\n")
+
+#define PRINT_SHW_INNER(lst)                                                \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("-------------------- shw - inner ------------");           \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n");                                                      \
+        print_lst("    ", lst);                                             \
+        RT_LOGI("\n")
+
+#define PRINT_SHW_OUTER(lst)                                                \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("-------------------- shw - outer ------------");           \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n");                                                      \
+        print_lst("    ", lst);                                             \
+        RT_LOGI("\n")
+
+#define PRINT_LGT_LIST(lst)                                                 \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("-------------------- lgt --------------------");           \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n");                                                      \
+        print_lst("    ", lst);                                             \
+        RT_LOGI("\n")
+
+#define PRINT_SRF_LIST(lst)                                                 \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("-------------------- srf --------------------");           \
+        RT_LOGI("---------------------------------------------");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n");                                                      \
+        print_lst("    ", lst);                                             \
+        RT_LOGI("\n")
+
+#define PRINT_STATE_END()                                                   \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("************** print state end **************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n")
+
+/******************************************************************************/
 /*********************************   THREAD   *********************************/
 /******************************************************************************/
 
@@ -71,12 +350,14 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
        *ptr = elm;
     }
     else
-    if (obj->tag == RT_TAG_LIGHT)
+    if (RT_IS_LIGHT(obj))
     {
+        rt_Light *lgt = (rt_Light *)obj;
+
         elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
-        elm->data = 0;
-        elm->simd = ((rt_Light *)obj)->s_lgt;
-        elm->temp = scene->slist; /* all srf are potential shadows */
+        elm->data = (rt_cell)scene->slist; /* all srf are potential shadows */
+        elm->simd = lgt->s_lgt;
+        elm->temp = lgt;
         elm->next = *ptr;
        *ptr = elm;
     }
@@ -96,11 +377,16 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
     {
         srf = (rt_Surface *)obj;
 
+        if (g_print && srf->s_srf->msc_p[2] != RT_NULL)
+        {
+            PRINT_CLP((rt_ELEM *)srf->s_srf->msc_p[2]);
+        }
+
         pto = (rt_ELEM**)&srf->s_srf->lst_p[1];
         pti = (rt_ELEM**)&srf->s_srf->lst_p[3];
 
-       *pto = scene->slist;
-       *pti = scene->slist;
+       *pto = scene->slist; /* all srf are potential rfl/rfr */
+       *pti = scene->slist; /* all srf are potential rfl/rfr */
 
         return RT_NULL;
     }
@@ -133,8 +419,8 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
         pto = (rt_ELEM **)&srf->s_srf->lst_p[0];
         pti = (rt_ELEM **)&srf->s_srf->lst_p[2];
 
-       *pto = scene->llist;
-       *pti = scene->llist;
+       *pto = scene->llist; /* all lgt are potential sources */
+       *pti = scene->llist; /* all lgt are potential sources */
 
         return RT_NULL;
     }
@@ -309,13 +595,35 @@ rt_void rt_Scene::render(rt_long time)
         tharr[i]->mpool = tharr[i]->reserve(msize, RT_ALIGN);
     }
 
+    /* print state beg */
+
+    if (g_print)
+    {
+        PRINT_STATE_BEG();
+
+        PRINT_TIME(time);
+    }
+
     /* update the whole objects hierarchy */
 
     root->update(time, iden4, 0);
 
     /* multi-threaded update */
 
-    this->f_update(tdata, thnum);
+    if (g_print)
+    {
+        update_scene(this, thnum);
+
+        PRINT_CAM(cam);
+
+        PRINT_LGT_LIST(llist);
+
+        PRINT_SRF_LIST(slist);
+    }
+    else
+    {
+        this->f_update(tdata, thnum);
+    }
 
     /* prepare for rendering */
 
@@ -379,6 +687,15 @@ rt_void rt_Scene::render(rt_long time)
 
     this->f_render(tdata, thnum);
 
+    /* print state end */
+
+    if (g_print)
+    {
+        PRINT_STATE_END();
+
+        g_print = RT_FALSE;
+    }
+
     /* release memory from temporary per-frame allocs */
 
     for (i = 0; i < thnum; i++)
@@ -400,6 +717,11 @@ rt_void rt_Scene::update_slice(rt_cell index)
         if ((i % thnum) != index)
         {
             continue;
+        }
+
+        if (g_print)
+        {
+            PRINT_SRF(srf);
         }
 
         /* setup surface lists */
@@ -532,6 +854,14 @@ rt_word* rt_Scene::get_frame()
 rt_void rt_Scene::set_fsaa(rt_cell fsaa)
 {
     this->fsaa = fsaa;
+}
+
+/*
+ * Print current state.
+ */
+rt_void rt_Scene::print_state()
+{
+    g_print = RT_TRUE;
 }
 
 rt_Scene::~rt_Scene()
