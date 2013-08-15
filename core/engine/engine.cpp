@@ -14,8 +14,6 @@
 /*********************************   LOGGING   ********************************/
 /******************************************************************************/
 
-rt_bool g_print = RT_FALSE;
-
 #define PRINT_STATE_BEG()                                                   \
         RT_LOGI("*********************************************");           \
         RT_LOGI("*********************************************");           \
@@ -483,8 +481,12 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
                    rt_word x_res, rt_word y_res, rt_cell x_row, rt_word *frame,
                    rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
                    rt_FUNC_INIT f_init, rt_FUNC_TERM f_term,
-                   rt_FUNC_UPDATE f_update, rt_FUNC_RENDER f_render) : 
+                   rt_FUNC_UPDATE f_update,
+                   rt_FUNC_RENDER f_render,
+                   rt_FUNC_PRINT_LOG f_print_log,
+                   rt_FUNC_PRINT_ERR f_print_err) : 
 
+    rt_LogRedirect(f_print_log, f_print_err), /* must be first in scene init */
     rt_Registry(f_alloc, f_free)
 {
     this->scn   = scn;

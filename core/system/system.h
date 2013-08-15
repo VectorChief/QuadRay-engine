@@ -128,28 +128,41 @@ class rt_List
 };
 
 /******************************************************************************/
-/********************************   LOGGING   *********************************/
+/*********************************   LOGGING   ********************************/
 /******************************************************************************/
 
-extern rt_File      g_log_file;
-extern rt_File      g_err_file;
+extern rt_bool              g_print;
 
-#if defined (WIN32)
+extern rt_File              g_log_file;
+extern rt_File              g_err_file;
 
-#define RT_LOGI     g_log_file.print
-#define RT_LOGE     g_err_file.print
+typedef rt_void (*rt_FUNC_PRINT_LOG)(rt_pstr format, ...);
+typedef rt_void (*rt_FUNC_PRINT_ERR)(rt_pstr format, ...);
 
-#else /* linux */
+extern rt_FUNC_PRINT_LOG    f_print_log;
+extern rt_FUNC_PRINT_ERR    f_print_err;
 
-#define RT_LOGI(...)                                                        \
-        printf(__VA_ARGS__);                                                \
-        g_log_file.print(__VA_ARGS__)
+#define RT_LOGI             f_print_log
+#define RT_LOGE             f_print_err
 
-#define RT_LOGE(...)                                                        \
-        printf(__VA_ARGS__);                                                \
-        g_err_file.print(__VA_ARGS__)
+class rt_LogRedirect /* must be first in scene init */
+{
+    public:
 
-#endif /* OS specific */
+/*  fields */
+
+/*  methods */
+
+    rt_LogRedirect(rt_FUNC_PRINT_LOG f_print_log,
+                   rt_FUNC_PRINT_ERR f_print_err)
+    { 
+        if (f_print_log != RT_NULL)
+          ::f_print_log = f_print_log;
+
+        if (f_print_err != RT_NULL)
+          ::f_print_err = f_print_err;
+    }
+};
 
 #endif /* RT_SYSTEM_H */
 

@@ -70,7 +70,7 @@ typedef rt_void (*rt_FUNC_RENDER)(rt_pntr tdata, rt_cell thnum);
 /**********************************   SCENE   *********************************/
 /******************************************************************************/
 
-class rt_Scene : public rt_Registry
+class rt_Scene : public rt_LogRedirect, public rt_Registry
 {
 /*  fields */
 
@@ -139,8 +139,11 @@ class rt_Scene : public rt_Registry
     rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
              rt_word x_res, rt_word y_res, rt_cell x_row, rt_word *frame,
              rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
-             rt_FUNC_INIT f_init = 0, rt_FUNC_TERM f_term = 0,
-             rt_FUNC_UPDATE f_update = 0, rt_FUNC_RENDER f_render = 0);
+             rt_FUNC_INIT f_init = RT_NULL, rt_FUNC_TERM f_term = RT_NULL,
+             rt_FUNC_UPDATE f_update = RT_NULL,
+             rt_FUNC_RENDER f_render = RT_NULL,
+             rt_FUNC_PRINT_LOG f_print_log = RT_NULL,
+             rt_FUNC_PRINT_ERR f_print_err = RT_NULL);
 
    ~rt_Scene();
 

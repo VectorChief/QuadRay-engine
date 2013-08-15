@@ -193,11 +193,34 @@ rt_Heap::~rt_Heap()
 }
 
 /******************************************************************************/
-/********************************   LOGGING   *********************************/
+/*********************************   LOGGING   ********************************/
 /******************************************************************************/
+
+rt_bool g_print = RT_FALSE;
 
 rt_File g_log_file("dump/log.txt", "w+");
 rt_File g_err_file("dump/err.txt", "w+");
+
+rt_void print_log(rt_pstr format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    vprintf(format, args);
+    g_log_file.vprint(format, args);
+    va_end(args);
+}
+
+rt_void print_err(rt_pstr format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    vprintf(format, args);
+    g_err_file.vprint(format, args);
+    va_end(args);
+}
+
+rt_FUNC_PRINT_LOG   f_print_log = print_log;
+rt_FUNC_PRINT_ERR   f_print_err = print_err;
 
 /******************************************************************************/
 /******************************************************************************/
