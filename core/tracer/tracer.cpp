@@ -15,20 +15,20 @@
 /* Conditional compilation flags
  * for respective segments of code.
  */
-#define RT_CLIPPING_MINMAX      1
-#define RT_CLIPPING_CUSTOM      1
-#define RT_CLIPPING_ACCUM       1
-#define RT_TEXTURING            1
-#define RT_NORMALS              1
-#define RT_LIGHTING             1
-#define RT_ATTENUATION          1
-#define RT_SPECULAR             1
-#define RT_SHADOWS              1
-#define RT_REFLECTIONS          1
-#define RT_TRANSPARENCY         1
-#define RT_REFRACTIONS          1
-#define RT_ANTIALIASING         1
-#define RT_TRANSFORM            1
+#define RT_FEAT_CLIPPING_MINMAX     1
+#define RT_FEAT_CLIPPING_CUSTOM     1
+#define RT_FEAT_CLIPPING_ACCUM      1
+#define RT_FEAT_TEXTURING           1
+#define RT_FEAT_NORMALS             1
+#define RT_FEAT_LIGHTING            1
+#define RT_FEAT_ATTENUATION         1
+#define RT_FEAT_SPECULAR            1
+#define RT_FEAT_SHADOWS             1
+#define RT_FEAT_REFLECTIONS         1
+#define RT_FEAT_TRANSPARENCY        1
+#define RT_FEAT_REFRACTIONS         1
+#define RT_FEAT_ANTIALIASING        1
+#define RT_FEAT_TRANSFORM           1
 
 /* Byte-offsets within SIMD-field
  * for packed scalar fields.
@@ -523,7 +523,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm2, Mecx, ctx_DFF_Y)
         movpx_st(Xmm3, Mecx, ctx_DFF_Z)
 
-#if RT_TRANSFORM
+#if RT_FEAT_TRANSFORM
 
         cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
         jeqxx_lb(OO_rot)
@@ -608,21 +608,21 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(OO_rot)
 
-#endif /* RT_TRANSFORM */
+#endif /* RT_FEAT_TRANSFORM */
 
         jmpxx_mm(Mebx, srf_SRF_P(PTR))
 
     LBL(fetch_ptr)
 
-#if RT_SPECULAR
+#if RT_FEAT_SPECULAR
 
         jmpxx_lb(fetch_PW_ptr)
 
-#else /* RT_SPECULAR */
+#else /* RT_FEAT_SPECULAR */
 
         jmpxx_lb(fetch_PL_ptr)
 
-#endif /* RT_SPECULAR */
+#endif /* RT_FEAT_SPECULAR */
 
 /******************************************************************************/
 /********************************   CLIPPING   ********************************/
@@ -650,7 +650,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
 
-#if RT_TRANSFORM
+#if RT_FEAT_TRANSFORM
 
         cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
         jeqxx_lb(CX_rot)
@@ -664,9 +664,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CX_rot)
 
-#endif /* RT_TRANSFORM */
+#endif /* RT_FEAT_TRANSFORM */
 
-#if RT_CLIPPING_MINMAX
+#if RT_FEAT_CLIPPING_MINMAX
 
         CHECK_CLIP(CX_min, MIN_T, RT_X)
 
@@ -684,7 +684,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CX_max)
 
-#endif /* RT_CLIPPING_MINMAX */
+#endif /* RT_FEAT_CLIPPING_MINMAX */
 
         /* "y" section */
         movpx_ld(Xmm5, Mecx, ctx_RAY_Y)         /* ray_y <- RAY_Y */
@@ -696,7 +696,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
 
-#if RT_TRANSFORM
+#if RT_FEAT_TRANSFORM
 
         cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
         jeqxx_lb(CY_rot)
@@ -710,9 +710,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CY_rot)
 
-#endif /* RT_TRANSFORM */
+#endif /* RT_FEAT_TRANSFORM */
 
-#if RT_CLIPPING_MINMAX
+#if RT_FEAT_CLIPPING_MINMAX
 
         CHECK_CLIP(CY_min, MIN_T, RT_Y)
 
@@ -730,7 +730,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CY_max)
 
-#endif /* RT_CLIPPING_MINMAX */
+#endif /* RT_FEAT_CLIPPING_MINMAX */
 
         /* "z" section */
         movpx_ld(Xmm6, Mecx, ctx_RAY_Z)         /* ray_z <- RAY_Z */
@@ -742,7 +742,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
 
-#if RT_TRANSFORM
+#if RT_FEAT_TRANSFORM
 
         cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
         jeqxx_lb(CZ_rot)
@@ -756,9 +756,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CZ_rot)
 
-#endif /* RT_TRANSFORM */
+#endif /* RT_FEAT_TRANSFORM */
 
-#if RT_CLIPPING_MINMAX
+#if RT_FEAT_CLIPPING_MINMAX
 
         CHECK_CLIP(CZ_min, MIN_T, RT_Z)
 
@@ -776,9 +776,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CZ_max)
 
-#endif /* RT_CLIPPING_MINMAX */
+#endif /* RT_FEAT_CLIPPING_MINMAX */
 
-#if RT_CLIPPING_CUSTOM
+#if RT_FEAT_CLIPPING_CUSTOM
 
         movxx_ri(Redx, IB(0))
         movxx_ld(Redi, Mebx, srf_MSC_P(CLP))
@@ -790,7 +790,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movxx_ld(Rebx, Medi, elm_SIMD)
 
-#if RT_CLIPPING_ACCUM
+#if RT_FEAT_CLIPPING_ACCUM
 
         cmpxx_ri(Rebx, IB(0))                   /* check accum marker */
         jnexx_lb(CC_acc)
@@ -810,7 +810,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CC_acc)
 
-#endif /* RT_CLIPPING_ACCUM */
+#endif /* RT_FEAT_CLIPPING_ACCUM */
 
         movpx_ld(Xmm1, Mecx, ctx_HIT_X)
         movpx_ld(Xmm2, Mecx, ctx_HIT_Y)
@@ -826,7 +826,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use context's normal fields (NRM)
          * as temporary storage for clipping */
 
-#if RT_TRANSFORM
+#if RT_FEAT_TRANSFORM
 
         cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
         jeqxx_lb(CC_rot)
@@ -869,7 +869,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CC_rot)
 
-#endif /* RT_TRANSFORM */
+#endif /* RT_FEAT_TRANSFORM */
 
         jmpxx_mm(Mebx, srf_SRF_P(CLP))
 
@@ -886,7 +886,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movxx_ld(Rebx, Mesi, elm_SIMD)
 
-#endif /* RT_CLIPPING_CUSTOM */
+#endif /* RT_FEAT_CLIPPING_CUSTOM */
 
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
@@ -896,7 +896,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(MT_mat)
 
-#if RT_TRANSFORM
+#if RT_FEAT_TRANSFORM
 
         cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
         jeqxx_lb(MT_nrm)
@@ -974,7 +974,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(MT_nrm)
 
-#endif /* RT_TRANSFORM */
+#endif /* RT_FEAT_TRANSFORM */
 
         movxx_st(Resi, Mecx, ctx_LOCAL(LST))
 
@@ -982,7 +982,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_ld(Xmm0, Medx, mat_TEX_P)         /* tex_p <- TEX_P */
 
-#if RT_TEXTURING
+#if RT_FEAT_TEXTURING
 
         CHECK_PROP(MT_tex, RT_PROP_TEXTURE)
 
@@ -1016,7 +1016,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(MT_tex)
 
-#endif /* RT_TEXTURING */
+#endif /* RT_FEAT_TEXTURING */
 
         movpx_st(Xmm0, Mecx, ctx_C_PTR(0))      /* tex_p -> C_PTR */
         PAINT_SIMD(MT_rtx)
@@ -1031,7 +1031,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(LT_lgt)
 
-#if RT_LIGHTING
+#if RT_FEAT_LIGHTING
 
         movxx_ld(Redx, Mebp, inf_CAM)
 
@@ -1087,7 +1087,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         xorpx_rr(Xmm7, Xmm7)                    /* reset shadow mask */
 
-#if RT_SHADOWS
+#if RT_FEAT_SHADOWS
 
         movpx_st(Xmm0, Mecx, ctx_C_PTR(0))      /* save dot product */
 
@@ -1133,7 +1133,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_ld(Xmm0, Mecx, ctx_C_PTR(0))      /* restore dot product */
 
-#endif /* RT_SHADOWS */
+#endif /* RT_FEAT_SHADOWS */
 
         CHECK_MASK(LT_amb, FULL, Xmm7)
 
@@ -1156,15 +1156,17 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_st(Xmm4, Mecx, ctx_C_PTR(0))
 
-#if RT_ATTENUATION
+#if RT_FEAT_ATTENUATION
 
         movpx_rr(Xmm6, Xmm4)                    /* Xmm6  <-   r^2 */
 
-#endif /* RT_ATTENUATION */
+#endif /* RT_FEAT_ATTENUATION */
 
         rsqps_rr(Xmm5, Xmm4)                    /* Xmm5  <-   1/r */
 
-#if RT_ATTENUATION
+#if RT_FEAT_ATTENUATION
+
+        /* compute attenuation */
 
         movpx_rr(Xmm4, Xmm5)                    /* Xmm4  <-   1/r */
         mulps_rr(Xmm4, Xmm6)                    /* Xmm4  <-   r^1 */
@@ -1177,15 +1179,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm6, Xmm4)
         rsqps_rr(Xmm4, Xmm6)                    /* Xmm4  <-   1/a */
 
-#endif /* RT_ATTENUATION */
+#endif /* RT_FEAT_ATTENUATION */
 
         movpx_rr(Xmm6, Xmm0)
 
-#if RT_ATTENUATION
+#if RT_FEAT_ATTENUATION
 
         mulps_rr(Xmm0, Xmm4)                    /* r_dot *=   1/a */
 
-#endif /* RT_ATTENUATION */
+#endif /* RT_FEAT_ATTENUATION */
 
         mulps_rr(Xmm0, Xmm5)                    /* r_dot *=   1/r */
 
@@ -1196,7 +1198,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_rr(Xmm4, Xmm6)
         movpx_rr(Xmm5, Xmm6)
 
-#if RT_SPECULAR
+#if RT_FEAT_SPECULAR
 
         CHECK_PROP(LT_spc, RT_PROP_SPECULAR)
 
@@ -1325,7 +1327,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(LT_spc)
 
-#endif /* RT_SPECULAR */
+#endif /* RT_FEAT_SPECULAR */
 
         annpx_rr(Xmm7, Xmm0)
 
@@ -1357,7 +1359,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         jmpxx_lb(LT_amb)
 
-#if RT_SPECULAR
+#if RT_FEAT_SPECULAR
 
     LBL(LT_mtl)
 
@@ -1403,14 +1405,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_pcB, COL_B)
 
-#endif /* RT_SPECULAR */
+#endif /* RT_FEAT_SPECULAR */
 
     LBL(LT_amb)
 
         movxx_ld(Redi, Medi, elm_NEXT)
         jmpxx_lb(LT_cyc)
 
-#endif /* RT_LIGHTING */
+#endif /* RT_FEAT_LIGHTING */
 
     LBL(LT_set)
 
@@ -1432,7 +1434,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /*******************************   REFLECTIONS   ******************************/
 /******************************************************************************/
 
-#if RT_REFLECTIONS
+#if RT_FEAT_REFLECTIONS
 
         FETCH_XPTR(Redx, MAT_P(PTR))
 
@@ -1559,13 +1561,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(RF_end)
 
-#endif /* RT_REFLECTIONS */
+#endif /* RT_FEAT_REFLECTIONS */
 
 /******************************************************************************/
 /******************************   TRANSPARENCY   ******************************/
 /******************************************************************************/
 
-#if RT_TRANSPARENCY
+#if RT_FEAT_TRANSPARENCY
 
         FETCH_XPTR(Redx, MAT_P(PTR))
 
@@ -1575,7 +1577,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(TR_opq)
 
-#if RT_REFRACTIONS
+#if RT_FEAT_REFRACTIONS
 
         CHECK_PROP(TR_rfr, RT_PROP_REFRACT)
 
@@ -1630,7 +1632,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(TR_rfr)
 
-#endif /* RT_REFRACTIONS */
+#endif /* RT_FEAT_REFRACTIONS */
 
         /* propagate ray */
 
@@ -1730,7 +1732,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(TR_end)
 
-#endif /* RT_TRANSPARENCY */
+#endif /* RT_FEAT_TRANSPARENCY */
 
 /******************************************************************************/
 /********************************   MATERIAL   ********************************/
@@ -1812,13 +1814,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
 
-#if RT_SHADOWS
+#if RT_FEAT_SHADOWS
 
         CHECK_SHAD(PL_shd)
 
-#endif /* RT_SHADOWS */
+#endif /* RT_FEAT_SHADOWS */
 
-#if RT_TEXTURING
+#if RT_FEAT_TEXTURING
 
         CHECK_PROP(PL_tex, RT_PROP_TEXTURE)
 
@@ -1839,9 +1841,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(PL_tex)
 
-#endif /* RT_TEXTURING */
+#endif /* RT_FEAT_TEXTURING */
 
-#if RT_NORMALS
+#if RT_FEAT_NORMALS
 
         CHECK_PROP(PL_nrm, RT_PROP_NORMAL)
 
@@ -1860,7 +1862,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(PL_nrm)
 
-#endif /* RT_NORMALS */
+#endif /* RT_FEAT_NORMALS */
 
         jmpxx_lb(MT_mat)
 
@@ -1873,7 +1875,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(PL_clp)
 
-#if RT_CLIPPING_CUSTOM
+#if RT_FEAT_CLIPPING_CUSTOM
 
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
         /* use context's normal fields (NRM)
@@ -1885,7 +1887,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         jmpxx_lb(CC_ret)
 
-#endif /* RT_CLIPPING_CUSTOM */
+#endif /* RT_FEAT_CLIPPING_CUSTOM */
 
 /******************************************************************************/
 /********************************   CYLINDER   ********************************/
@@ -1997,13 +1999,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
 
-#if RT_SHADOWS
+#if RT_FEAT_SHADOWS
 
         CHECK_SHAD(CL_shd)
 
-#endif /* RT_SHADOWS */
+#endif /* RT_FEAT_SHADOWS */
 
-#if RT_NORMALS
+#if RT_FEAT_NORMALS
 
         CHECK_PROP(CL_nrm, RT_PROP_NORMAL)
 
@@ -2030,7 +2032,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CL_nrm)
 
-#endif /* RT_NORMALS */
+#endif /* RT_FEAT_NORMALS */
 
         jmpxx_lb(MT_mat)
 
@@ -2043,7 +2045,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CL_clp)
 
-#if RT_CLIPPING_CUSTOM
+#if RT_FEAT_CLIPPING_CUSTOM
 
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
         /* use context's normal fields (NRM)
@@ -2064,7 +2066,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         jmpxx_lb(CC_ret)
 
-#endif /* RT_CLIPPING_CUSTOM */
+#endif /* RT_FEAT_CLIPPING_CUSTOM */
 
 /******************************************************************************/
 /*********************************   SPHERE   *********************************/
@@ -2190,13 +2192,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
 
-#if RT_SHADOWS
+#if RT_FEAT_SHADOWS
 
         CHECK_SHAD(SP_shd)
 
-#endif /* RT_SHADOWS */
+#endif /* RT_FEAT_SHADOWS */
 
-#if RT_NORMALS
+#if RT_FEAT_NORMALS
 
         CHECK_PROP(SP_nrm, RT_PROP_NORMAL)
 
@@ -2228,7 +2230,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(SP_nrm)
 
-#endif /* RT_NORMALS */
+#endif /* RT_FEAT_NORMALS */
 
         jmpxx_lb(MT_mat)
 
@@ -2241,7 +2243,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(SP_clp)
 
-#if RT_CLIPPING_CUSTOM
+#if RT_FEAT_CLIPPING_CUSTOM
 
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
         /* use context's normal fields (NRM)
@@ -2270,7 +2272,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         jmpxx_lb(CC_ret)
 
-#endif /* RT_CLIPPING_CUSTOM */
+#endif /* RT_FEAT_CLIPPING_CUSTOM */
 
 /******************************************************************************/
 /**********************************   CONE   **********************************/
@@ -2394,13 +2396,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
 
-#if RT_SHADOWS
+#if RT_FEAT_SHADOWS
 
         CHECK_SHAD(CN_shd)
 
-#endif /* RT_SHADOWS */
+#endif /* RT_FEAT_SHADOWS */
 
-#if RT_NORMALS
+#if RT_FEAT_NORMALS
 
         CHECK_PROP(CN_nrm, RT_PROP_NORMAL)
 
@@ -2438,7 +2440,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CN_nrm)
 
-#endif /* RT_NORMALS */
+#endif /* RT_FEAT_NORMALS */
 
         jmpxx_lb(MT_mat)
 
@@ -2451,7 +2453,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CN_clp)
 
-#if RT_CLIPPING_CUSTOM
+#if RT_FEAT_CLIPPING_CUSTOM
 
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
         /* use context's normal fields (NRM)
@@ -2478,7 +2480,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         jmpxx_lb(CC_ret)
 
-#endif /* RT_CLIPPING_CUSTOM */
+#endif /* RT_FEAT_CLIPPING_CUSTOM */
 
 /******************************************************************************/
 /*******************************   PARABOLOID   *******************************/
@@ -2597,13 +2599,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
 
-#if RT_SHADOWS
+#if RT_FEAT_SHADOWS
 
         CHECK_SHAD(PB_shd)
 
-#endif /* RT_SHADOWS */
+#endif /* RT_FEAT_SHADOWS */
 
-#if RT_NORMALS
+#if RT_FEAT_NORMALS
 
         CHECK_PROP(PB_nrm, RT_PROP_NORMAL)
 
@@ -2642,7 +2644,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(PB_nrm)
 
-#endif /* RT_NORMALS */
+#endif /* RT_FEAT_NORMALS */
 
         jmpxx_lb(MT_mat)
 
@@ -2655,7 +2657,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(PB_clp)
 
-#if RT_CLIPPING_CUSTOM
+#if RT_FEAT_CLIPPING_CUSTOM
 
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
         /* use context's normal fields (NRM)
@@ -2681,7 +2683,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         jmpxx_lb(CC_ret)
 
-#endif /* RT_CLIPPING_CUSTOM */
+#endif /* RT_FEAT_CLIPPING_CUSTOM */
 
 /******************************************************************************/
 /*******************************   HYPERBOLOID   ******************************/
@@ -2807,13 +2809,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
 
-#if RT_SHADOWS
+#if RT_FEAT_SHADOWS
 
         CHECK_SHAD(HB_shd)
 
-#endif /* RT_SHADOWS */
+#endif /* RT_FEAT_SHADOWS */
 
-#if RT_NORMALS
+#if RT_FEAT_NORMALS
 
         CHECK_PROP(HB_nrm, RT_PROP_NORMAL)
 
@@ -2854,7 +2856,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(HB_nrm)
 
-#endif /* RT_NORMALS */
+#endif /* RT_FEAT_NORMALS */
 
         jmpxx_lb(MT_mat)
 
@@ -2867,7 +2869,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(HB_clp)
 
-#if RT_CLIPPING_CUSTOM
+#if RT_FEAT_CLIPPING_CUSTOM
 
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
         /* use context's normal fields (NRM)
@@ -2895,7 +2897,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         jmpxx_lb(CC_ret)
 
-#endif /* RT_CLIPPING_CUSTOM */
+#endif /* RT_FEAT_CLIPPING_CUSTOM */
 
 /******************************************************************************/
 /********************************   OBJ DONE   ********************************/
@@ -2924,7 +2926,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movxx_ld(Redx, Mebp, inf_CAM)           /* edx needed in FRAME_SIMD */
 
-#if RT_ANTIALIASING
+#if RT_FEAT_ANTIALIASING
 
         cmpxx_mi(Mebp, inf_FSAA, IB(0))
         jeqxx_lb(FF_put)
@@ -2973,7 +2975,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(FF_put)
 
-#endif /* RT_ANTIALIASING */
+#endif /* RT_FEAT_ANTIALIASING */
 
         movxx_ld(Reax, Mebp, inf_FRM_X)
         shlxx_ri(Reax, IB(2))
