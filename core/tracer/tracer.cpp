@@ -143,15 +143,15 @@
  * as they are packed together into the same context field.
  * Current CHECK_FLAG macro (defined below) accepts values upto 8-bit.
  */
-#define FLAG_SIDE_OUTER     0
-#define FLAG_SIDE_INNER     1
-#define FLAG_SIDE           1
+#define RT_FLAG_SIDE_OUTER      0
+#define RT_FLAG_SIDE_INNER      1
+#define RT_FLAG_SIDE            1
 
-#define FLAG_PASS_BACK      0
-#define FLAG_PASS_THRU      2
-#define FLAG_PASS           2
+#define RT_FLAG_PASS_BACK       0
+#define RT_FLAG_PASS_THRU       2
+#define RT_FLAG_PASS            2
 
-#define FLAG_SHAD           4
+#define RT_FLAG_SHAD            4
 
 /* Check if flag "fl" is set in the context's field "pl",
  * jump to "lb" otherwise.
@@ -173,7 +173,7 @@
         cmpxx_rm(Rebx, Mecx, ctx_PARAM(OBJ))                                \
         jnexx_lb(lb)                                                        \
         movxx_ld(Reax, Mecx, ctx_PARAM(FLG))                                \
-        andxx_ri(Reax, IB(FLAG_SIDE | FLAG_PASS))                           \
+        andxx_ri(Reax, IB(RT_FLAG_SIDE | RT_FLAG_PASS))                     \
         cmpxx_ri(Reax, IB(1 - sd))                                          \
         jeqxx_lb(lo)                                                        \
         cmpxx_ri(Reax, IB(2 + sd))                                          \
@@ -187,7 +187,7 @@
  * if so skip the rest of the shadow list.
  */
 #define CHECK_SHAD(lb)                                                      \
-        CHECK_FLAG(lb, PARAM, FLAG_SHAD)                                    \
+        CHECK_FLAG(lb, PARAM, RT_FLAG_SHAD)                                 \
         CHECK_PROP(lb##_lgt, RT_PROP_LIGHT)                                 \
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))                                      \
     LBL(lb##_lgt)                                                           \
@@ -208,7 +208,7 @@
  */
 #define FETCH_PROP()                                                        \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
-        andxx_ri(Reax, IB(FLAG_SIDE))                                       \
+        andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
         shlxx_ri(Reax, IB(4))                                               \
         movpx_ld(Xmm7, Iebx, srf_SBASE)                                     \
         shrxx_ri(Reax, IB(1))                                               \
@@ -230,7 +230,7 @@
  */
 #define FETCH_XPTR(RG, pl)                                                  \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
-        andxx_ri(Reax, IB(FLAG_SIDE))                                       \
+        andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
         shlxx_ri(Reax, IB(3))                                               \
         movxx_ld(W(RG), Iebx, srf_##pl)
 
@@ -240,7 +240,7 @@
 #define FETCH_IPTR(RG, pl)                                                  \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         notxx_rr(Reax)                                                      \
-        andxx_ri(Reax, IB(FLAG_SIDE))                                       \
+        andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
         shlxx_ri(Reax, IB(3))                                               \
         movxx_ld(W(RG), Iebx, srf_##pl)
 
@@ -1094,7 +1094,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /************************************ ENTER ***********************************/
 
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
-        orrxx_ri(Reax, IB(FLAG_SHAD | FLAG_PASS_BACK))
+        orrxx_ri(Reax, IB(RT_FLAG_SHAD | RT_FLAG_PASS_BACK))
         addxx_ri(Recx, IH(RT_STACK_STEP))
         subxx_mi(Mebp, inf_DEPTH, IB(1))
 
@@ -1488,7 +1488,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         FETCH_XPTR(Resi, LST_P(SRF))
 
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
-        orrxx_ri(Reax, IB(FLAG_PASS_BACK))
+        orrxx_ri(Reax, IB(RT_FLAG_PASS_BACK))
         addxx_ri(Recx, IH(RT_STACK_STEP))
         subxx_mi(Mebp, inf_DEPTH, IB(1))
 
@@ -1659,7 +1659,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         FETCH_IPTR(Resi, LST_P(SRF))
 
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
-        orrxx_ri(Reax, IB(FLAG_PASS_THRU))
+        orrxx_ri(Reax, IB(RT_FLAG_PASS_THRU))
         addxx_ri(Recx, IH(RT_STACK_STEP))
         subxx_mi(Mebp, inf_DEPTH, IB(1))
 
@@ -1789,7 +1789,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_MASK(PL_rt2, NONE, Xmm7)
 
         /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_OUTER))
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
         SUBROUTINE(PL_mt1, PL_mat)
 
 /******************************************************************************/
@@ -1802,7 +1802,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_INNER))
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
         SUBROUTINE(PL_mt2, PL_mat)
 
         jmpxx_lb(OO_end)
@@ -1947,7 +1947,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /*  LBL(CL_rt1)  */
 
         /* outer side */
-        CHECK_SIDE(CL_sd1, CL_rt2, FLAG_SIDE_OUTER)
+        CHECK_SIDE(CL_sd1, CL_rt2, RT_FLAG_SIDE_OUTER)
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
@@ -1961,7 +1961,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_OUTER))
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
         SUBROUTINE(CL_mt1, CL_mat)
 
         /* optimize overdraw */
@@ -1972,7 +1972,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(CL_rt2)
 
         /* inner side */
-        CHECK_SIDE(CL_sd2, OO_end, FLAG_SIDE_INNER)
+        CHECK_SIDE(CL_sd2, OO_end, RT_FLAG_SIDE_INNER)
 
         /* "t2" section */
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
@@ -1987,7 +1987,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_INNER))
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
         SUBROUTINE(CL_mt2, CL_mat)
 
         jmpxx_lb(OO_end)
@@ -2140,7 +2140,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /*  LBL(SP_rt1)  */
 
         /* outer side */
-        CHECK_SIDE(SP_sd1, SP_rt2, FLAG_SIDE_OUTER)
+        CHECK_SIDE(SP_sd1, SP_rt2, RT_FLAG_SIDE_OUTER)
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
@@ -2154,7 +2154,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_OUTER))
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
         SUBROUTINE(SP_mt1, SP_mat)
 
         /* optimize overdraw */
@@ -2165,7 +2165,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(SP_rt2)
 
         /* inner side */
-        CHECK_SIDE(SP_sd2, OO_end, FLAG_SIDE_INNER)
+        CHECK_SIDE(SP_sd2, OO_end, RT_FLAG_SIDE_INNER)
 
         /* "t2" section */
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
@@ -2180,7 +2180,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_INNER))
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
         SUBROUTINE(SP_mt2, SP_mat)
 
         jmpxx_lb(OO_end)
@@ -2348,7 +2348,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /*  LBL(CN_rt1)  */
 
         /* outer side */
-        CHECK_SIDE(CN_sd1, CN_rt2, FLAG_SIDE_OUTER)
+        CHECK_SIDE(CN_sd1, CN_rt2, RT_FLAG_SIDE_OUTER)
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
@@ -2362,14 +2362,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_OUTER))
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
         SUBROUTINE(CN_mt1, CN_mat)
 
 /******************************************************************************/
     LBL(CN_rt2)
 
         /* inner side */
-        CHECK_SIDE(CN_sd2, OO_end, FLAG_SIDE_INNER)
+        CHECK_SIDE(CN_sd2, OO_end, RT_FLAG_SIDE_INNER)
 
         /* "t2" section */
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
@@ -2384,7 +2384,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_INNER))
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
         SUBROUTINE(CN_mt2, CN_mat)
 
         jmpxx_lb(OO_end)
@@ -2551,7 +2551,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /*  LBL(PB_rt1)  */
 
         /* outer side */
-        CHECK_SIDE(PB_sd1, PB_rt2, FLAG_SIDE_OUTER)
+        CHECK_SIDE(PB_sd1, PB_rt2, RT_FLAG_SIDE_OUTER)
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
@@ -2565,14 +2565,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_OUTER))
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
         SUBROUTINE(PB_mt1, PB_mat)
 
 /******************************************************************************/
     LBL(PB_rt2)
 
         /* inner side */
-        CHECK_SIDE(PB_sd2, OO_end, FLAG_SIDE_INNER)
+        CHECK_SIDE(PB_sd2, OO_end, RT_FLAG_SIDE_INNER)
 
         /* "t2" section */
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
@@ -2587,7 +2587,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_INNER))
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
         SUBROUTINE(PB_mt2, PB_mat)
 
         jmpxx_lb(OO_end)
@@ -2760,7 +2760,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /*  LBL(HB_rt1)  */
 
         /* outer side */
-        CHECK_SIDE(HB_sd1, HB_rt2, FLAG_SIDE_OUTER)
+        CHECK_SIDE(HB_sd1, HB_rt2, RT_FLAG_SIDE_OUTER)
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
@@ -2774,14 +2774,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_OUTER))
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
         SUBROUTINE(HB_mt1, HB_mat)
 
 /******************************************************************************/
     LBL(HB_rt2)
 
         /* inner side */
-        CHECK_SIDE(HB_sd2, OO_end, FLAG_SIDE_INNER)
+        CHECK_SIDE(HB_sd2, OO_end, RT_FLAG_SIDE_INNER)
 
         /* "t2" section */
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
@@ -2797,7 +2797,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(FLAG_SIDE_INNER))
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
         SUBROUTINE(HB_mt2, HB_mat)
 
         jmpxx_lb(OO_end)
