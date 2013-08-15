@@ -69,9 +69,6 @@ struct rt_SIMD_INFO
 
 };
 
-typedef rt_pntr (*rt_FUNC_ALLOC)(rt_word size);
-typedef rt_void (*rt_FUNC_FREE)(rt_pntr ptr);
-
 /* Generic definitions */
 
 #define RT_NULL             0

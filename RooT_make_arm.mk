@@ -28,5 +28,6 @@ LIB_LIST =                          \
 
 RooT:
 	g++ -O3 -g -fexceptions \
-        -DRT_ARM -DRT_DEBUG=0 -DRT_EMBED=1 -DRT_EMBED_TEX=1 -DRT_FULLSCREEN=1 \
+        -DRT_LINUX -DRT_ARM -DRT_DEBUG=0 -DRT_FULLSCREEN=1 \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=1 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.arm
