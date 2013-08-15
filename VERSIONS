@@ -1,3 +1,11 @@
+v0.5.0: Performance optimizations, multi-threading support
+  - add multi-threading framework to scene management, rendering backend
+  - add multi-threading implementation for Linux, Win32 platforms
+  - fix crashes in fullscreen mode for Linux platform, clean up FPS logging
+  - add support for temporary per-frame heap allocs
+  - add logging for scene state, support for log redirect
+  - clean up names for makefile flags, backend flags
+
 v0.4.1: Geometry transform, custom clipping with accumulator
   - add clipping accum to backend structures, scene format, object classes
   - add sub-array indexing to scene format, object classes
