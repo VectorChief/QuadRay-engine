@@ -294,6 +294,10 @@ class rt_Surface : public rt_Object, public rt_List<rt_Surface>
     rt_void add_relation(rt_ELEM *lst);
     virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
+    virtual
+    rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
+                          rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
+                          rt_vec3 cmin, rt_vec3 cmax); /* cbox */
 
     rt_void direct_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
                           rt_vec3 dmin, rt_vec3 dmax); /* dst */
@@ -317,6 +321,11 @@ class rt_Plane : public rt_Surface
 
     rt_Plane(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
              rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+
+    virtual
+    rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
+                          rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
+                          rt_vec3 cmin, rt_vec3 cmax); /* cbox */
 };
 
 /******************************************************************************/
@@ -335,6 +344,11 @@ class rt_Quadric : public rt_Surface
 
     rt_Quadric(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
                rt_cell ssize);
+
+    virtual
+    rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
+                          rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
+                          rt_vec3 cmin, rt_vec3 cmax); /* cbox */
 };
 
 /******************************************************************************/
@@ -353,6 +367,11 @@ class rt_Cylinder : public rt_Quadric
 
     rt_Cylinder(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
                 rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+
+    virtual
+    rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
+                          rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
+                          rt_vec3 cmin, rt_vec3 cmax); /* cbox */
 };
 
 /******************************************************************************/
@@ -371,6 +390,11 @@ class rt_Sphere : public rt_Quadric
 
     rt_Sphere(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
               rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+
+    virtual
+    rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
+                          rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
+                          rt_vec3 cmin, rt_vec3 cmax); /* cbox */
 };
 
 /******************************************************************************/
@@ -389,6 +413,11 @@ class rt_Cone : public rt_Quadric
 
     rt_Cone(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
             rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+
+    virtual
+    rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
+                          rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
+                          rt_vec3 cmin, rt_vec3 cmax); /* cbox */
 };
 
 /******************************************************************************/
@@ -407,6 +436,11 @@ class rt_Paraboloid : public rt_Quadric
 
     rt_Paraboloid(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
                   rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+
+    virtual
+    rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
+                          rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
+                          rt_vec3 cmin, rt_vec3 cmax); /* cbox */
 };
 
 /******************************************************************************/
@@ -425,6 +459,11 @@ class rt_Hyperboloid : public rt_Quadric
 
     rt_Hyperboloid(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
                    rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+
+    virtual
+    rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
+                          rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
+                          rt_vec3 cmin, rt_vec3 cmax); /* cbox */
 };
 
 /******************************************************************************/

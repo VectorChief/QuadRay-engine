@@ -667,6 +667,13 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     }
 }
 
+rt_void rt_Surface::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
+                                  rt_vec3 bmin, rt_vec3 bmax, /* bbox */
+                                  rt_vec3 cmin, rt_vec3 cmax) /* cbox */
+{
+
+}
+
 rt_void rt_Surface::direct_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
                                   rt_vec3 dmin, rt_vec3 dmax) /* dst */
 {
@@ -702,18 +709,20 @@ rt_void rt_Surface::direct_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
 
 rt_void rt_Surface::update_minmax()
 {
-    rt_vec3 min, max;
+    rt_vec3 smin, smax; /* src */
 
-    min[RT_I] = srf->min[RT_I];
-    min[RT_J] = srf->min[RT_J];
-    min[RT_K] = srf->min[RT_K];
+    smin[RT_I] = srf->min[RT_I];
+    smin[RT_J] = srf->min[RT_J];
+    smin[RT_K] = srf->min[RT_K];
 
-    max[RT_I] = srf->max[RT_I];
-    max[RT_J] = srf->max[RT_J];
-    max[RT_K] = srf->max[RT_K];
+    smax[RT_I] = srf->max[RT_I];
+    smax[RT_J] = srf->max[RT_J];
+    smax[RT_K] = srf->max[RT_K];
 
-    direct_minmax(min, max, bmin, bmax);
-    direct_minmax(min, max, cmin, cmax);
+    adjust_minmax(smin, smax, bmin, bmax, cmin, cmax);
+
+    direct_minmax(bmin, bmax, bmin, bmax);
+    direct_minmax(cmin, cmax, cmin, cmax);
 }
 
 rt_Surface::~rt_Surface()
@@ -740,6 +749,33 @@ rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_xpl->nrm_k, +1.0f);
 }
 
+rt_void rt_Plane::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
+                                rt_vec3 bmin, rt_vec3 bmax, /* bbox */
+                                rt_vec3 cmin, rt_vec3 cmax) /* cbox */
+{
+    if (bmin != RT_NULL && bmax != RT_NULL)
+    {
+        bmin[RT_I] = smin[RT_I];
+        bmin[RT_J] = smin[RT_J];
+        bmin[RT_K] = 0.0f;
+
+        bmax[RT_I] = smax[RT_I];
+        bmax[RT_J] = smax[RT_J];
+        bmax[RT_K] = 0.0f;
+    }
+
+    if (cmin != RT_NULL && cmax != RT_NULL)
+    {
+        cmin[RT_I] = smin[RT_I];
+        cmin[RT_J] = smin[RT_J];
+        cmin[RT_K] = -RT_INF;
+
+        cmax[RT_I] = smax[RT_I];
+        cmax[RT_J] = smax[RT_J];
+        cmax[RT_K] = +RT_INF;
+    }
+}
+
 /******************************************************************************/
 /********************************   QUADRIC   *********************************/
 /******************************************************************************/
@@ -748,6 +784,13 @@ rt_Quadric::rt_Quadric(rt_Registry *rg, rt_Object *parent,
                        rt_OBJECT *obj, rt_cell ssize) :
 
     rt_Surface(rg, parent, obj, ssize)
+{
+
+}
+
+rt_void rt_Quadric::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
+                                  rt_vec3 bmin, rt_vec3 bmax, /* bbox */
+                                  rt_vec3 cmin, rt_vec3 cmax) /* cbox */
 {
 
 }
@@ -774,6 +817,35 @@ rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_xcl->i_rad, 1.0f / rad);
 }
 
+rt_void rt_Cylinder::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
+                                   rt_vec3 bmin, rt_vec3 bmax, /* bbox */
+                                   rt_vec3 cmin, rt_vec3 cmax) /* cbox */
+{
+    rt_real rad = RT_FABS(xcl->rad);
+
+    if (bmin != RT_NULL && bmax != RT_NULL)
+    {
+        bmin[RT_I] = RT_MAX(smin[RT_I], -rad);
+        bmin[RT_J] = RT_MAX(smin[RT_J], -rad);
+        bmin[RT_K] = smin[RT_K];
+
+        bmax[RT_I] = RT_MIN(smax[RT_I], +rad);
+        bmax[RT_J] = RT_MIN(smax[RT_J], +rad);
+        bmax[RT_K] = smax[RT_K];
+    }
+
+    if (cmin != RT_NULL && cmax != RT_NULL)
+    {
+        cmin[RT_I] = smin[RT_I] <= -rad ? -RT_INF : smin[RT_I];
+        cmin[RT_J] = smin[RT_J] <= -rad ? -RT_INF : smin[RT_J];
+        cmin[RT_K] = smin[RT_K];
+
+        cmax[RT_I] = smax[RT_I] >= +rad ? +RT_INF : smax[RT_I];
+        cmax[RT_J] = smax[RT_J] >= +rad ? +RT_INF : smax[RT_J];
+        cmax[RT_K] = smax[RT_K];
+    }
+}
+
 /******************************************************************************/
 /*********************************   SPHERE   *********************************/
 /******************************************************************************/
@@ -796,6 +868,55 @@ rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_xsp->i_rad, 1.0f / rad);
 }
 
+rt_void rt_Sphere::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
+                                 rt_vec3 bmin, rt_vec3 bmax, /* bbox */
+                                 rt_vec3 cmin, rt_vec3 cmax) /* cbox */
+{
+    rt_real top, r = RT_FABS(xsp->rad);
+    rt_real rad[3] = {r, r, r};
+    rt_cell i, j, k;
+
+    for (k = 0; k < 3; k++)
+    {
+        top = smin[k] > 0.0f ? +smin[k] : smax[k] < 0.0f ? -smax[k] : 0.0f;
+        r = RT_SQRT(RT_MAX(xsp->rad * xsp->rad - top * top, 0.0f));
+
+        i = (k + 1) % 3;
+        if (rad[i] > r)
+        {
+            rad[i] = r;
+        }
+
+        j = (k + 2) % 3;
+        if (rad[j] > r)
+        {
+            rad[j] = r;
+        }
+    }
+
+    if (bmin != RT_NULL && bmax != RT_NULL)
+    {
+        bmin[RT_I] = RT_MAX(smin[RT_I], -rad[RT_I]);
+        bmin[RT_J] = RT_MAX(smin[RT_J], -rad[RT_J]);
+        bmin[RT_K] = RT_MAX(smin[RT_K], -rad[RT_K]);
+
+        bmax[RT_I] = RT_MIN(smax[RT_I], +rad[RT_I]);
+        bmax[RT_J] = RT_MIN(smax[RT_J], +rad[RT_J]);
+        bmax[RT_K] = RT_MIN(smax[RT_K], +rad[RT_K]);
+    }
+
+    if (cmin != RT_NULL && cmax != RT_NULL)
+    {
+        cmin[RT_I] = smin[RT_I] <= -rad[RT_I] ? -RT_INF : smin[RT_I];
+        cmin[RT_J] = smin[RT_J] <= -rad[RT_J] ? -RT_INF : smin[RT_J];
+        cmin[RT_K] = smin[RT_K] <= -rad[RT_K] ? -RT_INF : smin[RT_K];
+
+        cmax[RT_I] = smax[RT_I] >= +rad[RT_I] ? +RT_INF : smax[RT_I];
+        cmax[RT_J] = smax[RT_J] >= +rad[RT_J] ? +RT_INF : smax[RT_J];
+        cmax[RT_K] = smax[RT_K] >= +rad[RT_K] ? +RT_INF : smax[RT_K];
+    }
+}
+
 /******************************************************************************/
 /**********************************   CONE   **********************************/
 /******************************************************************************/
@@ -816,6 +937,36 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
 
     RT_SIMD_SET(s_xcn->rat_2, rat * rat);
     RT_SIMD_SET(s_xcn->i_rat, 1.0f / (rat * sqrtf(rat * rat + 1.0f)));
+}
+
+rt_void rt_Cone::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
+                               rt_vec3 bmin, rt_vec3 bmax, /* bbox */
+                               rt_vec3 cmin, rt_vec3 cmax) /* cbox */
+{
+    rt_real top = RT_MAX(RT_FABS(smin[RT_K]), RT_FABS(smax[RT_K]));
+    rt_real rad = top * RT_FABS(xcn->rat);
+
+    if (bmin != RT_NULL && bmax != RT_NULL)
+    {
+        bmin[RT_I] = RT_MAX(smin[RT_I], -rad);
+        bmin[RT_J] = RT_MAX(smin[RT_J], -rad);
+        bmin[RT_K] = smin[RT_K];
+
+        bmax[RT_I] = RT_MIN(smax[RT_I], +rad);
+        bmax[RT_J] = RT_MIN(smax[RT_J], +rad);
+        bmax[RT_K] = smax[RT_K];
+    }
+
+    if (cmin != RT_NULL && cmax != RT_NULL)
+    {
+        cmin[RT_I] = smin[RT_I] <= -rad ? -RT_INF : smin[RT_I];
+        cmin[RT_J] = smin[RT_J] <= -rad ? -RT_INF : smin[RT_J];
+        cmin[RT_K] = smin[RT_K];
+
+        cmax[RT_I] = smax[RT_I] >= +rad ? +RT_INF : smax[RT_I];
+        cmax[RT_J] = smax[RT_J] >= +rad ? +RT_INF : smax[RT_J];
+        cmax[RT_K] = smax[RT_K];
+    }
 }
 
 /******************************************************************************/
@@ -842,6 +993,41 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_xpb->one_k, 1.0f);
 }
 
+rt_void rt_Paraboloid::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
+                                     rt_vec3 bmin, rt_vec3 bmax, /* bbox */
+                                     rt_vec3 cmin, rt_vec3 cmax) /* cbox */
+{
+    rt_real par = xpb->par;
+    rt_real top = RT_MAX(par < 0.0f ? -smin[RT_K] : +smax[RT_K], 0.0f);
+    rt_real rad = RT_SQRT(top * RT_FABS(par));
+
+    if (bmin != RT_NULL && bmax != RT_NULL)
+    {
+        bmin[RT_I] = RT_MAX(smin[RT_I], -rad);
+        bmin[RT_J] = RT_MAX(smin[RT_J], -rad);
+        bmin[RT_K] = smin[RT_K] <= 0.0f &&
+                             par > 0.0f ? 0.0f : smin[RT_K];
+
+        bmax[RT_I] = RT_MIN(smax[RT_I], +rad);
+        bmax[RT_J] = RT_MIN(smax[RT_J], +rad);
+        bmax[RT_K] = smax[RT_K] >= 0.0f && 
+                             par < 0.0f ? 0.0f : smax[RT_K];
+    }
+
+    if (cmin != RT_NULL && cmax != RT_NULL)
+    {
+        cmin[RT_I] = smin[RT_I] <= -rad ? -RT_INF : smin[RT_I];
+        cmin[RT_J] = smin[RT_J] <= -rad ? -RT_INF : smin[RT_J];
+        cmin[RT_K] = smin[RT_K] <= 0.0f &&
+                             par > 0.0f ? -RT_INF : smin[RT_K];
+
+        cmax[RT_I] = smax[RT_I] >= +rad ? +RT_INF : smax[RT_I];
+        cmax[RT_J] = smax[RT_J] >= +rad ? +RT_INF : smax[RT_J];
+        cmax[RT_K] = smax[RT_K] >= 0.0f &&
+                             par < 0.0f ? +RT_INF : smax[RT_K];
+    }
+}
+
 /******************************************************************************/
 /*******************************   HYPERBOLOID   ******************************/
 /******************************************************************************/
@@ -865,6 +1051,36 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_xhb->i_rat, (1.0f + rat * rat) * rat * rat);
     RT_SIMD_SET(s_xhb->hyp_k, hyp);
     RT_SIMD_SET(s_xhb->one_k, 1.0f);
+}
+
+rt_void rt_Hyperboloid::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
+                                      rt_vec3 bmin, rt_vec3 bmax, /* bbox */
+                                      rt_vec3 cmin, rt_vec3 cmax) /* cbox */
+{
+    rt_real top = RT_MAX(RT_FABS(smin[RT_K]), RT_FABS(smax[RT_K]));
+    rt_real rad = RT_SQRT(top * top * xhb->rat * xhb->rat + xhb->hyp);
+
+    if (bmin != RT_NULL && bmax != RT_NULL)
+    {
+        bmin[RT_I] = RT_MAX(smin[RT_I], -rad);
+        bmin[RT_J] = RT_MAX(smin[RT_J], -rad);
+        bmin[RT_K] = smin[RT_K];
+
+        bmax[RT_I] = RT_MIN(smax[RT_I], +rad);
+        bmax[RT_J] = RT_MIN(smax[RT_J], +rad);
+        bmax[RT_K] = smax[RT_K];
+    }
+
+    if (cmin != RT_NULL && cmax != RT_NULL)
+    {
+        cmin[RT_I] = smin[RT_I] <= -rad ? -RT_INF : smin[RT_I];
+        cmin[RT_J] = smin[RT_J] <= -rad ? -RT_INF : smin[RT_J];
+        cmin[RT_K] = smin[RT_K];
+
+        cmax[RT_I] = smax[RT_I] >= +rad ? +RT_INF : smax[RT_I];
+        cmax[RT_J] = smax[RT_J] >= +rad ? +RT_INF : smax[RT_J];
+        cmax[RT_K] = smax[RT_K];
+    }
 }
 
 /******************************************************************************/
