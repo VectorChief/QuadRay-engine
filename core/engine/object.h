@@ -36,6 +36,25 @@
 #define RT_CAMERA_ROTATE_LEFT       12
 #define RT_CAMERA_ROTATE_RIGHT      13
 
+/* Structures */
+
+struct rt_VERT
+{
+    rt_vec3 pos;
+};
+
+struct rt_EDGE
+{
+    rt_cell index[2];
+    rt_cell k;
+};
+
+struct rt_FACE
+{
+    rt_cell index[4];
+    rt_cell k, i, j;
+};
+
 /* Classes */
 
 class rt_Registry;
@@ -262,6 +281,14 @@ class rt_Surface : public rt_Object, public rt_List<rt_Surface>
      * non-clipped sides are at respective +/-infinity */
     rt_vec3             cmin;
     rt_vec3             cmax;
+
+    /* bounding box geometry */
+    rt_VERT            *verts;
+    rt_cell             verts_num;
+    rt_EDGE            *edges;
+    rt_cell             edges_num;
+    rt_FACE            *faces;
+    rt_cell             faces_num;
 
     rt_SIMD_SURFACE    *s_srf;
 
