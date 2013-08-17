@@ -40,7 +40,7 @@
 
 struct rt_VERT
 {
-    rt_vec3 pos;
+    rt_vec4 pos;
 };
 
 struct rt_EDGE
@@ -269,6 +269,7 @@ class rt_Surface : public rt_Object, public rt_List<rt_Surface>
     rt_cell             mp_i;
     rt_cell             mp_j;
     rt_cell             mp_k;
+    rt_cell             mp_l;
 
     /* bounding box,
      * all sides clipped or non-clipped are boundaries */
