@@ -46,13 +46,11 @@ struct rt_VERT
 struct rt_EDGE
 {
     rt_cell index[2];
-    rt_cell k;
 };
 
 struct rt_FACE
 {
     rt_cell index[4];
-    rt_cell k, i, j;
 };
 
 /* Classes */
@@ -350,6 +348,8 @@ class rt_Plane : public rt_Surface
              rt_cell ssize = sizeof(rt_SIMD_SURFACE));
 
     virtual
+    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
+    virtual
     rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
                           rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
                           rt_vec3 cmin, rt_vec3 cmax); /* cbox */
@@ -372,6 +372,8 @@ class rt_Quadric : public rt_Surface
     rt_Quadric(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
                rt_cell ssize);
 
+    virtual
+    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
     virtual
     rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
                           rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
