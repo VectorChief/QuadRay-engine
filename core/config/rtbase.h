@@ -115,6 +115,8 @@ struct rt_SIMD_INFO
 
 #define RT_FABS(a)          (fabsf(a))
 
+#define RT_FLOOR(a)         (floorf(a))
+
 #define RT_SQRT(a)          ((a)  <    0.0f ?  0.0f :                       \
                              sqrtf(a))
 

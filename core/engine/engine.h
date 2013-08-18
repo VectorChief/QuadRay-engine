@@ -49,14 +49,23 @@ class rt_SceneThread : public rt_Heap
      * for temporary per-frame allocs */
     rt_pntr             mpool;
 
+    /* surface's x-coord boundaries
+     * in the tilebuffer */
+    rt_cell            *txmin;
+    rt_cell            *txmax;
+    /* temporary bbox verts buffer */
+    rt_VERT            *verts;
+
 /*  methods */
 
     public:
 
     rt_SceneThread(rt_Scene *scene, rt_cell index);
 
+    rt_void     tiling(rt_vec4 p1, rt_vec4 p2);
     rt_void     insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf);
 
+    rt_void     stile(rt_Surface *srf);
     rt_ELEM*    ssort(rt_Object *obj);
     rt_ELEM*    lsort(rt_Object *obj);
 };
@@ -81,11 +90,19 @@ class rt_Scene : public rt_LogRedirect, public rt_Registry
     /* dummy for root's identity transform */
     rt_OBJECT           rootobj;
 
-    /* frame's dimensions and pointer */
+    /* framebuffer's dimensions and pointer */
     rt_word             x_res;
     rt_word             y_res;
     rt_cell             x_row;
     rt_word            *frame;
+
+    /* single tile dimensions in pixels */
+    rt_cell             tile_w;
+    rt_cell             tile_h;
+    /* tilebuffer's dimensions and pointer */
+    rt_cell             tiles_in_row;
+    rt_cell             tiles_in_col;
+    rt_ELEM           **tiles;
 
     /* aspect ratio and pixel width */
     rt_real             aspect;
@@ -94,6 +111,11 @@ class rt_Scene : public rt_LogRedirect, public rt_Registry
     /* rays depth and anti-aliasing */
     rt_word             depth;
     rt_cell             fsaa;
+
+    /* memory pool in the heap
+     * for temporary per-frame allocs */
+    rt_pntr             mpool;
+    rt_word             msize;
 
     /* threads management functions */
     rt_FUNC_INIT        f_init;
@@ -107,25 +129,27 @@ class rt_Scene : public rt_LogRedirect, public rt_Registry
     rt_SceneThread    **tharr;
     rt_pntr             tdata;
 
-    /* memory pool in the heap
-     * for temporary per-frame allocs */
-    rt_pntr             mpool;
-    rt_word             msize;
-
     /* global surface list and
      * global light/shadow list
      * for rendering backend */
     rt_ELEM            *slist;
     rt_ELEM            *llist;
 
-    /* rays positioning variables
-     * from camera object */
-    rt_vec3             pos;
-    rt_vec3             dir;
-    rt_vec3             hor;
-    rt_vec3             ver;
-    rt_vec3             nrm;
-    rt_vec3             amb;
+    /* rays positioning variables */
+    rt_vec4             pos;
+    rt_vec4             dir;
+    /* rays steppers variables */
+    rt_vec4             hor;
+    rt_vec4             ver;
+    /* screen's normal direction */
+    rt_vec4             nrm;
+    /* tiles positioning variables */
+    rt_vec4             org;
+    /* tiles steppers variables */
+    rt_vec4             htl;
+    rt_vec4             vtl;
+    /* accumulated ambient color */
+    rt_vec4             amb;
 
     /* root of the objects hierarchy */
     rt_Object          *root;

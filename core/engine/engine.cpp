@@ -327,6 +327,188 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_cell index) :
             alloc(sizeof(rt_SIMD_CONTEXT) + /* +1 context step for shadows */
                             RT_STACK_STEP * (1 + scene->depth),
                             RT_SIMD_ALIGN);
+
+    txmin = (rt_cell *)alloc(sizeof(rt_cell) * scene->tiles_in_col, RT_ALIGN);
+    txmax = (rt_cell *)alloc(sizeof(rt_cell) * scene->tiles_in_col, RT_ALIGN);
+    verts = (rt_VERT *)alloc(sizeof(rt_VERT) * RT_VERTS_LIMIT, RT_ALIGN);
+}
+
+#define RT_UPDATE_TILES_BOUNDS(cy, x1, x2)                              \
+do                                                                      \
+{                                                                       \
+    if (x1 < x2)                                                        \
+    {                                                                   \
+        if (txmin[cy] > x1)                                             \
+            txmin[cy] = RT_MAX(x1, xmin);                               \
+                                                                        \
+        if (txmax[cy] < x2)                                             \
+            txmax[cy] = RT_MIN(x2, xmax);                               \
+    }                                                                   \
+    else                                                                \
+    {                                                                   \
+        if (txmin[cy] > x2)                                             \
+            txmin[cy] = RT_MAX(x2, xmin);                               \
+                                                                        \
+        if (txmax[cy] < x1)                                             \
+            txmax[cy] = RT_MIN(x1, xmax);                               \
+    }                                                                   \
+}                                                                       \
+while (0)
+
+/*
+ * Update surface's projected bbox boundaries in tilebuffer
+ * by processing one bbox edge at a time.
+ * The tile buffer is reset for every surface from outside of this function.
+ */
+rt_void rt_SceneThread::tiling(rt_vec4 p1, rt_vec4 p2)
+{
+    rt_real *pt, n1[3][2], n2[3][2];
+    rt_real dx, dy, xx, yy, rt, px;
+    rt_cell x1, y1, x2, y2, i, n, t;
+
+    /* swap points vertically if needed */
+
+    if (p1[RT_Y] > p2[RT_Y])
+    {
+        pt = p1;
+        p1 = p2;
+        p2 = pt;
+    }
+
+    /* initialize delta variables */
+
+    dx = p2[RT_X] - p1[RT_X];
+    dy = p2[RT_Y] - p1[RT_Y];
+
+    /* prepare new lines with margins */
+
+    if ((RT_FABS(dx) <= RT_LINE_THRESHOLD)
+    &&  (RT_FABS(dy) <= RT_LINE_THRESHOLD))
+    {
+        rt = 0.0f;
+        xx = dx < 0.0f ? -1.0f : 1.0f;
+        yy = 1.0f;
+    }
+    else
+    if ((RT_FABS(dx) <= RT_LINE_THRESHOLD)
+    ||  (RT_FABS(dy) <= RT_LINE_THRESHOLD))
+    {
+        rt = 0.0f;
+        xx = dx;
+        yy = dy;
+    }
+    else
+    {
+        rt = dx / dy;
+        xx = dx;
+        yy = dy;
+    }
+
+#if RT_TILING_EXT
+
+    px  = RT_TILE_THRESHOLD / RT_SQRT(xx * xx + yy * yy);
+    xx *= px;
+    yy *= px;
+
+    n1[0][RT_X] = p1[RT_X] - xx;
+    n1[0][RT_Y] = p1[RT_Y] - yy;
+    n2[0][RT_X] = p2[RT_X] + xx;
+    n2[0][RT_Y] = p2[RT_Y] + yy;
+
+    n1[1][RT_X] = n1[0][RT_X] - yy;
+    n1[1][RT_Y] = n1[0][RT_Y] + xx;
+    n2[1][RT_X] = n2[0][RT_X] - yy;
+    n2[1][RT_Y] = n2[0][RT_Y] + xx;
+
+    n1[2][RT_X] = n1[0][RT_X] + yy;
+    n1[2][RT_Y] = n1[0][RT_Y] - xx;
+    n2[2][RT_X] = n2[0][RT_X] + yy;
+    n2[2][RT_Y] = n2[0][RT_Y] - xx;
+
+    n = 3;
+
+#else /* RT_TILING_EXT */
+
+    n1[0][RT_X] = p1[RT_X];
+    n1[0][RT_Y] = p1[RT_Y];
+    n2[0][RT_X] = p2[RT_X];
+    n2[0][RT_Y] = p2[RT_Y];
+
+    n = 1;
+
+#endif /* RT_TILING_EXT */
+
+    /* set inclusive bounds */
+
+    rt_cell xmin = 0;
+    rt_cell ymin = 0;
+    rt_cell xmax = scene->tiles_in_row - 1;
+    rt_cell ymax = scene->tiles_in_col - 1;
+
+    for (i = 0; i < n; i++)
+    {
+        /* calculate points floor */
+
+        x1 = (rt_cell)RT_FLOOR(n1[i][RT_X]);
+        y1 = (rt_cell)RT_FLOOR(n1[i][RT_Y]);
+        x2 = (rt_cell)RT_FLOOR(n2[i][RT_X]);
+        y2 = (rt_cell)RT_FLOOR(n2[i][RT_Y]);
+
+        /* reject y-outer lines */
+
+        if (y1 > ymax || y2 < ymin)
+        {
+            continue;
+        }
+
+        /* process nearly vertical, nearly horizontal or x-outer line */
+
+        if ((x1 == x2  || y1 == y2 || rt == 0.0f)
+        ||  (x1 < xmin && x2 < xmin)
+        ||  (x1 > xmax && x2 > xmax))
+        {
+            if (y1 < ymin)
+                y1 = ymin;
+            if (y2 > ymax)
+                y2 = ymax;
+
+            for (t = y1; t <= y2; t++)
+            {
+                RT_UPDATE_TILES_BOUNDS(t, x1, x2);
+            }
+
+            continue;
+        }
+
+        /* process regular line */
+
+        y1 = y1 < ymin ? ymin : y1 + 1;
+        y2 = y2 > ymax ? ymax : y2 - 1;
+
+        px = n1[i][RT_X] + (y1 - n1[i][RT_Y]) * rt;
+        x2 = (rt_cell)RT_FLOOR(px);
+
+        if (y1 > ymin)
+        {
+            RT_UPDATE_TILES_BOUNDS(y1 - 1, x1, x2);
+        }
+
+        x1 = x2;
+
+        for (t = y1; t <= y2; t++)
+        {
+            px = px + rt;
+            x2 = (rt_cell)RT_FLOOR(px);
+            RT_UPDATE_TILES_BOUNDS(t, x1, x2);
+            x1 = x2;
+        }
+
+        if (y2 < ymax)
+        {
+            x2 = (rt_cell)RT_FLOOR(n2[i][RT_X]);
+            RT_UPDATE_TILES_BOUNDS(y2 + 1, x1, x2);
+        }
+    }
 }
 
 /*
@@ -359,6 +541,174 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         elm->next = *ptr;
        *ptr = elm;
     }
+}
+
+/*
+ * Build tile list for a given "srf" based
+ * on the area its projected bbox occupies in the tilebuffer.
+ */
+rt_void rt_SceneThread::stile(rt_Surface *srf)
+{
+    rt_ELEM *lst = RT_NULL;
+    rt_ELEM *elm = RT_NULL;
+    rt_cell i, j;
+#if RT_TILING_OPT
+    rt_cell verts_num;
+    rt_cell k;
+
+    rt_VERT *svr;
+    rt_vec4 vec;
+    rt_real dot;
+    rt_cell ndx[2];
+    rt_real tag[2], zed[2];
+
+    verts_num = srf->verts_num;
+    svr = srf->verts;
+
+    /* project bbox onto the tilebuffer */
+
+    if (verts_num != 0)
+    {
+        for (i = 0; i < scene->tiles_in_col; i++)
+        {
+            txmin[i] = scene->tiles_in_row;
+            txmax[i] = -1;
+        }
+
+        /* process bbox vertices */
+
+        memset(verts, 0, sizeof(rt_VERT) * verts_num);
+
+        for (k = 0; k < srf->verts_num; k++)
+        {
+            vec[RT_X] = svr[k].pos[RT_X] - scene->org[RT_X];
+            vec[RT_Y] = svr[k].pos[RT_Y] - scene->org[RT_Y];
+            vec[RT_Z] = svr[k].pos[RT_Z] - scene->org[RT_Z];
+
+            dot = RT_VECTOR_DOT(vec, scene->nrm);
+
+            verts[k].pos[RT_Z] = dot;
+            verts[k].pos[3] = -1.0f;
+
+            if (dot >= 0.0f || RT_FABS(dot) <= RT_CLIP_THRESHOLD)
+            {
+                vec[RT_X] = svr[k].pos[RT_X] - scene->pos[RT_X];
+                vec[RT_Y] = svr[k].pos[RT_Y] - scene->pos[RT_Y];
+                vec[RT_Z] = svr[k].pos[RT_Z] - scene->pos[RT_Z];
+
+                dot = RT_VECTOR_DOT(vec, scene->nrm) / scene->cam->pov;
+
+                vec[RT_X] /= dot;
+                vec[RT_Y] /= dot;
+                vec[RT_Z] /= dot;
+
+                vec[RT_X] -= scene->dir[RT_X];
+                vec[RT_Y] -= scene->dir[RT_Y];
+                vec[RT_Z] -= scene->dir[RT_Z];
+
+                verts[k].pos[RT_X] = RT_VECTOR_DOT(vec, scene->htl);
+                verts[k].pos[RT_Y] = RT_VECTOR_DOT(vec, scene->vtl);
+
+                verts[k].pos[3] = +1.0f;
+
+                if (verts[k].pos[RT_Z] < 0.0f)
+                {
+                    verts[verts_num].pos[RT_X] = verts[k].pos[RT_X];
+                    verts[verts_num].pos[RT_Y] = verts[k].pos[RT_Y];
+                    verts_num++;
+
+                    verts[k].pos[3] = 0.0f;
+                }
+            }
+        }
+
+        /* process bbox edges */
+
+        for (k = 0; k < srf->edges_num; k++)
+        {
+            for (i = 0; i < 2; i++)
+            {
+                ndx[i] = srf->edges[k].index[i];
+                zed[i] = verts[ndx[i]].pos[RT_Z];
+                tag[i] = verts[ndx[i]].pos[3];
+            }
+
+            if (tag[0] <= 0.0f && tag[1] <= 0.0f)
+            {
+                continue;
+            }
+
+            for (i = 0; i < 2; i++)
+            {
+                if (tag[i] >= 0.0f)
+                {
+                    continue;
+                }
+
+                j = 1 - i;
+
+                vec[RT_X] = svr[ndx[i]].pos[RT_X] - svr[ndx[j]].pos[RT_X];
+                vec[RT_Y] = svr[ndx[i]].pos[RT_Y] - svr[ndx[j]].pos[RT_Y];
+                vec[RT_Z] = svr[ndx[i]].pos[RT_Z] - svr[ndx[j]].pos[RT_Z];
+
+                dot = zed[j] / (zed[j] - zed[i]);
+
+                vec[RT_X] *= dot;
+                vec[RT_Y] *= dot;
+                vec[RT_Z] *= dot;
+
+                vec[RT_X] += svr[ndx[j]].pos[RT_X] - scene->org[RT_X];
+                vec[RT_Y] += svr[ndx[j]].pos[RT_Y] - scene->org[RT_Y];
+                vec[RT_Z] += svr[ndx[j]].pos[RT_Z] - scene->org[RT_Z];
+
+                verts[verts_num].pos[RT_X] = RT_VECTOR_DOT(vec, scene->htl);
+                verts[verts_num].pos[RT_Y] = RT_VECTOR_DOT(vec, scene->vtl);
+
+                ndx[i] = verts_num;
+                verts_num++;
+            }
+
+            tiling(verts[ndx[0]].pos, verts[ndx[1]].pos); 
+        }
+
+        for (i = srf->verts_num; i < verts_num - 1; i++)
+        {
+            for (j = i + 1; j < verts_num; j++)
+            {
+                tiling(verts[i].pos, verts[j].pos); 
+            }
+        }
+    }
+    else
+#endif /* RT_TILING_OPT */
+    {
+        for (i = 0; i < scene->tiles_in_col; i++)
+        {
+            txmin[i] = 0;
+            txmax[i] = scene->tiles_in_row - 1;
+        }
+    }
+
+    /* fill marked tiles with surface data */
+
+    rt_ELEM **ptr = &lst;
+
+    for (i = 0; i < scene->tiles_in_col; i++)
+    {
+        for (j = txmin[i]; j <= txmax[i]; j++)
+        {
+            elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+            elm->data = (i << 16 | j);
+            elm->simd = srf->s_srf;
+            elm->next = RT_NULL;
+           *ptr = elm;
+            ptr = (rt_ELEM **)&(elm->temp);
+        }
+    }
+
+   *ptr = RT_NULL;
+
+    srf->s_srf->msc_p[0] = lst;
 }
 
 /*
@@ -491,6 +841,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
 {
     this->scn   = scn;
 
+    /* init framebuffer's dimensions and pointer */
+
     this->x_res = x_res;
     this->y_res = y_res;
     this->x_row = x_row;
@@ -509,13 +861,31 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
 
     this->frame = frame;
 
+    /* init tilebuffer's dimensions and pointer */
+
+    tile_w = RT_TILE_W;
+    tile_h = RT_TILE_H;
+
+    tiles_in_row = (x_res + tile_w - 1) / tile_w;
+    tiles_in_col = (y_res + tile_h - 1) / tile_h;
+
+    tiles = (rt_ELEM **)alloc(sizeof(rt_ELEM *) *
+                                (tiles_in_row * tiles_in_col), RT_ALIGN);
+
+    /* init aspect ratio, rays depth and fsaa */
+
     factor = 1.0f / (rt_real)x_res;
     aspect = (rt_real)y_res * factor;
 
     depth = RT_STACK_DEPTH;
     fsaa  = RT_FSAA_NO;
 
-    /* create worker threads */
+    /* init memory pool in the heap for temporary per-frame allocs */
+
+    mpool = RT_NULL;
+    msize = 0; /* estimate per-frame allocs here */
+
+    /* init threads management functions */
 
     if (f_init != RT_NULL && f_term != RT_NULL
     &&  f_update != RT_NULL && f_render != RT_NULL)
@@ -533,6 +903,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
         this->f_render = render_scene;
     }
 
+    /* create scene threads array */
+
     thnum = RT_THREADS_NUM;
 
     tharr = (rt_SceneThread **)
@@ -545,9 +917,9 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
         tharr[i] = new rt_SceneThread(this, i);
     }
 
-    tdata = this->f_init(thnum, this);
+    /* create platform-specific worker threads */
 
-    msize = 0; /* estimate per-frame allocs here */
+    tdata = this->f_init(thnum, this);
 
     /* initialize rendering backend */
 
@@ -566,10 +938,12 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     cam  = cam_head;
 
     /* setup surface list */
+
     slist = tharr[0]->ssort(cam);
 
     /* setup light/shadow list,
      * slist is needed inside */
+
     llist = tharr[0]->lsort(cam);
 }
 
@@ -627,7 +1001,7 @@ rt_void rt_Scene::render(rt_long time)
         this->f_update(tdata, thnum);
     }
 
-    /* prepare for rendering */
+    /* update rays positioning and steppers */
 
     rt_real h, v;
 
@@ -669,6 +1043,23 @@ rt_void rt_Scene::render(rt_long time)
     dir[RT_X] += (hor[RT_X] + ver[RT_X]) * 0.5f;
     dir[RT_Y] += (hor[RT_Y] + ver[RT_Y]) * 0.5f;
     dir[RT_Z] += (hor[RT_Z] + ver[RT_Z]) * 0.5f;
+
+    /* update tiles positioning and steppers */
+
+    org[RT_X] = (pos[RT_X] + dir[RT_X]);
+    org[RT_Y] = (pos[RT_Y] + dir[RT_Y]);
+    org[RT_Z] = (pos[RT_Z] + dir[RT_Z]);
+
+            h = (1.0f / (factor * tile_w)); /* x_res / tile_w */
+            v = (1.0f / (factor * tile_h)); /* x_res / tile_h */
+
+    htl[RT_X] = (hor[RT_X] * h);
+    htl[RT_Y] = (hor[RT_Y] * h);
+    htl[RT_Z] = (hor[RT_Z] * h);
+
+    vtl[RT_X] = (ver[RT_X] * v);
+    vtl[RT_Y] = (ver[RT_Y] * v);
+    vtl[RT_Z] = (ver[RT_Z] * v);
 
     /* accumulate ambient from camera and all light sources */
 
