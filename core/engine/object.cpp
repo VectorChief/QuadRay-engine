@@ -828,10 +828,10 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         vt3[mp_k] = bmin[mp_k];
         vt3[mp_l] = 1.0f; /* takes pos in mtx into account */
 
-        matrix_mul_vector(verts[0x0].pos, mtx, vt0);
-        matrix_mul_vector(verts[0x1].pos, mtx, vt1);
-        matrix_mul_vector(verts[0x2].pos, mtx, vt2);
-        matrix_mul_vector(verts[0x3].pos, mtx, vt3);
+        matrix_mul_vector(verts[0x0].pos, this->mtx, vt0);
+        matrix_mul_vector(verts[0x1].pos, this->mtx, vt1);
+        matrix_mul_vector(verts[0x2].pos, this->mtx, vt2);
+        matrix_mul_vector(verts[0x3].pos, this->mtx, vt3);
     }
     else
     {
@@ -983,14 +983,14 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         vt7[mp_k] = bmax[mp_k];
         vt7[mp_l] = 1.0f; /* takes pos in mtx into account */
 
-        matrix_mul_vector(verts[0x0].pos, mtx, vt0);
-        matrix_mul_vector(verts[0x1].pos, mtx, vt1);
-        matrix_mul_vector(verts[0x2].pos, mtx, vt2);
-        matrix_mul_vector(verts[0x3].pos, mtx, vt3);
-        matrix_mul_vector(verts[0x4].pos, mtx, vt4);
-        matrix_mul_vector(verts[0x5].pos, mtx, vt5);
-        matrix_mul_vector(verts[0x6].pos, mtx, vt6);
-        matrix_mul_vector(verts[0x7].pos, mtx, vt7);
+        matrix_mul_vector(verts[0x0].pos, this->mtx, vt0);
+        matrix_mul_vector(verts[0x1].pos, this->mtx, vt1);
+        matrix_mul_vector(verts[0x2].pos, this->mtx, vt2);
+        matrix_mul_vector(verts[0x3].pos, this->mtx, vt3);
+        matrix_mul_vector(verts[0x4].pos, this->mtx, vt4);
+        matrix_mul_vector(verts[0x5].pos, this->mtx, vt5);
+        matrix_mul_vector(verts[0x6].pos, this->mtx, vt6);
+        matrix_mul_vector(verts[0x7].pos, this->mtx, vt7);
     }
     else
     {
