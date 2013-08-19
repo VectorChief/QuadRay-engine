@@ -984,23 +984,6 @@ rt_void rt_Scene::render(rt_long time)
 
     root->update(time, iden4, 0);
 
-    /* multi-threaded update */
-
-    if (g_print)
-    {
-        update_scene(this, thnum);
-
-        PRINT_CAM(cam);
-
-        PRINT_LGT_LIST(llist);
-
-        PRINT_SRF_LIST(slist);
-    }
-    else
-    {
-        this->f_update(tdata, thnum);
-    }
-
     /* update rays positioning and steppers */
 
     rt_real h, v;
@@ -1030,20 +1013,6 @@ rt_void rt_Scene::render(rt_long time)
     dir[RT_Y] = (nrm[RT_Y] * cam->pov - (hor[RT_Y] * h + ver[RT_Y] * v) * 0.5f);
     dir[RT_Z] = (nrm[RT_Z] * cam->pov - (hor[RT_Z] * h + ver[RT_Z] * v) * 0.5f);
 
-    hor[RT_X] *= factor;
-    hor[RT_Y] *= factor;
-    hor[RT_Z] *= factor;
-
-    ver[RT_X] *= factor;
-    ver[RT_Y] *= factor;
-    ver[RT_Z] *= factor;
-
-    /* aim rays at pixel centers */
-
-    dir[RT_X] += (hor[RT_X] + ver[RT_X]) * 0.5f;
-    dir[RT_Y] += (hor[RT_Y] + ver[RT_Y]) * 0.5f;
-    dir[RT_Z] += (hor[RT_Z] + ver[RT_Z]) * 0.5f;
-
     /* update tiles positioning and steppers */
 
     org[RT_X] = (pos[RT_X] + dir[RT_X]);
@@ -1060,6 +1029,37 @@ rt_void rt_Scene::render(rt_long time)
     vtl[RT_X] = (ver[RT_X] * v);
     vtl[RT_Y] = (ver[RT_Y] * v);
     vtl[RT_Z] = (ver[RT_Z] * v);
+
+    /* multi-threaded update */
+
+    if (g_print)
+    {
+        update_scene(this, thnum);
+
+        PRINT_CAM(cam);
+
+        PRINT_LGT_LIST(llist);
+
+        PRINT_SRF_LIST(slist);
+    }
+    else
+    {
+        this->f_update(tdata, thnum);
+    }
+
+    /* aim rays at pixel centers */
+
+    hor[RT_X] *= factor;
+    hor[RT_Y] *= factor;
+    hor[RT_Z] *= factor;
+
+    ver[RT_X] *= factor;
+    ver[RT_Y] *= factor;
+    ver[RT_Z] *= factor;
+
+    dir[RT_X] += (hor[RT_X] + ver[RT_X]) * 0.5f;
+    dir[RT_Y] += (hor[RT_Y] + ver[RT_Y]) * 0.5f;
+    dir[RT_Z] += (hor[RT_Z] + ver[RT_Z]) * 0.5f;
 
     /* accumulate ambient from camera and all light sources */
 
