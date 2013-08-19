@@ -15,6 +15,7 @@
 /* Conditional compilation flags
  * for respective segments of code.
  */
+#define RT_FEAT_TILING              1
 #define RT_FEAT_MULTITHREADING      1
 #define RT_FEAT_CLIPPING_MINMAX     1
 #define RT_FEAT_CLIPPING_CUSTOM     1
@@ -54,7 +55,7 @@
 /******************************************************************************/
 /*    **      list      **    aux-list    **     object     **   aux-object   */
 /******************************************************************************/
-/*    **    inf_LST     **                ** elm_SIMD(Mesi) **    inf_CAM     */
+/*    **    inf_TLS     **                ** elm_SIMD(Mesi) **    inf_CAM     */
 /* OO **      Resi      **      Redi      **      Rebx      **      Redx      */
 /*    **                **                **                **                */
 /******************************************************************************/
@@ -492,6 +493,19 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /********************************   HOR INIT   ********************************/
 /******************************************************************************/
 
+#if RT_FEAT_TILING
+
+        movxx_ld(Reax, Mebp, inf_FRM_Y)
+        movxx_ri(Redx, IB(0))
+        divxn_xm(Mebp, inf_TILE_H)
+        mulxn_xm(Mebp, inf_TLS_ROW)
+        shlxx_ri(Reax, IB(2))
+        addxx_ld(Reax, Mebp, inf_TILES)
+        movxx_st(Reax, Mebp, inf_TLS)
+        movxx_mi(Mebp, inf_TLS_X, IB(0))
+
+#endif /* RT_FEAT_TILING */
+
         movxx_mi(Mebp, inf_FRM_X, IB(0))
 
     LBL(XX_cyc)
@@ -511,7 +525,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /********************************   OBJ LIST   ********************************/
 /******************************************************************************/
 
+#if RT_FEAT_TILING
+
+        movxx_ld(Reax, Mebp, inf_TLS_X)
+        shlxx_ri(Reax, IB(2))
+        addxx_ld(Reax, Mebp, inf_TLS)
+        movxx_ld(Resi, Oeax, PLAIN)
+
+#else /* RT_FEAT_TILING */
+
         movxx_ld(Resi, Mebp, inf_LST)
+
+#endif /* RT_FEAT_TILING */
 
     LBL(OO_cyc)
 
@@ -3011,6 +3036,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm2, Mecx, ctx_RAY_Z)         /* ray_z <- RAY_Z */
         addps_ld(Xmm2, Medx, cam_HOR_Z)         /* ray_z += HOR_Z */
         movpx_st(Xmm2, Mecx, ctx_RAY_Z)         /* ray_z -> RAY_Z */
+
+#if RT_FEAT_TILING
+
+        movxx_ld(Reax, Mebp, inf_FRM_X)
+        movxx_ri(Redx, IB(0))
+        divxn_xm(Mebp, inf_TILE_W)
+        movxx_st(Reax, Mebp, inf_TLS_X)
+
+#endif /* RT_FEAT_TILING */
 
         jmpxx_lb(XX_cyc)
 
