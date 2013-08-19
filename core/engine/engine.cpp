@@ -273,6 +273,23 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
         print_lst("    ", lst);                                             \
         RT_LOGI("\n")
 
+#define PRINT_TLS(lst, i, j)                                                \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("******** screen tiles[%02d][%02d] list: *********", i, j); \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n");                                                      \
+        print_lst("    ", lst);                                             \
+        RT_LOGI("\n")
+
 #define PRINT_STATE_END()                                                   \
         RT_LOGI("*********************************************");           \
         RT_LOGI("*********************************************");           \
@@ -310,10 +327,19 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_cell index) :
     RT_SIMD_SET(s_inf->gpc02, -0.5);
     RT_SIMD_SET(s_inf->gpc03, +3.0);
 
+    /* init framebuffer's dimensions and pointer */
+
     s_inf->frm_w   = scene->x_res;
     s_inf->frm_h   = scene->y_res;
     s_inf->frm_row = scene->x_row;
     s_inf->frame   = scene->frame;
+
+    /* init tilebuffer's dimensions and pointer */
+
+    s_inf->tile_w  = scene->tile_w;
+    s_inf->tile_h  = scene->tile_h;
+    s_inf->tls_row = scene->tiles_in_row;
+    s_inf->tiles   = scene->tiles;
 
     /* allocate cam SIMD structure */
 
@@ -700,9 +726,9 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
             elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
             elm->data = (i << 16 | j);
             elm->simd = srf->s_srf;
-            elm->next = RT_NULL;
+            elm->temp = srf;
            *ptr = elm;
-            ptr = (rt_ELEM **)&(elm->temp);
+            ptr = (rt_ELEM **)&(elm->next);
         }
     }
 
@@ -883,7 +909,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     /* init memory pool in the heap for temporary per-frame allocs */
 
     mpool = RT_NULL;
-    msize = 0; /* estimate per-frame allocs here */
+    msize = 0; /* estimate per-frame allocs here to reduce chunk allocs */
 
     /* init threads management functions */
 
@@ -1047,6 +1073,56 @@ rt_void rt_Scene::render(rt_long time)
         this->f_update(tdata, thnum);
     }
 
+    rt_cell tline;
+    rt_cell j;
+
+#if RT_TILING_OPT
+
+    memset(tiles, 0, sizeof(rt_ELEM *) * tiles_in_row * tiles_in_col);
+
+    rt_ELEM *elm, *nxt;
+
+    for (elm = slist; elm != RT_NULL; elm = elm->next)
+    {
+        rt_ELEM *tls = (rt_ELEM *)((rt_SIMD_SURFACE *)elm->simd)->msc_p[0];
+
+        for (; tls != RT_NULL; tls = nxt)
+        {
+            i = (rt_word)tls->data >> 16;
+            j = (rt_word)tls->data & 0xFFFF;
+
+            nxt = (rt_ELEM *)tls->next;
+
+            tls->data = 0;
+
+            tline = i * tiles_in_row;
+
+            tls->next = tiles[tline + j];
+            tiles[tline + j] = tls;
+        }
+    }
+
+    if (g_print)
+    {
+        rt_cell i = 0, j = 0;
+
+        PRINT_TLS(tiles[i * tiles_in_row + j], i, j);
+    }
+
+#else /* RT_TILING_OPT */
+
+    for (i = 0; i < tiles_in_col; i++)
+    {
+        tline = i * tiles_in_row;
+
+        for (j = 0; j < tiles_in_row; j++)
+        {
+            tiles[tline + j] = slist;
+        }
+    }
+
+#endif /* RT_TILING_OPT */
+
     /* aim rays at pixel centers */
 
     hor[RT_X] *= factor;
@@ -1116,6 +1192,9 @@ rt_void rt_Scene::update_slice(rt_cell index)
         {
             PRINT_SRF(srf);
         }
+
+        /* setup tile list */
+        tharr[index]->stile(srf);
 
         /* setup surface lists */
         tharr[index]->ssort(srf);
