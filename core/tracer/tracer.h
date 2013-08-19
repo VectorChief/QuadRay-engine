@@ -73,8 +73,17 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
 #define inf_FSAA            DP(0x12C)
 
 
-    rt_word pad11[4];
-#define inf_PAD11           DP(0x130)
+    rt_word tile_w;
+#define inf_TILE_W          DP(0x130)
+
+    rt_word tile_h;
+#define inf_TILE_H          DP(0x134)
+
+    rt_cell tls_row;
+#define inf_TLS_ROW         DP(0x138)
+
+    rt_pntr tiles;
+#define inf_TILES           DP(0x13C)
 
     /* internal variables */
 
@@ -87,8 +96,14 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr frm;
 #define inf_FRM             DP(0x148)
 
-    rt_word pad12[37];
-#define inf_PAD12           DP(0x14C)
+    rt_word tls_x;
+#define inf_TLS_X           DP(0x14C)
+
+    rt_pntr tls;
+#define inf_TLS             DP(0x150)
+
+    rt_word pad11[35];
+#define inf_PAD11           DP(0x154)
 
     /* specular pow entry points */
 
@@ -110,8 +125,8 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr pow_en;
 #define inf_POW_EN          DP(0x1F4)
 
-    rt_word pad13[2];
-#define inf_PAD13           DP(0x1F8)
+    rt_word pad12[2];
+#define inf_PAD12           DP(0x1F8)
 
     /* surface entry points */
 
