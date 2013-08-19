@@ -15,6 +15,7 @@
 /* Conditional compilation flags
  * for respective segments of code.
  */
+#define RT_FEAT_MULTITHREADING      1
 #define RT_FEAT_CLIPPING_MINMAX     1
 #define RT_FEAT_CLIPPING_CUSTOM     1
 #define RT_FEAT_CLIPPING_ACCUM      1
@@ -468,8 +469,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /********************************   VER INIT   ********************************/
 /******************************************************************************/
 
+#if RT_FEAT_MULTITHREADING
+
         movxx_ld(Reax, Mebp, inf_INDEX)
         movxx_st(Reax, Mebp, inf_FRM_Y)
+
+#else /* RT_FEAT_MULTITHREADING */
+
+        movxx_mi(Mebp, inf_FRM_Y, IB(0))
+
+#endif /* RT_FEAT_MULTITHREADING */
 
     LBL(YY_cyc)
 
@@ -3028,8 +3037,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm2, Medx, cam_DIR_Z)         /* ray_z -> DIR_Z */
         movpx_st(Xmm2, Mecx, ctx_RAY_Z)         /* ray_z -> RAY_Z */
 
+#if RT_FEAT_MULTITHREADING
+
         movxx_ld(Reax, Mebp, inf_THNUM)
         addxx_st(Reax, Mebp, inf_FRM_Y)
+
+#else /* RT_FEAT_MULTITHREADING */
+
+        addxx_mi(Mebp, inf_FRM_Y, IB(1))
+
+#endif /* RT_FEAT_MULTITHREADING */
 
         movxx_ld(Reax, Mebp, inf_FRM_Y)
         cmpxx_rm(Reax, Mebp, inf_FRM_H)
