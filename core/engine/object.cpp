@@ -486,7 +486,7 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
     s_srf->srf_p[2] = RT_NULL; /* clip ptr, filled in update0 */
     s_srf->srf_p[3] = (rt_pntr)tag; /* tag */
 
-    s_srf->msc_p[0] = RT_NULL; /* reserved */
+    s_srf->msc_p[0] = RT_NULL; /* screen tiles */
     s_srf->msc_p[1] = RT_NULL; /* reserved */
     s_srf->msc_p[2] = RT_NULL; /* custom clippers */
     s_srf->msc_p[3] = RT_NULL; /* reserved */

@@ -15,6 +15,8 @@
 /* Conditional compilation flags
  * for respective segments of code.
  */
+#define RT_SHOW_TILES               0
+
 #define RT_FEAT_TILING              1
 #define RT_FEAT_MULTITHREADING      1
 #define RT_FEAT_CLIPPING_MINMAX     1
@@ -91,6 +93,19 @@
 /******************************************************************************/
 /*********************************   MACROS   *********************************/
 /******************************************************************************/
+
+/* Highlight frame tiles occupied by surfaces
+ * of different types with different colors.
+ */
+#define SHOW_TILES(lb, cl)                                                  \
+        movxx_ri(Reax, IW(cl))                                              \
+        movxx_st(Reax, Mecx, ctx_C_BUF(0x00))                               \
+        movxx_st(Reax, Mecx, ctx_C_BUF(0x04))                               \
+        movxx_st(Reax, Mecx, ctx_C_BUF(0x08))                               \
+        movxx_st(Reax, Mecx, ctx_C_BUF(0x0C))                               \
+        PAINT_COLX(10, COL_R(0))                                            \
+        PAINT_COLX(08, COL_G(0))                                            \
+        PAINT_COLX(00, COL_B(0))
 
 /* Axis mapping.
  * Perform axis mapping when
@@ -1788,6 +1803,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(PL_ptr)
 
+#if RT_SHOW_TILES
+
+        SHOW_TILES(PL, 0x00880000)
+
+#endif /* RT_SHOW_TILES */
+
         /* plane ignores secondary rays originating from itself
          * as it cannot possibly interact with them directly */
         cmpxx_rm(Rebx, Mecx, ctx_PARAM(OBJ))
@@ -1934,6 +1955,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(fetch_CL_clp)
 
     LBL(CL_ptr)
+
+#if RT_SHOW_TILES
+
+        SHOW_TILES(CL, 0x00008800)
+
+#endif /* RT_SHOW_TILES */
 
         /* "i" section */
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
@@ -2113,6 +2140,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(fetch_SP_clp)
 
     LBL(SP_ptr)
+
+#if RT_SHOW_TILES
+
+        SHOW_TILES(SP, 0x00000088)
+
+#endif /* RT_SHOW_TILES */
 
         /* "i" section */
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
@@ -2319,6 +2352,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(fetch_CN_clp)
 
     LBL(CN_ptr)
+
+#if RT_SHOW_TILES
+
+        SHOW_TILES(CN, 0x00008888)
+
+#endif /* RT_SHOW_TILES */
 
         /* "i" section */
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
@@ -2528,6 +2567,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(PB_ptr)
 
+#if RT_SHOW_TILES
+
+        SHOW_TILES(PB, 0x00880088)
+
+#endif /* RT_SHOW_TILES */
+
         /* "i" section */
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
         MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
@@ -2730,6 +2775,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(fetch_HB_clp)
 
     LBL(HB_ptr)
+
+#if RT_SHOW_TILES
+
+        SHOW_TILES(HB, 0x00888800)
+
+#endif /* RT_SHOW_TILES */
 
         /* "i" section */
         INDEX_AXIS(RT_I)                        /* eax   <-     i */

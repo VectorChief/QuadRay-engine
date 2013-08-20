@@ -281,7 +281,7 @@ rt_PARABOLOID pb_para01 =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
 /* min */   {  -RT_INF,    -RT_INF,    -RT_INF  },
-/* max */   {  +RT_INF,    +RT_INF,    +RT_INF  },
+/* max */   {  +RT_INF,    +RT_INF,     +5.0    },
         {
 /* OUTER        RT_U,       RT_V    */
 /* scl */   {    1.0,        1.0    },

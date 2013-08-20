@@ -1307,7 +1307,7 @@ rt_void rt_Scene::render_slice(rt_cell index)
     s_inf->depth = depth;
     s_inf->fsaa  = fsaa;
 
-   /* render based on surface-list */
+   /* render frame based on tilebuffer */
 
     render0(s_inf);
 }
