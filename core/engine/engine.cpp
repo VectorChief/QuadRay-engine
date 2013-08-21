@@ -920,7 +920,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     /* init memory pool in the heap for temporary per-frame allocs */
 
     mpool = RT_NULL;
-    msize = 0; /* estimate per-frame allocs here to reduce chunk allocs */
+    /* estimate per-frame allocs here to reduce chunk allocs */
+    msize = (sizeof(rt_ELEM) * (tiles_in_row * tiles_in_col) + 1) * srf_num;
 
     /* init threads management functions */
 
@@ -1091,9 +1092,16 @@ rt_void rt_Scene::render(rt_long time)
 
     memset(tiles, 0, sizeof(rt_ELEM *) * tiles_in_row * tiles_in_col);
 
-    rt_ELEM *elm, *nxt;
+    rt_ELEM *elm, *nxt, *stail = RT_NULL;
 
+    /* build reversed slist (should be cheap) */
     for (elm = slist; elm != RT_NULL; elm = elm->next)
+    {
+        tharr[0]->insert(cam, &stail, (rt_Surface *)elm->temp);
+    }
+
+    /* traverse reversed slist to keep original slist order for each tile */
+    for (elm = stail; elm != RT_NULL; elm = elm->next)
     {
         rt_ELEM *tls = (rt_ELEM *)((rt_SIMD_SURFACE *)elm->simd)->msc_p[0];
 
@@ -1117,7 +1125,9 @@ rt_void rt_Scene::render(rt_long time)
     {
         rt_cell i = 0, j = 0;
 
-        RT_PRINT_TLS(tiles[i * tiles_in_row + j], i, j);
+        tline = i * tiles_in_row;
+
+        RT_PRINT_TLS(tiles[tline + j], i, j);
     }
 
 #else /* RT_TILING_OPT */
