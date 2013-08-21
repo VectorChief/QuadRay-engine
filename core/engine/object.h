@@ -175,19 +175,17 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
 
     rt_CAMERA          *cam;
 
-    rt_real            *hor;
-    rt_real            *ver;
-    rt_real            *nrm;
+    /* orientation basis in world space */
+    rt_real            *hor; /* cam's X axis (left-to-right) */
+    rt_real            *ver; /* cam's Y axis (top-to-bottom) */
+    rt_real            *nrm; /* cam's Z axis (outwards) */
 
+    /* distance from point of view to screen plane */
     rt_real             pov;
 
+    /* rotation internal variables */
     rt_real             hor_sin;
     rt_real             hor_cos;
-
-    rt_real             ver_sin;
-    rt_real             ver_cos;
-
-    rt_cell             user_input;
 
 /*  methods */
 

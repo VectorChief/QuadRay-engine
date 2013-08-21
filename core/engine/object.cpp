@@ -78,22 +78,17 @@ rt_Camera::rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
     ver = this->mtx[1];
     nrm = this->mtx[2];
 
-    user_input = 0;
+    pov = cam->vpt[0] <= 0.0f ? 1.0f : /* default pov */
+          cam->vpt[0] <= 2 * RT_CLIP_THRESHOLD ? /* minimum positive pov */
+                         2 * RT_CLIP_THRESHOLD : cam->vpt[0];
 }
 
 rt_void rt_Camera::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
-    rt_Object::update(time, mtx, flags | user_input);
-
-    pov = cam->vpt[0] ? cam->vpt[0] : 1.0f;
+    rt_Object::update(time, mtx, flags);
 
     hor_sin = RT_SINA(trm->rot[RT_Z]);
     hor_cos = RT_COSA(trm->rot[RT_Z]);
-
-    ver_sin = RT_SINA(trm->rot[RT_X]);
-    ver_cos = RT_COSA(trm->rot[RT_X]);
-
-    user_input = 0;
 }
 
 rt_void rt_Camera::update(rt_long time, rt_cell action)
@@ -175,8 +170,6 @@ rt_void rt_Camera::update(rt_long time, rt_cell action)
         default:
         break;
     }
-
-    user_input = 1;
 }
 
 rt_Camera::~rt_Camera()
@@ -558,12 +551,20 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     rt_Object::update(time, mtx, flags);
 
+    /* check bbox geometry limits */
+    if (verts_num > RT_VERTS_LIMIT
+    ||  edges_num > RT_EDGES_LIMIT
+    ||  faces_num > RT_FACES_LIMIT)
+    {
+        throw rt_Exception("bbox geometry limits exceeded in Surface");
+    }
+
+    /* determine axis mapping for trivial transform
+     * (multiple of 90 degree rotation, +/-1.0 scalers) */
     rt_cell match = 0;
 
     rt_cell i, j;
 
-    /* determine axis mapping for trivial transform
-     * (multiple of 90 degree rotation, +/-1.0 scalers) */
     for (i = 0; i < 3; i++)
     {
         for (j = 0; j < 3; j++)

@@ -9,7 +9,6 @@
 
 #define RT_STACK_DEPTH          10
 #define RT_THREADS_NUM          16
-#define RT_VERTS_LIMIT          512 /* for bbox */
 
 #define RT_CHUNK_SIZE           4096
 
@@ -20,6 +19,10 @@
 #if RT_EMBED_FILEIO == 1
 #define RT_EMBED_TEX            1
 #endif /* RT_EMBED_FILEIO */
+
+#define RT_VERTS_LIMIT          8  /* for bbox */
+#define RT_EDGES_LIMIT          12 /* for bbox */
+#define RT_FACES_LIMIT          6  /* for bbox */
 
 #define RT_TILE_W               8
 #define RT_TILE_H               8
