@@ -363,7 +363,8 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_cell index) :
 
     txmin = (rt_cell *)alloc(sizeof(rt_cell) * scene->tiles_in_col, RT_ALIGN);
     txmax = (rt_cell *)alloc(sizeof(rt_cell) * scene->tiles_in_col, RT_ALIGN);
-    verts = (rt_VERT *)alloc(sizeof(rt_VERT) * RT_VERTS_LIMIT, RT_ALIGN);
+    verts = (rt_VERT *)alloc(sizeof(rt_VERT) * 
+                             (2 * RT_VERTS_LIMIT + RT_EDGES_LIMIT), RT_ALIGN);
 }
 
 #define RT_UPDATE_TILES_BOUNDS(cy, x1, x2)                                  \
@@ -606,6 +607,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
     rt_cell ndx[2];
     rt_real tag[2], zed[2];
 
+    /* verts_num may grow, use srf->verts_num if original is needed */
     rt_cell verts_num = srf->verts_num;
     rt_VERT *vrt = srf->verts;
 
@@ -621,7 +623,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
 
         /* process bbox vertices */
 
-        memset(verts, 0, sizeof(rt_VERT) * verts_num);
+        memset(verts, 0, sizeof(rt_VERT) * (2 * verts_num + srf->edges_num));
 
         for (k = 0; k < srf->verts_num; k++)
         {
@@ -632,8 +634,10 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
             dot = RT_VECTOR_DOT(vec, scene->nrm);
 
             verts[k].pos[RT_Z] = dot;
-            verts[k].pos[RT_W] = -1.0f;
+            verts[k].pos[RT_W] = -1.0f; /* tag: behind screen plane */
 
+            /* process vertices in front of or near screen plane,
+             * the rest are processed with edges */
             if (dot >= 0.0f || RT_FABS(dot) <= RT_CLIP_THRESHOLD)
             {
                 vec[RT_X] = vrt[k].pos[RT_X] - scene->pos[RT_X];
@@ -642,9 +646,9 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
 
                 dot = RT_VECTOR_DOT(vec, scene->nrm) / scene->cam->pov;
 
-                vec[RT_X] /= dot;
-                vec[RT_Y] /= dot;
-                vec[RT_Z] /= dot;
+                vec[RT_X] /= dot; /* dot >= (pov - RT_CLIP_THRESHOLD) */
+                vec[RT_Y] /= dot; /* pov >= (2  *  RT_CLIP_THRESHOLD) */
+                vec[RT_Z] /= dot; /* thus: (dot >= RT_CLIP_THRESHOLD) */
 
                 vec[RT_X] -= scene->dir[RT_X];
                 vec[RT_Y] -= scene->dir[RT_Y];
@@ -653,15 +657,17 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
                 verts[k].pos[RT_X] = RT_VECTOR_DOT(vec, scene->htl);
                 verts[k].pos[RT_Y] = RT_VECTOR_DOT(vec, scene->vtl);
 
-                verts[k].pos[RT_W] = +1.0f;
+                verts[k].pos[RT_W] = +1.0f; /* tag: in front of screen plane */
 
+                /* slightly behind (near) screen plane,
+                 * generate new vertex */
                 if (verts[k].pos[RT_Z] < 0.0f)
                 {
                     verts[verts_num].pos[RT_X] = verts[k].pos[RT_X];
                     verts[verts_num].pos[RT_Y] = verts[k].pos[RT_Y];
                     verts_num++;
 
-                    verts[k].pos[RT_W] = 0.0f;
+                    verts[k].pos[RT_W] = 0.0f; /* tag: near screen plane */
                 }
             }
         }
@@ -677,6 +683,8 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
                 tag[i] = verts[ndx[i]].pos[RT_W];
             }
 
+            /* skip edge if both vertices are eihter
+             * behind or near screen plane */
             if (tag[0] <= 0.0f && tag[1] <= 0.0f)
             {
                 continue;
@@ -684,18 +692,26 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
 
             for (i = 0; i < 2; i++)
             {
+                /* skip vertex if in front of
+                 * or near screen plane */
                 if (tag[i] >= 0.0f)
                 {
                     continue;
                 }
 
+                /* process edge with one "in front of"
+                 * and one "behind" vertices */
+
                 j = 1 - i;
+
+                /* clip edge at screen plane crossing,
+                 * generate new vertex */
 
                 vec[RT_X] = vrt[ndx[i]].pos[RT_X] - vrt[ndx[j]].pos[RT_X];
                 vec[RT_Y] = vrt[ndx[i]].pos[RT_Y] - vrt[ndx[j]].pos[RT_Y];
                 vec[RT_Z] = vrt[ndx[i]].pos[RT_Z] - vrt[ndx[j]].pos[RT_Z];
 
-                dot = zed[j] / (zed[j] - zed[i]);
+                dot = zed[j] / (zed[j] - zed[i]); /* () >= RT_CLIP_THRESHOLD */
 
                 vec[RT_X] *= dot;
                 vec[RT_Y] *= dot;
@@ -712,9 +728,11 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
                 verts_num++;
             }
 
+            /* tile current edge */
             tiling(verts[ndx[0]].pos, verts[ndx[1]].pos); 
         }
 
+        /* tile all newly generated vertex pairs */
         for (i = srf->verts_num; i < verts_num - 1; i++)
         {
             for (j = i + 1; j < verts_num; j++)
@@ -726,6 +744,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
     else
 #endif /* RT_TILING_OPT */
     {
+        /* mark all tiles in the entire tilbuffer */
         for (i = 0; i < scene->tiles_in_col; i++)
         {
             txmin[i] = 0;
@@ -733,10 +752,9 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
         }
     }
 
-    /* fill marked tiles with surface data */
-
     rt_ELEM **ptr = &lst;
 
+    /* fill marked tiles with surface data */
     for (i = 0; i < scene->tiles_in_col; i++)
     {
         for (j = txmin[i]; j <= txmax[i]; j++)
