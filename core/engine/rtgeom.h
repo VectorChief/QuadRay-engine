@@ -63,7 +63,7 @@ do                                                                          \
     vp[RT_Y] = v1[RT_Z] * v2[RT_X] - v2[RT_Z] * v1[RT_X];                   \
     vp[RT_Z] = v1[RT_X] * v2[RT_Y] - v2[RT_X] * v1[RT_Y];                   \
 }                                                                           \
-while (0)
+while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
 
 #endif /* RT_RTGEOM_H */
 

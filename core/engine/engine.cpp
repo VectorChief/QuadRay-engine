@@ -359,27 +359,35 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_cell index) :
     verts = (rt_VERT *)alloc(sizeof(rt_VERT) * RT_VERTS_LIMIT, RT_ALIGN);
 }
 
-#define RT_UPDATE_TILES_BOUNDS(cy, x1, x2)                              \
-do                                                                      \
-{                                                                       \
-    if (x1 < x2)                                                        \
-    {                                                                   \
-        if (txmin[cy] > x1)                                             \
-            txmin[cy] = RT_MAX(x1, xmin);                               \
-                                                                        \
-        if (txmax[cy] < x2)                                             \
-            txmax[cy] = RT_MIN(x2, xmax);                               \
-    }                                                                   \
-    else                                                                \
-    {                                                                   \
-        if (txmin[cy] > x2)                                             \
-            txmin[cy] = RT_MAX(x2, xmin);                               \
-                                                                        \
-        if (txmax[cy] < x1)                                             \
-            txmax[cy] = RT_MIN(x1, xmax);                               \
-    }                                                                   \
-}                                                                       \
-while (0)
+#define RT_UPDATE_TILES_BOUNDS(cy, x1, x2)                                  \
+do                                                                          \
+{                                                                           \
+    if (x1 < x2)                                                            \
+    {                                                                       \
+        if (txmin[cy] > x1)                                                 \
+        {                                                                   \
+            txmin[cy] = RT_MAX(x1, xmin);                                   \
+        }                                                                   \
+                                                                            \
+        if (txmax[cy] < x2)                                                 \
+        {                                                                   \
+            txmax[cy] = RT_MIN(x2, xmax);                                   \
+        }                                                                   \
+    }                                                                       \
+    else                                                                    \
+    {                                                                       \
+        if (txmin[cy] > x2)                                                 \
+        {                                                                   \
+            txmin[cy] = RT_MAX(x2, xmin);                                   \
+        }                                                                   \
+                                                                            \
+        if (txmax[cy] < x1)                                                 \
+        {                                                                   \
+            txmax[cy] = RT_MIN(x1, xmax);                                   \
+        }                                                                   \
+    }                                                                       \
+}                                                                           \
+while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
 
 /*
  * Update surface's projected bbox boundaries in tilebuffer
@@ -475,10 +483,10 @@ rt_void rt_SceneThread::tiling(rt_vec4 p1, rt_vec4 p2)
     {
         /* calculate points floor */
 
-        x1 = (rt_cell)RT_FLOOR(n1[i][RT_X]);
-        y1 = (rt_cell)RT_FLOOR(n1[i][RT_Y]);
-        x2 = (rt_cell)RT_FLOOR(n2[i][RT_X]);
-        y2 = (rt_cell)RT_FLOOR(n2[i][RT_Y]);
+        x1 = RT_FLOOR(n1[i][RT_X]);
+        y1 = RT_FLOOR(n1[i][RT_Y]);
+        x2 = RT_FLOOR(n2[i][RT_X]);
+        y2 = RT_FLOOR(n2[i][RT_Y]);
 
         /* reject y-outer lines */
 
@@ -494,9 +502,14 @@ rt_void rt_SceneThread::tiling(rt_vec4 p1, rt_vec4 p2)
         ||  (x1 > xmax && x2 > xmax))
         {
             if (y1 < ymin)
+            {
                 y1 = ymin;
+            }
+
             if (y2 > ymax)
+            {
                 y2 = ymax;
+            }
 
             for (t = y1; t <= y2; t++)
             {
@@ -512,7 +525,7 @@ rt_void rt_SceneThread::tiling(rt_vec4 p1, rt_vec4 p2)
         y2 = y2 > ymax ? ymax : y2 - 1;
 
         px = n1[i][RT_X] + (y1 - n1[i][RT_Y]) * rt;
-        x2 = (rt_cell)RT_FLOOR(px);
+        x2 = RT_FLOOR(px);
 
         if (y1 > ymin)
         {
@@ -524,14 +537,14 @@ rt_void rt_SceneThread::tiling(rt_vec4 p1, rt_vec4 p2)
         for (t = y1; t <= y2; t++)
         {
             px = px + rt;
-            x2 = (rt_cell)RT_FLOOR(px);
+            x2 = RT_FLOOR(px);
             RT_UPDATE_TILES_BOUNDS(t, x1, x2);
             x1 = x2;
         }
 
         if (y2 < ymax)
         {
-            x2 = (rt_cell)RT_FLOOR(n2[i][RT_X]);
+            x2 = RT_FLOOR(n2[i][RT_X]);
             RT_UPDATE_TILES_BOUNDS(y2 + 1, x1, x2);
         }
     }
@@ -579,17 +592,15 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
     rt_ELEM *elm = RT_NULL;
     rt_cell i, j;
 #if RT_TILING_OPT
-    rt_cell verts_num;
     rt_cell k;
 
-    rt_VERT *svr;
     rt_vec4 vec;
     rt_real dot;
     rt_cell ndx[2];
     rt_real tag[2], zed[2];
 
-    verts_num = srf->verts_num;
-    svr = srf->verts;
+    rt_cell verts_num = srf->verts_num;
+    rt_VERT *vrt = srf->verts;
 
     /* project bbox onto the tilebuffer */
 
@@ -607,20 +618,20 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
 
         for (k = 0; k < srf->verts_num; k++)
         {
-            vec[RT_X] = svr[k].pos[RT_X] - scene->org[RT_X];
-            vec[RT_Y] = svr[k].pos[RT_Y] - scene->org[RT_Y];
-            vec[RT_Z] = svr[k].pos[RT_Z] - scene->org[RT_Z];
+            vec[RT_X] = vrt[k].pos[RT_X] - scene->org[RT_X];
+            vec[RT_Y] = vrt[k].pos[RT_Y] - scene->org[RT_Y];
+            vec[RT_Z] = vrt[k].pos[RT_Z] - scene->org[RT_Z];
 
             dot = RT_VECTOR_DOT(vec, scene->nrm);
 
             verts[k].pos[RT_Z] = dot;
-            verts[k].pos[3] = -1.0f;
+            verts[k].pos[RT_W] = -1.0f;
 
             if (dot >= 0.0f || RT_FABS(dot) <= RT_CLIP_THRESHOLD)
             {
-                vec[RT_X] = svr[k].pos[RT_X] - scene->pos[RT_X];
-                vec[RT_Y] = svr[k].pos[RT_Y] - scene->pos[RT_Y];
-                vec[RT_Z] = svr[k].pos[RT_Z] - scene->pos[RT_Z];
+                vec[RT_X] = vrt[k].pos[RT_X] - scene->pos[RT_X];
+                vec[RT_Y] = vrt[k].pos[RT_Y] - scene->pos[RT_Y];
+                vec[RT_Z] = vrt[k].pos[RT_Z] - scene->pos[RT_Z];
 
                 dot = RT_VECTOR_DOT(vec, scene->nrm) / scene->cam->pov;
 
@@ -635,7 +646,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
                 verts[k].pos[RT_X] = RT_VECTOR_DOT(vec, scene->htl);
                 verts[k].pos[RT_Y] = RT_VECTOR_DOT(vec, scene->vtl);
 
-                verts[k].pos[3] = +1.0f;
+                verts[k].pos[RT_W] = +1.0f;
 
                 if (verts[k].pos[RT_Z] < 0.0f)
                 {
@@ -643,7 +654,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
                     verts[verts_num].pos[RT_Y] = verts[k].pos[RT_Y];
                     verts_num++;
 
-                    verts[k].pos[3] = 0.0f;
+                    verts[k].pos[RT_W] = 0.0f;
                 }
             }
         }
@@ -656,7 +667,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
             {
                 ndx[i] = srf->edges[k].index[i];
                 zed[i] = verts[ndx[i]].pos[RT_Z];
-                tag[i] = verts[ndx[i]].pos[3];
+                tag[i] = verts[ndx[i]].pos[RT_W];
             }
 
             if (tag[0] <= 0.0f && tag[1] <= 0.0f)
@@ -673,9 +684,9 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
 
                 j = 1 - i;
 
-                vec[RT_X] = svr[ndx[i]].pos[RT_X] - svr[ndx[j]].pos[RT_X];
-                vec[RT_Y] = svr[ndx[i]].pos[RT_Y] - svr[ndx[j]].pos[RT_Y];
-                vec[RT_Z] = svr[ndx[i]].pos[RT_Z] - svr[ndx[j]].pos[RT_Z];
+                vec[RT_X] = vrt[ndx[i]].pos[RT_X] - vrt[ndx[j]].pos[RT_X];
+                vec[RT_Y] = vrt[ndx[i]].pos[RT_Y] - vrt[ndx[j]].pos[RT_Y];
+                vec[RT_Z] = vrt[ndx[i]].pos[RT_Z] - vrt[ndx[j]].pos[RT_Z];
 
                 dot = zed[j] / (zed[j] - zed[i]);
 
@@ -683,9 +694,9 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
                 vec[RT_Y] *= dot;
                 vec[RT_Z] *= dot;
 
-                vec[RT_X] += svr[ndx[j]].pos[RT_X] - scene->org[RT_X];
-                vec[RT_Y] += svr[ndx[j]].pos[RT_Y] - scene->org[RT_Y];
-                vec[RT_Z] += svr[ndx[j]].pos[RT_Z] - scene->org[RT_Z];
+                vec[RT_X] += vrt[ndx[j]].pos[RT_X] - scene->org[RT_X];
+                vec[RT_Y] += vrt[ndx[j]].pos[RT_Y] - scene->org[RT_Y];
+                vec[RT_Z] += vrt[ndx[j]].pos[RT_Z] - scene->org[RT_Z];
 
                 verts[verts_num].pos[RT_X] = RT_VECTOR_DOT(vec, scene->htl);
                 verts[verts_num].pos[RT_Y] = RT_VECTOR_DOT(vec, scene->vtl);
@@ -1510,11 +1521,14 @@ rt_void rt_Scene::render_fps(rt_word x, rt_word y,
                     {
                         *dst++ = *src;
                     }
+
                     src++;
                 }
+
                 dst += x_res - dW * z;
                 src -= dW;
             }
+
             src += dW;
         }
     }
