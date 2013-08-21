@@ -11,10 +11,10 @@
 #include "system.h"
 
 /******************************************************************************/
-/*********************************   LOGGING   ********************************/
+/******************************   STATE LOGGING   *****************************/
 /******************************************************************************/
 
-#define PRINT_STATE_BEG()                                                   \
+#define RT_PRINT_STATE_BEG()                                                \
         RT_LOGI("*********************************************");           \
         RT_LOGI("*********************************************");           \
         RT_LOGI("*********************************************");           \
@@ -29,9 +29,9 @@
         RT_LOGI("\n");                                                      \
         RT_LOGI("\n")
 
-#define PRINT_TIME(time)                                                    \
+#define RT_PRINT_TIME(time)                                                 \
         RT_LOGI("---------------------------------------------");           \
-        RT_LOGI("---------- update time -- %08u ----------", (rt_word)time);\
+        RT_LOGI("---------- update time -- %08u ----------", time);         \
         RT_LOGI("---------------------------------------------");           \
         RT_LOGI("\n");                                                      \
         RT_LOGI("\n")
@@ -60,7 +60,7 @@ rt_void print_cam(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     RT_LOGI("\n");
 }
 
-#define PRINT_CAM(cam)                                                      \
+#define RT_PRINT_CAM(cam)                                                   \
         RT_LOGI("*********************************************");           \
         RT_LOGI("*********************************************");           \
         RT_LOGI("*********************************************");           \
@@ -103,7 +103,7 @@ rt_void print_lgt(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     RT_LOGI("\n");
 }
 
-#define PRINT_LGT(elm, lgt)                                                 \
+#define RT_PRINT_LGT(elm, lgt)                                              \
         RT_LOGI("---------------------------------------------");           \
         RT_LOGI("-------------------- lgt --------------------");           \
         RT_LOGI("---------------------------------------------");           \
@@ -112,7 +112,7 @@ rt_void print_lgt(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
         print_lgt("    ", elm, lgt);                                        \
         RT_LOGI("\n")
 
-#define PRINT_LGT_INNER(elm, lgt)                                           \
+#define RT_PRINT_LGT_INNER(elm, lgt)                                        \
         RT_LOGI("---------------------------------------------");           \
         RT_LOGI("-------------------- lgt - inner ------------");           \
         RT_LOGI("---------------------------------------------");           \
@@ -121,7 +121,7 @@ rt_void print_lgt(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
         print_lgt("    ", elm, lgt);                                        \
         RT_LOGI("\n")
 
-#define PRINT_LGT_OUTER(elm, lgt)                                           \
+#define RT_PRINT_LGT_OUTER(elm, lgt)                                        \
         RT_LOGI("---------------------------------------------");           \
         RT_LOGI("-------------------- lgt - outer ------------");           \
         RT_LOGI("---------------------------------------------");           \
@@ -157,7 +157,7 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     RT_LOGI("\n");
 }
 
-#define PRINT_SRF(srf)                                                      \
+#define RT_PRINT_SRF(srf)                                                   \
         RT_LOGI("*********************************************");           \
         RT_LOGI("*********************************************");           \
         RT_LOGI("*********************************************");           \
@@ -192,7 +192,7 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
     }
 }
 
-#define PRINT_CLP(lst)                                                      \
+#define RT_PRINT_CLP(lst)                                                   \
         RT_LOGI("---------------------------------------------");           \
         RT_LOGI("-------------------- clp --------------------");           \
         RT_LOGI("---------------------------------------------");           \
@@ -201,7 +201,7 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
         print_lst("    ", lst);                                             \
         RT_LOGI("\n")
 
-#define PRINT_LST(lst)                                                      \
+#define RT_PRINT_LST(lst)                                                   \
         RT_LOGI("---------------------------------------------");           \
         RT_LOGI("-------------------- lst --------------------");           \
         RT_LOGI("---------------------------------------------");           \
@@ -210,7 +210,7 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
         print_lst("    ", lst);                                             \
         RT_LOGI("\n")
 
-#define PRINT_LST_INNER(lst)                                                \
+#define RT_PRINT_LST_INNER(lst)                                             \
         RT_LOGI("---------------------------------------------");           \
         RT_LOGI("-------------------- lst - inner ------------");           \
         RT_LOGI("---------------------------------------------");           \
@@ -219,7 +219,7 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
         print_lst("    ", lst);                                             \
         RT_LOGI("\n")
 
-#define PRINT_LST_OUTER(lst)                                                \
+#define RT_PRINT_LST_OUTER(lst)                                             \
         RT_LOGI("---------------------------------------------");           \
         RT_LOGI("-------------------- lst - outer ------------");           \
         RT_LOGI("---------------------------------------------");           \
@@ -228,7 +228,7 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
         print_lst("    ", lst);                                             \
         RT_LOGI("\n")
 
-#define PRINT_SHW(lst)                                                      \
+#define RT_PRINT_SHW(lst)                                                   \
         RT_LOGI("---------------------------------------------");           \
         RT_LOGI("-------------------- shw --------------------");           \
         RT_LOGI("---------------------------------------------");           \
@@ -237,7 +237,7 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
         print_lst("    ", lst);                                             \
         RT_LOGI("\n")
 
-#define PRINT_SHW_INNER(lst)                                                \
+#define RT_PRINT_SHW_INNER(lst)                                             \
         RT_LOGI("---------------------------------------------");           \
         RT_LOGI("-------------------- shw - inner ------------");           \
         RT_LOGI("---------------------------------------------");           \
@@ -246,7 +246,7 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
         print_lst("    ", lst);                                             \
         RT_LOGI("\n")
 
-#define PRINT_SHW_OUTER(lst)                                                \
+#define RT_PRINT_SHW_OUTER(lst)                                             \
         RT_LOGI("---------------------------------------------");           \
         RT_LOGI("-------------------- shw - outer ------------");           \
         RT_LOGI("---------------------------------------------");           \
@@ -255,7 +255,7 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
         print_lst("    ", lst);                                             \
         RT_LOGI("\n")
 
-#define PRINT_LGT_LIST(lst)                                                 \
+#define RT_PRINT_LGT_LIST(lst)                                              \
         RT_LOGI("---------------------------------------------");           \
         RT_LOGI("-------------------- lgt --------------------");           \
         RT_LOGI("---------------------------------------------");           \
@@ -264,7 +264,7 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
         print_lst("    ", lst);                                             \
         RT_LOGI("\n")
 
-#define PRINT_SRF_LIST(lst)                                                 \
+#define RT_PRINT_SRF_LIST(lst)                                              \
         RT_LOGI("---------------------------------------------");           \
         RT_LOGI("-------------------- srf --------------------");           \
         RT_LOGI("---------------------------------------------");           \
@@ -273,13 +273,13 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
         print_lst("    ", lst);                                             \
         RT_LOGI("\n")
 
-#define PRINT_TLS(lst, i, j)                                                \
+#define RT_PRINT_TLS(lst, i, j)                                             \
         RT_LOGI("*********************************************");           \
         RT_LOGI("*********************************************");           \
         RT_LOGI("*********************************************");           \
         RT_LOGI("\n");                                                      \
         RT_LOGI("*********************************************");           \
-        RT_LOGI("******** screen tiles[%02d][%02d] list: *********", i, j); \
+        RT_LOGI("********* screen tiles[%02d][%02d] list: ********", i, j); \
         RT_LOGI("*********************************************");           \
         RT_LOGI("\n");                                                      \
         RT_LOGI("*********************************************");           \
@@ -290,7 +290,7 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
         print_lst("    ", lst);                                             \
         RT_LOGI("\n")
 
-#define PRINT_STATE_END()                                                   \
+#define RT_PRINT_STATE_END()                                                \
         RT_LOGI("*********************************************");           \
         RT_LOGI("*********************************************");           \
         RT_LOGI("*********************************************");           \
@@ -753,7 +753,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 
         if (g_print && srf->s_srf->msc_p[2] != RT_NULL)
         {
-            PRINT_CLP((rt_ELEM *)srf->s_srf->msc_p[2]);
+            RT_PRINT_CLP((rt_ELEM *)srf->s_srf->msc_p[2]);
         }
 
         pto = (rt_ELEM**)&srf->s_srf->lst_p[1];
@@ -1001,9 +1001,9 @@ rt_void rt_Scene::render(rt_long time)
 
     if (g_print)
     {
-        PRINT_STATE_BEG();
+        RT_PRINT_STATE_BEG();
 
-        PRINT_TIME(time);
+        RT_PRINT_TIME(time);
     }
 
     /* update the whole objects hierarchy */
@@ -1062,11 +1062,11 @@ rt_void rt_Scene::render(rt_long time)
     {
         update_scene(this, thnum);
 
-        PRINT_CAM(cam);
+        RT_PRINT_CAM(cam);
 
-        PRINT_LGT_LIST(llist);
+        RT_PRINT_LGT_LIST(llist);
 
-        PRINT_SRF_LIST(slist);
+        RT_PRINT_SRF_LIST(slist);
     }
     else
     {
@@ -1106,7 +1106,7 @@ rt_void rt_Scene::render(rt_long time)
     {
         rt_cell i = 0, j = 0;
 
-        PRINT_TLS(tiles[i * tiles_in_row + j], i, j);
+        RT_PRINT_TLS(tiles[i * tiles_in_row + j], i, j);
     }
 
 #else /* RT_TILING_OPT */
@@ -1160,7 +1160,7 @@ rt_void rt_Scene::render(rt_long time)
 
     if (g_print)
     {
-        PRINT_STATE_END();
+        RT_PRINT_STATE_END();
 
         g_print = RT_FALSE;
     }
@@ -1190,7 +1190,7 @@ rt_void rt_Scene::update_slice(rt_cell index)
 
         if (g_print)
         {
-            PRINT_SRF(srf);
+            RT_PRINT_SRF(srf);
         }
 
         /* setup tile list */
