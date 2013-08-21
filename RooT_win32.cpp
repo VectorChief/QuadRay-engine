@@ -335,28 +335,37 @@ rt_cell main_step()
         last_time = cur_time;
     }
 
-    if (H_KEYS('W'))        scene->update(cur_time, RT_CAMERA_MOVE_FORWARD);
-    if (H_KEYS('S'))        scene->update(cur_time, RT_CAMERA_MOVE_BACK);
-    if (H_KEYS('A'))        scene->update(cur_time, RT_CAMERA_MOVE_LEFT);
-    if (H_KEYS('D'))        scene->update(cur_time, RT_CAMERA_MOVE_RIGHT);
-
-    if (H_KEYS(VK_UP))      scene->update(cur_time, RT_CAMERA_ROTATE_DOWN);
-    if (H_KEYS(VK_DOWN))    scene->update(cur_time, RT_CAMERA_ROTATE_UP);
-    if (H_KEYS(VK_LEFT))    scene->update(cur_time, RT_CAMERA_ROTATE_LEFT);
-    if (H_KEYS(VK_RIGHT))   scene->update(cur_time, RT_CAMERA_ROTATE_RIGHT);
-
-    if (T_KEYS(VK_F1))      scene->print_state();
-    if (T_KEYS(VK_F2))      fsaa = RT_FSAA_4X - fsaa;
-    if (T_KEYS(VK_ESCAPE))
+    try
     {
+        if (H_KEYS('W'))        scene->update(cur_time, RT_CAMERA_MOVE_FORWARD);
+        if (H_KEYS('S'))        scene->update(cur_time, RT_CAMERA_MOVE_BACK);
+        if (H_KEYS('A'))        scene->update(cur_time, RT_CAMERA_MOVE_LEFT);
+        if (H_KEYS('D'))        scene->update(cur_time, RT_CAMERA_MOVE_RIGHT);
+
+        if (H_KEYS(VK_UP))      scene->update(cur_time, RT_CAMERA_ROTATE_DOWN);
+        if (H_KEYS(VK_DOWN))    scene->update(cur_time, RT_CAMERA_ROTATE_UP);
+        if (H_KEYS(VK_LEFT))    scene->update(cur_time, RT_CAMERA_ROTATE_LEFT);
+        if (H_KEYS(VK_RIGHT))   scene->update(cur_time, RT_CAMERA_ROTATE_RIGHT);
+
+        if (T_KEYS(VK_F1))      scene->print_state();
+        if (T_KEYS(VK_F2))      fsaa = RT_FSAA_4X - fsaa;
+        if (T_KEYS(VK_ESCAPE))
+        {
+            return 0;
+        }
+        memset(t_keys, 0, sizeof(t_keys));
+        memset(r_keys, 0, sizeof(r_keys));
+
+        scene->set_fsaa(fsaa);
+        scene->render(cur_time);
+        scene->render_fps(x_res - 10, 10, -1, 2, (rt_word)fps);
+    }
+    catch (rt_Exception e)
+    {
+        RT_LOGE("Exception: %s\n", e.err);
+
         return 0;
     }
-    memset(t_keys, 0, sizeof(t_keys));
-    memset(r_keys, 0, sizeof(r_keys));
-
-    scene->set_fsaa(fsaa);
-    scene->render(cur_time);
-    scene->render_fps(x_res - 10, 10, -1, 2, (rt_word)fps);
 
     SetDIBitsToDevice(hWndDC, 0, 0, x_res, y_res, 0, 0, 0, y_res,
                                     scene->get_frame(), &DIBinfo, DIB_RGB_COLORS);
@@ -370,7 +379,16 @@ rt_cell main_done()
         return 0;
     }
 
-    delete scene;
+    try
+    {
+        delete scene;
+    }
+    catch (rt_Exception e)
+    {
+        RT_LOGE("Exception: %s\n", e.err);
+
+        return 0;
+    }
 
     return 1;
 }

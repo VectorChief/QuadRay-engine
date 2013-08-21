@@ -108,7 +108,6 @@ rt_cell main(rt_cell argc, rt_char *argv[])
     XSelectInput(disp, win, ExposureMask | KeyPressMask | KeyReleaseMask);
     /* map (show) the window */
     XMapWindow(disp, win);
-    XSync(disp, False);
 
     Window win_root;
     rt_cell win_x = 0, win_y = 0;
@@ -164,7 +163,6 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 
     shminfo.readOnly = False;
     XShmAttach(disp, &shminfo);
-    XSync(disp, False);
 
     shmctl(shminfo.shmid, IPC_RMID, 0);
 
@@ -417,45 +415,53 @@ rt_cell main_step()
         last_time = cur_time;
     }
 
-    if (H_KEYS(XK_w))       scene->update(cur_time, RT_CAMERA_MOVE_FORWARD);
-    if (H_KEYS(XK_s))       scene->update(cur_time, RT_CAMERA_MOVE_BACK);
-    if (H_KEYS(XK_a))       scene->update(cur_time, RT_CAMERA_MOVE_LEFT);
-    if (H_KEYS(XK_d))       scene->update(cur_time, RT_CAMERA_MOVE_RIGHT);
-
-    if (H_KEYS(XK_Up))      scene->update(cur_time, RT_CAMERA_ROTATE_DOWN);
-    if (H_KEYS(XK_Down))    scene->update(cur_time, RT_CAMERA_ROTATE_UP);
-    if (H_KEYS(XK_Left))    scene->update(cur_time, RT_CAMERA_ROTATE_LEFT);
-    if (H_KEYS(XK_Right))   scene->update(cur_time, RT_CAMERA_ROTATE_RIGHT);
-
-    if (T_KEYS(XK_F1))      scene->print_state();
-    if (T_KEYS(XK_F2))      fsaa = RT_FSAA_4X - fsaa;
-    if (T_KEYS(XK_Escape))
+    try
     {
-        return 0;
-    }
-    memset(t_keys, 0, sizeof(t_keys));
-    memset(r_keys, 0, sizeof(r_keys));
+        if (H_KEYS(XK_w))       scene->update(cur_time, RT_CAMERA_MOVE_FORWARD);
+        if (H_KEYS(XK_s))       scene->update(cur_time, RT_CAMERA_MOVE_BACK);
+        if (H_KEYS(XK_a))       scene->update(cur_time, RT_CAMERA_MOVE_LEFT);
+        if (H_KEYS(XK_d))       scene->update(cur_time, RT_CAMERA_MOVE_RIGHT);
 
-    scene->set_fsaa(fsaa);
-    scene->render(cur_time);
-    scene->render_fps(x_res - 10, 10, -1, 2, (rt_word)fps);
+        if (H_KEYS(XK_Up))      scene->update(cur_time, RT_CAMERA_ROTATE_DOWN);
+        if (H_KEYS(XK_Down))    scene->update(cur_time, RT_CAMERA_ROTATE_UP);
+        if (H_KEYS(XK_Left))    scene->update(cur_time, RT_CAMERA_ROTATE_LEFT);
+        if (H_KEYS(XK_Right))   scene->update(cur_time, RT_CAMERA_ROTATE_RIGHT);
 
-    if (depth == 16)
-    {
-        frame = scene->get_frame();
-        rt_half *idata = (rt_half *)ximage->data;
-        rt_cell i = x_res * y_res;
-
-        while (i-->0)
+        if (T_KEYS(XK_F1))      scene->print_state();
+        if (T_KEYS(XK_F2))      fsaa = RT_FSAA_4X - fsaa;
+        if (T_KEYS(XK_Escape))
         {
-            idata[i] = (frame[i] & 0x00F80000) >> 8 |
-                       (frame[i] & 0x0000FC00) >> 5 |
-                       (frame[i] & 0x000000F8) >> 3;
+            return 0;
         }
+        memset(t_keys, 0, sizeof(t_keys));
+        memset(r_keys, 0, sizeof(r_keys));
+
+        scene->set_fsaa(fsaa);
+        scene->render(cur_time);
+        scene->render_fps(x_res - 10, 10, -1, 2, (rt_word)fps);
+
+        if (depth == 16)
+        {
+            frame = scene->get_frame();
+            rt_half *idata = (rt_half *)ximage->data;
+            rt_cell i = x_res * y_res;
+
+            while (i-->0)
+            {
+                idata[i] = (frame[i] & 0x00F80000) >> 8 |
+                           (frame[i] & 0x0000FC00) >> 5 |
+                           (frame[i] & 0x000000F8) >> 3;
+            }
+        }
+    }
+    catch (rt_Exception e)
+    {
+        RT_LOGE("Exception: %s\n", e.err);
+
+        return 0;
     }
 
     XShmPutImage(disp, win, gc, ximage, 0, 0, 0, 0, x_res, y_res, False);
-    XSync(disp, False);
 
     return 1;
 }
@@ -467,7 +473,16 @@ rt_cell main_done()
         return 0;
     }
 
-    delete scene;
+    try
+    {
+        delete scene;
+    }
+    catch (rt_Exception e)
+    {
+        RT_LOGE("Exception: %s\n", e.err);
+
+        return 0;
+    }
 
     return 1;
 }
