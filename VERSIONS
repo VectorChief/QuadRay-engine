@@ -1,3 +1,11 @@
+v0.5.1: Performance optimizations, tiled rendering
+  - adjust bounding and clipping boxes according to surface shape
+  - add bounding box geometry, update vertices according to transform
+  - add bounding box projection functions for tiled rendering
+  - add tilebuffer support to backend structures, scene management
+  - implement tilebuffer in rendering backend, add support for tiles highlight
+  - clean up state logging macros, refine per-frame allocs estimates
+
 v0.5.0: Performance optimizations, multi-threading support
   - add multi-threading framework to scene management, rendering backend
   - add multi-threading implementation for Linux, Win32 platforms
