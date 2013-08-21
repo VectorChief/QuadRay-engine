@@ -48,6 +48,7 @@ class rt_SceneThread : public rt_Heap
     /* memory pool in the heap
      * for temporary per-frame allocs */
     rt_pntr             mpool;
+    rt_word             msize;
 
     /* surface's x-coord boundaries
      * in the tilebuffer */

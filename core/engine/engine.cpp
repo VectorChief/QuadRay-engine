@@ -354,6 +354,13 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_cell index) :
                             RT_STACK_STEP * (1 + scene->depth),
                             RT_SIMD_ALIGN);
 
+    /* init memory pool in the heap for temporary per-frame allocs */
+
+    mpool = RT_NULL;
+    msize = 0;
+
+    /* allocate misc arrays for tiling */
+
     txmin = (rt_cell *)alloc(sizeof(rt_cell) * scene->tiles_in_col, RT_ALIGN);
     txmax = (rt_cell *)alloc(sizeof(rt_cell) * scene->tiles_in_col, RT_ALIGN);
     verts = (rt_VERT *)alloc(sizeof(rt_VERT) * RT_VERTS_LIMIT, RT_ALIGN);
@@ -906,8 +913,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     tiles_in_row = (x_res + tile_w - 1) / tile_w;
     tiles_in_col = (y_res + tile_h - 1) / tile_h;
 
-    tiles = (rt_ELEM **)alloc(sizeof(rt_ELEM *) *
-                                (tiles_in_row * tiles_in_col), RT_ALIGN);
+    tiles = (rt_ELEM **)
+            alloc(sizeof(rt_ELEM *) * (tiles_in_row * tiles_in_col), RT_ALIGN);
 
     /* init aspect ratio, rays depth and fsaa */
 
@@ -917,11 +924,42 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     depth = RT_STACK_DEPTH;
     fsaa  = RT_FSAA_NO;
 
+    /* instantiate objects hierarchy */
+
+    memset(&rootobj, 0, sizeof(rt_OBJECT));
+
+    rootobj.trm.scl[RT_I] = 1.0f;
+    rootobj.trm.scl[RT_J] = 1.0f;
+    rootobj.trm.scl[RT_K] = 1.0f;
+    rootobj.obj = scn->root;
+
+    root = new rt_Array(this, RT_NULL, &rootobj); /* init srf_num */
+    cam  = cam_head;
+
+    /* create scene threads array */
+
+    thnum = RT_THREADS_NUM;
+
+    tharr = (rt_SceneThread **)
+            alloc(sizeof(rt_SceneThread *) * thnum, RT_ALIGN);
+
+    rt_cell i;
+
+    for (i = 0; i < thnum; i++)
+    {
+        tharr[i] = new rt_SceneThread(this, i);
+
+        /* estimate per-frame allocs to reduce chunk allocs (per thread) */
+
+        tharr[i]->msize = 
+            (sizeof(rt_ELEM) * (tiles_in_row * tiles_in_col) + 1) *
+            srf_num / (thnum >> 1); /* upper bound per thread for tiling */
+    }
+
     /* init memory pool in the heap for temporary per-frame allocs */
 
     mpool = RT_NULL;
-    /* estimate per-frame allocs here to reduce chunk allocs */
-    msize = (sizeof(rt_ELEM) * (tiles_in_row * tiles_in_col) + 1) * srf_num;
+    msize = 0; /* no per-frame allocs for scene so far */
 
     /* init threads management functions */
 
@@ -941,39 +979,13 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
         this->f_render = render_scene;
     }
 
-    /* create scene threads array */
-
-    thnum = RT_THREADS_NUM;
-
-    tharr = (rt_SceneThread **)
-            alloc(sizeof(rt_SceneThread *) * thnum,
-                            RT_ALIGN);
-    rt_cell i;
-
-    for (i = 0; i < thnum; i++)
-    {
-        tharr[i] = new rt_SceneThread(this, i);
-    }
-
     /* create platform-specific worker threads */
 
     tdata = this->f_init(thnum, this);
 
-    /* initialize rendering backend */
+    /* init rendering backend */
 
     render0(tharr[0]->s_inf);
-
-    /* instantiate objects hierarchy */
-
-    memset(&rootobj, 0, sizeof(rt_OBJECT));
-
-    rootobj.trm.scl[RT_I] = 1.0f;
-    rootobj.trm.scl[RT_J] = 1.0f;
-    rootobj.trm.scl[RT_K] = 1.0f;
-    rootobj.obj = scn->root;
-
-    root = new rt_Array(this, RT_NULL, &rootobj);
-    cam  = cam_head;
 
     /* setup surface list */
 
@@ -1006,7 +1018,7 @@ rt_void rt_Scene::render(rt_long time)
 
     for (i = 0; i < thnum; i++)
     {
-        tharr[i]->mpool = tharr[i]->reserve(msize, RT_ALIGN);
+        tharr[i]->mpool = tharr[i]->reserve(tharr[i]->msize, RT_ALIGN);
     }
 
     /* print state beg */
