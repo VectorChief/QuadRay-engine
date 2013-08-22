@@ -296,7 +296,33 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
             break;
         }
     }
+}
 
+rt_void rt_Array::add_relation(rt_ELEM *lst)
+{
+    rt_Object::add_relation(lst);
+
+    rt_cell i;
+
+    for (i = 0; i < obj_num; i++)
+    {
+        obj_arr[i]->add_relation(lst);
+    }
+}
+
+rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+{
+    rt_Object::update(time, mtx, flags);
+
+    rt_cell i;
+
+    /* update every object in array, including sub-arrays */
+    for (i = 0; i < obj_num; i++)
+    {
+        obj_arr[i]->update(time, this->mtx, flags);
+    }
+
+    /* rebuild objects relations (custom clippers) */
     if (obj->obj.rel_num > 0)
     {
         rt_RELATION *rel = obj->obj.prel;
@@ -402,30 +428,6 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
                 obj_num_l = obj_num;
             }
         }
-    }
-}
-
-rt_void rt_Array::add_relation(rt_ELEM *lst)
-{
-    rt_Object::add_relation(lst);
-
-    rt_cell i;
-
-    for (i = 0; i < obj_num; i++)
-    {
-        obj_arr[i]->add_relation(lst);
-    }
-}
-
-rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
-{
-    rt_Object::update(time, mtx, flags);
-
-    rt_cell i;
-
-    for (i = 0; i < obj_num; i++)
-    {
-        obj_arr[i]->update(time, this->mtx, flags);
     }
 }
 
@@ -550,6 +552,10 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
 rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     rt_Object::update(time, mtx, flags);
+
+    /* custom clippers list
+     * is rebuilt in rt_Array::update */
+    s_srf->msc_p[2] = RT_NULL;
 
     /* check bbox geometry limits */
     if (verts_num > RT_VERTS_LIMIT

@@ -976,8 +976,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
 
     /* init memory pool in the heap for temporary per-frame allocs */
 
-    mpool = RT_NULL;
-    msize = 0; /* no per-frame allocs for scene so far */
+    mpool = RT_NULL; /* rough estimate for relations */
+    msize = sizeof(rt_ELEM) * srf_num * 2;
 
     /* init threads management functions */
 
@@ -1004,15 +1004,6 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     /* init rendering backend */
 
     render0(tharr[0]->s_inf);
-
-    /* setup surface list */
-
-    slist = tharr[0]->ssort(cam);
-
-    /* setup light/shadow list,
-     * slist is needed inside */
-
-    llist = tharr[0]->lsort(cam);
 }
 
 /*
@@ -1051,6 +1042,15 @@ rt_void rt_Scene::render(rt_long time)
     /* update the whole objects hierarchy */
 
     root->update(time, iden4, 0);
+
+    /* rebuild surface list */
+
+    slist = tharr[0]->ssort(cam);
+
+    /* rebuild light/shadow list,
+     * slist is needed inside */
+
+    llist = tharr[0]->lsort(cam);
 
     /* update rays positioning and steppers */
 
