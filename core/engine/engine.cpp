@@ -569,22 +569,67 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
 
     if (srf != RT_NULL)
     {
+        /* alloc new element for srf */
         elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
         elm->data = 0;
         elm->simd = srf->s_srf;
         elm->temp = srf;
-        elm->next = *ptr;
-       *ptr = elm;
+
+        if (srf->trnode != RT_NULL && srf->trnode != srf)
+        {
+            rt_ELEM *trn = *ptr;
+
+            /* search matching existing trnode for insertion */
+            for (; trn != RT_NULL; trn = trn->next)
+            {
+                if (trn->temp == srf->trnode)
+                {
+                    break;
+                }
+            }
+
+            if (trn == RT_NULL)
+            {
+                /* insert element as list head */
+                elm->next = *ptr;
+               *ptr = elm;
+
+                rt_Array *arr = (rt_Array *)srf->trnode;
+
+                /* alloc new trnode element as none has been found */
+                elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+                elm->data = (rt_cell)*ptr; /* trnode's last element */
+                elm->simd = arr->s_srf;
+                elm->temp = arr;
+                /* insert element as list head */
+                elm->next = *ptr;
+               *ptr = elm;
+            }
+            else
+            {
+                /* insert element under existing trnode */
+                elm->next = trn->next;
+                trn->next = elm;
+            }
+        }
+        else
+        {
+            /* insert element as list head */
+            elm->next = *ptr;
+           *ptr = elm;
+        }
     }
     else
     if (RT_IS_LIGHT(obj))
     {
         rt_Light *lgt = (rt_Light *)obj;
 
+        /* alloc new element for lgt */
         elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
         elm->data = (rt_cell)scene->slist; /* all srf are potential shadows */
         elm->simd = lgt->s_lgt;
         elm->temp = lgt;
+        /* insert element as list head */
         elm->next = *ptr;
        *ptr = elm;
     }
