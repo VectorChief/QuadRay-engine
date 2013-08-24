@@ -971,7 +971,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
 
         tharr[i]->msize = 
             (sizeof(rt_ELEM) * (tiles_in_row * tiles_in_col) + 1) *
-            srf_num / (thnum >> 1); /* upper bound per thread for tiling */
+            2 * srf_num / thnum; /* upper bound per thread for tiling */
     }
 
     /* init memory pool in the heap for temporary per-frame allocs */
