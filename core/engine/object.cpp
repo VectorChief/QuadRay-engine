@@ -408,6 +408,12 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     rt_Object::update(time, mtx, flags);
 
+    /* inverted matrix is needed in array's children */
+    if (obj_has_trm)
+    {
+        matrix_inverse(this->inv, this->mtx);
+    }
+
     rt_cell i;
 
     /* update every object in array, including sub-arrays */
@@ -734,8 +740,8 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     s_srf->max_t[RT_Y] = cmax[RT_Y] == +RT_INF ? 0 : 1;
     s_srf->max_t[RT_Z] = cmax[RT_Z] == +RT_INF ? 0 : 1;
 
-    rt_vec3  zro = {0.0f, 0.0f, 0.0f};
-    rt_real *pps = shift > 0 ? zro : pos;
+    rt_vec4  zro = {0.0f, 0.0f, 0.0f, 0.0f};
+    rt_real *pps = trnode == this ? zro : pos;
 
     RT_SIMD_SET(s_srf->min_x, bmin[RT_X] - pps[RT_X]);
     RT_SIMD_SET(s_srf->min_y, bmin[RT_Y] - pps[RT_Y]);
@@ -749,21 +755,31 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     RT_SIMD_SET(s_srf->pos_y, pos[RT_Y]);
     RT_SIMD_SET(s_srf->pos_z, pos[RT_Z]);
 
-    if (shift > 0)
+    rt_mat4 *pinv = &this->inv;
+
+    if (trnode != RT_NULL && trnode != this)
     {
-        matrix_inverse(this->inv, this->mtx);
+        pinv = &trnode->inv;
+    }
 
-        RT_SIMD_SET(s_srf->tci_x, this->inv[RT_X][RT_I]);
-        RT_SIMD_SET(s_srf->tci_y, this->inv[RT_Y][RT_I]);
-        RT_SIMD_SET(s_srf->tci_z, this->inv[RT_Z][RT_I]);
+    if (trnode != RT_NULL)
+    {
+        if (trnode == this)
+        {
+            matrix_inverse(this->inv, this->mtx);
+        }
 
-        RT_SIMD_SET(s_srf->tcj_x, this->inv[RT_X][RT_J]);
-        RT_SIMD_SET(s_srf->tcj_y, this->inv[RT_Y][RT_J]);
-        RT_SIMD_SET(s_srf->tcj_z, this->inv[RT_Z][RT_J]);
+        RT_SIMD_SET(s_srf->tci_x, (*pinv)[RT_X][RT_I]);
+        RT_SIMD_SET(s_srf->tci_y, (*pinv)[RT_Y][RT_I]);
+        RT_SIMD_SET(s_srf->tci_z, (*pinv)[RT_Z][RT_I]);
 
-        RT_SIMD_SET(s_srf->tck_x, this->inv[RT_X][RT_K]);
-        RT_SIMD_SET(s_srf->tck_y, this->inv[RT_Y][RT_K]);
-        RT_SIMD_SET(s_srf->tck_z, this->inv[RT_Z][RT_K]);
+        RT_SIMD_SET(s_srf->tcj_x, (*pinv)[RT_X][RT_J]);
+        RT_SIMD_SET(s_srf->tcj_y, (*pinv)[RT_Y][RT_J]);
+        RT_SIMD_SET(s_srf->tcj_z, (*pinv)[RT_Z][RT_J]);
+
+        RT_SIMD_SET(s_srf->tck_x, (*pinv)[RT_X][RT_K]);
+        RT_SIMD_SET(s_srf->tck_y, (*pinv)[RT_Y][RT_K]);
+        RT_SIMD_SET(s_srf->tck_z, (*pinv)[RT_Z][RT_K]);
     }
 }
 
@@ -795,8 +811,8 @@ rt_void rt_Surface::direct_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
     tmax[RT_Y] = tmax[RT_Y] == +RT_INF ? +RT_INF : tmax[RT_Y] * scl[RT_Y];
     tmax[RT_Z] = tmax[RT_Z] == +RT_INF ? +RT_INF : tmax[RT_Z] * scl[RT_Z];
 
-    rt_vec3  zro = {0.0f, 0.0f, 0.0f};
-    rt_real *pps = shift > 0 ? zro : pos;
+    rt_vec4  zro = {0.0f, 0.0f, 0.0f, 0.0f};
+    rt_real *pps = trnode == this ? zro : pos;
 
     dmin[RT_X] = tmin[RT_X] == -RT_INF ? -RT_INF : tmin[RT_X] + pps[RT_X];
     dmin[RT_Y] = tmin[RT_Y] == -RT_INF ? -RT_INF : tmin[RT_Y] + pps[RT_Y];
@@ -901,7 +917,14 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         return;
     }
 
-    if (shift > 0)
+    rt_mat4 *pmtx = &this->mtx;
+
+    if (trnode != RT_NULL && trnode != this)
+    {
+        pmtx = &trnode->mtx;
+    }
+
+    if (trnode != RT_NULL)
     {
         rt_vec4 vt0;
         vt0[mp_i] = bmin[mp_i];
@@ -927,10 +950,10 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         vt3[mp_k] = bmin[mp_k];
         vt3[mp_l] = 1.0f; /* takes pos in mtx into account */
 
-        matrix_mul_vector(verts[0x0].pos, this->mtx, vt0);
-        matrix_mul_vector(verts[0x1].pos, this->mtx, vt1);
-        matrix_mul_vector(verts[0x2].pos, this->mtx, vt2);
-        matrix_mul_vector(verts[0x3].pos, this->mtx, vt3);
+        matrix_mul_vector(verts[0x0].pos, (*pmtx), vt0);
+        matrix_mul_vector(verts[0x1].pos, (*pmtx), vt1);
+        matrix_mul_vector(verts[0x2].pos, (*pmtx), vt2);
+        matrix_mul_vector(verts[0x3].pos, (*pmtx), vt3);
     }
     else
     {
@@ -1032,7 +1055,14 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         return;
     }
 
-    if (shift > 0)
+    rt_mat4 *pmtx = &this->mtx;
+
+    if (trnode != RT_NULL && trnode != this)
+    {
+        pmtx = &trnode->mtx;
+    }
+
+    if (trnode != RT_NULL)
     {
         rt_vec4 vt0;
         vt0[mp_i] = bmin[mp_i];
@@ -1082,14 +1112,14 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         vt7[mp_k] = bmax[mp_k];
         vt7[mp_l] = 1.0f; /* takes pos in mtx into account */
 
-        matrix_mul_vector(verts[0x0].pos, this->mtx, vt0);
-        matrix_mul_vector(verts[0x1].pos, this->mtx, vt1);
-        matrix_mul_vector(verts[0x2].pos, this->mtx, vt2);
-        matrix_mul_vector(verts[0x3].pos, this->mtx, vt3);
-        matrix_mul_vector(verts[0x4].pos, this->mtx, vt4);
-        matrix_mul_vector(verts[0x5].pos, this->mtx, vt5);
-        matrix_mul_vector(verts[0x6].pos, this->mtx, vt6);
-        matrix_mul_vector(verts[0x7].pos, this->mtx, vt7);
+        matrix_mul_vector(verts[0x0].pos, (*pmtx), vt0);
+        matrix_mul_vector(verts[0x1].pos, (*pmtx), vt1);
+        matrix_mul_vector(verts[0x2].pos, (*pmtx), vt2);
+        matrix_mul_vector(verts[0x3].pos, (*pmtx), vt3);
+        matrix_mul_vector(verts[0x4].pos, (*pmtx), vt4);
+        matrix_mul_vector(verts[0x5].pos, (*pmtx), vt5);
+        matrix_mul_vector(verts[0x6].pos, (*pmtx), vt6);
+        matrix_mul_vector(verts[0x7].pos, (*pmtx), vt7);
     }
     else
     {
