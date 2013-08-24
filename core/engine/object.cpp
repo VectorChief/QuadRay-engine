@@ -656,6 +656,11 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
 {
     rt_Object::add_relation(lst);
 
+    /* init custom clippers list */
+    rt_ELEM **ptr = (rt_ELEM **)&s_srf->msc_p[2];
+
+    /* build custom clippers list
+     * from given template "lst" */
     for (; lst != RT_NULL; lst = lst->next)
     {
         rt_ELEM *elm = RT_NULL;
@@ -664,12 +669,14 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
 
         if (obj == RT_NULL)
         {
+            /* alloc new element for accum marker */
             elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
             elm->data = rel;
             elm->simd = RT_NULL; /* accum marker */
             elm->temp = RT_NULL;
-            elm->next = (rt_ELEM *)s_srf->msc_p[2];
-            s_srf->msc_p[2] = elm;
+            /* insert element as list head */
+            elm->next = *ptr;
+           *ptr = elm;
         }
         else
         if (RT_IS_ARRAY(obj))
@@ -677,6 +684,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
             rt_Array *arr = (rt_Array *)obj;
             rt_cell i;
 
+            /* populate array element with sub-objects */
             for (i = 0; i < arr->obj_num; i++)
             {
                 elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
@@ -693,12 +701,92 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
         {
             rt_Surface *srf = (rt_Surface *)obj;
 
+            /* alloc new element for srf */
             elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
             elm->data = rel;
             elm->simd = srf->s_srf;
             elm->temp = srf;
-            elm->next = (rt_ELEM *)s_srf->msc_p[2];
-            s_srf->msc_p[2] = elm;
+
+            if (srf->trnode != RT_NULL && srf->trnode != srf)
+            {
+                rt_cell acc  = 0;
+                rt_ELEM *trn = RT_NULL, *nxt = *ptr;
+
+                /* search matching existing trnode for insertion
+                 * either within current accum segment
+                 * or outside of any accum segment */
+                for (; nxt != RT_NULL; nxt = nxt->next)
+                {
+                    /* (acc == 0) either accum-enter-marker
+                     * hasn't been inserted yet (current accum segment)
+                     * or outside of any accum segment */
+                    if (acc == 0
+                    &&  nxt->temp == srf->trnode)
+                    {
+                        trn = nxt;
+                        break;
+                    }
+
+                    /* skip all non-accum-marker elements */
+                    if (nxt->temp != RT_NULL)
+                    {
+                        continue;
+                    }
+
+                    /* didn't find trnode within current accum segment,
+                     * leaving cycle, new trnode element will be inserted */
+                    if (acc == 0 
+                    &&  nxt->data == RT_ACCUM_LEAVE)
+                    {
+                        break;
+                    }
+
+                    /* skip accum segment different from the one
+                     * current element is being inserted into */
+                    if (acc == 0
+                    &&  nxt->data == RT_ACCUM_ENTER)
+                    {
+                        acc = 1;
+                    }
+
+                    /* keep track of accum segments */
+                    if (acc == 1
+                    &&  nxt->data == RT_ACCUM_LEAVE)
+                    {
+                        acc = 0;
+                    }
+                }
+
+                if (trn == RT_NULL)
+                {
+                    /* insert element as list head */
+                    elm->next = *ptr;
+                   *ptr = elm;
+
+                    rt_Array *arr = (rt_Array *)obj->trnode;
+
+                    /* alloc new trnode element as none has been found */
+                    elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
+                    elm->data = (rt_cell)*ptr; /* trnode's last element */
+                    elm->simd = arr->s_srf;
+                    elm->temp = arr;
+                    /* insert element as list head */
+                    elm->next = *ptr;
+                   *ptr = elm;
+                }
+                else
+                {
+                    /* insert element under existing trnode */
+                    elm->next = trn->next;
+                    trn->next = elm;
+                }
+            }
+            else
+            {
+                /* insert element as list head */
+                elm->next = *ptr;
+               *ptr = elm;
+            }
         }
     }
 }
