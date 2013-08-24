@@ -146,6 +146,27 @@ class rt_Object
     rt_real            *pos;
     rt_cell             tag;
 
+    /* non-zero if object has
+     * non-trivial axis scaling
+     * (other than +/-1.0 scalers) */
+    rt_cell             obj_has_scl;
+
+    /* non-zero if object has
+     * non-trivial rotation
+     * (other than multiple of 90 dgree) */
+    rt_cell             obj_has_rot;
+
+    /* non-zero if object has
+     * non-trivial transform
+     * (either of the above) */
+    rt_cell             obj_has_trm;
+
+    /* node up in the hierarchy with
+     * non-trivial transform,
+     * relative to which object has
+     * trivial transform */
+    rt_Object          *trnode;
+
     /* object's immediate parent
      * in the hierarchy */
     rt_Object          *parent;

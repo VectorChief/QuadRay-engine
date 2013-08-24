@@ -27,6 +27,11 @@ rt_Object::rt_Object(rt_Object *parent, rt_OBJECT *obj)
     pos = this->mtx[3];
     this->tag = obj->obj.tag;
 
+    this->obj_has_rot = 0;
+    this->obj_has_scl = 0;
+    this->obj_has_trm = 0;
+
+    this->trnode = RT_NULL;
     this->parent = parent;
 }
 
@@ -44,9 +49,98 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     obj->time = time;
 
-    rt_mat4 obj_mtx;
-    matrix_from_transform(obj_mtx, trm);
-    matrix_mul_matrix(this->mtx, mtx, obj_mtx);
+    /* determine object's own transform for transform caching,
+     * which allows to apply single matrix transform
+     * in rendering backend for array of objects
+     * with trivial transform in relation to array node */
+    rt_cell i, c;
+
+    rt_real scl[] = {-1.0f, +1.0f};
+
+    for (i = 0, c = 0; i < RT_ARR_SIZE(scl); i++)
+    {
+        if (trm->scl[RT_X] == scl[i]) c++;
+        if (trm->scl[RT_Y] == scl[i]) c++;
+        if (trm->scl[RT_Z] == scl[i]) c++;
+    }
+
+    obj_has_scl = (c == 3) ? 0 : 1;
+
+    rt_real rot[] = {-270.0f, -180.0f, -90.0f, 0.0f, +90.0f, +180.0f, +270.0f};
+
+    for (i = 0, c = 0; i < RT_ARR_SIZE(rot); i++)
+    {
+        if (trm->rot[RT_X] == rot[i]) c++;
+        if (trm->rot[RT_Y] == rot[i]) c++;
+        if (trm->rot[RT_Z] == rot[i]) c++;
+    }
+
+    obj_has_rot = (c == 3) ? 0 : 1;
+
+    obj_has_trm = obj_has_scl | obj_has_rot;
+
+    /* search for object's trnode
+     * (node up in the hierarchy with non-trivial transform,
+     * relative to which object has trivial transform) */
+    for (trnode = parent; trnode != RT_NULL; trnode = trnode->parent)
+    {
+        if (trnode->obj_has_trm)
+        {
+            break;
+        }
+    }
+
+    /* if object has its parent as trnode,
+     * object's transform matrix has only its own transform */
+    if (trnode != RT_NULL && trnode == parent && obj_has_trm == 0)
+    {
+        matrix_from_transform(this->mtx, trm);
+    }
+    else
+    /* if object itself has non-trivial transform, recombine matrices
+     * before and after trnode with object's own matrix
+     * to obtain object's full transform matrix
+     * (no caching for this obj, it is its own trnode) */
+    if (trnode != RT_NULL && trnode != parent && obj_has_trm == 1)
+    {
+        rt_mat4 obj_mtx, tmp_mtx;
+        matrix_from_transform(obj_mtx, trm);
+        matrix_mul_matrix(tmp_mtx, trnode->mtx, mtx);
+        matrix_mul_matrix(this->mtx, tmp_mtx, obj_mtx);
+    }
+    else
+    /* compute object's transform matrix as matrix from the hierarchy
+     * (either from trnode or from root) multiplied by its own matrix
+     * (no caching for this obj) */
+    {
+        rt_mat4 obj_mtx;
+        matrix_from_transform(obj_mtx, trm);
+        matrix_mul_matrix(this->mtx, mtx, obj_mtx);
+    }
+
+    /* if object itself has non-trivial transform, it is its own trnode,
+     * not considering the case when object's transform is compensated
+     * by parents' transforms resulting in object being axis-aligned */
+    if (obj_has_trm == 1)
+    {
+        trnode = this;
+    }
+
+    /* always compute full transform matrix
+     * for non-surface / non-array objects
+     * or all objects if transform caching is disabled */
+    if (trnode != RT_NULL && trnode != this
+#if RT_TARRAY_OPT
+    && tag > RT_TAG_SURFACE_MAX
+#endif /* RT_TARRAY_OPT */
+       )
+    {
+        rt_mat4 tmp_mtx;
+        matrix_mul_matrix(tmp_mtx, trnode->mtx, this->mtx);
+        memcpy(this->mtx, tmp_mtx, sizeof(rt_mat4));
+
+        trnode = this;
+    }
 }
 
 rt_Object::~rt_Object()
@@ -567,8 +661,6 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     /* determine axis mapping for trivial transform
      * (multiple of 90 degree rotation, +/-1.0 scalers) */
-    rt_cell match = 0;
-
     rt_cell i, j;
 
     for (i = 0; i < 3; i++)
@@ -582,25 +674,25 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
                 map[i] = j;
                 sgn[i] = RT_SIGN(this->mtx[i][j]);
                 scl[j] = RT_FABS(this->mtx[i][j]);
-                match++;
             }
         }
     }
 
     shift = 0;
 
-    /* if object has non-trivial transform
-     * all rotation and scaling is already in the matrix,
-     * reset axis mapping to identity */
-    if (match < 3
-    /* axis scaling goes through generic
-     * matrix transform for now (slow) */
-    ||  scl[RT_X] != 1.0f
-    ||  scl[RT_Y] != 1.0f
-    ||  scl[RT_Z] != 1.0f)
+    /* if object or some of its parents has non-trivial transform
+     * enable generic matrix transform in rendering backend,
+     * select aux vector sets in backend structures */
+    if (trnode != RT_NULL)
     {
         shift = 3;
+    }
 
+    /* if object itself has non-trivial transform
+     * all rotation and scaling is already in the matrix,
+     * reset axis mapping to identity */
+    if (trnode == this)
+    {
         map[RT_I] = RT_X;
         sgn[RT_I] = 1;
         scl[RT_X] = 1.0f;
