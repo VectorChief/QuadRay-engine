@@ -332,11 +332,6 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
     obj_num = 0;
     obj_arr = RT_NULL;
 
-    if (obj->obj.tag != RT_TAG_ARRAY)
-    {
-        return;
-    }
-
     obj_num = obj->obj.obj_num;
     obj_arr = (rt_Object **)rg->alloc(obj_num * sizeof(rt_Object *), RT_ALIGN);
 
@@ -344,6 +339,8 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 
     rt_cell i, j; /* j - for skipping unsupported object tags */
 
+    /* instantiate every object in array,
+     * including sub-arrays (recursive) */
     for (i = 0, j = 0; i < obj->obj.obj_num; i++, j++)
     {
         switch (arr[i].obj.tag)
@@ -390,6 +387,34 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
             break;
         }
     }
+
+/*  rt_SIMD_SURFACE */
+
+    s_srf = (rt_SIMD_SURFACE *)
+            rg->alloc(sizeof(rt_SIMD_SURFACE), RT_SIMD_ALIGN);
+
+    s_srf->mat_p[0] = RT_NULL; /* outer material */
+    s_srf->mat_p[1] = RT_NULL; /* outer material props */
+    s_srf->mat_p[2] = RT_NULL; /* inner material */
+    s_srf->mat_p[3] = RT_NULL; /* inner material props */
+
+    s_srf->srf_p[0] = RT_NULL; /* surf ptr, filled in update0 */
+    s_srf->srf_p[1] = RT_NULL; /* reserved */
+    s_srf->srf_p[2] = RT_NULL; /* clip ptr, filled in update0 */
+    s_srf->srf_p[3] = (rt_pntr)tag; /* tag */
+
+    s_srf->msc_p[0] = RT_NULL; /* screen tiles */
+    s_srf->msc_p[1] = RT_NULL; /* reserved */
+    s_srf->msc_p[2] = RT_NULL; /* custom clippers */
+    s_srf->msc_p[3] = RT_NULL; /* reserved */
+
+    s_srf->lst_p[0] = RT_NULL; /* outer lights/shadows */
+    s_srf->lst_p[1] = RT_NULL; /* outer surfaces for rfl/rfr */
+    s_srf->lst_p[2] = RT_NULL; /* inner lights/shadows */
+    s_srf->lst_p[3] = RT_NULL; /* inner surfaces for rfl/rfr */
+
+    RT_SIMD_SET(s_srf->sbase, 0x00000000);
+    RT_SIMD_SET(s_srf->smask, 0x80000000);
 }
 
 rt_void rt_Array::add_relation(rt_ELEM *lst)
@@ -416,7 +441,8 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     rt_cell i;
 
-    /* update every object in array, including sub-arrays */
+    /* update every object in array,
+     * including sub-arrays (recursive) */
     for (i = 0; i < obj_num; i++)
     {
         obj_arr[i]->update(time, this->mtx, flags);
@@ -528,6 +554,35 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
                 obj_num_l = obj_num;
             }
         }
+    }
+
+    s_srf->a_map[RT_I] = RT_X << 4;
+    s_srf->a_map[RT_J] = RT_Y << 4;
+    s_srf->a_map[RT_K] = RT_Z << 4;
+    s_srf->a_map[RT_L] = obj_has_trm ? 1 : 0;
+
+    s_srf->a_sgn[RT_I] = 0;
+    s_srf->a_sgn[RT_J] = 0;
+    s_srf->a_sgn[RT_K] = 0;
+    s_srf->a_sgn[RT_L] = 0;
+
+    RT_SIMD_SET(s_srf->pos_x, pos[RT_X]);
+    RT_SIMD_SET(s_srf->pos_y, pos[RT_Y]);
+    RT_SIMD_SET(s_srf->pos_z, pos[RT_Z]);
+
+    if (obj_has_trm)
+    {
+        RT_SIMD_SET(s_srf->tci_x, this->inv[RT_X][RT_I]);
+        RT_SIMD_SET(s_srf->tci_y, this->inv[RT_Y][RT_I]);
+        RT_SIMD_SET(s_srf->tci_z, this->inv[RT_Z][RT_I]);
+
+        RT_SIMD_SET(s_srf->tcj_x, this->inv[RT_X][RT_J]);
+        RT_SIMD_SET(s_srf->tcj_y, this->inv[RT_Y][RT_J]);
+        RT_SIMD_SET(s_srf->tcj_z, this->inv[RT_Z][RT_J]);
+
+        RT_SIMD_SET(s_srf->tck_x, this->inv[RT_X][RT_K]);
+        RT_SIMD_SET(s_srf->tck_y, this->inv[RT_Y][RT_K]);
+        RT_SIMD_SET(s_srf->tck_z, this->inv[RT_Z][RT_K]);
     }
 }
 
@@ -643,7 +698,6 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
             elm->simd = srf->s_srf;
             elm->temp = srf;
             elm->next = (rt_ELEM *)s_srf->msc_p[2];
-
             s_srf->msc_p[2] = elm;
         }
     }
