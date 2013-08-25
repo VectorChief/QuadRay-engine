@@ -1167,32 +1167,101 @@ rt_void rt_Scene::render(rt_long time)
 
     memset(tiles, 0, sizeof(rt_ELEM *) * tiles_in_row * tiles_in_col);
 
-    rt_ELEM *elm, *nxt, *stail = RT_NULL;
+    rt_ELEM *elm, *nxt, *stail = RT_NULL, **ptr = &stail;
 
-    /* build reversed slist (should be cheap) */
-    for (elm = slist; elm != RT_NULL; elm = elm->next)
+    /* build exact copy of reversed slist (should be cheap),
+     * trnode elements become tailing rather than heading,
+     * elements grouping for cached transform is retained */
+    for (nxt = slist; nxt != RT_NULL; nxt = nxt->next)
     {
-        tharr[0]->insert(cam, &stail, (rt_Surface *)elm->temp);
+        /* alloc new element as nxt copy */
+        elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+        elm->data = nxt->data;
+        elm->simd = nxt->simd;
+        elm->temp = nxt->temp;
+        /* insert element as list head */
+        elm->next = *ptr;
+       *ptr = elm;
+
     }
 
-    /* traverse reversed slist to keep original slist order for each tile */
+    /* traverse reversed slist to keep original slist order
+     * and optimize trnode handling for each tile */
     for (elm = stail; elm != RT_NULL; elm = elm->next)
     {
-        rt_ELEM *tls = (rt_ELEM *)((rt_SIMD_SURFACE *)elm->simd)->msc_p[0];
+        rt_Object *obj = (rt_Object *)elm->temp;
 
-        for (; tls != RT_NULL; tls = nxt)
+        /* skip trnode elements from reversed slist
+         * as they are handled separately for each tile */
+        if (RT_IS_ARRAY(obj))
         {
-            i = (rt_word)tls->data >> 16;
-            j = (rt_word)tls->data & 0xFFFF;
+            continue;
+        }
 
-            nxt = (rt_ELEM *)tls->next;
+        rt_Surface *srf = (rt_Surface *)elm->temp;
 
-            tls->data = 0;
+        rt_ELEM *tls = (rt_ELEM *)srf->s_srf->msc_p[0], *trn;
 
-            tline = i * tiles_in_row;
+        if (srf->trnode != RT_NULL && srf->trnode != srf)
+        {
+            for (; tls != RT_NULL; tls = nxt)
+            {
+                i = (rt_word)tls->data >> 16;
+                j = (rt_word)tls->data & 0xFFFF;
 
-            tls->next = tiles[tline + j];
-            tiles[tline + j] = tls;
+                nxt = (rt_ELEM *)tls->next;
+
+                tls->data = 0;
+
+                tline = i * tiles_in_row;
+
+                /* check matching existing trnode for insertion,
+                 * as elements grouping for cached transform is retained
+                 * from slist, only tile list head needs to be checked */
+                trn = tiles[tline + j];
+
+                if (trn != RT_NULL && trn->temp == srf->trnode)
+                {
+                    /* insert element under existing trnode */
+                    tls->next = trn->next;
+                    trn->next = tls;
+                }
+                else
+                {
+                    /* insert element as list head */
+                    tls->next = tiles[tline + j];
+                    tiles[tline + j] = tls;
+
+                    rt_Array *arr = (rt_Array *)srf->trnode;
+
+                    /* alloc new trnode element as none has been found */
+                    trn = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+                    trn->data = (rt_cell)tls; /* trnode's last element */
+                    trn->simd = arr->s_srf;
+                    trn->temp = arr;
+                    /* insert element as list head */
+                    trn->next = tiles[tline + j];
+                    tiles[tline + j] = trn;
+                }
+            }
+        }
+        else
+        {
+            for (; tls != RT_NULL; tls = nxt)
+            {
+                i = (rt_word)tls->data >> 16;
+                j = (rt_word)tls->data & 0xFFFF;
+
+                nxt = (rt_ELEM *)tls->next;
+
+                tls->data = 0;
+
+                tline = i * tiles_in_row;
+
+                /* insert element as list head */
+                tls->next = tiles[tline + j];
+                tiles[tline + j] = tls;
+            }
         }
     }
 
