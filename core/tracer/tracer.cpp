@@ -33,6 +33,7 @@
 #define RT_FEAT_REFRACTIONS         1
 #define RT_FEAT_ANTIALIASING        1
 #define RT_FEAT_TRANSFORM           1
+#define RT_FEAT_TRANSFORM_ARRAY     1
 
 /* Byte-offsets within SIMD-field
  * for packed scalar fields.
@@ -457,12 +458,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ld(Recx, Mebp, inf_CTX)
         movxx_ld(Redx, Mebp, inf_CAM)
 
-        movxx_ri(Reax, IB(0))
-        movxx_st(Reax, Mecx, ctx_PARAM(FLG))
-        movxx_st(Reax, Mecx, ctx_PARAM(LST))
-        movxx_st(Reax, Mecx, ctx_PARAM(OBJ))
-        movxx_st(Reax, Mecx, ctx_LOCAL(LST))
-        movxx_st(Reax, Mecx, ctx_LOCAL(OBJ))
+        xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
+        movpx_st(Xmm0, Mecx, ctx_PARAM(0))      /* tmp_v -> PARAM */
+        movpx_st(Xmm0, Mecx, ctx_LOCAL(0))      /* tmp_v -> LOCAL */
 
         jmpxx_lb(XX_set)
 
@@ -560,6 +558,45 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movxx_ld(Rebx, Mesi, elm_SIMD)
 
+#if RT_FEAT_TRANSFORM_ARRAY
+
+        /* ctx_LOCAL(OBJ) holds trnode's
+         * last element for transform caching,
+         * caching is not applied if NULL */
+        cmpxx_mi(Mebx, srf_SRF_P(TAG), IB(0))
+        jltxn_lb(OO_dff)                        /* signed comparison */
+        cmpxx_mi(Mecx, ctx_LOCAL(OBJ), IB(0))
+        jeqxx_lb(OO_dff)
+
+        movpx_ld(Xmm1, Mecx, ctx_DFF_X)
+        movpx_ld(Xmm2, Mecx, ctx_DFF_Y)
+        movpx_ld(Xmm3, Mecx, ctx_DFF_Z)
+
+        /* contribute to trnode's pos,
+         * add as org is subtracted from it */
+        addps_ld(Xmm1, Mebx, srf_POS_X)
+        addps_ld(Xmm2, Mebx, srf_POS_Y)
+        addps_ld(Xmm3, Mebx, srf_POS_Z)
+
+        movpx_st(Xmm1, Mecx, ctx_DFF_I)
+        movpx_st(Xmm2, Mecx, ctx_DFF_J)
+        movpx_st(Xmm3, Mecx, ctx_DFF_K)
+
+        /* check if surface is trnode's
+         * last element for transform caching */
+        cmpxx_rm(Resi, Mecx, ctx_LOCAL(OBJ))
+        jnexx_lb(OO_rot)
+
+        /* reset ctx_LOCAL(OBJ) if so */
+        movxx_mi(Mecx, ctx_LOCAL(OBJ), IB(0))
+        jmpxx_lb(OO_rot)
+
+    LBL(OO_dff)
+
+#endif /* RT_FEAT_TRANSFORM_ARRAY */
+
+        /* compute negated diff
+         * to compensate for minus in solvers */
         movpx_ld(Xmm1, Mebx, srf_POS_X)
         movpx_ld(Xmm2, Mebx, srf_POS_Y)
         movpx_ld(Xmm3, Mebx, srf_POS_Z)
@@ -609,9 +646,30 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm0, Xmm3)
         addps_rr(Xmm6, Xmm0)
 
+#if RT_FEAT_TRANSFORM_ARRAY
+
+        cmpxx_mi(Mebx, srf_SRF_P(TAG), IB(0))
+        jgexn_lb(OO_srf)                        /* signed comparison */
+
+        movpx_st(Xmm4, Mecx, ctx_DFF_X)
+        movpx_st(Xmm5, Mecx, ctx_DFF_Y)
+        movpx_st(Xmm6, Mecx, ctx_DFF_Z)
+
+        /* enable transform caching from trnode,
+         * init ctx_LOCAL(OBJ) as last element */
+        movxx_ld(Reax, Mesi, elm_DATA)
+        movxx_st(Reax, Mecx, ctx_LOCAL(OBJ))
+        jmpxx_lb(OO_ray)
+
+    LBL(OO_srf)
+
+#endif /* RT_FEAT_TRANSFORM_ARRAY */
+
         movpx_st(Xmm4, Mecx, ctx_DFF_I)
         movpx_st(Xmm5, Mecx, ctx_DFF_J)
         movpx_st(Xmm6, Mecx, ctx_DFF_K)
+
+    LBL(OO_ray)
 
         /* transform ray */
 
@@ -658,6 +716,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(OO_rot)
 
 #endif /* RT_FEAT_TRANSFORM */
+
+#if RT_FEAT_TRANSFORM_ARRAY
+
+        /* skip trnode elements from the list */
+        cmpxx_mi(Mebx, srf_SRF_P(PTR), IB(0))
+        jeqxx_lb(OO_end)
+
+#endif /* RT_FEAT_TRANSFORM_ARRAY */
 
         jmpxx_mm(Mebx, srf_SRF_P(PTR))
 
@@ -861,6 +927,49 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_CLIPPING_ACCUM */
 
+#if RT_FEAT_TRANSFORM_ARRAY
+
+        /* Redx holds trnode's
+         * last element for transform caching,
+         * caching is not applied if NULL */
+        cmpxx_mi(Mebx, srf_SRF_P(TAG), IB(0))
+        jltxn_lb(CC_dff)                        /* signed comparison */
+        cmpxx_ri(Redx, IB(0))
+        jeqxx_lb(CC_dff)
+
+        movpx_ld(Xmm1, Mecx, ctx_NRM_X)
+        movpx_ld(Xmm2, Mecx, ctx_NRM_Y)
+        movpx_ld(Xmm3, Mecx, ctx_NRM_Z)
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+
+        /* contribute to trnode's pos,
+         * subtract as it is subtracted from hit */
+        subps_ld(Xmm1, Mebx, srf_POS_X)
+        subps_ld(Xmm2, Mebx, srf_POS_Y)
+        subps_ld(Xmm3, Mebx, srf_POS_Z)
+
+        movpx_st(Xmm1, Mecx, ctx_NRM_I)
+        movpx_st(Xmm2, Mecx, ctx_NRM_J)
+        movpx_st(Xmm3, Mecx, ctx_NRM_K)
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+
+        /* check if clipper is trnode's
+         * last element for transform caching */
+        cmpxx_rr(Redi, Redx)
+        jnexx_lb(CC_rot)
+
+        /* reset Redx if so */
+        movxx_ri(Redx, IB(0))
+        jmpxx_lb(CC_rot)
+
+    LBL(CC_dff)
+
+#endif /* RT_FEAT_TRANSFORM_ARRAY */
+
+        /* unlike for solvers
+         * compute regular diff for clippers */
         movpx_ld(Xmm1, Mecx, ctx_HIT_X)
         movpx_ld(Xmm2, Mecx, ctx_HIT_Y)
         movpx_ld(Xmm3, Mecx, ctx_HIT_Z)
@@ -911,6 +1020,24 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm0, Mebx, srf_TCK_Z)
         mulps_rr(Xmm0, Xmm3)
         addps_rr(Xmm6, Xmm0)
+
+#if RT_FEAT_TRANSFORM_ARRAY
+
+        cmpxx_mi(Mebx, srf_SRF_P(TAG), IB(0))
+        jgexn_lb(CC_srf)                        /* signed comparison */
+
+        movpx_st(Xmm4, Mecx, ctx_NRM_X)
+        movpx_st(Xmm5, Mecx, ctx_NRM_Y)
+        movpx_st(Xmm6, Mecx, ctx_NRM_Z)
+
+        /* enable transform caching from trnode,
+         * init Redx as last element */
+        movxx_ld(Redx, Medi, elm_DATA)
+        jmpxx_lb(CC_end)
+
+    LBL(CC_srf)
+
+#endif /* RT_FEAT_TRANSFORM_ARRAY */
 
         movpx_st(Xmm4, Mecx, ctx_NRM_I)
         movpx_st(Xmm5, Mecx, ctx_NRM_J)
