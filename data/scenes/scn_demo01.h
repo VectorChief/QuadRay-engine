@@ -383,7 +383,7 @@ rt_OBJECT ob_ball01[] =
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {    0.0,        0.0,        1.5    },
+/* pos */   {    0.0,        0.0,        0.0    },
         },
         RT_OBJ_SPHERE(&sp_ball01)
     },
@@ -391,7 +391,7 @@ rt_OBJECT ob_ball01[] =
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {   +1.0,        0.0,        2.5    },
+/* pos */   {   +1.0,        0.0,        1.0    },
         },
         RT_OBJ_SPHERE_MAT(&sp_ball02, &mt_gray01, &mt_gray01)
     },
@@ -399,7 +399,7 @@ rt_OBJECT ob_ball01[] =
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,       90.0,        0.0    },
-/* pos */   {    0.0,        0.0,        5.5    },
+/* pos */   {    0.0,        0.0,        4.0    },
         },
         RT_OBJ_CYLINDER(&cl_tube02)
     },
@@ -429,8 +429,8 @@ rt_OBJECT ob_figures01[] =
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {    0.0,        0.0,        0.0    },
+/* rot */   {    0.0,       15.0,        0.0    },
+/* pos */   {    0.0,        0.0,        1.5    },
         },
         RT_OBJ_ARRAY_REL(&ob_ball01, &rl_ball01),
     },

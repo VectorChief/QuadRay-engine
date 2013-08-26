@@ -44,7 +44,7 @@
 #define SRF   0x04 /* LST_P */
 #define CLP   0x08 /* MSC_P, SRF_P */
 #define LST   0x08 /* LOCAL, PARAM */
-#define OBJ   0x0C /* LOCAL, PARAM */
+#define OBJ   0x0C /* LOCAL, PARAM, MSC_P */
 #define TAG   0x0C /* SRF_P */
 
 /* Manual register allocation table
@@ -572,8 +572,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm2, Mecx, ctx_DFF_Y)
         movpx_ld(Xmm3, Mecx, ctx_DFF_Z)
 
-        /* contribute to trnode's pos,
-         * add as org is subtracted from it */
+        /* contribute to trnode's POS,
+         * add as ORG is subtracted from it */
         addps_ld(Xmm1, Mebx, srf_POS_X)
         addps_ld(Xmm2, Mebx, srf_POS_Y)
         addps_ld(Xmm3, Mebx, srf_POS_Z)
@@ -895,6 +895,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_CLIPPING_CUSTOM
 
+        movxx_ld(Reax, Mebx, srf_MSC_P(OBJ))    /* trnode's simd load */
+        movxx_st(Reax, Mecx, ctx_LOCAL(LST))    /* trnode's simd save */
+
         movxx_ri(Redx, IB(0))
         movxx_ld(Redi, Mebx, srf_MSC_P(CLP))
 
@@ -933,7 +936,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * last element for transform caching,
          * caching is not applied if NULL */
         cmpxx_mi(Mebx, srf_SRF_P(TAG), IB(0))
-        jltxn_lb(CC_dff)                        /* signed comparison */
+        jltxn_lb(CC_arr)                        /* signed comparison */
         cmpxx_ri(Redx, IB(0))
         jeqxx_lb(CC_dff)
 
@@ -943,8 +946,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use context's normal fields (NRM)
          * as temporary storage for clipping */
 
-        /* contribute to trnode's pos,
-         * subtract as it is subtracted from hit */
+        /* contribute to trnode's POS,
+         * subtract as it is subtracted from HIT */
         subps_ld(Xmm1, Mebx, srf_POS_X)
         subps_ld(Xmm2, Mebx, srf_POS_Y)
         subps_ld(Xmm3, Mebx, srf_POS_Z)
@@ -963,6 +966,35 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* reset Redx if so */
         movxx_ri(Redx, IB(0))
         jmpxx_lb(CC_rot)
+
+    LBL(CC_arr)
+
+        /* handle the case when surface and its clippers
+         * belong to the same trnode, shortcut transform */
+        cmpxx_rm(Rebx, Mecx, ctx_LOCAL(LST))
+        jnexx_lb(CC_dff)
+
+        /* load surface's simd ptr */
+        movxx_ld(Rebx, Mesi, elm_SIMD)
+
+        movpx_ld(Xmm1, Mecx, ctx_NEW_I)
+        movpx_ld(Xmm2, Mecx, ctx_NEW_J)
+        movpx_ld(Xmm3, Mecx, ctx_NEW_K)
+
+        /* translate local HIT back to trnode's space,
+         * add to cancel surface's POS in NEW (in DFF) */
+        addps_ld(Xmm1, Mebx, srf_POS_X)
+        addps_ld(Xmm2, Mebx, srf_POS_Y)
+        addps_ld(Xmm3, Mebx, srf_POS_Z)
+
+        movpx_st(Xmm1, Mecx, ctx_NRM_X)
+        movpx_st(Xmm2, Mecx, ctx_NRM_Y)
+        movpx_st(Xmm3, Mecx, ctx_NRM_Z)
+
+        /* enable transform caching from trnode,
+         * init Redx as last element */
+        movxx_ld(Redx, Medi, elm_DATA)
+        jmpxx_lb(CC_end)
 
     LBL(CC_dff)
 

@@ -406,7 +406,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
     s_srf->msc_p[0] = RT_NULL; /* screen tiles */
     s_srf->msc_p[1] = RT_NULL; /* reserved */
     s_srf->msc_p[2] = RT_NULL; /* custom clippers */
-    s_srf->msc_p[3] = RT_NULL; /* reserved */
+    s_srf->msc_p[3] = RT_NULL; /* trnode's simd ptr */
 
     s_srf->lst_p[0] = RT_NULL; /* outer lights/shadows */
     s_srf->lst_p[1] = RT_NULL; /* outer surfaces for rfl/rfr */
@@ -639,7 +639,7 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
     s_srf->msc_p[0] = RT_NULL; /* screen tiles */
     s_srf->msc_p[1] = RT_NULL; /* reserved */
     s_srf->msc_p[2] = RT_NULL; /* custom clippers */
-    s_srf->msc_p[3] = RT_NULL; /* reserved */
+    s_srf->msc_p[3] = RT_NULL; /* trnode's simd ptr */
 
     s_srf->lst_p[0] = RT_NULL; /* outer lights/shadows */
     s_srf->lst_p[1] = RT_NULL; /* outer surfaces for rfl/rfr */
@@ -795,9 +795,14 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     rt_Object::update(time, mtx, flags);
 
-    /* custom clippers list
-     * is rebuilt in rt_Array::update */
+    /* reset custom clippers list
+     * as it is rebuilt in rt_Array::update */
     s_srf->msc_p[2] = RT_NULL;
+
+    /* trnode's simd ptr is needed in rendering backend
+     * to check if surface and its clippers belong to the same trnode */
+    s_srf->msc_p[3] = trnode == RT_NULL || trnode == this ? RT_NULL :
+                                            ((rt_Array *)trnode)->s_srf;
 
     /* check bbox geometry limits */
     if (verts_num > RT_VERTS_LIMIT
