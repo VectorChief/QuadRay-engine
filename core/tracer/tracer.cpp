@@ -616,9 +616,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* transform diff */
 
-        movpx_ld(Xmm0, Mebx, srf_TCI_X)
-        mulps_rr(Xmm0, Xmm1)
-        movpx_rr(Xmm4, Xmm0)
+        movpx_ld(Xmm4, Mebx, srf_TCI_X)
+        mulps_rr(Xmm4, Xmm1)
+        movpx_ld(Xmm5, Mebx, srf_TCJ_Y)
+        mulps_rr(Xmm5, Xmm2)
+        movpx_ld(Xmm6, Mebx, srf_TCK_Z)
+        mulps_rr(Xmm6, Xmm3)
+
         movpx_ld(Xmm0, Mebx, srf_TCI_Y)
         mulps_rr(Xmm0, Xmm2)
         addps_rr(Xmm4, Xmm0)
@@ -628,9 +632,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_ld(Xmm0, Mebx, srf_TCJ_X)
         mulps_rr(Xmm0, Xmm1)
-        movpx_rr(Xmm5, Xmm0)
-        movpx_ld(Xmm0, Mebx, srf_TCJ_Y)
-        mulps_rr(Xmm0, Xmm2)
         addps_rr(Xmm5, Xmm0)
         movpx_ld(Xmm0, Mebx, srf_TCJ_Z)
         mulps_rr(Xmm0, Xmm3)
@@ -638,12 +639,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_ld(Xmm0, Mebx, srf_TCK_X)
         mulps_rr(Xmm0, Xmm1)
-        movpx_rr(Xmm6, Xmm0)
+        addps_rr(Xmm6, Xmm0)
         movpx_ld(Xmm0, Mebx, srf_TCK_Y)
         mulps_rr(Xmm0, Xmm2)
-        addps_rr(Xmm6, Xmm0)
-        movpx_ld(Xmm0, Mebx, srf_TCK_Z)
-        mulps_rr(Xmm0, Xmm3)
         addps_rr(Xmm6, Xmm0)
 
 #if RT_FEAT_TRANSFORM_ARRAY
@@ -678,40 +676,36 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm3, Mecx, ctx_RAY_Z)
 
         movpx_ld(Xmm4, Mebx, srf_TCI_X)
-        movpx_ld(Xmm5, Mebx, srf_TCI_Y)
-        movpx_ld(Xmm6, Mebx, srf_TCI_Z)
-
         mulps_rr(Xmm4, Xmm1)
-        mulps_rr(Xmm5, Xmm2)
-        mulps_rr(Xmm6, Xmm3)
-
-        addps_rr(Xmm4, Xmm5)
-        addps_rr(Xmm4, Xmm6)
-        movpx_st(Xmm4, Mecx, ctx_RAY_I)
-
-        movpx_ld(Xmm4, Mebx, srf_TCJ_X)
         movpx_ld(Xmm5, Mebx, srf_TCJ_Y)
-        movpx_ld(Xmm6, Mebx, srf_TCJ_Z)
-
-        mulps_rr(Xmm4, Xmm1)
         mulps_rr(Xmm5, Xmm2)
-        mulps_rr(Xmm6, Xmm3)
-
-        addps_rr(Xmm4, Xmm5)
-        addps_rr(Xmm4, Xmm6)
-        movpx_st(Xmm4, Mecx, ctx_RAY_J)
-
-        movpx_ld(Xmm4, Mebx, srf_TCK_X)
-        movpx_ld(Xmm5, Mebx, srf_TCK_Y)
         movpx_ld(Xmm6, Mebx, srf_TCK_Z)
-
-        mulps_rr(Xmm4, Xmm1)
-        mulps_rr(Xmm5, Xmm2)
         mulps_rr(Xmm6, Xmm3)
 
-        addps_rr(Xmm4, Xmm5)
-        addps_rr(Xmm4, Xmm6)
-        movpx_st(Xmm4, Mecx, ctx_RAY_K)
+        movpx_ld(Xmm0, Mebx, srf_TCI_Y)
+        mulps_rr(Xmm0, Xmm2)
+        addps_rr(Xmm4, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCI_Z)
+        mulps_rr(Xmm0, Xmm3)
+        addps_rr(Xmm4, Xmm0)
+
+        movpx_ld(Xmm0, Mebx, srf_TCJ_X)
+        mulps_rr(Xmm0, Xmm1)
+        addps_rr(Xmm5, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCJ_Z)
+        mulps_rr(Xmm0, Xmm3)
+        addps_rr(Xmm5, Xmm0)
+
+        movpx_ld(Xmm0, Mebx, srf_TCK_X)
+        mulps_rr(Xmm0, Xmm1)
+        addps_rr(Xmm6, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCK_Y)
+        mulps_rr(Xmm0, Xmm2)
+        addps_rr(Xmm6, Xmm0)
+
+        movpx_st(Xmm4, Mecx, ctx_RAY_I)
+        movpx_st(Xmm5, Mecx, ctx_RAY_J)
+        movpx_st(Xmm6, Mecx, ctx_RAY_K)
 
     LBL(OO_rot)
 
@@ -1023,9 +1017,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* transform clip */
 
-        movpx_ld(Xmm0, Mebx, srf_TCI_X)
-        mulps_rr(Xmm0, Xmm1)
-        movpx_rr(Xmm4, Xmm0)
+        movpx_ld(Xmm4, Mebx, srf_TCI_X)
+        mulps_rr(Xmm4, Xmm1)
+        movpx_ld(Xmm5, Mebx, srf_TCJ_Y)
+        mulps_rr(Xmm5, Xmm2)
+        movpx_ld(Xmm6, Mebx, srf_TCK_Z)
+        mulps_rr(Xmm6, Xmm3)
+
         movpx_ld(Xmm0, Mebx, srf_TCI_Y)
         mulps_rr(Xmm0, Xmm2)
         addps_rr(Xmm4, Xmm0)
@@ -1035,9 +1033,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_ld(Xmm0, Mebx, srf_TCJ_X)
         mulps_rr(Xmm0, Xmm1)
-        movpx_rr(Xmm5, Xmm0)
-        movpx_ld(Xmm0, Mebx, srf_TCJ_Y)
-        mulps_rr(Xmm0, Xmm2)
         addps_rr(Xmm5, Xmm0)
         movpx_ld(Xmm0, Mebx, srf_TCJ_Z)
         mulps_rr(Xmm0, Xmm3)
@@ -1045,12 +1040,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_ld(Xmm0, Mebx, srf_TCK_X)
         mulps_rr(Xmm0, Xmm1)
-        movpx_rr(Xmm6, Xmm0)
+        addps_rr(Xmm6, Xmm0)
         movpx_ld(Xmm0, Mebx, srf_TCK_Y)
         mulps_rr(Xmm0, Xmm2)
-        addps_rr(Xmm6, Xmm0)
-        movpx_ld(Xmm0, Mebx, srf_TCK_Z)
-        mulps_rr(Xmm0, Xmm3)
         addps_rr(Xmm6, Xmm0)
 
 #if RT_FEAT_TRANSFORM_ARRAY
@@ -1102,12 +1094,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /********************************   MATERIAL   ********************************/
 /******************************************************************************/
 
-    LBL(MT_mat)
+#if RT_FEAT_NORMALS
+
+    LBL(MT_nrm)
 
 #if RT_FEAT_TRANSFORM
 
         cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
-        jeqxx_lb(MT_nrm)
+        jeqxx_lb(MT_mat)
 
         /* transform normal */
 
@@ -1116,46 +1110,34 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm3, Mecx, ctx_NRM_K)
 
         movpx_ld(Xmm4, Mebx, srf_TCI_X)
-        movpx_ld(Xmm5, Mebx, srf_TCJ_X)
-        movpx_ld(Xmm6, Mebx, srf_TCK_X)
-
         mulps_rr(Xmm4, Xmm1)
-        mulps_rr(Xmm5, Xmm2)
-        mulps_rr(Xmm6, Xmm3)
-
-        addps_rr(Xmm4, Xmm5)
-        addps_rr(Xmm4, Xmm6)
-        movpx_st(Xmm4, Mecx, ctx_NRM_X)
-
-        movpx_ld(Xmm4, Mebx, srf_TCI_Y)
         movpx_ld(Xmm5, Mebx, srf_TCJ_Y)
-        movpx_ld(Xmm6, Mebx, srf_TCK_Y)
-
-        mulps_rr(Xmm4, Xmm1)
         mulps_rr(Xmm5, Xmm2)
-        mulps_rr(Xmm6, Xmm3)
-
-        addps_rr(Xmm5, Xmm4)
-        addps_rr(Xmm5, Xmm6)
-        movpx_st(Xmm5, Mecx, ctx_NRM_Y)
-
-        movpx_ld(Xmm4, Mebx, srf_TCI_Z)
-        movpx_ld(Xmm5, Mebx, srf_TCJ_Z)
         movpx_ld(Xmm6, Mebx, srf_TCK_Z)
-
-        mulps_rr(Xmm4, Xmm1)
-        mulps_rr(Xmm5, Xmm2)
         mulps_rr(Xmm6, Xmm3)
 
-        addps_rr(Xmm6, Xmm4)
-        addps_rr(Xmm6, Xmm5)
-        movpx_st(Xmm6, Mecx, ctx_NRM_Z)
+        movpx_ld(Xmm0, Mebx, srf_TCJ_X)
+        mulps_rr(Xmm0, Xmm2)
+        addps_rr(Xmm4, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCK_X)
+        mulps_rr(Xmm0, Xmm3)
+        addps_rr(Xmm4, Xmm0)
+
+        movpx_ld(Xmm0, Mebx, srf_TCI_Y)
+        mulps_rr(Xmm0, Xmm1)
+        addps_rr(Xmm5, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCK_Y)
+        mulps_rr(Xmm0, Xmm3)
+        addps_rr(Xmm5, Xmm0)
+
+        movpx_ld(Xmm0, Mebx, srf_TCI_Z)
+        mulps_rr(Xmm0, Xmm1)
+        addps_rr(Xmm6, Xmm0)
+        movpx_ld(Xmm0, Mebx, srf_TCJ_Z)
+        mulps_rr(Xmm0, Xmm2)
+        addps_rr(Xmm6, Xmm0)
 
         /* renormalize normal */
-
-        movpx_ld(Xmm4, Mecx, ctx_NRM_X)
-        movpx_ld(Xmm5, Mecx, ctx_NRM_Y)
-        movpx_ld(Xmm6, Mecx, ctx_NRM_Z)
 
         movpx_rr(Xmm1, Xmm4)
         mulps_rr(Xmm1, Xmm4)
@@ -1172,17 +1154,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         rsqps_rr(Xmm0, Xmm1)
 
         mulps_rr(Xmm4, Xmm0)
-        movpx_st(Xmm4, Mecx, ctx_NRM_X)
-
         mulps_rr(Xmm5, Xmm0)
-        movpx_st(Xmm5, Mecx, ctx_NRM_Y)
-
         mulps_rr(Xmm6, Xmm0)
+
+        movpx_st(Xmm4, Mecx, ctx_NRM_X)
+        movpx_st(Xmm5, Mecx, ctx_NRM_Y)
         movpx_st(Xmm6, Mecx, ctx_NRM_Z)
 
-    LBL(MT_nrm)
-
 #endif /* RT_FEAT_TRANSFORM */
+
+#endif /* RT_FEAT_NORMALS */
+
+    LBL(MT_mat)
 
         movxx_st(Resi, Mecx, ctx_LOCAL(LST))
 
@@ -2074,6 +2057,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm6, Xmm7)                    /* tmp_v ^= ssign */
         MOVXR_ST(Xmm6, Iecx, ctx_NRM_O)         /* tmp_v -> NRM_K */
 
+        jmpxx_lb(MT_nrm)
+
     LBL(PL_nrm)
 
 #endif /* RT_FEAT_NORMALS */
@@ -2249,6 +2234,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
         MOVZR_ST(Xmm6, Iecx, ctx_NRM_O)         /* 0     -> NRM_K */
+
+        jmpxx_lb(MT_nrm)
 
     LBL(CL_nrm)
 
@@ -2453,6 +2440,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm6, Mebx, xsp_I_RAD)         /* loc_k *= i_rad */
         xorpx_rr(Xmm6, Xmm7)                    /* loc_k ^= ssign */
         MOVXR_ST(Xmm6, Iecx, ctx_NRM_O)         /* nrm_k -> NRM_K */
+
+        jmpxx_lb(MT_nrm)
 
     LBL(SP_nrm)
 
@@ -2670,6 +2659,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm5, Xmm7)                    /* loc_j ^= ssign */
         MOVXR_ST(Xmm5, Iecx, ctx_NRM_O)         /* nrm_j -> NRM_J */
 
+        jmpxx_lb(MT_nrm)
+
     LBL(CN_nrm)
 
 #endif /* RT_FEAT_NORMALS */
@@ -2879,6 +2870,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm5, Xmm3)                    /* loc_j *= i_par */
         xorpx_rr(Xmm5, Xmm7)                    /* loc_j ^= ssign */
         MOVXR_ST(Xmm5, Iecx, ctx_NRM_O)         /* nrm_j -> NRM_J */
+
+        jmpxx_lb(MT_nrm)
 
     LBL(PB_nrm)
 
@@ -3097,6 +3090,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm5, Xmm3)                    /* loc_j *= i_rat */
         xorpx_rr(Xmm5, Xmm7)                    /* loc_j ^= ssign */
         MOVXR_ST(Xmm5, Iecx, ctx_NRM_O)         /* nrm_j -> NRM_J */
+
+        jmpxx_lb(MT_nrm)
 
     LBL(HB_nrm)
 
