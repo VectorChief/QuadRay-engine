@@ -36,6 +36,17 @@
 #define RT_CAMERA_ROTATE_LEFT       12
 #define RT_CAMERA_ROTATE_RIGHT      13
 
+/* Update flags */
+
+/* set for object which has
+ * non-trivial axis scaling
+ * (other than +/-1.0 scalers) */
+#define RT_UPDATE_FLAG_SCL          (1 << 0)
+/* set for object which has
+ * non-trivial rotation
+ * (other than multiple of 90 dgree) */
+#define RT_UPDATE_FLAG_ROT          (1 << 1)
+
 /* Structures */
 
 struct rt_VERT
@@ -146,20 +157,15 @@ class rt_Object
     rt_real            *pos;
     rt_cell             tag;
 
-    /* non-zero if object has
-     * non-trivial axis scaling
-     * (other than +/-1.0 scalers) */
-    rt_cell             obj_has_scl;
-
-    /* non-zero if object has
-     * non-trivial rotation
-     * (other than multiple of 90 dgree) */
-    rt_cell             obj_has_rot;
-
-    /* non-zero if object has
+    /* non-zero if object itself has
      * non-trivial transform
-     * (either of the above) */
+     * (scaling, rotation or both) */
     rt_cell             obj_has_trm;
+
+    /* non-zero if object's full matrix has
+     * non-trivial transform
+     * (scaling, rotation or both) */
+    rt_cell             mtx_has_trm;
 
     /* node up in the hierarchy with
      * non-trivial transform,
@@ -320,7 +326,7 @@ class rt_Surface : public rt_Object, public rt_List<rt_Surface>
     protected:
 
     /* enables generic matrix transform if non-zero,
-     * selects aux vector sets in backend structures */
+     * selects aux vector fields in backend structures */
     rt_cell             shift;
 
     rt_cell             map[3];

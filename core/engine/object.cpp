@@ -27,9 +27,8 @@ rt_Object::rt_Object(rt_Object *parent, rt_OBJECT *obj)
     pos = this->mtx[3];
     this->tag = obj->obj.tag;
 
-    this->obj_has_rot = 0;
-    this->obj_has_scl = 0;
     this->obj_has_trm = 0;
+    this->mtx_has_trm = 0;
 
     this->trnode = RT_NULL;
     this->parent = parent;
@@ -55,6 +54,9 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * with trivial transform in relation to array node */
     rt_cell i, c;
 
+    /* reset object's own transform flags */
+    obj_has_trm = 0;
+
     rt_real scl[] = {-1.0f, +1.0f};
 
     for (i = 0, c = 0; i < RT_ARR_SIZE(scl); i++)
@@ -64,7 +66,9 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         if (trm->scl[RT_Z] == scl[i]) c++;
     }
 
-    obj_has_scl = (c == 3) ? 0 : 1;
+    /* determine if object itself has
+     * non-trivial scaling */
+    obj_has_trm |= (c == 3) ? 0 : RT_UPDATE_FLAG_SCL;
 
     rt_real rot[] = {-270.0f, -180.0f, -90.0f, 0.0f, +90.0f, +180.0f, +270.0f};
 
@@ -75,13 +79,21 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         if (trm->rot[RT_Z] == rot[i]) c++;
     }
 
-    obj_has_rot = (c == 3) ? 0 : 1;
+    /* determine if object itself has
+     * non-trivial rotation */
+    obj_has_trm |= (c == 3) ? 0 : RT_UPDATE_FLAG_ROT;
 
-    obj_has_trm = obj_has_scl | obj_has_rot;
+    /* determine if object's full matrix has
+     * non-trivial transform */
+    mtx_has_trm = obj_has_trm |
+                        (flags & RT_UPDATE_FLAG_SCL) |
+                        (flags & RT_UPDATE_FLAG_ROT);
 
     /* search for object's trnode
      * (node up in the hierarchy with non-trivial transform,
-     * relative to which object has trivial transform) */
+     * relative to which object has trivial transform),
+     * can be potentially optimized out by passing
+     * correct trnode as parameter to update */
     for (trnode = parent; trnode != RT_NULL; trnode = trnode->parent)
     {
         if (trnode->obj_has_trm)
@@ -101,7 +113,7 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * before and after trnode with object's own matrix
      * to obtain object's full transform matrix
      * (no caching for this obj, it is its own trnode) */
-    if (trnode != RT_NULL && trnode != parent && obj_has_trm == 1)
+    if (trnode != RT_NULL && trnode != parent && obj_has_trm)
     {
         rt_mat4 obj_mtx, tmp_mtx;
         matrix_from_transform(obj_mtx, trm);
@@ -121,7 +133,7 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     /* if object itself has non-trivial transform, it is its own trnode,
      * not considering the case when object's transform is compensated
      * by parents' transforms resulting in object being axis-aligned */
-    if (obj_has_trm == 1)
+    if (obj_has_trm)
     {
         trnode = this;
     }
@@ -433,7 +445,9 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     rt_Object::update(time, mtx, flags);
 
-    /* inverted matrix is needed in array's children */
+    /* array's inverted matrix is needed in sub-objects
+     * to transform normals in rendering backend
+     * for objects with transform caching (trnode) */
     if (obj_has_trm)
     {
         matrix_inverse(this->inv, this->mtx);
@@ -441,14 +455,17 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     rt_cell i;
 
-    /* update every object in array,
-     * including sub-arrays (recursive) */
+    /* update every object in array
+     * including sub-arrays (recursive),
+     * pass array's own transform flags */
     for (i = 0; i < obj_num; i++)
     {
-        obj_arr[i]->update(time, this->mtx, flags);
+        obj_arr[i]->update(time, this->mtx, flags | obj_has_trm);
     }
 
-    /* rebuild objects relations (custom clippers) */
+    /* rebuild objects relations (custom clippers)
+     * after all transform flags have been updated,
+     * so that trnode elements are handled properly */
     if (obj->obj.rel_num > 0)
     {
         rt_RELATION *rel = obj->obj.prel;
@@ -559,7 +576,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     s_srf->a_map[RT_I] = RT_X << 4;
     s_srf->a_map[RT_J] = RT_Y << 4;
     s_srf->a_map[RT_K] = RT_Z << 4;
-    s_srf->a_map[RT_L] = obj_has_trm ? 1 : 0;
+    s_srf->a_map[RT_L] = mtx_has_trm;
 
     s_srf->a_sgn[RT_I] = 0;
     s_srf->a_sgn[RT_J] = 0;
@@ -796,7 +813,7 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     rt_Object::update(time, mtx, flags);
 
     /* reset custom clippers list
-     * as it is rebuilt in rt_Array::update */
+     * as it is rebuilt in array's update */
     s_srf->msc_p[2] = RT_NULL;
 
     /* trnode's simd ptr is needed in rendering backend
@@ -835,7 +852,7 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     /* if object or some of its parents has non-trivial transform
      * enable generic matrix transform in rendering backend,
-     * select aux vector sets in backend structures */
+     * select aux vector fields in backend structures */
     if (trnode != RT_NULL)
     {
         shift = 3;
@@ -872,7 +889,7 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     s_srf->a_map[RT_I] = (mp_i + shift) << 4;
     s_srf->a_map[RT_J] = (mp_j + shift) << 4;
     s_srf->a_map[RT_K] = (mp_k + shift) << 4;
-    s_srf->a_map[RT_L] = shift > 0 ? 1 : 0;
+    s_srf->a_map[RT_L] = mtx_has_trm;
 
     s_srf->a_sgn[RT_I] = (sgn[RT_I] > 0 ? 0 : 1) << 4;
     s_srf->a_sgn[RT_J] = (sgn[RT_J] > 0 ? 0 : 1) << 4;
