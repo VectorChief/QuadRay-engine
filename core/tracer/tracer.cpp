@@ -585,11 +585,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* check if surface is trnode's
          * last element for transform caching */
         cmpxx_rm(Resi, Mecx, ctx_LOCAL(OBJ))
-        jnexx_lb(OO_rot)
+        jnexx_lb(OO_trm)
 
         /* reset ctx_LOCAL(OBJ) if so */
         movxx_mi(Mecx, ctx_LOCAL(OBJ), IB(0))
-        jmpxx_lb(OO_rot)
+        jmpxx_lb(OO_trm)
 
     LBL(OO_dff)
 
@@ -612,7 +612,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #if RT_FEAT_TRANSFORM
 
         cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
-        jeqxx_lb(OO_rot)
+        jeqxx_lb(OO_trm)
 
         /* transform diff */
 
@@ -707,7 +707,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm5, Mecx, ctx_RAY_J)
         movpx_st(Xmm6, Mecx, ctx_RAY_K)
 
-    LBL(OO_rot)
+    LBL(OO_trm)
 
 #endif /* RT_FEAT_TRANSFORM */
 
@@ -762,7 +762,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #if RT_FEAT_TRANSFORM
 
         cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
-        jeqxx_lb(CX_rot)
+        jeqxx_lb(CX_trm)
 
         movpx_ld(Xmm4, Mecx, ctx_RAY_I)         /* ray_i <- RAY_I */
         mulps_ld(Xmm4, Mecx, ctx_T_VAL(0))      /* ray_i *= t_rt1 */
@@ -771,7 +771,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
 
-    LBL(CX_rot)
+    LBL(CX_trm)
 
 #endif /* RT_FEAT_TRANSFORM */
 
@@ -808,7 +808,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #if RT_FEAT_TRANSFORM
 
         cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
-        jeqxx_lb(CY_rot)
+        jeqxx_lb(CY_trm)
 
         movpx_ld(Xmm5, Mecx, ctx_RAY_J)         /* ray_j <- RAY_J */
         mulps_ld(Xmm5, Mecx, ctx_T_VAL(0))      /* ray_j *= t_rt1 */
@@ -817,7 +817,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
 
-    LBL(CY_rot)
+    LBL(CY_trm)
 
 #endif /* RT_FEAT_TRANSFORM */
 
@@ -854,7 +854,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #if RT_FEAT_TRANSFORM
 
         cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
-        jeqxx_lb(CZ_rot)
+        jeqxx_lb(CZ_trm)
 
         movpx_ld(Xmm6, Mecx, ctx_RAY_K)         /* ray_k <- RAY_K */
         mulps_ld(Xmm6, Mecx, ctx_T_VAL(0))      /* ray_k *= t_rt1 */
@@ -863,7 +863,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
 
-    LBL(CZ_rot)
+    LBL(CZ_trm)
 
 #endif /* RT_FEAT_TRANSFORM */
 
@@ -955,11 +955,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* check if clipper is trnode's
          * last element for transform caching */
         cmpxx_rr(Redi, Redx)
-        jnexx_lb(CC_rot)
+        jnexx_lb(CC_trm)
 
         /* reset Redx if so */
         movxx_ri(Redx, IB(0))
-        jmpxx_lb(CC_rot)
+        jmpxx_lb(CC_trm)
 
     LBL(CC_arr)
 
@@ -974,6 +974,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm1, Mecx, ctx_NEW_I)
         movpx_ld(Xmm2, Mecx, ctx_NEW_J)
         movpx_ld(Xmm3, Mecx, ctx_NEW_K)
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
 
         /* translate local HIT back to trnode's space,
          * add to cancel surface's POS in NEW (in DFF) */
@@ -984,6 +986,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm1, Mecx, ctx_NRM_X)
         movpx_st(Xmm2, Mecx, ctx_NRM_Y)
         movpx_st(Xmm3, Mecx, ctx_NRM_Z)
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
 
         /* enable transform caching from trnode,
          * init Redx as last element */
@@ -1013,7 +1017,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #if RT_FEAT_TRANSFORM
 
         cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
-        jeqxx_lb(CC_rot)
+        jeqxx_lb(CC_trm)
 
         /* transform clip */
 
@@ -1053,6 +1057,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm4, Mecx, ctx_NRM_X)
         movpx_st(Xmm5, Mecx, ctx_NRM_Y)
         movpx_st(Xmm6, Mecx, ctx_NRM_Z)
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
 
         /* enable transform caching from trnode,
          * init Redx as last element */
@@ -1066,8 +1072,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm4, Mecx, ctx_NRM_I)
         movpx_st(Xmm5, Mecx, ctx_NRM_J)
         movpx_st(Xmm6, Mecx, ctx_NRM_K)
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
 
-    LBL(CC_rot)
+    LBL(CC_trm)
 
 #endif /* RT_FEAT_TRANSFORM */
 
@@ -1103,7 +1111,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
         jeqxx_lb(MT_mat)
 
-        /* transform normal */
+        /* transform normal,
+         * apply transposed matrix */
 
         movpx_ld(Xmm1, Mecx, ctx_NRM_I)
         movpx_ld(Xmm2, Mecx, ctx_NRM_J)

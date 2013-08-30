@@ -219,9 +219,6 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
     rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj);
 
     virtual
-   ~rt_Camera();
-
-    virtual
     rt_void update(rt_long time, rt_cell action);
     virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);

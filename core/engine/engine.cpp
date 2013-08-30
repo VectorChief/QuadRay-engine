@@ -90,7 +90,7 @@ rt_void print_lgt(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     if (s_lgt != RT_NULL)
     {
         RT_LOGI("    ");
-        RT_LOGI("                                       ");
+        RT_LOGI("                                    ");
         RT_LOGI("    ");
         RT_LOGI("pos: {%f, %f, %f}",
             s_lgt->pos_x[0], s_lgt->pos_y[0], s_lgt->pos_z[0]);
@@ -131,6 +131,24 @@ rt_void print_lgt(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
         RT_LOGI("\n")
 
 static
+rt_pstr tags[RT_TAG_SURFACE_MAX] =
+{
+    "PL", "CL", "SP", "CN", "PB", "HB"
+};
+
+static
+rt_pstr sides[3] =
+{
+    "data = inner", "data = 0    ", "data = outer"
+};
+
+static
+rt_pstr markers[3] =
+{
+    "accum marker: enter", "empty object", "accum marker: leave"
+};
+
+static
 rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
 {
     rt_SIMD_SURFACE *s_srf = elm != RT_NULL ? (rt_SIMD_SURFACE *)elm->simd :
@@ -142,9 +160,19 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     RT_LOGI("elm: %08X, ", (rt_word)elm);
     if (s_srf != RT_NULL && obj != RT_NULL)
     {
-        RT_LOGI("    ");
-        RT_LOGI("tag: %d, trm: %d,                        ",
-            obj->tag, s_srf->a_map[3]);
+        if (RT_IS_ARRAY(obj))
+        {
+            RT_LOGI("    ");
+            RT_LOGI("tag: AR, trm: %d, data = %08X    ",
+                s_srf->a_map[3], elm != RT_NULL ? elm->data : 0);
+        }
+        else
+        {
+            RT_LOGI("    ");
+            RT_LOGI("tag: %s, trm: %d, %s       ",
+                tags[obj->tag], s_srf->a_map[3],
+                sides[elm != RT_NULL ? elm->data + 1 : 0]);
+        }
         RT_LOGI("    ");
         RT_LOGI("pos: {%f, %f, %f}",
             obj->pos[RT_X], obj->pos[RT_Y], obj->pos[RT_Z]);
@@ -152,7 +180,7 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     else
     {
         RT_LOGI("    ");
-        RT_LOGI("empty object, data = %d", elm != RT_NULL ? elm->data : 0);
+        RT_LOGI("%s", markers[elm != RT_NULL ? elm->data + 1 : 0]);
     }
     RT_LOGI("\n");
 }
@@ -308,6 +336,9 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
 /*********************************   THREAD   *********************************/
 /******************************************************************************/
 
+/*
+ * Instantiate scene thread.
+ */
 rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_cell index) :
 
     rt_Heap(scene->f_alloc, scene->f_free)
@@ -400,7 +431,7 @@ while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
 /*
  * Update surface's projected bbox boundaries in tilebuffer
  * by processing one bbox edge at a time.
- * The tile buffer is reset for every surface from outside of this function.
+ * The tilebuffer is reset for every surface from outside of this function.
  */
 rt_void rt_SceneThread::tiling(rt_vec4 p1, rt_vec4 p2)
 {
@@ -934,6 +965,9 @@ rt_void render_scene(rt_void *tdata, rt_cell thnum)
 /**********************************   SCENE   *********************************/
 /******************************************************************************/
 
+/*
+ * Instantiate scene.
+ */
 rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
                    rt_word x_res, rt_word y_res, rt_cell x_row, rt_word *frame,
                    rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
@@ -1147,13 +1181,13 @@ rt_void rt_Scene::render(rt_long time)
 
     if (g_print)
     {
-        update_scene(this, thnum);
-
         RT_PRINT_CAM(cam);
 
         RT_PRINT_LGT_LIST(llist);
 
         RT_PRINT_SRF_LIST(slist);
+
+        update_scene(this, thnum);
     }
     else
     {
@@ -1486,7 +1520,7 @@ rt_word* rt_Scene::get_frame()
 }
 
 /*
- * Set full screen anti-aliasing mode.
+ * Set fullscreen anti-aliasing mode.
  */
 rt_void rt_Scene::set_fsaa(rt_cell fsaa)
 {
@@ -1501,6 +1535,9 @@ rt_void rt_Scene::print_state()
     g_print = RT_TRUE;
 }
 
+/*
+ * Destroy scene.
+ */
 rt_Scene::~rt_Scene()
 {
     /* destroy worker threads */

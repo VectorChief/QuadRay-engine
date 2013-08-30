@@ -14,6 +14,13 @@
 /**********************************   MISC   **********************************/
 /******************************************************************************/
 
+/* Generic list element structure.
+ * Fields names explanation:
+ * data - aux data field (pointer to trnode's last element, clip accum marker)
+ * simd - pointer to SIMD structure (rt_SIMD_LIGHT, rt_SIMD_SURFACE)
+ * temp - aux temp field (pointer to high-level object, not used in backend)
+ * next - pointer to next element
+ */
 struct rt_ELEM
 {
     rt_cell data;
@@ -30,6 +37,9 @@ struct rt_ELEM
 
 };
 
+/* Extended SIMD info structure for asm enter/leave.
+ * Serves as root for all other SIMD structures passed to backend.
+ */
 struct rt_SIMD_INFOX : public rt_SIMD_INFO
 {
     /* external parameters */
@@ -172,6 +182,17 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
 /*********************************   CONTEXT   ********************************/
 /******************************************************************************/
 
+/* SIMD context structure to keep track of current state. New contexts for
+ * secondary rays can be stacked upon previous ones by shifting pointer with
+ * some overlap (to reduce copying overhead) until max stack depth is reached.
+ * Vector fields names explanation:
+ * VEC_X, VEC_Y, VEC_Z - world coords.
+ * VEC_I, VEC_J, VEC_K - intermediate coords after generic matrix transform.
+ * VEC_O - baseline offset for axis mapping. Regular axis mapping fetches from
+ * main XYZ fields (no generic matrix transform), shifted axis mapping fetches
+ * from aux IJK fields after generic matrix transform has been applied,
+ * resulting (in both cases) in surface's local coords for canonical solvers.
+ */
 struct rt_SIMD_CONTEXT
 {
     /* origin */
@@ -380,6 +401,10 @@ struct rt_SIMD_CONTEXT
 /*********************************   CAMERA   *********************************/
 /******************************************************************************/
 
+/* SIMD camera structure with properties for
+ * rays horizontal and vertical scanning, color masks,
+ * accumulated ambient color.
+ */
 struct rt_SIMD_CAMERA
 {
     /* ray initial direction */
@@ -445,6 +470,8 @@ struct rt_SIMD_CAMERA
 /**********************************   LIGHT   *********************************/
 /******************************************************************************/
 
+/* SIMD light structure with properties.
+ */
 struct rt_SIMD_LIGHT
 {
     /* light position */
@@ -494,6 +521,8 @@ struct rt_SIMD_LIGHT
 /*********************************   SURFACE   ********************************/
 /******************************************************************************/
 
+/* SIMD surface structure with properties.
+ */
 struct rt_SIMD_SURFACE
 {
     /* surface position */
@@ -749,6 +778,8 @@ struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
 #define RT_PROP_LIGHT       0x00001000
 #define RT_PROP_METAL       0x00002000
 
+/* SIMD material structure with properties.
+ */
 struct rt_SIMD_MATERIAL
 {
     /* texture transform */

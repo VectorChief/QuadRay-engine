@@ -16,7 +16,7 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
-/* Full screen anti-aliasing modes */
+/* Fullscreen anti-aliasing modes */
 
 #define RT_FSAA_NO                  0
 #define RT_FSAA_4X                  1
@@ -50,8 +50,8 @@ class rt_SceneThread : public rt_Heap
     rt_pntr             mpool;
     rt_word             msize;
 
-    /* surface's x-coord boundaries
-     * in the tilebuffer */
+    /* surface's projected bbox
+     * x-coord boundaries in the tilebuffer */
     rt_cell            *txmin;
     rt_cell            *txmax;
     /* temporary bbox verts buffer */

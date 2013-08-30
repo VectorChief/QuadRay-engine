@@ -15,6 +15,9 @@
 /*********************************   OBJECT   *********************************/
 /******************************************************************************/
 
+/*
+ * Instantiate object.
+ */
 rt_Object::rt_Object(rt_Object *parent, rt_OBJECT *obj)
 {
     if (obj == RT_NULL)
@@ -34,11 +37,17 @@ rt_Object::rt_Object(rt_Object *parent, rt_OBJECT *obj)
     this->parent = parent;
 }
 
+/*
+ * Build relations list based on given template "lst" from scene data.
+ */
 rt_void rt_Object::add_relation(rt_ELEM *lst)
 {
 
 }
 
+/*
+ * Update object with given "time", matrix "mtx" and "flags".
+ */
 rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     if (obj->f_anim != RT_NULL)
@@ -122,8 +131,7 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     }
     else
     /* compute object's transform matrix as matrix from the hierarchy
-     * (either from trnode or from root) multiplied by its own matrix
-     * (no caching for this obj) */
+     * (either from trnode or from root) multiplied by its own matrix */
     {
         rt_mat4 obj_mtx;
         matrix_from_transform(obj_mtx, trm);
@@ -155,6 +163,9 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     }
 }
 
+/*
+ * Destroy object.
+ */
 rt_Object::~rt_Object()
 {
 
@@ -164,6 +175,9 @@ rt_Object::~rt_Object()
 /*********************************   CAMERA   *********************************/
 /******************************************************************************/
 
+/*
+ * Instantiate camera object.
+ */
 rt_Camera::rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 
     rt_Object(parent, obj),
@@ -189,6 +203,9 @@ rt_Camera::rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
                          2 * RT_CLIP_THRESHOLD : cam->vpt[0];
 }
 
+/*
+ * Update object with given "time", matrix "mtx" and "flags".
+ */
 rt_void rt_Camera::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     rt_Object::update(time, mtx, flags);
@@ -197,6 +214,9 @@ rt_void rt_Camera::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     hor_cos = RT_COSA(trm->rot[RT_Z]);
 }
 
+/*
+ * Update camera with given "time" and "action".
+ */
 rt_void rt_Camera::update(rt_long time, rt_cell action)
 {
     rt_real t = (time - obj->time) / 50.0f;
@@ -278,15 +298,13 @@ rt_void rt_Camera::update(rt_long time, rt_cell action)
     }
 }
 
-rt_Camera::~rt_Camera()
-{
-
-}
-
 /******************************************************************************/
 /**********************************   LIGHT   *********************************/
 /******************************************************************************/
 
+/*
+ * Instantiate light object.
+ */
 rt_Light::rt_Light(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 
     rt_Object(parent, obj),
@@ -319,6 +337,9 @@ rt_Light::rt_Light(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
     RT_SIMD_SET(s_lgt->a_rng, lgt->atn[0]);
 }
 
+/*
+ * Update object with given "time", matrix "mtx" and "flags".
+ */
 rt_void rt_Light::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     rt_Object::update(time, mtx, flags);
@@ -335,6 +356,9 @@ rt_void rt_Light::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 #define RT_ACCUM_ENTER  -1
 #define RT_ACCUM_LEAVE  +1
 
+/*
+ * Instantiate array object.
+ */
 rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 
     rt_Object(parent, obj)
@@ -429,6 +453,9 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
     RT_SIMD_SET(s_srf->smask, 0x80000000);
 }
 
+/*
+ * Build relations list based on given template "lst" from scene data.
+ */
 rt_void rt_Array::add_relation(rt_ELEM *lst)
 {
     rt_Object::add_relation(lst);
@@ -441,6 +468,9 @@ rt_void rt_Array::add_relation(rt_ELEM *lst)
     }
 }
 
+/*
+ * Update object with given "time", matrix "mtx" and "flags".
+ */
 rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     rt_Object::update(time, mtx, flags);
@@ -603,6 +633,9 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     }
 }
 
+/*
+ * Destroy array object.
+ */
 rt_Array::~rt_Array()
 {
     rt_cell i;
@@ -617,6 +650,9 @@ rt_Array::~rt_Array()
 /*********************************   SURFACE   ********************************/
 /******************************************************************************/
 
+/*
+ * Instantiate surface object.
+ */
 rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
                        rt_OBJECT *obj, rt_cell ssize) :
 
@@ -669,6 +705,9 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_srf->c_tmp, 0xFFFFFFFF);
 }
 
+/*
+ * Build relations list based on given template "lst" from scene data.
+ */
 rt_void rt_Surface::add_relation(rt_ELEM *lst)
 {
     rt_Object::add_relation(lst);
@@ -808,6 +847,9 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
     }
 }
 
+/*
+ * Update object with given "time", matrix "mtx" and "flags".
+ */
 rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     rt_Object::update(time, mtx, flags);
@@ -947,6 +989,9 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     }
 }
 
+/*
+ * Adjust bounding and clipping boxes according to surface shape.
+ */
 rt_void rt_Surface::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
                                   rt_vec3 bmin, rt_vec3 bmax, /* bbox */
                                   rt_vec3 cmin, rt_vec3 cmax) /* cbox */
@@ -954,6 +999,10 @@ rt_void rt_Surface::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
 
 }
 
+/*
+ * Transform local bounding or clipping box to world coords
+ * by applying axis mapping.
+ */
 rt_void rt_Surface::direct_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
                                   rt_vec3 dmin, rt_vec3 dmax) /* dst */
 {
@@ -987,6 +1036,9 @@ rt_void rt_Surface::direct_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
     dmax[RT_Z] = tmax[RT_Z] == +RT_INF ? +RT_INF : tmax[RT_Z] + pps[RT_Z];
 }
 
+/*
+ * Prepare bounding and clipping boxes for rendering.
+ */
 rt_void rt_Surface::update_minmax()
 {
     rt_vec3 smin, smax; /* src */
@@ -1005,6 +1057,9 @@ rt_void rt_Surface::update_minmax()
     direct_minmax(cmin, cmax, cmin, cmax);
 }
 
+/*
+ * Destroy surface object.
+ */
 rt_Surface::~rt_Surface()
 {
     delete outer;
@@ -1030,6 +1085,9 @@ rt_FACE pl_faces[] =
     {0x0, 0x1, 0x2, 0x3},
 };
 
+/*
+ * Instantiate plane surface object.
+ */
 rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
                    rt_OBJECT *obj, rt_cell ssize) :
 
@@ -1072,6 +1130,9 @@ rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_xpl->nrm_k, +1.0f);
 }
 
+/*
+ * Update object with given "time", matrix "mtx" and "flags".
+ */
 rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     rt_Surface::update(time, mtx, flags);
@@ -1143,6 +1204,9 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     }
 }
 
+/*
+ * Adjust bounding and clipping boxes according to surface shape.
+ */
 rt_void rt_Plane::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
                                 rt_vec3 bmin, rt_vec3 bmax, /* bbox */
                                 rt_vec3 cmin, rt_vec3 cmax) /* cbox */
@@ -1202,6 +1266,9 @@ rt_FACE qd_faces[] =
     {0x3, 0x7, 0x4, 0x0},
 };
 
+/*
+ * Instantiate quadric surface object.
+ */
 rt_Quadric::rt_Quadric(rt_Registry *rg, rt_Object *parent,
                        rt_OBJECT *obj, rt_cell ssize) :
 
@@ -1210,6 +1277,9 @@ rt_Quadric::rt_Quadric(rt_Registry *rg, rt_Object *parent,
 
 }
 
+/*
+ * Update object with given "time", matrix "mtx" and "flags".
+ */
 rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     rt_Surface::update(time, mtx, flags);
@@ -1329,6 +1399,9 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     }
 }
 
+/*
+ * Adjust bounding and clipping boxes according to surface shape.
+ */
 rt_void rt_Quadric::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
                                   rt_vec3 bmin, rt_vec3 bmax, /* bbox */
                                   rt_vec3 cmin, rt_vec3 cmax) /* cbox */
@@ -1340,6 +1413,9 @@ rt_void rt_Quadric::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
 /********************************   CYLINDER   ********************************/
 /******************************************************************************/
 
+/*
+ * Instantiate cylinder surface object.
+ */
 rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
                          rt_OBJECT *obj, rt_cell ssize) :
 
@@ -1384,6 +1460,9 @@ rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_xcl->i_rad, 1.0f / rad);
 }
 
+/*
+ * Adjust bounding and clipping boxes according to surface shape.
+ */
 rt_void rt_Cylinder::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
                                    rt_vec3 bmin, rt_vec3 bmax, /* bbox */
                                    rt_vec3 cmin, rt_vec3 cmax) /* cbox */
@@ -1417,6 +1496,9 @@ rt_void rt_Cylinder::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
 /*********************************   SPHERE   *********************************/
 /******************************************************************************/
 
+/*
+ * Instantiate sphere surface object.
+ */
 rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
                      rt_OBJECT *obj, rt_cell ssize) :
 
@@ -1460,6 +1542,9 @@ rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_xsp->i_rad, 1.0f / rad);
 }
 
+/*
+ * Adjust bounding and clipping boxes according to surface shape.
+ */
 rt_void rt_Sphere::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
                                  rt_vec3 bmin, rt_vec3 bmax, /* bbox */
                                  rt_vec3 cmin, rt_vec3 cmax) /* cbox */
@@ -1513,6 +1598,9 @@ rt_void rt_Sphere::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
 /**********************************   CONE   **********************************/
 /******************************************************************************/
 
+/*
+ * Instantiate cone surface object.
+ */
 rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
                  rt_OBJECT *obj, rt_cell ssize) :
 
@@ -1557,6 +1645,9 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_xcn->i_rat, 1.0f / (rat * sqrtf(rat * rat + 1.0f)));
 }
 
+/*
+ * Adjust bounding and clipping boxes according to surface shape.
+ */
 rt_void rt_Cone::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
                                rt_vec3 bmin, rt_vec3 bmax, /* bbox */
                                rt_vec3 cmin, rt_vec3 cmax) /* cbox */
@@ -1591,6 +1682,9 @@ rt_void rt_Cone::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
 /*******************************   PARABOLOID   *******************************/
 /******************************************************************************/
 
+/*
+ * Instantiate paraboloid surface object.
+ */
 rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
                              rt_OBJECT *obj, rt_cell ssize) :
 
@@ -1637,6 +1731,9 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_xpb->one_k, 1.0f);
 }
 
+/*
+ * Adjust bounding and clipping boxes according to surface shape.
+ */
 rt_void rt_Paraboloid::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
                                      rt_vec3 bmin, rt_vec3 bmax, /* bbox */
                                      rt_vec3 cmin, rt_vec3 cmax) /* cbox */
@@ -1676,6 +1773,9 @@ rt_void rt_Paraboloid::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
 /*******************************   HYPERBOLOID   ******************************/
 /******************************************************************************/
 
+/*
+ * Instantiate hyperboloid surface object.
+ */
 rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
                                rt_OBJECT *obj, rt_cell ssize) :
 
@@ -1723,6 +1823,9 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_xhb->one_k, 1.0f);
 }
 
+/*
+ * Adjust bounding and clipping boxes according to surface shape.
+ */
 rt_void rt_Hyperboloid::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
                                       rt_vec3 bmin, rt_vec3 bmax, /* bbox */
                                       rt_vec3 cmin, rt_vec3 cmax) /* cbox */
@@ -1757,6 +1860,9 @@ rt_void rt_Hyperboloid::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
 /********************************   MATERIAL   ********************************/
 /******************************************************************************/
 
+/*
+ * Instantiate texture to keep track of loaded textures.
+ */
 rt_Texture::rt_Texture(rt_Registry *rg, rt_pstr name) :
 
     rt_List<rt_Texture>(rg->get_tex())
@@ -1774,6 +1880,9 @@ rt_Texture::rt_Texture(rt_Registry *rg, rt_pstr name) :
 #define RT_U                0
 #define RT_V                1
 
+/*
+ * Instantiate material.
+ */
 rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
 
     rt_List<rt_Material>(rg->get_mat())
@@ -1885,10 +1994,17 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     RT_SIMD_SET(s_mat->c_one, 1.0f);
 }
 
+/*
+ * Validate texture fields by checking whether
+ * texture color was defined in place,
+ * texture data needs to be loaded from external file or
+ * texture data was bound from local array.
+ */
 rt_void rt_Material::resolve_texture(rt_Registry *rg)
 {
     rt_TEX *tx = &mat->tex;
 
+    /* texture color is defined in place */
     if (tx->x_dim == 0 && tx->y_dim == 0 && tx->ptex == RT_NULL)
     {
         tx->ptex  = &tx->col.val;
@@ -1896,11 +2012,14 @@ rt_void rt_Material::resolve_texture(rt_Registry *rg)
         tx->y_dim = 1;
     }
 
+    /* texture load is requested */
     if (tx->x_dim == 0 && tx->y_dim == 0 && tx->ptex != RT_NULL)
     {
         rt_pstr name = (rt_pstr)tx->ptex;
         rt_Texture *tex = NULL;
 
+        /* traverse list of loaded textures (slow, implement hashmap later)
+         * and check if requested texture already exists */
         for (tex = rg->get_tex(); tex != NULL; tex = tex->next)
         {
             if (strcmp(name, tex->name) == 0)
@@ -1916,6 +2035,8 @@ rt_void rt_Material::resolve_texture(rt_Registry *rg)
 
         *tx = tex->tex;
     }
+
+    /* texture bind doesn't need extra validation */
 }
 
 /******************************************************************************/
