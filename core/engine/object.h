@@ -297,13 +297,13 @@ class rt_Surface : public rt_Object, public rt_List<rt_Surface>
 
     /* bounding box,
      * all sides clipped or non-clipped are boundaries */
-    rt_vec3             bmin;
-    rt_vec3             bmax;
+    rt_vec4             bmin;
+    rt_vec4             bmax;
 
     /* clipping box,
      * non-clipped sides are at respective +/-infinity */
-    rt_vec3             cmin;
-    rt_vec3             cmax;
+    rt_vec4             cmin;
+    rt_vec4             cmax;
 
     /* bounding box geometry */
     rt_VERT            *verts;
@@ -328,7 +328,7 @@ class rt_Surface : public rt_Object, public rt_List<rt_Surface>
 
     rt_cell             map[3];
     rt_cell             sgn[3];
-    rt_vec3             scl;
+    rt_vec4             scl;
 
 /*  methods */
 
@@ -345,12 +345,12 @@ class rt_Surface : public rt_Object, public rt_List<rt_Surface>
     virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
     virtual
-    rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
-                          rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
-                          rt_vec3 cmin, rt_vec3 cmax); /* cbox */
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
 
-    rt_void direct_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
-                          rt_vec3 dmin, rt_vec3 dmax); /* dst */
+    rt_void direct_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 dmin, rt_vec4 dmax); /* dst */
 
     rt_void update_minmax();
 };
@@ -375,9 +375,9 @@ class rt_Plane : public rt_Surface
     virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
     virtual
-    rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
-                          rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
-                          rt_vec3 cmin, rt_vec3 cmax); /* cbox */
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
 };
 
 /******************************************************************************/
@@ -400,9 +400,9 @@ class rt_Quadric : public rt_Surface
     virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
     virtual
-    rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
-                          rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
-                          rt_vec3 cmin, rt_vec3 cmax); /* cbox */
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
 };
 
 /******************************************************************************/
@@ -423,9 +423,9 @@ class rt_Cylinder : public rt_Quadric
                 rt_cell ssize = sizeof(rt_SIMD_SURFACE));
 
     virtual
-    rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
-                          rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
-                          rt_vec3 cmin, rt_vec3 cmax); /* cbox */
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
 };
 
 /******************************************************************************/
@@ -446,9 +446,9 @@ class rt_Sphere : public rt_Quadric
               rt_cell ssize = sizeof(rt_SIMD_SURFACE));
 
     virtual
-    rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
-                          rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
-                          rt_vec3 cmin, rt_vec3 cmax); /* cbox */
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
 };
 
 /******************************************************************************/
@@ -469,9 +469,9 @@ class rt_Cone : public rt_Quadric
             rt_cell ssize = sizeof(rt_SIMD_SURFACE));
 
     virtual
-    rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
-                          rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
-                          rt_vec3 cmin, rt_vec3 cmax); /* cbox */
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
 };
 
 /******************************************************************************/
@@ -492,9 +492,9 @@ class rt_Paraboloid : public rt_Quadric
                   rt_cell ssize = sizeof(rt_SIMD_SURFACE));
 
     virtual
-    rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
-                          rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
-                          rt_vec3 cmin, rt_vec3 cmax); /* cbox */
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
 };
 
 /******************************************************************************/
@@ -515,9 +515,9 @@ class rt_Hyperboloid : public rt_Quadric
                    rt_cell ssize = sizeof(rt_SIMD_SURFACE));
 
     virtual
-    rt_void adjust_minmax(rt_vec3 smin, rt_vec3 smax,  /* src */
-                          rt_vec3 bmin, rt_vec3 bmax,  /* bbox */
-                          rt_vec3 cmin, rt_vec3 cmax); /* cbox */
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
 };
 
 /******************************************************************************/

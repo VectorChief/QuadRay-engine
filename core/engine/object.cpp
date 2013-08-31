@@ -992,9 +992,9 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 /*
  * Adjust bounding and clipping boxes according to surface shape.
  */
-rt_void rt_Surface::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
-                                  rt_vec3 bmin, rt_vec3 bmax, /* bbox */
-                                  rt_vec3 cmin, rt_vec3 cmax) /* cbox */
+rt_void rt_Surface::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
+                                  rt_vec4 bmin, rt_vec4 bmax, /* bbox */
+                                  rt_vec4 cmin, rt_vec4 cmax) /* cbox */
 {
 
 }
@@ -1003,10 +1003,10 @@ rt_void rt_Surface::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
  * Transform local bounding or clipping box to world coords
  * by applying axis mapping.
  */
-rt_void rt_Surface::direct_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
-                                  rt_vec3 dmin, rt_vec3 dmax) /* dst */
+rt_void rt_Surface::direct_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
+                                  rt_vec4 dmin, rt_vec4 dmax) /* dst */
 {
-    rt_vec3 tmin, tmax; /* tmp */
+    rt_vec4 tmin, tmax; /* tmp */
 
     tmin[mp_i] = sgn[RT_I] > 0 ? +smin[RT_I] : -smax[RT_I];
     tmin[mp_j] = sgn[RT_J] > 0 ? +smin[RT_J] : -smax[RT_J];
@@ -1037,11 +1037,11 @@ rt_void rt_Surface::direct_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
 }
 
 /*
- * Prepare bounding and clipping boxes for rendering.
+ * Update bounding and clipping boxes data.
  */
 rt_void rt_Surface::update_minmax()
 {
-    rt_vec3 smin, smax; /* src */
+    rt_vec4 smin, smax; /* src */
 
     smin[RT_I] = srf->min[RT_I];
     smin[RT_J] = srf->min[RT_J];
@@ -1207,9 +1207,9 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 /*
  * Adjust bounding and clipping boxes according to surface shape.
  */
-rt_void rt_Plane::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
-                                rt_vec3 bmin, rt_vec3 bmax, /* bbox */
-                                rt_vec3 cmin, rt_vec3 cmax) /* cbox */
+rt_void rt_Plane::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
+                                rt_vec4 bmin, rt_vec4 bmax, /* bbox */
+                                rt_vec4 cmin, rt_vec4 cmax) /* cbox */
 {
     if (bmin != RT_NULL && bmax != RT_NULL)
     {
@@ -1402,9 +1402,9 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 /*
  * Adjust bounding and clipping boxes according to surface shape.
  */
-rt_void rt_Quadric::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
-                                  rt_vec3 bmin, rt_vec3 bmax, /* bbox */
-                                  rt_vec3 cmin, rt_vec3 cmax) /* cbox */
+rt_void rt_Quadric::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
+                                  rt_vec4 bmin, rt_vec4 bmax, /* bbox */
+                                  rt_vec4 cmin, rt_vec4 cmax) /* cbox */
 {
 
 }
@@ -1463,9 +1463,9 @@ rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
 /*
  * Adjust bounding and clipping boxes according to surface shape.
  */
-rt_void rt_Cylinder::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
-                                   rt_vec3 bmin, rt_vec3 bmax, /* bbox */
-                                   rt_vec3 cmin, rt_vec3 cmax) /* cbox */
+rt_void rt_Cylinder::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
+                                   rt_vec4 bmin, rt_vec4 bmax, /* bbox */
+                                   rt_vec4 cmin, rt_vec4 cmax) /* cbox */
 {
     rt_real rad = RT_FABS(xcl->rad);
 
@@ -1545,9 +1545,9 @@ rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
 /*
  * Adjust bounding and clipping boxes according to surface shape.
  */
-rt_void rt_Sphere::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
-                                 rt_vec3 bmin, rt_vec3 bmax, /* bbox */
-                                 rt_vec3 cmin, rt_vec3 cmax) /* cbox */
+rt_void rt_Sphere::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
+                                 rt_vec4 bmin, rt_vec4 bmax, /* bbox */
+                                 rt_vec4 cmin, rt_vec4 cmax) /* cbox */
 {
     rt_real top, r = RT_FABS(xsp->rad);
     rt_real rad[3] = {r, r, r};
@@ -1648,9 +1648,9 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
 /*
  * Adjust bounding and clipping boxes according to surface shape.
  */
-rt_void rt_Cone::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
-                               rt_vec3 bmin, rt_vec3 bmax, /* bbox */
-                               rt_vec3 cmin, rt_vec3 cmax) /* cbox */
+rt_void rt_Cone::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
+                               rt_vec4 bmin, rt_vec4 bmax, /* bbox */
+                               rt_vec4 cmin, rt_vec4 cmax) /* cbox */
 {
     rt_real top = RT_MAX(RT_FABS(smin[RT_K]), RT_FABS(smax[RT_K]));
     rt_real rad = top * RT_FABS(xcn->rat);
@@ -1734,9 +1734,9 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
 /*
  * Adjust bounding and clipping boxes according to surface shape.
  */
-rt_void rt_Paraboloid::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
-                                     rt_vec3 bmin, rt_vec3 bmax, /* bbox */
-                                     rt_vec3 cmin, rt_vec3 cmax) /* cbox */
+rt_void rt_Paraboloid::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
+                                     rt_vec4 bmin, rt_vec4 bmax, /* bbox */
+                                     rt_vec4 cmin, rt_vec4 cmax) /* cbox */
 {
     rt_real par = xpb->par;
     rt_real top = RT_MAX(par < 0.0f ? -smin[RT_K] : +smax[RT_K], 0.0f);
@@ -1826,9 +1826,9 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
 /*
  * Adjust bounding and clipping boxes according to surface shape.
  */
-rt_void rt_Hyperboloid::adjust_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
-                                      rt_vec3 bmin, rt_vec3 bmax, /* bbox */
-                                      rt_vec3 cmin, rt_vec3 cmax) /* cbox */
+rt_void rt_Hyperboloid::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
+                                      rt_vec4 bmin, rt_vec4 bmax, /* bbox */
+                                      rt_vec4 cmin, rt_vec4 cmax) /* cbox */
 {
     rt_real top = RT_MAX(RT_FABS(smin[RT_K]), RT_FABS(smax[RT_K]));
     rt_real rad = RT_SQRT(top * top * xhb->rat * xhb->rat + xhb->hyp);

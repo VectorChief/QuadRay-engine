@@ -137,15 +137,23 @@ rt_pstr tags[RT_TAG_SURFACE_MAX] =
 };
 
 static
-rt_pstr sides[3] =
+rt_pstr sides[] =
 {
-    "data = inner", "data = 0    ", "data = outer"
+    "out of range",
+    "data = inner",
+    "data = 0    ",
+    "data = outer",
+    "out of range",
 };
 
 static
-rt_pstr markers[3] =
+rt_pstr markers[] =
 {
-    "accum marker: enter", "empty object", "accum marker: leave"
+    "out of range",
+    "accum marker: enter",
+    "empty object",
+    "accum marker: leave",
+    "out of range",
 };
 
 static
@@ -158,20 +166,24 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     RT_LOGI("srf: %08X, ", (rt_word)obj);
     RT_LOGI("SRF: %08X, ", (rt_word)s_srf);
     RT_LOGI("elm: %08X, ", (rt_word)elm);
+
+    rt_cell d = elm != RT_NULL ? elm->data : 0;
+    rt_cell i = RT_MAX(0, d + 2);
+
     if (s_srf != RT_NULL && obj != RT_NULL)
     {
         if (RT_IS_ARRAY(obj))
         {
             RT_LOGI("    ");
             RT_LOGI("tag: AR, trm: %d, data = %08X    ",
-                s_srf->a_map[3], elm != RT_NULL ? elm->data : 0);
+                s_srf->a_map[3], d);
         }
         else
         {
             RT_LOGI("    ");
             RT_LOGI("tag: %s, trm: %d, %s       ",
                 tags[obj->tag], s_srf->a_map[3],
-                sides[elm != RT_NULL ? elm->data + 1 : 0]);
+                sides[RT_MIN(i, RT_ARR_SIZE(sides))]);
         }
         RT_LOGI("    ");
         RT_LOGI("pos: {%f, %f, %f}",
@@ -180,7 +192,7 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     else
     {
         RT_LOGI("    ");
-        RT_LOGI("%s", markers[elm != RT_NULL ? elm->data + 1 : 0]);
+        RT_LOGI("%s", markers[RT_MIN(i, RT_ARR_SIZE(markers))]);
     }
     RT_LOGI("\n");
 }
@@ -307,7 +319,7 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
         RT_LOGI("*********************************************");           \
         RT_LOGI("\n");                                                      \
         RT_LOGI("*********************************************");           \
-        RT_LOGI("********* screen tiles[%02d][%02d] list: ********", i, j); \
+        RT_LOGI("********* screen tiles[%2d][%2d] list: ********", i, j);   \
         RT_LOGI("*********************************************");           \
         RT_LOGI("\n");                                                      \
         RT_LOGI("*********************************************");           \
