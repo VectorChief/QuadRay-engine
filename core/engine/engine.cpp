@@ -183,7 +183,7 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
             RT_LOGI("    ");
             RT_LOGI("tag: %s, trm: %d, %s       ",
                 tags[obj->tag], s_srf->a_map[3],
-                sides[RT_MIN(i, RT_ARR_SIZE(sides))]);
+                sides[RT_MIN(i, RT_ARR_SIZE(sides) - 1)]);
         }
         RT_LOGI("    ");
         RT_LOGI("pos: {%f, %f, %f}",
@@ -192,7 +192,7 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     else
     {
         RT_LOGI("    ");
-        RT_LOGI("%s", markers[RT_MIN(i, RT_ARR_SIZE(markers))]);
+        RT_LOGI("%s", markers[RT_MIN(i, RT_ARR_SIZE(markers) - 1)]);
     }
     RT_LOGI("\n");
 }
