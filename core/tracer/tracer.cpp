@@ -623,6 +623,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm6, Mebx, srf_TCK_Z)
         mulps_rr(Xmm6, Xmm3)
 
+        /* bypass non-diagonal terms
+         * in transform matrix for scaling fastpath */
+        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(1))
+        jeqxx_lb(OO_trd)
+
         movpx_ld(Xmm0, Mebx, srf_TCI_Y)
         mulps_rr(Xmm0, Xmm2)
         addps_rr(Xmm4, Xmm0)
@@ -643,6 +648,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm0, Mebx, srf_TCK_Y)
         mulps_rr(Xmm0, Xmm2)
         addps_rr(Xmm6, Xmm0)
+
+    LBL(OO_trd)
 
 #if RT_FEAT_TRANSFORM_ARRAY
 
@@ -682,6 +689,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm6, Mebx, srf_TCK_Z)
         mulps_rr(Xmm6, Xmm3)
 
+        /* bypass non-diagonal terms
+         * in transform matrix for scaling fastpath */
+        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(1))
+        jeqxx_lb(OO_trr)
+
         movpx_ld(Xmm0, Mebx, srf_TCI_Y)
         mulps_rr(Xmm0, Xmm2)
         addps_rr(Xmm4, Xmm0)
@@ -702,6 +714,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm0, Mebx, srf_TCK_Y)
         mulps_rr(Xmm0, Xmm2)
         addps_rr(Xmm6, Xmm0)
+
+    LBL(OO_trr)
 
         movpx_st(Xmm4, Mecx, ctx_RAY_I)
         movpx_st(Xmm5, Mecx, ctx_RAY_J)
@@ -1028,6 +1042,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm6, Mebx, srf_TCK_Z)
         mulps_rr(Xmm6, Xmm3)
 
+        /* bypass non-diagonal terms
+         * in transform matrix for scaling fastpath */
+        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(1))
+        jeqxx_lb(CC_trc)
+
         movpx_ld(Xmm0, Mebx, srf_TCI_Y)
         mulps_rr(Xmm0, Xmm2)
         addps_rr(Xmm4, Xmm0)
@@ -1048,6 +1067,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm0, Mebx, srf_TCK_Y)
         mulps_rr(Xmm0, Xmm2)
         addps_rr(Xmm6, Xmm0)
+
+    LBL(CC_trc)
 
 #if RT_FEAT_TRANSFORM_ARRAY
 
@@ -1125,6 +1146,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm6, Mebx, srf_TCK_Z)
         mulps_rr(Xmm6, Xmm3)
 
+        /* bypass non-diagonal terms
+         * in transform matrix for scaling fastpath */
+        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(1))
+        jeqxx_lb(MT_trn)
+
         movpx_ld(Xmm0, Mebx, srf_TCJ_X)
         mulps_rr(Xmm0, Xmm2)
         addps_rr(Xmm4, Xmm0)
@@ -1146,6 +1172,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm0, Xmm2)
         addps_rr(Xmm6, Xmm0)
 
+        /* bypass normal renormalization
+         * if scaling is not present in transform matrix */
+        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(2))
+        jeqxx_lb(MT_rnm)
+
+    LBL(MT_trn)
+
         /* renormalize normal */
 
         movpx_rr(Xmm1, Xmm4)
@@ -1165,6 +1198,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm4, Xmm0)
         mulps_rr(Xmm5, Xmm0)
         mulps_rr(Xmm6, Xmm0)
+
+    LBL(MT_rnm)
 
         movpx_st(Xmm4, Mecx, ctx_NRM_X)
         movpx_st(Xmm5, Mecx, ctx_NRM_Y)
