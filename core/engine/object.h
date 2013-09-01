@@ -263,6 +263,10 @@ class rt_Array : public rt_Object
 
     rt_SIMD_SURFACE    *s_srf;
 
+    rt_cell             map[3];
+    rt_cell             sgn[3];
+    rt_vec4             scl;
+
 /*  methods */
 
     rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj);

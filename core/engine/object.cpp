@@ -112,8 +112,11 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     }
 
     /* if object has its parent as trnode,
-     * object's transform matrix has only its own transform */
-    if (trnode != RT_NULL && trnode == parent && obj_has_trm == 0)
+     * object's transform matrix has only its own transform,
+     * except the case of scaling with trivial rotation,
+     * when trnode's axis mapping is passed to sub-objects */
+    if (trnode != RT_NULL && trnode == parent && obj_has_trm == 0
+    &&  mtx_has_trm & RT_UPDATE_FLAG_ROT)
     {
         matrix_from_transform(this->mtx, trm);
     }
@@ -475,6 +478,50 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     rt_Object::update(time, mtx, flags);
 
+    /* determine axis mapping for trivial transform
+     * (multiple of 90 degree rotation, +/-1.0 scalers) */
+    rt_cell i, j;
+
+    for (i = 0; i < 3; i++)
+    {
+        for (j = 0; j < 3; j++)
+        {
+            if ((this->mtx[i][0] != 0.0f) == (iden4[j][0] != 0.0f)
+            &&  (this->mtx[i][1] != 0.0f) == (iden4[j][1] != 0.0f)
+            &&  (this->mtx[i][2] != 0.0f) == (iden4[j][2] != 0.0f))
+            {
+                map[i] = j;
+                sgn[i] = RT_SIGN(this->mtx[i][j]);
+                scl[j] = RT_FABS(this->mtx[i][j]);
+            }
+        }
+    }
+
+    rt_mat4 tmp_mtx, *pmtx = &this->mtx;
+
+    /* if array itself has non-trivial transform
+     * and it is scaling with trivial rotation,
+     * separate axis mapping from transform matrix,
+     * which would only have scalers on main diagonal,
+     * axis mapping is then passed to sub-objects */
+    if (trnode == this
+    &&  mtx_has_trm == RT_UPDATE_FLAG_SCL)
+    {
+        memset(tmp_mtx, 0, sizeof(rt_mat4));
+        tmp_mtx[3][3] = 1.0f;
+
+        for (i = 0; i < 3; i++)
+        {
+            j = map[i];
+            tmp_mtx[i][j] = 1.0f;
+            this->mtx[j][0] = iden4[j][0] * scl[j] * sgn[i];
+            this->mtx[j][1] = iden4[j][1] * scl[j] * sgn[i];
+            this->mtx[j][2] = iden4[j][2] * scl[j] * sgn[i];
+        }
+
+        pmtx = &tmp_mtx;
+    }
+
     /* array's inverted matrix is needed in sub-objects
      * to transform normals in rendering backend
      * for objects with transform caching (trnode) */
@@ -483,14 +530,12 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         matrix_inverse(this->inv, this->mtx);
     }
 
-    rt_cell i;
-
     /* update every object in array
      * including sub-arrays (recursive),
      * pass array's own transform flags */
     for (i = 0; i < obj_num; i++)
     {
-        obj_arr[i]->update(time, this->mtx, flags | obj_has_trm);
+        obj_arr[i]->update(time, *pmtx, flags | obj_has_trm);
     }
 
     /* rebuild objects relations (custom clippers)
@@ -890,20 +935,29 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         }
     }
 
-    shift = 0;
-
-    /* if object or some of its parents has non-trivial transform
-     * enable generic matrix transform in rendering backend,
-     * select aux vector fields in backend structures */
-    if (trnode != RT_NULL)
+    /* if object itself has non-trivial transform
+     * and it is scaling with trivial rotation,
+     * separate axis mapping from transform matrix,
+     * which would only have scalers on main diagonal */
+    if (trnode == this
+    &&  mtx_has_trm == RT_UPDATE_FLAG_SCL)
     {
-        shift = 3;
+        for (i = 0; i < 3; i++)
+        {
+            j = map[i];
+            this->mtx[j][0] = iden4[j][0] * scl[j] * sgn[i];
+            this->mtx[j][1] = iden4[j][1] * scl[j] * sgn[i];
+            this->mtx[j][2] = iden4[j][2] * scl[j] * sgn[i];
+        }
     }
 
     /* if object itself has non-trivial transform
      * all rotation and scaling is already in the matrix,
-     * reset axis mapping to identity */
-    if (trnode == this)
+     * reset axis mapping to identity,
+     * except the case of scaling with trivial rotation,
+     * when axis mapping is separated from transform matrix */
+    if (trnode == this
+    &&  mtx_has_trm & RT_UPDATE_FLAG_ROT)
     {
         map[RT_I] = RT_X;
         sgn[RT_I] = 1;
@@ -923,6 +977,16 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     mp_j = map[RT_J];
     mp_k = map[RT_K];
     mp_l = RT_W;
+
+    shift = 0;
+
+    /* if object or some of its parents has non-trivial transform
+     * enable generic matrix transform in rendering backend,
+     * select aux vector fields in backend structures */
+    if (trnode != RT_NULL)
+    {
+        shift = 3;
+    }
 
     /*---------------------------------*/
 
@@ -1015,14 +1079,6 @@ rt_void rt_Surface::direct_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
     tmax[mp_i] = sgn[RT_I] > 0 ? +smax[RT_I] : -smin[RT_I];
     tmax[mp_j] = sgn[RT_J] > 0 ? +smax[RT_J] : -smin[RT_J];
     tmax[mp_k] = sgn[RT_K] > 0 ? +smax[RT_K] : -smin[RT_K];
-
-    tmin[RT_X] = tmin[RT_X] == -RT_INF ? -RT_INF : tmin[RT_X] * scl[RT_X];
-    tmin[RT_Y] = tmin[RT_Y] == -RT_INF ? -RT_INF : tmin[RT_Y] * scl[RT_Y];
-    tmin[RT_Z] = tmin[RT_Z] == -RT_INF ? -RT_INF : tmin[RT_Z] * scl[RT_Z];
-
-    tmax[RT_X] = tmax[RT_X] == +RT_INF ? +RT_INF : tmax[RT_X] * scl[RT_X];
-    tmax[RT_Y] = tmax[RT_Y] == +RT_INF ? +RT_INF : tmax[RT_Y] * scl[RT_Y];
-    tmax[RT_Z] = tmax[RT_Z] == +RT_INF ? +RT_INF : tmax[RT_Z] * scl[RT_Z];
 
     rt_vec4  zro = {0.0f, 0.0f, 0.0f, 0.0f};
     rt_real *pps = trnode == this ? zro : pos;
