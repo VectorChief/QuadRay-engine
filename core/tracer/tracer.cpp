@@ -1132,6 +1132,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
         jeqxx_lb(MT_mat)
 
+        movxx_ld(Rebx, Mebx, srf_MSC_P(OBJ))    /* trnode's simd load */
+
         /* transform normal,
          * apply transposed matrix */
 
@@ -1204,6 +1206,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm4, Mecx, ctx_NRM_X)
         movpx_st(Xmm5, Mecx, ctx_NRM_Y)
         movpx_st(Xmm6, Mecx, ctx_NRM_Z)
+
+        movxx_ld(Rebx, Mesi, elm_SIMD)          /* surface's simd load */
 
 #endif /* RT_FEAT_TRANSFORM */
 

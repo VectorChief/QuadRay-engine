@@ -454,6 +454,27 @@ rt_void rt_Node::update(rt_long time, rt_mat4 mtx, rt_cell flags)
             this->mtx[j][2] = iden4[j][2] * scl[i] * sgn[i];
         }
     }
+
+    RT_SIMD_SET(s_srf->pos_x, pos[RT_X]);
+    RT_SIMD_SET(s_srf->pos_y, pos[RT_Y]);
+    RT_SIMD_SET(s_srf->pos_z, pos[RT_Z]);
+
+    if (obj_has_trm)
+    {
+        matrix_inverse(this->inv, this->mtx);
+
+        RT_SIMD_SET(s_srf->tci_x, this->inv[RT_X][RT_I]);
+        RT_SIMD_SET(s_srf->tci_y, this->inv[RT_Y][RT_I]);
+        RT_SIMD_SET(s_srf->tci_z, this->inv[RT_Z][RT_I]);
+
+        RT_SIMD_SET(s_srf->tcj_x, this->inv[RT_X][RT_J]);
+        RT_SIMD_SET(s_srf->tcj_y, this->inv[RT_Y][RT_J]);
+        RT_SIMD_SET(s_srf->tcj_z, this->inv[RT_Z][RT_J]);
+
+        RT_SIMD_SET(s_srf->tck_x, this->inv[RT_X][RT_K]);
+        RT_SIMD_SET(s_srf->tck_y, this->inv[RT_Y][RT_K]);
+        RT_SIMD_SET(s_srf->tck_z, this->inv[RT_Z][RT_K]);
+    }
 }
 
 /*
@@ -583,14 +604,6 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         pmtx = &tmp_mtx;
     }
 
-    /* array's inverted matrix is needed in sub-objects
-     * to transform normals in rendering backend
-     * for objects with transform caching (trnode) */
-    if (obj_has_trm)
-    {
-        matrix_inverse(this->inv, this->mtx);
-    }
-
     /* update every object in array
      * including sub-arrays (recursive),
      * pass array's own transform flags */
@@ -718,25 +731,6 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     s_srf->a_sgn[RT_J] = 0;
     s_srf->a_sgn[RT_K] = 0;
     s_srf->a_sgn[RT_L] = 0;
-
-    RT_SIMD_SET(s_srf->pos_x, pos[RT_X]);
-    RT_SIMD_SET(s_srf->pos_y, pos[RT_Y]);
-    RT_SIMD_SET(s_srf->pos_z, pos[RT_Z]);
-
-    if (obj_has_trm)
-    {
-        RT_SIMD_SET(s_srf->tci_x, this->inv[RT_X][RT_I]);
-        RT_SIMD_SET(s_srf->tci_y, this->inv[RT_Y][RT_I]);
-        RT_SIMD_SET(s_srf->tci_z, this->inv[RT_Z][RT_I]);
-
-        RT_SIMD_SET(s_srf->tcj_x, this->inv[RT_X][RT_J]);
-        RT_SIMD_SET(s_srf->tcj_y, this->inv[RT_Y][RT_J]);
-        RT_SIMD_SET(s_srf->tcj_z, this->inv[RT_Z][RT_J]);
-
-        RT_SIMD_SET(s_srf->tck_x, this->inv[RT_X][RT_K]);
-        RT_SIMD_SET(s_srf->tck_y, this->inv[RT_Y][RT_K]);
-        RT_SIMD_SET(s_srf->tck_z, this->inv[RT_Z][RT_K]);
-    }
 }
 
 /*
@@ -964,8 +958,7 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     /* trnode's simd ptr is needed in rendering backend
      * to check if surface and its clippers belong to the same trnode */
-    s_srf->msc_p[3] = trnode == RT_NULL || trnode == this ? RT_NULL :
-                                            ((rt_Array *)trnode)->s_srf;
+    s_srf->msc_p[3] = trnode == RT_NULL ? RT_NULL : ((rt_Node *)trnode)->s_srf;
 
     /* check bbox geometry limits */
     if (verts_num > RT_VERTS_LIMIT
@@ -1009,37 +1002,6 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     RT_SIMD_SET(s_srf->max_x, bmax[RT_X] - pps[RT_X]);
     RT_SIMD_SET(s_srf->max_y, bmax[RT_Y] - pps[RT_Y]);
     RT_SIMD_SET(s_srf->max_z, bmax[RT_Z] - pps[RT_Z]);
-
-    RT_SIMD_SET(s_srf->pos_x, pos[RT_X]);
-    RT_SIMD_SET(s_srf->pos_y, pos[RT_Y]);
-    RT_SIMD_SET(s_srf->pos_z, pos[RT_Z]);
-
-    rt_mat4 *pinv = &this->inv;
-
-    if (trnode != RT_NULL && trnode != this)
-    {
-        pinv = &trnode->inv;
-    }
-
-    if (trnode != RT_NULL)
-    {
-        if (trnode == this)
-        {
-            matrix_inverse(this->inv, this->mtx);
-        }
-
-        RT_SIMD_SET(s_srf->tci_x, (*pinv)[RT_X][RT_I]);
-        RT_SIMD_SET(s_srf->tci_y, (*pinv)[RT_Y][RT_I]);
-        RT_SIMD_SET(s_srf->tci_z, (*pinv)[RT_Z][RT_I]);
-
-        RT_SIMD_SET(s_srf->tcj_x, (*pinv)[RT_X][RT_J]);
-        RT_SIMD_SET(s_srf->tcj_y, (*pinv)[RT_Y][RT_J]);
-        RT_SIMD_SET(s_srf->tcj_z, (*pinv)[RT_Z][RT_J]);
-
-        RT_SIMD_SET(s_srf->tck_x, (*pinv)[RT_X][RT_K]);
-        RT_SIMD_SET(s_srf->tck_y, (*pinv)[RT_Y][RT_K]);
-        RT_SIMD_SET(s_srf->tck_z, (*pinv)[RT_Z][RT_K]);
-    }
 }
 
 /*
