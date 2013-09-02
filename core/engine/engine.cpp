@@ -160,7 +160,7 @@ static
 rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
 {
     rt_SIMD_SURFACE *s_srf = elm != RT_NULL ? (rt_SIMD_SURFACE *)elm->simd :
-                             obj != RT_NULL ?   ((rt_Surface *)obj)->s_srf :
+                             obj != RT_NULL ?      ((rt_Node *)obj)->s_srf :
                                                                     RT_NULL;
     RT_LOGI("%s", mgn);
     RT_LOGI("srf: %08X, ", (rt_word)obj);

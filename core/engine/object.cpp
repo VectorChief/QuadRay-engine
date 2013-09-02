@@ -353,6 +353,118 @@ rt_void rt_Light::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 }
 
 /******************************************************************************/
+/**********************************   NODE   **********************************/
+/******************************************************************************/
+
+/*
+ * Instantiate node object.
+ */
+rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
+                 rt_OBJECT *obj, rt_cell ssize) :
+
+    rt_Object(parent, obj)
+{
+    this->rg = rg;
+
+/*  rt_SIMD_SURFACE */
+
+    s_srf = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
+
+    s_srf->mat_p[0] = RT_NULL; /* outer material */
+    s_srf->mat_p[1] = RT_NULL; /* outer material props */
+    s_srf->mat_p[2] = RT_NULL; /* inner material */
+    s_srf->mat_p[3] = RT_NULL; /* inner material props */
+
+    s_srf->srf_p[0] = RT_NULL; /* surf ptr, filled in update0 */
+    s_srf->srf_p[1] = RT_NULL; /* reserved */
+    s_srf->srf_p[2] = RT_NULL; /* clip ptr, filled in update0 */
+    s_srf->srf_p[3] = (rt_pntr)tag; /* tag */
+
+    s_srf->msc_p[0] = RT_NULL; /* screen tiles */
+    s_srf->msc_p[1] = RT_NULL; /* reserved */
+    s_srf->msc_p[2] = RT_NULL; /* custom clippers */
+    s_srf->msc_p[3] = RT_NULL; /* trnode's simd ptr */
+
+    s_srf->lst_p[0] = RT_NULL; /* outer lights/shadows */
+    s_srf->lst_p[1] = RT_NULL; /* outer surfaces for rfl/rfr */
+    s_srf->lst_p[2] = RT_NULL; /* inner lights/shadows */
+    s_srf->lst_p[3] = RT_NULL; /* inner surfaces for rfl/rfr */
+
+    RT_SIMD_SET(s_srf->sbase, 0x00000000);
+    RT_SIMD_SET(s_srf->smask, 0x80000000);
+
+    RT_SIMD_SET(s_srf->c_tmp, 0xFFFFFFFF);
+}
+
+/*
+ * Build relations list based on given template "lst" from scene data.
+ */
+rt_void rt_Node::add_relation(rt_ELEM *lst)
+{
+    rt_Object::add_relation(lst);
+}
+
+/*
+ * Update object with given "time", matrix "mtx" and "flags".
+ */
+rt_void rt_Node::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+{
+    rt_Object::update(time, mtx, flags);
+
+    rt_cell i, j;
+    rt_vec4 scl;
+
+    /* determine axis mapping for trivial transform
+     * (multiple of 90 degree rotation, +/-1.0 scalers),
+     * applicable to objects without trnode or with trnode
+     * other that the object itself (transform caching),
+     * to objects which have scaling with trivial rotation
+     * in their full transform matrix */
+    if (trnode != this
+    ||  mtx_has_trm == RT_UPDATE_FLAG_SCL)
+    {
+        for (i = 0; i < 3; i++)
+        {
+            for (j = 0; j < 3; j++)
+            {
+                if ((this->mtx[i][0] != 0.0f) == (iden4[j][0] != 0.0f)
+                &&  (this->mtx[i][1] != 0.0f) == (iden4[j][1] != 0.0f)
+                &&  (this->mtx[i][2] != 0.0f) == (iden4[j][2] != 0.0f))
+                {
+                    map[i] = j;
+                    sgn[i] = RT_SIGN(this->mtx[i][j]);
+                    scl[i] = RT_FABS(this->mtx[i][j]);
+                }
+            }
+        }
+    }
+
+    /* if object itself has non-trivial transform
+     * and it is scaling with trivial rotation,
+     * separate axis mapping from transform matrix,
+     * which would only have scalers on main diagonal */
+    if (trnode == this
+    &&  mtx_has_trm == RT_UPDATE_FLAG_SCL)
+    {
+        for (i = 0; i < 3; i++)
+        {
+            j = map[i];
+            this->mtx[j][0] = iden4[j][0] * scl[i] * sgn[i];
+            this->mtx[j][1] = iden4[j][1] * scl[i] * sgn[i];
+            this->mtx[j][2] = iden4[j][2] * scl[i] * sgn[i];
+        }
+    }
+}
+
+/*
+ * Destroy node object.
+ */
+rt_Node::~rt_Node()
+{
+
+}
+
+/******************************************************************************/
 /**********************************   ARRAY   *********************************/
 /******************************************************************************/
 
@@ -362,12 +474,11 @@ rt_void rt_Light::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 /*
  * Instantiate array object.
  */
-rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
+rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
+                   rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Object(parent, obj)
+    rt_Node(rg, parent, obj, ssize)
 {
-    this->rg = rg;
-
     obj_num = 0;
     obj_arr = RT_NULL;
 
@@ -426,34 +537,6 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
             break;
         }
     }
-
-/*  rt_SIMD_SURFACE */
-
-    s_srf = (rt_SIMD_SURFACE *)
-            rg->alloc(sizeof(rt_SIMD_SURFACE), RT_SIMD_ALIGN);
-
-    s_srf->mat_p[0] = RT_NULL; /* outer material */
-    s_srf->mat_p[1] = RT_NULL; /* outer material props */
-    s_srf->mat_p[2] = RT_NULL; /* inner material */
-    s_srf->mat_p[3] = RT_NULL; /* inner material props */
-
-    s_srf->srf_p[0] = RT_NULL; /* surf ptr, filled in update0 */
-    s_srf->srf_p[1] = RT_NULL; /* reserved */
-    s_srf->srf_p[2] = RT_NULL; /* clip ptr, filled in update0 */
-    s_srf->srf_p[3] = (rt_pntr)tag; /* tag */
-
-    s_srf->msc_p[0] = RT_NULL; /* screen tiles */
-    s_srf->msc_p[1] = RT_NULL; /* reserved */
-    s_srf->msc_p[2] = RT_NULL; /* custom clippers */
-    s_srf->msc_p[3] = RT_NULL; /* trnode's simd ptr */
-
-    s_srf->lst_p[0] = RT_NULL; /* outer lights/shadows */
-    s_srf->lst_p[1] = RT_NULL; /* outer surfaces for rfl/rfr */
-    s_srf->lst_p[2] = RT_NULL; /* inner lights/shadows */
-    s_srf->lst_p[3] = RT_NULL; /* inner surfaces for rfl/rfr */
-
-    RT_SIMD_SET(s_srf->sbase, 0x00000000);
-    RT_SIMD_SET(s_srf->smask, 0x80000000);
 }
 
 /*
@@ -461,7 +544,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
  */
 rt_void rt_Array::add_relation(rt_ELEM *lst)
 {
-    rt_Object::add_relation(lst);
+    rt_Node::add_relation(lst);
 
     rt_cell i;
 
@@ -476,33 +559,14 @@ rt_void rt_Array::add_relation(rt_ELEM *lst)
  */
 rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
-    rt_Object::update(time, mtx, flags);
+    rt_Node::update(time, mtx, flags);
 
-    /* determine axis mapping for trivial transform
-     * (multiple of 90 degree rotation, +/-1.0 scalers) */
     rt_cell i, j;
-
-    for (i = 0; i < 3; i++)
-    {
-        for (j = 0; j < 3; j++)
-        {
-            if ((this->mtx[i][0] != 0.0f) == (iden4[j][0] != 0.0f)
-            &&  (this->mtx[i][1] != 0.0f) == (iden4[j][1] != 0.0f)
-            &&  (this->mtx[i][2] != 0.0f) == (iden4[j][2] != 0.0f))
-            {
-                map[i] = j;
-                sgn[i] = RT_SIGN(this->mtx[i][j]);
-                scl[j] = RT_FABS(this->mtx[i][j]);
-            }
-        }
-    }
-
     rt_mat4 tmp_mtx, *pmtx = &this->mtx;
 
     /* if array itself has non-trivial transform
      * and it is scaling with trivial rotation,
      * separate axis mapping from transform matrix,
-     * which would only have scalers on main diagonal,
      * axis mapping is then passed to sub-objects */
     if (trnode == this
     &&  mtx_has_trm == RT_UPDATE_FLAG_SCL)
@@ -514,9 +578,6 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         {
             j = map[i];
             tmp_mtx[i][j] = 1.0f;
-            this->mtx[j][0] = iden4[j][0] * scl[j] * sgn[i];
-            this->mtx[j][1] = iden4[j][1] * scl[j] * sgn[i];
-            this->mtx[j][2] = iden4[j][2] * scl[j] * sgn[i];
         }
 
         pmtx = &tmp_mtx;
@@ -701,20 +762,14 @@ rt_Array::~rt_Array()
 rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
                        rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Object(parent, obj),
+    rt_Node(rg, parent, obj, ssize),
     rt_List<rt_Surface>(rg->get_srf())
 {
-    this->rg = rg;
-
     rg->put_srf(this);
 
     this->srf = (rt_SURFACE *)obj->obj.pobj;
 
-    this->shift = 0;
-
 /*  rt_SIMD_SURFACE */
-
-    s_srf = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
 
     this->outer = new rt_Material(rg, &srf->side_outer,
                     obj->obj.pmat_outer ? obj->obj.pmat_outer :
@@ -728,26 +783,6 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
     s_srf->mat_p[1] = (rt_pntr)outer->props;
     s_srf->mat_p[2] = inner->s_mat;
     s_srf->mat_p[3] = (rt_pntr)inner->props;
-
-    s_srf->srf_p[0] = RT_NULL; /* surf ptr, filled in update0 */
-    s_srf->srf_p[1] = RT_NULL; /* reserved */
-    s_srf->srf_p[2] = RT_NULL; /* clip ptr, filled in update0 */
-    s_srf->srf_p[3] = (rt_pntr)tag; /* tag */
-
-    s_srf->msc_p[0] = RT_NULL; /* screen tiles */
-    s_srf->msc_p[1] = RT_NULL; /* reserved */
-    s_srf->msc_p[2] = RT_NULL; /* custom clippers */
-    s_srf->msc_p[3] = RT_NULL; /* trnode's simd ptr */
-
-    s_srf->lst_p[0] = RT_NULL; /* outer lights/shadows */
-    s_srf->lst_p[1] = RT_NULL; /* outer surfaces for rfl/rfr */
-    s_srf->lst_p[2] = RT_NULL; /* inner lights/shadows */
-    s_srf->lst_p[3] = RT_NULL; /* inner surfaces for rfl/rfr */
-
-    RT_SIMD_SET(s_srf->sbase, 0x00000000);
-    RT_SIMD_SET(s_srf->smask, 0x80000000);
-
-    RT_SIMD_SET(s_srf->c_tmp, 0xFFFFFFFF);
 }
 
 /*
@@ -755,7 +790,7 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
  */
 rt_void rt_Surface::add_relation(rt_ELEM *lst)
 {
-    rt_Object::add_relation(lst);
+    rt_Node::add_relation(lst);
 
     /* init custom clippers list */
     rt_ELEM **ptr = (rt_ELEM **)&s_srf->msc_p[2];
@@ -897,7 +932,31 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
  */
 rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
-    rt_Object::update(time, mtx, flags);
+    rt_Node::update(time, mtx, flags);
+
+    /* if object itself has non-trivial transform
+     * all rotation and scaling is already in the matrix,
+     * reset axis mapping to identity,
+     * except the case of scaling with trivial rotation,
+     * when axis mapping is separated from transform matrix */
+    if (trnode == this
+    &&  mtx_has_trm & RT_UPDATE_FLAG_ROT)
+    {
+        map[RT_I] = RT_X;
+        sgn[RT_I] = 1;
+
+        map[RT_J] = RT_Y;
+        sgn[RT_J] = 1;
+
+        map[RT_K] = RT_Z;
+        sgn[RT_K] = 1;
+    }
+
+    /* axis mapping shorteners */
+    mp_i = map[RT_I];
+    mp_j = map[RT_J];
+    mp_k = map[RT_K];
+    mp_l = RT_W;
 
     /* reset custom clippers list
      * as it is rebuilt in array's update */
@@ -916,81 +975,11 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         throw rt_Exception("bbox geometry limits exceeded in Surface");
     }
 
-    /* determine axis mapping for trivial transform
-     * (multiple of 90 degree rotation, +/-1.0 scalers) */
-    rt_cell i, j;
-
-    for (i = 0; i < 3; i++)
-    {
-        for (j = 0; j < 3; j++)
-        {
-            if ((this->mtx[i][0] != 0.0f) == (iden4[j][0] != 0.0f)
-            &&  (this->mtx[i][1] != 0.0f) == (iden4[j][1] != 0.0f)
-            &&  (this->mtx[i][2] != 0.0f) == (iden4[j][2] != 0.0f))
-            {
-                map[i] = j;
-                sgn[i] = RT_SIGN(this->mtx[i][j]);
-                scl[j] = RT_FABS(this->mtx[i][j]);
-            }
-        }
-    }
-
-    /* if object itself has non-trivial transform
-     * and it is scaling with trivial rotation,
-     * separate axis mapping from transform matrix,
-     * which would only have scalers on main diagonal */
-    if (trnode == this
-    &&  mtx_has_trm == RT_UPDATE_FLAG_SCL)
-    {
-        for (i = 0; i < 3; i++)
-        {
-            j = map[i];
-            this->mtx[j][0] = iden4[j][0] * scl[j] * sgn[i];
-            this->mtx[j][1] = iden4[j][1] * scl[j] * sgn[i];
-            this->mtx[j][2] = iden4[j][2] * scl[j] * sgn[i];
-        }
-    }
-
-    /* if object itself has non-trivial transform
-     * all rotation and scaling is already in the matrix,
-     * reset axis mapping to identity,
-     * except the case of scaling with trivial rotation,
-     * when axis mapping is separated from transform matrix */
-    if (trnode == this
-    &&  mtx_has_trm & RT_UPDATE_FLAG_ROT)
-    {
-        map[RT_I] = RT_X;
-        sgn[RT_I] = 1;
-        scl[RT_X] = 1.0f;
-
-        map[RT_J] = RT_Y;
-        sgn[RT_J] = 1;
-        scl[RT_Y] = 1.0f;
-
-        map[RT_K] = RT_Z;
-        sgn[RT_K] = 1;
-        scl[RT_Z] = 1.0f;
-    }
-
-    /* axis mapping shorteners */
-    mp_i = map[RT_I];
-    mp_j = map[RT_J];
-    mp_k = map[RT_K];
-    mp_l = RT_W;
-
-    shift = 0;
-
-    /* if object or some of its parents has non-trivial transform
-     * enable generic matrix transform in rendering backend,
-     * select aux vector fields in backend structures */
-    if (trnode != RT_NULL)
-    {
-        shift = 3;
-    }
-
-    /*---------------------------------*/
-
     update_minmax();
+
+    /* if object or some of its parents has non-trivial transform,
+     * select aux vector fields for axis mapping in backend structures */
+    rt_cell shift = trnode != RT_NULL ? 3 : 0;
 
     s_srf->a_map[RT_I] = (mp_i + shift) << 4;
     s_srf->a_map[RT_J] = (mp_j + shift) << 4;

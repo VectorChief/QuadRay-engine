@@ -71,6 +71,7 @@ class rt_Registry;
 class rt_Object;
 class rt_Camera;
 class rt_Light;
+class rt_Node;
 class rt_Array;
 class rt_Surface;
 class rt_Plane;
@@ -247,10 +248,10 @@ class rt_Light : public rt_Object, public rt_List<rt_Light>
 };
 
 /******************************************************************************/
-/**********************************   ARRAY   *********************************/
+/**********************************   NODE   **********************************/
 /******************************************************************************/
 
-class rt_Array : public rt_Object
+class rt_Node : public rt_Object
 {
     public:
 
@@ -258,18 +259,42 @@ class rt_Array : public rt_Object
 
     rt_Registry        *rg;
 
-    rt_Object         **obj_arr;
-    rt_cell             obj_num;
-
     rt_SIMD_SURFACE    *s_srf;
 
     rt_cell             map[3];
     rt_cell             sgn[3];
-    rt_vec4             scl;
 
 /*  methods */
 
-    rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj);
+    rt_Node(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
+            rt_cell ssize);
+
+    virtual
+   ~rt_Node();
+
+    virtual
+    rt_void add_relation(rt_ELEM *lst);
+    virtual
+    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
+};
+
+/******************************************************************************/
+/**********************************   ARRAY   *********************************/
+/******************************************************************************/
+
+class rt_Array : public rt_Node
+{
+    public:
+
+/*  fields */
+
+    rt_Object         **obj_arr;
+    rt_cell             obj_num;
+
+/*  methods */
+
+    rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
+             rt_cell ssize = sizeof(rt_SIMD_SURFACE));
 
     virtual
    ~rt_Array();
@@ -284,13 +309,11 @@ class rt_Array : public rt_Object
 /*********************************   SURFACE   ********************************/
 /******************************************************************************/
 
-class rt_Surface : public rt_Object, public rt_List<rt_Surface>
+class rt_Surface : public rt_Node, public rt_List<rt_Surface>
 {
     public:
 
 /*  fields */
-
-    rt_Registry        *rg;
 
     rt_SURFACE         *srf;
 
@@ -317,22 +340,12 @@ class rt_Surface : public rt_Object, public rt_List<rt_Surface>
     rt_FACE            *faces;
     rt_cell             faces_num;
 
-    rt_SIMD_SURFACE    *s_srf;
-
     private:
 
     rt_Material        *outer;
     rt_Material        *inner;
 
     protected:
-
-    /* enables generic matrix transform if non-zero,
-     * selects aux vector fields in backend structures */
-    rt_cell             shift;
-
-    rt_cell             map[3];
-    rt_cell             sgn[3];
-    rt_vec4             scl;
 
 /*  methods */
 
