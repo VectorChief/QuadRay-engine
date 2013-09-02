@@ -301,6 +301,14 @@ rt_void rt_Camera::update(rt_long time, rt_cell action)
     }
 }
 
+/*
+ * Destroy camera object.
+ */
+rt_Camera::~rt_Camera()
+{
+
+}
+
 /******************************************************************************/
 /**********************************   LIGHT   *********************************/
 /******************************************************************************/
@@ -350,6 +358,14 @@ rt_void rt_Light::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     RT_SIMD_SET(s_lgt->pos_x, pos[RT_X]);
     RT_SIMD_SET(s_lgt->pos_y, pos[RT_Y]);
     RT_SIMD_SET(s_lgt->pos_z, pos[RT_Z]);
+}
+
+/*
+ * Destroy light object.
+ */
+rt_Light::~rt_Light()
+{
+
 }
 
 /******************************************************************************/
@@ -763,8 +779,6 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
 
     this->srf = (rt_SURFACE *)obj->obj.pobj;
 
-/*  rt_SIMD_SURFACE */
-
     this->outer = new rt_Material(rg, &srf->side_outer,
                     obj->obj.pmat_outer ? obj->obj.pmat_outer :
                                           srf->side_outer.pmat);
@@ -772,6 +786,8 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
     this->inner = new rt_Material(rg, &srf->side_inner,
                     obj->obj.pmat_inner ? obj->obj.pmat_inner :
                                           srf->side_inner.pmat);
+
+/*  rt_SIMD_SURFACE */
 
     s_srf->mat_p[0] = outer->s_mat;
     s_srf->mat_p[1] = (rt_pntr)outer->props;
@@ -1241,6 +1257,14 @@ rt_void rt_Plane::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
     }
 }
 
+/*
+ * Destroy plane surface object.
+ */
+rt_Plane::~rt_Plane()
+{
+
+}
+
 /******************************************************************************/
 /********************************   QUADRIC   *********************************/
 /******************************************************************************/
@@ -1416,6 +1440,14 @@ rt_void rt_Quadric::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 
 }
 
+/*
+ * Destroy quadric surface object.
+ */
+rt_Quadric::~rt_Quadric()
+{
+
+}
+
 /******************************************************************************/
 /********************************   CYLINDER   ********************************/
 /******************************************************************************/
@@ -1497,6 +1529,14 @@ rt_void rt_Cylinder::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
         cmax[RT_J] = smax[RT_J] >= +rad ? +RT_INF : smax[RT_J];
         cmax[RT_K] = smax[RT_K];
     }
+}
+
+/*
+ * Destroy cylinder surface object.
+ */
+rt_Cylinder::~rt_Cylinder()
+{
+
 }
 
 /******************************************************************************/
@@ -1601,6 +1641,14 @@ rt_void rt_Sphere::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
     }
 }
 
+/*
+ * Destroy sphere surface object.
+ */
+rt_Sphere::~rt_Sphere()
+{
+
+}
+
 /******************************************************************************/
 /**********************************   CONE   **********************************/
 /******************************************************************************/
@@ -1683,6 +1731,14 @@ rt_void rt_Cone::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
         cmax[RT_J] = smax[RT_J] >= +rad ? +RT_INF : smax[RT_J];
         cmax[RT_K] = smax[RT_K];
     }
+}
+
+/*
+ * Destroy cone surface object.
+ */
+rt_Cone::~rt_Cone()
+{
+
 }
 
 /******************************************************************************/
@@ -1776,6 +1832,14 @@ rt_void rt_Paraboloid::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
     }
 }
 
+/*
+ * Destroy paraboloid surface object.
+ */
+rt_Paraboloid::~rt_Paraboloid()
+{
+
+}
+
 /******************************************************************************/
 /*******************************   HYPERBOLOID   ******************************/
 /******************************************************************************/
@@ -1863,6 +1927,14 @@ rt_void rt_Hyperboloid::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
     }
 }
 
+/*
+ * Destroy hyperboloid surface object.
+ */
+rt_Hyperboloid::~rt_Hyperboloid()
+{
+
+}
+
 /******************************************************************************/
 /********************************   MATERIAL   ********************************/
 /******************************************************************************/
@@ -1879,6 +1951,14 @@ rt_Texture::rt_Texture(rt_Registry *rg, rt_pstr name) :
     this->name = name;
 
     load_texture(rg, name, &tex);
+}
+
+/*
+ * Destroy texture.
+ */
+rt_Texture::~rt_Texture()
+{
+
 }
 
 /* For surface's UV coords
@@ -2044,6 +2124,14 @@ rt_void rt_Material::resolve_texture(rt_Registry *rg)
     }
 
     /* texture bind doesn't need extra validation */
+}
+
+/*
+ * Destroy material.
+ */
+rt_Material::~rt_Material()
+{
+
 }
 
 /******************************************************************************/

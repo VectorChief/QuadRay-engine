@@ -14,6 +14,10 @@
 #include "rtbase.h"
 #include "rtconf.h"
 
+/******************************************************************************/
+/*******************************   DEFINITIONS   ******************************/
+/******************************************************************************/
+
 /* Classes */
 
 class rt_File;
@@ -29,6 +33,9 @@ class rt_LogRedirect;
 /**********************************   FILE   **********************************/
 /******************************************************************************/
 
+/*
+ * File encapsulates all file I/O operations.
+ */
 class rt_File
 {
 /*  fields */
@@ -67,6 +74,10 @@ struct rt_CHUNK
 typedef rt_pntr (*rt_FUNC_ALLOC)(rt_word size);
 typedef rt_void (*rt_FUNC_FREE)(rt_pntr ptr);
 
+/*
+ * Heap manages fast linear allocs with the ability to release
+ * group of allocs made after a checkpoint in the past.
+ */
 class rt_Heap
 {
 /*  fields */
@@ -98,6 +109,9 @@ class rt_Heap
 /********************************   EXCEPTION   *******************************/
 /******************************************************************************/
 
+/*
+ * Exception contains description of a run-time error.
+ */
 class rt_Exception
 {
     public:
@@ -118,6 +132,10 @@ class rt_Exception
 /**********************************   LIST   **********************************/
 /******************************************************************************/
 
+/*
+ * List is a template used for linking other high-level objects into lists,
+ * while preserving strict typization.
+ */
 template <class rt_Class>
 class rt_List
 {
@@ -150,6 +168,10 @@ extern rt_FUNC_PRINT_ERR    f_print_err;
 #define RT_LOGI             f_print_log
 #define RT_LOGE             f_print_err
 
+/*
+ * LogRedirect is an interface for scene manager
+ * used for changing global log functions.
+ */
 class rt_LogRedirect /* must be first in scene init */
 {
     public:

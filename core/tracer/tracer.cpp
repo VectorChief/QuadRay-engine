@@ -12,7 +12,8 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
-/* Conditional compilation flags
+/*
+ * Conditional compilation flags
  * for respective segments of code.
  */
 #define RT_SHOW_TILES               0
@@ -35,7 +36,8 @@
 #define RT_FEAT_TRANSFORM           1
 #define RT_FEAT_TRANSFORM_ARRAY     1
 
-/* Byte-offsets within SIMD-field
+/*
+ * Byte-offsets within SIMD-field
  * for packed scalar fields.
  */
 #define PTR   0x00 /* LOCAL, PARAM, MAT_P, SRF_P */
@@ -47,7 +49,8 @@
 #define OBJ   0x0C /* LOCAL, PARAM, MSC_P */
 #define TAG   0x0C /* SRF_P */
 
-/* Manual register allocation table
+/*
+ * Manual register allocation table
  * for respective segments of code
  * with the following legend:
  *   field above - load register in the middle from
@@ -95,7 +98,8 @@
 /*********************************   MACROS   *********************************/
 /******************************************************************************/
 
-/* Highlight frame tiles occupied by surfaces
+/*
+ * Highlight frame tiles occupied by surfaces
  * of different types with different colors.
  */
 #define SHOW_TILES(lb, cl)                                                  \
@@ -108,7 +112,8 @@
         PAINT_COLX(08, COL_G(0))                                            \
         PAINT_COLX(00, COL_B(0))
 
-/* Axis mapping.
+/*
+ * Axis mapping.
  * Perform axis mapping when
  * transform is a multiple of 90 degree rotation.
  */
@@ -132,7 +137,8 @@
 #define INDEX_TMAP(nx)                                                      \
         movxx_ld(Reax, Medx, mat_T_MAP(nx * 4))
 
-/* Axis clipping.
+/*
+ * Axis clipping.
  * Check if axis clipping (minmax) is needed for given axis "nx",
  * jump to "lb" otherwise.
  */
@@ -140,7 +146,8 @@
         cmpxx_mi(Mebx, srf_##pl(nx * 4), IB(0))                             \
         jeqxx_lb(lb)
 
-/* Custom clipping.
+/*
+ * Custom clipping.
  * Apply custom clipping (by surface) to ray's hit point
  * based on the side of the clipping surface.
  */
@@ -156,7 +163,8 @@
         cgtps_rr(W(RG), W(RM))                                              \
     LBL(lb##_cs2)
 
-/* Context flags.
+/*
+ * Context flags.
  * Value bit-range must not overlap with material props (defined in tracer.h),
  * as they are packed together into the same context field.
  * Current CHECK_FLAG macro (defined below) accepts values upto 8-bit.
@@ -171,7 +179,8 @@
 
 #define RT_FLAG_SHAD            4
 
-/* Check if flag "fl" is set in the context's field "pl",
+/*
+ * Check if flag "fl" is set in the context's field "pl",
  * jump to "lb" otherwise.
  */
 #define CHECK_FLAG(lb, pl, fl)                                              \
@@ -180,7 +189,8 @@
         cmpxx_ri(Reax, IB(0))                                               \
         jeqxx_lb(lb)
 
-/* Combine ray's attack side with ray's pass behavior (back or thru),
+/*
+ * Combine ray's attack side with ray's pass behavior (back or thru),
  * so that secondary ray emitted from the same surface doesn't
  * hit it from the wrong side due to computational inaccuracy,
  * jump to "lb" if ray doesn't originate from the same surface,
@@ -198,7 +208,8 @@
         jeqxx_lb(lo)                                                        \
     LBL(lb)
 
-/* Check if ray is a shadow ray, then check
+/*
+ * Check if ray is a shadow ray, then check
  * material properties to see if shadow is applicable.
  * After applying previously computed shadow mask
  * check if all rays within SIMD are already in the shadow,
@@ -219,7 +230,8 @@
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))                                      \
     LBL(lb)
 
-/* Material properties.
+/*
+ * Material properties.
  * Fetch properties from material into the context's local FLG field
  * based on the currently set SIDE flag.
  * Load SIDE's sign into Xmm7 for normals.
@@ -233,7 +245,8 @@
         movxx_ld(Reax, Iebx, srf_MAT_P(FLG))                                \
         orrxx_st(Reax, Mecx, ctx_LOCAL(FLG))
 
-/* Check if property "pr" previously
+/*
+ * Check if property "pr" previously
  * fetched from material is set in the context,
  * jump to "lb" otherwise.
  */
@@ -243,7 +256,8 @@
         cmpxx_ri(Reax, IB(0))                                               \
         jeqxx_lb(lb)
 
-/* Fetch pointer into given register "RG" from surface's field "pl"
+/*
+ * Fetch pointer into given register "RG" from surface's field "pl"
  * based on the currently set SIDE flag.
  */
 #define FETCH_XPTR(RG, pl)                                                  \
@@ -252,7 +266,8 @@
         shlxx_ri(Reax, IB(3))                                               \
         movxx_ld(W(RG), Iebx, srf_##pl)
 
-/* Fetch pointer into given register "RG" from surface's field "pl"
+/*
+ * Fetch pointer into given register "RG" from surface's field "pl"
  * based on the currently set inverted SIDE flag.
  */
 #define FETCH_IPTR(RG, pl)                                                  \
@@ -262,7 +277,8 @@
         shlxx_ri(Reax, IB(3))                                               \
         movxx_ld(W(RG), Iebx, srf_##pl)
 
-/* Update only relevant fragments of a given
+/*
+ * Update only relevant fragments of a given
  * SIMD-field accumulating values over multiple passes
  * from the temporary SIMD-field in the context
  * based on the current SIMD-mask.
@@ -280,7 +296,8 @@
         STORE_FRAG(lb, 08, pl)                                              \
         STORE_FRAG(lb, 0C, pl)
 
-/* Update relevant fragments of the
+/*
+ * Update relevant fragments of the
  * color and depth SIMD-fields accumulating values
  * over multiple passes from the respective SIMD-fields
  * in the context based on the current SIMD-mask and
@@ -314,7 +331,8 @@
         PAINT_COLX(08, TEX_G)                                               \
         PAINT_COLX(00, TEX_B)
 
-/* Flush all fragments of
+/*
+ * Flush all fragments of
  * the fully computed color SIMD-field from the context
  * into the framebuffer.
  */
@@ -335,7 +353,8 @@
         FRAME_COLX(00, COL_B)                                               \
         movpx_st(Xmm0, Oeax, PLAIN)
 
-/* Replicate subroutine calling behaviour
+/*
+ * Replicate subroutine calling behaviour
  * by saving a given return address "lb" in the context's
  * local PTR field, then jumping to the destination address "to".
  * The destination code segment uses saved return address
@@ -352,7 +371,8 @@
 /*********************************   UPDATE   *********************************/
 /******************************************************************************/
 
-/* Local pointer tables
+/*
+ * Local pointer tables
  * for quick entry point resolution.
  */
 static
@@ -364,7 +384,8 @@ rt_pntr t_clp[RT_TAG_SURFACE_MAX];
 static
 rt_pntr t_pow[6];
 
-/* Update material's backend-specific fields.
+/*
+ * Update material's backend-specific fields.
  */
 static
 rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
@@ -406,7 +427,8 @@ rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
     s_mat->pow_p[0] = t_pow[exp];
 }
 
-/* Backend's global entry point (hence 0).
+/*
+ * Backend's global entry point (hence 0).
  * Update surfaces's backend-specific fields.
  */
 rt_void update0(rt_SIMD_SURFACE *s_srf)
@@ -418,12 +440,12 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
         return;
     }
 
-    /* Save surface's entry points from local pointer tables
+    /* save surface's entry points from local pointer tables
      * filled during backend's one-time initialization */
     s_srf->srf_p[0] = t_ptr[tag];
     s_srf->srf_p[2] = t_clp[tag];
 
-    /* Update surface's materials for each side */
+    /* update surface's materials for each side */
     update_mat((rt_SIMD_MATERIAL *)s_srf->mat_p[0]);
     update_mat((rt_SIMD_MATERIAL *)s_srf->mat_p[2]);
 }
@@ -432,8 +454,9 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
 /*********************************   RENDER   *********************************/
 /******************************************************************************/
 
-/* Backend's global entry point (hence 0).
- * Render the frame based on the data structures
+/*
+ * Backend's global entry point (hence 0).
+ * Render frame based on the data structures
  * prepared by the engine.
  */
 rt_void render0(rt_SIMD_INFOX *s_inf)
@@ -903,8 +926,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_CLIPPING_CUSTOM
 
-        movxx_ld(Reax, Mebx, srf_MSC_P(OBJ))    /* trnode's simd load */
-        movxx_st(Reax, Mecx, ctx_LOCAL(LST))    /* trnode's simd save */
+        movxx_ld(Reax, Mebx, srf_MSC_P(OBJ))    /* load trnode's simd ptr */
+        movxx_st(Reax, Mecx, ctx_LOCAL(LST))    /* save trnode's simd ptr */
 
         movxx_ri(Redx, IB(0))
         movxx_ld(Redi, Mebx, srf_MSC_P(CLP))
@@ -1132,7 +1155,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
         jeqxx_lb(MT_mat)
 
-        movxx_ld(Rebx, Mebx, srf_MSC_P(OBJ))    /* trnode's simd load */
+        movxx_ld(Rebx, Mebx, srf_MSC_P(OBJ))    /* load trnode's simd ptr */
 
         /* transform normal,
          * apply transposed matrix */
@@ -1207,7 +1230,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm5, Mecx, ctx_NRM_Y)
         movpx_st(Xmm6, Mecx, ctx_NRM_Z)
 
-        movxx_ld(Rebx, Mesi, elm_SIMD)          /* surface's simd load */
+        movxx_ld(Rebx, Mesi, elm_SIMD)          /* load surface's simd ptr */
 
 #endif /* RT_FEAT_TRANSFORM */
 

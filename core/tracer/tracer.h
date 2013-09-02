@@ -14,7 +14,8 @@
 /**********************************   MISC   **********************************/
 /******************************************************************************/
 
-/* Generic list element structure.
+/*
+ * Generic list element structure.
  * Fields names explanation:
  * data - aux data field (pointer to trnode's last element, clip accum marker)
  * simd - pointer to SIMD structure (rt_SIMD_LIGHT, rt_SIMD_SURFACE)
@@ -37,7 +38,8 @@ struct rt_ELEM
 
 };
 
-/* Extended SIMD info structure for asm enter/leave.
+/*
+ * Extended SIMD info structure for asm enter/leave.
  * Serves as root for all other SIMD structures passed to backend.
  */
 struct rt_SIMD_INFOX : public rt_SIMD_INFO
@@ -182,11 +184,12 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
 /*********************************   CONTEXT   ********************************/
 /******************************************************************************/
 
-/* SIMD context structure to keep track of current state. New contexts for
+/*
+ * SIMD context structure to keep track of current state. New contexts for
  * secondary rays can be stacked upon previous ones by shifting pointer with
  * some overlap (to reduce copying overhead) until max stack depth is reached.
  * Vector fields names explanation:
- * VEC_X, VEC_Y, VEC_Z - world coords.
+ * VEC_X, VEC_Y, VEC_Z - world coords (or array trnode's transformed coords).
  * VEC_I, VEC_J, VEC_K - intermediate coords after generic matrix transform.
  * VEC_O - baseline offset for axis mapping. Regular axis mapping fetches from
  * main XYZ fields (no generic matrix transform), shifted axis mapping fetches
@@ -401,7 +404,8 @@ struct rt_SIMD_CONTEXT
 /*********************************   CAMERA   *********************************/
 /******************************************************************************/
 
-/* SIMD camera structure with properties for
+/*
+ * SIMD camera structure with properties for
  * rays horizontal and vertical scanning, color masks,
  * accumulated ambient color.
  */
@@ -470,7 +474,8 @@ struct rt_SIMD_CAMERA
 /**********************************   LIGHT   *********************************/
 /******************************************************************************/
 
-/* SIMD light structure with properties.
+/*
+ * SIMD light structure with properties.
  */
 struct rt_SIMD_LIGHT
 {
@@ -521,7 +526,8 @@ struct rt_SIMD_LIGHT
 /*********************************   SURFACE   ********************************/
 /******************************************************************************/
 
-/* SIMD surface structure with properties.
+/*
+ * SIMD surface structure with properties.
  */
 struct rt_SIMD_SURFACE
 {
@@ -643,6 +649,9 @@ struct rt_SIMD_SURFACE
 /**********************************   PLANE   *********************************/
 /******************************************************************************/
 
+/*
+ * Extended SIMD surface structure with properties for plane.
+ */
 struct rt_SIMD_PLANE : public rt_SIMD_SURFACE
 {
     rt_real nrm_k[4];
@@ -663,6 +672,9 @@ struct rt_SIMD_PLANE : public rt_SIMD_SURFACE
 /********************************   CYLINDER   ********************************/
 /******************************************************************************/
 
+/*
+ * Extended SIMD surface structure with properties for cylinder.
+ */
 struct rt_SIMD_CYLINDER : public rt_SIMD_SURFACE
 {
     rt_real rad_2[4];
@@ -683,6 +695,9 @@ struct rt_SIMD_CYLINDER : public rt_SIMD_SURFACE
 /*********************************   SPHERE   *********************************/
 /******************************************************************************/
 
+/*
+ * Extended SIMD surface structure with properties for sphere.
+ */
 struct rt_SIMD_SPHERE : public rt_SIMD_SURFACE
 {
     rt_real rad_2[4];
@@ -703,6 +718,9 @@ struct rt_SIMD_SPHERE : public rt_SIMD_SURFACE
 /**********************************   CONE   **********************************/
 /******************************************************************************/
 
+/*
+ * Extended SIMD surface structure with properties for cone.
+ */
 struct rt_SIMD_CONE : public rt_SIMD_SURFACE
 {
     rt_real rat_2[4];
@@ -723,6 +741,9 @@ struct rt_SIMD_CONE : public rt_SIMD_SURFACE
 /*******************************   PARABOLOID   *******************************/
 /******************************************************************************/
 
+/*
+ * Extended SIMD surface structure with properties for paraboloid.
+ */
 struct rt_SIMD_PARABOLOID : public rt_SIMD_SURFACE
 {
     rt_real par_2[4];
@@ -743,6 +764,9 @@ struct rt_SIMD_PARABOLOID : public rt_SIMD_SURFACE
 /*******************************   HYPERBOLOID   ******************************/
 /******************************************************************************/
 
+/*
+ * Extended SIMD surface structure with properties for hyperboloid.
+ */
 struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
 {
     rt_real rat_2[4];
@@ -763,7 +787,8 @@ struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
 /********************************   MATERIAL   ********************************/
 /******************************************************************************/
 
-/* Material properties.
+/*
+ * Material properties.
  * Value bit-range must not overlap with context flags (defined in tracer.cpp),
  * as they are packed together into the same context field.
  * Current CHECK_PROP macro (defined in tracer.cpp) accepts values upto 16-bit.
@@ -778,7 +803,8 @@ struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
 #define RT_PROP_LIGHT       0x00001000
 #define RT_PROP_METAL       0x00002000
 
-/* SIMD material structure with properties.
+/*
+ * SIMD material structure with properties.
  */
 struct rt_SIMD_MATERIAL
 {
@@ -855,8 +881,17 @@ struct rt_SIMD_MATERIAL
 /***************************   GLOBAL ENTRY POINTS   **************************/
 /******************************************************************************/
 
+/*
+ * Backend's global entry point (hence 0).
+ * Update surfaces's backend-specific fields.
+ */
 rt_void update0(rt_SIMD_SURFACE *s_srf);
 
+/*
+ * Backend's global entry point (hence 0).
+ * Render frame based on the data structures
+ * prepared by the engine.
+ */
 rt_void render0(rt_SIMD_INFOX *s_inf);
 
 #endif /* RT_TRACER_H */

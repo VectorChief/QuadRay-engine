@@ -36,12 +36,15 @@
 #define RT_CAMERA_ROTATE_LEFT       12
 #define RT_CAMERA_ROTATE_RIGHT      13
 
-/* Update flags */
+/* Update flags,
+ * some values are hardcoded in rendering backend,
+ * change with care! */
 
 /* set for object which has
  * non-trivial axis scaling
  * (other than +/-1.0 scalers) */
 #define RT_UPDATE_FLAG_SCL          (1 << 0)
+
 /* set for object which has
  * non-trivial rotation
  * (other than multiple of 90 dgree) */
@@ -89,6 +92,9 @@ class rt_Material;
 /********************************   REGISTRY   ********************************/
 /******************************************************************************/
 
+/*
+ * Registry is an interface for scene manager to keep track of all objects.
+ */
 class rt_Registry : public rt_Heap
 {
 /*  fields */
@@ -132,7 +138,7 @@ class rt_Registry : public rt_Heap
     rt_Material    *get_mat() { return mat_head; }
 
     /* object's "next" field (from rt_List) must be initialized
-     * with get_* before calling put_*, usually done in constructors. */
+     * with get_* before calling put_*, usually done in constructors */
     rt_void         put_cam(rt_Camera *cam)     { cam_head = cam; cam_num++; }
     rt_void         put_lgt(rt_Light *lgt)      { lgt_head = lgt; lgt_num++; }
     rt_void         put_srf(rt_Surface *srf)    { srf_head = srf; srf_num++; }
@@ -144,6 +150,12 @@ class rt_Registry : public rt_Heap
 /*********************************   OBJECT   *********************************/
 /******************************************************************************/
 
+/*
+ * Object is the base for special objects (cameras, lights)
+ * and node objects (arrays, surfaces) in the hierarchy.
+ * It is mainly responsible for properly passing transform
+ * from the root through the branches to all the leafs.
+ */
 class rt_Object
 {
     public:
@@ -195,6 +207,9 @@ class rt_Object
 /*********************************   CAMERA   *********************************/
 /******************************************************************************/
 
+/*
+ * Camera is a special object that facilitates the rendering of other objects.
+ */
 class rt_Camera : public rt_Object, public rt_List<rt_Camera>
 {
     public:
@@ -220,6 +235,9 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
     rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj);
 
     virtual
+   ~rt_Camera();
+
+    virtual
     rt_void update(rt_long time, rt_cell action);
     virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
@@ -229,6 +247,9 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
 /**********************************   LIGHT   *********************************/
 /******************************************************************************/
 
+/*
+ * Light is a special object that influences the rendering of other objects.
+ */
 class rt_Light : public rt_Object, public rt_List<rt_Light>
 {
     public:
@@ -244,6 +265,9 @@ class rt_Light : public rt_Object, public rt_List<rt_Light>
     rt_Light(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj);
 
     virtual
+   ~rt_Light();
+
+    virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
 };
 
@@ -251,6 +275,10 @@ class rt_Light : public rt_Object, public rt_List<rt_Light>
 /**********************************   NODE   **********************************/
 /******************************************************************************/
 
+/*
+ * Node is an object that itself is or contains renderable,
+ * only node elements can be inserted into backend surface lists.
+ */
 class rt_Node : public rt_Object
 {
     public:
@@ -282,6 +310,12 @@ class rt_Node : public rt_Object
 /**********************************   ARRAY   *********************************/
 /******************************************************************************/
 
+/*
+ * Array is a node that contains group of objects
+ * under the same branch in the hierarchy.
+ * It may contain renderables (surfaces), other arrays and
+ * special objects (cameras, lights).
+ */
 class rt_Array : public rt_Node
 {
     public:
@@ -309,6 +343,9 @@ class rt_Array : public rt_Node
 /*********************************   SURFACE   ********************************/
 /******************************************************************************/
 
+/*
+ * Surface is a node that represents renderable shapes.
+ */
 class rt_Surface : public rt_Node, public rt_List<rt_Surface>
 {
     public:
@@ -376,6 +413,9 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
 /**********************************   PLANE   *********************************/
 /******************************************************************************/
 
+/*
+ * Plane is a basic 1st order surface.
+ */
 class rt_Plane : public rt_Surface
 {
     public:
@@ -390,6 +430,9 @@ class rt_Plane : public rt_Surface
              rt_cell ssize = sizeof(rt_SIMD_SURFACE));
 
     virtual
+   ~rt_Plane();
+
+    virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
     virtual
     rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
@@ -401,6 +444,9 @@ class rt_Plane : public rt_Surface
 /*********************************   QUADRIC   ********************************/
 /******************************************************************************/
 
+/*
+ * Quadric is the base for all 2nd order surfaces.
+ */
 class rt_Quadric : public rt_Surface
 {
     public:
@@ -414,6 +460,11 @@ class rt_Quadric : public rt_Surface
     rt_Quadric(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
                rt_cell ssize);
 
+    public:
+
+    virtual
+   ~rt_Quadric();
+
     virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
     virtual
@@ -426,6 +477,9 @@ class rt_Quadric : public rt_Surface
 /********************************   CYLINDER   ********************************/
 /******************************************************************************/
 
+/*
+ * Cylinder is a basic 2nd order surface.
+ */
 class rt_Cylinder : public rt_Quadric
 {
     public:
@@ -440,6 +494,9 @@ class rt_Cylinder : public rt_Quadric
                 rt_cell ssize = sizeof(rt_SIMD_SURFACE));
 
     virtual
+   ~rt_Cylinder();
+
+    virtual
     rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
                           rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
                           rt_vec4 cmin, rt_vec4 cmax); /* cbox */
@@ -449,6 +506,9 @@ class rt_Cylinder : public rt_Quadric
 /*********************************   SPHERE   *********************************/
 /******************************************************************************/
 
+/*
+ * Sphere is a basic 2nd order surface.
+ */
 class rt_Sphere : public rt_Quadric
 {
     public:
@@ -463,6 +523,9 @@ class rt_Sphere : public rt_Quadric
               rt_cell ssize = sizeof(rt_SIMD_SURFACE));
 
     virtual
+   ~rt_Sphere();
+
+    virtual
     rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
                           rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
                           rt_vec4 cmin, rt_vec4 cmax); /* cbox */
@@ -472,6 +535,9 @@ class rt_Sphere : public rt_Quadric
 /**********************************   CONE   **********************************/
 /******************************************************************************/
 
+/*
+ * Cone is a basic 2nd order surface.
+ */
 class rt_Cone : public rt_Quadric
 {
     public:
@@ -486,6 +552,9 @@ class rt_Cone : public rt_Quadric
             rt_cell ssize = sizeof(rt_SIMD_SURFACE));
 
     virtual
+   ~rt_Cone();
+
+    virtual
     rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
                           rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
                           rt_vec4 cmin, rt_vec4 cmax); /* cbox */
@@ -495,6 +564,9 @@ class rt_Cone : public rt_Quadric
 /*******************************   PARABOLOID   *******************************/
 /******************************************************************************/
 
+/*
+ * Paraboloid is a basic 2nd order surface.
+ */
 class rt_Paraboloid : public rt_Quadric
 {
     public:
@@ -509,6 +581,9 @@ class rt_Paraboloid : public rt_Quadric
                   rt_cell ssize = sizeof(rt_SIMD_SURFACE));
 
     virtual
+   ~rt_Paraboloid();
+
+    virtual
     rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
                           rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
                           rt_vec4 cmin, rt_vec4 cmax); /* cbox */
@@ -518,6 +593,9 @@ class rt_Paraboloid : public rt_Quadric
 /*******************************   HYPERBOLOID   ******************************/
 /******************************************************************************/
 
+/*
+ * Hyperboloid is a basic 2nd order surface.
+ */
 class rt_Hyperboloid : public rt_Quadric
 {
     public:
@@ -532,6 +610,9 @@ class rt_Hyperboloid : public rt_Quadric
                    rt_cell ssize = sizeof(rt_SIMD_SURFACE));
 
     virtual
+   ~rt_Hyperboloid();
+
+    virtual
     rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
                           rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
                           rt_vec4 cmin, rt_vec4 cmax); /* cbox */
@@ -541,6 +622,10 @@ class rt_Hyperboloid : public rt_Quadric
 /********************************   MATERIAL   ********************************/
 /******************************************************************************/
 
+/*
+ * Texture contains data for images loaded from external files
+ * in order to keep track of them and re-use them.
+ */
 class rt_Texture : public rt_List<rt_Texture>
 {
     public:
@@ -554,8 +639,14 @@ class rt_Texture : public rt_List<rt_Texture>
 /*  methods */
 
     rt_Texture(rt_Registry *rg, rt_pstr name);
+
+    virtual
+   ~rt_Texture();
 };
 
+/*
+ * Material represents set of properties for a single side of a surface.
+ */
 class rt_Material : public rt_List<rt_Material>
 {
     public:
@@ -572,6 +663,9 @@ class rt_Material : public rt_List<rt_Material>
 /*  methods */
 
     rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat);
+
+    virtual
+   ~rt_Material();
 
     rt_void resolve_texture(rt_Registry *rg);
 };

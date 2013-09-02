@@ -36,6 +36,9 @@
         RT_LOGI("\n");                                                      \
         RT_LOGI("\n")
 
+/*
+ * Print camera properties.
+ */
 static
 rt_void print_cam(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
 {
@@ -77,6 +80,9 @@ rt_void print_cam(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
         print_cam("    ", RT_NULL, cam);                                    \
         RT_LOGI("\n")
 
+/*
+ * Print light properties.
+ */
 static
 rt_void print_lgt(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
 {
@@ -156,6 +162,9 @@ rt_pstr markers[] =
     "out of range",
 };
 
+/*
+ * Print surface/array properties.
+ */
 static
 rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
 {
@@ -214,6 +223,9 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
         print_srf("    ", RT_NULL, srf);                                    \
         RT_LOGI("\n")
 
+/*
+ * Print list of objects.
+ */
 static
 rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
 {
@@ -935,18 +947,39 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
     return lst;
 }
 
+/*
+ * Destroy scene thread.
+ */
+rt_SceneThread::~rt_SceneThread()
+{
+
+}
+
+/*
+ * Initialize platform-specific handle for pool of "thnum" threads.
+ * Local stub for when platform threading functions are not provided.
+ */
 static
 rt_void* init_threads(rt_cell thnum, rt_Scene *scn)
 {
     return scn;
 }
 
+/*
+ * Terminate platform-specific handle for pool of "thnum" threads.
+ * Local stub for when platform threading functions are not provided.
+ */
 static
 rt_void term_threads(rt_void *tdata, rt_cell thnum)
 {
 
 }
 
+/*
+ * Tell platform-specific pool of "thnum" threads to update scene,
+ * block until finished. Simulate threading with sequential run.
+ * Local stub for when platform threading functions are not provided.
+ */
 static
 rt_void update_scene(rt_void *tdata, rt_cell thnum)
 {
@@ -960,6 +993,11 @@ rt_void update_scene(rt_void *tdata, rt_cell thnum)
     }
 }
 
+/*
+ * Tell platform-specific pool of "thnum" threads to render scene,
+ * block until finished. Simulate threading with sequential run.
+ * Local stub for when platform threading functions are not provided.
+ */
 static
 rt_void render_scene(rt_void *tdata, rt_cell thnum)
 {
@@ -1106,7 +1144,7 @@ rt_void rt_Scene::update(rt_long time, rt_cell action)
 }
 
 /*
- * Update backend data structures and render the frame for a given "time".
+ * Update backend data structures and render frame for a given "time".
  */
 rt_void rt_Scene::render(rt_long time)
 {
@@ -1386,6 +1424,10 @@ rt_void rt_Scene::render(rt_long time)
     release(mpool);
 }
 
+/*
+ * Update portion of the scene with given "index"
+ * as part of the multi-threaded update.
+ */
 rt_void rt_Scene::update_slice(rt_cell index)
 {
     rt_cell i;
@@ -1418,6 +1460,10 @@ rt_void rt_Scene::update_slice(rt_cell index)
     }
 }
 
+/*
+ * Render portion of the frame with given "index"
+ * as part of the multi-threaded render.
+ */
 rt_void rt_Scene::render_slice(rt_cell index)
 {
     /* adjust ray steppers according to anti-aliasing mode */

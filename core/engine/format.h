@@ -14,8 +14,15 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
-#define RT_TAG_ARRAY   /* generic tag  */  -1 /* used for textures as well */
+/* Object tags,
+ * some values are hardcoded in rendering backend,
+ * change with care! */
 
+/* generic array tag,
+ * used for textures as well as for surfaces */
+#define RT_TAG_ARRAY                       -1
+
+/* surface tags */
 #define RT_TAG_PLANE                        0
 #define RT_TAG_CYLINDER                     1
 #define RT_TAG_SPHERE                       2
@@ -24,6 +31,7 @@
 #define RT_TAG_HYPERBOLOID                  5
 #define RT_TAG_SURFACE_MAX                  6
 
+/* special tags */
 #define RT_TAG_CAMERA                       100
 #define RT_TAG_LIGHT                        101
 #define RT_TAG_MAX                          102
@@ -31,6 +39,9 @@
 /******************************************************************************/
 /*********************************   MACROS   *********************************/
 /******************************************************************************/
+
+#define RT_IS_CAMERA(o)                                                     \
+        ((o)->tag == RT_TAG_CAMERA)
 
 #define RT_IS_LIGHT(o)                                                      \
         ((o)->tag == RT_TAG_LIGHT)
@@ -156,7 +167,7 @@ struct rt_COL
 }
 
 #define RT_TEX_ARRAY(parr)                                                  \
-{/* use generic tag here */                                                 \
+{/* using generic array tag here */                                         \
     RT_TAG_ARRAY,           RT_COL(0x0),                                    \
    *parr,                   RT_ARR_SIZE(*parr),                             \
     RT_NULL,                0,                                              \
@@ -164,7 +175,7 @@ struct rt_COL
 }
 
 #define RT_TEX_ARRAY_REL(parr, prel)                                        \
-{/* use generic tag here */                                                 \
+{/* using generic array tag here */                                         \
     RT_TAG_ARRAY,           RT_COL(0x0),                                    \
    *parr,                   RT_ARR_SIZE(*parr),                             \
    *prel,                   RT_ARR_SIZE(*prel),                             \

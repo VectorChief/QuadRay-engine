@@ -30,6 +30,9 @@ class rt_Scene;
 /*********************************   THREAD   *********************************/
 /******************************************************************************/
 
+/*
+ * SceneThread contains set of structures used by the scene manager per thread.
+ */
 class rt_SceneThread : public rt_Heap
 {
 /*  fields */
@@ -63,6 +66,9 @@ class rt_SceneThread : public rt_Heap
 
     rt_SceneThread(rt_Scene *scene, rt_cell index);
 
+    virtual
+   ~rt_SceneThread();
+
     rt_void     tiling(rt_vec4 p1, rt_vec4 p2);
     rt_void     insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf);
 
@@ -80,6 +86,9 @@ typedef rt_void (*rt_FUNC_RENDER)(rt_pntr tdata, rt_cell thnum);
 /**********************************   SCENE   *********************************/
 /******************************************************************************/
 
+/*
+ * Scene manager.
+ */
 class rt_Scene : public rt_LogRedirect, public rt_Registry
 {
 /*  fields */
@@ -125,7 +134,7 @@ class rt_Scene : public rt_LogRedirect, public rt_Registry
     rt_FUNC_RENDER      f_render;
 
     /* scene threads array and its
-     * platform specific handle */
+     * platform-specific handle */
     rt_word             thnum;
     rt_SceneThread    **tharr;
     rt_pntr             tdata;
@@ -170,6 +179,7 @@ class rt_Scene : public rt_LogRedirect, public rt_Registry
              rt_FUNC_PRINT_LOG f_print_log = RT_NULL,
              rt_FUNC_PRINT_ERR f_print_err = RT_NULL);
 
+    virtual
    ~rt_Scene();
 
     rt_void     update(rt_long time, rt_cell action);
