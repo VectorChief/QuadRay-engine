@@ -302,7 +302,6 @@ class rt_Surface : public rt_Object, public rt_List<rt_Surface>
 
     rt_cell             map[3];
     rt_cell             sgn[3];
-    rt_vec3             scl;
 
 /*  methods */
 
