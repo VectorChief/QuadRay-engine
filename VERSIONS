@@ -1,3 +1,14 @@
+v0.5.2: Performance optimizations, transform caching and scaling fastpath
+  - add transform caching (trnodes) to object classes
+  - insert trnodes into clippers, surface and tile lists
+  - implement transform caching in rendering backend, optimize for clippers
+  - refactor transform code in rendering backend for scaling fastpath
+  - split axis mapping from scale-only transform matrix
+  - implement scaling fastpath in rendering backend
+  - add Node class to object classes, rebase Array and Surface
+  - use trnode's matrix for normals in rendering backend, simplify logic
+  - add more comments, refine state logging, label names, classes access levels
+
 v0.5.1: Performance optimizations, tiled rendering
   - adjust bounding and clipping boxes according to surface shape
   - add bounding box geometry, update vertices according to transform
