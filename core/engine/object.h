@@ -151,11 +151,6 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
     rt_real             hor_sin;
     rt_real             hor_cos;
 
-    rt_real             ver_sin;
-    rt_real             ver_cos;
-
-    rt_cell             user_input;
-
 /*  methods */
 
     rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj);
@@ -233,7 +228,6 @@ class rt_Surface : public rt_Object, public rt_List<rt_Surface>
 
     rt_cell             map[3];
     rt_cell             sgn[3];
-    rt_vec3             scl;
 
 /*  methods */
 
