@@ -179,19 +179,20 @@ rt_void rt_Scene::render(rt_long time)
     dir[RT_Z] += (hor[RT_Z] + ver[RT_Z]) * 0.5f;
 
     rt_real fdh[4], fdv[4];
-    rt_real fhr, fvr = 1.0f;
+    rt_real fhr, fvr;
 
     fdh[0] = 0.0f;
     fdh[1] = 1.0f;
     fdh[2] = 2.0f;
     fdh[3] = 3.0f;
 
-    fdv[0] = 1.0f;
-    fdv[1] = 1.0f;
-    fdv[2] = 1.0f;
-    fdv[3] = 1.0f;
+    fdv[0] = 0.0f;
+    fdv[1] = 0.0f;
+    fdv[2] = 0.0f;
+    fdv[3] = 0.0f;
 
     fhr = 4.0f;
+    fvr = 1.0f;
 
 /*  rt_SIMD_CAMERA */
 
