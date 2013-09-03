@@ -40,6 +40,8 @@ class rt_File
 {
 /*  fields */
 
+    private:
+
     FILE               *file;
 
 /*  methods */
@@ -82,6 +84,8 @@ class rt_Heap
 {
 /*  fields */
 
+    private:
+
     rt_CHUNK           *head;
 
     rt_void chunk_alloc(rt_word size, rt_word align);
@@ -114,13 +118,15 @@ class rt_Heap
  */
 class rt_Exception
 {
-    public:
-
 /*  fields */
+
+    public:
 
     rt_pstr err;
 
 /*  methods */
+
+    public:
 
     rt_Exception(rt_pstr err) { this->err = err; }
 
@@ -139,13 +145,15 @@ class rt_Exception
 template <class rt_Class>
 class rt_List
 {
-    public:
-
 /*  fields */
+
+    public:
 
     rt_Class           *next;
 
 /*  methods */
+
+    public:
 
     rt_List(rt_Class *next) { this->next = next; }
 };
@@ -174,11 +182,13 @@ extern rt_FUNC_PRINT_ERR    f_print_err;
  */
 class rt_LogRedirect /* must be first in scene init */
 {
-    public:
-
 /*  fields */
 
+    public:
+
 /*  methods */
+
+    public:
 
     rt_LogRedirect(rt_FUNC_PRINT_LOG f_print_log,
                    rt_FUNC_PRINT_ERR f_print_err)

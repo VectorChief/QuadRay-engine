@@ -158,9 +158,9 @@ class rt_Registry : public rt_Heap
  */
 class rt_Object
 {
-    public:
-
 /*  fields */
+
+    public:
 
     rt_OBJECT          *obj;
     rt_TRANSFORM3D     *trm;
@@ -192,7 +192,11 @@ class rt_Object
 
 /*  methods */
 
+    protected:
+
     rt_Object(rt_Object *parent, rt_OBJECT *obj);
+
+    public:
 
     virtual
    ~rt_Object();
@@ -212,9 +216,9 @@ class rt_Object
  */
 class rt_Camera : public rt_Object, public rt_List<rt_Camera>
 {
-    public:
-
 /*  fields */
+
+    public:
 
     rt_CAMERA          *cam;
 
@@ -231,6 +235,8 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
     rt_real             hor_cos;
 
 /*  methods */
+
+    public:
 
     rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj);
 
@@ -252,15 +258,17 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
  */
 class rt_Light : public rt_Object, public rt_List<rt_Light>
 {
-    public:
-
 /*  fields */
+
+    public:
 
     rt_LIGHT           *lgt;
 
     rt_SIMD_LIGHT      *s_lgt;
 
 /*  methods */
+
+    public:
 
     rt_Light(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj);
 
@@ -281,9 +289,9 @@ class rt_Light : public rt_Object, public rt_List<rt_Light>
  */
 class rt_Node : public rt_Object
 {
-    public:
-
 /*  fields */
+
+    public:
 
     rt_Registry        *rg;
 
@@ -294,8 +302,12 @@ class rt_Node : public rt_Object
 
 /*  methods */
 
+    protected:
+
     rt_Node(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
             rt_cell ssize);
+
+    public:
 
     virtual
    ~rt_Node();
@@ -318,14 +330,16 @@ class rt_Node : public rt_Object
  */
 class rt_Array : public rt_Node
 {
-    public:
-
 /*  fields */
+
+    public:
 
     rt_Object         **obj_arr;
     rt_cell             obj_num;
 
 /*  methods */
+
+    public:
 
     rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
              rt_cell ssize = sizeof(rt_SIMD_SURFACE));
@@ -348,9 +362,9 @@ class rt_Array : public rt_Node
  */
 class rt_Surface : public rt_Node, public rt_List<rt_Surface>
 {
-    public:
-
 /*  fields */
+
+    public:
 
     rt_SURFACE         *srf;
 
@@ -382,9 +396,9 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
     rt_Material        *outer;
     rt_Material        *inner;
 
-    protected:
-
 /*  methods */
+
+    protected:
 
     rt_Surface(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
                rt_cell ssize);
@@ -418,13 +432,15 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
  */
 class rt_Plane : public rt_Surface
 {
-    public:
-
 /*  fields */
+
+    public:
 
     rt_PLANE           *xpl;
 
 /*  methods */
+
+    public:
 
     rt_Plane(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
              rt_cell ssize = sizeof(rt_SIMD_SURFACE));
@@ -449,9 +465,9 @@ class rt_Plane : public rt_Surface
  */
 class rt_Quadric : public rt_Surface
 {
-    public:
-
 /*  fields */
+
+    public:
 
 /*  methods */
 
@@ -482,13 +498,15 @@ class rt_Quadric : public rt_Surface
  */
 class rt_Cylinder : public rt_Quadric
 {
-    public:
-
 /*  fields */
+
+    public:
 
     rt_CYLINDER        *xcl;
 
 /*  methods */
+
+    public:
 
     rt_Cylinder(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
                 rt_cell ssize = sizeof(rt_SIMD_SURFACE));
@@ -511,13 +529,15 @@ class rt_Cylinder : public rt_Quadric
  */
 class rt_Sphere : public rt_Quadric
 {
-    public:
-
 /*  fields */
+
+    public:
 
     rt_SPHERE          *xsp;
 
 /*  methods */
+
+    public:
 
     rt_Sphere(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
               rt_cell ssize = sizeof(rt_SIMD_SURFACE));
@@ -540,13 +560,15 @@ class rt_Sphere : public rt_Quadric
  */
 class rt_Cone : public rt_Quadric
 {
-    public:
-
 /*  fields */
+
+    public:
 
     rt_CONE            *xcn;
 
 /*  methods */
+
+    public:
 
     rt_Cone(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
             rt_cell ssize = sizeof(rt_SIMD_SURFACE));
@@ -569,13 +591,15 @@ class rt_Cone : public rt_Quadric
  */
 class rt_Paraboloid : public rt_Quadric
 {
-    public:
-
 /*  fields */
+
+    public:
 
     rt_PARABOLOID      *xpb;
 
 /*  methods */
+
+    public:
 
     rt_Paraboloid(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
                   rt_cell ssize = sizeof(rt_SIMD_SURFACE));
@@ -598,13 +622,15 @@ class rt_Paraboloid : public rt_Quadric
  */
 class rt_Hyperboloid : public rt_Quadric
 {
-    public:
-
 /*  fields */
+
+    public:
 
     rt_HYPERBOLOID     *xhb;
 
 /*  methods */
+
+    public:
 
     rt_Hyperboloid(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
                    rt_cell ssize = sizeof(rt_SIMD_SURFACE));
@@ -628,15 +654,17 @@ class rt_Hyperboloid : public rt_Quadric
  */
 class rt_Texture : public rt_List<rt_Texture>
 {
-    public:
-
 /*  fields */
+
+    public:
 
     rt_TEX              tex;
 
     rt_pstr             name;
 
 /*  methods */
+
+    public:
 
     rt_Texture(rt_Registry *rg, rt_pstr name);
 
@@ -649,9 +677,9 @@ class rt_Texture : public rt_List<rt_Texture>
  */
 class rt_Material : public rt_List<rt_Material>
 {
-    public:
-
 /*  fields */
+
+    public:
 
     rt_MATERIAL        *mat;
 
@@ -661,6 +689,8 @@ class rt_Material : public rt_List<rt_Material>
     rt_mat2             mtx;
 
 /*  methods */
+
+    public:
 
     rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat);
 

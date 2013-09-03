@@ -16,11 +16,12 @@
 
 /*
  * Generic list element structure.
- * Fields names explanation:
- * data - aux data field (pointer to trnode's last element, clip accum marker)
- * simd - pointer to SIMD structure (rt_SIMD_LIGHT, rt_SIMD_SURFACE)
- * temp - aux temp field (pointer to high-level object, not used in backend)
- * next - pointer to next element
+ * Field names explanation:
+ *   data - aux data field (trnode's last element, accum marker, shadow list)
+ *   simd - pointer to SIMD structure (rt_SIMD_LIGHT, rt_SIMD_SURFACE)
+ *   temp - aux temp field (high-level object, not used in backend)
+ *   next - pointer to next element
+ * Structure is read-only in backend.
  */
 struct rt_ELEM
 {
@@ -41,6 +42,7 @@ struct rt_ELEM
 /*
  * Extended SIMD info structure for asm enter/leave.
  * Serves as root for all other SIMD structures passed to backend.
+ * Structure is read-write in backend.
  */
 struct rt_SIMD_INFOX : public rt_SIMD_INFO
 {
@@ -188,13 +190,14 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
  * SIMD context structure to keep track of current state. New contexts for
  * secondary rays can be stacked upon previous ones by shifting pointer with
  * some overlap (to reduce copying overhead) until max stack depth is reached.
- * Vector fields names explanation:
- * VEC_X, VEC_Y, VEC_Z - world coords (or array trnode's transformed coords).
- * VEC_I, VEC_J, VEC_K - intermediate coords after generic matrix transform.
- * VEC_O - baseline offset for axis mapping. Regular axis mapping fetches from
- * main XYZ fields (no generic matrix transform), shifted axis mapping fetches
- * from aux IJK fields after generic matrix transform has been applied,
+ * Vector field names explanation:
+ *   VEC_X, VEC_Y, VEC_Z - world coords (or array trnode's transformed coords)
+ *   VEC_I, VEC_J, VEC_K - intermediate coords after generic matrix transform
+ *   VEC_O - baseline offset for axis mapping.
+ * Regular axis mapping fetches from main XYZ fields (no matrix transform),
+ * shifted axis mapping fetches from aux IJK fields after matrix transform,
  * resulting (in both cases) in surface's local coords for canonical solvers.
+ * Structure is read-write in backend.
  */
 struct rt_SIMD_CONTEXT
 {
@@ -408,6 +411,7 @@ struct rt_SIMD_CONTEXT
  * SIMD camera structure with properties for
  * rays horizontal and vertical scanning, color masks,
  * accumulated ambient color.
+ * Structure is read-only in backend.
  */
 struct rt_SIMD_CAMERA
 {
@@ -476,6 +480,7 @@ struct rt_SIMD_CAMERA
 
 /*
  * SIMD light structure with properties.
+ * Structure is read-only in backend.
  */
 struct rt_SIMD_LIGHT
 {
@@ -528,6 +533,7 @@ struct rt_SIMD_LIGHT
 
 /*
  * SIMD surface structure with properties.
+ * Structure is read-only in backend.
  */
 struct rt_SIMD_SURFACE
 {
@@ -651,6 +657,7 @@ struct rt_SIMD_SURFACE
 
 /*
  * Extended SIMD surface structure with properties for plane.
+ * Structure is read-only in backend.
  */
 struct rt_SIMD_PLANE : public rt_SIMD_SURFACE
 {
@@ -674,6 +681,7 @@ struct rt_SIMD_PLANE : public rt_SIMD_SURFACE
 
 /*
  * Extended SIMD surface structure with properties for cylinder.
+ * Structure is read-only in backend.
  */
 struct rt_SIMD_CYLINDER : public rt_SIMD_SURFACE
 {
@@ -697,6 +705,7 @@ struct rt_SIMD_CYLINDER : public rt_SIMD_SURFACE
 
 /*
  * Extended SIMD surface structure with properties for sphere.
+ * Structure is read-only in backend.
  */
 struct rt_SIMD_SPHERE : public rt_SIMD_SURFACE
 {
@@ -720,6 +729,7 @@ struct rt_SIMD_SPHERE : public rt_SIMD_SURFACE
 
 /*
  * Extended SIMD surface structure with properties for cone.
+ * Structure is read-only in backend.
  */
 struct rt_SIMD_CONE : public rt_SIMD_SURFACE
 {
@@ -743,6 +753,7 @@ struct rt_SIMD_CONE : public rt_SIMD_SURFACE
 
 /*
  * Extended SIMD surface structure with properties for paraboloid.
+ * Structure is read-only in backend.
  */
 struct rt_SIMD_PARABOLOID : public rt_SIMD_SURFACE
 {
@@ -766,6 +777,7 @@ struct rt_SIMD_PARABOLOID : public rt_SIMD_SURFACE
 
 /*
  * Extended SIMD surface structure with properties for hyperboloid.
+ * Structure is read-only in backend.
  */
 struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
 {
@@ -805,6 +817,7 @@ struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
 
 /*
  * SIMD material structure with properties.
+ * Structure is read-only in backend.
  */
 struct rt_SIMD_MATERIAL
 {
