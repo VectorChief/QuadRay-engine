@@ -77,23 +77,16 @@ rt_Camera::rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
     hor = this->mtx[0];
     ver = this->mtx[1];
     nrm = this->mtx[2];
-
-    user_input = 0;
 }
 
 rt_void rt_Camera::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
-    rt_Object::update(time, mtx, flags | user_input);
+    rt_Object::update(time, mtx, flags);
 
     pov = cam->vpt[0] ? cam->vpt[0] : 1.0f;
 
     hor_sin = RT_SINA(trm->rot[RT_Z]);
     hor_cos = RT_COSA(trm->rot[RT_Z]);
-
-    ver_sin = RT_SINA(trm->rot[RT_X]);
-    ver_cos = RT_COSA(trm->rot[RT_X]);
-
-    user_input = 0;
 }
 
 rt_void rt_Camera::update(rt_long time, rt_cell action)
@@ -175,8 +168,6 @@ rt_void rt_Camera::update(rt_long time, rt_cell action)
         default:
         break;
     }
-
-    user_input = 1;
 }
 
 rt_Camera::~rt_Camera()
@@ -561,6 +552,7 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     rt_cell match = 0;
 
     rt_cell i, j;
+    rt_vec3 scl;
 
     for (i = 0; i < 3; i++)
     {
@@ -572,7 +564,7 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
             {
                 map[i] = j;
                 sgn[i] = RT_SIGN(this->mtx[i][j]);
-                scl[j] = RT_FABS(this->mtx[i][j]);
+                scl[i] = RT_FABS(this->mtx[i][j]);
                 match++;
             }
         }
@@ -583,23 +575,20 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     if (match < 3
     /* axis scaling goes through generic
      * matrix transform for now (slow) */
-    ||  scl[RT_X] != 1.0f
-    ||  scl[RT_Y] != 1.0f
-    ||  scl[RT_Z] != 1.0f)
+    ||  scl[RT_I] != 1.0f
+    ||  scl[RT_J] != 1.0f
+    ||  scl[RT_K] != 1.0f)
     {
         shift = 3;
 
         map[RT_I] = RT_X;
         sgn[RT_I] = 1;
-        scl[RT_X] = 1.0f;
 
         map[RT_J] = RT_Y;
         sgn[RT_J] = 1;
-        scl[RT_Y] = 1.0f;
 
         map[RT_K] = RT_Z;
         sgn[RT_K] = 1;
-        scl[RT_Z] = 1.0f;
     }
 
     mp_i = map[RT_I];
@@ -673,14 +662,6 @@ rt_void rt_Surface::direct_minmax(rt_vec3 smin, rt_vec3 smax, /* src */
     tmax[mp_i] = sgn[RT_I] > 0 ? +smax[RT_I] : -smin[RT_I];
     tmax[mp_j] = sgn[RT_J] > 0 ? +smax[RT_J] : -smin[RT_J];
     tmax[mp_k] = sgn[RT_K] > 0 ? +smax[RT_K] : -smin[RT_K];
-
-    tmin[RT_X] = tmin[RT_X] == -RT_INF ? -RT_INF : tmin[RT_X] * scl[RT_X];
-    tmin[RT_Y] = tmin[RT_Y] == -RT_INF ? -RT_INF : tmin[RT_Y] * scl[RT_Y];
-    tmin[RT_Z] = tmin[RT_Z] == -RT_INF ? -RT_INF : tmin[RT_Z] * scl[RT_Z];
-
-    tmax[RT_X] = tmax[RT_X] == +RT_INF ? +RT_INF : tmax[RT_X] * scl[RT_X];
-    tmax[RT_Y] = tmax[RT_Y] == +RT_INF ? +RT_INF : tmax[RT_Y] * scl[RT_Y];
-    tmax[RT_Z] = tmax[RT_Z] == +RT_INF ? +RT_INF : tmax[RT_Z] * scl[RT_Z];
 
     rt_vec3  zro = {0.0f, 0.0f, 0.0f};
     rt_real *pps = shift > 0 ? zro : pos;
