@@ -232,5 +232,87 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
 }
 
 /******************************************************************************/
+/********************************   GEOMETRY   ********************************/
+/******************************************************************************/
+
+/*
+ * Determine if "shw" bbox casts shadow on "srf" bbox from "lgt" pos.
+ *
+ * Return values:
+ *  0 - no
+ *  1 - yes
+ */
+rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
+{
+    /* check if surfaces differ and have bounds */
+
+    if (srf->verts_num == 0 || shw->verts_num == 0 || srf == shw)
+    {
+        return 1;
+    }
+
+    /* check first if bounding spheres cast shadows */
+
+    rt_vec4 shw_vec;
+
+    shw_vec[RT_X] = shw->mid[RT_X] - lgt->pos[RT_X];
+    shw_vec[RT_Y] = shw->mid[RT_Y] - lgt->pos[RT_Y];
+    shw_vec[RT_Z] = shw->mid[RT_Z] - lgt->pos[RT_Z];
+    shw_vec[RT_W] = 0.0f;
+
+    rt_vec4 srf_vec;
+
+    srf_vec[RT_X] = srf->mid[RT_X] - lgt->pos[RT_X];
+    srf_vec[RT_Y] = srf->mid[RT_Y] - lgt->pos[RT_Y];
+    srf_vec[RT_Z] = srf->mid[RT_Z] - lgt->pos[RT_Z];
+    srf_vec[RT_W] = 0.0f;
+
+    rt_real ang = RT_VECTOR_DOT(shw_vec, srf_vec);
+
+    rt_real f = 0.0f;
+    rt_real len = 0.0f;
+
+    f = shw_vec[RT_X];
+    len += f * f;
+    f = shw_vec[RT_Y];
+    len += f * f;
+    f = shw_vec[RT_Z];
+    len += f * f;
+
+    len = RT_SQRT(len);
+    ang /= len;
+
+    rt_real shw_ang = len > shw->rad ?
+                            RT_ASIN(shw->rad / len) : (rt_real)RT_2_PI;
+
+    f = 0.0f;
+    len = 0.0f;
+
+    f = srf_vec[RT_X];
+    len += f * f;
+    f = srf_vec[RT_Y];
+    len += f * f;
+    f = srf_vec[RT_Z];
+    len += f * f;
+
+    len = RT_SQRT(len);
+    ang /= len;
+
+    rt_real srf_ang = len > srf->rad ?
+                            RT_ASIN(srf->rad / len) : (rt_real)RT_2_PI;
+
+    ang = RT_ACOS(ang);
+
+    if (shw_ang + srf_ang < ang)
+    {
+        return 0;
+    }
+
+    /* check if bounding boxes cast shadows */
+
+    return 1;
+}
+
+/******************************************************************************/
 /******************************************************************************/
 /******************************************************************************/

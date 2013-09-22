@@ -33,6 +33,7 @@
 
 #define RT_TILING_EXT           0
 #define RT_TILING_OPT           1
+#define RT_SHADOW_OPT           1
 #define RT_TARRAY_OPT           1
 
 #endif /* RT_RTCONF_H */

@@ -1081,6 +1081,47 @@ rt_void rt_Surface::update_minmax()
 }
 
 /*
+ * Update bounding sphere data.
+ */
+rt_void rt_Surface::update_bounds()
+{
+    rt_cell i;
+    rt_real f = 1.0f / (rt_real)verts_num;
+
+    mid[RT_X] = 0.0f;
+    mid[RT_Y] = 0.0f;
+    mid[RT_Z] = 0.0f;
+
+    for (i = 0; i < verts_num; i++)
+    {
+        mid[RT_X] += verts[i].pos[RT_X] * f;
+        mid[RT_Y] += verts[i].pos[RT_Y] * f;
+        mid[RT_Z] += verts[i].pos[RT_Z] * f;
+    }
+
+    rad = 0.0f;
+
+    for (i = 0; i < verts_num; i++)
+    {
+        rt_real len = 0.0f;
+
+        f = mid[RT_X] - verts[i].pos[RT_X];
+        len += f * f;
+        f = mid[RT_Y] - verts[i].pos[RT_Y];
+        len += f * f;
+        f = mid[RT_Z] - verts[i].pos[RT_Z];
+        len += f * f;
+
+        if (rad < len)
+        {
+            rad = len;
+        }
+    }
+
+    rad = sqrtf(rad);
+}
+
+/*
  * Destroy surface object.
  */
 rt_Surface::~rt_Surface()
@@ -1225,6 +1266,8 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         verts[0x3].pos[mp_k] = bmin[mp_k];
         verts[0x3].pos[mp_l] = 1.0f;
     }
+
+    update_bounds();
 }
 
 /*
@@ -1428,6 +1471,8 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         verts[0x7].pos[mp_k] = bmax[mp_k];
         verts[0x7].pos[mp_l] = 1.0f;
     }
+
+    update_bounds();
 }
 
 /*
@@ -1962,8 +2007,7 @@ rt_Texture::~rt_Texture()
 }
 
 /* For surface's UV coords
- *  to texture's XY coords mapping
- */
+ *  to texture's XY coords mapping */
 #define RT_U                0
 #define RT_V                1
 

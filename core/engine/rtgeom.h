@@ -9,6 +9,7 @@
 
 #include "rtbase.h"
 #include "format.h"
+#include "object.h"
 
 /******************************************************************************/
 /********************************   MATRICES   ********************************/
@@ -64,6 +65,15 @@ do                                                                          \
     vp[RT_Z] = v1[RT_X] * v2[RT_Y] - v2[RT_X] * v1[RT_Y];                   \
 }                                                                           \
 while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
+
+/*
+ * Determine if "shw" bbox casts shadow on "srf" bbox from "lgt" pos.
+ *
+ * Return values:
+ *  0 - no
+ *  1 - yes
+ */
+rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf);
 
 #endif /* RT_RTGEOM_H */
 

@@ -929,10 +929,22 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
         pto = (rt_ELEM **)&srf->s_srf->lst_p[0];
         pti = (rt_ELEM **)&srf->s_srf->lst_p[2];
 
-       *pto = scene->llist; /* all lgt are potential sources */
-       *pti = scene->llist; /* all lgt are potential sources */
+#if RT_SHADOW_OPT
+        if (RT_TRUE)
+        {
+           *pto = RT_NULL;
+           *pti = RT_NULL;
 
-        return RT_NULL;
+            /* RT_LOGI("Building llist for surface\n"); */
+        }
+        else
+#endif /* RT_SHADOW_OPT */
+        {
+           *pto = scene->llist; /* all lgt are potential sources */
+           *pti = scene->llist; /* all lgt are potential sources */
+
+            return RT_NULL;
+        }
     }
 
     rt_Light *lgt = RT_NULL;
@@ -942,6 +954,37 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
     for (lgt = scene->lgt_head; lgt != RT_NULL; lgt = lgt->next)
     {
         insert(lgt, ptr, RT_NULL);
+
+#if RT_SHADOW_OPT
+        if (srf == RT_NULL)
+        {
+            continue;
+        }
+
+        rt_ELEM **psr = (rt_ELEM**)&(*ptr)->data;
+
+       *psr = RT_NULL;
+
+        rt_Surface *shw = RT_NULL;
+
+        for (shw = scene->srf_head; shw != RT_NULL; shw = shw->next)
+        {
+            if (bbox_shad(lgt, shw, srf) == 0)
+            {
+                continue;
+            }
+
+            insert(lgt, psr, shw);
+        }
+#endif /* RT_SHADOW_OPT */
+    }
+
+    if (srf != RT_NULL)
+    {
+       *pto = lst;
+       *pti = lst;
+
+        return RT_NULL;
     }
 
     return lst;

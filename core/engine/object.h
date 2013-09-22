@@ -284,8 +284,8 @@ class rt_Light : public rt_Object, public rt_List<rt_Light>
 /******************************************************************************/
 
 /*
- * Node is an object that itself is or contains renderable,
- * only node elements can be inserted into backend surface lists.
+ * Node is an object that itself is or contains renderable.
+ * Only node elements can be inserted into backend surface lists.
  */
 class rt_Node : public rt_Object
 {
@@ -299,6 +299,11 @@ class rt_Node : public rt_Object
 
     rt_cell             map[3];
     rt_cell             sgn[3];
+
+    /* bounding sphere center */
+    rt_vec4             mid;
+    /* bounding sphere radius */
+    rt_real             rad;
 
 /*  methods */
 
@@ -421,6 +426,7 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
                           rt_vec4 dmin, rt_vec4 dmax); /* dst */
 
     rt_void update_minmax();
+    rt_void update_bounds();
 };
 
 /******************************************************************************/
