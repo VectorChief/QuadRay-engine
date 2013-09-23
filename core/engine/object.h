@@ -60,11 +60,13 @@ struct rt_VERT
 struct rt_EDGE
 {
     rt_cell index[2];
+    rt_cell k;
 };
 
 struct rt_FACE
 {
     rt_cell index[4];
+    rt_cell k, i, j;
 };
 
 /* Classes */

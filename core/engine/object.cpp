@@ -153,7 +153,7 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * for non-surface / non-array objects
      * or all objects if transform caching is disabled */
     if (trnode != RT_NULL && trnode != this
-#if RT_TARRAY_OPT
+#if RT_TARRAY_OPT == 1
     && tag > RT_TAG_SURFACE_MAX
 #endif /* RT_TARRAY_OPT */
        )
@@ -1243,6 +1243,15 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         matrix_mul_vector(verts[0x1].pos, (*pmtx), vt1);
         matrix_mul_vector(verts[0x2].pos, (*pmtx), vt2);
         matrix_mul_vector(verts[0x3].pos, (*pmtx), vt3);
+
+        edges[0x0].k = 3;
+        edges[0x1].k = 3;
+        edges[0x2].k = 3;
+        edges[0x3].k = 3;
+
+        faces[0x0].k = 3;
+        faces[0x0].i = 3;
+        faces[0x0].j = 3;
     }
     else
     {
@@ -1265,6 +1274,15 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         verts[0x3].pos[mp_j] = bmax[mp_j];
         verts[0x3].pos[mp_k] = bmin[mp_k];
         verts[0x3].pos[mp_l] = 1.0f;
+
+        edges[0x0].k = mp_i;
+        edges[0x1].k = mp_j;
+        edges[0x2].k = mp_i;
+        edges[0x3].k = mp_j;
+
+        faces[0x0].k = mp_k;
+        faces[0x0].i = mp_i;
+        faces[0x0].j = mp_j;
     }
 
     update_bounds();
@@ -1428,6 +1446,45 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         matrix_mul_vector(verts[0x5].pos, (*pmtx), vt5);
         matrix_mul_vector(verts[0x6].pos, (*pmtx), vt6);
         matrix_mul_vector(verts[0x7].pos, (*pmtx), vt7);
+
+        edges[0x0].k = 3;
+        edges[0x1].k = 3;
+        edges[0x2].k = 3;
+        edges[0x3].k = 3;
+
+        edges[0x4].k = 3;
+        edges[0x5].k = 3;
+        edges[0x6].k = 3;
+        edges[0x7].k = 3;
+
+        edges[0x8].k = 3;
+        edges[0x9].k = 3;
+        edges[0xA].k = 3;
+        edges[0xB].k = 3;
+
+        faces[0x0].k = 3;
+        faces[0x0].i = 3;
+        faces[0x0].j = 3;
+
+        faces[0x1].k = 3;
+        faces[0x1].i = 3;
+        faces[0x1].j = 3;
+
+        faces[0x2].k = 3;
+        faces[0x2].i = 3;
+        faces[0x2].j = 3;
+
+        faces[0x3].k = 3;
+        faces[0x3].i = 3;
+        faces[0x3].j = 3;
+
+        faces[0x4].k = 3;
+        faces[0x4].i = 3;
+        faces[0x4].j = 3;
+
+        faces[0x5].k = 3;
+        faces[0x5].i = 3;
+        faces[0x5].j = 3;
     }
     else
     {
@@ -1470,6 +1527,45 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         verts[0x7].pos[mp_j] = bmax[mp_j];
         verts[0x7].pos[mp_k] = bmax[mp_k];
         verts[0x7].pos[mp_l] = 1.0f;
+
+        edges[0x0].k = mp_i;
+        edges[0x1].k = mp_j;
+        edges[0x2].k = mp_i;
+        edges[0x3].k = mp_j;
+
+        edges[0x4].k = mp_i;
+        edges[0x5].k = mp_j;
+        edges[0x6].k = mp_i;
+        edges[0x7].k = mp_j;
+
+        edges[0x8].k = mp_k;
+        edges[0x9].k = mp_k;
+        edges[0xA].k = mp_k;
+        edges[0xB].k = mp_k;
+
+        faces[0x0].k = mp_k;
+        faces[0x0].i = mp_i;
+        faces[0x0].j = mp_j;
+
+        faces[0x1].k = mp_k;
+        faces[0x1].i = mp_i;
+        faces[0x1].j = mp_j;
+
+        faces[0x2].k = mp_j;
+        faces[0x2].i = mp_k;
+        faces[0x2].j = mp_i;
+
+        faces[0x3].k = mp_i;
+        faces[0x3].i = mp_k;
+        faces[0x3].j = mp_j;
+
+        faces[0x4].k = mp_j;
+        faces[0x4].i = mp_k;
+        faces[0x4].j = mp_i;
+
+        faces[0x5].k = mp_i;
+        faces[0x5].i = mp_k;
+        faces[0x5].j = mp_j;
     }
 
     update_bounds();

@@ -501,7 +501,7 @@ rt_void rt_SceneThread::tiling(rt_vec4 p1, rt_vec4 p2)
         yy = dy;
     }
 
-#if RT_TILING_EXT
+#if RT_TILING_EXT == 1
 
     px  = RT_TILE_THRESHOLD / RT_SQRT(xx * xx + yy * yy);
     xx *= px;
@@ -699,7 +699,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
     rt_ELEM *lst = RT_NULL;
     rt_ELEM *elm = RT_NULL;
     rt_cell i, j;
-#if RT_TILING_OPT
+#if RT_TILING_OPT == 1
     rt_cell k;
 
     rt_vec4 vec;
@@ -929,7 +929,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
         pto = (rt_ELEM **)&srf->s_srf->lst_p[0];
         pti = (rt_ELEM **)&srf->s_srf->lst_p[2];
 
-#if RT_SHADOW_OPT
+#if RT_SHADOW_OPT == 1
         if (RT_TRUE)
         {
            *pto = RT_NULL;
@@ -955,7 +955,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
     {
         insert(lgt, ptr, RT_NULL);
 
-#if RT_SHADOW_OPT
+#if RT_SHADOW_OPT == 1
         if (srf == RT_NULL)
         {
             continue;
@@ -1290,7 +1290,7 @@ rt_void rt_Scene::render(rt_long time)
     rt_cell tline;
     rt_cell j;
 
-#if RT_TILING_OPT
+#if RT_TILING_OPT == 1
 
     memset(tiles, 0, sizeof(rt_ELEM *) * tiles_in_row * tiles_in_col);
 

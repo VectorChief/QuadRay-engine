@@ -236,6 +236,334 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
 /******************************************************************************/
 
 /*
+ * Determine if vert "p1" and face "q0-q1-q2" intersect from vert "p0".
+ *
+ * Return values:
+ *  0 - don't intersect (or lie on the same plane)
+ *  1 - intersect o-p-q ( ^ dir: 0, 3)
+ *  2 - intersect o-q-p ( ^ dir: 0, 3)
+ *  3 - intersect o-p=q
+ */
+rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1, rt_cell dir,
+                     rt_vec4 q0, rt_vec4 q1, rt_vec4 q2,
+                     rt_cell qk, rt_cell qi, rt_cell qj)
+{
+    rt_vec4 e1, e2, pr, qr, mx, nx;
+    rt_real det, inv_det, t, u, v;
+
+    if (qk < 3 && qi < 3 && qj < 3)
+    {
+        pr[qk] = p1[qk] - p0[qk];
+        qr[qk] = q0[qk] - p0[qk];
+
+        if (RT_FABS(pr[qk]) <= RT_CULL_THRESHOLD)
+        {
+            return 0;
+        }
+
+        t = qr[qk] == pr[qk] ? 1.0f : qr[qk] / pr[qk];
+
+        pr[qi] = p1[qi] - p0[qi];
+        qr[qi] = p0[qi] + pr[qi] * t;
+
+        nx[qi] = RT_MIN(q0[qi], q1[qi]);
+        mx[qi] = RT_MAX(q0[qi], q1[qi]);
+
+        u = qr[qi];
+
+        if (u <= nx[qi] - RT_CULL_THRESHOLD
+        ||  u >= mx[qi] + RT_CULL_THRESHOLD)
+        {
+            return 0;
+        }
+
+        pr[qj] = p1[qj] - p0[qj];
+        qr[qj] = p0[qj] + pr[qj] * t;
+
+        nx[qj] = RT_MIN(q1[qj], q2[qj]);
+        mx[qj] = RT_MAX(q1[qj], q2[qj]);
+
+        v = qr[qj];
+
+        if (v <= nx[qj] - RT_CULL_THRESHOLD
+        ||  v >= mx[qj] + RT_CULL_THRESHOLD)
+        {
+            return 0;
+        }
+
+        if (t >= 1.0f - RT_CULL_THRESHOLD
+        &&  t <= 1.0f + RT_CULL_THRESHOLD
+        && (u >= nx[qi] - RT_CULL_THRESHOLD
+        &&  u <= nx[qi] + RT_CULL_THRESHOLD
+        ||  u >= mx[qi] - RT_CULL_THRESHOLD
+        &&  u <= mx[qi] + RT_CULL_THRESHOLD
+        ||  v >= nx[qj] - RT_CULL_THRESHOLD
+        &&  v <= nx[qj] + RT_CULL_THRESHOLD
+        ||  v >= mx[qj] - RT_CULL_THRESHOLD
+        &&  v <= mx[qj] + RT_CULL_THRESHOLD))
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        /* find direction of ray */
+
+        pr[RT_X] = p1[RT_X] - p0[RT_X];
+        pr[RT_Y] = p1[RT_Y] - p0[RT_Y];
+        pr[RT_Z] = p1[RT_Z] - p0[RT_Z];
+
+        /* find vectors for two edges */
+
+        e1[RT_X] = q1[RT_X] - q0[RT_X];
+        e1[RT_Y] = q1[RT_Y] - q0[RT_Y];
+        e1[RT_Z] = q1[RT_Z] - q0[RT_Z];
+
+        e2[RT_X] = q2[RT_X] - q0[RT_X];
+        e2[RT_Y] = q2[RT_Y] - q0[RT_Y];
+        e2[RT_Z] = q2[RT_Z] - q0[RT_Z];
+
+        /* begin calculating determinant */
+
+        RT_VECTOR_CROSS(mx, pr, e2);
+
+        /* if determinant is near zero, ray lies in plane of triangle */
+
+        det = RT_VECTOR_DOT(e1, mx);
+
+        if (RT_FABS(det) <= RT_CULL_THRESHOLD)
+        {
+            return 0;
+        }
+
+        inv_det = 1.0f / det;
+
+        /* calculate distance from q0 to ray origin */
+
+        qr[RT_X] = p0[RT_X] - q0[RT_X];
+        qr[RT_Y] = p0[RT_Y] - q0[RT_Y];
+        qr[RT_Z] = p0[RT_Z] - q0[RT_Z];
+
+        /* calculate u parameter and test bounds */
+
+        u = RT_VECTOR_DOT(qr, mx) * inv_det;
+        if (u <= 0.0f - RT_CULL_THRESHOLD
+        ||  u >= 1.0f + RT_CULL_THRESHOLD)
+        {
+            return 0;
+        }
+
+        /* begin calculating v parameter */
+
+        RT_VECTOR_CROSS(nx, qr, e1);
+
+        /* calculate v parameter and test bounds */
+
+        v = RT_VECTOR_DOT(pr, nx) * inv_det;
+        if (v <= 0.0f - RT_CULL_THRESHOLD
+        ||  v >= 1.0f + RT_CULL_THRESHOLD - u)
+        {
+            return 0;
+        }
+
+        /* calculate t, analog of distance to intersection */
+
+        t = RT_VECTOR_DOT(e2, nx) * inv_det;
+
+        if (t >= 1.0f - RT_CULL_THRESHOLD
+        &&  t <= 1.0f + RT_CULL_THRESHOLD
+        && (u >= 0.0f - RT_CULL_THRESHOLD
+        &&  u <= 0.0f + RT_CULL_THRESHOLD
+        ||  v >= 0.0f - RT_CULL_THRESHOLD
+        &&  v <= 0.0f + RT_CULL_THRESHOLD
+        ||  v >= 1.0f - RT_CULL_THRESHOLD - u
+        &&  v <= 1.0f + RT_CULL_THRESHOLD - u))
+        {
+            return 0;
+        }
+    }
+
+    /* sort outward */
+    return t <= 0.0f ? 0 : t >= 1.0f + RT_CULL_THRESHOLD ? 1 ^ dir :
+                           t <= 1.0f - RT_CULL_THRESHOLD ? 2 ^ dir : 3;
+}
+
+/*
+ * Determine if edge "p1-p2" and edge "q1-q2" intersect from vert "p0".
+ *
+ * Return values:
+ *  0 - don't intersect (or lie on the same plane)
+ *  1 - intersect o-p-q
+ *  2 - intersect o-q-p
+ *  3 - intersect o-p=q
+ */
+rt_cell edge_to_edge(rt_vec4 p0,
+                     rt_vec4 p1, rt_vec4 p2, rt_cell pk,
+                     rt_vec4 q1, rt_vec4 q2, rt_cell qk)
+{
+    rt_vec4 ep, eq, pr, qr, mx, nx;
+    rt_real det, inv_det, t, u, v;
+
+    if (pk < 3 && qk < 3)
+    {
+        if (pk == qk)
+        {
+            return 0;
+        }
+
+        rt_cell mp[3][3] =
+        {
+            {0, 2, 1},
+            {2, 1, 0},
+            {1, 0, 2},
+        };
+        rt_cell kk = mp[pk][qk];
+
+        pr[kk] = p1[kk] - p0[kk];
+        qr[kk] = q1[kk] - p0[kk];
+
+        if (RT_FABS(pr[kk]) <= RT_CULL_THRESHOLD
+        ||  RT_FABS(qr[kk]) <= RT_CULL_THRESHOLD)
+        {
+            return 0;
+        }
+
+        t = pr[kk] == qr[kk] ? 1.0f : pr[kk] / qr[kk];
+
+        qr[pk] = q1[pk] - p0[pk];
+        pr[pk] = p0[pk] + qr[pk] * t;
+
+        nx[pk] = RT_MIN(p1[pk], p2[pk]);
+        mx[pk] = RT_MAX(p1[pk], p2[pk]);
+
+        u = pr[pk];
+
+        if (u <= nx[pk] - RT_CULL_THRESHOLD
+        ||  u >= mx[pk] + RT_CULL_THRESHOLD)
+        {
+            return 0;
+        }
+
+        t = qr[kk] == pr[kk] ? 1.0f : qr[kk] / pr[kk];
+
+        pr[qk] = p1[qk] - p0[qk];
+        qr[qk] = p0[qk] + pr[qk] * t;
+
+        nx[qk] = RT_MIN(q1[qk], q2[qk]);
+        mx[qk] = RT_MAX(q1[qk], q2[qk]);
+
+        v = qr[qk];
+
+        if (v <= nx[qk] - RT_CULL_THRESHOLD
+        ||  v >= mx[qk] + RT_CULL_THRESHOLD)
+        {
+            return 0;
+        }
+
+        if (t >= 1.0f - RT_CULL_THRESHOLD
+        &&  t <= 1.0f + RT_CULL_THRESHOLD
+        && (u >= nx[pk] - RT_CULL_THRESHOLD
+        &&  u <= nx[pk] + RT_CULL_THRESHOLD
+        ||  u >= mx[pk] - RT_CULL_THRESHOLD
+        &&  u <= mx[pk] + RT_CULL_THRESHOLD
+        ||  v >= nx[qk] - RT_CULL_THRESHOLD
+        &&  v <= nx[qk] + RT_CULL_THRESHOLD
+        ||  v >= mx[qk] - RT_CULL_THRESHOLD
+        &&  v <= mx[qk] + RT_CULL_THRESHOLD))
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        /* calculate distance from origin to p1 */
+
+        pr[RT_X] = p1[RT_X] - p0[RT_X];
+        pr[RT_Y] = p1[RT_Y] - p0[RT_Y];
+        pr[RT_Z] = p1[RT_Z] - p0[RT_Z];
+
+        /* find vectors for two edges */
+
+        ep[RT_X] = p2[RT_X] - p1[RT_X];
+        ep[RT_Y] = p2[RT_Y] - p1[RT_Y];
+        ep[RT_Z] = p2[RT_Z] - p1[RT_Z];
+
+        eq[RT_X] = q2[RT_X] - q1[RT_X];
+        eq[RT_Y] = q2[RT_Y] - q1[RT_Y];
+        eq[RT_Z] = q2[RT_Z] - q1[RT_Z];
+
+        /* begin calculating determinant */
+
+        RT_VECTOR_CROSS(mx, eq, ep);
+
+        /* if determinant is near zero, lines are parallel */
+
+        det = RT_VECTOR_DOT(pr, mx);
+
+        if (RT_FABS(det) <= RT_CULL_THRESHOLD)
+        {
+            return 0;
+        }
+
+        inv_det = 1.0f / det;
+
+        /* calculate distance from ray origin to q1 */
+
+        qr[RT_X] = q1[RT_X] - p0[RT_X];
+        qr[RT_Y] = q1[RT_Y] - p0[RT_Y];
+        qr[RT_Z] = q1[RT_Z] - p0[RT_Z];
+
+        /* calculate t, analog of distance to intersection */
+
+        t = RT_VECTOR_DOT(qr, mx) * inv_det;
+        if (RT_FABS(t) <= RT_CULL_THRESHOLD)
+        {
+            return 0;
+        }
+
+        /* begin calculating v parameter */
+
+        RT_VECTOR_CROSS(nx, qr, pr);
+
+        /* calculate v parameter and test bounds */
+
+        v = RT_VECTOR_DOT(ep, nx) * inv_det;
+        if (v <= 0.0f - RT_CULL_THRESHOLD
+        ||  v >= 1.0f + RT_CULL_THRESHOLD)
+        {
+            return 0;
+        }
+
+        /* calculate u parameter and test bounds */
+
+        u = RT_VECTOR_DOT(eq, nx) * inv_det / t;
+        if (u <= 0.0f - RT_CULL_THRESHOLD
+        ||  u >= 1.0f + RT_CULL_THRESHOLD)
+        {
+            return 0;
+        }
+
+        if (t >= 1.0f - RT_CULL_THRESHOLD
+        &&  t <= 1.0f + RT_CULL_THRESHOLD
+        && (u >= 0.0f - RT_CULL_THRESHOLD
+        &&  u <= 0.0f + RT_CULL_THRESHOLD
+        ||  u >= 1.0f - RT_CULL_THRESHOLD
+        &&  u <= 1.0f + RT_CULL_THRESHOLD
+        ||  v >= 0.0f - RT_CULL_THRESHOLD
+        &&  v <= 0.0f + RT_CULL_THRESHOLD
+        ||  v >= 1.0f - RT_CULL_THRESHOLD
+        &&  v <= 1.0f + RT_CULL_THRESHOLD))
+        {
+            return 0;
+        }
+    }
+
+    /* sort outward */
+    return t <= 0.0f ? 0 : t >= 1.0f + RT_CULL_THRESHOLD ? 1 :
+                           t <= 1.0f - RT_CULL_THRESHOLD ? 2 : 3;
+}
+
+/*
  * Determine if "shw" bbox casts shadow on "srf" bbox from "lgt" pos.
  *
  * Return values:
@@ -308,7 +636,92 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
         return 0;
     }
 
+#if RT_SHADOW_EXT == 1
+
     /* check if bounding boxes cast shadows */
+
+    rt_cell i, j;
+
+    for (j = 0; j < srf->faces_num; j++)
+    {
+        rt_FACE *fc = &srf->faces[j];
+
+        for (i = 0; i < shw->verts_num; i++)
+        {
+            if (vert_to_face(lgt->pos, shw->verts[i].pos, 0,
+                             srf->verts[fc->index[0]].pos,
+                             srf->verts[fc->index[1]].pos,
+                             srf->verts[fc->index[2]].pos,
+                             fc->k, fc->i, fc->j) == 1)
+            {
+                return 1;
+            }
+            if (fc->k < 3)
+            {
+                continue;
+            }
+            if (vert_to_face(lgt->pos, shw->verts[i].pos, 0,
+                             srf->verts[fc->index[2]].pos,
+                             srf->verts[fc->index[3]].pos,
+                             srf->verts[fc->index[0]].pos,
+                             fc->k, fc->i, fc->j) == 1)
+            {
+                return 1;
+            }
+        }
+    }
+
+    for (j = 0; j < shw->faces_num; j++)
+    {
+        rt_FACE *fc = &shw->faces[j];
+
+        for (i = 0; i < srf->verts_num; i++)
+        {
+            if (vert_to_face(lgt->pos, srf->verts[i].pos, 3,
+                             shw->verts[fc->index[0]].pos,
+                             shw->verts[fc->index[1]].pos,
+                             shw->verts[fc->index[2]].pos,
+                             fc->k, fc->i, fc->j) == 1)
+            {
+                return 1;
+            }
+            if (fc->k < 3)
+            {
+                continue;
+            }
+            if (vert_to_face(lgt->pos, srf->verts[i].pos, 3,
+                             shw->verts[fc->index[2]].pos,
+                             shw->verts[fc->index[3]].pos,
+                             shw->verts[fc->index[0]].pos,
+                             fc->k, fc->i, fc->j) == 1)
+            {
+                return 1;
+            }
+        }
+    }
+
+    for (j = 0; j < srf->edges_num; j++)
+    {
+        rt_EDGE *ej = &srf->edges[j];
+
+        for (i = 0; i < shw->edges_num; i++)
+        {
+            rt_EDGE *ei = &shw->edges[i];
+
+            if (edge_to_edge(lgt->pos,
+                             shw->verts[ei->index[0]].pos,
+                             shw->verts[ei->index[1]].pos, ei->k,
+                             srf->verts[ej->index[0]].pos,
+                             srf->verts[ej->index[1]].pos, ej->k) == 1)
+            {
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+
+#endif /* RT_SHADOW_EXT */
 
     return 1;
 }

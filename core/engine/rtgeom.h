@@ -67,6 +67,32 @@ do                                                                          \
 while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
 
 /*
+ * Determine if vert "p1" and face "q0-q1-q2" intersect from vert "p0".
+ *
+ * Return values:
+ *  0 - don't intersect (or lie on the same plane)
+ *  1 - intersect o-p-q ( ^ dir: 0, 3)
+ *  2 - intersect o-q-p ( ^ dir: 0, 3)
+ *  3 - intersect o-p=q
+ */
+rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1, rt_cell dir,
+                     rt_vec4 q0, rt_vec4 q1, rt_vec4 q2,
+                     rt_cell qk, rt_cell qi, rt_cell qj);
+
+/*
+ * Determine if edge "p1-p2" and edge "q1-q2" intersect from vert "p0".
+ *
+ * Return values:
+ *  0 - don't intersect (or lie on the same plane)
+ *  1 - intersect o-p-q
+ *  2 - intersect o-q-p
+ *  3 - intersect o-p=q
+ */
+rt_cell edge_to_edge(rt_vec4 p0,
+                     rt_vec4 p1, rt_vec4 p2, rt_cell pk,
+                     rt_vec4 q1, rt_vec4 q2, rt_cell qk);
+
+/*
  * Determine if "shw" bbox casts shadow on "srf" bbox from "lgt" pos.
  *
  * Return values:

@@ -30,10 +30,12 @@
 #define RT_TILE_THRESHOLD       0.2f
 #define RT_LINE_THRESHOLD       0.01f
 #define RT_CLIP_THRESHOLD       0.01f
+#define RT_CULL_THRESHOLD       0.0001f
 
-#define RT_TILING_EXT           0
 #define RT_TILING_OPT           1
+#define RT_TILING_EXT           0
 #define RT_SHADOW_OPT           1
+#define RT_SHADOW_EXT           1
 #define RT_TARRAY_OPT           1
 
 #endif /* RT_RTCONF_H */
