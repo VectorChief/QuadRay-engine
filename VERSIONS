@@ -1,3 +1,8 @@
+v0.5.3: Performance optimizations, custom shadow lists
+  - add bounding sphere to object classes
+  - build custom per-surface per-light shadow lists
+  - refine shadows optimization with bounding boxes
+
 v0.5.2: Performance optimizations, transform caching and scaling fastpath
   - add transform caching (trnodes) to object classes
   - insert trnodes into clippers, surface and tile lists
