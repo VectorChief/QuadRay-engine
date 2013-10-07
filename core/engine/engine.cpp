@@ -955,6 +955,11 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
     {
         insert(lgt, ptr, RT_NULL);
 
+        if (g_print)
+        {
+            RT_PRINT_LGT(*ptr, lgt);
+        }
+
 #if RT_SHADOW_OPT == 1
         if (srf == RT_NULL)
         {
@@ -975,6 +980,11 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             }
 
             insert(lgt, psr, shw);
+        }
+
+        if (g_print && *psr != RT_NULL)
+        {
+            RT_PRINT_SHW(*psr);
         }
 #endif /* RT_SHADOW_OPT */
     }
