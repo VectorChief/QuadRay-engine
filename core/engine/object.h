@@ -398,6 +398,10 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
     rt_FACE            *faces;
     rt_cell             faces_num;
 
+    rt_vec4             sci;
+    rt_vec4             scj;
+    rt_vec4             sck;
+
     private:
 
     rt_Material        *outer;
@@ -523,6 +527,8 @@ class rt_Cylinder : public rt_Quadric
    ~rt_Cylinder();
 
     virtual
+    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
+    virtual
     rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
                           rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
                           rt_vec4 cmin, rt_vec4 cmax); /* cbox */
@@ -553,6 +559,8 @@ class rt_Sphere : public rt_Quadric
     virtual
    ~rt_Sphere();
 
+    virtual
+    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
     virtual
     rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
                           rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
@@ -585,6 +593,8 @@ class rt_Cone : public rt_Quadric
    ~rt_Cone();
 
     virtual
+    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
+    virtual
     rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
                           rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
                           rt_vec4 cmin, rt_vec4 cmax); /* cbox */
@@ -616,6 +626,8 @@ class rt_Paraboloid : public rt_Quadric
    ~rt_Paraboloid();
 
     virtual
+    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
+    virtual
     rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
                           rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
                           rt_vec4 cmin, rt_vec4 cmax); /* cbox */
@@ -646,6 +658,8 @@ class rt_Hyperboloid : public rt_Quadric
     virtual
    ~rt_Hyperboloid();
 
+    virtual
+    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
     virtual
     rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
                           rt_vec4 bmin, rt_vec4 bmax,  /* bbox */

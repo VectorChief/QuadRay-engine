@@ -1201,6 +1201,23 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     rt_Surface::update(time, mtx, flags);
 
+    sci[RT_X] = 0.0f;
+    sci[RT_Y] = 0.0f;
+    sci[RT_Z] = 0.0f;
+    sci[RT_W] = 0.0f;
+
+    scj[RT_X] = 0.0f;
+    scj[RT_Y] = 0.0f;
+    scj[RT_Z] = 0.0f;
+    scj[RT_W] = 0.0f;
+
+    sck[RT_X] = 0.0f;
+    sck[RT_Y] = 0.0f;
+    sck[RT_Z] = 0.0f;
+    sck[RT_W] = 0.0f;
+
+    sck[mp_k] = (rt_real)sgn[RT_K];
+
     if (verts == RT_NULL)
     {
         return;
@@ -1375,6 +1392,21 @@ rt_Quadric::rt_Quadric(rt_Registry *rg, rt_Object *parent,
 rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     rt_Surface::update(time, mtx, flags);
+
+    sci[RT_X] = 1.0f;
+    sci[RT_Y] = 1.0f;
+    sci[RT_Z] = 1.0f;
+    sci[RT_W] = 0.0f;
+
+    scj[RT_X] = 0.0f;
+    scj[RT_Y] = 0.0f;
+    scj[RT_Z] = 0.0f;
+    scj[RT_W] = 0.0f;
+
+    sck[RT_X] = 0.0f;
+    sck[RT_Y] = 0.0f;
+    sck[RT_Z] = 0.0f;
+    sck[RT_W] = 0.0f;
 
     if (verts == RT_NULL)
     {
@@ -1641,6 +1673,17 @@ rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
 }
 
 /*
+ * Update object with given "time", matrix "mtx" and "flags".
+ */
+rt_void rt_Cylinder::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+{
+    rt_Quadric::update(time, mtx, flags);
+
+    sci[mp_k] = 0.0f;
+    sci[RT_W] = xcl->rad * xcl->rad;
+}
+
+/*
  * Adjust bounding and clipping boxes according to surface shape.
  */
 rt_void rt_Cylinder::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
@@ -1728,6 +1771,16 @@ rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
 
     RT_SIMD_SET(s_xsp->rad_2, rad * rad);
     RT_SIMD_SET(s_xsp->i_rad, 1.0f / rad);
+}
+
+/*
+ * Update object with given "time", matrix "mtx" and "flags".
+ */
+rt_void rt_Sphere::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+{
+    rt_Quadric::update(time, mtx, flags);
+
+    sci[RT_W] = xsp->rad * xsp->rad;
 }
 
 /*
@@ -1842,6 +1895,16 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
 }
 
 /*
+ * Update object with given "time", matrix "mtx" and "flags".
+ */
+rt_void rt_Cone::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+{
+    rt_Quadric::update(time, mtx, flags);
+
+    sci[mp_k] = -(xcn->rat * xcn->rat);
+}
+
+/*
  * Adjust bounding and clipping boxes according to surface shape.
  */
 rt_void rt_Cone::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
@@ -1933,6 +1996,17 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_xpb->i_par, par * par / 4.0f);
     RT_SIMD_SET(s_xpb->par_k, par);
     RT_SIMD_SET(s_xpb->one_k, 1.0f);
+}
+
+/*
+ * Update object with given "time", matrix "mtx" and "flags".
+ */
+rt_void rt_Paraboloid::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+{
+    rt_Quadric::update(time, mtx, flags);
+
+    sci[mp_k] = 0.0f;
+    scj[mp_k] = xpb->par * (rt_real)sgn[RT_K];
 }
 
 /*
@@ -2033,6 +2107,17 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_xhb->i_rat, (1.0f + rat * rat) * rat * rat);
     RT_SIMD_SET(s_xhb->hyp_k, hyp);
     RT_SIMD_SET(s_xhb->one_k, 1.0f);
+}
+
+/*
+ * Update object with given "time", matrix "mtx" and "flags".
+ */
+rt_void rt_Hyperboloid::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+{
+    rt_Quadric::update(time, mtx, flags);
+
+    sci[mp_k] = -(xhb->rat * xhb->rat);
+    sci[RT_W] = xhb->hyp;
 }
 
 /*
