@@ -149,7 +149,7 @@ rt_void matrix_from_transform(rt_mat4 mp, rt_TRANSFORM3D *t1)
 }
 
 /*
- * Compute inverse matrix.
+ * Compute upper-left 3x3 inverse of a 4x4 matrix.
  */
 rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
 {
@@ -724,6 +724,223 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 #endif /* RT_SHADOW_EXT */
 
     return 1;
+}
+
+/*
+ * Determine if there are holes in "srf" not related to "ref".
+ * Holes are either minmax clippers or custom clippers.
+ *
+ * Return values:
+ *  0 - no
+ *  1 - yes, minmax only
+ *  2 - yes, custom only
+ *  3 - yes, both
+ */
+rt_cell surf_hole(rt_Surface *srf, rt_Surface *ref)
+{
+    rt_cell c = 0;
+
+    /* check minmax clippers */
+    if (srf->cmin[RT_X] != -RT_INF || srf->cmax[RT_X] != +RT_INF
+    ||  srf->cmin[RT_Y] != -RT_INF || srf->cmax[RT_Y] != +RT_INF
+    ||  srf->cmin[RT_Z] != -RT_INF || srf->cmax[RT_Z] != +RT_INF)
+    {
+        c |= 1;
+    }
+
+    rt_ELEM *elm = (rt_ELEM *)srf->s_srf->msc_p[2];
+
+    /* run through custom clippers list */
+    for (; elm != RT_NULL; elm = elm->next)
+    {
+        rt_Object *obj = (rt_Object *)elm->temp;
+
+        /* skip accum markers and trnode elements */
+        if (obj == RT_NULL || RT_IS_ARRAY(obj))
+        {
+            continue;
+        }
+
+        /* if there is clipper other than "ref", stop */
+        if (obj != ref)
+        {
+            c |= 2;
+            break;
+        }
+    }
+
+    return c;
+}
+
+/*
+ * Determine whether "srf" is convex or concave.
+ *
+ * Return values:
+ *  0 - convex
+ *  1 - concave
+ */
+rt_cell surf_conc(rt_Surface *srf)
+{
+    rt_cell conc = 0;
+
+    if (srf->tag == RT_TAG_CONE
+    ||  srf->tag == RT_TAG_HYPERBOLOID)
+    {
+        conc = 1;
+    }
+
+    return conc;
+}
+
+/*
+ * Transform "pos" into "srf" trnode space using "loc"
+ * as temporary storage for return value.
+ *
+ * Return values:
+ *  new pos
+ */
+rt_real *surf_tran(rt_vec4 loc, rt_vec4 pos, rt_Surface *srf)
+{
+    rt_vec4  dff;
+    rt_real *pps = pos;
+
+    if (srf->trnode != RT_NULL)
+    {
+        dff[RT_X] = pps[RT_X] - srf->trnode->pos[RT_X];
+        dff[RT_Y] = pps[RT_Y] - srf->trnode->pos[RT_Y];
+        dff[RT_Z] = pps[RT_Z] - srf->trnode->pos[RT_Z];
+        dff[RT_W] = 0.0f;
+
+        matrix_mul_vector(loc, srf->trnode->inv, dff);
+
+        pps = loc;
+    }
+
+    return pps;
+}
+
+/*
+ * Determine if "pos" is strictly outside of "srf" cbox.
+ *
+ * Return values:
+ *  0 - no
+ *  1 - yes
+ */
+rt_cell surf_cbox(rt_vec4 pos, rt_Surface *srf)
+{
+    rt_cell c = 0;
+
+    rt_vec4  loc;
+    rt_real *pps = surf_tran(loc, pos, srf);
+
+    if (pps[RT_X] < srf->cmin[RT_X]
+    ||  pps[RT_X] > srf->cmax[RT_X]
+    ||  pps[RT_Y] < srf->cmin[RT_Y]
+    ||  pps[RT_Y] > srf->cmax[RT_Y]
+    ||  pps[RT_Z] < srf->cmin[RT_Z]
+    ||  pps[RT_Z] > srf->cmax[RT_Z])
+    {
+        c = 1;
+    }
+
+    return c;
+}
+
+/*
+ * Determine which side of non-clipped "srf" is seen from "pos".
+ *
+ * Return values:
+ *  0 - on the surface
+ *  1 - inner
+ *  2 - outer
+ */
+rt_cell surf_side(rt_vec4 pos, rt_Surface *srf)
+{
+    rt_cell side = 0;
+
+    rt_vec4  loc;
+    rt_real *pps = surf_tran(loc, pos, srf);
+
+    rt_vec4 dff;
+
+    if (srf->trnode == srf)
+    {
+        dff[RT_X] = pps[RT_X];
+        dff[RT_Y] = pps[RT_Y];
+        dff[RT_Z] = pps[RT_Z];
+    }
+    else
+    {
+        dff[RT_X] = pps[RT_X] - srf->pos[RT_X];
+        dff[RT_Y] = pps[RT_Y] - srf->pos[RT_Y];
+        dff[RT_Z] = pps[RT_Z] - srf->pos[RT_Z];
+    }
+
+    if (srf->tag == RT_TAG_PLANE)
+    {
+        rt_real dot = RT_VECTOR_DOT(dff, srf->sck);
+        side = RT_SIGN(dot);
+    }
+    else
+    {
+        rt_real doj = RT_VECTOR_DOT(dff, srf->scj);
+        rt_real doi = dff[RT_X] * dff[RT_X] * srf->sci[RT_X]
+                    + dff[RT_Y] * dff[RT_Y] * srf->sci[RT_Y]
+                    + dff[RT_Z] * dff[RT_Z] * srf->sci[RT_Z];
+        rt_real dot = doi - doj - srf->sci[RT_W];
+        side = RT_SIGN(dot);
+    }
+
+    return side == 0 ? 0 : 1 + ((1 + side) >> 1);
+}
+
+/*
+ * Determine which side of clipped "srf" is seen from "pos".
+ *
+ * Return values:
+ *  0 - on the surface
+ *  1 - inner
+ *  2 - outer
+ *  3 - both
+ */
+rt_cell cbox_side(rt_real *pos, rt_Surface *srf)
+{
+    rt_cell side = surf_side(pos, srf);
+
+    if (srf->tag == RT_TAG_PLANE)
+    {
+        return side;
+    }
+
+    rt_cell conc = surf_conc(srf);
+
+    if (conc == 0 && side == 1)
+    {
+        return side;
+    }
+
+    rt_cell hole = surf_hole(srf, srf);
+
+    if (hole == 0)
+    {
+        return side;
+    }
+
+    if (hole & 2)
+    {
+        side = 3;
+        return side;
+    }
+
+    rt_cell cbox = surf_cbox(pos, srf);
+
+    if (cbox == 1)
+    {
+        side = 3;
+        return side;
+    }
+
+    return side;
 }
 
 /******************************************************************************/

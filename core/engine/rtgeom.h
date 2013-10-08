@@ -36,7 +36,7 @@ rt_void matrix_mul_matrix(rt_mat4 mp, rt_mat4 m1, rt_mat4 m2);
 rt_void matrix_from_transform(rt_mat4 mp, rt_TRANSFORM3D *t1);
 
 /*
- * Compute inverse matrix.
+ * Compute upper-left 3x3 inverse of a 4x4 matrix.
  */
 rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1);
 
@@ -100,6 +100,17 @@ rt_cell edge_to_edge(rt_vec4 p0,
  *  1 - yes
  */
 rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf);
+
+/*
+ * Determine which side of clipped "srf" is seen from "pos".
+ *
+ * Return values:
+ *  0 - on the surface
+ *  1 - inner
+ *  2 - outer
+ *  3 - both
+ */
+rt_cell cbox_side(rt_real *pos, rt_Surface *srf);
 
 #endif /* RT_RTGEOM_H */
 
