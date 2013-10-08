@@ -953,11 +953,53 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 
     for (lgt = scene->lgt_head; lgt != RT_NULL; lgt = lgt->next)
     {
-        insert(lgt, ptr, RT_NULL);
+        rt_cell c = 3;
 
-        if (g_print)
+        rt_ELEM **psr = RT_NULL;
+#if RT_2SIDED_OPT == 1
+        rt_ELEM **pso = RT_NULL;
+        rt_ELEM **psi = RT_NULL;
+
+        if (srf != RT_NULL)
         {
-            RT_PRINT_LGT(*ptr, lgt);
+            c = cbox_side(lgt->pos, srf);
+
+            if (c & 2)
+            {
+                insert(lgt, pto, RT_NULL);
+
+                pso = (rt_ELEM **)&(*pto)->data;
+
+                if (g_print)
+                {
+                    RT_PRINT_LGT_OUTER(*pto, lgt);
+                }
+            }
+            if (c & 1)
+            {
+                insert(lgt, pti, RT_NULL);
+
+                psi = (rt_ELEM **)&(*pti)->data;
+
+                if (g_print)
+                {
+                    RT_PRINT_LGT_INNER(*pto, lgt);
+                }
+            }
+
+            psr = &lst;
+        }
+        else
+#endif /* RT_2SIDED_OPT */
+        {
+            insert(lgt, ptr, RT_NULL);
+
+            psr = (rt_ELEM **)&(*ptr)->data;
+
+            if (g_print)
+            {
+                RT_PRINT_LGT(*ptr, lgt);
+            }
         }
 
 #if RT_SHADOW_OPT == 1
@@ -965,10 +1007,6 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
         {
             continue;
         }
-
-        rt_ELEM **psr = (rt_ELEM**)&(*ptr)->data;
-
-       *psr = RT_NULL;
 
         rt_Surface *shw = RT_NULL;
 
@@ -987,8 +1025,20 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             RT_PRINT_SHW(*psr);
         }
 #endif /* RT_SHADOW_OPT */
+
+#if RT_2SIDED_OPT == 1
+        if (pso != RT_NULL)
+        {
+           *pso = lst;
+        }
+        if (psi != RT_NULL)
+        {
+           *psi = lst;
+        }
+#endif /* RT_2SIDED_OPT */
     }
 
+#if RT_2SIDED_OPT == 0
     if (srf != RT_NULL)
     {
        *pto = lst;
@@ -996,6 +1046,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 
         return RT_NULL;
     }
+#endif /* RT_2SIDED_OPT */
 
     return lst;
 }
