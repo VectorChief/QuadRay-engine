@@ -1008,6 +1008,8 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             continue;
         }
 
+       *psr = RT_NULL; 
+
         rt_Surface *shw = RT_NULL;
 
         for (shw = scene->srf_head; shw != RT_NULL; shw = shw->next)
