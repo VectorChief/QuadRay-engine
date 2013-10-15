@@ -892,22 +892,86 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
             RT_PRINT_CLP((rt_ELEM *)srf->s_srf->msc_p[2]);
         }
 
-        pto = (rt_ELEM**)&srf->s_srf->lst_p[1];
-        pti = (rt_ELEM**)&srf->s_srf->lst_p[3];
+        pto = (rt_ELEM **)&srf->s_srf->lst_p[1];
+        pti = (rt_ELEM **)&srf->s_srf->lst_p[3];
 
-       *pto = scene->slist; /* all srf are potential rfl/rfr */
-       *pti = scene->slist; /* all srf are potential rfl/rfr */
+#if RT_RENDER_OPT == 1
+        if (((rt_word)srf->s_srf->mat_p[1] & RT_PROP_REFLECT)
+        ||  ((rt_word)srf->s_srf->mat_p[3] & RT_PROP_REFLECT)
+        ||  ((rt_word)srf->s_srf->mat_p[1] & RT_PROP_OPAQUE) == 0
+        ||  ((rt_word)srf->s_srf->mat_p[3] & RT_PROP_OPAQUE) == 0)
+        {
+           *pto = RT_NULL;
+           *pti = RT_NULL;
 
-        return RT_NULL;
+            /* RT_LOGI("Building slist for surface\n"); */
+        }
+        else
+#endif /* RT_RENDER_OPT */
+        {
+           *pto = scene->slist; /* all srf are potential rfl/rfr */
+           *pti = scene->slist; /* all srf are potential rfl/rfr */
+
+            return RT_NULL;
+        }
     }
 
+    rt_Surface *ref = RT_NULL;
     rt_ELEM *lst = RT_NULL;
     rt_ELEM **ptr = &lst;
 
-    for (srf = scene->srf_head; srf != RT_NULL; srf = srf->next)
+    for (ref = scene->srf_head; ref != RT_NULL; ref = ref->next)
     {
-        insert(obj, ptr, srf);
+#if RT_2SIDED_OPT == 1
+        if (srf != RT_NULL)
+        {
+            rt_cell c = 0;
+
+            c = bbox_side(srf, ref);
+
+            if (c & 2)
+            {
+                insert(obj, pto, ref);
+            }
+            if (c & 1)
+            {
+                insert(obj, pti, ref);
+            }
+        }
+        else
+#endif /* RT_2SIDED_OPT */
+        {
+            insert(obj, ptr, ref);
+        }
     }
+
+    if (srf != RT_NULL)
+    {
+#if RT_2SIDED_OPT == 1
+        if (g_print && *pto != RT_NULL)
+        {
+            RT_PRINT_LST_OUTER(*pto);
+        }
+        if (g_print && *pti != RT_NULL)
+        {
+            RT_PRINT_LST_INNER(*pti);
+        }
+#endif /* RT_2SIDED_OPT */
+        if (g_print && *ptr != RT_NULL)
+        {
+            RT_PRINT_LST(*ptr);
+        }
+    }
+
+#if RT_2SIDED_OPT == 0
+    if (srf != RT_NULL)
+    {
+       *pto = lst;
+       *pti = lst;
+
+        return RT_NULL;
+    }
+#endif /* RT_2SIDED_OPT */
 
     return lst;
 }
