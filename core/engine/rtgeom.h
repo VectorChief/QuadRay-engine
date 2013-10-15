@@ -105,12 +105,23 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf);
  * Determine which side of clipped "srf" is seen from "pos".
  *
  * Return values:
- *  0 - on the surface
+ *  0 - none (on the surface)
  *  1 - inner
  *  2 - outer
  *  3 - both
  */
 rt_cell cbox_side(rt_real *pos, rt_Surface *srf);
+
+/*
+ * Determine which side of clipped "srf" is seen from "ref" bbox.
+ *
+ * Return values:
+ *  0 - none
+ *  1 - inner
+ *  2 - outer
+ *  3 - both
+ */
+rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref);
 
 #endif /* RT_RTGEOM_H */
 

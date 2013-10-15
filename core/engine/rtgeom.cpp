@@ -564,6 +564,340 @@ rt_cell edge_to_edge(rt_vec4 p0,
 }
 
 /*
+ * Determine if there are holes in "srf" not related to "ref"
+ * or inside custom clippers accum segments.
+ * Holes are either minmax clippers or custom clippers
+ * potentially allowing to see "srf" inner side from outside.
+ *
+ * Return values:
+ *  0 - no
+ *  1 - yes, minmax only
+ *  2 - yes, custom only
+ *  3 - yes, both
+ */
+rt_cell surf_hole(rt_Surface *srf, rt_Surface *ref)
+{
+    rt_cell c = 0;
+
+    if (srf->tag == RT_TAG_PLANE)
+    {
+        return c;
+    }
+
+    /* check minmax clippers */
+    if (srf->cmin[RT_X] != -RT_INF || srf->cmax[RT_X] != +RT_INF
+    ||  srf->cmin[RT_Y] != -RT_INF || srf->cmax[RT_Y] != +RT_INF
+    ||  srf->cmin[RT_Z] != -RT_INF || srf->cmax[RT_Z] != +RT_INF)
+    {
+        c |= 1;
+    }
+
+    rt_cell skip = 0;
+
+    rt_ELEM *elm = (rt_ELEM *)srf->s_srf->msc_p[2];
+
+    /* run through custom clippers list */
+    for (; elm != RT_NULL; elm = elm->next)
+    {
+        rt_Object *obj = (rt_Object *)elm->temp;
+
+        /* skip accum markers */
+        if (obj == RT_NULL)
+        {
+            skip = 1 - skip;
+            continue;
+        }
+
+        /* skip trnode elements */
+        if (RT_IS_ARRAY(obj))
+        {
+            continue;
+        }
+
+        /* if there is clipper other than "ref"
+           or inside accum segment, stop */
+        if (obj != ref || skip == 1)
+        {
+            c |= 2;
+            break;
+        }
+    }
+
+    return c;
+}
+
+/*
+ * Determine which side of clipper "clp" outside of any accum segment
+ * surface "srf" is clipped by.
+ *
+ * Return values:
+ *  0 - not clipped or "clp" inside accum segment
+ *  1 - clipped by "clp" inner side
+ *  2 - clipped by "clp" outer side
+ */
+rt_cell surf_clip(rt_Surface *srf, rt_Surface *clp)
+{
+    rt_cell side = 0;
+    rt_cell skip = 0;
+
+    rt_ELEM *elm = (rt_ELEM *)srf->s_srf->msc_p[2];
+
+    /* run through custom clippers list */
+    for (; elm != RT_NULL; elm = elm->next)
+    {
+        rt_Object *obj = (rt_Object *)elm->temp;
+
+        /* skip accum markers */
+        if (obj == RT_NULL)
+        {
+            skip = 1 - skip;
+            continue;
+        }
+
+        /* skip trnode elements */
+        if (RT_IS_ARRAY(obj))
+        {
+            continue;
+        }
+
+        /* if there is clipper "clp"
+           outside of accum segment, stop */
+        if (obj == clp && skip == 0)
+        {
+            side = elm->data;
+            break;
+        }
+    }
+
+    return side == 0 ? 0 : 1 + ((1 + side) >> 1);
+}
+
+/*
+ * Determine whether non-clipped "srf" is convex or concave.
+ *
+ * Return values:
+ *  0 - convex
+ *  1 - concave
+ */
+rt_cell surf_conc(rt_Surface *srf)
+{
+    rt_cell conc = 0;
+
+    if (srf->tag == RT_TAG_CONE
+    ||  srf->tag == RT_TAG_HYPERBOLOID)
+    {
+        conc = 1;
+    }
+
+    return conc;
+}
+
+/*
+ * Determine whether clipped "srf" is convex or concave.
+ *
+ * Return values:
+ *  0 - convex
+ *  1 - concave
+ */
+rt_cell cbox_conc(rt_Surface *srf)
+{
+    rt_cell conc = 0;
+
+    rt_vec4  zro = {0.0f, 0.0f, 0.0f, 0.0f};
+    rt_real *pps = srf->trnode == srf ? zro : srf->pos;
+
+    if ((srf->tag == RT_TAG_CONE
+    ||   srf->tag == RT_TAG_HYPERBOLOID)
+    &&  (srf->sci[RT_W] <= 0.0f
+    &&   srf->bmin[srf->mp_k] < pps[srf->mp_k]
+    &&   srf->bmax[srf->mp_k] > pps[srf->mp_k]
+    ||   srf->sci[RT_W] > 0.0f))
+    {
+        conc = 1;
+    }
+
+    return conc;
+}
+
+/*
+ * Transform "pos" into "srf" trnode space using "loc"
+ * as temporary storage for return value.
+ *
+ * Return values:
+ *  new pos
+ */
+rt_real *surf_tran(rt_vec4 loc, rt_vec4 pos, rt_Surface *srf)
+{
+    rt_vec4  dff;
+    rt_real *pps = pos;
+
+    if (srf->trnode != RT_NULL)
+    {
+        dff[RT_X] = pps[RT_X] - srf->trnode->pos[RT_X];
+        dff[RT_Y] = pps[RT_Y] - srf->trnode->pos[RT_Y];
+        dff[RT_Z] = pps[RT_Z] - srf->trnode->pos[RT_Z];
+        dff[RT_W] = 0.0f;
+
+        matrix_mul_vector(loc, srf->trnode->inv, dff);
+
+        pps = loc;
+    }
+
+    return pps;
+}
+
+/*
+ * Determine if "pos" is strictly outside of "srf" cbox.
+ *
+ * Return values:
+ *  0 - no
+ *  1 - yes
+ */
+rt_cell surf_cbox(rt_vec4 pos, rt_Surface *srf)
+{
+    rt_cell c = 0;
+
+    rt_vec4  loc;
+    rt_real *pps = surf_tran(loc, pos, srf);
+
+    if (pps[RT_X] < srf->cmin[RT_X]
+    ||  pps[RT_X] > srf->cmax[RT_X]
+    ||  pps[RT_Y] < srf->cmin[RT_Y]
+    ||  pps[RT_Y] > srf->cmax[RT_Y]
+    ||  pps[RT_Z] < srf->cmin[RT_Z]
+    ||  pps[RT_Z] > srf->cmax[RT_Z])
+    {
+        c = 1;
+    }
+
+    return c;
+}
+
+/*
+ * Determine if "pos" is strictly inside of "srf" bbox.
+ *
+ * Return values:
+ *  0 - no
+ *  1 - yes
+ */
+rt_cell surf_bbox(rt_vec4 pos, rt_Surface *srf)
+{
+    rt_cell c = 0;
+
+    rt_vec4  loc;
+    rt_real *pps = surf_tran(loc, pos, srf);
+
+    if (pps[RT_X] > srf->bmin[RT_X]
+    &&  pps[RT_X] < srf->bmax[RT_X]
+    &&  pps[RT_Y] > srf->bmin[RT_Y]
+    &&  pps[RT_Y] < srf->bmax[RT_Y]
+    &&  pps[RT_Z] > srf->bmin[RT_Z]
+    &&  pps[RT_Z] < srf->bmax[RT_Z])
+    {
+        c = 1;
+    }
+
+    return c;
+}
+
+/*
+ * Determine which side of non-clipped "srf" is seen from "pos".
+ *
+ * Return values:
+ *  0 - none (on the surface)
+ *  1 - inner
+ *  2 - outer
+ */
+rt_cell surf_side(rt_vec4 pos, rt_Surface *srf)
+{
+    rt_cell side = 0;
+
+    rt_vec4  loc;
+    rt_real *pps = surf_tran(loc, pos, srf);
+
+    rt_vec4 dff;
+
+    if (srf->trnode == srf)
+    {
+        dff[RT_X] = pps[RT_X];
+        dff[RT_Y] = pps[RT_Y];
+        dff[RT_Z] = pps[RT_Z];
+    }
+    else
+    {
+        dff[RT_X] = pps[RT_X] - srf->pos[RT_X];
+        dff[RT_Y] = pps[RT_Y] - srf->pos[RT_Y];
+        dff[RT_Z] = pps[RT_Z] - srf->pos[RT_Z];
+    }
+
+    if (srf->tag == RT_TAG_PLANE)
+    {
+        rt_real dot = RT_VECTOR_DOT(dff, srf->sck);
+        side = RT_SIGN(dot);
+    }
+    else
+    {
+        rt_real doj = RT_VECTOR_DOT(dff, srf->scj);
+        rt_real doi = dff[RT_X] * dff[RT_X] * srf->sci[RT_X]
+                    + dff[RT_Y] * dff[RT_Y] * srf->sci[RT_Y]
+                    + dff[RT_Z] * dff[RT_Z] * srf->sci[RT_Z];
+        rt_real dot = doi - doj - srf->sci[RT_W];
+        side = RT_SIGN(dot);
+    }
+
+    return side == 0 ? 0 : 1 + ((1 + side) >> 1);
+}
+
+/*
+ * Determine which side of clipped "srf" is seen from "pos".
+ *
+ * Return values:
+ *  0 - none (on the surface)
+ *  1 - inner
+ *  2 - outer
+ *  3 - both
+ */
+rt_cell cbox_side(rt_real *pos, rt_Surface *srf)
+{
+    rt_cell side = surf_side(pos, srf);
+
+    if (srf->tag == RT_TAG_PLANE)
+    {
+        return side;
+    }
+
+    rt_cell conc = surf_conc(srf);
+
+    if (conc == 0 && side == 1)
+    {
+        return side;
+    }
+
+    rt_cell hole = surf_hole(srf, srf);
+
+    if (hole == 0)
+    {
+        return side;
+    }
+
+    if (hole & 2)
+    {
+        side = 3;
+        return side;
+    }
+
+    rt_cell cbox = surf_cbox(pos, srf);
+
+    if (cbox == 1)
+    {
+        side = 3;
+        return side;
+    }
+
+    return side;
+}
+
+/*
  * Determine if "shw" bbox casts shadow on "srf" bbox from "lgt" pos.
  *
  * Return values:
@@ -637,6 +971,13 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
     }
 
 #if RT_SHADOW_EXT == 1
+
+    /* check if "lgt" pos is inside "shw" bbox */
+
+    if (surf_bbox(lgt->pos, shw) == 1)
+    {
+        return 1;
+    }
 
     /* check if bounding boxes cast shadows */
 
@@ -727,220 +1068,286 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 }
 
 /*
- * Determine if there are holes in "srf" not related to "ref".
- * Holes are either minmax clippers or custom clippers.
+ * Determine if two bboxes interpenetrate.
  *
  * Return values:
  *  0 - no
- *  1 - yes, minmax only
- *  2 - yes, custom only
- *  3 - yes, both
+ *  1 - yes (quick - might be fully inside)
+ *  2 - yes (thorough - borders intersect)
  */
-rt_cell surf_hole(rt_Surface *srf, rt_Surface *ref)
+rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
 {
-    rt_cell c = 0;
+    rt_cell i, j;
 
-    /* check minmax clippers */
-    if (srf->cmin[RT_X] != -RT_INF || srf->cmax[RT_X] != +RT_INF
-    ||  srf->cmin[RT_Y] != -RT_INF || srf->cmax[RT_Y] != +RT_INF
-    ||  srf->cmin[RT_Z] != -RT_INF || srf->cmax[RT_Z] != +RT_INF)
+    if (srf->verts_num == 0 || ref->verts_num == 0 || srf == ref)
     {
-        c |= 1;
+        return 2;
     }
 
-    rt_ELEM *elm = (rt_ELEM *)srf->s_srf->msc_p[2];
+    /* check if bounding spheres interpenetrate */
 
-    /* run through custom clippers list */
-    for (; elm != RT_NULL; elm = elm->next)
+    rt_real f = 0.0f;
+    rt_real len = 0.0f;
+
+    f = srf->mid[RT_X] - ref->mid[RT_X];
+    len += f * f;
+    f = srf->mid[RT_Y] - ref->mid[RT_Y];
+    len += f * f;
+    f = srf->mid[RT_Z] - ref->mid[RT_Z];
+    len += f * f;
+
+    len = RT_SQRT(len);
+
+    if (srf->rad + ref->rad < len)
     {
-        rt_Object *obj = (rt_Object *)elm->temp;
+        return 0;
+    }
 
-        /* skip accum markers and trnode elements */
-        if (obj == RT_NULL || RT_IS_ARRAY(obj))
+    /* check if one bbox's mid is inside another */
+
+    if (surf_bbox(ref->mid, srf) == 1)
+    {
+        return 1;
+    }
+
+    if (surf_bbox(srf->mid, ref) == 1)
+    {
+        return 1;
+    }
+
+    /* check if edges of one bbox intersect faces of another */
+
+    for (j = 0; j < srf->faces_num; j++)
+    {
+        rt_FACE *fc = &srf->faces[j];
+
+        for (i = 0; i < ref->edges_num; i++)
         {
-            continue;
-        }
+            rt_EDGE *ei = &ref->edges[i];
 
-        /* if there is clipper other than "ref", stop */
-        if (obj != ref)
+            if (vert_to_face(ref->verts[ei->index[0]].pos,
+                             ref->verts[ei->index[1]].pos, 0,
+                             srf->verts[fc->index[0]].pos,
+                             srf->verts[fc->index[1]].pos,
+                             srf->verts[fc->index[2]].pos,
+                             fc->k, fc->i, fc->j) == 2)
+            {
+                return 2;
+            }
+            if (fc->k < 3)
+            {
+                continue;
+            }
+            if (vert_to_face(ref->verts[ei->index[0]].pos,
+                             ref->verts[ei->index[1]].pos, 0,
+                             srf->verts[fc->index[2]].pos,
+                             srf->verts[fc->index[3]].pos,
+                             srf->verts[fc->index[0]].pos,
+                             fc->k, fc->i, fc->j) == 2)
+            {
+                return 2;
+            }
+        }
+    }
+
+    for (j = 0; j < ref->faces_num; j++)
+    {
+        rt_FACE *fc = &ref->faces[j];
+
+        for (i = 0; i < srf->edges_num; i++)
         {
-            c |= 2;
-            break;
+            rt_EDGE *ei = &srf->edges[i];
+
+            if (vert_to_face(srf->verts[ei->index[0]].pos,
+                             srf->verts[ei->index[1]].pos, 0,
+                             ref->verts[fc->index[0]].pos,
+                             ref->verts[fc->index[1]].pos,
+                             ref->verts[fc->index[2]].pos,
+                             fc->k, fc->i, fc->j) == 2)
+            {
+                return 2;
+            }
+            if (fc->k < 3)
+            {
+                continue;
+            }
+            if (vert_to_face(srf->verts[ei->index[0]].pos,
+                             srf->verts[ei->index[1]].pos, 0,
+                             ref->verts[fc->index[2]].pos,
+                             ref->verts[fc->index[3]].pos,
+                             ref->verts[fc->index[0]].pos,
+                             fc->k, fc->i, fc->j) == 2)
+            {
+                return 2;
+            }
         }
     }
 
-    return c;
+    return 0;
 }
 
 /*
- * Determine whether "srf" is convex or concave.
+ * Determine which side of clipped "srf" is seen from "ref" bbox.
  *
  * Return values:
- *  0 - convex
- *  1 - concave
- */
-rt_cell surf_conc(rt_Surface *srf)
-{
-    rt_cell conc = 0;
-
-    if (srf->tag == RT_TAG_CONE
-    ||  srf->tag == RT_TAG_HYPERBOLOID)
-    {
-        conc = 1;
-    }
-
-    return conc;
-}
-
-/*
- * Transform "pos" into "srf" trnode space using "loc"
- * as temporary storage for return value.
- *
- * Return values:
- *  new pos
- */
-rt_real *surf_tran(rt_vec4 loc, rt_vec4 pos, rt_Surface *srf)
-{
-    rt_vec4  dff;
-    rt_real *pps = pos;
-
-    if (srf->trnode != RT_NULL)
-    {
-        dff[RT_X] = pps[RT_X] - srf->trnode->pos[RT_X];
-        dff[RT_Y] = pps[RT_Y] - srf->trnode->pos[RT_Y];
-        dff[RT_Z] = pps[RT_Z] - srf->trnode->pos[RT_Z];
-        dff[RT_W] = 0.0f;
-
-        matrix_mul_vector(loc, srf->trnode->inv, dff);
-
-        pps = loc;
-    }
-
-    return pps;
-}
-
-/*
- * Determine if "pos" is strictly outside of "srf" cbox.
- *
- * Return values:
- *  0 - no
- *  1 - yes
- */
-rt_cell surf_cbox(rt_vec4 pos, rt_Surface *srf)
-{
-    rt_cell c = 0;
-
-    rt_vec4  loc;
-    rt_real *pps = surf_tran(loc, pos, srf);
-
-    if (pps[RT_X] < srf->cmin[RT_X]
-    ||  pps[RT_X] > srf->cmax[RT_X]
-    ||  pps[RT_Y] < srf->cmin[RT_Y]
-    ||  pps[RT_Y] > srf->cmax[RT_Y]
-    ||  pps[RT_Z] < srf->cmin[RT_Z]
-    ||  pps[RT_Z] > srf->cmax[RT_Z])
-    {
-        c = 1;
-    }
-
-    return c;
-}
-
-/*
- * Determine which side of non-clipped "srf" is seen from "pos".
- *
- * Return values:
- *  0 - on the surface
- *  1 - inner
- *  2 - outer
- */
-rt_cell surf_side(rt_vec4 pos, rt_Surface *srf)
-{
-    rt_cell side = 0;
-
-    rt_vec4  loc;
-    rt_real *pps = surf_tran(loc, pos, srf);
-
-    rt_vec4 dff;
-
-    if (srf->trnode == srf)
-    {
-        dff[RT_X] = pps[RT_X];
-        dff[RT_Y] = pps[RT_Y];
-        dff[RT_Z] = pps[RT_Z];
-    }
-    else
-    {
-        dff[RT_X] = pps[RT_X] - srf->pos[RT_X];
-        dff[RT_Y] = pps[RT_Y] - srf->pos[RT_Y];
-        dff[RT_Z] = pps[RT_Z] - srf->pos[RT_Z];
-    }
-
-    if (srf->tag == RT_TAG_PLANE)
-    {
-        rt_real dot = RT_VECTOR_DOT(dff, srf->sck);
-        side = RT_SIGN(dot);
-    }
-    else
-    {
-        rt_real doj = RT_VECTOR_DOT(dff, srf->scj);
-        rt_real doi = dff[RT_X] * dff[RT_X] * srf->sci[RT_X]
-                    + dff[RT_Y] * dff[RT_Y] * srf->sci[RT_Y]
-                    + dff[RT_Z] * dff[RT_Z] * srf->sci[RT_Z];
-        rt_real dot = doi - doj - srf->sci[RT_W];
-        side = RT_SIGN(dot);
-    }
-
-    return side == 0 ? 0 : 1 + ((1 + side) >> 1);
-}
-
-/*
- * Determine which side of clipped "srf" is seen from "pos".
- *
- * Return values:
- *  0 - on the surface
+ *  0 - none
  *  1 - inner
  *  2 - outer
  *  3 - both
  */
-rt_cell cbox_side(rt_real *pos, rt_Surface *srf)
+rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
 {
-    rt_cell side = surf_side(pos, srf);
+    rt_cell i, j, k, m, n, p, c = 0;
 
-    if (srf->tag == RT_TAG_PLANE)
+    p = srf->tag == RT_TAG_PLANE ? 1 : 0;
+
+    if (srf == ref)
     {
-        return side;
+        if (p == 0)
+        {
+            m = cbox_conc(srf);
+            c |= 1;
+            if (m == 1)
+            {
+                c |= 2;
+            }
+        }
+        return c;
     }
 
-    rt_cell conc = surf_conc(srf);
+    i = surf_clip(ref, srf);
+    j = surf_clip(srf, ref);
 
-    if (conc == 0 && side == 1)
+    k = surf_hole(srf, ref);
+
+    m = cbox_conc(srf);
+    n = cbox_conc(ref);
+
+    if (i == 2 && j == 2
+    ||  i == 2 && j == 0)
     {
-        return side;
+        c |= 1;
+        if (m == 1 && k != 0)
+        {
+            c |= 2;
+        }
+        return c;
+    }
+    if (i == 2 && j == 1)
+    {
+        c |= 1;
+        if (m == 1)
+        {
+            c |= 2;
+        }
+        return c;
+    }
+    if (i == 1 && j == 2)
+    {
+        c |= 2;
+        if (n == 1 && p == 0 || k != 0)
+        {
+            c |= 1;
+        }
+        return c;
+    }
+    if (i == 1 && j == 1)
+    {
+        c |= 2;
+        if (p == 0)
+        {
+            c |= 1;
+        }
+        return c;
+    }
+    if (i == 1 && j == 0)
+    {
+        c |= 2;
+        if (k != 0)
+        {
+            c |= 1;
+        }
+        return c;
+    }
+    if (i == 0 && j == 2
+    ||  i == 0 && j == 1)
+    {
+        c |= 3;
+        return c;
     }
 
-    rt_cell hole = surf_hole(srf, srf);
+    /* check if all "ref" verts are on the same side */
 
-    if (hole == 0)
+    if (p == 1)
     {
-        return side;
+        for (i = 0; i < ref->verts_num; i++)
+        {
+            c |= surf_side(ref->verts[i].pos, srf);
+            if (c == 3)
+            {
+                break;
+            }
+        }
+        return c;
     }
 
-    if (hole & 2)
+    /* check if bboxes interpenetrate */
+
+    n = bbox_fuse(srf, ref);
+
+    if (n != 0 && m == 1 || n == 2)
     {
-        side = 3;
-        return side;
+        c |= 3;
+        return c;
     }
 
-    rt_cell cbox = surf_cbox(pos, srf);
+    /* check if all "ref" verts are inside "srf" */
 
-    if (cbox == 1)
+    if (n == 1 && m == 0)
     {
-        side = 3;
-        return side;
+        c |= 1;
+        for (i = 0; i < ref->verts_num; i++)
+        {
+            n = surf_side(ref->verts[i].pos, srf);
+            if (n == 2)
+            {
+                c |= 2;
+                break;
+            }
+        }
+        return c;
     }
 
-    return side;
+    /* check if "srf" has holes */
+
+    if (k == 0)
+    {
+        c |= 2;
+        return c;
+    }
+    if (k & 2)
+    {
+        c |= 3;
+        return c;
+    }
+
+    /* check if all "ref" verts are inside "srf" cbox */
+
+    if (k == 1)
+    {
+        c |= 2;
+        for (i = 0; i < ref->verts_num; i++)
+        {
+            k = surf_cbox(ref->verts[i].pos, srf);
+            if (k == 1)
+            {
+                c |= 1;
+                break;
+            }
+        }
+    }
+
+    return c;
 }
 
 /******************************************************************************/
