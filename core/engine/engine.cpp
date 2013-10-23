@@ -1060,7 +1060,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 
             psr = (rt_ELEM **)&(*ptr)->data;
 
-            if (g_print)
+            if (g_print && srf != RT_NULL)
             {
                 RT_PRINT_LGT(*ptr, lgt);
             }
