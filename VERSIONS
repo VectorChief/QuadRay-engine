@@ -1,3 +1,11 @@
+v0.5.4: Performance optimizations, custom per-side lists
+  - add generic surface coeffs to object classes
+  - add clipped surface side visibility routines for given point
+  - build separate light lists for each side of the surface
+  - add clipped surface side visibility routines for given bbox
+  - build separate shadow lists for each side of the surface
+  - build separate surface lists for each side of the surface
+
 v0.5.3: Performance optimizations, custom shadow lists
   - add bounding sphere to object classes
   - build custom per-surface per-light shadow lists
