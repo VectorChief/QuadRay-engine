@@ -79,8 +79,8 @@ class rt_SceneThread : public rt_Heap
 
 typedef rt_pntr (*rt_FUNC_INIT)(rt_cell thnum, rt_Scene *scn);
 typedef rt_void (*rt_FUNC_TERM)(rt_pntr tdata, rt_cell thnum);
-typedef rt_void (*rt_FUNC_UPDATE)(rt_pntr tdata, rt_cell thnum);
-typedef rt_void (*rt_FUNC_RENDER)(rt_pntr tdata, rt_cell thnum);
+typedef rt_void (*rt_FUNC_UPDATE)(rt_pntr tdata, rt_cell thnum, rt_cell phase);
+typedef rt_void (*rt_FUNC_RENDER)(rt_pntr tdata, rt_cell thnum, rt_cell phase);
 
 /******************************************************************************/
 /**********************************   SCENE   *********************************/
@@ -185,8 +185,8 @@ class rt_Scene : public rt_LogRedirect, public rt_Registry
     rt_void     update(rt_long time, rt_cell action);
     rt_void     render(rt_long time);
 
-    rt_void     update_slice(rt_cell index);
-    rt_void     render_slice(rt_cell index);
+    rt_void     update_slice(rt_cell index, rt_cell phase);
+    rt_void     render_slice(rt_cell index, rt_cell phase);
 
     rt_void     render_fps(rt_word x, rt_word y,
                            rt_cell d, rt_word z, rt_word num);

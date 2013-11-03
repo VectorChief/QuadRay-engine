@@ -1171,7 +1171,7 @@ rt_void term_threads(rt_void *tdata, rt_cell thnum)
  * Local stub for when platform threading functions are not provided.
  */
 static
-rt_void update_scene(rt_void *tdata, rt_cell thnum)
+rt_void update_scene(rt_void *tdata, rt_cell thnum, rt_cell phase)
 {
     rt_Scene *scn = (rt_Scene *)tdata;
 
@@ -1179,7 +1179,7 @@ rt_void update_scene(rt_void *tdata, rt_cell thnum)
 
     for (i = 0; i < thnum; i++)
     {
-        scn->update_slice(i);
+        scn->update_slice(i, phase);
     }
 }
 
@@ -1189,7 +1189,7 @@ rt_void update_scene(rt_void *tdata, rt_cell thnum)
  * Local stub for when platform threading functions are not provided.
  */
 static
-rt_void render_scene(rt_void *tdata, rt_cell thnum)
+rt_void render_scene(rt_void *tdata, rt_cell thnum, rt_cell phase)
 {
     rt_Scene *scn = (rt_Scene *)tdata;
 
@@ -1197,7 +1197,7 @@ rt_void render_scene(rt_void *tdata, rt_cell thnum)
 
     for (i = 0; i < thnum; i++)
     {
-        scn->render_slice(i);
+        scn->render_slice(i, phase);
     }
 }
 
@@ -1427,11 +1427,11 @@ rt_void rt_Scene::render(rt_long time)
 
         RT_PRINT_SRF_LIST(slist);
 
-        update_scene(this, thnum);
+        update_scene(this, thnum, 0);
     }
     else
     {
-        this->f_update(tdata, thnum);
+        this->f_update(tdata, thnum, 0);
     }
 
     rt_cell tline;
@@ -1593,7 +1593,7 @@ rt_void rt_Scene::render(rt_long time)
 
     /* multi-threaded render */
 
-    this->f_render(tdata, thnum);
+    this->f_render(tdata, thnum, 0);
 
     /* print state end */
 
@@ -1618,7 +1618,7 @@ rt_void rt_Scene::render(rt_long time)
  * Update portion of the scene with given "index"
  * as part of the multi-threaded update.
  */
-rt_void rt_Scene::update_slice(rt_cell index)
+rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
 {
     rt_cell i;
 
@@ -1654,7 +1654,7 @@ rt_void rt_Scene::update_slice(rt_cell index)
  * Render portion of the frame with given "index"
  * as part of the multi-threaded render.
  */
-rt_void rt_Scene::render_slice(rt_cell index)
+rt_void rt_Scene::render_slice(rt_cell index, rt_cell phase)
 {
     /* adjust ray steppers according to anti-aliasing mode */
 

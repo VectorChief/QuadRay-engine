@@ -130,14 +130,16 @@ DWORD WINAPI worker_thread(void *p)
             break;
         }
 
-        switch (thread->cmd[0])
+        rt_cell cmd = thread->cmd[0];
+
+        switch (cmd & 0x3)
         {
             case 1:
-            thread->scene->update_slice(thread->index);
+            thread->scene->update_slice(thread->index, (cmd >> 2) & 0xFF);
             break;
 
             case 2:
-            thread->scene->render_slice(thread->index);
+            thread->scene->render_slice(thread->index, (cmd >> 2) & 0xFF);
             break;
 
             default:
@@ -239,22 +241,22 @@ rt_void term_threads(rt_pntr tdata, rt_cell thnum)
     free(tpool);
 }
 
-rt_void update_scene(rt_pntr tdata, rt_cell thnum)
+rt_void update_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
 {
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
 
-    tpool->cmd = 1;
+    tpool->cmd = 1 | ((phase & 0xFF) << 2);
     SetEvent(tpool->cevent[tpool->cindex]);
     WaitForMultipleObjects(tpool->thnum, tpool->edata, TRUE, INFINITE);
     ResetEvent(tpool->cevent[tpool->cindex]);
     tpool->cindex = 1 - tpool->cindex;
 }
 
-rt_void render_scene(rt_pntr tdata, rt_cell thnum)
+rt_void render_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
 {
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
 
-    tpool->cmd = 2;
+    tpool->cmd = 2 | ((phase & 0xFF) << 2);
     SetEvent(tpool->cevent[tpool->cindex]);
     WaitForMultipleObjects(tpool->thnum, tpool->edata, TRUE, INFINITE);
     ResetEvent(tpool->cevent[tpool->cindex]);
