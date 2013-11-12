@@ -1360,16 +1360,7 @@ rt_void rt_Scene::render(rt_long time)
 
     /* update the whole objects hierarchy */
 
-    root->update(time, iden4, 0);
-
-    /* rebuild surface list */
-
-    slist = tharr[0]->ssort(cam);
-
-    /* rebuild light/shadow list,
-     * slist is needed inside */
-
-    llist = tharr[0]->lsort(cam);
+    root->update(time, iden4, RT_UPDATE_FLAG_OBJ);
 
     /* update rays positioning and steppers */
 
@@ -1423,16 +1414,34 @@ rt_void rt_Scene::render(rt_long time)
     {
         RT_PRINT_CAM(cam);
 
+        update_scene(this, thnum, 1);
+    }
+    else
+    {
+        this->f_update(tdata, thnum, 1);
+    }
+
+    /* rebuild global surface list */
+    slist = tharr[0]->ssort(cam);
+
+    /* rebuild global light/shadow list,
+     * slist is needed inside */
+    llist = tharr[0]->lsort(cam);
+
+    if (g_print)
+    {
         RT_PRINT_LGT_LIST(llist);
 
         RT_PRINT_SRF_LIST(slist);
 
-        update_scene(this, thnum, 0);
+        update_scene(this, thnum, 2);
     }
     else
     {
-        this->f_update(tdata, thnum, 0);
+        this->f_update(tdata, thnum, 2);
     }
+
+    /* screen tiling */
 
     rt_cell tline;
     rt_cell j;
@@ -1624,29 +1633,45 @@ rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
 
     rt_Surface *srf = RT_NULL;
 
-    for (srf = srf_head, i = 0; srf != RT_NULL; srf = srf->next, i++)
+    if (phase == 1)
     {
-        if ((i % thnum) != index)
+        for (srf = srf_head, i = 0; srf != RT_NULL; srf = srf->next, i++)
         {
-            continue;
-        }
+            if ((i % thnum) != index)
+            {
+                continue;
+            }
 
-        if (g_print)
+            srf->update(0, RT_NULL, RT_UPDATE_FLAG_SRF);
+
+            /* rebuild per-surface tile list */
+            tharr[index]->stile(srf);
+        }
+    }
+    else
+    if (phase == 2)
+    {
+        for (srf = srf_head, i = 0; srf != RT_NULL; srf = srf->next, i++)
         {
-            RT_PRINT_SRF(srf);
+            if ((i % thnum) != index)
+            {
+                continue;
+            }
+
+            if (g_print)
+            {
+                RT_PRINT_SRF(srf);
+            }
+
+            /* rebuild per-surface surface lists */
+            tharr[index]->ssort(srf);
+
+            /* rebuild per-surface light/shadow lists */
+            tharr[index]->lsort(srf);
+
+            /* update per-surface backend-related parts */
+            update0(srf->s_srf);
         }
-
-        /* setup tile list */
-        tharr[index]->stile(srf);
-
-        /* setup surface lists */
-        tharr[index]->ssort(srf);
-
-        /* setup light/shadow lists */
-        tharr[index]->lsort(srf);
-
-        /* update backend-related parts */
-        update0(srf->s_srf);
     }
 }
 

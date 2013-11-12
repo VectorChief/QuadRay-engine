@@ -211,6 +211,11 @@ rt_Camera::rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
  */
 rt_void rt_Camera::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
+    if ((flags & RT_UPDATE_FLAG_OBJ) == 0)
+    {
+        return;
+    }
+
     rt_Object::update(time, mtx, flags);
 
     hor_sin = RT_SINA(trm->rot[RT_Z]);
@@ -353,6 +358,11 @@ rt_Light::rt_Light(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
  */
 rt_void rt_Light::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
+    if ((flags & RT_UPDATE_FLAG_OBJ) == 0)
+    {
+        return;
+    }
+
     rt_Object::update(time, mtx, flags);
 
     RT_SIMD_SET(s_lgt->pos_x, pos[RT_X]);
@@ -425,6 +435,11 @@ rt_void rt_Node::add_relation(rt_ELEM *lst)
  */
 rt_void rt_Node::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
+    if ((flags & RT_UPDATE_FLAG_OBJ) == 0)
+    {
+        return;
+    }
+
     rt_Object::update(time, mtx, flags);
 
     rt_cell i, j;
@@ -596,6 +611,11 @@ rt_void rt_Array::add_relation(rt_ELEM *lst)
  */
 rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
+    if ((flags & RT_UPDATE_FLAG_OBJ) == 0)
+    {
+        return;
+    }
+
     rt_Node::update(time, mtx, flags);
 
     rt_cell i, j;
@@ -942,82 +962,89 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
  */
 rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
-    rt_Node::update(time, mtx, flags);
-
-    /* if object itself has non-trivial transform
-     * all rotation and scaling is already in the matrix,
-     * reset axis mapping to identity,
-     * except the case of scaling with trivial rotation,
-     * when axis mapping is separated from transform matrix */
-    if (trnode == this
-    &&  mtx_has_trm & RT_UPDATE_FLAG_ROT)
+    if (flags & RT_UPDATE_FLAG_OBJ)
     {
-        map[RT_I] = RT_X;
-        sgn[RT_I] = 1;
+        rt_Node::update(time, mtx, flags);
 
-        map[RT_J] = RT_Y;
-        sgn[RT_J] = 1;
+        /* if object itself has non-trivial transform
+         * all rotation and scaling is already in the matrix,
+         * reset axis mapping to identity,
+         * except the case of scaling with trivial rotation,
+         * when axis mapping is separated from transform matrix */
+        if (trnode == this
+        &&  mtx_has_trm & RT_UPDATE_FLAG_ROT)
+        {
+            map[RT_I] = RT_X;
+            sgn[RT_I] = 1;
 
-        map[RT_K] = RT_Z;
-        sgn[RT_K] = 1;
+            map[RT_J] = RT_Y;
+            sgn[RT_J] = 1;
+
+            map[RT_K] = RT_Z;
+            sgn[RT_K] = 1;
+        }
+
+        /* axis mapping shorteners */
+        mp_i = map[RT_I];
+        mp_j = map[RT_J];
+        mp_k = map[RT_K];
+        mp_l = RT_W;
+
+        /* reset custom clippers list
+         * as it is rebuilt in array's update */
+        s_srf->msc_p[2] = RT_NULL;
+
+        /* trnode's simd ptr is needed in rendering backend
+         * to check if surface and its clippers belong to the same trnode */
+        s_srf->msc_p[3] = trnode == RT_NULL ?
+                                    RT_NULL : ((rt_Node *)trnode)->s_srf;
+
+        /* check bbox geometry limits */
+        if (verts_num > RT_VERTS_LIMIT
+        ||  edges_num > RT_EDGES_LIMIT
+        ||  faces_num > RT_FACES_LIMIT)
+        {
+            throw rt_Exception("bbox geometry limits exceeded in Surface");
+        }
     }
 
-    /* axis mapping shorteners */
-    mp_i = map[RT_I];
-    mp_j = map[RT_J];
-    mp_k = map[RT_K];
-    mp_l = RT_W;
-
-    /* reset custom clippers list
-     * as it is rebuilt in array's update */
-    s_srf->msc_p[2] = RT_NULL;
-
-    /* trnode's simd ptr is needed in rendering backend
-     * to check if surface and its clippers belong to the same trnode */
-    s_srf->msc_p[3] = trnode == RT_NULL ? RT_NULL : ((rt_Node *)trnode)->s_srf;
-
-    /* check bbox geometry limits */
-    if (verts_num > RT_VERTS_LIMIT
-    ||  edges_num > RT_EDGES_LIMIT
-    ||  faces_num > RT_FACES_LIMIT)
+    if (flags & RT_UPDATE_FLAG_SRF)
     {
-        throw rt_Exception("bbox geometry limits exceeded in Surface");
+        update_minmax();
+
+        /* if object or some of its parents has non-trivial transform,
+         * select aux vector fields for axis mapping in backend structures */
+        rt_cell shift = trnode != RT_NULL ? 3 : 0;
+
+        s_srf->a_map[RT_I] = (mp_i + shift) << 4;
+        s_srf->a_map[RT_J] = (mp_j + shift) << 4;
+        s_srf->a_map[RT_K] = (mp_k + shift) << 4;
+        s_srf->a_map[RT_L] = mtx_has_trm;
+
+        s_srf->a_sgn[RT_I] = (sgn[RT_I] > 0 ? 0 : 1) << 4;
+        s_srf->a_sgn[RT_J] = (sgn[RT_J] > 0 ? 0 : 1) << 4;
+        s_srf->a_sgn[RT_K] = (sgn[RT_K] > 0 ? 0 : 1) << 4;
+        s_srf->a_sgn[RT_L] = 0;
+
+        s_srf->min_t[RT_X] = cmin[RT_X] == -RT_INF ? 0 : 1;
+        s_srf->min_t[RT_Y] = cmin[RT_Y] == -RT_INF ? 0 : 1;
+        s_srf->min_t[RT_Z] = cmin[RT_Z] == -RT_INF ? 0 : 1;
+
+        s_srf->max_t[RT_X] = cmax[RT_X] == +RT_INF ? 0 : 1;
+        s_srf->max_t[RT_Y] = cmax[RT_Y] == +RT_INF ? 0 : 1;
+        s_srf->max_t[RT_Z] = cmax[RT_Z] == +RT_INF ? 0 : 1;
+
+        rt_vec4  zro = {0.0f, 0.0f, 0.0f, 0.0f};
+        rt_real *pps = trnode == this ? zro : pos;
+
+        RT_SIMD_SET(s_srf->min_x, bmin[RT_X] - pps[RT_X]);
+        RT_SIMD_SET(s_srf->min_y, bmin[RT_Y] - pps[RT_Y]);
+        RT_SIMD_SET(s_srf->min_z, bmin[RT_Z] - pps[RT_Z]);
+
+        RT_SIMD_SET(s_srf->max_x, bmax[RT_X] - pps[RT_X]);
+        RT_SIMD_SET(s_srf->max_y, bmax[RT_Y] - pps[RT_Y]);
+        RT_SIMD_SET(s_srf->max_z, bmax[RT_Z] - pps[RT_Z]);
     }
-
-    update_minmax();
-
-    /* if object or some of its parents has non-trivial transform,
-     * select aux vector fields for axis mapping in backend structures */
-    rt_cell shift = trnode != RT_NULL ? 3 : 0;
-
-    s_srf->a_map[RT_I] = (mp_i + shift) << 4;
-    s_srf->a_map[RT_J] = (mp_j + shift) << 4;
-    s_srf->a_map[RT_K] = (mp_k + shift) << 4;
-    s_srf->a_map[RT_L] = mtx_has_trm;
-
-    s_srf->a_sgn[RT_I] = (sgn[RT_I] > 0 ? 0 : 1) << 4;
-    s_srf->a_sgn[RT_J] = (sgn[RT_J] > 0 ? 0 : 1) << 4;
-    s_srf->a_sgn[RT_K] = (sgn[RT_K] > 0 ? 0 : 1) << 4;
-    s_srf->a_sgn[RT_L] = 0;
-
-    s_srf->min_t[RT_X] = cmin[RT_X] == -RT_INF ? 0 : 1;
-    s_srf->min_t[RT_Y] = cmin[RT_Y] == -RT_INF ? 0 : 1;
-    s_srf->min_t[RT_Z] = cmin[RT_Z] == -RT_INF ? 0 : 1;
-
-    s_srf->max_t[RT_X] = cmax[RT_X] == +RT_INF ? 0 : 1;
-    s_srf->max_t[RT_Y] = cmax[RT_Y] == +RT_INF ? 0 : 1;
-    s_srf->max_t[RT_Z] = cmax[RT_Z] == +RT_INF ? 0 : 1;
-
-    rt_vec4  zro = {0.0f, 0.0f, 0.0f, 0.0f};
-    rt_real *pps = trnode == this ? zro : pos;
-
-    RT_SIMD_SET(s_srf->min_x, bmin[RT_X] - pps[RT_X]);
-    RT_SIMD_SET(s_srf->min_y, bmin[RT_Y] - pps[RT_Y]);
-    RT_SIMD_SET(s_srf->min_z, bmin[RT_Z] - pps[RT_Z]);
-
-    RT_SIMD_SET(s_srf->max_x, bmax[RT_X] - pps[RT_X]);
-    RT_SIMD_SET(s_srf->max_y, bmax[RT_Y] - pps[RT_Y]);
-    RT_SIMD_SET(s_srf->max_z, bmax[RT_Z] - pps[RT_Z]);
 }
 
 /*
@@ -1199,24 +1226,36 @@ rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
  */
 rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
-    rt_Surface::update(time, mtx, flags);
+    if (flags & RT_UPDATE_FLAG_OBJ)
+    {
+        rt_Surface::update(time, mtx, flags & ~RT_UPDATE_FLAG_SRF);
 
-    sci[RT_X] = 0.0f;
-    sci[RT_Y] = 0.0f;
-    sci[RT_Z] = 0.0f;
-    sci[RT_W] = 0.0f;
+        sci[RT_X] = 0.0f;
+        sci[RT_Y] = 0.0f;
+        sci[RT_Z] = 0.0f;
+        sci[RT_W] = 0.0f;
 
-    scj[RT_X] = 0.0f;
-    scj[RT_Y] = 0.0f;
-    scj[RT_Z] = 0.0f;
-    scj[RT_W] = 0.0f;
+        scj[RT_X] = 0.0f;
+        scj[RT_Y] = 0.0f;
+        scj[RT_Z] = 0.0f;
+        scj[RT_W] = 0.0f;
 
-    sck[RT_X] = 0.0f;
-    sck[RT_Y] = 0.0f;
-    sck[RT_Z] = 0.0f;
-    sck[RT_W] = 0.0f;
+        sck[RT_X] = 0.0f;
+        sck[RT_Y] = 0.0f;
+        sck[RT_Z] = 0.0f;
+        sck[RT_W] = 0.0f;
 
-    sck[mp_k] = (rt_real)sgn[RT_K];
+        sck[mp_k] = (rt_real)sgn[RT_K];
+    }
+
+    if (flags & RT_UPDATE_FLAG_SRF)
+    {
+        rt_Surface::update(time, mtx, flags & ~RT_UPDATE_FLAG_OBJ);
+    }
+    else
+    {
+        return;
+    }
 
     if (verts == RT_NULL)
     {
@@ -1391,22 +1430,34 @@ rt_Quadric::rt_Quadric(rt_Registry *rg, rt_Object *parent,
  */
 rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
-    rt_Surface::update(time, mtx, flags);
+    if (flags & RT_UPDATE_FLAG_OBJ)
+    {
+        rt_Surface::update(time, mtx, flags & ~RT_UPDATE_FLAG_SRF);
 
-    sci[RT_X] = 1.0f;
-    sci[RT_Y] = 1.0f;
-    sci[RT_Z] = 1.0f;
-    sci[RT_W] = 0.0f;
+        sci[RT_X] = 1.0f;
+        sci[RT_Y] = 1.0f;
+        sci[RT_Z] = 1.0f;
+        sci[RT_W] = 0.0f;
 
-    scj[RT_X] = 0.0f;
-    scj[RT_Y] = 0.0f;
-    scj[RT_Z] = 0.0f;
-    scj[RT_W] = 0.0f;
+        scj[RT_X] = 0.0f;
+        scj[RT_Y] = 0.0f;
+        scj[RT_Z] = 0.0f;
+        scj[RT_W] = 0.0f;
 
-    sck[RT_X] = 0.0f;
-    sck[RT_Y] = 0.0f;
-    sck[RT_Z] = 0.0f;
-    sck[RT_W] = 0.0f;
+        sck[RT_X] = 0.0f;
+        sck[RT_Y] = 0.0f;
+        sck[RT_Z] = 0.0f;
+        sck[RT_W] = 0.0f;
+    }
+
+    if (flags & RT_UPDATE_FLAG_SRF)
+    {
+        rt_Surface::update(time, mtx, flags & ~RT_UPDATE_FLAG_OBJ);
+    }
+    else
+    {
+        return;
+    }
 
     if (verts == RT_NULL)
     {
@@ -1677,10 +1728,18 @@ rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
  */
 rt_void rt_Cylinder::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
-    rt_Quadric::update(time, mtx, flags);
+    if (flags & RT_UPDATE_FLAG_OBJ)
+    {
+        rt_Quadric::update(time, mtx, flags & ~RT_UPDATE_FLAG_SRF);
 
-    sci[mp_k] = 0.0f;
-    sci[RT_W] = xcl->rad * xcl->rad;
+        sci[mp_k] = 0.0f;
+        sci[RT_W] = xcl->rad * xcl->rad;
+    }
+
+    if (flags & RT_UPDATE_FLAG_SRF)
+    {
+        rt_Quadric::update(time, mtx, flags & ~RT_UPDATE_FLAG_OBJ);
+    }
 }
 
 /*
@@ -1778,9 +1837,17 @@ rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
  */
 rt_void rt_Sphere::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
-    rt_Quadric::update(time, mtx, flags);
+    if (flags & RT_UPDATE_FLAG_OBJ)
+    {
+        rt_Quadric::update(time, mtx, flags & ~RT_UPDATE_FLAG_SRF);
 
-    sci[RT_W] = xsp->rad * xsp->rad;
+        sci[RT_W] = xsp->rad * xsp->rad;
+    }
+
+    if (flags & RT_UPDATE_FLAG_SRF)
+    {
+        rt_Quadric::update(time, mtx, flags & ~RT_UPDATE_FLAG_OBJ);
+    }
 }
 
 /*
@@ -1899,9 +1966,17 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
  */
 rt_void rt_Cone::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
-    rt_Quadric::update(time, mtx, flags);
+    if (flags & RT_UPDATE_FLAG_OBJ)
+    {
+        rt_Quadric::update(time, mtx, flags & ~RT_UPDATE_FLAG_SRF);
 
-    sci[mp_k] = -(xcn->rat * xcn->rat);
+        sci[mp_k] = -(xcn->rat * xcn->rat);
+    }
+
+    if (flags & RT_UPDATE_FLAG_SRF)
+    {
+        rt_Quadric::update(time, mtx, flags & ~RT_UPDATE_FLAG_OBJ);
+    }
 }
 
 /*
@@ -2003,10 +2078,18 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
  */
 rt_void rt_Paraboloid::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
-    rt_Quadric::update(time, mtx, flags);
+    if (flags & RT_UPDATE_FLAG_OBJ)
+    {
+        rt_Quadric::update(time, mtx, flags & ~RT_UPDATE_FLAG_SRF);
 
-    sci[mp_k] = 0.0f;
-    scj[mp_k] = xpb->par * (rt_real)sgn[RT_K];
+        sci[mp_k] = 0.0f;
+        scj[mp_k] = xpb->par * (rt_real)sgn[RT_K];
+    }
+
+    if (flags & RT_UPDATE_FLAG_SRF)
+    {
+        rt_Quadric::update(time, mtx, flags & ~RT_UPDATE_FLAG_OBJ);
+    }
 }
 
 /*
@@ -2114,10 +2197,18 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
  */
 rt_void rt_Hyperboloid::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
-    rt_Quadric::update(time, mtx, flags);
+    if (flags & RT_UPDATE_FLAG_OBJ)
+    {
+        rt_Quadric::update(time, mtx, flags & ~RT_UPDATE_FLAG_SRF);
 
-    sci[mp_k] = -(xhb->rat * xhb->rat);
-    sci[RT_W] = xhb->hyp;
+        sci[mp_k] = -(xhb->rat * xhb->rat);
+        sci[RT_W] = xhb->hyp;
+    }
+
+    if (flags & RT_UPDATE_FLAG_SRF)
+    {
+        rt_Quadric::update(time, mtx, flags & ~RT_UPDATE_FLAG_OBJ);
+    }
 }
 
 /*

@@ -50,6 +50,14 @@
  * (other than multiple of 90 dgree) */
 #define RT_UPDATE_FLAG_ROT          (1 << 1)
 
+/* Select 1st phase of the update,
+ * only obj-related fields are updated */
+#define RT_UPDATE_FLAG_OBJ          (1 << 2)
+
+/* Select 2nd phase of the update,
+ * only srf-related fields are updated */
+#define RT_UPDATE_FLAG_SRF          (1 << 3)
+
 /* Structures */
 
 struct rt_VERT
