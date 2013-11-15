@@ -436,8 +436,15 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
                           rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
                           rt_vec4 cmin, rt_vec4 cmax); /* cbox */
 
+    rt_void invert_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 dmin, rt_vec4 dmax); /* dst */
+
     rt_void direct_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
                           rt_vec4 dmin, rt_vec4 dmax); /* dst */
+
+    rt_void recalc_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
 
     rt_void update_minmax();
     rt_void update_bounds();

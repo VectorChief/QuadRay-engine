@@ -1058,13 +1058,45 @@ rt_void rt_Surface::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 }
 
 /*
- * Transform local bounding or clipping box to world coords
- * by applying axis mapping.
+ * Transform world-space bounding or clipping box to local-space
+ * by applying axis mapping (trivial transform).
+ */
+rt_void rt_Surface::invert_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
+                                  rt_vec4 dmin, rt_vec4 dmax) /* dst */
+{
+    rt_vec4 tmin, tmax; /* tmp */
+
+    rt_vec4  zro = {0.0f, 0.0f, 0.0f, 0.0f};
+    rt_real *pps = trnode == this ? zro : pos;
+
+    tmin[RT_X] = smin[RT_X] == -RT_INF ? -RT_INF : smin[RT_X] - pps[RT_X];
+    tmin[RT_Y] = smin[RT_Y] == -RT_INF ? -RT_INF : smin[RT_Y] - pps[RT_Y];
+    tmin[RT_Z] = smin[RT_Z] == -RT_INF ? -RT_INF : smin[RT_Z] - pps[RT_Z];
+
+    tmax[RT_X] = smax[RT_X] == +RT_INF ? +RT_INF : smax[RT_X] - pps[RT_X];
+    tmax[RT_Y] = smax[RT_Y] == +RT_INF ? +RT_INF : smax[RT_Y] - pps[RT_Y];
+    tmax[RT_Z] = smax[RT_Z] == +RT_INF ? +RT_INF : smax[RT_Z] - pps[RT_Z];
+
+    dmin[RT_I] = sgn[RT_I] > 0 ? +tmin[mp_i] : -tmax[mp_i];
+    dmin[RT_J] = sgn[RT_J] > 0 ? +tmin[mp_j] : -tmax[mp_j];
+    dmin[RT_K] = sgn[RT_K] > 0 ? +tmin[mp_k] : -tmax[mp_k];
+
+    dmax[RT_I] = sgn[RT_I] > 0 ? +tmax[mp_i] : -tmin[mp_i];
+    dmax[RT_J] = sgn[RT_J] > 0 ? +tmax[mp_j] : -tmin[mp_j];
+    dmax[RT_K] = sgn[RT_K] > 0 ? +tmax[mp_k] : -tmin[mp_k];
+}
+
+/*
+ * Transform local-space bounding or clipping box to world-space
+ * by applying axis mapping (trivial transform).
  */
 rt_void rt_Surface::direct_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
                                   rt_vec4 dmin, rt_vec4 dmax) /* dst */
 {
     rt_vec4 tmin, tmax; /* tmp */
+
+    rt_vec4  zro = {0.0f, 0.0f, 0.0f, 0.0f};
+    rt_real *pps = trnode == this ? zro : pos;
 
     tmin[mp_i] = sgn[RT_I] > 0 ? +smin[RT_I] : -smax[RT_I];
     tmin[mp_j] = sgn[RT_J] > 0 ? +smin[RT_J] : -smax[RT_J];
@@ -1073,9 +1105,6 @@ rt_void rt_Surface::direct_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
     tmax[mp_i] = sgn[RT_I] > 0 ? +smax[RT_I] : -smin[RT_I];
     tmax[mp_j] = sgn[RT_J] > 0 ? +smax[RT_J] : -smin[RT_J];
     tmax[mp_k] = sgn[RT_K] > 0 ? +smax[RT_K] : -smin[RT_K];
-
-    rt_vec4  zro = {0.0f, 0.0f, 0.0f, 0.0f};
-    rt_real *pps = trnode == this ? zro : pos;
 
     dmin[RT_X] = tmin[RT_X] == -RT_INF ? -RT_INF : tmin[RT_X] + pps[RT_X];
     dmin[RT_Y] = tmin[RT_Y] == -RT_INF ? -RT_INF : tmin[RT_Y] + pps[RT_Y];
@@ -1087,24 +1116,171 @@ rt_void rt_Surface::direct_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 }
 
 /*
+ * Recalculate bounding and clipping boxes based on given "src" box.
+ */
+rt_void rt_Surface::recalc_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                                  rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                                  rt_vec4 cmin, rt_vec4 cmax)  /* cbox */
+{
+    rt_vec4 tmin, tmax;
+    rt_vec4 lmin, lmax;
+
+    rt_real *pmin = RT_NULL;
+    rt_real *pmax = RT_NULL;
+
+    /* accumulate bbox adjustments into cbox */
+    if (smin != RT_NULL && smax != RT_NULL
+    &&  bmin == RT_NULL && bmax == RT_NULL)
+    {
+        invert_minmax(smin, smax, tmin, tmax);
+
+        bmin = lmin;
+        bmax = lmax;
+
+        pmin = cmin;
+        pmax = cmax;
+
+        cmin = RT_NULL;
+        cmax = RT_NULL;
+    }
+    else
+    /* apply bbox adjustments from cbox */
+    if (smin != RT_NULL && smax != RT_NULL
+    &&  cmin != RT_NULL && cmax != RT_NULL)
+    {
+        invert_minmax(smin, smax, tmin, tmax);
+
+        tmin[RT_I] = RT_MAX(tmin[RT_I], srf->min[RT_I]);
+        tmin[RT_J] = RT_MAX(tmin[RT_J], srf->min[RT_J]);
+        tmin[RT_K] = RT_MAX(tmin[RT_K], srf->min[RT_K]);
+
+        tmax[RT_I] = RT_MIN(tmax[RT_I], srf->max[RT_I]);
+        tmax[RT_J] = RT_MIN(tmax[RT_J], srf->max[RT_J]);
+        tmax[RT_K] = RT_MIN(tmax[RT_K], srf->max[RT_K]);
+    }
+    else
+    /* init bbox with original axis clippers */
+    if (smin == RT_NULL && smax == RT_NULL)
+    {
+        tmin[RT_I] = srf->min[RT_I];
+        tmin[RT_J] = srf->min[RT_J];
+        tmin[RT_K] = srf->min[RT_K];
+
+        tmax[RT_I] = srf->max[RT_I];
+        tmax[RT_J] = srf->max[RT_J];
+        tmax[RT_K] = srf->max[RT_K];
+    }
+
+    adjust_minmax(tmin, tmax, bmin, bmax, cmin, cmax);
+
+    /* accumulate bbox adjustments into cbox */
+    if (pmin != RT_NULL && pmax != RT_NULL)
+    {
+        tmin[RT_I] = tmin[RT_I] == bmin[RT_I] ? -RT_INF : bmin[RT_I];
+        tmin[RT_J] = tmin[RT_J] == bmin[RT_J] ? -RT_INF : bmin[RT_J];
+        tmin[RT_K] = tmin[RT_K] == bmin[RT_K] ? -RT_INF : bmin[RT_K];
+
+        tmax[RT_I] = tmax[RT_I] == bmax[RT_I] ? +RT_INF : bmax[RT_I];
+        tmax[RT_J] = tmax[RT_J] == bmax[RT_J] ? +RT_INF : bmax[RT_J];
+        tmax[RT_K] = tmax[RT_K] == bmax[RT_K] ? +RT_INF : bmax[RT_K];
+
+        direct_minmax(tmin, tmax, tmin, tmax);
+
+        pmin[RT_X] = RT_MAX(pmin[RT_X], tmin[RT_X]);
+        pmin[RT_Y] = RT_MAX(pmin[RT_Y], tmin[RT_Y]);
+        pmin[RT_Z] = RT_MAX(pmin[RT_Z], tmin[RT_Z]);
+
+        pmax[RT_X] = RT_MIN(pmax[RT_X], tmax[RT_X]);
+        pmax[RT_Y] = RT_MIN(pmax[RT_Y], tmax[RT_Y]);
+        pmax[RT_Z] = RT_MIN(pmax[RT_Z], tmax[RT_Z]);
+
+        bmin = RT_NULL;
+        bmax = RT_NULL;
+    }
+
+    if (bmin != RT_NULL && bmax != RT_NULL)
+    {
+        direct_minmax(bmin, bmax, bmin, bmax);
+    }
+
+    if (cmin != RT_NULL && cmax != RT_NULL)
+    {
+        direct_minmax(cmin, cmax, cmin, cmax);
+    }
+}
+
+/*
  * Update bounding and clipping boxes data.
  */
 rt_void rt_Surface::update_minmax()
 {
-    rt_vec4 smin, smax; /* src */
+    /* init custom clippers list */
+    rt_ELEM *elm = (rt_ELEM *)s_srf->msc_p[2];
 
-    smin[RT_I] = srf->min[RT_I];
-    smin[RT_J] = srf->min[RT_J];
-    smin[RT_K] = srf->min[RT_K];
+    /* no custom clippers or
+     * surface itself has non-trivial transform */
+    if (elm == RT_NULL || trnode == this)
+    {
+        /* calculate bbox and cbox based on 
+         * original axis clippers and surface shape */
+        recalc_minmax(RT_NULL,  RT_NULL,
+                      bmin,     bmax,
+                      cmin,     cmax);
+        return;
+    }
 
-    smax[RT_I] = srf->max[RT_I];
-    smax[RT_J] = srf->max[RT_J];
-    smax[RT_K] = srf->max[RT_K];
+    /* first calculate only bbox based on 
+     * original axis clippers and surface shape */
+    recalc_minmax(RT_NULL,  RT_NULL,
+                  bmin,     bmax,
+                  RT_NULL,  RT_NULL);
 
-    adjust_minmax(smin, smax, bmin, bmax, cmin, cmax);
+    /* prepare cbox as temporary storage
+     * for bbox adjustments by custom clippers */
+    cmin[RT_X] = -RT_INF;
+    cmin[RT_Y] = -RT_INF;
+    cmin[RT_Z] = -RT_INF;
 
-    direct_minmax(bmin, bmax, bmin, bmax);
-    direct_minmax(cmin, cmax, cmin, cmax);
+    cmax[RT_X] = +RT_INF;
+    cmax[RT_Y] = +RT_INF;
+    cmax[RT_Z] = +RT_INF;
+
+    rt_cell skip = 0;
+
+    /* run through custom clippers list */
+    for (; elm != RT_NULL; elm = elm->next)
+    {
+        rt_Object *obj = (rt_Object *)elm->temp;
+
+        /* skip clip accum segments in the list */
+        if (obj == RT_NULL)
+        {
+            skip = 1 - skip;
+        }
+
+        if (obj == RT_NULL || skip == 1
+        ||  obj->tag == RT_TAG_ARRAY
+        ||  obj->tag == RT_TAG_PLANE
+        ||  obj->trnode != trnode
+        ||  elm->data != RT_REL_MINUS_OUTER)
+        {
+            continue;
+        }
+
+        rt_Surface *srf = (rt_Surface *)obj;
+
+        /* accumulate bbox adjustments
+         * from individual outer clippers into cbox */
+        srf->recalc_minmax(bmin,     bmax,
+                           RT_NULL,  RT_NULL,
+                           cmin,     cmax);
+    }
+
+    /* apply bbox adjustments accumulated in cbox,
+     * calculate final bbox and cbox for the surface */
+    recalc_minmax(cmin,     cmax,
+                  bmin,     bmax,
+                  cmin,     cmax);
 }
 
 /*
