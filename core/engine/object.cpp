@@ -30,6 +30,9 @@ rt_Object::rt_Object(rt_Object *parent, rt_OBJECT *obj)
     pos = this->mtx[3];
     this->tag = obj->obj.tag;
 
+    obj->time = -1;
+
+    this->obj_changed = 0;
     this->obj_has_trm = 0;
     this->mtx_has_trm = 0;
 
@@ -50,12 +53,25 @@ rt_void rt_Object::add_relation(rt_ELEM *lst)
  */
 rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
-    if (obj->f_anim != RT_NULL)
+    if (obj->f_anim != RT_NULL && obj->time != time)
     {
-        obj->f_anim(time, obj->time, trm, RT_NULL);
+        obj->f_anim(time, obj->time < 0 ? 0 : obj->time, trm, RT_NULL);
     }
 
     obj->time = time;
+
+    /* inherit changed status from the hierarchy */
+    obj_changed = flags & RT_UPDATE_FLAG_ARR;
+
+    if (obj->f_anim != RT_NULL)
+    {
+        obj_changed = RT_UPDATE_FLAG_ARR;
+    }
+
+    if (obj_changed == 0)
+    {
+        return;
+    }
 
     /* determine object's own transform for transform caching,
      * which allows to apply single matrix transform
@@ -204,6 +220,8 @@ rt_Camera::rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
     pov = cam->vpt[0] <= 0.0f ? 1.0f : /* default pov */
           cam->vpt[0] <= 2 * RT_CLIP_THRESHOLD ? /* minimum positive pov */
                          2 * RT_CLIP_THRESHOLD : cam->vpt[0];
+
+    cam_changed = 0;
 }
 
 /*
@@ -216,10 +234,17 @@ rt_void rt_Camera::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         return;
     }
 
-    rt_Object::update(time, mtx, flags);
+    rt_Object::update(time, mtx, flags | cam_changed);
+
+    if (obj_changed == 0)
+    {
+        return;
+    }
 
     hor_sin = RT_SINA(trm->rot[RT_Z]);
     hor_cos = RT_COSA(trm->rot[RT_Z]);
+
+    cam_changed = 0;
 }
 
 /*
@@ -304,6 +329,8 @@ rt_void rt_Camera::update(rt_long time, rt_cell action)
         default:
         break;
     }
+
+    cam_changed = RT_UPDATE_FLAG_ARR;
 }
 
 /*
@@ -364,6 +391,11 @@ rt_void rt_Light::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     }
 
     rt_Object::update(time, mtx, flags);
+
+    if (obj_changed == 0)
+    {
+        return;
+    }
 
     RT_SIMD_SET(s_lgt->pos_x, pos[RT_X]);
     RT_SIMD_SET(s_lgt->pos_y, pos[RT_Y]);
@@ -441,6 +473,11 @@ rt_void rt_Node::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     }
 
     rt_Object::update(time, mtx, flags);
+
+    if (obj_changed == 0)
+    {
+        return;
+    }
 
     rt_cell i, j;
     rt_vec4 scl;
@@ -616,6 +653,12 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         return;
     }
 
+    /* update the whole hierarchy when called for the first time */
+    if (obj->time == -1 && parent == RT_NULL)
+    {
+        flags |= RT_UPDATE_FLAG_ARR;
+    }
+
     rt_Node::update(time, mtx, flags);
 
     rt_cell i, j;
@@ -645,7 +688,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * pass array's own transform flags */
     for (i = 0; i < obj_num; i++)
     {
-        obj_arr[i]->update(time, *pmtx, flags | obj_has_trm);
+        obj_arr[i]->update(time, *pmtx, flags | obj_has_trm | obj_changed);
     }
 
     /* rebuild objects relations (custom clippers)

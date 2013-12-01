@@ -50,13 +50,17 @@
  * (other than multiple of 90 dgree) */
 #define RT_UPDATE_FLAG_ROT          (1 << 1)
 
-/* Select 1st phase of the update,
- * only obj-related fields are updated */
-#define RT_UPDATE_FLAG_OBJ          (1 << 2)
+/* set for object which has
+ * some of its parents changed */
+#define RT_UPDATE_FLAG_ARR          (1 << 2)
 
-/* Select 2nd phase of the update,
+/* select 0th phase of the update,
+ * only obj-related fields are updated */
+#define RT_UPDATE_FLAG_OBJ          (1 << 3)
+
+/* select 1st phase of the update,
  * only srf-related fields are updated */
-#define RT_UPDATE_FLAG_SRF          (1 << 3)
+#define RT_UPDATE_FLAG_SRF          (1 << 4)
 
 /* Structures */
 
@@ -180,6 +184,10 @@ class rt_Object
     rt_real            *pos;
     rt_cell             tag;
 
+    /* non-zero if object itself or
+     * some of its parents changed */
+    rt_cell             obj_changed;
+
     /* non-zero if object itself has
      * non-trivial transform
      * (scaling, rotation or both) */
@@ -243,6 +251,9 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
     /* rotation internal variables */
     rt_real             hor_sin;
     rt_real             hor_cos;
+
+    /* non-zero if camera was changed by action */
+    rt_cell             cam_changed;
 
 /*  methods */
 
