@@ -842,6 +842,8 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
 
     this->srf = (rt_SURFACE *)obj->obj.pobj;
 
+    this->srf_changed = 0;
+
     this->outer = new rt_Material(rg, &srf->side_outer,
                     obj->obj.pmat_outer ? obj->obj.pmat_outer :
                                           srf->side_outer.pmat);
@@ -1055,6 +1057,11 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     {
         update_minmax();
 
+        if (srf_changed == 0)
+        {
+            return;
+        }
+
         /* if object or some of its parents has non-trivial transform,
          * select aux vector fields for axis mapping in backend structures */
         rt_cell shift = trnode != RT_NULL ? 3 : 0;
@@ -1266,6 +1273,8 @@ rt_void rt_Surface::recalc_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
  */
 rt_void rt_Surface::update_minmax()
 {
+    srf_changed = obj_changed;
+
     /* init custom clippers list */
     rt_ELEM *elm = (rt_ELEM *)s_srf->msc_p[2];
 
@@ -1278,6 +1287,36 @@ rt_void rt_Surface::update_minmax()
         recalc_minmax(RT_NULL,  RT_NULL,
                       bmin,     bmax,
                       cmin,     cmax);
+        return;
+    }
+
+    rt_cell skip = 0;
+
+    /* run through custom clippers list */
+    for (; elm != RT_NULL; elm = elm->next)
+    {
+        rt_Object *obj = (rt_Object *)elm->temp;
+
+        /* skip clip accum segments in the list */
+        if (obj == RT_NULL)
+        {
+            skip = 1 - skip;
+        }
+
+        if (obj == RT_NULL || skip == 1
+        ||  obj->tag == RT_TAG_ARRAY
+        ||  obj->tag == RT_TAG_PLANE
+        ||  obj->trnode != trnode
+        ||  elm->data != RT_REL_MINUS_OUTER)
+        {
+            continue;
+        }
+
+        srf_changed |= obj->obj_changed;
+    }
+
+    if (srf_changed == 0)
+    {
         return;
     }
 
@@ -1297,7 +1336,7 @@ rt_void rt_Surface::update_minmax()
     cmax[RT_Y] = +RT_INF;
     cmax[RT_Z] = +RT_INF;
 
-    rt_cell skip = 0;
+    skip = 0;
 
     /* run through custom clippers list */
     for (; elm != RT_NULL; elm = elm->next)
@@ -1479,6 +1518,11 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     if (flags & RT_UPDATE_FLAG_SRF)
     {
         rt_Surface::update(time, mtx, flags & ~RT_UPDATE_FLAG_OBJ);
+
+        if (srf_changed == 0)
+        {
+            return;
+        }
     }
     else
     {
@@ -1679,6 +1723,11 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     if (flags & RT_UPDATE_FLAG_SRF)
     {
         rt_Surface::update(time, mtx, flags & ~RT_UPDATE_FLAG_OBJ);
+
+        if (srf_changed == 0)
+        {
+            return;
+        }
     }
     else
     {

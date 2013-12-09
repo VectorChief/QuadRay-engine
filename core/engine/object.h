@@ -399,6 +399,10 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
     rt_cell             mp_k;
     rt_cell             mp_l;
 
+    /* non-zero if surface itself or
+     * some of its clippers changed */
+    rt_cell             srf_changed;
+
     /* bounding box,
      * all sides clipped or non-clipped are boundaries */
     rt_vec4             bmin;
