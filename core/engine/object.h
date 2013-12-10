@@ -363,6 +363,8 @@ class rt_Array : public rt_Node
     rt_Object         **obj_arr;
     rt_cell             obj_num;
 
+    rt_mat4             axm;
+
 /*  methods */
 
     public:
