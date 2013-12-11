@@ -1,3 +1,10 @@
+v0.5.5: Performance optimizations, multi-threading and other refinements
+  - add support for multi-phase (with sync points) threaded update and render
+  - split part of hierarchical update into a separate multi-threaded phase
+  - refine bounding and clipping boxes based on custom clippers
+  - only update moving parts of the objects hierarchy and the surface data
+  - move inverse matrix calculation from hierarchical to multi-threaded phase
+
 v0.5.4: Performance optimizations, custom per-side lists
   - add generic surface coeffs to object classes
   - add clipped surface side visibility routines for given point
