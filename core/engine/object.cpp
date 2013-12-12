@@ -525,6 +525,34 @@ rt_void rt_Node::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 }
 
 /*
+ * Compute object's inverted transform matrix and store
+ * its values into backend fields along with current position.
+ */
+rt_void rt_Node::invert_matrix()
+{
+    RT_SIMD_SET(s_srf->pos_x, pos[RT_X]);
+    RT_SIMD_SET(s_srf->pos_y, pos[RT_Y]);
+    RT_SIMD_SET(s_srf->pos_z, pos[RT_Z]);
+
+    if (obj_has_trm)
+    {
+        matrix_inverse(inv, this->mtx);
+
+        RT_SIMD_SET(s_srf->tci_x, inv[RT_X][RT_I]);
+        RT_SIMD_SET(s_srf->tci_y, inv[RT_Y][RT_I]);
+        RT_SIMD_SET(s_srf->tci_z, inv[RT_Z][RT_I]);
+
+        RT_SIMD_SET(s_srf->tcj_x, inv[RT_X][RT_J]);
+        RT_SIMD_SET(s_srf->tcj_y, inv[RT_Y][RT_J]);
+        RT_SIMD_SET(s_srf->tcj_z, inv[RT_Z][RT_J]);
+
+        RT_SIMD_SET(s_srf->tck_x, inv[RT_X][RT_K]);
+        RT_SIMD_SET(s_srf->tck_y, inv[RT_Y][RT_K]);
+        RT_SIMD_SET(s_srf->tck_z, inv[RT_Z][RT_K]);
+    }
+}
+
+/*
  * Destroy node object.
  */
 rt_Node::~rt_Node()
@@ -798,26 +826,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     s_srf->a_sgn[RT_K] = 0;
     s_srf->a_sgn[RT_L] = 0;
 
-    RT_SIMD_SET(s_srf->pos_x, pos[RT_X]);
-    RT_SIMD_SET(s_srf->pos_y, pos[RT_Y]);
-    RT_SIMD_SET(s_srf->pos_z, pos[RT_Z]);
-
-    if (obj_has_trm)
-    {
-        matrix_inverse(inv, this->mtx);
-
-        RT_SIMD_SET(s_srf->tci_x, inv[RT_X][RT_I]);
-        RT_SIMD_SET(s_srf->tci_y, inv[RT_Y][RT_I]);
-        RT_SIMD_SET(s_srf->tci_z, inv[RT_Z][RT_I]);
-
-        RT_SIMD_SET(s_srf->tcj_x, inv[RT_X][RT_J]);
-        RT_SIMD_SET(s_srf->tcj_y, inv[RT_Y][RT_J]);
-        RT_SIMD_SET(s_srf->tcj_z, inv[RT_Z][RT_J]);
-
-        RT_SIMD_SET(s_srf->tck_x, inv[RT_X][RT_K]);
-        RT_SIMD_SET(s_srf->tck_y, inv[RT_Y][RT_K]);
-        RT_SIMD_SET(s_srf->tck_z, inv[RT_Z][RT_K]);
-    }
+    invert_matrix();
 }
 
 /*
@@ -1113,26 +1122,7 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         s_srf->a_sgn[RT_K] = (sgn[RT_K] > 0 ? 0 : 1) << 4;
         s_srf->a_sgn[RT_L] = 0;
 
-        RT_SIMD_SET(s_srf->pos_x, pos[RT_X]);
-        RT_SIMD_SET(s_srf->pos_y, pos[RT_Y]);
-        RT_SIMD_SET(s_srf->pos_z, pos[RT_Z]);
-
-        if (obj_has_trm)
-        {
-            matrix_inverse(inv, this->mtx);
-
-            RT_SIMD_SET(s_srf->tci_x, inv[RT_X][RT_I]);
-            RT_SIMD_SET(s_srf->tci_y, inv[RT_Y][RT_I]);
-            RT_SIMD_SET(s_srf->tci_z, inv[RT_Z][RT_I]);
-
-            RT_SIMD_SET(s_srf->tcj_x, inv[RT_X][RT_J]);
-            RT_SIMD_SET(s_srf->tcj_y, inv[RT_Y][RT_J]);
-            RT_SIMD_SET(s_srf->tcj_z, inv[RT_Z][RT_J]);
-
-            RT_SIMD_SET(s_srf->tck_x, inv[RT_X][RT_K]);
-            RT_SIMD_SET(s_srf->tck_y, inv[RT_Y][RT_K]);
-            RT_SIMD_SET(s_srf->tck_z, inv[RT_Z][RT_K]);
-        }
+        invert_matrix();
     }
 }
 

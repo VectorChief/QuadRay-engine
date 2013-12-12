@@ -342,6 +342,8 @@ class rt_Node : public rt_Object
     rt_void add_relation(rt_ELEM *lst);
     virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
+
+    rt_void invert_matrix();
 };
 
 /******************************************************************************/
