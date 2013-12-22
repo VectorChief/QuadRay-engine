@@ -830,6 +830,57 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 }
 
 /*
+ * Update bounding sphere data.
+ */
+rt_void rt_Array::update_bounds()
+{
+    mid[RT_X] = pos[RT_X];
+    mid[RT_Y] = pos[RT_Y];
+    mid[RT_Z] = pos[RT_Z];
+
+    rt_cell i;
+
+    rad = 0.0f;
+
+    for (i = 0; i < obj_num; i++)
+    {
+        rt_Node *nod = RT_NULL;
+
+        if (RT_IS_ARRAY(obj_arr[i]))
+        {
+            nod = (rt_Node *)obj_arr[i];
+            rt_Array *arr = (rt_Array *)nod;
+            arr->update_bounds();
+        }
+        else
+        if (RT_IS_SURFACE(obj_arr[i]))
+        {
+            nod = (rt_Node *)obj_arr[i];
+        }
+        else
+        {
+            continue;
+        }
+
+        rt_real len = 0.0f, f;
+
+        f = mid[RT_X] - nod->mid[RT_X];
+        len += f * f;
+        f = mid[RT_Y] - nod->mid[RT_Y];
+        len += f * f;
+        f = mid[RT_Z] - nod->mid[RT_Z];
+        len += f * f;
+
+        len = RT_SQRT(len) + nod->rad;
+
+        if (rad < len)
+        {
+            rad = len;
+        }
+    }
+}
+
+/*
  * Destroy array object.
  */
 rt_Array::~rt_Array()
@@ -1441,7 +1492,7 @@ rt_void rt_Surface::update_bounds()
         }
     }
 
-    rad = sqrtf(rad);
+    rad = RT_SQRT(rad);
 }
 
 /*
@@ -2276,7 +2327,7 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
     rt_real rat = RT_FABS(xcn->rat);
 
     RT_SIMD_SET(s_xcn->rat_2, rat * rat);
-    RT_SIMD_SET(s_xcn->i_rat, 1.0f / (rat * sqrtf(rat * rat + 1.0f)));
+    RT_SIMD_SET(s_xcn->i_rat, 1.0f / (rat * RT_SQRT(rat * rat + 1.0f)));
 }
 
 /*

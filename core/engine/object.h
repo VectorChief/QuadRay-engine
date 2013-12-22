@@ -381,6 +381,8 @@ class rt_Array : public rt_Node
     rt_void add_relation(rt_ELEM *lst);
     virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
+
+    rt_void update_bounds();
 };
 
 /******************************************************************************/

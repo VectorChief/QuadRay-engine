@@ -162,7 +162,7 @@ class rt_Scene : public rt_LogRedirect, public rt_Registry
     rt_vec4             amb;
 
     /* root of the objects hierarchy */
-    rt_Object          *root;
+    rt_Array           *root;
     /* current camera */
     rt_Camera          *cam;
 

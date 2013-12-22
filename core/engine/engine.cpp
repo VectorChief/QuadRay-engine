@@ -1270,7 +1270,18 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     rootobj.trm.scl[RT_K] = 1.0f;
     rootobj.obj = scn->root;
 
+    if (scn->root.tag != RT_TAG_ARRAY)
+    {
+        throw rt_Exception("scene's root is not an array");
+    }
+
     root = new rt_Array(this, RT_NULL, &rootobj); /* init srf_num */
+
+    if (cam_head == RT_NULL)
+    {
+        throw rt_Exception("scene doesn't contain camera");
+    }
+
     cam  = cam_head;
 
     /* create scene threads array */
@@ -1420,6 +1431,8 @@ rt_void rt_Scene::render(rt_long time)
     {
         this->f_update(tdata, thnum, 1);
     }
+
+    root->update_bounds();
 
     /* rebuild global surface list */
     slist = tharr[0]->ssort(cam);
