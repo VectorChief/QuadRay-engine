@@ -35,6 +35,7 @@
 #define RT_FEAT_ANTIALIASING        1
 #define RT_FEAT_TRANSFORM           1
 #define RT_FEAT_TRANSFORM_ARRAY     1
+#define RT_FEAT_BOUNDINGV_ARRAY     1
 
 /*
  * Byte-offsets within SIMD-field
@@ -617,6 +618,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(OO_dff)
 
 #endif /* RT_FEAT_TRANSFORM_ARRAY */
+
+#if RT_FEAT_BOUNDINGV_ARRAY
+
+        /* only arrays are allowed to have
+         * non-zero lower two bits in DATA field
+         * for regular surface lists */
+        movxx_ld(Reax, Mesi, elm_DATA)
+        andxx_ri(Reax, IB(3))
+        cmpxx_ri(Reax, IB(1))
+        jeqxx_lb(AR_ptr)
+
+#endif /* RT_FEAT_BOUNDINGV_ARRAY */
 
         /* compute negated diff
          * to compensate for minus in solvers */
@@ -2003,6 +2016,90 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ld(Resi, Mecx, ctx_LOCAL(LST))
 
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))
+
+/******************************************************************************/
+/**********************************   ARRAY   *********************************/
+/******************************************************************************/
+
+#if RT_FEAT_BOUNDINGV_ARRAY
+
+    LBL(AR_ptr)
+
+        /* NOTE: bounding volume array must have absolute position */
+        /* TODO: optimize by merging diffs into solver without storing */
+
+        /* compute negated diff
+         * to compensate for minus in solvers */
+        movpx_ld(Xmm1, Mebx, srf_POS_X)
+        movpx_ld(Xmm2, Mebx, srf_POS_Y)
+        movpx_ld(Xmm3, Mebx, srf_POS_Z)
+
+        subps_ld(Xmm1, Mecx, ctx_ORG_X)
+        subps_ld(Xmm2, Mecx, ctx_ORG_Y)
+        subps_ld(Xmm3, Mecx, ctx_ORG_Z)
+
+        movpx_st(Xmm1, Mecx, ctx_DFF_I)
+        movpx_st(Xmm2, Mecx, ctx_DFF_J)
+        movpx_st(Xmm3, Mecx, ctx_DFF_K)
+
+        /* "x" section */
+        movpx_ld(Xmm1, Mecx, ctx_RAY_X)         /* ray_x <- RAY_X */
+        movpx_ld(Xmm5, Mecx, ctx_DFF_I)         /* dff_x <- DFF_I */
+        movpx_rr(Xmm3, Xmm1)                    /* ray_x <- ray_x */
+        mulps_rr(Xmm3, Xmm5)                    /* ray_x *= dff_x */
+        mulps_rr(Xmm1, Xmm1)                    /* ray_x *= ray_x */
+        mulps_rr(Xmm5, Xmm5)                    /* dff_x *= dff_x */
+
+        /* "y" section */
+        movpx_ld(Xmm2, Mecx, ctx_RAY_Y)         /* ray_y <- RAY_Y */
+        movpx_ld(Xmm6, Mecx, ctx_DFF_J)         /* dff_y <- DFF_J */
+        movpx_rr(Xmm4, Xmm2)                    /* ray_y <- ray_y */
+        mulps_rr(Xmm4, Xmm6)                    /* ray_y *= dff_y */
+        mulps_rr(Xmm2, Xmm2)                    /* ray_y *= ray_y */
+        mulps_rr(Xmm6, Xmm6)                    /* dff_y *= dff_y */
+
+        /* "+" section */
+        addps_rr(Xmm1, Xmm2)                    /* axx_x += axx_y */
+        addps_rr(Xmm3, Xmm4)                    /* bxx_x += bxx_y */
+        addps_rr(Xmm5, Xmm6)                    /* cxx_x += cxx_y */
+
+        /* "z" section */
+        movpx_ld(Xmm2, Mecx, ctx_RAY_Z)         /* ray_z <- RAY_Z */
+        movpx_ld(Xmm6, Mecx, ctx_DFF_K)         /* dff_z <- DFF_K */
+        movpx_rr(Xmm4, Xmm2)                    /* ray_z <- ray_z */
+        mulps_rr(Xmm4, Xmm6)                    /* ray_z *= dff_z */
+        mulps_rr(Xmm2, Xmm2)                    /* ray_z *= ray_z */
+        mulps_rr(Xmm6, Xmm6)                    /* dff_z *= dff_z */
+
+        /* "+" section */
+        addps_rr(Xmm1, Xmm2)                    /* axx_t += axx_z */
+        addps_rr(Xmm3, Xmm4)                    /* bxx_t += bxx_z */
+        addps_rr(Xmm5, Xmm6)                    /* cxx_t += cxx_z */
+
+        subps_ld(Xmm5, Mebx, xsp_RAD_2)         /* cxx_t -= RAD_2 */
+
+        /* "d" section */
+        mulps_rr(Xmm5, Xmm1)                    /* c_val *= a_val */
+        mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
+        subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
+
+        /* create xmask */
+        xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
+        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
+        CHECK_MASK(AR_skp, NONE, Xmm7)
+        jmpxx_lb(OO_end)
+
+    LBL(AR_skp)
+
+        /* if all rays within SIMD missed the bounding volume,
+         * skip array's contents in the list completely */
+        movxx_ld(Reax, Mesi, elm_DATA)
+        shrxx_ri(Reax, IB(2))
+        shlxx_ri(Reax, IB(2))
+        movxx_rr(Resi, Reax)
+        jmpxx_lb(OO_end)
+
+#endif /* RT_FEAT_BOUNDINGV_ARRAY */
 
 /******************************************************************************/
 /**********************************   PLANE   *********************************/
