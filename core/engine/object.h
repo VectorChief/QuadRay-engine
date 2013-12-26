@@ -202,7 +202,14 @@ class rt_Object
      * non-trivial transform,
      * relative to which object has
      * trivial transform */
+    /* TODO: change type to rt_Array */
     rt_Object          *trnode;
+
+    /* node up in the hierarchy with
+     * bounding volume enabled,
+     * to which object contributes
+     * its own bounding volume */
+    rt_Array           *bvnode;
 
     /* object's immediate parent
      * in the hierarchy */
@@ -223,6 +230,8 @@ class rt_Object
     rt_void add_relation(rt_ELEM *lst);
     virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
+    virtual
+    rt_void update_bvnode(rt_Array *bvnode, rt_bool mode);
 };
 
 /******************************************************************************/
@@ -342,6 +351,8 @@ class rt_Node : public rt_Object
     rt_void add_relation(rt_ELEM *lst);
     virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
+    virtual
+    rt_void update_bvnode(rt_Array *bvnode, rt_bool mode);
 
     rt_void invert_matrix();
 };
@@ -381,6 +392,8 @@ class rt_Array : public rt_Node
     rt_void add_relation(rt_ELEM *lst);
     virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
+    virtual
+    rt_void update_bvnode(rt_Array *bvnode, rt_bool mode);
 
     rt_void update_bounds();
 };
@@ -468,6 +481,7 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
                           rt_vec4 cmin, rt_vec4 cmax); /* cbox */
 
     rt_void update_minmax();
+
     rt_void update_bounds();
 };
 

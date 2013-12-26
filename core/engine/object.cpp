@@ -37,6 +37,7 @@ rt_Object::rt_Object(rt_Object *parent, rt_OBJECT *obj)
     this->mtx_has_trm = 0;
 
     this->trnode = RT_NULL;
+    this->bvnode = RT_NULL;
     this->parent = parent;
 }
 
@@ -59,6 +60,8 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     }
 
     obj->time = time;
+
+    bvnode = RT_NULL;
 
     /* inherit changed status from the hierarchy */
     obj_changed = flags & RT_UPDATE_FLAG_ARR;
@@ -179,6 +182,25 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         memcpy(this->mtx, tmp_mtx, sizeof(rt_mat4));
 
         trnode = this;
+    }
+}
+
+/*
+ * Update bvnode pointer with given "mode".
+ */
+rt_void rt_Object::update_bvnode(rt_Array *bvnode, rt_bool mode)
+{
+    if (bvnode == this)
+    {
+        return;
+    }
+    if (mode == RT_TRUE  && this->bvnode == RT_NULL)
+    {
+        this->bvnode = bvnode;
+    }
+    if (mode == RT_FALSE && this->bvnode == bvnode)
+    {
+        this->bvnode = RT_NULL;
     }
 }
 
@@ -525,6 +547,14 @@ rt_void rt_Node::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 }
 
 /*
+ * Update bvnode pointer with given "mode".
+ */
+rt_void rt_Node::update_bvnode(rt_Array *bvnode, rt_bool mode)
+{
+    rt_Object::update_bvnode(bvnode, mode);
+}
+
+/*
  * Compute object's inverted transform matrix and store
  * its values into backend fields along with current position.
  */
@@ -704,6 +734,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     /* rebuild objects relations (custom clippers)
      * after all transform flags have been updated,
      * so that trnode elements are handled properly */
+    /* TODO: move template building to constructor */
     if (obj->obj.rel_num > 0)
     {
         rt_RELATION *rel = obj->obj.prel;
@@ -729,30 +760,26 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
             rt_ELEM *elm = RT_NULL;
 
+            rt_Object *obj = RT_NULL;
+            rt_Array *arr = RT_NULL;
+            rt_bool mode = RT_FALSE;
+
             switch (rel[i].rel)
             {
                 case RT_REL_INDEX_ARRAY:
-                if (rel[i].obj1 >= 0 && rel[i].obj2 >= -1)
+                if (rel[i].obj1 >= 0 && rel[i].obj2 >= -1
+                &&  RT_IS_ARRAY(obj_arr_l[rel[i].obj1]))
                 {
-                    rt_Object *obj = (rt_Object *)obj_arr_l[rel[i].obj1];
-
-                    if (RT_IS_ARRAY(obj))
-                    {
-                        rt_Array *arr = (rt_Array *)obj;
-                        obj_arr_l = arr->obj_arr; /* select left  sub-array */
-                        obj_num_l = arr->obj_num;   /* for next left  index */
-                    }
+                    rt_Array *arr = (rt_Array *)obj_arr_l[rel[i].obj1];
+                    obj_arr_l = arr->obj_arr; /* select left  sub-array */
+                    obj_num_l = arr->obj_num;   /* for next left  index */
                 }
-                if (rel[i].obj1 >= -1 && rel[i].obj2 >= 0)
+                if (rel[i].obj1 >= -1 && rel[i].obj2 >= 0
+                &&  RT_IS_ARRAY(obj_arr_r[rel[i].obj2]))
                 {
-                    rt_Object *obj = (rt_Object *)obj_arr_r[rel[i].obj2];
-
-                    if (RT_IS_ARRAY(obj))
-                    {
-                        rt_Array *arr = (rt_Array *)obj;
-                        obj_arr_r = arr->obj_arr; /* select right sub-array */
-                        obj_num_r = arr->obj_num;   /* for next right index */
-                    }
+                    rt_Array *arr = (rt_Array *)obj_arr_r[rel[i].obj2];
+                    obj_arr_r = arr->obj_arr; /* select right sub-array */
+                    obj_num_r = arr->obj_num;   /* for next right index */
                 }
                 break;
 
@@ -798,6 +825,66 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
                 }
                 break;
 
+                case RT_REL_BOUND_ARRAY:
+                if (rel[i].obj1 == -1 && rel[i].obj2 == -1)
+                {
+                    obj = arr = this;
+                    mode = RT_TRUE;
+                }
+                if (rel[i].obj1 == -1 && rel[i].obj2 >= 0
+                &&  RT_IS_ARRAY(obj_arr_r[rel[i].obj2]))
+                {
+                    obj = arr = (rt_Array *)obj_arr_r[rel[i].obj2];
+                    mode = RT_TRUE;
+                }
+                break;
+
+                case RT_REL_UNTIE_ARRAY:
+                if (rel[i].obj1 == -1 && rel[i].obj2 == -1)
+                {
+                    obj = arr = this;
+                    mode = RT_FALSE;
+                }
+                if (rel[i].obj1 == -1 && rel[i].obj2 >= 0
+                &&  RT_IS_ARRAY(obj_arr_r[rel[i].obj2]))
+                {
+                    obj = arr = (rt_Array *)obj_arr_r[rel[i].obj2];
+                    mode = RT_FALSE;
+                }
+                break;
+
+                case RT_REL_BOUND_INDEX:
+                if (rel[i].obj1 == -1 && rel[i].obj2 >= 0)
+                {
+                    obj = obj_arr_r[rel[i].obj2];
+                    arr = this;
+                    mode = RT_TRUE;
+                }
+                if (rel[i].obj1 >= 0 && rel[i].obj2 >= 0
+                &&  RT_IS_ARRAY(obj_arr_l[rel[i].obj1]))
+                {
+                    obj = obj_arr_r[rel[i].obj2];
+                    arr = (rt_Array *)obj_arr_l[rel[i].obj1];
+                    mode = RT_TRUE;
+                }
+                break;
+
+                case RT_REL_UNTIE_INDEX:
+                if (rel[i].obj1 == -1 && rel[i].obj2 >= 0)
+                {
+                    obj = obj_arr_r[rel[i].obj2];
+                    arr = this;
+                    mode = RT_FALSE;
+                }
+                if (rel[i].obj1 >= 0 && rel[i].obj2 >= 0
+                &&  RT_IS_ARRAY(obj_arr_l[rel[i].obj1]))
+                {
+                    obj = obj_arr_r[rel[i].obj2];
+                    arr = (rt_Array *)obj_arr_l[rel[i].obj1];
+                    mode = RT_FALSE;
+                }
+                break;
+
                 default:
                 break;
             }
@@ -807,6 +894,20 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
                 obj_arr_l[rel[i].obj1]->add_relation(elm);
                 obj_arr_l = obj_arr; /* reset left  sub-array after use */
                 obj_num_l = obj_num;
+            }
+            if (obj != RT_NULL && arr != RT_NULL)
+            {
+                obj->update_bvnode(arr, mode);
+                if (rel[i].obj1 >= 0)
+                {
+                    obj_arr_l = obj_arr; /* reset left  sub-array after use */
+                    obj_num_l = obj_num;
+                }
+                if (rel[i].obj2 >= 0)
+                {
+                    obj_arr_r = obj_arr; /* reset right sub-array after use */
+                    obj_num_r = obj_num;
+                }
             }
         }
     }
@@ -830,6 +931,22 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 }
 
 /*
+ * Update bvnode pointer for all sub-objects,
+ * including sub-arrays (recursive).
+ */
+rt_void rt_Array::update_bvnode(rt_Array *bvnode, rt_bool mode)
+{
+    rt_Node::update_bvnode(bvnode, mode);
+
+    rt_cell i;
+
+    for (i = 0; i < obj_num; i++)
+    {
+        obj_arr[i]->update_bvnode(bvnode, mode);
+    }
+}
+
+/*
  * Update bounding sphere data.
  */
 rt_void rt_Array::update_bounds()
@@ -838,9 +955,20 @@ rt_void rt_Array::update_bounds()
     mid[RT_Y] = pos[RT_Y];
     mid[RT_Z] = pos[RT_Z];
 
-    rt_cell i;
+    if (trnode != RT_NULL && trnode != this)
+    {
+        mid[RT_X] += trnode->pos[RT_X];
+        mid[RT_Y] += trnode->pos[RT_Y];
+        mid[RT_Z] += trnode->pos[RT_Z];
+    }
+
+    RT_SIMD_SET(s_srf->pos_x, mid[RT_X]);
+    RT_SIMD_SET(s_srf->pos_y, mid[RT_Y]);
+    RT_SIMD_SET(s_srf->pos_z, mid[RT_Z]);
 
     rad = 0.0f;
+
+    rt_cell i;
 
     for (i = 0; i < obj_num; i++)
     {
@@ -862,20 +990,25 @@ rt_void rt_Array::update_bounds()
             continue;
         }
 
+        if (nod->bvnode == RT_NULL)
+        {
+            continue;
+        }
+
         rt_real len = 0.0f, f;
 
-        f = mid[RT_X] - nod->mid[RT_X];
+        f = nod->bvnode->mid[RT_X] - nod->mid[RT_X];
         len += f * f;
-        f = mid[RT_Y] - nod->mid[RT_Y];
+        f = nod->bvnode->mid[RT_Y] - nod->mid[RT_Y];
         len += f * f;
-        f = mid[RT_Z] - nod->mid[RT_Z];
+        f = nod->bvnode->mid[RT_Z] - nod->mid[RT_Z];
         len += f * f;
 
         len = RT_SQRT(len) + nod->rad;
 
-        if (rad < len)
+        if (nod->bvnode->rad < len)
         {
-            rad = len;
+            nod->bvnode->rad = len;
         }
     }
 }

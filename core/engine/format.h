@@ -61,6 +61,11 @@
 #define RT_REL_MINUS_ACCUM                  2 /* subtract accum subspace */
 #define RT_REL_INDEX_ARRAY                  3 /* next index in sub-array */
 
+#define RT_REL_BOUND_ARRAY                  4 /* array has bounding volume */
+#define RT_REL_UNTIE_ARRAY                  5 /* array has no bounding volume */
+#define RT_REL_BOUND_INDEX                  6 /* add index to bounding volume */
+#define RT_REL_UNTIE_INDEX                  7 /* remove index from bnd volume */
+
 struct rt_RELATION
 {
     rt_cell             obj1;
