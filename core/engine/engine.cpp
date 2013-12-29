@@ -630,48 +630,110 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         elm->simd = srf->s_srf;
         elm->temp = srf;
 
-        if (srf->trnode != RT_NULL && srf->trnode != srf)
-        {
-            rt_ELEM *trn = *ptr;
+        rt_ELEM *lst[2], *nxt;
+        rt_Array *arr[2];
 
-            /* search matching existing trnode for insertion */
-            for (; trn != RT_NULL; trn = trn->next)
+        lst[0] = RT_NULL;
+        arr[0] = srf->trnode != RT_NULL && srf->trnode != srf ?
+                 (rt_Array *)srf->trnode : RT_NULL;
+
+        lst[1] = RT_NULL;
+        arr[1] = srf->bvnode != RT_NULL && RT_IS_SURFACE(obj) ?
+                 srf->bvnode : RT_NULL;
+
+        rt_cell i, k = 0, n = (arr[0] != RT_NULL) + (arr[1] != RT_NULL);
+
+        if (n != 0)
+        {
+            /* search matching existing trnode/bvnode for insertion */
+            for (nxt = *ptr; nxt != RT_NULL; nxt = nxt->next)
             {
-                if (trn->temp == srf->trnode)
+                for (i = 0; i < 2; i++)
                 {
-                    break;
+                    if (arr[i] == nxt->temp)
+                    {
+#if RT_DEBUG == 1
+                        if (arr[i] == RT_NULL
+                        ||  lst[i] != RT_NULL)
+                        {
+                            throw rt_Exception("Inconsistency in surface list");
+                        }
+#endif /* RT_DEBUG */
+                        lst[i] = nxt;
+                        ptr = &nxt->next;
+                        k++;
+                        if (k == n)
+                        {
+                            break;
+                        }
+                    }
                 }
             }
+        }
 
-            if (trn == RT_NULL)
+        k = -1;
+
+        if (n == 2)
+        {
+            /* determine trnode/bvnode order on the branch */
+            if (arr[0] == arr[1])
             {
-                /* insert element as list head */
-                elm->next = *ptr;
-               *ptr = elm;
-
-                rt_Array *arr = (rt_Array *)srf->trnode;
-
-                /* alloc new trnode element as none has been found */
-                elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
-                elm->data = (rt_cell)*ptr; /* trnode's last element */
-                elm->simd = arr->s_srf;
-                elm->temp = arr;
-                /* insert element as list head */
-                elm->next = *ptr;
-               *ptr = elm;
+                k = 0;
             }
             else
             {
-                /* insert element under existing trnode */
-                elm->next = trn->next;
-                trn->next = elm;
+                for (i = 0; i < 2; i++)
+                {
+                    rt_Array *par = RT_NULL;
+                    for (par = (rt_Array *)arr[i]->parent; par != RT_NULL;
+                         par = (rt_Array *)par->parent)
+                    {
+                        if (par == arr[1 - i])
+                        {
+                            k = i;
+                            break;
+                        }
+                    }
+                    if (k == i)
+                    {
+                        break;
+                    }
+                }
             }
         }
         else
+        if (arr[0] != RT_NULL)
         {
-            /* insert element as list head */
-            elm->next = *ptr;
-           *ptr = elm;
+            k = 0;
+        }
+        else
+        if (arr[1] != RT_NULL)
+        {
+            k = 1;
+        }
+
+        if (n > 0 && k == -1)
+        {
+            throw rt_Exception("trnode and bvnode are not on the same branch");
+        }
+
+        /* insert element according to found position */
+        elm->next = *ptr;
+       *ptr = elm;
+
+        for (i = 0; i < n; i++, k = 1 - k)
+        {
+            if (arr[k] != RT_NULL && lst[k] == RT_NULL)
+            {
+                /* alloc new trnode/bvnode element as none has been found */
+                nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+                nxt->data = (rt_cell)elm | k; /* last element plus flag */
+                nxt->simd = arr[k]->s_srf;
+                nxt->temp = arr[k];
+                /* insert element according to found position */
+                nxt->next = *ptr;
+               *ptr = nxt;
+            }
         }
     }
     else
