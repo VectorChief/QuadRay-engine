@@ -356,6 +356,14 @@ rt_void rt_Camera::update(rt_long time, rt_cell action)
 }
 
 /*
+ * Update bvnode pointer with given "mode".
+ */
+rt_void rt_Camera::update_bvnode(rt_Array *bvnode, rt_bool mode)
+{
+
+}
+
+/*
  * Destroy camera object.
  */
 rt_Camera::~rt_Camera()
@@ -422,6 +430,14 @@ rt_void rt_Light::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     RT_SIMD_SET(s_lgt->pos_x, pos[RT_X]);
     RT_SIMD_SET(s_lgt->pos_y, pos[RT_Y]);
     RT_SIMD_SET(s_lgt->pos_z, pos[RT_Z]);
+}
+
+/*
+ * Update bvnode pointer with given "mode".
+ */
+rt_void rt_Light::update_bvnode(rt_Array *bvnode, rt_bool mode)
+{
+
 }
 
 /*
@@ -603,7 +619,7 @@ rt_Node::~rt_Node()
 rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
                    rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Node(rg, parent, obj, ssize)
+    rt_Node(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_SPHERE)))
 {
     obj_num = 0;
     obj_arr = RT_NULL;
@@ -897,7 +913,9 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
             }
             if (obj != RT_NULL && arr != RT_NULL)
             {
+#if RT_VARRAY_OPT == 1
                 obj->update_bvnode(arr, mode);
+#endif /* RT_VARRAY_OPT */
                 if (rel[i].obj1 >= 0)
                 {
                     obj_arr_l = obj_arr; /* reset left  sub-array after use */
@@ -972,45 +990,54 @@ rt_void rt_Array::update_bounds()
 
     for (i = 0; i < obj_num; i++)
     {
-        rt_Node *nod = RT_NULL;
+        rt_Node *nd = RT_NULL;
+        rt_Array *arr = RT_NULL;
 
         if (RT_IS_ARRAY(obj_arr[i]))
         {
-            nod = (rt_Node *)obj_arr[i];
-            rt_Array *arr = (rt_Array *)nod;
+            nd = (rt_Node *)obj_arr[i];
+            arr = (rt_Array *)nd;
             arr->update_bounds();
         }
         else
         if (RT_IS_SURFACE(obj_arr[i]))
         {
-            nod = (rt_Node *)obj_arr[i];
+            nd = (rt_Node *)obj_arr[i];
         }
         else
         {
             continue;
         }
 
-        if (nod->bvnode == RT_NULL)
+        arr = (rt_Array *)nd->bvnode;
+
+        if (arr == RT_NULL)
         {
             continue;
         }
 
         rt_real len = 0.0f, f;
 
-        f = nod->bvnode->mid[RT_X] - nod->mid[RT_X];
+        f = arr->mid[RT_X] - nd->mid[RT_X];
         len += f * f;
-        f = nod->bvnode->mid[RT_Y] - nod->mid[RT_Y];
+        f = arr->mid[RT_Y] - nd->mid[RT_Y];
         len += f * f;
-        f = nod->bvnode->mid[RT_Z] - nod->mid[RT_Z];
+        f = arr->mid[RT_Z] - nd->mid[RT_Z];
         len += f * f;
 
-        len = RT_SQRT(len) + nod->rad;
+        len = RT_SQRT(len) + nd->rad;
 
-        if (nod->bvnode->rad < len)
+        if (arr->rad < len)
         {
-            nod->bvnode->rad = len;
+            arr->rad = len;
         }
     }
+
+/*  rt_SIMD_SPHERE */
+
+    rt_SIMD_SPHERE *s_xsp = (rt_SIMD_SPHERE *)s_srf;
+
+    RT_SIMD_SET(s_xsp->rad_2, rad * rad);
 }
 
 /*
@@ -2176,8 +2203,7 @@ rt_Quadric::~rt_Quadric()
 rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
                          rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Quadric(rg, parent, obj,
-               RT_MAX(ssize, sizeof(rt_SIMD_CYLINDER)))
+    rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_CYLINDER)))
 {
     this->xcl = (rt_CYLINDER *)obj->obj.pobj;
 
@@ -2289,8 +2315,7 @@ rt_Cylinder::~rt_Cylinder()
 rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
                      rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Quadric(rg, parent, obj,
-               RT_MAX(ssize, sizeof(rt_SIMD_SPHERE)))
+    rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_SPHERE)))
 {
     this->xsp = (rt_SPHERE *)obj->obj.pobj;
 
@@ -2422,8 +2447,7 @@ rt_Sphere::~rt_Sphere()
 rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
                  rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Quadric(rg, parent, obj,
-               RT_MAX(ssize, sizeof(rt_SIMD_CONE)))
+    rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_CONE)))
 {
     this->xcn = (rt_CONE *)obj->obj.pobj;
 
@@ -2535,8 +2559,7 @@ rt_Cone::~rt_Cone()
 rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
                              rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Quadric(rg, parent, obj,
-               RT_MAX(ssize, sizeof(rt_SIMD_PARABOLOID)))
+    rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_PARABOLOID)))
 {
     this->xpb = (rt_PARABOLOID *)obj->obj.pobj;
 
@@ -2658,8 +2681,7 @@ rt_Paraboloid::~rt_Paraboloid()
 rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
                                rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Quadric(rg, parent, obj,
-               RT_MAX(ssize, sizeof(rt_SIMD_HYPERBOLOID)))
+    rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_HYPERBOLOID)))
 {
     this->xhb = (rt_HYPERBOLOID *)obj->obj.pobj;
 

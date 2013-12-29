@@ -162,6 +162,15 @@ rt_pstr markers[] =
     "out of range",
 };
 
+static
+rt_pstr nodes[] =
+{
+    "tr",
+    "bv",
+    "xx",
+    "xx",
+};
+
 /*
  * Print surface/array properties.
  */
@@ -177,15 +186,15 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     RT_LOGI("elm: %08X, ", (rt_word)elm);
 
     rt_cell d = elm != RT_NULL ? elm->data : 0;
-    rt_cell i = RT_MAX(0, d + 2);
+    rt_cell i = RT_MAX(0, d + 2), n = d & 0x3;
 
     if (s_srf != RT_NULL && obj != RT_NULL)
     {
         if (RT_IS_ARRAY(obj))
         {
             RT_LOGI("    ");
-            RT_LOGI("tag: AR, trm: %d, data = %08X    ",
-                s_srf->a_map[3], d);
+            RT_LOGI("tag: AR, trm: %d, data = %08X %s ",
+                s_srf->a_map[3], d & 0xFFFFFFFC, nodes[n]);
         }
         else
         {
@@ -639,7 +648,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
 
         lst[1] = RT_NULL;
         arr[1] = srf->bvnode != RT_NULL && RT_IS_SURFACE(obj) ?
-                 srf->bvnode : RT_NULL;
+                 (rt_Array *)srf->bvnode : RT_NULL;
 
         rt_cell i, k = 0, n = (arr[0] != RT_NULL) + (arr[1] != RT_NULL);
 

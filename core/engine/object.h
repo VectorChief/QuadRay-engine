@@ -202,14 +202,13 @@ class rt_Object
      * non-trivial transform,
      * relative to which object has
      * trivial transform */
-    /* TODO: change type to rt_Array */
     rt_Object          *trnode;
 
     /* node up in the hierarchy with
      * bounding volume enabled,
      * to which object contributes
      * its own bounding volume */
-    rt_Array           *bvnode;
+    rt_Object          *bvnode;
 
     /* object's immediate parent
      * in the hierarchy */
@@ -277,6 +276,8 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
     rt_void update(rt_long time, rt_cell action);
     virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
+    virtual
+    rt_void update_bvnode(rt_Array *bvnode, rt_bool mode);
 };
 
 /******************************************************************************/
@@ -307,6 +308,8 @@ class rt_Light : public rt_Object, public rt_List<rt_Light>
 
     virtual
     rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
+    virtual
+    rt_void update_bvnode(rt_Array *bvnode, rt_bool mode);
 };
 
 /******************************************************************************/
