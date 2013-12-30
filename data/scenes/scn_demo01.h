@@ -167,6 +167,7 @@ rt_OBJECT ob_column02[] =
 
 rt_RELATION rl_column02[] =
 {
+    {  -1,  RT_REL_BOUND_ARRAY,  -1   },
     {  -1,  RT_REL_MINUS_OUTER,   2   },
     {   0,  RT_REL_MINUS_ACCUM,  -1   },
     {   2,  RT_REL_MINUS_OUTER,   0   },
@@ -616,13 +617,18 @@ rt_OBJECT ob_tree[] =
     },
 };
 
+rt_RELATION rl_tree[] =
+{
+    {  -1,  RT_REL_BOUND_ARRAY,   3   },
+};
+
 /******************************************************************************/
 /**********************************   SCENE   *********************************/
 /******************************************************************************/
 
 rt_SCENE sc_root =
 {
-    RT_OBJ_ARRAY(&ob_tree),
+    RT_OBJ_ARRAY_REL(&ob_tree, &rl_tree),
 };
 
 } /* namespace scn_demo01 */

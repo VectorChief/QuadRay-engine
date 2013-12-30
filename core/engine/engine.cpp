@@ -143,6 +143,15 @@ rt_pstr tags[RT_TAG_SURFACE_MAX] =
 };
 
 static
+rt_pstr nodes[] =
+{
+    "tr",
+    "bv",
+    "xx",
+    "xx",
+};
+
+static
 rt_pstr sides[] =
 {
     "out of range",
@@ -160,15 +169,6 @@ rt_pstr markers[] =
     "empty object",
     "accum marker: leave",
     "out of range",
-};
-
-static
-rt_pstr nodes[] =
-{
-    "tr",
-    "bv",
-    "xx",
-    "xx",
 };
 
 /*

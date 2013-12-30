@@ -750,7 +750,6 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     /* rebuild objects relations (custom clippers)
      * after all transform flags have been updated,
      * so that trnode elements are handled properly */
-    /* TODO: move template building to constructor */
     if (obj->obj.rel_num > 0)
     {
         rt_RELATION *rel = obj->obj.prel;
