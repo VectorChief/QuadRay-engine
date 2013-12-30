@@ -796,7 +796,7 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
     rt_real rat = RT_FABS(xcn->rat);
 
     RT_SIMD_SET(s_xcn->rat_2, rat * rat);
-    RT_SIMD_SET(s_xcn->i_rat, 1.0f / (rat * sqrtf(rat * rat + 1.0f)));
+    RT_SIMD_SET(s_xcn->i_rat, 1.0f / (rat * RT_SQRT(rat * rat + 1.0f)));
 }
 
 /******************************************************************************/
