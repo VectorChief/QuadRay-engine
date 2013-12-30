@@ -462,6 +462,7 @@ rt_cell main_step()
     }
 
     XShmPutImage(disp, win, gc, ximage, 0, 0, 0, 0, x_res, y_res, False);
+    XSync(disp, False);
 
     return 1;
 }
