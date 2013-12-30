@@ -659,7 +659,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
             {
                 for (i = 0; i < 2; i++)
                 {
-                    if (arr[i] == nxt->temp)
+                    if (arr[i] == nxt->temp && (nxt->data & 0x3) == i)
                     {
 #if RT_DEBUG == 1
                         if (arr[i] == RT_NULL
