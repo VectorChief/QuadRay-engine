@@ -118,7 +118,7 @@ rt_void load_texture(rt_Registry *rg, rt_pstr name, rt_TEX *tx)
         delete f;
     }
 
-    throw rt_Exception("Failed to load texture");
+    throw rt_Exception("failed to load texture");
 }
 
 /*

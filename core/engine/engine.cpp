@@ -665,7 +665,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                         if (arr[i] == RT_NULL
                         ||  lst[i] != RT_NULL)
                         {
-                            throw rt_Exception("Inconsistency in surface list");
+                            throw rt_Exception("inconsistency in surface list");
                         }
 #endif /* RT_DEBUG */
                         lst[i] = nxt;
@@ -721,9 +721,13 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
             k = 1;
         }
 
-        if (n > 0 && k == -1)
+        if (n != 0 && k == -1)
         {
             throw rt_Exception("trnode and bvnode are not on the same branch");
+        }
+        if (n == 2 && lst[k] != RT_NULL && lst[1 - k] == RT_NULL)
+        {
+            throw rt_Exception("inconsistency between trnode and bvnode");
         }
 
         /* insert element according to found position */
@@ -1308,7 +1312,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     else
     if ((rt_word)frame & (RT_SIMD_ALIGN - 1) != 0)
     {
-        throw rt_Exception("frame pointer is not SIMD-aligned in Scene");
+        throw rt_Exception("frame pointer is not simd-aligned in scene");
     }
 
     this->frame = frame;

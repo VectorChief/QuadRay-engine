@@ -48,7 +48,7 @@ rt_void matrix_mul_vector(rt_vec4 vp, rt_mat4 m1, rt_vec4 v1)
 #if RT_DEBUG == 1
     if (in_range(vp, 4, m1[0], 16) || in_range(vp, 4, v1, 4))
     {
-        throw rt_Exception("Attempting to multiply vectors in place");
+        throw rt_Exception("attempt to multiply vectors in place");
     }
 #endif /* RT_DEBUG */
 
@@ -71,7 +71,7 @@ rt_void matrix_mul_matrix(rt_mat4 mp, rt_mat4 m1, rt_mat4 m2)
 #if RT_DEBUG == 1
     if (in_range(mp[0], 16, m1[0], 16) || in_range(mp[0], 16, m2[0], 16))
     {
-        throw rt_Exception("Attempting to multiply matrices in place");
+        throw rt_Exception("attempt to multiply matrices in place");
     }
 #endif /* RT_DEBUG */
 
@@ -227,7 +227,7 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
         RT_LOGE("\n");
     }
 
-    throw rt_Exception("Inverted matrix mismatch detected.");
+    throw rt_Exception("inverted matrix mismatch");
 #endif /* RT_DEBUG */
 }
 

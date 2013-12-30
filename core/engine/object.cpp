@@ -22,7 +22,7 @@ rt_Object::rt_Object(rt_Object *parent, rt_OBJECT *obj)
 {
     if (obj == RT_NULL)
     {
-        throw rt_Exception("NULL pointer in Object");
+        throw rt_Exception("null-pointer in object");
     }
 
     this->obj = obj;
@@ -1282,7 +1282,7 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         ||  edges_num > RT_EDGES_LIMIT
         ||  faces_num > RT_FACES_LIMIT)
         {
-            throw rt_Exception("bbox geometry limits exceeded in Surface");
+            throw rt_Exception("bbox geometry limits exceeded in surface");
         }
     }
 
@@ -2827,7 +2827,7 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
 {
     if (mat == RT_NULL)
     {
-        throw rt_Exception("NULL pointer in Material");
+        throw rt_Exception("null-pointer in material");
     }
 
     rg->put_mat(this);
