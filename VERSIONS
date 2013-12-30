@@ -1,3 +1,11 @@
+v0.5.6: Performance optimizations, bounding volume for array of objects
+  - calculate bounding sphere for array of objects
+  - add support for bounding volume array to rendering backend
+  - add bvnode to scene format, object classes
+  - insert bvnode elements with bounding volume to surface lists
+  - add bvnode properties to scene data
+  - fix visual artifacts for Linux platform under heavy load (browser + flash)
+
 v0.5.5: Performance optimizations, multi-threading and other refinements
   - add support for multi-phase (with sync points) threaded update and render
   - split part of hierarchical update into a separate multi-threaded phase
