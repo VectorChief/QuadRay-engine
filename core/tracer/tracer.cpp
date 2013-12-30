@@ -2025,26 +2025,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(AR_ptr)
 
-        /* NOTE: bounding volume array must have absolute position */
-        /* TODO: optimize by merging diffs into solver without storing */
-
-        /* compute negated diff
-         * to compensate for minus in solvers */
-        movpx_ld(Xmm1, Mebx, srf_POS_X)
-        movpx_ld(Xmm2, Mebx, srf_POS_Y)
-        movpx_ld(Xmm3, Mebx, srf_POS_Z)
-
-        subps_ld(Xmm1, Mecx, ctx_ORG_X)
-        subps_ld(Xmm2, Mecx, ctx_ORG_Y)
-        subps_ld(Xmm3, Mecx, ctx_ORG_Z)
-
-        movpx_st(Xmm1, Mecx, ctx_DFF_I)
-        movpx_st(Xmm2, Mecx, ctx_DFF_J)
-        movpx_st(Xmm3, Mecx, ctx_DFF_K)
-
         /* "x" section */
         movpx_ld(Xmm1, Mecx, ctx_RAY_X)         /* ray_x <- RAY_X */
-        movpx_ld(Xmm5, Mecx, ctx_DFF_I)         /* dff_x <- DFF_I */
+        movpx_ld(Xmm5, Mebx, srf_POS_X)         /* dff_x <- POS_X */
+        subps_ld(Xmm5, Mecx, ctx_ORG_X)         /* dff_x -= ORG_X */
         movpx_rr(Xmm3, Xmm1)                    /* ray_x <- ray_x */
         mulps_rr(Xmm3, Xmm5)                    /* ray_x *= dff_x */
         mulps_rr(Xmm1, Xmm1)                    /* ray_x *= ray_x */
@@ -2052,7 +2036,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "y" section */
         movpx_ld(Xmm2, Mecx, ctx_RAY_Y)         /* ray_y <- RAY_Y */
-        movpx_ld(Xmm6, Mecx, ctx_DFF_J)         /* dff_y <- DFF_J */
+        movpx_ld(Xmm6, Mebx, srf_POS_Y)         /* dff_y <- POS_Y */
+        subps_ld(Xmm6, Mecx, ctx_ORG_Y)         /* dff_y -= ORG_Y */
         movpx_rr(Xmm4, Xmm2)                    /* ray_y <- ray_y */
         mulps_rr(Xmm4, Xmm6)                    /* ray_y *= dff_y */
         mulps_rr(Xmm2, Xmm2)                    /* ray_y *= ray_y */
@@ -2065,7 +2050,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "z" section */
         movpx_ld(Xmm2, Mecx, ctx_RAY_Z)         /* ray_z <- RAY_Z */
-        movpx_ld(Xmm6, Mecx, ctx_DFF_K)         /* dff_z <- DFF_K */
+        movpx_ld(Xmm6, Mebx, srf_POS_Z)         /* dff_z <- POS_Z */
+        subps_ld(Xmm6, Mecx, ctx_ORG_Z)         /* dff_z -= ORG_Z */
         movpx_rr(Xmm4, Xmm2)                    /* ray_z <- ray_z */
         mulps_rr(Xmm4, Xmm6)                    /* ray_z *= dff_z */
         mulps_rr(Xmm2, Xmm2)                    /* ray_z *= ray_z */
