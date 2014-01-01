@@ -36,6 +36,18 @@
 #define RT_CAMERA_ROTATE_LEFT       12
 #define RT_CAMERA_ROTATE_RIGHT      13
 
+/* Optimization modes */
+
+#define RT_OPTS_NONE                0
+#define RT_OPTS_THREAD              (1 << 0)
+#define RT_OPTS_TILING              (1 << 1)
+#define RT_OPTS_TARRAY              (1 << 2)
+#define RT_OPTS_VARRAY              (1 << 3)
+#define RT_OPTS_SHADOW              (1 << 4)
+#define RT_OPTS_RENDER              (1 << 5)
+#define RT_OPTS_2SIDED              (1 << 6)
+#define RT_OPTS_FULL                127
+
 /* Update flags,
  * some values are hardcoded in rendering backend,
  * change with care! */
@@ -130,6 +142,10 @@ class rt_Registry : public rt_Heap
     rt_Material        *mat_head;
     rt_cell             mat_num;
 
+    public:
+
+    rt_cell             opts;
+
 /*  methods */
 
     public:
@@ -140,7 +156,8 @@ class rt_Registry : public rt_Heap
                     lgt_head(RT_NULL), lgt_num(0),
                     srf_head(RT_NULL), srf_num(0),
                     tex_head(RT_NULL), tex_num(0),
-                    mat_head(RT_NULL), mat_num(0) { }
+                    mat_head(RT_NULL), mat_num(0),
+                    opts(RT_OPTS_FULL) { }
 
     virtual
    ~rt_Registry() { }
@@ -175,6 +192,8 @@ class rt_Object
 /*  fields */
 
     public:
+
+    rt_Registry        *rg;
 
     rt_OBJECT          *obj;
     rt_TRANSFORM3D     *trm;
@@ -218,7 +237,7 @@ class rt_Object
 
     protected:
 
-    rt_Object(rt_Object *parent, rt_OBJECT *obj);
+    rt_Object(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj);
 
     public:
 
@@ -325,8 +344,6 @@ class rt_Node : public rt_Object
 /*  fields */
 
     public:
-
-    rt_Registry        *rg;
 
     rt_SIMD_SURFACE    *s_srf;
 

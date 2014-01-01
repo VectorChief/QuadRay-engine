@@ -771,10 +771,16 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
  */
 rt_void rt_SceneThread::stile(rt_Surface *srf)
 {
-    rt_ELEM *lst = RT_NULL;
+    srf->s_srf->msc_p[0] = RT_NULL;
+
+#if RT_TILING_OPT == 1
+    if ((scene->opts & RT_OPTS_TILING) == 0)
+    {
+        return;
+    }
+
     rt_ELEM *elm = RT_NULL;
     rt_cell i, j;
-#if RT_TILING_OPT == 1
     rt_cell k;
 
     rt_vec4 vec;
@@ -917,7 +923,6 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
         }
     }
     else
-#endif /* RT_TILING_OPT */
     {
         /* mark all tiles in the entire tilbuffer */
         for (i = 0; i < scene->tiles_in_col; i++)
@@ -927,7 +932,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
         }
     }
 
-    rt_ELEM **ptr = &lst;
+    rt_ELEM **ptr = (rt_ELEM **)&srf->s_srf->msc_p[0];
 
     /* fill marked tiles with surface data */
     for (i = 0; i < scene->tiles_in_col; i++)
@@ -935,17 +940,16 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
         for (j = txmin[i]; j <= txmax[i]; j++)
         {
             elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
-            elm->data = (i << 16 | j);
+            elm->data = i << 16 | j;
             elm->simd = srf->s_srf;
             elm->temp = srf;
            *ptr = elm;
-            ptr = (rt_ELEM **)&(elm->next);
+            ptr = &elm->next;
         }
     }
 
    *ptr = RT_NULL;
-
-    srf->s_srf->msc_p[0] = lst;
+#endif /* RT_TILING_OPT */
 }
 
 /*
@@ -971,10 +975,11 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
         pti = (rt_ELEM **)&srf->s_srf->lst_p[3];
 
 #if RT_RENDER_OPT == 1
-        if (((rt_word)srf->s_srf->mat_p[1] & RT_PROP_REFLECT)
-        ||  ((rt_word)srf->s_srf->mat_p[3] & RT_PROP_REFLECT)
+        if ((scene->opts & RT_OPTS_RENDER) != 0
+        && (((rt_word)srf->s_srf->mat_p[1] & RT_PROP_REFLECT) != 0
+        ||  ((rt_word)srf->s_srf->mat_p[3] & RT_PROP_REFLECT) != 0
         ||  ((rt_word)srf->s_srf->mat_p[1] & RT_PROP_OPAQUE) == 0
-        ||  ((rt_word)srf->s_srf->mat_p[3] & RT_PROP_OPAQUE) == 0)
+        ||  ((rt_word)srf->s_srf->mat_p[3] & RT_PROP_OPAQUE) == 0))
         {
            *pto = RT_NULL;
            *pti = RT_NULL;
@@ -998,11 +1003,9 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
     for (ref = scene->srf_head; ref != RT_NULL; ref = ref->next)
     {
 #if RT_2SIDED_OPT == 1
-        if (srf != RT_NULL)
+        if ((scene->opts & RT_OPTS_2SIDED) != 0 && srf != RT_NULL)
         {
-            rt_cell c = 0;
-
-            c = bbox_side(srf, ref);
+            rt_cell c = bbox_side(srf, ref);
 
             if (c & 2)
             {
@@ -1020,33 +1023,38 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
         }
     }
 
-    if (srf != RT_NULL)
+    if (srf == RT_NULL)
+    {
+        return lst;
+    }
+
+    if (g_print)
     {
 #if RT_2SIDED_OPT == 1
-        if (g_print && *pto != RT_NULL)
+        if (*pto != RT_NULL)
         {
             RT_PRINT_LST_OUTER(*pto);
         }
-        if (g_print && *pti != RT_NULL)
+        if (*pti != RT_NULL)
         {
             RT_PRINT_LST_INNER(*pti);
         }
 #endif /* RT_2SIDED_OPT */
-        if (g_print && *ptr != RT_NULL)
+        if (*ptr != RT_NULL)
         {
             RT_PRINT_LST(*ptr);
         }
     }
 
-#if RT_2SIDED_OPT == 0
-    if (srf != RT_NULL)
+#if RT_2SIDED_OPT == 1
+    if ((scene->opts & RT_OPTS_2SIDED) == 0)
+#endif /* RT_2SIDED_OPT */
     {
        *pto = lst;
        *pti = lst;
 
         return RT_NULL;
     }
-#endif /* RT_2SIDED_OPT */
 
     return lst;
 }
@@ -1069,7 +1077,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
         pti = (rt_ELEM **)&srf->s_srf->lst_p[2];
 
 #if RT_SHADOW_OPT == 1
-        if (RT_TRUE)
+        if ((scene->opts & RT_OPTS_SHADOW) != 0)
         {
            *pto = RT_NULL;
            *pti = RT_NULL;
@@ -1097,11 +1105,9 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
         rt_ELEM **pso = RT_NULL;
         rt_ELEM **psi = RT_NULL;
 
-        if (srf != RT_NULL)
+        if ((scene->opts & RT_OPTS_2SIDED) != 0 && srf != RT_NULL)
         {
-            rt_cell c = 3;
-
-            c = cbox_side(lgt->pos, srf);
+            rt_cell c = cbox_side(lgt->pos, srf);
 
             if (c & 2)
             {
@@ -1147,9 +1153,12 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             continue;
         }
 
-#if RT_2SIDED_OPT == 0
-       *psr = RT_NULL;
+#if RT_2SIDED_OPT == 1
+        if ((scene->opts & RT_OPTS_2SIDED) == 0)
 #endif /* RT_2SIDED_OPT */
+        {
+           *psr = RT_NULL;
+        }
 
         rt_Surface *shw = RT_NULL;
 
@@ -1161,53 +1170,55 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             }
 
 #if RT_2SIDED_OPT == 1
-            rt_cell c = 0;
-
-            c = bbox_side(srf, shw);
-
-            if (c & 2 && pso != RT_NULL)
+            if ((scene->opts & RT_OPTS_2SIDED) != 0)
             {
-                insert(lgt, pso, shw);
-            }
-            if (c & 1 && psi != RT_NULL)
-            {
-                insert(lgt, psi, shw);
-            }
-#else /* RT_2SIDED_OPT */
+                rt_cell c = bbox_side(srf, shw);
 
-            insert(lgt, psr, shw);
-
+                if (c & 2 && pso != RT_NULL)
+                {
+                    insert(lgt, pso, shw);
+                }
+                if (c & 1 && psi != RT_NULL)
+                {
+                    insert(lgt, psi, shw);
+                }
+            }
+            else
 #endif /* RT_2SIDED_OPT */
+            {
+                insert(lgt, psr, shw);
+            }
         }
 
+        if (g_print)
+        {
 #if RT_2SIDED_OPT == 1
-        if (g_print && pso != RT_NULL && *pso != RT_NULL)
-        {
-            RT_PRINT_SHW_OUTER(*pso);
-        }
-        if (g_print && psi != RT_NULL && *psi != RT_NULL)
-        {
-            RT_PRINT_SHW_INNER(*psi);
-        }
-#else /* RT_2SIDED_OPT */
-        if (g_print && *psr != RT_NULL)
-        {
-            RT_PRINT_SHW(*psr);
-        }
+            if (pso != RT_NULL && *pso != RT_NULL)
+            {
+                RT_PRINT_SHW_OUTER(*pso);
+            }
+            if (psi != RT_NULL && *psi != RT_NULL)
+            {
+                RT_PRINT_SHW_INNER(*psi);
+            }
 #endif /* RT_2SIDED_OPT */
-
+            if (*psr != RT_NULL)
+            {
+                RT_PRINT_SHW(*psr);
+            }
+        }
 #endif /* RT_SHADOW_OPT */
     }
 
-#if RT_2SIDED_OPT == 0
-    if (srf != RT_NULL)
+#if RT_2SIDED_OPT == 1
+    if ((scene->opts & RT_OPTS_2SIDED) == 0)
+#endif /* RT_2SIDED_OPT */
     {
        *pto = lst;
        *pti = lst;
 
         return RT_NULL;
     }
-#endif /* RT_2SIDED_OPT */
 
     return lst;
 }
@@ -1496,9 +1507,12 @@ rt_void rt_Scene::render(rt_long time)
 
     /* multi-threaded update */
 
-    if (g_print)
+    if ((opts & RT_OPTS_THREAD) == 0 || g_print)
     {
-        RT_PRINT_CAM(cam);
+        if (g_print)
+        {
+            RT_PRINT_CAM(cam);
+        }
 
         update_scene(this, thnum, 1);
     }
@@ -1516,11 +1530,14 @@ rt_void rt_Scene::render(rt_long time)
      * slist is needed inside */
     llist = tharr[0]->lsort(cam);
 
-    if (g_print)
+    if ((opts & RT_OPTS_THREAD) == 0 || g_print)
     {
-        RT_PRINT_LGT_LIST(llist);
+        if (g_print)
+        {
+            RT_PRINT_LGT_LIST(llist);
 
-        RT_PRINT_SRF_LIST(slist);
+            RT_PRINT_SRF_LIST(slist);
+        }
 
         update_scene(this, thnum, 2);
     }
@@ -1535,128 +1552,129 @@ rt_void rt_Scene::render(rt_long time)
     rt_cell j;
 
 #if RT_TILING_OPT == 1
-
-    memset(tiles, 0, sizeof(rt_ELEM *) * tiles_in_row * tiles_in_col);
-
-    rt_ELEM *elm, *nxt, *stail = RT_NULL, **ptr = &stail;
-
-    /* build exact copy of reversed slist (should be cheap),
-     * trnode elements become tailing rather than heading,
-     * elements grouping for cached transform is retained */
-    for (nxt = slist; nxt != RT_NULL; nxt = nxt->next)
+    if ((opts & RT_OPTS_TILING) != 0)
     {
-        /* alloc new element as nxt copy */
-        elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
-        elm->data = nxt->data;
-        elm->simd = nxt->simd;
-        elm->temp = nxt->temp;
-        /* insert element as list head */
-        elm->next = *ptr;
-       *ptr = elm;
+        memset(tiles, 0, sizeof(rt_ELEM *) * tiles_in_row * tiles_in_col);
 
-    }
+        rt_ELEM *elm, *nxt, *stail = RT_NULL, **ptr = &stail;
 
-    /* traverse reversed slist to keep original slist order
-     * and optimize trnode handling for each tile */
-    for (elm = stail; elm != RT_NULL; elm = elm->next)
-    {
-        rt_Object *obj = (rt_Object *)elm->temp;
-
-        /* skip trnode elements from reversed slist
-         * as they are handled separately for each tile */
-        if (RT_IS_ARRAY(obj))
+        /* build exact copy of reversed slist (should be cheap),
+         * trnode elements become tailing rather than heading,
+         * elements grouping for cached transform is retained */
+        for (nxt = slist; nxt != RT_NULL; nxt = nxt->next)
         {
-            continue;
+            /* alloc new element as nxt copy */
+            elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+            elm->data = nxt->data;
+            elm->simd = nxt->simd;
+            elm->temp = nxt->temp;
+            /* insert element as list head */
+            elm->next = *ptr;
+           *ptr = elm;
+
         }
 
-        rt_Surface *srf = (rt_Surface *)elm->temp;
-
-        rt_ELEM *tls = (rt_ELEM *)srf->s_srf->msc_p[0], *trn;
-
-        if (srf->trnode != RT_NULL && srf->trnode != srf)
+        /* traverse reversed slist to keep original slist order
+         * and optimize trnode handling for each tile */
+        for (elm = stail; elm != RT_NULL; elm = elm->next)
         {
-            for (; tls != RT_NULL; tls = nxt)
+            rt_Object *obj = (rt_Object *)elm->temp;
+
+            /* skip trnode elements from reversed slist
+             * as they are handled separately for each tile */
+            if (RT_IS_ARRAY(obj))
             {
-                i = (rt_word)tls->data >> 16;
-                j = (rt_word)tls->data & 0xFFFF;
+                continue;
+            }
 
-                nxt = (rt_ELEM *)tls->next;
+            rt_Surface *srf = (rt_Surface *)elm->temp;
 
-                tls->data = 0;
+            rt_ELEM *tls = (rt_ELEM *)srf->s_srf->msc_p[0], *trn;
 
-                tline = i * tiles_in_row;
-
-                /* check matching existing trnode for insertion,
-                 * as elements grouping for cached transform is retained
-                 * from slist, only tile list head needs to be checked */
-                trn = tiles[tline + j];
-
-                if (trn != RT_NULL && trn->temp == srf->trnode)
+            if (srf->trnode != RT_NULL && srf->trnode != srf)
+            {
+                for (; tls != RT_NULL; tls = nxt)
                 {
-                    /* insert element under existing trnode */
-                    tls->next = trn->next;
-                    trn->next = tls;
+                    i = (rt_word)tls->data >> 16;
+                    j = (rt_word)tls->data & 0xFFFF;
+
+                    nxt = tls->next;
+
+                    tls->data = 0;
+
+                    tline = i * tiles_in_row;
+
+                    /* check matching existing trnode for insertion,
+                     * as elements grouping for cached transform is retained
+                     * from slist, only tile list head needs to be checked */
+                    trn = tiles[tline + j];
+
+                    if (trn != RT_NULL && trn->temp == srf->trnode)
+                    {
+                        /* insert element under existing trnode */
+                        tls->next = trn->next;
+                        trn->next = tls;
+                    }
+                    else
+                    {
+                        /* insert element as list head */
+                        tls->next = tiles[tline + j];
+                        tiles[tline + j] = tls;
+
+                        rt_Array *arr = (rt_Array *)srf->trnode;
+
+                        /* alloc new trnode element as none has been found */
+                        trn = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+                        trn->data = (rt_cell)tls; /* trnode's last element */
+                        trn->simd = arr->s_srf;
+                        trn->temp = arr;
+                        /* insert element as list head */
+                        trn->next = tiles[tline + j];
+                        tiles[tline + j] = trn;
+                    }
                 }
-                else
+            }
+            else
+            {
+                for (; tls != RT_NULL; tls = nxt)
                 {
+                    i = (rt_word)tls->data >> 16;
+                    j = (rt_word)tls->data & 0xFFFF;
+
+                    nxt = tls->next;
+
+                    tls->data = 0;
+
+                    tline = i * tiles_in_row;
+
                     /* insert element as list head */
                     tls->next = tiles[tline + j];
                     tiles[tline + j] = tls;
-
-                    rt_Array *arr = (rt_Array *)srf->trnode;
-
-                    /* alloc new trnode element as none has been found */
-                    trn = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
-                    trn->data = (rt_cell)tls; /* trnode's last element */
-                    trn->simd = arr->s_srf;
-                    trn->temp = arr;
-                    /* insert element as list head */
-                    trn->next = tiles[tline + j];
-                    tiles[tline + j] = trn;
                 }
             }
         }
-        else
+
+        if (g_print)
         {
-            for (; tls != RT_NULL; tls = nxt)
+            rt_cell i = 0, j = 0;
+
+            tline = i * tiles_in_row;
+
+            RT_PRINT_TLS(tiles[tline + j], i, j);
+        }
+    }
+    else
+    {
+        for (i = 0; i < tiles_in_col; i++)
+        {
+            tline = i * tiles_in_row;
+
+            for (j = 0; j < tiles_in_row; j++)
             {
-                i = (rt_word)tls->data >> 16;
-                j = (rt_word)tls->data & 0xFFFF;
-
-                nxt = (rt_ELEM *)tls->next;
-
-                tls->data = 0;
-
-                tline = i * tiles_in_row;
-
-                /* insert element as list head */
-                tls->next = tiles[tline + j];
-                tiles[tline + j] = tls;
+                tiles[tline + j] = slist;
             }
         }
     }
-
-    if (g_print)
-    {
-        rt_cell i = 0, j = 0;
-
-        tline = i * tiles_in_row;
-
-        RT_PRINT_TLS(tiles[tline + j], i, j);
-    }
-
-#else /* RT_TILING_OPT */
-
-    for (i = 0; i < tiles_in_col; i++)
-    {
-        tline = i * tiles_in_row;
-
-        for (j = 0; j < tiles_in_row; j++)
-        {
-            tiles[tline + j] = slist;
-        }
-    }
-
 #endif /* RT_TILING_OPT */
 
     /* aim rays at pixel centers */
@@ -1690,7 +1708,14 @@ rt_void rt_Scene::render(rt_long time)
 
     /* multi-threaded render */
 
-    this->f_render(tdata, thnum, 0);
+    if ((opts & RT_OPTS_THREAD) == 0)
+    {
+        render_scene(this, thnum, 0);
+    }
+    else
+    {
+        this->f_render(tdata, thnum, 0);
+    }
 
     /* print state end */
 
@@ -1886,6 +1911,14 @@ rt_word* rt_Scene::get_frame()
 rt_void rt_Scene::set_fsaa(rt_cell fsaa)
 {
     this->fsaa = fsaa;
+}
+
+/*
+ * Set optimization mode.
+ */
+rt_void rt_Scene::set_opts(rt_cell opts)
+{
+    this->opts = opts;
 }
 
 /*

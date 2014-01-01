@@ -18,12 +18,14 @@
 /*
  * Instantiate object.
  */
-rt_Object::rt_Object(rt_Object *parent, rt_OBJECT *obj)
+rt_Object::rt_Object(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj)
 {
     if (obj == RT_NULL)
     {
         throw rt_Exception("null-pointer in object");
     }
+
+    this->rg = rg;
 
     this->obj = obj;
     this->trm = &obj->trm;
@@ -173,7 +175,7 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * or all objects if transform caching is disabled */
     if (trnode != RT_NULL && trnode != this
 #if RT_TARRAY_OPT == 1
-    && tag > RT_TAG_SURFACE_MAX
+    && ((rg->opts & RT_OPTS_TARRAY) == 0 || tag > RT_TAG_SURFACE_MAX)
 #endif /* RT_TARRAY_OPT */
        )
     {
@@ -221,7 +223,7 @@ rt_Object::~rt_Object()
  */
 rt_Camera::rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 
-    rt_Object(parent, obj),
+    rt_Object(rg, parent, obj),
     rt_List<rt_Camera>(rg->get_cam())
 {
     rg->put_cam(this);
@@ -380,7 +382,7 @@ rt_Camera::~rt_Camera()
  */
 rt_Light::rt_Light(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 
-    rt_Object(parent, obj),
+    rt_Object(rg, parent, obj),
     rt_List<rt_Light>(rg->get_lgt())
 {
     rg->put_lgt(this);
@@ -458,10 +460,8 @@ rt_Light::~rt_Light()
 rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
                  rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Object(parent, obj)
+    rt_Object(rg, parent, obj)
 {
-    this->rg = rg;
-
 /*  rt_SIMD_SURFACE */
 
     s_srf = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
@@ -913,7 +913,10 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
             if (obj != RT_NULL && arr != RT_NULL)
             {
 #if RT_VARRAY_OPT == 1
-                obj->update_bvnode(arr, mode);
+                if ((rg->opts & RT_OPTS_VARRAY) != 0)
+                {
+                    obj->update_bvnode(arr, mode);
+                }
 #endif /* RT_VARRAY_OPT */
                 if (rel[i].obj1 >= 0)
                 {

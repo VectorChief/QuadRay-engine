@@ -193,6 +193,7 @@ class rt_Scene : public rt_LogRedirect, public rt_Registry
 
     rt_word*    get_frame();
     rt_void     set_fsaa(rt_cell fsaa);
+    rt_void     set_opts(rt_cell opts);
     rt_void     print_state();
 
     friend      class rt_SceneThread;
