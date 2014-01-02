@@ -36,7 +36,7 @@
 #define RT_CAMERA_ROTATE_LEFT       12
 #define RT_CAMERA_ROTATE_RIGHT      13
 
-/* Optimization modes */
+/* Runtime optimization modes */
 
 #define RT_OPTS_NONE                0
 #define RT_OPTS_THREAD              (1 << 0)
@@ -46,7 +46,8 @@
 #define RT_OPTS_SHADOW              (1 << 4)
 #define RT_OPTS_RENDER              (1 << 5)
 #define RT_OPTS_2SIDED              (1 << 6)
-#define RT_OPTS_FULL                127
+#define RT_OPTS_UPDATE              (1 << 7)
+#define RT_OPTS_FULL                255
 
 /* Update flags,
  * some values are hardcoded in rendering backend,

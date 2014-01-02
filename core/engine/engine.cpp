@@ -1507,7 +1507,13 @@ rt_void rt_Scene::render(rt_long time)
 
     /* multi-threaded update */
 
-    if ((opts & RT_OPTS_THREAD) == 0 || g_print)
+#if RT_THREAD_OPT == 1
+    if ((opts & RT_OPTS_THREAD) != 0 && g_print == RT_FALSE)
+    {
+        this->f_update(tdata, thnum, 1);
+    }
+    else
+#endif /* RT_THREAD_OPT */
     {
         if (g_print)
         {
@@ -1515,10 +1521,6 @@ rt_void rt_Scene::render(rt_long time)
         }
 
         update_scene(this, thnum, 1);
-    }
-    else
-    {
-        this->f_update(tdata, thnum, 1);
     }
 
     root->update_bounds();
@@ -1530,7 +1532,13 @@ rt_void rt_Scene::render(rt_long time)
      * slist is needed inside */
     llist = tharr[0]->lsort(cam);
 
-    if ((opts & RT_OPTS_THREAD) == 0 || g_print)
+#if RT_THREAD_OPT == 1
+    if ((opts & RT_OPTS_THREAD) != 0 && g_print == RT_FALSE)
+    {
+        this->f_update(tdata, thnum, 2);
+    }
+    else
+#endif /* RT_THREAD_OPT */
     {
         if (g_print)
         {
@@ -1540,10 +1548,6 @@ rt_void rt_Scene::render(rt_long time)
         }
 
         update_scene(this, thnum, 2);
-    }
-    else
-    {
-        this->f_update(tdata, thnum, 2);
     }
 
     /* screen tiling */
@@ -1708,13 +1712,15 @@ rt_void rt_Scene::render(rt_long time)
 
     /* multi-threaded render */
 
-    if ((opts & RT_OPTS_THREAD) == 0)
-    {
-        render_scene(this, thnum, 0);
-    }
-    else
+#if RT_THREAD_OPT == 1
+    if ((opts & RT_OPTS_THREAD) != 0)
     {
         this->f_render(tdata, thnum, 0);
+    }
+    else
+#endif /* RT_THREAD_OPT */
+    {
+        render_scene(this, thnum, 0);
     }
 
     /* print state end */
@@ -1914,11 +1920,14 @@ rt_void rt_Scene::set_fsaa(rt_cell fsaa)
 }
 
 /*
- * Set optimization mode.
+ * Set runtime optimization mode.
  */
 rt_void rt_Scene::set_opts(rt_cell opts)
 {
     this->opts = opts;
+
+    /* trigger full hierarchy update */
+    rootobj.time = -1;
 }
 
 /*

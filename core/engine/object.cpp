@@ -706,8 +706,12 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         return;
     }
 
-    /* update the whole hierarchy when called for the first time */
-    if (obj->time == -1 && parent == RT_NULL)
+    /* update the whole hierarchy when called
+     * for the first time or triggered explicitly */
+#if RT_UPDATE_OPT == 1
+    if (obj->time == -1 && parent == RT_NULL
+    || (rg->opts & RT_OPTS_UPDATE) == 0)
+#endif /* RT_UPDATE_OPT */
     {
         flags |= RT_UPDATE_FLAG_ARR;
     }

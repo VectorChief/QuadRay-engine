@@ -32,6 +32,7 @@
 #define RT_CLIP_THRESHOLD       0.01f
 #define RT_CULL_THRESHOLD       0.0001f
 
+#define RT_THREAD_OPT           1
 #define RT_TILING_OPT           1
 #define RT_TILING_EXT           0
 #define RT_TARRAY_OPT           1
@@ -40,6 +41,7 @@
 #define RT_SHADOW_EXT           1
 #define RT_RENDER_OPT           1
 #define RT_2SIDED_OPT           1
+#define RT_UPDATE_OPT           1
 
 #endif /* RT_RTCONF_H */
 
