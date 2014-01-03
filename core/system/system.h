@@ -22,11 +22,11 @@
 
 class rt_File;
 class rt_Heap;
-class rt_Exception;
 
 template <class rt_Class>
 class rt_List;
 
+class rt_Exception;
 class rt_LogRedirect;
 
 /******************************************************************************/
@@ -110,6 +110,30 @@ class rt_Heap
 };
 
 /******************************************************************************/
+/**********************************   LIST   **********************************/
+/******************************************************************************/
+
+/*
+ * List is a template used for linking other high-level objects into lists,
+ * while preserving strict typization.
+ */
+template <class rt_Class>
+class rt_List
+{
+/*  fields */
+
+    public:
+
+    rt_Class           *next;
+
+/*  methods */
+
+    protected:
+
+    rt_List(rt_Class *next) { this->next = next; }
+};
+
+/******************************************************************************/
 /********************************   EXCEPTION   *******************************/
 /******************************************************************************/
 
@@ -132,30 +156,6 @@ class rt_Exception
 
     virtual
    ~rt_Exception() { }
-};
-
-/******************************************************************************/
-/**********************************   LIST   **********************************/
-/******************************************************************************/
-
-/*
- * List is a template used for linking other high-level objects into lists,
- * while preserving strict typization.
- */
-template <class rt_Class>
-class rt_List
-{
-/*  fields */
-
-    public:
-
-    rt_Class           *next;
-
-/*  methods */
-
-    public:
-
-    rt_List(rt_Class *next) { this->next = next; }
 };
 
 /******************************************************************************/
@@ -184,11 +184,11 @@ class rt_LogRedirect /* must be first in scene init */
 {
 /*  fields */
 
-    public:
+    protected:
 
 /*  methods */
 
-    public:
+    protected:
 
     rt_LogRedirect(rt_FUNC_PRINT_LOG f_print_log,
                    rt_FUNC_PRINT_ERR f_print_err)

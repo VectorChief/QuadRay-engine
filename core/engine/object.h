@@ -192,21 +192,10 @@ class rt_Object
 {
 /*  fields */
 
-    public:
+    protected:
 
     rt_Registry        *rg;
-
     rt_OBJECT          *obj;
-    rt_TRANSFORM3D     *trm;
-
-    rt_mat4             inv;
-    rt_mat4             mtx;
-    rt_real            *pos;
-    rt_cell             tag;
-
-    /* non-zero if object itself or
-     * some of its parents changed */
-    rt_cell             obj_changed;
 
     /* non-zero if object itself has
      * non-trivial transform
@@ -217,6 +206,19 @@ class rt_Object
      * non-trivial transform
      * (scaling, rotation or both) */
     rt_cell             mtx_has_trm;
+
+    public:
+
+    rt_TRANSFORM3D     *trm;
+    rt_real            *pos;
+    rt_cell             tag;
+
+    rt_mat4             inv;
+    rt_mat4             mtx;
+
+    /* non-zero if object itself or
+     * some of its parents changed */
+    rt_cell             obj_changed;
 
     /* node up in the hierarchy with
      * non-trivial transform,
@@ -264,6 +266,15 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
 {
 /*  fields */
 
+    private:
+
+    /* rotation internal variables */
+    rt_real             hor_sin;
+    rt_real             hor_cos;
+
+    /* non-zero if camera was changed by action */
+    rt_cell             cam_changed;
+
     public:
 
     rt_CAMERA          *cam;
@@ -275,13 +286,6 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
 
     /* distance from point of view to screen plane */
     rt_real             pov;
-
-    /* rotation internal variables */
-    rt_real             hor_sin;
-    rt_real             hor_cos;
-
-    /* non-zero if camera was changed by action */
-    rt_cell             cam_changed;
 
 /*  methods */
 
@@ -344,12 +348,14 @@ class rt_Node : public rt_Object
 {
 /*  fields */
 
-    public:
-
-    rt_SIMD_SURFACE    *s_srf;
+    protected:
 
     rt_cell             map[3];
     rt_cell             sgn[3];
+
+    public:
+
+    rt_SIMD_SURFACE    *s_srf;
 
     /* bounding sphere center */
     rt_vec4             mid;
@@ -392,12 +398,14 @@ class rt_Array : public rt_Node
 {
 /*  fields */
 
+    private:
+
+    rt_mat4             axm;
+
     public:
 
     rt_Object         **obj_arr;
     rt_cell             obj_num;
-
-    rt_mat4             axm;
 
 /*  methods */
 
@@ -430,18 +438,25 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
 {
 /*  fields */
 
-    public:
+    private:
+
+    rt_Material        *outer;
+    rt_Material        *inner;
+
+    protected:
 
     rt_SURFACE         *srf;
+
+    /* non-zero if surface itself or
+     * some of its clippers changed */
+    rt_cell             srf_changed;
+
+    public:
 
     rt_cell             mp_i;
     rt_cell             mp_j;
     rt_cell             mp_k;
     rt_cell             mp_l;
-
-    /* non-zero if surface itself or
-     * some of its clippers changed */
-    rt_cell             srf_changed;
 
     /* bounding box,
      * all sides clipped or non-clipped are boundaries */
@@ -464,11 +479,6 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
     rt_vec4             sci;
     rt_vec4             scj;
     rt_vec4             sck;
-
-    private:
-
-    rt_Material        *outer;
-    rt_Material        *inner;
 
 /*  methods */
 
@@ -517,7 +527,7 @@ class rt_Plane : public rt_Surface
 {
 /*  fields */
 
-    public:
+    private:
 
     rt_PLANE           *xpl;
 
@@ -550,7 +560,7 @@ class rt_Quadric : public rt_Surface
 {
 /*  fields */
 
-    public:
+    protected:
 
 /*  methods */
 
@@ -583,7 +593,7 @@ class rt_Cylinder : public rt_Quadric
 {
 /*  fields */
 
-    public:
+    private:
 
     rt_CYLINDER        *xcl;
 
@@ -616,7 +626,7 @@ class rt_Sphere : public rt_Quadric
 {
 /*  fields */
 
-    public:
+    private:
 
     rt_SPHERE          *xsp;
 
@@ -649,7 +659,7 @@ class rt_Cone : public rt_Quadric
 {
 /*  fields */
 
-    public:
+    private:
 
     rt_CONE            *xcn;
 
@@ -682,7 +692,7 @@ class rt_Paraboloid : public rt_Quadric
 {
 /*  fields */
 
-    public:
+    private:
 
     rt_PARABOLOID      *xpb;
 
@@ -715,7 +725,7 @@ class rt_Hyperboloid : public rt_Quadric
 {
 /*  fields */
 
-    public:
+    private:
 
     rt_HYPERBOLOID     *xhb;
 
@@ -752,7 +762,6 @@ class rt_Texture : public rt_List<rt_Texture>
     public:
 
     rt_TEX              tex;
-
     rt_pstr             name;
 
 /*  methods */
@@ -772,14 +781,15 @@ class rt_Material : public rt_List<rt_Material>
 {
 /*  fields */
 
-    public:
+    private:
 
     rt_MATERIAL        *mat;
+    rt_mat2             mtx;
+
+    public:
 
     rt_SIMD_MATERIAL   *s_mat;
     rt_cell             props;
-
-    rt_mat2             mtx;
 
 /*  methods */
 

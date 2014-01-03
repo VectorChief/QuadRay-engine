@@ -37,11 +37,20 @@ class rt_SceneThread : public rt_Heap
 {
 /*  fields */
 
-    public:
+    private:
 
     /* scene pointer and thread index */
     rt_Scene           *scene;
     rt_cell             index;
+
+    /* surface's projected bbox
+     * x-coord boundaries in the tilebuffer */
+    rt_cell            *txmin;
+    rt_cell            *txmax;
+    /* temporary bbox verts buffer */
+    rt_VERT            *verts;
+
+    public:
 
     /* backend specific structures */
     rt_SIMD_INFOX      *s_inf;
@@ -52,13 +61,6 @@ class rt_SceneThread : public rt_Heap
      * for temporary per-frame allocs */
     rt_pntr             mpool;
     rt_word             msize;
-
-    /* surface's projected bbox
-     * x-coord boundaries in the tilebuffer */
-    rt_cell            *txmin;
-    rt_cell            *txmax;
-    /* temporary bbox verts buffer */
-    rt_VERT            *verts;
 
 /*  methods */
 
@@ -89,11 +91,11 @@ typedef rt_void (*rt_FUNC_RENDER)(rt_pntr tdata, rt_cell thnum, rt_cell phase);
 /*
  * Scene manager.
  */
-class rt_Scene : public rt_LogRedirect, public rt_Registry
+class rt_Scene : private rt_LogRedirect, private rt_Registry
 {
 /*  fields */
 
-    public:
+    private:
 
     /* root scene object from scene data */
     rt_SCENE           *scn;
