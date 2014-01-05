@@ -31,7 +31,7 @@ rt_cell rt_File::seek(rt_cell offset, rt_cell origin)
 {
     return
 #if RT_EMBED_FILEIO == 0
-    file ? fseek(file, offset, origin) :
+    file != RT_NULL ? fseek(file, offset, origin) :
 #endif /* RT_EMBED_FILEIO */
     0;
 }
@@ -43,7 +43,7 @@ rt_word rt_File::read(rt_pntr data, rt_word size, rt_word num)
 {
     return
 #if RT_EMBED_FILEIO == 0
-    file ? fread(data, size, num, file) :
+    file != RT_NULL ? fread(data, size, num, file) :
 #endif /* RT_EMBED_FILEIO */
     0;
 }
@@ -55,7 +55,7 @@ rt_word rt_File::write(rt_pntr data, rt_word size, rt_word num)
 {
     return
 #if RT_EMBED_FILEIO == 0
-    file ? fwrite(data, size, num, file) :
+    file != RT_NULL ? fwrite(data, size, num, file) :
 #endif /* RT_EMBED_FILEIO */
     0;
 }
@@ -69,9 +69,12 @@ rt_cell rt_File::print(rt_pstr format, ...)
 #if RT_EMBED_FILEIO == 0
     va_list args;
     va_start(args, format);
-    ret = vfprintf(file, format, args);
+    if (file != RT_NULL)
+    {
+        ret = vfprintf(file, format, args);
+        fflush(file);
+    }
     va_end(args);
-    fflush(file);
 #endif /* RT_EMBED_FILEIO */
     return ret;
 }
@@ -83,8 +86,11 @@ rt_cell rt_File::vprint(rt_pstr format, va_list args)
 {
     rt_cell ret = 0;
 #if RT_EMBED_FILEIO == 0
-    ret = vfprintf(file, format, args);
-    fflush(file);
+    if (file != RT_NULL)
+    {
+        ret = vfprintf(file, format, args);
+        fflush(file);
+    }
 #endif /* RT_EMBED_FILEIO */
     return ret;
 }
