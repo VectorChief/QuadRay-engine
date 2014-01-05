@@ -1210,6 +1210,11 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 #endif /* RT_SHADOW_OPT */
     }
 
+    if (srf == RT_NULL)
+    {
+        return lst;
+    }
+
 #if RT_2SIDED_OPT == 1
     if ((scene->opts & RT_OPTS_2SIDED) == 0)
 #endif /* RT_2SIDED_OPT */
