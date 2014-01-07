@@ -1526,7 +1526,10 @@ rt_void rt_Surface::update_minmax()
 
     /* no custom clippers or
      * surface itself has non-trivial transform */
-    if (elm == RT_NULL || trnode == this)
+#if RT_ADJUST_OPT == 1
+    if (elm == RT_NULL || trnode == this
+    || (rg->opts & RT_OPTS_ADJUST) == 0)
+#endif /* RT_ADJUST_OPT */
     {
         /* calculate bbox and cbox based on 
          * original axis clippers and surface shape */

@@ -46,8 +46,9 @@
 #define RT_OPTS_SHADOW              (1 << 4)
 #define RT_OPTS_RENDER              (1 << 5)
 #define RT_OPTS_2SIDED              (1 << 6)
-#define RT_OPTS_UPDATE              (1 << 7)
-#define RT_OPTS_FULL                255
+#define RT_OPTS_ADJUST              (1 << 7)
+#define RT_OPTS_UPDATE              (1 << 8)
+#define RT_OPTS_FULL                511
 
 /* Update flags,
  * some values are hardcoded in rendering backend,

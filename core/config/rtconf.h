@@ -41,6 +41,7 @@
 #define RT_SHADOW_EXT           1
 #define RT_RENDER_OPT           1
 #define RT_2SIDED_OPT           1
+#define RT_ADJUST_OPT           1
 #define RT_UPDATE_OPT           1
 
 #endif /* RT_RTCONF_H */
