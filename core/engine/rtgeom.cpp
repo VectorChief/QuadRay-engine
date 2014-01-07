@@ -970,7 +970,14 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
         return 0;
     }
 
-#if RT_SHADOW_EXT == 1
+#if RT_OPTS_SHADOW_EXT1 != 0
+
+    /* check if optimization is disabled in runtime */
+
+    if ((lgt->rg->opts & RT_OPTS_SHADOW_EXT1) == 0)
+    {
+        return 1;
+    }
 
     /* check if "lgt" pos is inside "shw" bbox */
 
@@ -1062,7 +1069,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 
     return 0;
 
-#endif /* RT_SHADOW_EXT */
+#endif /* RT_OPTS_SHADOW_EXT1 */
 
     return 1;
 }

@@ -36,20 +36,6 @@
 #define RT_CAMERA_ROTATE_LEFT       12
 #define RT_CAMERA_ROTATE_RIGHT      13
 
-/* Runtime optimization modes */
-
-#define RT_OPTS_NONE                0
-#define RT_OPTS_THREAD              (1 << 0)
-#define RT_OPTS_TILING              (1 << 1)
-#define RT_OPTS_TARRAY              (1 << 2)
-#define RT_OPTS_VARRAY              (1 << 3)
-#define RT_OPTS_SHADOW              (1 << 4)
-#define RT_OPTS_RENDER              (1 << 5)
-#define RT_OPTS_2SIDED              (1 << 6)
-#define RT_OPTS_ADJUST              (1 << 7)
-#define RT_OPTS_UPDATE              (1 << 8)
-#define RT_OPTS_FULL                511
-
 /* Update flags,
  * some values are hardcoded in rendering backend,
  * change with care! */
@@ -195,7 +181,6 @@ class rt_Object
 
     protected:
 
-    rt_Registry        *rg;
     rt_OBJECT          *obj;
 
     /* non-zero if object itself has
@@ -209,6 +194,8 @@ class rt_Object
     rt_cell             mtx_has_trm;
 
     public:
+
+    rt_Registry        *rg;
 
     rt_TRANSFORM3D     *trm;
     rt_real            *pos;

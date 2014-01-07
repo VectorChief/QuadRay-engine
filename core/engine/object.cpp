@@ -174,9 +174,9 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * for non-surface / non-array objects
      * or all objects if transform caching is disabled */
     if (trnode != RT_NULL && trnode != this
-#if RT_TARRAY_OPT == 1
+#if RT_OPTS_TARRAY != 0
     && ((rg->opts & RT_OPTS_TARRAY) == 0 || tag > RT_TAG_SURFACE_MAX)
-#endif /* RT_TARRAY_OPT */
+#endif /* RT_OPTS_TARRAY */
        )
     {
         rt_mat4 tmp_mtx;
@@ -708,10 +708,10 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     /* update the whole hierarchy when called
      * for the first time or triggered explicitly */
-#if RT_UPDATE_OPT == 1
+#if RT_OPTS_UPDATE != 0
     if (obj->time == -1 && parent == RT_NULL
     || (rg->opts & RT_OPTS_UPDATE) == 0)
-#endif /* RT_UPDATE_OPT */
+#endif /* RT_OPTS_UPDATE */
     {
         flags |= RT_UPDATE_FLAG_ARR;
     }
@@ -916,12 +916,12 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
             }
             if (obj != RT_NULL && arr != RT_NULL)
             {
-#if RT_VARRAY_OPT == 1
+#if RT_OPTS_VARRAY != 0
                 if ((rg->opts & RT_OPTS_VARRAY) != 0)
                 {
                     obj->update_bvnode(arr, mode);
                 }
-#endif /* RT_VARRAY_OPT */
+#endif /* RT_OPTS_VARRAY */
                 if (rel[i].obj1 >= 0)
                 {
                     obj_arr_l = obj_arr; /* reset left  sub-array after use */
@@ -1526,10 +1526,10 @@ rt_void rt_Surface::update_minmax()
 
     /* no custom clippers or
      * surface itself has non-trivial transform */
-#if RT_ADJUST_OPT == 1
+#if RT_OPTS_ADJUST != 0
     if (elm == RT_NULL || trnode == this
     || (rg->opts & RT_OPTS_ADJUST) == 0)
-#endif /* RT_ADJUST_OPT */
+#endif /* RT_OPTS_ADJUST */
     {
         /* calculate bbox and cbox based on 
          * original axis clippers and surface shape */

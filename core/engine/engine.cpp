@@ -510,39 +510,40 @@ rt_void rt_SceneThread::tiling(rt_vec4 p1, rt_vec4 p2)
         yy = dy;
     }
 
-#if RT_TILING_EXT == 1
+#if RT_OPTS_TILING_EXT1 != 0
+    if ((scene->opts & RT_OPTS_TILING_EXT1) != 0)
+    {
+        px  = RT_TILE_THRESHOLD / RT_SQRT(xx * xx + yy * yy);
+        xx *= px;
+        yy *= px;
 
-    px  = RT_TILE_THRESHOLD / RT_SQRT(xx * xx + yy * yy);
-    xx *= px;
-    yy *= px;
+        n1[0][RT_X] = p1[RT_X] - xx;
+        n1[0][RT_Y] = p1[RT_Y] - yy;
+        n2[0][RT_X] = p2[RT_X] + xx;
+        n2[0][RT_Y] = p2[RT_Y] + yy;
 
-    n1[0][RT_X] = p1[RT_X] - xx;
-    n1[0][RT_Y] = p1[RT_Y] - yy;
-    n2[0][RT_X] = p2[RT_X] + xx;
-    n2[0][RT_Y] = p2[RT_Y] + yy;
+        n1[1][RT_X] = n1[0][RT_X] - yy;
+        n1[1][RT_Y] = n1[0][RT_Y] + xx;
+        n2[1][RT_X] = n2[0][RT_X] - yy;
+        n2[1][RT_Y] = n2[0][RT_Y] + xx;
 
-    n1[1][RT_X] = n1[0][RT_X] - yy;
-    n1[1][RT_Y] = n1[0][RT_Y] + xx;
-    n2[1][RT_X] = n2[0][RT_X] - yy;
-    n2[1][RT_Y] = n2[0][RT_Y] + xx;
+        n1[2][RT_X] = n1[0][RT_X] + yy;
+        n1[2][RT_Y] = n1[0][RT_Y] - xx;
+        n2[2][RT_X] = n2[0][RT_X] + yy;
+        n2[2][RT_Y] = n2[0][RT_Y] - xx;
 
-    n1[2][RT_X] = n1[0][RT_X] + yy;
-    n1[2][RT_Y] = n1[0][RT_Y] - xx;
-    n2[2][RT_X] = n2[0][RT_X] + yy;
-    n2[2][RT_Y] = n2[0][RT_Y] - xx;
+        n = 3;
+    }
+    else
+#endif /* RT_OPTS_TILING_EXT1 */
+    {
+        n1[0][RT_X] = p1[RT_X];
+        n1[0][RT_Y] = p1[RT_Y];
+        n2[0][RT_X] = p2[RT_X];
+        n2[0][RT_Y] = p2[RT_Y];
 
-    n = 3;
-
-#else /* RT_TILING_EXT */
-
-    n1[0][RT_X] = p1[RT_X];
-    n1[0][RT_Y] = p1[RT_Y];
-    n2[0][RT_X] = p2[RT_X];
-    n2[0][RT_Y] = p2[RT_Y];
-
-    n = 1;
-
-#endif /* RT_TILING_EXT */
+        n = 1;
+    }
 
     /* set inclusive bounds */
 
@@ -773,7 +774,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
 {
     srf->s_srf->msc_p[0] = RT_NULL;
 
-#if RT_TILING_OPT == 1
+#if RT_OPTS_TILING != 0
     if ((scene->opts & RT_OPTS_TILING) == 0)
     {
         return;
@@ -949,7 +950,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
     }
 
    *ptr = RT_NULL;
-#endif /* RT_TILING_OPT */
+#endif /* RT_OPTS_TILING */
 }
 
 /*
@@ -974,7 +975,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
         pto = (rt_ELEM **)&srf->s_srf->lst_p[1];
         pti = (rt_ELEM **)&srf->s_srf->lst_p[3];
 
-#if RT_RENDER_OPT == 1
+#if RT_OPTS_RENDER != 0
         if ((scene->opts & RT_OPTS_RENDER) != 0
         && (((rt_word)srf->s_srf->mat_p[1] & RT_PROP_REFLECT) != 0
         ||  ((rt_word)srf->s_srf->mat_p[3] & RT_PROP_REFLECT) != 0
@@ -987,7 +988,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
             /* RT_LOGI("Building slist for surface\n"); */
         }
         else
-#endif /* RT_RENDER_OPT */
+#endif /* RT_OPTS_RENDER */
         {
            *pto = scene->slist; /* all srf are potential rfl/rfr */
            *pti = scene->slist; /* all srf are potential rfl/rfr */
@@ -1002,7 +1003,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 
     for (ref = scene->srf_head; ref != RT_NULL; ref = ref->next)
     {
-#if RT_2SIDED_OPT == 1
+#if RT_OPTS_2SIDED != 0
         if ((scene->opts & RT_OPTS_2SIDED) != 0 && srf != RT_NULL)
         {
             rt_cell c = bbox_side(srf, ref);
@@ -1017,7 +1018,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
             }
         }
         else
-#endif /* RT_2SIDED_OPT */
+#endif /* RT_OPTS_2SIDED */
         {
             insert(obj, ptr, ref);
         }
@@ -1030,7 +1031,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 
     if (g_print)
     {
-#if RT_2SIDED_OPT == 1
+#if RT_OPTS_2SIDED != 0
         if (*pto != RT_NULL)
         {
             RT_PRINT_LST_OUTER(*pto);
@@ -1039,16 +1040,16 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
         {
             RT_PRINT_LST_INNER(*pti);
         }
-#endif /* RT_2SIDED_OPT */
+#endif /* RT_OPTS_2SIDED */
         if (*ptr != RT_NULL)
         {
             RT_PRINT_LST(*ptr);
         }
     }
 
-#if RT_2SIDED_OPT == 1
+#if RT_OPTS_2SIDED != 0
     if ((scene->opts & RT_OPTS_2SIDED) == 0)
-#endif /* RT_2SIDED_OPT */
+#endif /* RT_OPTS_2SIDED */
     {
        *pto = lst;
        *pti = lst;
@@ -1076,7 +1077,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
         pto = (rt_ELEM **)&srf->s_srf->lst_p[0];
         pti = (rt_ELEM **)&srf->s_srf->lst_p[2];
 
-#if RT_SHADOW_OPT == 1
+#if RT_OPTS_SHADOW != 0
         if ((scene->opts & RT_OPTS_SHADOW) != 0)
         {
            *pto = RT_NULL;
@@ -1085,7 +1086,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             /* RT_LOGI("Building llist for surface\n"); */
         }
         else
-#endif /* RT_SHADOW_OPT */
+#endif /* RT_OPTS_SHADOW */
         {
            *pto = scene->llist; /* all lgt are potential sources */
            *pti = scene->llist; /* all lgt are potential sources */
@@ -1101,7 +1102,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
     for (lgt = scene->lgt_head; lgt != RT_NULL; lgt = lgt->next)
     {
         rt_ELEM **psr = RT_NULL;
-#if RT_2SIDED_OPT == 1
+#if RT_OPTS_2SIDED != 0
         rt_ELEM **pso = RT_NULL;
         rt_ELEM **psi = RT_NULL;
 
@@ -1135,7 +1136,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             }
         }
         else
-#endif /* RT_2SIDED_OPT */
+#endif /* RT_OPTS_2SIDED */
         {
             insert(lgt, ptr, RT_NULL);
 
@@ -1147,15 +1148,15 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             }
         }
 
-#if RT_SHADOW_OPT == 1
+#if RT_OPTS_SHADOW != 0
         if (srf == RT_NULL)
         {
             continue;
         }
 
-#if RT_2SIDED_OPT == 1
+#if RT_OPTS_2SIDED != 0
         if ((scene->opts & RT_OPTS_2SIDED) == 0)
-#endif /* RT_2SIDED_OPT */
+#endif /* RT_OPTS_2SIDED */
         {
            *psr = RT_NULL;
         }
@@ -1169,7 +1170,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
                 continue;
             }
 
-#if RT_2SIDED_OPT == 1
+#if RT_OPTS_2SIDED != 0
             if ((scene->opts & RT_OPTS_2SIDED) != 0)
             {
                 rt_cell c = bbox_side(srf, shw);
@@ -1184,7 +1185,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
                 }
             }
             else
-#endif /* RT_2SIDED_OPT */
+#endif /* RT_OPTS_2SIDED */
             {
                 insert(lgt, psr, shw);
             }
@@ -1192,7 +1193,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 
         if (g_print)
         {
-#if RT_2SIDED_OPT == 1
+#if RT_OPTS_2SIDED != 0
             if (pso != RT_NULL && *pso != RT_NULL)
             {
                 RT_PRINT_SHW_OUTER(*pso);
@@ -1201,13 +1202,13 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             {
                 RT_PRINT_SHW_INNER(*psi);
             }
-#endif /* RT_2SIDED_OPT */
+#endif /* RT_OPTS_2SIDED */
             if (*psr != RT_NULL)
             {
                 RT_PRINT_SHW(*psr);
             }
         }
-#endif /* RT_SHADOW_OPT */
+#endif /* RT_OPTS_SHADOW */
     }
 
     if (srf == RT_NULL)
@@ -1215,9 +1216,9 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
         return lst;
     }
 
-#if RT_2SIDED_OPT == 1
+#if RT_OPTS_2SIDED != 0
     if ((scene->opts & RT_OPTS_2SIDED) == 0)
-#endif /* RT_2SIDED_OPT */
+#endif /* RT_OPTS_2SIDED */
     {
        *pto = lst;
        *pti = lst;
@@ -1512,13 +1513,13 @@ rt_void rt_Scene::render(rt_long time)
 
     /* multi-threaded update */
 
-#if RT_THREAD_OPT == 1
+#if RT_OPTS_THREAD != 0
     if ((opts & RT_OPTS_THREAD) != 0 && g_print == RT_FALSE)
     {
         this->f_update(tdata, thnum, 1);
     }
     else
-#endif /* RT_THREAD_OPT */
+#endif /* RT_OPTS_THREAD */
     {
         if (g_print)
         {
@@ -1537,13 +1538,13 @@ rt_void rt_Scene::render(rt_long time)
      * slist is needed inside */
     llist = tharr[0]->lsort(cam);
 
-#if RT_THREAD_OPT == 1
+#if RT_OPTS_THREAD != 0
     if ((opts & RT_OPTS_THREAD) != 0 && g_print == RT_FALSE)
     {
         this->f_update(tdata, thnum, 2);
     }
     else
-#endif /* RT_THREAD_OPT */
+#endif /* RT_OPTS_THREAD */
     {
         if (g_print)
         {
@@ -1560,7 +1561,7 @@ rt_void rt_Scene::render(rt_long time)
     rt_cell tline;
     rt_cell j;
 
-#if RT_TILING_OPT == 1
+#if RT_OPTS_TILING != 0
     if ((opts & RT_OPTS_TILING) != 0)
     {
         memset(tiles, 0, sizeof(rt_ELEM *) * tiles_in_row * tiles_in_col);
@@ -1684,7 +1685,7 @@ rt_void rt_Scene::render(rt_long time)
             }
         }
     }
-#endif /* RT_TILING_OPT */
+#endif /* RT_OPTS_TILING */
 
     /* aim rays at pixel centers */
 
@@ -1717,13 +1718,13 @@ rt_void rt_Scene::render(rt_long time)
 
     /* multi-threaded render */
 
-#if RT_THREAD_OPT == 1
+#if RT_OPTS_THREAD != 0
     if ((opts & RT_OPTS_THREAD) != 0)
     {
         this->f_render(tdata, thnum, 0);
     }
     else
-#endif /* RT_THREAD_OPT */
+#endif /* RT_OPTS_THREAD */
     {
         render_scene(this, thnum, 0);
     }
@@ -1925,7 +1926,7 @@ rt_void rt_Scene::set_fsaa(rt_cell fsaa)
 }
 
 /*
- * Set runtime optimization mode.
+ * Set runtime optimization flags.
  */
 rt_void rt_Scene::set_opts(rt_cell opts)
 {
