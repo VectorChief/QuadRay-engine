@@ -1674,6 +1674,7 @@ rt_void rt_Scene::render(rt_long time)
         }
     }
     else
+#endif /* RT_OPTS_TILING */
     {
         for (i = 0; i < tiles_in_col; i++)
         {
@@ -1685,7 +1686,6 @@ rt_void rt_Scene::render(rt_long time)
             }
         }
     }
-#endif /* RT_OPTS_TILING */
 
     /* aim rays at pixel centers */
 

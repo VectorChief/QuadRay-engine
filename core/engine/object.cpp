@@ -580,7 +580,7 @@ rt_void rt_Node::invert_matrix()
     RT_SIMD_SET(s_srf->pos_y, pos[RT_Y]);
     RT_SIMD_SET(s_srf->pos_z, pos[RT_Z]);
 
-    if (obj_has_trm)
+    if (trnode == this)
     {
         matrix_inverse(inv, this->mtx);
 
