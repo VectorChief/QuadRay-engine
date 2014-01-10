@@ -12,9 +12,11 @@
 
 #define RT_CHUNK_SIZE           4096
 
-#define RT_PATH_TEXTURES        "data/textures/"
-#define RT_PATH_DUMP_LOG        "dump/log.txt"
-#define RT_PATH_DUMP_ERR        "dump/err.txt"
+#define RT_PATH_STRFY(p)        #p
+#define RT_PATH_TOSTR(p)        RT_PATH_STRFY(p)
+#define RT_PATH_TEXTURES        RT_PATH_TOSTR(RT_PATH)"data/textures/"
+#define RT_PATH_DUMP_LOG        RT_PATH_TOSTR(RT_PATH)"dump/log.txt"
+#define RT_PATH_DUMP_ERR        RT_PATH_TOSTR(RT_PATH)"dump/err.txt"
 
 #if RT_EMBED_FILEIO == 1
 #define RT_EMBED_TEX            1
