@@ -9,7 +9,7 @@
 
 #include "engine.h"
 
-#define RUN_LEVEL       1
+#define RUN_LEVEL       2
 #define VERBOSE         RT_FALSE
 #define CYC_SIZE        100
 
@@ -24,8 +24,6 @@ rt_word     frame[RT_X_RES * RT_Y_RES];
 rt_cell     fsaa    = RT_FSAA_NO;
 
 rt_Scene   *scene   = RT_NULL;
-
-rt_long get_time();
 
 static
 rt_void frame_cpy(rt_word *fd, rt_word *fs)
@@ -60,6 +58,7 @@ rt_cell frame_cmp(rt_word *f1, rt_word *f2)
     return 0;
 }
 
+
 #if RUN_LEVEL >=  1
 
 #include "scn_test01.h"
@@ -78,6 +77,24 @@ rt_void test01(rt_cell opts)
 #endif /* RUN_LEVEL  1 */
 
 
+#if RUN_LEVEL >=  2
+
+#include "scn_test02.h"
+
+rt_void test02(rt_cell opts)
+{
+    scene = new rt_Scene(&scn_test02::sc_root,
+                        x_res, y_res, x_row, RT_NULL,
+                        malloc, free,
+                        RT_NULL, RT_NULL,
+                        RT_NULL, RT_NULL);
+
+    scene->set_opts(opts);
+}
+
+#endif /* RUN_LEVEL  2 */
+
+
 typedef rt_void (*testXX)(rt_cell);
 
 testXX test[RUN_LEVEL] =
@@ -85,9 +102,16 @@ testXX test[RUN_LEVEL] =
 #if RUN_LEVEL >=  1
     test01,
 #endif /* RUN_LEVEL  1 */
+
+#if RUN_LEVEL >=  2
+    test02,
+#endif /* RUN_LEVEL  2 */
 };
 
-int main()
+
+rt_long get_time();
+
+int main ()
 {
     rt_long time1 = 0;
     rt_long time2 = 0;
@@ -98,7 +122,7 @@ int main()
 
     for (i = 0; i < RUN_LEVEL; i++)
     {
-        RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n", i);
+        RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n", i+1);
         try
         {
             scene = RT_NULL;
