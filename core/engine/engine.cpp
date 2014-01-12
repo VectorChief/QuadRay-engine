@@ -1154,9 +1154,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             continue;
         }
 
-#if RT_OPTS_2SIDED != 0
-        if ((scene->opts & RT_OPTS_2SIDED) == 0)
-#endif /* RT_OPTS_2SIDED */
+        if (psr != RT_NULL)
         {
            *psr = RT_NULL;
         }
@@ -1203,7 +1201,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
                 RT_PRINT_SHW_INNER(*psi);
             }
 #endif /* RT_OPTS_2SIDED */
-            if (*psr != RT_NULL)
+            if (psr != RT_NULL && *psr != RT_NULL)
             {
                 RT_PRINT_SHW(*psr);
             }
