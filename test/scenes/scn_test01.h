@@ -29,12 +29,16 @@ rt_PLANE pl_floor01 =
 /* scl */   {    1.0,        1.0    },
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_gray01,
         },
         {
 /* INNER        RT_U,       RT_V    */
 /* scl */   {    1.0,        1.0    },
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_gray02,
         },
     },
 };
@@ -49,12 +53,16 @@ rt_HYPERBOLOID hb_frame01 =
 /* scl */   {    1.0,        1.0    },
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_metal02_pink01,
         },
         {
 /* INNER        RT_U,       RT_V    */
 /* scl */   {    1.0,        1.0    },
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_gray02,
         },
     },
 /* rat */   2.5,
@@ -71,12 +79,16 @@ rt_SPHERE sp_ball01 =
 /* scl */   {    1.0,        1.0    },
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_gray01,
         },
         {
 /* INNER        RT_U,       RT_V    */
 /* scl */   {    1.0,        1.0    },
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_gray02,
         },
     },
 /* rad */   1.0,
@@ -91,8 +103,8 @@ rt_OBJECT ob_camera01[] =
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {    0.0,        0.0,        0.0    },
+/* rot */   { -105.0,        0.0,        0.0    },
+/* pos */   {    0.0,      -12.0,        0.0    },
         },
         RT_OBJ_CAMERA(&cm_camera01)
     },
@@ -134,7 +146,7 @@ rt_OBJECT ob_tree[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {    0.0,        0.0,        0.0    },
         },
-        RT_OBJ_PLANE_MAT(&pl_floor01, &mt_gray01, &mt_gray02)
+        RT_OBJ_PLANE(&pl_floor01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -142,7 +154,7 @@ rt_OBJECT ob_tree[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {    0.0,        0.0,        2.0    },
         },
-        RT_OBJ_HYPERBOLOID_MAT(&hb_frame01, &mt_metal02_pink01, &mt_gray02)
+        RT_OBJ_HYPERBOLOID(&hb_frame01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -150,7 +162,7 @@ rt_OBJECT ob_tree[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {    0.0,       -2.8,        3.0    },
         },
-        RT_OBJ_SPHERE_MAT(&sp_ball01, &mt_gray01, &mt_gray02)
+        RT_OBJ_SPHERE(&sp_ball01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -163,8 +175,8 @@ rt_OBJECT ob_tree[] =
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   { -105.0,        0.0,        0.0    },
-/* pos */   {    0.0,      -12.0,        5.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {    0.0,        0.0,        5.0    },
         },
         RT_OBJ_ARRAY(&ob_camera01)
     },

@@ -574,6 +574,8 @@ rt_cell HB_(rt_HYPERBOLOID *pobj)
 struct rt_SCENE
 {
     rt_OBJ              root;
+
+    rt_pntr             lock;
 };
 
 #endif /* RT_FORMAT_H */

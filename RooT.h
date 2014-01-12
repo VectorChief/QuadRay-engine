@@ -4,6 +4,9 @@
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
 
+#ifndef RT_ROOT_H
+#define RT_ROOT_H
+
 #include "rtload.h"
 #include "engine.h"
 
@@ -23,6 +26,8 @@ rt_word    *frame   = RT_NULL;
 rt_cell     fsaa    = RT_FSAA_NO;
 
 rt_Scene   *scene   = RT_NULL;
+
+#endif /* RT_ROOT_H */
 
 /******************************************************************************/
 /******************************************************************************/

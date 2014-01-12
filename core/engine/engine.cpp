@@ -1299,6 +1299,7 @@ rt_void render_scene(rt_void *tdata, rt_cell thnum, rt_cell phase)
 
 /*
  * Instantiate scene.
+ * Can only be called from single (main) thread.
  */
 rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
                    rt_word x_res, rt_word y_res, rt_cell x_row, rt_word *frame,
@@ -1312,7 +1313,14 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     rt_LogRedirect(f_print_log, f_print_err), /* must be first in scene init */
     rt_Registry(f_alloc, f_free)
 {
-    this->scn   = scn;
+    this->scn = scn;
+
+    /* check for locked scene data, not thread safe! */
+
+    if (scn->lock != RT_NULL)
+    {
+        throw rt_Exception("scene data is locked by another instance");
+    }
 
     /* init framebuffer's dimensions and pointer */
 
@@ -1374,7 +1382,11 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
         throw rt_Exception("scene doesn't contain camera");
     }
 
-    cam  = cam_head;
+    cam = cam_head;
+
+    /* lock scene data, when scene constructor can no longer fail */
+
+    scn->lock = this;
 
     /* create scene threads array */
 
@@ -1972,6 +1984,10 @@ rt_Scene::~rt_Scene()
         delete tex_head;
         tex_head = tex;
     }
+
+    /* unlock scene data */
+
+    scn->lock = RT_NULL;
 }
 
 /******************************************************************************/
