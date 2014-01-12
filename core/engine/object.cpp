@@ -555,9 +555,9 @@ rt_void rt_Node::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         for (i = 0; i < 3; i++)
         {
             j = map[i];
-            this->mtx[j][0] = iden4[j][0] * scl[i] * sgn[i];
-            this->mtx[j][1] = iden4[j][1] * scl[i] * sgn[i];
-            this->mtx[j][2] = iden4[j][2] * scl[i] * sgn[i];
+            this->mtx[j][0] = iden4[j][0] * scl[i];
+            this->mtx[j][1] = iden4[j][1] * scl[i];
+            this->mtx[j][2] = iden4[j][2] * scl[i];
         }
     }
 }
@@ -736,7 +736,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
             for (i = 0; i < 3; i++)
             {
                 j = map[i];
-                axm[i][j] = 1.0f;
+                axm[i][j] = sgn[i];
             }
         }
 
