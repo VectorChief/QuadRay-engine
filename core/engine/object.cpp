@@ -113,6 +113,15 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * non-trivial rotation */
     obj_has_trm |= (c == 3) ? 0 : RT_UPDATE_FLAG_ROT;
 
+    if (obj_has_trm
+#if RT_OPTS_FSCALE != 0
+    && (rg->opts & RT_OPTS_FSCALE) == 0
+#endif /* RT_OPTS_FSCALE */
+       )
+    {
+        obj_has_trm = RT_UPDATE_FLAG_SCL | RT_UPDATE_FLAG_ROT;
+    }
+
     /* determine if object's full matrix has
      * non-trivial transform */
     mtx_has_trm = obj_has_trm |

@@ -43,19 +43,21 @@
 #define RT_OPTS_THREAD              (1 << 0)
 #define RT_OPTS_TILING              (1 << 1)
 #define RT_OPTS_TILING_EXT1         (1 << 2)
-#define RT_OPTS_TARRAY              (1 << 3)
-#define RT_OPTS_VARRAY              (1 << 4)
-#define RT_OPTS_SHADOW              (1 << 5)
-#define RT_OPTS_SHADOW_EXT1         (1 << 6)
-#define RT_OPTS_RENDER              (1 << 7)
-#define RT_OPTS_2SIDED              (1 << 8)
-#define RT_OPTS_ADJUST              (1 << 9)
-#define RT_OPTS_UPDATE              (1 << 10)
+#define RT_OPTS_FSCALE              (1 << 3)
+#define RT_OPTS_TARRAY              (1 << 4)
+#define RT_OPTS_VARRAY              (1 << 5)
+#define RT_OPTS_SHADOW              (1 << 6)
+#define RT_OPTS_SHADOW_EXT1         (1 << 7)
+#define RT_OPTS_RENDER              (1 << 8)
+#define RT_OPTS_2SIDED              (1 << 9)
+#define RT_OPTS_ADJUST              (1 << 10)
+#define RT_OPTS_UPDATE              (1 << 11)
 
 #define RT_OPTS_FULL                (                                       \
         RT_OPTS_THREAD              |                                       \
         RT_OPTS_TILING              |                                       \
         RT_OPTS_TILING_EXT1         |                                       \
+        RT_OPTS_FSCALE              |                                       \
         RT_OPTS_TARRAY              |                                       \
         RT_OPTS_VARRAY              |                                       \
         RT_OPTS_SHADOW              |                                       \
