@@ -1287,6 +1287,10 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
 
     if (p == 1)
     {
+        if (ref->verts_num == 0)
+        {
+            c |= 3;
+        }
         for (i = 0; i < ref->verts_num; i++)
         {
             c |= surf_side(ref->verts[i].pos, srf);
