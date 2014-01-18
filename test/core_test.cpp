@@ -9,7 +9,7 @@
 
 #include "engine.h"
 
-#define RUN_LEVEL       4
+#define RUN_LEVEL       5
 #define VERBOSE         RT_FALSE
 #define CYC_SIZE        10
 
@@ -131,6 +131,24 @@ rt_void test04(rt_cell opts)
 #endif /* RUN_LEVEL  4 */
 
 
+#if RUN_LEVEL >=  5
+
+#include "scn_test05.h"
+
+rt_void test05(rt_cell opts)
+{
+    scene = new rt_Scene(&scn_test05::sc_root,
+                        x_res, y_res, x_row, RT_NULL,
+                        malloc, free,
+                        RT_NULL, RT_NULL,
+                        RT_NULL, RT_NULL);
+
+    scene->set_opts(opts);
+}
+
+#endif /* RUN_LEVEL  5 */
+
+
 typedef rt_void (*testXX)(rt_cell);
 
 testXX test[RUN_LEVEL] =
@@ -150,6 +168,10 @@ testXX test[RUN_LEVEL] =
 #if RUN_LEVEL >=  4
     test04,
 #endif /* RUN_LEVEL  4 */
+
+#if RUN_LEVEL >=  5
+    test05,
+#endif /* RUN_LEVEL  5 */
 };
 
 
