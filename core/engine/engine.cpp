@@ -1942,7 +1942,9 @@ rt_void rt_Scene::set_opts(rt_cell opts)
 {
     this->opts = opts;
 
-    /* trigger full hierarchy update */
+    /* trigger full hierarchy update,
+     * safe to reset time as rootobj never has animator,
+     * rootobj time is restored within the update */
     rootobj.time = -1;
 }
 
@@ -2133,7 +2135,7 @@ rt_void rt_Scene::render_fps(rt_word x, rt_word y,
                 {
                     for (xz = 0; xz < z; xz++)
                     {
-                        *dst++ = *src;
+                       *dst++ = *src;
                     }
 
                     src++;
