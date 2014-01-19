@@ -1,3 +1,14 @@
+v0.5.7: Performance optimizations, core test framework
+  - add runtime flags for optimizations
+  - adjust class access levels according to actual use
+  - add new flags for bbox/cbox adjust optimization, multi-threading
+  - unify runtime optimization flags with conditional compilation
+  - add core test framework, run levels 1 and 2, scene data locking
+  - fix matrix splitting for scaling fastpath, add new flag
+  - core test framework, run levels 3 to 7
+  - fix missing condition for boundless surfaces
+  - core test framework, run levels 8 and 9
+
 v0.5.6: Performance optimizations, bounding volume for array of objects
   - calculate bounding sphere for array of objects
   - add support for bounding volume array to rendering backend
