@@ -28,6 +28,8 @@ rt_Object::rt_Object(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj)
     this->rg = rg;
 
     this->obj = obj;
+    /* save original transform data */
+    otm = obj->trm;
     this->trm = &obj->trm;
     pos = this->mtx[3];
     this->tag = obj->obj.tag;
@@ -220,7 +222,8 @@ rt_void rt_Object::update_bvnode(rt_Array *bvnode, rt_bool mode)
  */
 rt_Object::~rt_Object()
 {
-
+    /* restore original transform data */
+    obj->trm = otm;
 }
 
 /******************************************************************************/
@@ -2851,9 +2854,13 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     rg->put_mat(this);
 
     this->mat = mat;
-
+    otx.x_dim = otx.y_dim = -1;
+    /* save original texture data */
+    if (mat->tex.x_dim == 0 && mat->tex.y_dim == 0)
+    {
+        otx = mat->tex;
+    }
     resolve_texture(rg);
-
     rt_TEX *tx = &mat->tex;
 
     props  = 0;
@@ -3000,7 +3007,11 @@ rt_void rt_Material::resolve_texture(rt_Registry *rg)
  */
 rt_Material::~rt_Material()
 {
-
+    /* restore original texture data */
+    if (otx.x_dim == 0 && otx.y_dim == 0)
+    {
+        mat->tex = otx;
+    }
 }
 
 /******************************************************************************/

@@ -182,6 +182,8 @@ class rt_Object
     protected:
 
     rt_OBJECT          *obj;
+    /* original transform data */
+    rt_TRANSFORM3D      otm;
 
     /* non-zero if object itself has
      * non-trivial transform
@@ -198,11 +200,11 @@ class rt_Object
     rt_Registry        *rg;
 
     rt_TRANSFORM3D     *trm;
-    rt_real            *pos;
     rt_cell             tag;
 
     rt_mat4             inv;
     rt_mat4             mtx;
+    rt_real            *pos;
 
     /* non-zero if object itself or
      * some of its parents changed */
@@ -772,6 +774,9 @@ class rt_Material : public rt_List<rt_Material>
     private:
 
     rt_MATERIAL        *mat;
+    /* original texture data */
+    rt_TEX              otx;
+
     rt_mat2             mtx;
 
     public:
