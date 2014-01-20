@@ -240,11 +240,11 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
  *
  * Return values:
  *  0 - don't intersect (or lie on the same plane)
- *  1 - intersect o-p-q ( ^ dir: 0, 3)
- *  2 - intersect o-q-p ( ^ dir: 0, 3)
+ *  1 - intersect o-p-q
+ *  2 - intersect o-q-p
  *  3 - intersect o-p=q
  */
-rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1, rt_cell dir,
+rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
                      rt_vec4 q0, rt_vec4 q1, rt_vec4 q2,
                      rt_cell qk, rt_cell qi, rt_cell qj)
 {
@@ -256,6 +256,8 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1, rt_cell dir,
         pr[qk] = p1[qk] - p0[qk];
         qr[qk] = q0[qk] - p0[qk];
 
+        /* might still hit, but division is unsafe,
+         * return miss */
         if (RT_FABS(pr[qk]) <= RT_CULL_THRESHOLD)
         {
             return 0;
@@ -271,6 +273,8 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1, rt_cell dir,
 
         u = qr[qi];
 
+        /* if hit is outside with margin,
+         * return miss */
         if (u <= nx[qi] - RT_CULL_THRESHOLD
         ||  u >= mx[qi] + RT_CULL_THRESHOLD)
         {
@@ -285,29 +289,17 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1, rt_cell dir,
 
         v = qr[qj];
 
+        /* if hit is outside with margin,
+         * return miss */
         if (v <= nx[qj] - RT_CULL_THRESHOLD
         ||  v >= mx[qj] + RT_CULL_THRESHOLD)
-        {
-            return 0;
-        }
-
-        if (t >= 1.0f - RT_CULL_THRESHOLD
-        &&  t <= 1.0f + RT_CULL_THRESHOLD
-        && (u >= nx[qi] - RT_CULL_THRESHOLD
-        &&  u <= nx[qi] + RT_CULL_THRESHOLD
-        ||  u >= mx[qi] - RT_CULL_THRESHOLD
-        &&  u <= mx[qi] + RT_CULL_THRESHOLD
-        ||  v >= nx[qj] - RT_CULL_THRESHOLD
-        &&  v <= nx[qj] + RT_CULL_THRESHOLD
-        ||  v >= mx[qj] - RT_CULL_THRESHOLD
-        &&  v <= mx[qj] + RT_CULL_THRESHOLD))
         {
             return 0;
         }
     }
     else
     {
-        /* find direction of ray */
+        /* find direction of the ray */
 
         pr[RT_X] = p1[RT_X] - p0[RT_X];
         pr[RT_Y] = p1[RT_Y] - p0[RT_Y];
@@ -369,24 +361,11 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1, rt_cell dir,
         /* calculate t, analog of distance to intersection */
 
         t = RT_VECTOR_DOT(e2, nx) * inv_det;
-
-        if (t >= 1.0f - RT_CULL_THRESHOLD
-        &&  t <= 1.0f + RT_CULL_THRESHOLD
-        && (u >= 0.0f - RT_CULL_THRESHOLD
-        &&  u <= 0.0f + RT_CULL_THRESHOLD
-        ||  v >= 0.0f - RT_CULL_THRESHOLD
-        &&  v <= 0.0f + RT_CULL_THRESHOLD
-        ||  v >= 1.0f - RT_CULL_THRESHOLD - u
-        &&  v <= 1.0f + RT_CULL_THRESHOLD - u))
-        {
-            return 0;
-        }
     }
 
-    /* sort outward */
     return t <= 0.0f - RT_CULL_THRESHOLD ? 0 :
-           t >= 1.0f + RT_CULL_THRESHOLD ? 1 ^ dir :
-           t <= 1.0f - RT_CULL_THRESHOLD ? 2 ^ dir : 3;
+           t >= 1.0f + RT_CULL_THRESHOLD ? 1 :
+           t <= 1.0f - RT_CULL_THRESHOLD ? 2 : 3;
 }
 
 /*
@@ -423,6 +402,8 @@ rt_cell edge_to_edge(rt_vec4 p0,
         pr[kk] = p1[kk] - p0[kk];
         qr[kk] = q1[kk] - p0[kk];
 
+        /* might still hit, but division is unsafe,
+         * return miss */
         if (RT_FABS(pr[kk]) <= RT_CULL_THRESHOLD
         ||  RT_FABS(qr[kk]) <= RT_CULL_THRESHOLD)
         {
@@ -439,6 +420,8 @@ rt_cell edge_to_edge(rt_vec4 p0,
 
         u = pr[pk];
 
+        /* if hit is outside with margin,
+         * return miss */
         if (u <= nx[pk] - RT_CULL_THRESHOLD
         ||  u >= mx[pk] + RT_CULL_THRESHOLD)
         {
@@ -455,22 +438,10 @@ rt_cell edge_to_edge(rt_vec4 p0,
 
         v = qr[qk];
 
+        /* if hit is outside with margin,
+         * return miss */
         if (v <= nx[qk] - RT_CULL_THRESHOLD
         ||  v >= mx[qk] + RT_CULL_THRESHOLD)
-        {
-            return 0;
-        }
-
-        if (t >= 1.0f - RT_CULL_THRESHOLD
-        &&  t <= 1.0f + RT_CULL_THRESHOLD
-        && (u >= nx[pk] - RT_CULL_THRESHOLD
-        &&  u <= nx[pk] + RT_CULL_THRESHOLD
-        ||  u >= mx[pk] - RT_CULL_THRESHOLD
-        &&  u <= mx[pk] + RT_CULL_THRESHOLD
-        ||  v >= nx[qk] - RT_CULL_THRESHOLD
-        &&  v <= nx[qk] + RT_CULL_THRESHOLD
-        ||  v >= mx[qk] - RT_CULL_THRESHOLD
-        &&  v <= mx[qk] + RT_CULL_THRESHOLD))
         {
             return 0;
         }
@@ -543,23 +514,8 @@ rt_cell edge_to_edge(rt_vec4 p0,
         {
             return 0;
         }
-
-        if (t >= 1.0f - RT_CULL_THRESHOLD
-        &&  t <= 1.0f + RT_CULL_THRESHOLD
-        && (u >= 0.0f - RT_CULL_THRESHOLD
-        &&  u <= 0.0f + RT_CULL_THRESHOLD
-        ||  u >= 1.0f - RT_CULL_THRESHOLD
-        &&  u <= 1.0f + RT_CULL_THRESHOLD
-        ||  v >= 0.0f - RT_CULL_THRESHOLD
-        &&  v <= 0.0f + RT_CULL_THRESHOLD
-        ||  v >= 1.0f - RT_CULL_THRESHOLD
-        &&  v <= 1.0f + RT_CULL_THRESHOLD))
-        {
-            return 0;
-        }
     }
 
-    /* sort outward */
     return t <= 0.0f - RT_CULL_THRESHOLD ? 0 :
            t >= 1.0f + RT_CULL_THRESHOLD ? 1 :
            t <= 1.0f - RT_CULL_THRESHOLD ? 2 : 3;
@@ -998,7 +954,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 
         for (i = 0; i < shw->verts_num; i++)
         {
-            if (vert_to_face(lgt->pos, shw->verts[i].pos, 0,
+            if (vert_to_face(lgt->pos, shw->verts[i].pos,
                              srf->verts[fc->index[0]].pos,
                              srf->verts[fc->index[1]].pos,
                              srf->verts[fc->index[2]].pos,
@@ -1010,7 +966,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
             {
                 continue;
             }
-            if (vert_to_face(lgt->pos, shw->verts[i].pos, 0,
+            if (vert_to_face(lgt->pos, shw->verts[i].pos,
                              srf->verts[fc->index[2]].pos,
                              srf->verts[fc->index[3]].pos,
                              srf->verts[fc->index[0]].pos,
@@ -1027,11 +983,11 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 
         for (i = 0; i < srf->verts_num; i++)
         {
-            if (vert_to_face(lgt->pos, srf->verts[i].pos, 3,
+            if (vert_to_face(lgt->pos, srf->verts[i].pos,
                              shw->verts[fc->index[0]].pos,
                              shw->verts[fc->index[1]].pos,
                              shw->verts[fc->index[2]].pos,
-                             fc->k, fc->i, fc->j) == 1)
+                             fc->k, fc->i, fc->j) == 2)
             {
                 return 1;
             }
@@ -1039,11 +995,11 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
             {
                 continue;
             }
-            if (vert_to_face(lgt->pos, srf->verts[i].pos, 3,
+            if (vert_to_face(lgt->pos, srf->verts[i].pos,
                              shw->verts[fc->index[2]].pos,
                              shw->verts[fc->index[3]].pos,
                              shw->verts[fc->index[0]].pos,
-                             fc->k, fc->i, fc->j) == 1)
+                             fc->k, fc->i, fc->j) == 2)
             {
                 return 1;
             }
@@ -1135,7 +1091,7 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
             rt_EDGE *ei = &ref->edges[i];
 
             if (vert_to_face(ref->verts[ei->index[0]].pos,
-                             ref->verts[ei->index[1]].pos, 0,
+                             ref->verts[ei->index[1]].pos,
                              srf->verts[fc->index[0]].pos,
                              srf->verts[fc->index[1]].pos,
                              srf->verts[fc->index[2]].pos,
@@ -1148,7 +1104,7 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
                 continue;
             }
             if (vert_to_face(ref->verts[ei->index[0]].pos,
-                             ref->verts[ei->index[1]].pos, 0,
+                             ref->verts[ei->index[1]].pos,
                              srf->verts[fc->index[2]].pos,
                              srf->verts[fc->index[3]].pos,
                              srf->verts[fc->index[0]].pos,
@@ -1168,7 +1124,7 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
             rt_EDGE *ei = &srf->edges[i];
 
             if (vert_to_face(srf->verts[ei->index[0]].pos,
-                             srf->verts[ei->index[1]].pos, 0,
+                             srf->verts[ei->index[1]].pos,
                              ref->verts[fc->index[0]].pos,
                              ref->verts[fc->index[1]].pos,
                              ref->verts[fc->index[2]].pos,
@@ -1181,7 +1137,7 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
                 continue;
             }
             if (vert_to_face(srf->verts[ei->index[0]].pos,
-                             srf->verts[ei->index[1]].pos, 0,
+                             srf->verts[ei->index[1]].pos,
                              ref->verts[fc->index[2]].pos,
                              ref->verts[fc->index[3]].pos,
                              ref->verts[fc->index[0]].pos,
