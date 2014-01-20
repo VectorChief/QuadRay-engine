@@ -242,8 +242,10 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
  *  0 - don't intersect (or lie on the same plane)
  *  1 - intersect o-p-q
  *  2 - intersect o-q-p
- *  3 - intersect o-p=q
+ *  3 - intersect o-p=q (to handle bbox stacking)
+ *  4 - intersect o=q-p (to handle bbox stacking)
  */
+static
 rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
                      rt_vec4 q0, rt_vec4 q1, rt_vec4 q2,
                      rt_cell qk, rt_cell qi, rt_cell qj)
@@ -363,9 +365,13 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
         t = RT_VECTOR_DOT(e2, nx) * inv_det;
     }
 
-    return t <= 0.0f - RT_CULL_THRESHOLD ? 0 :
-           t >= 1.0f + RT_CULL_THRESHOLD ? 1 :
-           t <= 1.0f - RT_CULL_THRESHOLD ? 2 : 3;
+    /*            | 0 |           | 1 |            */
+    /* -----------|-*-|-----------|-*-|----------- */
+    /*      0     | 4 |     2     | 3 |     1      */
+    return t >= 1.0f + RT_CULL_THRESHOLD ? 1 :
+           t >  1.0f - RT_CULL_THRESHOLD ? 3 :
+           t >= 0.0f + RT_CULL_THRESHOLD ? 2 :
+           t >  0.0f - RT_CULL_THRESHOLD ? 4 : 0;
 }
 
 /*
@@ -375,8 +381,10 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
  *  0 - don't intersect (or lie on the same plane)
  *  1 - intersect o-p-q
  *  2 - intersect o-q-p
- *  3 - intersect o-p=q
+ *  3 - intersect o-p=q (to handle bbox stacking)
+ *  4 - intersect o=q-p (to handle bbox stacking)
  */
+static
 rt_cell edge_to_edge(rt_vec4 p0,
                      rt_vec4 p1, rt_vec4 p2, rt_cell pk,
                      rt_vec4 q1, rt_vec4 q2, rt_cell qk)
@@ -516,9 +524,13 @@ rt_cell edge_to_edge(rt_vec4 p0,
         }
     }
 
-    return t <= 0.0f - RT_CULL_THRESHOLD ? 0 :
-           t >= 1.0f + RT_CULL_THRESHOLD ? 1 :
-           t <= 1.0f - RT_CULL_THRESHOLD ? 2 : 3;
+    /*            | 0 |           | 1 |            */
+    /* -----------|-*-|-----------|-*-|----------- */
+    /*      0     | 4 |     2     | 3 |     1      */
+    return t >= 1.0f + RT_CULL_THRESHOLD ? 1 :
+           t >  1.0f - RT_CULL_THRESHOLD ? 3 :
+           t >= 0.0f + RT_CULL_THRESHOLD ? 2 :
+           t >  0.0f - RT_CULL_THRESHOLD ? 4 : 0;
 }
 
 /*
@@ -533,6 +545,7 @@ rt_cell edge_to_edge(rt_vec4 p0,
  *  2 - yes, custom only
  *  3 - yes, both
  */
+static
 rt_cell surf_hole(rt_Surface *srf, rt_Surface *ref)
 {
     rt_cell c = 0;
@@ -593,6 +606,7 @@ rt_cell surf_hole(rt_Surface *srf, rt_Surface *ref)
  *  1 - clipped by "clp" inner side
  *  2 - clipped by "clp" outer side
  */
+static
 rt_cell surf_clip(rt_Surface *srf, rt_Surface *clp)
 {
     rt_cell side = 0;
@@ -637,6 +651,7 @@ rt_cell surf_clip(rt_Surface *srf, rt_Surface *clp)
  *  0 - convex
  *  1 - concave
  */
+static
 rt_cell surf_conc(rt_Surface *srf)
 {
     rt_cell conc = 0;
@@ -657,6 +672,7 @@ rt_cell surf_conc(rt_Surface *srf)
  *  0 - convex
  *  1 - concave
  */
+static
 rt_cell cbox_conc(rt_Surface *srf)
 {
     rt_cell conc = 0;
@@ -684,6 +700,7 @@ rt_cell cbox_conc(rt_Surface *srf)
  * Return values:
  *  new pos
  */
+static
 rt_real *surf_tran(rt_vec4 loc, rt_vec4 pos, rt_Surface *srf)
 {
     rt_vec4  dff;
@@ -705,12 +722,13 @@ rt_real *surf_tran(rt_vec4 loc, rt_vec4 pos, rt_Surface *srf)
 }
 
 /*
- * Determine if "pos" is strictly outside of "srf" cbox.
+ * Determine if "pos" is outside of "srf" cbox minus margin.
  *
  * Return values:
  *  0 - no
  *  1 - yes
  */
+static
 rt_cell surf_cbox(rt_vec4 pos, rt_Surface *srf)
 {
     rt_cell c = 0;
@@ -718,12 +736,12 @@ rt_cell surf_cbox(rt_vec4 pos, rt_Surface *srf)
     rt_vec4  loc;
     rt_real *pps = surf_tran(loc, pos, srf);
 
-    if (pps[RT_X] < srf->cmin[RT_X]
-    ||  pps[RT_X] > srf->cmax[RT_X]
-    ||  pps[RT_Y] < srf->cmin[RT_Y]
-    ||  pps[RT_Y] > srf->cmax[RT_Y]
-    ||  pps[RT_Z] < srf->cmin[RT_Z]
-    ||  pps[RT_Z] > srf->cmax[RT_Z])
+    if (pps[RT_X] - RT_CULL_THRESHOLD < srf->cmin[RT_X]
+    ||  pps[RT_X] + RT_CULL_THRESHOLD > srf->cmax[RT_X]
+    ||  pps[RT_Y] - RT_CULL_THRESHOLD < srf->cmin[RT_Y]
+    ||  pps[RT_Y] + RT_CULL_THRESHOLD > srf->cmax[RT_Y]
+    ||  pps[RT_Z] - RT_CULL_THRESHOLD < srf->cmin[RT_Z]
+    ||  pps[RT_Z] + RT_CULL_THRESHOLD > srf->cmax[RT_Z])
     {
         c = 1;
     }
@@ -732,12 +750,13 @@ rt_cell surf_cbox(rt_vec4 pos, rt_Surface *srf)
 }
 
 /*
- * Determine if "pos" is strictly inside of "srf" bbox.
+ * Determine if "pos" is inside of "srf" bbox plus margin.
  *
  * Return values:
  *  0 - no
  *  1 - yes
  */
+static
 rt_cell surf_bbox(rt_vec4 pos, rt_Surface *srf)
 {
     rt_cell c = 0;
@@ -745,12 +764,12 @@ rt_cell surf_bbox(rt_vec4 pos, rt_Surface *srf)
     rt_vec4  loc;
     rt_real *pps = surf_tran(loc, pos, srf);
 
-    if (pps[RT_X] > srf->bmin[RT_X]
-    &&  pps[RT_X] < srf->bmax[RT_X]
-    &&  pps[RT_Y] > srf->bmin[RT_Y]
-    &&  pps[RT_Y] < srf->bmax[RT_Y]
-    &&  pps[RT_Z] > srf->bmin[RT_Z]
-    &&  pps[RT_Z] < srf->bmax[RT_Z])
+    if (pps[RT_X] + RT_CULL_THRESHOLD > srf->bmin[RT_X]
+    &&  pps[RT_X] - RT_CULL_THRESHOLD < srf->bmax[RT_X]
+    &&  pps[RT_Y] + RT_CULL_THRESHOLD > srf->bmin[RT_Y]
+    &&  pps[RT_Y] - RT_CULL_THRESHOLD < srf->bmax[RT_Y]
+    &&  pps[RT_Z] + RT_CULL_THRESHOLD > srf->bmin[RT_Z]
+    &&  pps[RT_Z] - RT_CULL_THRESHOLD < srf->bmax[RT_Z])
     {
         c = 1;
     }
@@ -766,6 +785,7 @@ rt_cell surf_bbox(rt_vec4 pos, rt_Surface *srf)
  *  1 - inner
  *  2 - outer
  */
+static
 rt_cell surf_side(rt_vec4 pos, rt_Surface *srf)
 {
     rt_cell side = 0;
@@ -1040,6 +1060,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
  *  1 - yes (quick - might be fully inside)
  *  2 - yes (thorough - borders intersect)
  */
+static
 rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
 {
     rt_cell i, j;
