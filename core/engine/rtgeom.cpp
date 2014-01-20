@@ -384,8 +384,9 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1, rt_cell dir,
     }
 
     /* sort outward */
-    return t <= 0.0f ? 0 : t >= 1.0f + RT_CULL_THRESHOLD ? 1 ^ dir :
-                           t <= 1.0f - RT_CULL_THRESHOLD ? 2 ^ dir : 3;
+    return t <= 0.0f - RT_CULL_THRESHOLD ? 0 :
+           t >= 1.0f + RT_CULL_THRESHOLD ? 1 ^ dir :
+           t <= 1.0f - RT_CULL_THRESHOLD ? 2 ^ dir : 3;
 }
 
 /*
@@ -559,8 +560,9 @@ rt_cell edge_to_edge(rt_vec4 p0,
     }
 
     /* sort outward */
-    return t <= 0.0f ? 0 : t >= 1.0f + RT_CULL_THRESHOLD ? 1 :
-                           t <= 1.0f - RT_CULL_THRESHOLD ? 2 : 3;
+    return t <= 0.0f - RT_CULL_THRESHOLD ? 0 :
+           t >= 1.0f + RT_CULL_THRESHOLD ? 1 :
+           t <= 1.0f - RT_CULL_THRESHOLD ? 2 : 3;
 }
 
 /*
