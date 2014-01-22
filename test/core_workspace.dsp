@@ -146,11 +146,11 @@ SOURCE=..\core\engine\rtgeom.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\core\engine\rtload.cpp
+SOURCE=..\core\engine\rtimag.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\core\engine\rtload.h
+SOURCE=..\core\engine\rtimag.h
 # End Source File
 # End Group
 # Begin Group "system"

@@ -7,7 +7,7 @@
 #ifndef RT_ROOT_H
 #define RT_ROOT_H
 
-#include "rtload.h"
+#include "rtimag.h"
 #include "engine.h"
 
 #include "scn_demo01.h"
