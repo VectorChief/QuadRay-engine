@@ -8,6 +8,9 @@ v0.5.7: Performance optimizations, core test framework
   - core test framework, run levels 3 to 7
   - fix missing condition for boundless surfaces
   - core test framework, run levels 8 and 9
+  - fix condition for bbox shadow optimization, adjust run level 6
+  - handle corner cases properly in rtgeom routines, simplify logic
+  - rename rtload files to rtimag for image library, update build instructions
 
 v0.5.6: Performance optimizations, bounding volume for array of objects
   - calculate bounding sphere for array of objects
