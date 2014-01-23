@@ -293,7 +293,6 @@ rt_void rt_Camera::update(rt_long time, rt_cell action)
     switch (action)
     {
         /* vertical movement */
-
         case RT_CAMERA_MOVE_UP:
         trm->pos[RT_Z] += cam->dps[RT_K] * t;
         break;
@@ -303,7 +302,6 @@ rt_void rt_Camera::update(rt_long time, rt_cell action)
         break;
 
         /* horizontal movement */
-
         case RT_CAMERA_MOVE_LEFT:
         trm->pos[RT_X] -= cam->dps[RT_I] * t * hor_cos;
         trm->pos[RT_Y] -= cam->dps[RT_I] * t * hor_sin;
@@ -325,7 +323,6 @@ rt_void rt_Camera::update(rt_long time, rt_cell action)
         break;
 
         /* horizontal rotation */
-
         case RT_CAMERA_ROTATE_LEFT:
         trm->rot[RT_Z] += cam->drt[RT_I] * t;
         if (trm->rot[RT_Z] >= +180.0f)
@@ -343,7 +340,6 @@ rt_void rt_Camera::update(rt_long time, rt_cell action)
         break;
 
         /* vertical rotation */
-
         case RT_CAMERA_ROTATE_UP:
         if (trm->rot[RT_X] <  0.0f)
         {

@@ -651,7 +651,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jeqxx_lb(OO_trm)
 
         /* transform diff */
-
         movpx_ld(Xmm4, Mebx, srf_TCI_X)
         mulps_rr(Xmm4, Xmm1)
         movpx_ld(Xmm5, Mebx, srf_TCJ_Y)
@@ -713,7 +712,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(OO_ray)
 
         /* transform ray */
-
         movpx_ld(Xmm1, Mecx, ctx_RAY_X)
         movpx_ld(Xmm2, Mecx, ctx_RAY_Y)
         movpx_ld(Xmm3, Mecx, ctx_RAY_Z)
@@ -771,17 +769,28 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         jmpxx_mm(Mebx, srf_SRF_P(PTR))
 
+/******************************************************************************/
     LBL(fetch_ptr)
+
+        jmpxx_lb(fetch_PL_ptr)
+
+    LBL(fetch_clp)
+
+#if RT_FEAT_CLIPPING_CUSTOM
+
+        jmpxx_lb(fetch_PL_clp)
+
+#endif /* RT_FEAT_CLIPPING_CUSTOM */
+
+    LBL(fetch_pow)
 
 #if RT_FEAT_SPECULAR
 
         jmpxx_lb(fetch_PW_ptr)
 
-#else /* RT_FEAT_SPECULAR */
-
-        jmpxx_lb(fetch_PL_ptr)
-
 #endif /* RT_FEAT_SPECULAR */
+
+        jmpxx_lb(fetch_end)
 
 /******************************************************************************/
 /********************************   CLIPPING   ********************************/
@@ -1070,7 +1079,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jeqxx_lb(CC_trm)
 
         /* transform clip */
-
         movpx_ld(Xmm4, Mebx, srf_TCI_X)
         mulps_rr(Xmm4, Xmm1)
         movpx_ld(Xmm5, Mebx, srf_TCJ_Y)
@@ -1172,7 +1180,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* transform normal,
          * apply transposed matrix */
-
         movpx_ld(Xmm1, Mecx, ctx_NRM_I)
         movpx_ld(Xmm2, Mecx, ctx_NRM_J)
         movpx_ld(Xmm3, Mecx, ctx_NRM_K)
@@ -1218,7 +1225,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(MT_trn)
 
         /* renormalize normal */
-
         movpx_rr(Xmm1, Xmm4)
         mulps_rr(Xmm1, Xmm4)
 
@@ -1263,7 +1269,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* transform surface's UV coords
          *        to texture's XY coords */
-
         INDEX_TMAP(RT_X)
         movpx_ld(Xmm4, Iecx, ctx_TEX_O)         /* tex_x <- TEX_X */
         INDEX_TMAP(RT_Y)
@@ -1334,7 +1339,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ld(Redx, Medi, elm_SIMD)
 
         /* compute common */
-
         movpx_ld(Xmm1, Medx, lgt_POS_X)         /* hit_x <- POS_X */
         subps_ld(Xmm1, Mecx, ctx_HIT_X)         /* hit_x -= HIT_X */
         movpx_st(Xmm1, Mecx, ctx_NEW_X)         /* hit_x -> NEW_X */
@@ -1413,7 +1417,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_MASK(LT_amb, FULL, Xmm7)
 
         /* compute diffuse */
-
         movpx_ld(Xmm1, Mecx, ctx_NEW_X)
         movpx_rr(Xmm4, Xmm1)
         mulps_rr(Xmm4, Xmm4)
@@ -1442,7 +1445,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #if RT_FEAT_ATTENUATION
 
         /* compute attenuation */
-
         movpx_rr(Xmm4, Xmm5)                    /* Xmm4  <-   1/r */
         mulps_rr(Xmm4, Xmm6)                    /* Xmm4  <-   r^1 */
 
@@ -1478,7 +1480,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_PROP(LT_spc, RT_PROP_SPECULAR)
 
         /* compute specular */
-
         mulps_ld(Xmm4, Mecx, ctx_NRM_X)
         subps_rr(Xmm1, Xmm4)
         subps_rr(Xmm1, Xmm4)
@@ -1521,7 +1522,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* compute specular pow,
          * integers only for now */
-
         movxx_ld(Reax, Medx, mat_L_POW)
         jmpxx_mm(Medx, mat_POW_P)
 
@@ -1545,7 +1545,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         adrxx_lb(LT_pwn)
         movxx_st(Reax, Mebp, inf_POW_EN)
 
-        jmpxx_lb(fetch_PL_ptr)
+        jmpxx_lb(fetch_end)
 
     LBL(LT_pw4)
 
@@ -1608,7 +1608,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* apply lighting to metal color,
          * only affects diffuse-specular blending */
-
         movxx_ld(Redx, Medi, elm_SIMD)
 
         movpx_ld(Xmm0, Mecx, ctx_TEX_R)
@@ -1647,7 +1646,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* apply lighting to plain color,
          * only affects diffuse-specular blending */
-
         movxx_ld(Redx, Medi, elm_SIMD)
 
         movpx_ld(Xmm0, Mecx, ctx_TEX_R)
@@ -1716,7 +1714,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_PROP(RF_end, RT_PROP_REFLECT)
 
         /* compute reflection */
-
         xorpx_rr(Xmm0, Xmm0)
         movpx_st(Xmm0, Mecx, ctx_T_NEW)
 
@@ -1857,7 +1854,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_PROP(TR_rfr, RT_PROP_REFRACT)
 
         /* compute refraction */
-
         xorpx_rr(Xmm0, Xmm0)
         movpx_st(Xmm0, Mecx, ctx_T_NEW)
 
@@ -1910,7 +1906,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #endif /* RT_FEAT_REFRACTIONS */
 
         /* propagate ray */
-
         xorpx_rr(Xmm0, Xmm0)
         movpx_st(Xmm0, Mecx, ctx_T_NEW)
 
@@ -2095,7 +2090,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         adrxx_lb(PL_ptr)
         movxx_st(Reax, Mebp, inf_PTR_PL)
-        jmpxx_lb(fetch_PL_clp)
+        jmpxx_lb(fetch_CL_ptr)
 
     LBL(PL_ptr)
 
@@ -2173,10 +2168,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TEXTURING
 
-        CHECK_PROP(PL_tex, RT_PROP_TEXTURE)
-
         /* compute surface's UV coords
-         * for texturing */
+         * for texturing, if enabled */
+        CHECK_PROP(PL_tex, RT_PROP_TEXTURE)
 
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
         /* use next context's RAY fields (NEW)
@@ -2196,9 +2190,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_NORMALS
 
+        /* compute normal, if enabled */
         CHECK_PROP(PL_nrm, RT_PROP_NORMAL)
-
-        /* compute normal */
 
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
         MOVZR_ST(Xmm4, Iecx, ctx_NRM_O)         /* 0     -> NRM_I */
@@ -2220,15 +2213,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(MT_mat)
 
 /******************************************************************************/
+#if RT_FEAT_CLIPPING_CUSTOM
+
     LBL(fetch_PL_clp)
 
         adrxx_lb(PL_clp)
         movxx_st(Reax, Mebp, inf_CLP_PL)
-        jmpxx_lb(fetch_CL_ptr)
+        jmpxx_lb(fetch_CL_clp)
 
     LBL(PL_clp)
-
-#if RT_FEAT_CLIPPING_CUSTOM
 
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
         /* use context's normal fields (NRM)
@@ -2250,7 +2243,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         adrxx_lb(CL_ptr)
         movxx_st(Reax, Mebp, inf_PTR_CL)
-        jmpxx_lb(fetch_CL_clp)
+        jmpxx_lb(fetch_SP_ptr)
 
     LBL(CL_ptr)
 
@@ -2366,9 +2359,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_NORMALS
 
+        /* compute normal, if enabled */
         CHECK_PROP(CL_nrm, RT_PROP_NORMAL)
-
-        /* compute normal */
 
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
         /* use next context's RAY fields (NEW)
@@ -2398,15 +2390,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(MT_mat)
 
 /******************************************************************************/
+#if RT_FEAT_CLIPPING_CUSTOM
+
     LBL(fetch_CL_clp)
 
         adrxx_lb(CL_clp)
         movxx_st(Reax, Mebp, inf_CLP_CL)
-        jmpxx_lb(fetch_SP_ptr)
+        jmpxx_lb(fetch_SP_clp)
 
     LBL(CL_clp)
-
-#if RT_FEAT_CLIPPING_CUSTOM
 
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
         /* use context's normal fields (NRM)
@@ -2437,7 +2429,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         adrxx_lb(SP_ptr)
         movxx_st(Reax, Mebp, inf_PTR_SP)
-        jmpxx_lb(fetch_SP_clp)
+        jmpxx_lb(fetch_CN_ptr)
 
     LBL(SP_ptr)
 
@@ -2567,9 +2559,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_NORMALS
 
+        /* compute normal, if enabled */
         CHECK_PROP(SP_nrm, RT_PROP_NORMAL)
-
-        /* compute normal */
 
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
         /* use next context's RAY fields (NEW)
@@ -2604,15 +2595,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(MT_mat)
 
 /******************************************************************************/
+#if RT_FEAT_CLIPPING_CUSTOM
+
     LBL(fetch_SP_clp)
 
         adrxx_lb(SP_clp)
         movxx_st(Reax, Mebp, inf_CLP_SP)
-        jmpxx_lb(fetch_CN_ptr)
+        jmpxx_lb(fetch_CN_clp)
 
     LBL(SP_clp)
-
-#if RT_FEAT_CLIPPING_CUSTOM
 
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
         /* use context's normal fields (NRM)
@@ -2651,7 +2642,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         adrxx_lb(CN_ptr)
         movxx_st(Reax, Mebp, inf_PTR_CN)
-        jmpxx_lb(fetch_CN_clp)
+        jmpxx_lb(fetch_PB_ptr)
 
     LBL(CN_ptr)
 
@@ -2779,9 +2770,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_NORMALS
 
+        /* compute normal, if enabled */
         CHECK_PROP(CN_nrm, RT_PROP_NORMAL)
-
-        /* compute normal */
 
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
         /* use next context's RAY fields (NEW)
@@ -2822,15 +2812,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(MT_mat)
 
 /******************************************************************************/
+#if RT_FEAT_CLIPPING_CUSTOM
+
     LBL(fetch_CN_clp)
 
         adrxx_lb(CN_clp)
         movxx_st(Reax, Mebp, inf_CLP_CN)
-        jmpxx_lb(fetch_PB_ptr)
+        jmpxx_lb(fetch_PB_clp)
 
     LBL(CN_clp)
-
-#if RT_FEAT_CLIPPING_CUSTOM
 
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
         /* use context's normal fields (NRM)
@@ -2867,7 +2857,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         adrxx_lb(PB_ptr)
         movxx_st(Reax, Mebp, inf_PTR_PB)
-        jmpxx_lb(fetch_PB_clp)
+        jmpxx_lb(fetch_HB_ptr)
 
     LBL(PB_ptr)
 
@@ -2990,9 +2980,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_NORMALS
 
+        /* compute normal, if enabled */
         CHECK_PROP(PB_nrm, RT_PROP_NORMAL)
-
-        /* compute normal */
 
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
         /* use next context's RAY fields (NEW)
@@ -3034,15 +3023,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(MT_mat)
 
 /******************************************************************************/
+#if RT_FEAT_CLIPPING_CUSTOM
+
     LBL(fetch_PB_clp)
 
         adrxx_lb(PB_clp)
         movxx_st(Reax, Mebp, inf_CLP_PB)
-        jmpxx_lb(fetch_HB_ptr)
+        jmpxx_lb(fetch_HB_clp)
 
     LBL(PB_clp)
-
-#if RT_FEAT_CLIPPING_CUSTOM
 
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
         /* use context's normal fields (NRM)
@@ -3078,7 +3067,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         adrxx_lb(HB_ptr)
         movxx_st(Reax, Mebp, inf_PTR_HB)
-        jmpxx_lb(fetch_HB_clp)
+        jmpxx_lb(fetch_clp)
 
     LBL(HB_ptr)
 
@@ -3208,9 +3197,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_NORMALS
 
+        /* compute normal, if enabled */
         CHECK_PROP(HB_nrm, RT_PROP_NORMAL)
-
-        /* compute normal */
 
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
         /* use next context's RAY fields (NEW)
@@ -3254,15 +3242,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(MT_mat)
 
 /******************************************************************************/
+#if RT_FEAT_CLIPPING_CUSTOM
+
     LBL(fetch_HB_clp)
 
         adrxx_lb(HB_clp)
         movxx_st(Reax, Mebp, inf_CLP_HB)
-        jmpxx_lb(fetch_end)
+        jmpxx_lb(fetch_pow)
 
     LBL(HB_clp)
-
-#if RT_FEAT_CLIPPING_CUSTOM
 
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
         /* use context's normal fields (NRM)

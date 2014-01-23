@@ -968,14 +968,12 @@ rt_cell cbox_side(rt_real *pos, rt_Surface *srf)
 rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 {
     /* check if surfaces differ and have bounds */
-
     if (srf->verts_num == 0 || shw->verts_num == 0 || srf == shw)
     {
         return 1;
     }
 
     /* check first if bounding spheres cast shadows */
-
     rt_vec4 shw_vec;
 
     shw_vec[RT_X] = shw->mid[RT_X] - lgt->pos[RT_X];
@@ -1032,23 +1030,19 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
     }
 
 #if RT_OPTS_SHADOW_EXT1 != 0
-
     /* check if optimization is disabled in runtime */
-
     if ((lgt->rg->opts & RT_OPTS_SHADOW_EXT1) == 0)
     {
         return 1;
     }
 
     /* check if "lgt" pos is inside "shw" bbox */
-
     if (surf_bbox(lgt->pos, shw) == 1)
     {
         return 1;
     }
 
     /* check if bounding boxes cast shadows */
-
     rt_cell i, j;
 
     for (j = 0; j < srf->faces_num; j++)
@@ -1129,7 +1123,6 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
     }
 
     return 0;
-
 #endif /* RT_OPTS_SHADOW_EXT1 */
 
     return 1;
@@ -1154,7 +1147,6 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
     }
 
     /* check if bounding spheres interpenetrate */
-
     rt_real f = 0.0f;
     rt_real len = 0.0f;
 
@@ -1173,7 +1165,6 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
     }
 
     /* check if one bbox's mid is inside another */
-
     if (surf_bbox(ref->mid, srf) == 1)
     {
         return 1;
@@ -1185,7 +1176,6 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
     }
 
     /* check if edges of one bbox intersect faces of another */
-
     for (j = 0; j < srf->faces_num; j++)
     {
         rt_FACE *fc = &srf->faces[j];
@@ -1270,6 +1260,7 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
 
     p = srf->tag == RT_TAG_PLANE ? 1 : 0;
 
+    /* check if surfaces are the same */
     if (srf == ref)
     {
         if (p == 0)
@@ -1284,6 +1275,7 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
         return c;
     }
 
+    /* check clip relationship */
     i = surf_clip(ref, srf);
     j = surf_clip(srf, ref);
 
@@ -1346,7 +1338,6 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
     }
 
     /* check if all "ref" verts are on the same side */
-
     if (p == 1)
     {
         if (ref->verts_num == 0)
@@ -1365,7 +1356,6 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
     }
 
     /* check if bboxes interpenetrate */
-
     n = bbox_fuse(srf, ref);
 
     if (n != 0 && m == 1 || n == 2)
@@ -1375,7 +1365,6 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
     }
 
     /* check if all "ref" verts are inside "srf" */
-
     if (n == 1 && m == 0)
     {
         c |= 1;
@@ -1392,7 +1381,6 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
     }
 
     /* check if "srf" has holes */
-
     if (k == 0)
     {
         c |= 2;
@@ -1405,7 +1393,6 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
     }
 
     /* check if all "ref" verts are inside "srf" cbox */
-
     if (k == 1)
     {
         c |= 2;
