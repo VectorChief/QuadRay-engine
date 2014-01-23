@@ -11,7 +11,7 @@
 
 #define RUN_LEVEL       9
 #define VERBOSE         RT_FALSE
-#define CYC_SIZE        10
+#define CYC_SIZE        5
 
 #define RT_X_RES        800
 #define RT_Y_RES        480
@@ -39,23 +39,30 @@ rt_void frame_cpy(rt_word *fd, rt_word *fs)
 static
 rt_cell frame_cmp(rt_word *f1, rt_word *f2)
 {
-    rt_cell i;
+    rt_cell i, ret = 0;
 
     for (i = 0; i < y_res * x_row; i++)
     {
         if (f1[i] != f2[i])
         {
-            RT_LOGI("Frames differ\n");
-            return 1;
+            ret = 1;
+
+            RT_LOGI("Frames differ (%06X %06X) at x = %d, y = %d\n",
+                        f1[i], f2[i], i % x_row, i / x_row);
+
+            if (!VERBOSE)
+            {
+                break;
+            }
         }
     }
 
-    if (VERBOSE)
+    if (VERBOSE && ret == 0)
     {
         RT_LOGI("Frames are identical\n");
     }
 
-    return 0;
+    return ret;
 }
 
 /******************************************************************************/
