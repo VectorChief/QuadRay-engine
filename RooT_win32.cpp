@@ -106,6 +106,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 /********************************   THREADING   *******************************/
 /******************************************************************************/
 
+rt_cell  eout = 0;
+rt_pstr *estr = RT_NULL;
+
 struct rt_THREAD
 {
     rt_cell    *cmd;
@@ -116,7 +119,7 @@ struct rt_THREAD
     HANDLE      pthr;
 };
 
-DWORD WINAPI worker_thread(void *p)
+DWORD WINAPI worker_thread(rt_pntr p)
 {
     rt_THREAD *thread = (rt_THREAD *)p;
     rt_cell i = 0;
@@ -125,26 +128,38 @@ DWORD WINAPI worker_thread(void *p)
     {
         WaitForSingleObject(thread->cevent[i], INFINITE);
 
-        if (!thread->scene)
+        if (thread->scene == RT_NULL)
         {
             break;
         }
 
         rt_cell cmd = thread->cmd[0];
 
-        switch (cmd & 0x3)
+        /* if one thread throws an exception,
+         * other threads are still allowed to proceed
+         * in the same run, but not in the next one */
+        if (eout == 0)
+        try
         {
-            case 1:
-            thread->scene->update_slice(thread->index, (cmd >> 2) & 0xFF);
-            break;
+            switch (cmd & 0x3)
+            {
+                case 1:
+                thread->scene->update_slice(thread->index, (cmd >> 2) & 0xFF);
+                break;
 
-            case 2:
-            thread->scene->render_slice(thread->index, (cmd >> 2) & 0xFF);
-            break;
+                case 2:
+                thread->scene->render_slice(thread->index, (cmd >> 2) & 0xFF);
+                break;
 
-            default:
-            break;
-        };
+                default:
+                break;
+            };
+        }
+        catch (rt_Exception e)
+        {
+            estr[thread->index] = e.err;
+            eout = eout < thread->index + 1 ? thread->index + 1 : eout;
+        }
 
         SetEvent(thread->pevent);
         i = 1 - i;
@@ -167,6 +182,10 @@ struct rt_THREAD_POOL
 
 rt_pntr init_threads(rt_cell thnum, rt_Scene *scn)
 {
+    eout = 0;
+    estr = (rt_pstr *)malloc(sizeof(rt_pstr) * thnum);
+    memset(estr, 0, sizeof(rt_pstr) * thnum);
+
     DWORD  pam, sam;
     HANDLE process = GetCurrentProcess();
     GetProcessAffinityMask(process, &pam, &sam);
@@ -219,7 +238,7 @@ rt_void term_threads(rt_pntr tdata, rt_cell thnum)
     {
         rt_THREAD *thread = tpool->thread;
 
-        thread[i].scene = NULL;
+        thread[i].scene = RT_NULL;
     }
 
     SetEvent(tpool->cevent[tpool->cindex]);
@@ -239,6 +258,10 @@ rt_void term_threads(rt_pntr tdata, rt_cell thnum)
     free(tpool->thread);
     free(tpool->edata);
     free(tpool);
+
+    free(estr);
+    estr = RT_NULL;
+    eout = 0;
 }
 
 rt_void update_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
@@ -369,6 +392,21 @@ rt_cell main_step()
         return 0;
     }
 
+    if (eout != 0)
+    {
+        rt_cell i;
+
+        for (i = 0; i < eout; i++)
+        {
+            if (estr[i] != RT_NULL)
+            {            
+                RT_LOGE("Exception: thread %d: %s\n", i, estr[i]);
+            }
+        }
+
+        return 0;
+    }
+
     SetDIBitsToDevice(hWndDC, 0, 0, x_res, y_res, 0, 0, 0, y_res,
                                     scene->get_frame(), &DIBinfo, DIB_RGB_COLORS);
     return 1;
@@ -413,7 +451,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
 
             hFrm = CreateDIBSection(NULL, &DIBinfo, DIB_RGB_COLORS,
-                                            (void **)&frame, NULL, 0); 
+                                            (rt_pntr *)&frame, NULL, 0); 
 
             if (hFrm == NULL || frame == NULL)
             {

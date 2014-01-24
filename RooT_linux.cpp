@@ -108,6 +108,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
     XSelectInput(disp, win, ExposureMask | KeyPressMask | KeyReleaseMask);
     /* map (show) the window */
     XMapWindow(disp, win);
+    XSync(disp, False);
 
     Window win_root;
     rt_cell win_x = 0, win_y = 0;
@@ -167,6 +168,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
     shmctl(shminfo.shmid, IPC_RMID, 0);
 
     gc = XCreateGC(disp, win, 0, &gc_values);
+    XSync(disp, False);
 
     if (depth > 16)
     {
@@ -199,6 +201,9 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 /********************************   THREADING   *******************************/
 /******************************************************************************/
 
+rt_cell  eout = 0;
+rt_pstr *estr = RT_NULL;
+
 struct rt_THREAD
 {
     rt_cell            *cmd;
@@ -216,33 +221,45 @@ rt_pntr worker_thread(rt_pntr p)
     {
         pthread_barrier_wait(&thread->barr[0]);
 
-        if (!thread->scene)
+        if (thread->scene == RT_NULL)
         {
             break;
         }
 
         rt_cell cmd = thread->cmd[0];
 
-        switch (cmd & 0x3)
+        /* if one thread throws an exception,
+         * other threads are still allowed to proceed
+         * in the same run, but not in the next one */
+        if (eout == 0)
+        try
         {
-            case 1:
-            thread->scene->update_slice(thread->index, (cmd >> 2) & 0xFF);
-            break;
+            switch (cmd & 0x3)
+            {
+                case 1:
+                thread->scene->update_slice(thread->index, (cmd >> 2) & 0xFF);
+                break;
 
-            case 2:
-            thread->scene->render_slice(thread->index, (cmd >> 2) & 0xFF);
-            break;
+                case 2:
+                thread->scene->render_slice(thread->index, (cmd >> 2) & 0xFF);
+                break;
 
-            default:
-            break;
-        };
+                default:
+                break;
+            };
+        }
+        catch (rt_Exception e)
+        {
+            estr[thread->index] = e.err;
+            eout = eout < thread->index + 1 ? thread->index + 1 : eout;
+        }
 
         pthread_barrier_wait(&thread->barr[1]);
     }
 
     pthread_barrier_wait(&thread->barr[1]);
 
-    return NULL;
+    return RT_NULL;
 }
 
 struct rt_THREAD_POOL
@@ -256,6 +273,10 @@ struct rt_THREAD_POOL
 
 rt_pntr init_threads(rt_cell thnum, rt_Scene *scn)
 {
+    eout = 0;
+    estr = (rt_pstr *)malloc(sizeof(rt_pstr) * thnum);
+    memset(estr, 0, sizeof(rt_pstr) * thnum);
+
     cpu_set_t cpuset_pr, cpuset_th;
     pthread_t pthr = pthread_self();
     pthread_getaffinity_np(pthr, sizeof(cpu_set_t), &cpuset_pr);
@@ -304,7 +325,7 @@ rt_void term_threads(rt_pntr tdata, rt_cell thnum)
     {
         rt_THREAD *thread = tpool->thread;
 
-        thread[i].scene = NULL;
+        thread[i].scene = RT_NULL;
     }
 
     pthread_barrier_wait(&tpool->barr[0]);
@@ -324,6 +345,10 @@ rt_void term_threads(rt_pntr tdata, rt_cell thnum)
 
     free(tpool->thread);
     free(tpool);
+
+    free(estr);
+    estr = RT_NULL;
+    eout = 0;
 }
 
 rt_void update_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
@@ -459,6 +484,21 @@ rt_cell main_step()
     catch (rt_Exception e)
     {
         RT_LOGE("Exception: %s\n", e.err);
+
+        return 0;
+    }
+
+    if (eout != 0)
+    {
+        rt_cell i;
+
+        for (i = 0; i < eout; i++)
+        {
+            if (estr[i] != RT_NULL)
+            {            
+                RT_LOGE("Exception: thread %d: %s\n", i, estr[i]);
+            }
+        }
 
         return 0;
     }

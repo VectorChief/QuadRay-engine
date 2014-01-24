@@ -147,6 +147,12 @@ rt_void rt_Heap::chunk_alloc(rt_word size, rt_word align)
     real_size = (real_size / RT_CHUNK_SIZE) * RT_CHUNK_SIZE;
     rt_CHUNK *chunk = (rt_CHUNK *)f_alloc(real_size);
 
+    /* check for out of memory */
+    if (chunk == RT_NULL)
+    {
+        throw rt_Exception("out of memory in heap's chunk_alloc");
+    }
+
     /* prepare new chunk */
     chunk->ptr = (rt_byte *)chunk + sizeof(rt_CHUNK);
     chunk->ptr = (rt_byte *)(((rt_word)chunk->ptr + mask) & ~mask);
