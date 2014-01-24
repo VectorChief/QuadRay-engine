@@ -19,17 +19,17 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 
-Display    *disp;
-Window      win;
-rt_word     depth;
+static Display    *disp;
+static Window      win;
+static rt_word     depth;
 
 #include <sys/shm.h>
 #include <X11/extensions/XShm.h>
 
-XShmSegmentInfo shminfo;
-XImage     *ximage      = NULL;
-GC          gc;
-XGCValues   gc_values   = {0};
+static XShmSegmentInfo shminfo;
+static XImage     *ximage      = NULL;
+static GC          gc;
+static XGCValues   gc_values   = {0};
 
 #include <pthread.h>
 
@@ -201,8 +201,8 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 /********************************   THREADING   *******************************/
 /******************************************************************************/
 
-rt_cell  eout = 0;
-rt_pstr *estr = RT_NULL;
+static rt_cell  eout = 0, emax = 0;
+static rt_pstr *estr = RT_NULL;
 
 struct rt_THREAD
 {
@@ -251,7 +251,7 @@ rt_pntr worker_thread(rt_pntr p)
         catch (rt_Exception e)
         {
             estr[thread->index] = e.err;
-            eout = eout < thread->index + 1 ? thread->index + 1 : eout;
+            eout = 1;
         }
 
         pthread_barrier_wait(&thread->barr[1]);
@@ -273,8 +273,14 @@ struct rt_THREAD_POOL
 
 rt_pntr init_threads(rt_cell thnum, rt_Scene *scn)
 {
-    eout = 0;
+    eout = 0; emax = thnum;
     estr = (rt_pstr *)malloc(sizeof(rt_pstr) * thnum);
+
+    if (estr == RT_NULL)
+    {
+        throw rt_Exception("out of memory for estr in init_threads");
+    }
+
     memset(estr, 0, sizeof(rt_pstr) * thnum);
 
     cpu_set_t cpuset_pr, cpuset_th;
@@ -284,8 +290,18 @@ rt_pntr init_threads(rt_cell thnum, rt_Scene *scn)
     rt_cell i, a;
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)malloc(sizeof(rt_THREAD_POOL));
 
+    if (tpool == RT_NULL)
+    {
+        throw rt_Exception("out of memory for tpool in init_threads");
+    }
+
     tpool->scene = scn;
     tpool->thread = (rt_THREAD *)malloc(sizeof(rt_THREAD) * thnum);
+
+    if (tpool->thread == RT_NULL)
+    {
+        throw rt_Exception("out of memory for thread data in init_threads");
+    }
 
     pthread_barrier_init(&tpool->barr[0], NULL, thnum + 1);
     pthread_barrier_init(&tpool->barr[1], NULL, thnum + 1);
@@ -348,7 +364,7 @@ rt_void term_threads(rt_pntr tdata, rt_cell thnum)
 
     free(estr);
     estr = RT_NULL;
-    eout = 0;
+    eout = emax = 0;
 }
 
 rt_void update_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
@@ -492,7 +508,7 @@ rt_cell main_step()
     {
         rt_cell i;
 
-        for (i = 0; i < eout; i++)
+        for (i = 0; i < emax; i++)
         {
             if (estr[i] != RT_NULL)
             {            

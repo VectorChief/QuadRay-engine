@@ -1372,15 +1372,21 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
     {
         tharr[i] = new rt_SceneThread(this, i);
 
-        /* estimate per-frame allocs to reduce chunk allocs (per thread) */
-        tharr[i]->msize = 
-            (sizeof(rt_ELEM) * (tiles_in_row * tiles_in_col) + 1) *
-            2 * srf_num / thnum; /* upper bound per thread for tiling */
+        /* estimate per frame allocs to reduce system calls per thread */
+        tharr[i]->msize =  /* upper bound per surface for tiling */
+            (tiles_in_row * tiles_in_col + /* plus reflections/refractions */
+            2 * (srf_num + arr_num * 2) + /* plus lights and shadows */
+            2 * (lgt_num * (1 + srf_num + arr_num * 2))) * /* per side */
+            sizeof(rt_ELEM) * (srf_num + thnum - 1) / thnum; /* per thread */
     }
 
     /* init memory pool in the heap for temporary per-frame allocs */
-    mpool = RT_NULL; /* rough estimate for relations */
-    msize = sizeof(rt_ELEM) * srf_num * 2;
+    mpool = RT_NULL; /* rough estimate for surface relations/templates */
+    msize = ((srf_num + 1) * (srf_num + 1) * 2 + /* plus two surface lists */
+            2 * (srf_num + arr_num) + /* plus one lights and shadows list */
+            lgt_num * (1 + srf_num + arr_num * 2) + /* plus array nodes */
+            tiles_in_row * tiles_in_col * arr_num) *  /* for tiling */
+            sizeof(rt_ELEM);                        /* for main thread */
 
     /* init threads management functions */
     if (f_init != RT_NULL && f_term != RT_NULL

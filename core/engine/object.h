@@ -121,6 +121,9 @@ class rt_Registry : public rt_Heap
     rt_Light           *lgt_head;
     rt_cell             lgt_num;
 
+    rt_Array           *arr_head;
+    rt_cell             arr_num;
+
     rt_Surface         *srf_head;
     rt_cell             srf_num;
 
@@ -142,6 +145,7 @@ class rt_Registry : public rt_Heap
                     rt_Heap(f_alloc, f_free),
                     cam_head(RT_NULL), cam_num(0),
                     lgt_head(RT_NULL), lgt_num(0),
+                    arr_head(RT_NULL), arr_num(0),
                     srf_head(RT_NULL), srf_num(0),
                     tex_head(RT_NULL), tex_num(0),
                     mat_head(RT_NULL), mat_num(0),
@@ -152,6 +156,7 @@ class rt_Registry : public rt_Heap
 
     rt_Camera      *get_cam() { return cam_head; }
     rt_Light       *get_lgt() { return lgt_head; }
+    rt_Array       *get_arr() { return arr_head; }
     rt_Surface     *get_srf() { return srf_head; }
     rt_Texture     *get_tex() { return tex_head; }
     rt_Material    *get_mat() { return mat_head; }
@@ -160,6 +165,7 @@ class rt_Registry : public rt_Heap
      * with get_* before calling put_*, usually done in constructors */
     rt_void         put_cam(rt_Camera *cam)     { cam_head = cam; cam_num++; }
     rt_void         put_lgt(rt_Light *lgt)      { lgt_head = lgt; lgt_num++; }
+    rt_void         put_arr(rt_Array *arr)      { arr_head = arr; arr_num++; }
     rt_void         put_srf(rt_Surface *srf)    { srf_head = srf; srf_num++; }
     rt_void         put_tex(rt_Texture *tex)    { tex_head = tex; tex_num++; }
     rt_void         put_mat(rt_Material *mat)   { mat_head = mat; mat_num++; }
@@ -384,7 +390,7 @@ class rt_Node : public rt_Object
  * It may contain renderables (surfaces), other arrays and
  * special objects (cameras, lights).
  */
-class rt_Array : public rt_Node
+class rt_Array : public rt_Node, public rt_List<rt_Array>
 {
 /*  fields */
 

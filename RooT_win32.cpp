@@ -13,13 +13,13 @@
 #include <malloc.h>
 #include <windows.h>
 
-HINSTANCE   hInst;
-HWND        hWnd;
-HDC         hWndDC;
+static HINSTANCE   hInst;
+static HWND        hWnd;
+static HDC         hWndDC;
 
-HBITMAP     hFrm;
-HDC         hFrmDC;
-BITMAPINFO  DIBinfo = 
+static HBITMAP     hFrm;
+static HDC         hFrmDC;
+static BITMAPINFO  DIBinfo = 
 {
     sizeof(BITMAPINFOHEADER),           /* biSize */
    +x_res,                              /* biWidth */
@@ -106,8 +106,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 /********************************   THREADING   *******************************/
 /******************************************************************************/
 
-rt_cell  eout = 0;
-rt_pstr *estr = RT_NULL;
+static rt_cell  eout = 0, emax = 0;
+static rt_pstr *estr = RT_NULL;
 
 struct rt_THREAD
 {
@@ -158,7 +158,7 @@ DWORD WINAPI worker_thread(rt_pntr p)
         catch (rt_Exception e)
         {
             estr[thread->index] = e.err;
-            eout = eout < thread->index + 1 ? thread->index + 1 : eout;
+            eout = 1;
         }
 
         SetEvent(thread->pevent);
@@ -182,8 +182,14 @@ struct rt_THREAD_POOL
 
 rt_pntr init_threads(rt_cell thnum, rt_Scene *scn)
 {
-    eout = 0;
+    eout = 0; emax = thnum;
     estr = (rt_pstr *)malloc(sizeof(rt_pstr) * thnum);
+
+    if (estr == RT_NULL)
+    {
+        throw rt_Exception("out of memory for estr in init_threads");
+    }
+
     memset(estr, 0, sizeof(rt_pstr) * thnum);
 
     DWORD  pam, sam;
@@ -193,9 +199,20 @@ rt_pntr init_threads(rt_cell thnum, rt_Scene *scn)
     rt_cell i, a;
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)malloc(sizeof(rt_THREAD_POOL));
 
+    if (tpool == RT_NULL)
+    {
+        throw rt_Exception("out of memory for tpool in init_threads");
+    }
+
     tpool->scene = scn;
     tpool->thread = (rt_THREAD *)malloc(sizeof(rt_THREAD) * thnum);
     tpool->edata = (HANDLE *)malloc(sizeof(HANDLE) * thnum);
+
+    if (tpool->thread == RT_NULL
+    ||  tpool->edata == RT_NULL)
+    {
+        throw rt_Exception("out of memory for thread data in init_threads");
+    }
 
     tpool->cevent[0] = CreateEvent(NULL, TRUE, FALSE, NULL);
     tpool->cevent[1] = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -261,7 +278,7 @@ rt_void term_threads(rt_pntr tdata, rt_cell thnum)
 
     free(estr);
     estr = RT_NULL;
-    eout = 0;
+    eout = emax = 0;
 }
 
 rt_void update_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
@@ -396,7 +413,7 @@ rt_cell main_step()
     {
         rt_cell i;
 
-        for (i = 0; i < eout; i++)
+        for (i = 0; i < emax; i++)
         {
             if (estr[i] != RT_NULL)
             {            

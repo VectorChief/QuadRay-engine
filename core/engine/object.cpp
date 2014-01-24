@@ -627,8 +627,11 @@ rt_Node::~rt_Node()
 rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
                    rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Node(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_SPHERE)))
+    rt_Node(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_SPHERE))),
+    rt_List<rt_Array>(rg->get_arr())
 {
+    rg->put_arr(this);
+
     obj_num = 0;
     obj_arr = RT_NULL;
 
