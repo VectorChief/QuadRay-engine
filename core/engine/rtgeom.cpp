@@ -236,8 +236,8 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
 /******************************************************************************/
 
 /*
- * Determine if vert "p1" and face "q0-q1-q2" intersect from vert "p0".
- * False-positives are allowed in certain corner cases.
+ * Determine if vert "p1" and face "q0-q1-q2" intersect as seen from vert "p0".
+ * False-positives are allowed due to computational inaccuracy.
  *
  * Return values:
  *  0 - don't intersect
@@ -251,166 +251,126 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
                      rt_vec4 q0, rt_vec4 q1, rt_vec4 q2,
                      rt_cell qk, rt_cell qi, rt_cell qj)
 {
-    rt_vec4 e1, e2, pr, qr, mx, nx;
-    rt_real det, inv, t, u, v;
+    rt_real d, s, t, u, v;
 
     if (qk < 3 && qi < 3 && qj < 3)
     {
-        pr[qk] = p1[qk] - p0[qk];
-        qr[qk] = q0[qk] - p0[qk];
+        /* distance to vert
+         * in face's normal direction */
+        d = p1[qk] - p0[qk];
 
-        /* division down below is unsafe,
-         * return safe approximation */
-        if (RT_FABS(pr[qk]) <= RT_CULL_THRESHOLD)
-        {
-            /* make sure inequality is multiplied
-             * by a positive number, so that relations hold */
-            qr[qk] = pr[qk] < 0.0f ? -qr[qk] : +qr[qk];
-            pr[qk] = RT_FABS(pr[qk]);
+        /* distance to face's origin
+         * in face's normal direction */
+        t = q0[qk] - p0[qk];
 
-            return qr[qk] >  (1.0f + RT_CULL_THRESHOLD) * pr[qk] ? 1 :
-                   qr[qk] >= (1.0f - RT_CULL_THRESHOLD) * pr[qk] ? 3 :
-                   qr[qk] >  (0.0f + RT_CULL_THRESHOLD) * pr[qk] ? 2 :
-                   qr[qk] >= (0.0f - RT_CULL_THRESHOLD) * pr[qk] ? 4 : 0;
-        }
-
-        /* calculate t,
-         * analog of distance to intersection */
-        t = qr[qk] == pr[qk] ? 1.0f : qr[qk] / pr[qk];
+        /* make sure inequality is multiplied
+         * by a positive number, so that relations hold */
+        t = d < 0.0f ? -t : +t;
+        d = RT_FABS(d);
 
         /* calculate u parameter and test bounds */
-        pr[qi] = p1[qi] - p0[qi];
-        qr[qi] = p0[qi] + pr[qi] * t;
-
-        nx[qi] = RT_MIN(q0[qi], q1[qi]);
-        mx[qi] = RT_MAX(q0[qi], q1[qi]);
-
-        u = qr[qi];
+        u = t * (p1[qi] - p0[qi]);
 
         /* if hit outside with margin,
          * return miss */
-        if (u < nx[qi] - RT_CULL_THRESHOLD
-        ||  u > mx[qi] + RT_CULL_THRESHOLD)
+        if (u < d * (RT_MIN(q0[qi], q1[qi]) - p0[qi] - RT_CULL_THRESHOLD)
+        ||  u > d * (RT_MAX(q0[qi], q1[qi]) - p0[qi] + RT_CULL_THRESHOLD))
         {
             return 0;
         }
 
         /* calculate v parameter and test bounds */
-        pr[qj] = p1[qj] - p0[qj];
-        qr[qj] = p0[qj] + pr[qj] * t;
-
-        nx[qj] = RT_MIN(q1[qj], q2[qj]);
-        mx[qj] = RT_MAX(q1[qj], q2[qj]);
-
-        v = qr[qj];
+        v = t * (p1[qj] - p0[qj]);
 
         /* if hit outside with margin,
          * return miss */
-        if (v < nx[qj] - RT_CULL_THRESHOLD
-        ||  v > mx[qj] + RT_CULL_THRESHOLD)
+        if (v < d * (RT_MIN(q1[qj], q2[qj]) - p0[qj] - RT_CULL_THRESHOLD)
+        ||  v > d * (RT_MAX(q1[qj], q2[qj]) - p0[qj] + RT_CULL_THRESHOLD))
         {
             return 0;
         }
     }
     else
     {
-        /* direction of the ray */
-        pr[RT_X] = p1[RT_X] - p0[RT_X];
-        pr[RT_Y] = p1[RT_Y] - p0[RT_Y];
-        pr[RT_Z] = p1[RT_Z] - p0[RT_Z];
+        rt_vec4 e1, e2, pr, qr, mx, nx;
 
-        /* vectors for two edges */
+        /* direction of the face's
+         * 1st edge vector */
         e1[RT_X] = q1[RT_X] - q0[RT_X];
         e1[RT_Y] = q1[RT_Y] - q0[RT_Y];
         e1[RT_Z] = q1[RT_Z] - q0[RT_Z];
 
+        /* direction of the face's
+         * 2nd edge vector */
         e2[RT_X] = q2[RT_X] - q0[RT_X];
         e2[RT_Y] = q2[RT_Y] - q0[RT_Y];
         e2[RT_Z] = q2[RT_Z] - q0[RT_Z];
 
-        /* cross product of ray and 2nd edge */
-        RT_VECTOR_CROSS(mx, pr, e2);
+        /* direction of the ray vector */
+        pr[RT_X] = p1[RT_X] - p0[RT_X];
+        pr[RT_Y] = p1[RT_Y] - p0[RT_Y];
+        pr[RT_Z] = p1[RT_Z] - p0[RT_Z];
 
-        /* calculate determinant */
-        det = RT_VECTOR_DOT(e1, mx);
-
-        /* division down below is unsafe,
-         * return safe approximation */
-        if (RT_FABS(det) <= RT_CULL_THRESHOLD)
-        {
-            /* distance from q0 to ray origin */
-            qr[RT_X] = p0[RT_X] - q0[RT_X];
-            qr[RT_Y] = p0[RT_Y] - q0[RT_Y];
-            qr[RT_Z] = p0[RT_Z] - q0[RT_Z];
-
-            /* cross product of ray origin and 1st edge */
-            RT_VECTOR_CROSS(nx, qr, e1);
-
-            /* calculate t,
-             * analog of distance to intersection */
-            t = RT_VECTOR_DOT(e2, nx);
-
-            /* make sure inequality is multiplied
-             * by a positive number, so that relations hold */
-            t = det < 0.0f ? -t : +t;
-            det = RT_FABS(det);
-
-            return t >  (1.0f + RT_CULL_THRESHOLD) * det ? 1 :
-                   t >= (1.0f - RT_CULL_THRESHOLD) * det ? 3 :
-                   t >  (0.0f + RT_CULL_THRESHOLD) * det ? 2 :
-                   t >= (0.0f - RT_CULL_THRESHOLD) * det ? 4 : 0;
-        }
-
-        /* calculate inverse of the determinant */
-        inv = 1.0f / det;
-
-        /* distance from q0 to ray origin */
+        /* direction of the ray origin
+         * from face's origin */
         qr[RT_X] = p0[RT_X] - q0[RT_X];
         qr[RT_Y] = p0[RT_Y] - q0[RT_Y];
         qr[RT_Z] = p0[RT_Z] - q0[RT_Z];
 
+        /* cross product of the ray vector
+         * and face's 2nd edge */
+        RT_VECTOR_CROSS(mx, pr, e2);
+
+        /* calculate determinant */
+        d = RT_VECTOR_DOT(e1, mx);
+
+        /* make sure inequality is multiplied
+         * by a positive number, so that relations hold */
+        s = d < 0.0f ? -1.0f : +1.0f;
+        d = RT_FABS(d);
+
         /* calculate u parameter and test bounds */
-        u = RT_VECTOR_DOT(qr, mx) * inv;
+        u = s * RT_VECTOR_DOT(qr, mx);
 
         /* if hit outside with margin,
          * return miss */
-        if (u < 0.0f - RT_CULL_THRESHOLD
-        ||  u > 1.0f + RT_CULL_THRESHOLD)
+        if (u < d * (0.0f - RT_CULL_THRESHOLD)
+        ||  u > d * (1.0f + RT_CULL_THRESHOLD))
         {
             return 0;
         }
 
-        /* cross product of ray origin and 1st edge */
+        /* cross product of the ray origin
+         * and face's 1st edge */
         RT_VECTOR_CROSS(nx, qr, e1);
 
         /* calculate v parameter and test bounds */
-        v = RT_VECTOR_DOT(pr, nx) * inv;
+        v = s * RT_VECTOR_DOT(pr, nx);
 
         /* if hit outside with margin,
          * return miss */
-        if (v < 0.0f - RT_CULL_THRESHOLD
-        ||  v > 1.0f + RT_CULL_THRESHOLD - u)
+        if (v < d * (0.0f - RT_CULL_THRESHOLD)
+        ||  v > d * (1.0f + RT_CULL_THRESHOLD - u))
         {
             return 0;
         }
 
-        /* calculate t,
-         * analog of distance to intersection */
-        t = RT_VECTOR_DOT(e2, nx) * inv;
+        /* calculate t, analog of distance to intersection */
+        t = s * RT_VECTOR_DOT(e2, nx);
     }
 
     /*            | 0 |           | 1 |            */
     /* -----------|-*-|-----------|-*-|----------- */
     /*      0     | 4 |     2     | 3 |     1      */
-    return t >  1.0f + RT_CULL_THRESHOLD ? 1 :
-           t >= 1.0f - RT_CULL_THRESHOLD ? 3 :
-           t >  0.0f + RT_CULL_THRESHOLD ? 2 :
-           t >= 0.0f - RT_CULL_THRESHOLD ? 4 : 0;
+    return t >  d * (1.0f + RT_CULL_THRESHOLD) ? 1 :
+           t >= d * (1.0f - RT_CULL_THRESHOLD) ? 3 :
+           t >  d * (0.0f + RT_CULL_THRESHOLD) ? 2 :
+           t >= d * (0.0f - RT_CULL_THRESHOLD) ? 4 : 0;
 }
 
 /*
- * Determine if edge "p1-p2" and edge "q1-q2" intersect from vert "p0".
- * False-positives are allowed in certain corner cases.
+ * Determine if edge "p1-p2" and edge "q1-q2" intersect as seen from vert "p0".
+ * False-positives are allowed due to computational inaccuracy.
  *
  * Return values:
  *  0 - don't intersect
@@ -424,17 +384,19 @@ rt_cell edge_to_edge(rt_vec4 p0,
                      rt_vec4 p1, rt_vec4 p2, rt_cell pk,
                      rt_vec4 q1, rt_vec4 q2, rt_cell qk)
 {
-    rt_vec4 ep, eq, pr, qr, mx, nx;
-    rt_real det, inv, t, u, v;
+    rt_real d, s, t, u, v;
 
     if (pk < 3 && qk < 3)
     {
+        /* vert_to_face handles
+         * this case for bbox_shad */
         if (pk == qk)
         {
-            /* vert_to_face handles
-             * this case for bbox_shad */
             return 0;
         }
+
+        /* determine axis
+         * orthogonal to both edges */
         rt_cell mp[3][3] =
         {
             {0, 2, 1},
@@ -443,177 +405,128 @@ rt_cell edge_to_edge(rt_vec4 p0,
         };
         rt_cell kk = mp[pk][qk];
 
-        pr[kk] = p1[kk] - p0[kk];
-        qr[kk] = q1[kk] - p0[kk];
+        /* distance to 1st edge's origin
+         * in common orthogonal direction */
+        d = p1[kk] - p0[kk];
 
-        /* division down below is unsafe,
-         * return safe approximation */
-        if (RT_FABS(pr[kk]) <= RT_CULL_THRESHOLD
-        ||  RT_FABS(qr[kk]) <= RT_CULL_THRESHOLD)
-        {
-            /* make sure inequality is multiplied
-             * by a positive number, so that relations hold */
-            qr[kk] = pr[kk] < 0.0f ? -qr[kk] : +qr[kk];
-            pr[kk] = RT_FABS(pr[kk]);
+        /* distance to 2nd edge's origin
+         * in common orthogonal direction */
+        t = q1[kk] - p0[kk];
 
-            return qr[kk] >  (1.0f + RT_CULL_THRESHOLD) * pr[kk] ? 1 :
-                   qr[kk] >= (1.0f - RT_CULL_THRESHOLD) * pr[kk] ? 3 :
-                   qr[kk] >  (0.0f + RT_CULL_THRESHOLD) * pr[kk] ? 2 :
-                   qr[kk] >= (0.0f - RT_CULL_THRESHOLD) * pr[kk] ? 4 : 0;
-        }
-
-        /* calculate t,
-         * analog of distance to intersection */
-        t = pr[kk] == qr[kk] ? 1.0f : pr[kk] / qr[kk];
+        /* make sure inequality is multiplied
+         * by a positive number, so that relations hold */
+        d = t < 0.0f ? -d : +d;
+        t = RT_FABS(t);
 
         /* calculate u parameter and test bounds */
-        qr[pk] = q1[pk] - p0[pk];
-        pr[pk] = p0[pk] + qr[pk] * t;
-
-        nx[pk] = RT_MIN(p1[pk], p2[pk]);
-        mx[pk] = RT_MAX(p1[pk], p2[pk]);
-
-        u = pr[pk];
+        u = d * (q1[pk] - p0[pk]);
 
         /* if hit outside with margin,
          * return miss */
-        if (u < nx[pk] - RT_CULL_THRESHOLD
-        ||  u > mx[pk] + RT_CULL_THRESHOLD)
+        if (u < t * (RT_MIN(p1[pk], p2[pk]) - p0[pk] - RT_CULL_THRESHOLD)
+        ||  u > t * (RT_MAX(p1[pk], p2[pk]) - p0[pk] + RT_CULL_THRESHOLD))
         {
             return 0;
         }
 
-        /* calculate t,
-         * analog of distance to intersection */
-        t = qr[kk] == pr[kk] ? 1.0f : qr[kk] / pr[kk];
+        /* make sure inequality is multiplied
+         * by a positive number, so that relations hold */
+        t = d < 0.0f ? -t : +t;
+        d = RT_FABS(d);
 
         /* calculate v parameter and test bounds */
-        pr[qk] = p1[qk] - p0[qk];
-        qr[qk] = p0[qk] + pr[qk] * t;
-
-        nx[qk] = RT_MIN(q1[qk], q2[qk]);
-        mx[qk] = RT_MAX(q1[qk], q2[qk]);
-
-        v = qr[qk];
+        v = t * (p1[qk] - p0[qk]);
 
         /* if hit outside with margin,
          * return miss */
-        if (v < nx[qk] - RT_CULL_THRESHOLD
-        ||  v > mx[qk] + RT_CULL_THRESHOLD)
+        if (v < d * (RT_MIN(q1[qk], q2[qk]) - p0[qk] - RT_CULL_THRESHOLD)
+        ||  v > d * (RT_MAX(q1[qk], q2[qk]) - p0[qk] + RT_CULL_THRESHOLD))
         {
             return 0;
         }
     }
     else
     {
-        /* distance from origin to p1 */
-        pr[RT_X] = p1[RT_X] - p0[RT_X];
-        pr[RT_Y] = p1[RT_Y] - p0[RT_Y];
-        pr[RT_Z] = p1[RT_Z] - p0[RT_Z];
+        rt_vec4 ep, eq, pr, qr, mx, nx;
 
-        /* vectors for two edges */
+        /* direction of the 1st edge vector */
         ep[RT_X] = p2[RT_X] - p1[RT_X];
         ep[RT_Y] = p2[RT_Y] - p1[RT_Y];
         ep[RT_Z] = p2[RT_Z] - p1[RT_Z];
 
+        /* direction of the 2nd edge vector */
         eq[RT_X] = q2[RT_X] - q1[RT_X];
         eq[RT_Y] = q2[RT_Y] - q1[RT_Y];
         eq[RT_Z] = q2[RT_Z] - q1[RT_Z];
 
-        /* cross product of two edges */
-        RT_VECTOR_CROSS(mx, eq, ep);
+        /* direction of the 1st edge origin */
+        pr[RT_X] = p1[RT_X] - p0[RT_X];
+        pr[RT_Y] = p1[RT_Y] - p0[RT_Y];
+        pr[RT_Z] = p1[RT_Z] - p0[RT_Z];
 
-        /* calculate determinant */
-        det = RT_VECTOR_DOT(pr, mx);
-
-        /* division down below is unsafe,
-         * return safe approximation */
-        if (RT_FABS(det) <= RT_CULL_THRESHOLD)
-        {
-            /* distance from ray origin to q1 */
-            qr[RT_X] = q1[RT_X] - p0[RT_X];
-            qr[RT_Y] = q1[RT_Y] - p0[RT_Y];
-            qr[RT_Z] = q1[RT_Z] - p0[RT_Z];
-
-            /* calculate t,
-             * analog of distance to intersection */
-            t = RT_VECTOR_DOT(qr, mx);
-
-            /* make sure inequality is multiplied
-             * by a positive number, so that relations hold */
-            t = det < 0.0f ? -t : +t;
-            det = RT_FABS(det);
-
-            return t >  (1.0f + RT_CULL_THRESHOLD) * det ? 1 :
-                   t >= (1.0f - RT_CULL_THRESHOLD) * det ? 3 :
-                   t >  (0.0f + RT_CULL_THRESHOLD) * det ? 2 :
-                   t >= (0.0f - RT_CULL_THRESHOLD) * det ? 4 : 0;
-        }
-
-        /* calculate inverse of the determinant */
-        inv = 1.0f / det;
-
-        /* distance from ray origin to q1 */
+        /* direction of the 2nd edge origin */
         qr[RT_X] = q1[RT_X] - p0[RT_X];
         qr[RT_Y] = q1[RT_Y] - p0[RT_Y];
         qr[RT_Z] = q1[RT_Z] - p0[RT_Z];
 
-        /* calculate t,
-         * analog of distance to intersection */
-        t = RT_VECTOR_DOT(qr, mx);
+        /* cross product of two edge vectors */
+        RT_VECTOR_CROSS(mx, eq, ep);
 
-        /* division down below is unsafe,
-         * return safe approximation */
-        if (RT_FABS(t) <= RT_CULL_THRESHOLD)
-        {
-            /* make sure inequality is multiplied
-             * by a positive number, so that relations hold */
-            t = det < 0.0f ? -t : +t;
-            det = RT_FABS(det);
-
-            return t >  (1.0f + RT_CULL_THRESHOLD) * det ? 1 :
-                   t >= (1.0f - RT_CULL_THRESHOLD) * det ? 3 :
-                   t >  (0.0f + RT_CULL_THRESHOLD) * det ? 2 :
-                   t >= (0.0f - RT_CULL_THRESHOLD) * det ? 4 : 0;
-        }
-
-        /* cross product of two rays from origin */
+        /* cross product of two edge origins */
         RT_VECTOR_CROSS(nx, qr, pr);
 
+        /* projection of 1st edge's origin
+         * in common orthogonal direction */
+        d = RT_VECTOR_DOT(pr, mx);
+
+        /* make sure inequality is multiplied
+         * by a positive number, so that relations hold */
+        s = d < 0.0f ? -1.0f : +1.0f;
+        d = RT_FABS(d);
+
         /* calculate v parameter and test bounds */
-        v = RT_VECTOR_DOT(ep, nx) * inv;
+        v = s * RT_VECTOR_DOT(ep, nx);
 
         /* if hit outside with margin,
          * return miss */
-        if (v < 0.0f - RT_CULL_THRESHOLD
-        ||  v > 1.0f + RT_CULL_THRESHOLD)
+        if (v < d * (0.0f - RT_CULL_THRESHOLD)
+        ||  v > d * (1.0f + RT_CULL_THRESHOLD))
         {
             return 0;
         }
+
+        v = s;
+
+        /* projection of 2nd edge's origin
+         * in common orthogonal direction */
+        t = RT_VECTOR_DOT(qr, mx);
+
+        /* make sure inequality is multiplied
+         * by a positive number, so that relations hold */
+        s = t < 0.0f ? -1.0f : +1.0f;
+        t = RT_FABS(t);
 
         /* calculate u parameter and test bounds */
-        u = RT_VECTOR_DOT(eq, nx) / t;
+        u = s * RT_VECTOR_DOT(eq, nx);
 
         /* if hit outside with margin,
          * return miss */
-        if (u < 0.0f - RT_CULL_THRESHOLD
-        ||  u > 1.0f + RT_CULL_THRESHOLD)
+        if (u < t * (0.0f - RT_CULL_THRESHOLD)
+        ||  u > t * (1.0f + RT_CULL_THRESHOLD))
         {
             return 0;
         }
 
-        /* calculate t,
-         * analog of distance to intersection */
-        t *= inv;
+        t *= s * v;
     }
 
     /*            | 0 |           | 1 |            */
     /* -----------|-*-|-----------|-*-|----------- */
     /*      0     | 4 |     2     | 3 |     1      */
-    return t >  1.0f + RT_CULL_THRESHOLD ? 1 :
-           t >= 1.0f - RT_CULL_THRESHOLD ? 3 :
-           t >  0.0f + RT_CULL_THRESHOLD ? 2 :
-           t >= 0.0f - RT_CULL_THRESHOLD ? 4 : 0;
+    return t >  d * (1.0f + RT_CULL_THRESHOLD) ? 1 :
+           t >= d * (1.0f - RT_CULL_THRESHOLD) ? 3 :
+           t >  d * (0.0f + RT_CULL_THRESHOLD) ? 2 :
+           t >= d * (0.0f - RT_CULL_THRESHOLD) ? 4 : 0;
 }
 
 /*
