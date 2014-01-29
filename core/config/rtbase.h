@@ -117,15 +117,15 @@ struct rt_SIMD_INFO
 
 #define RT_FLOOR(a)         ((rt_cell)floorf(a))
 
-#define RT_SQRT(a)          ((a)  <    0.0f ?  0.0f :                       \
+#define RT_SQRT(a)          ((a)  <=   0.0f ?  0.0f :                       \
                              sqrtf(a))
 
-#define RT_ASIN(a)          ((a)  <   -1.0f ? -(rt_real)RT_PI_2 :           \
-                             (a)  >   +1.0f ? +(rt_real)RT_PI_2 :           \
+#define RT_ASIN(a)          ((a)  <=  -1.0f ? -(rt_real)RT_PI_2 :           \
+                             (a)  >=  +1.0f ? +(rt_real)RT_PI_2 :           \
                              asinf(a))
 
-#define RT_ACOS(a)          ((a)  <   -1.0f ? +(rt_real)RT_PI :             \
-                             (a)  >   +1.0f ?  0.0f :                       \
+#define RT_ACOS(a)          ((a)  <=  -1.0f ? +(rt_real)RT_PI :             \
+                             (a)  >=  +1.0f ?  0.0f :                       \
                              acosf(a))
 
 #define RT_SINA(a)          ((a) == -270.0f ? +1.0f :                       \

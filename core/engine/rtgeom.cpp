@@ -903,8 +903,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 
     rt_real ang = RT_VECTOR_DOT(shw_vec, srf_vec);
 
-    rt_real f = 0.0f;
-    rt_real len = 0.0f;
+    rt_real f = 0.0f, len = 0.0f;
 
     f = shw_vec[RT_X];
     len += f * f;
@@ -914,13 +913,12 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
     len += f * f;
 
     len = RT_SQRT(len);
-    ang /= len;
+    ang = len <= RT_CULL_THRESHOLD ? 0.0f : ang / len;
 
-    rt_real shw_ang = len > shw->rad ?
-                            RT_ASIN(shw->rad / len) : (rt_real)RT_2_PI;
+    rt_real shw_ang = len >= shw->rad ?
+                        RT_ASIN(shw->rad / len) : (rt_real)RT_2_PI;
 
-    f = 0.0f;
-    len = 0.0f;
+    f = len = 0.0f;
 
     f = srf_vec[RT_X];
     len += f * f;
@@ -930,10 +928,10 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
     len += f * f;
 
     len = RT_SQRT(len);
-    ang /= len;
+    ang = len <= RT_CULL_THRESHOLD ? 0.0f : ang / len;
 
-    rt_real srf_ang = len > srf->rad ?
-                            RT_ASIN(srf->rad / len) : (rt_real)RT_2_PI;
+    rt_real srf_ang = len >= srf->rad ?
+                        RT_ASIN(srf->rad / len) : (rt_real)RT_2_PI;
 
     ang = RT_ACOS(ang);
 
@@ -942,9 +940,10 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
         return 0;
     }
 
+    /* check if shadow bbox optimization is disabled in runtime */
 #if RT_OPTS_SHADOW_EXT1 != 0
-    /* check if optimization is disabled in runtime */
     if ((lgt->rg->opts & RT_OPTS_SHADOW_EXT1) == 0)
+#endif /* RT_OPTS_SHADOW_EXT1 */
     {
         return 1;
     }
@@ -1036,9 +1035,6 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
     }
 
     return 0;
-#endif /* RT_OPTS_SHADOW_EXT1 */
-
-    return 1;
 }
 
 /*
@@ -1059,7 +1055,7 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
         return 2;
     }
 
-    /* check if bounding spheres interpenetrate */
+    /* check first if bounding spheres interpenetrate */
     rt_real f = 0.0f;
     rt_real len = 0.0f;
 

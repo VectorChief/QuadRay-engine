@@ -761,6 +761,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
 
 #if RT_OPTS_TILING != 0
     if ((scene->opts & RT_OPTS_TILING) == 0)
+#endif /* RT_OPTS_TILING */
     {
         return;
     }
@@ -930,7 +931,6 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
     }
 
    *ptr = RT_NULL;
-#endif /* RT_OPTS_TILING */
 }
 
 /*
