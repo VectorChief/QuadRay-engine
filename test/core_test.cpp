@@ -9,7 +9,7 @@
 
 #include "engine.h"
 
-#define RUN_LEVEL       11
+#define RUN_LEVEL       12
 #define VERBOSE         RT_FALSE
 #define CYC_SIZE        5
 
@@ -297,6 +297,27 @@ rt_void test11(rt_cell opts)
 #endif /* RUN_LEVEL 11 */
 
 /******************************************************************************/
+/******************************   RUN LEVEL 12   ******************************/
+/******************************************************************************/
+
+#if RUN_LEVEL >= 12
+
+#include "scn_test12.h"
+
+rt_void test12(rt_cell opts)
+{
+    scene = new rt_Scene(&scn_test12::sc_root,
+                        x_res, y_res, x_row, RT_NULL,
+                        malloc, free,
+                        RT_NULL, RT_NULL,
+                        RT_NULL, RT_NULL);
+
+    scene->set_opts(opts);
+}
+
+#endif /* RUN_LEVEL 12 */
+
+/******************************************************************************/
 /*********************************   TABLES   *********************************/
 /******************************************************************************/
 
@@ -347,6 +368,10 @@ testXX test[RUN_LEVEL] =
 #if RUN_LEVEL >= 11
     test11,
 #endif /* RUN_LEVEL 11 */
+
+#if RUN_LEVEL >= 12
+    test12,
+#endif /* RUN_LEVEL 12 */
 };
 
 /******************************************************************************/
