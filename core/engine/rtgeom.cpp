@@ -350,7 +350,7 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
         /* if hit outside with margin,
          * return miss */
         if (v < d * (0.0f - RT_CULL_THRESHOLD)
-        ||  v > d * (1.0f + RT_CULL_THRESHOLD - u))
+        ||  v > d * (1.0f + RT_CULL_THRESHOLD) - u)
         {
             return 0;
         }

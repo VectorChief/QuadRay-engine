@@ -4,6 +4,7 @@
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
 
+#include <stdlib.h>
 #include <malloc.h>
 #include <string.h>
 
@@ -15,6 +16,14 @@
 
 #define RT_X_RES        800
 #define RT_Y_RES        480
+
+#define CHN(px, sh)     ((px) >> (sh) & 0xFF)    
+
+#define IEQ(i1, i2)     (abs((i1) - (i2)) <= 2)
+#define PEQ(p1, p2)     (IEQ(CHN(p1, 24), CHN(p2, 24)) &&                   \
+                         IEQ(CHN(p1, 16), CHN(p2, 16)) &&                   \
+                         IEQ(CHN(p1,  8), CHN(p2,  8)) &&                   \
+                         IEQ(CHN(p1,  0), CHN(p2,  0)))
 
 rt_cell     x_res   = RT_X_RES;
 rt_cell     y_res   = RT_Y_RES;
@@ -43,17 +52,19 @@ rt_cell frame_cmp(rt_word *f1, rt_word *f2)
 
     for (i = 0; i < y_res * x_row; i++)
     {
-        if (f1[i] != f2[i])
+        if (PEQ(f1[i], f2[i]))
         {
-            ret = 1;
+            continue;
+        }
 
-            RT_LOGI("Frames differ (%06X %06X) at x = %d, y = %d\n",
-                        f1[i], f2[i], i % x_row, i / x_row);
+        ret = 1;
 
-            if (!VERBOSE)
-            {
-                break;
-            }
+        RT_LOGI("Frames differ (%06X %06X) at x = %d, y = %d\n",
+                    f1[i], f2[i], i % x_row, i / x_row);
+
+        if (!VERBOSE)
+        {
+            break;
         }
     }
 
