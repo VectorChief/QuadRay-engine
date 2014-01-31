@@ -558,9 +558,10 @@ rt_cell surf_hole(rt_Surface *srf, rt_Surface *ref)
         c |= 1;
     }
 
-    rt_cell skip = 0;
-
+    /* init custom clippers list */
     rt_ELEM *elm = (rt_ELEM *)srf->s_srf->msc_p[2];
+
+    rt_cell skip = 0;
 
     /* run through custom clippers list */
     for (; elm != RT_NULL; elm = elm->next)
@@ -831,49 +832,65 @@ rt_cell surf_side(rt_vec4 pos, rt_Surface *srf)
  * Determine which side of clipped "srf" is seen from "pos".
  *
  * Return values:
- *  0 - none (on the surface with margin)
  *  1 - inner
  *  2 - outer
- *  3 - both
+ *  3 - both (also if on the surface with margin)
  */
 rt_cell cbox_side(rt_real *pos, rt_Surface *srf)
 {
-    rt_cell side = surf_side(pos, srf);
+    rt_cell k, c = 0;
 
-    if (srf->tag == RT_TAG_PLANE)
+    c = surf_side(pos, srf);
+
+    /* if "pos" is on the surface with margin,
+     * return both sides */
+    if (c == 0)
     {
-        return side;
+        c = 3;
+        return c;
     }
 
-    rt_cell conc = surf_conc(srf);
+    k = srf->tag == RT_TAG_PLANE ? 1 : 0;
 
-    if (conc == 0 && side == 1)
+    /* if "srf" is PLANE,
+     * only one side can be seen */
+    if (k == 1)
     {
-        return side;
+        return c;
     }
 
-    rt_cell hole = surf_hole(srf, srf);
+    k = surf_conc(srf);
 
-    if (hole == 0)
+    /* if "srf" is convex and "pos" is inside,
+     * only one side can be seen */
+    if (k == 0 && c == 1)
     {
-        return side;
+        return c;
     }
 
-    if (hole & 2)
+    k = surf_hole(srf, srf);
+
+    /* check if "srf" has holes */
+    if (k == 0)
     {
-        side = 3;
-        return side;
+        return c;
+    }
+    if (k & 2)
+    {
+        c = 3;
+        return c;
     }
 
-    rt_cell cbox = surf_cbox(pos, srf);
+    k = surf_cbox(pos, srf);
 
-    if (cbox == 1)
+    /* check if "pos" is outside of "srf" cbox */
+    if (k == 1)
     {
-        side = 3;
-        return side;
+        c = 3;
+        return c;
     }
 
-    return side;
+    return c;
 }
 
 /*
@@ -962,6 +979,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
     /* check if bounding boxes cast shadows */
     rt_cell i, j;
 
+    /* run through "srf" faces and "shw" verts */
     for (j = 0; j < srf->faces_num; j++)
     {
         rt_FACE *fc = &srf->faces[j];
@@ -991,6 +1009,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
         }
     }
 
+    /* run through "shw" faces and "srf" verts */
     for (j = 0; j < shw->faces_num; j++)
     {
         rt_FACE *fc = &shw->faces[j];
@@ -1020,6 +1039,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
         }
     }
 
+    /* run through "srf" edges and "shw" edges */
     for (j = 0; j < srf->edges_num; j++)
     {
         rt_EDGE *ej = &srf->edges[j];
@@ -1053,8 +1073,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 static
 rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
 {
-    rt_cell i, j;
-
+    /* check if surfaces differ and have bounds */
     if (srf->verts_num == 0 || ref->verts_num == 0 || srf == ref)
     {
         return 2;
@@ -1089,6 +1108,9 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
     }
 
     /* check if edges of one bbox intersect faces of another */
+    rt_cell i, j;
+
+    /* run through "srf" faces and "ref" edges */
     for (j = 0; j < srf->faces_num; j++)
     {
         rt_FACE *fc = &srf->faces[j];
@@ -1122,6 +1144,7 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
         }
     }
 
+    /* run through "ref" faces and "srf" edges */
     for (j = 0; j < ref->faces_num; j++)
     {
         rt_FACE *fc = &ref->faces[j];
@@ -1188,7 +1211,7 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
         return c;
     }
 
-    /* check clip relationship */
+    /* check "srf" and "ref" clip relationship */
     i = surf_clip(ref, srf);
     j = surf_clip(srf, ref);
 
