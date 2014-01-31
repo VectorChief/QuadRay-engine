@@ -14,7 +14,7 @@
 /******************************************************************************/
 
 /*
- * Identity matrix.
+ * Identity 4x4 matrix.
  */
 rt_mat4 iden4 =
 {
@@ -24,7 +24,6 @@ rt_mat4 iden4 =
     0.0f,       0.0f,       0.0f,       1.0f,
 };
 
-#if RT_DEBUG == 1
 /*
  * Check if given address ranges overlap.
  */
@@ -38,7 +37,6 @@ rt_bool in_range(rt_real *p1, rt_cell n1, rt_real *p2, rt_cell n2)
 
     return RT_FALSE;
 }
-#endif /* RT_DEBUG */
 
 /*
  * Multiply matrix by vector.
@@ -269,23 +267,23 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
         d = RT_FABS(d);
 
         /* calculate u parameter and test bounds */
-        u = t * (p1[qi] - p0[qi]);
+        u = (p1[qi] - p0[qi]) * t;
 
         /* if hit outside with margin,
          * return miss */
-        if (u < d * (RT_MIN(q0[qi], q1[qi]) - p0[qi] - RT_CULL_THRESHOLD)
-        ||  u > d * (RT_MAX(q0[qi], q1[qi]) - p0[qi] + RT_CULL_THRESHOLD))
+        if (u < (RT_MIN(q0[qi], q1[qi]) - p0[qi] - RT_CULL_THRESHOLD) * d
+        ||  u > (RT_MAX(q0[qi], q1[qi]) - p0[qi] + RT_CULL_THRESHOLD) * d)
         {
             return 0;
         }
 
         /* calculate v parameter and test bounds */
-        v = t * (p1[qj] - p0[qj]);
+        v = (p1[qj] - p0[qj]) * t;
 
         /* if hit outside with margin,
          * return miss */
-        if (v < d * (RT_MIN(q1[qj], q2[qj]) - p0[qj] - RT_CULL_THRESHOLD)
-        ||  v > d * (RT_MAX(q1[qj], q2[qj]) - p0[qj] + RT_CULL_THRESHOLD))
+        if (v < (RT_MIN(q1[qj], q2[qj]) - p0[qj] - RT_CULL_THRESHOLD) * d
+        ||  v > (RT_MAX(q1[qj], q2[qj]) - p0[qj] + RT_CULL_THRESHOLD) * d)
         {
             return 0;
         }
@@ -330,12 +328,12 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
         d = RT_FABS(d);
 
         /* calculate u parameter and test bounds */
-        u = s * RT_VECTOR_DOT(qr, mx);
+        u = RT_VECTOR_DOT(qr, mx) * s;
 
         /* if hit outside with margin,
          * return miss */
-        if (u < d * (0.0f - RT_CULL_THRESHOLD)
-        ||  u > d * (1.0f + RT_CULL_THRESHOLD))
+        if (u < (0.0f - RT_CULL_THRESHOLD) * d
+        ||  u > (1.0f + RT_CULL_THRESHOLD) * d)
         {
             return 0;
         }
@@ -345,27 +343,28 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
         RT_VECTOR_CROSS(nx, qr, e1);
 
         /* calculate v parameter and test bounds */
-        v = s * RT_VECTOR_DOT(pr, nx);
+        v = RT_VECTOR_DOT(pr, nx) * s;
 
         /* if hit outside with margin,
          * return miss */
-        if (v < d * (0.0f - RT_CULL_THRESHOLD)
-        ||  v > d * (1.0f + RT_CULL_THRESHOLD) - u)
+        if (v < (0.0f - RT_CULL_THRESHOLD) * d
+        ||  v > (1.0f + RT_CULL_THRESHOLD) * d - u)
         {
             return 0;
         }
 
-        /* calculate t, analog of distance to intersection */
-        t = s * RT_VECTOR_DOT(e2, nx);
+        /* calculate t,
+         * analog of distance to intersection */
+        t = RT_VECTOR_DOT(e2, nx) * s;
     }
 
     /*            | 0 |           | 1 |            */
     /* -----------|-*-|-----------|-*-|----------- */
     /*      0     | 4 |     2     | 3 |     1      */
-    return t >  d * (1.0f + RT_CULL_THRESHOLD) ? 1 :
-           t >= d * (1.0f - RT_CULL_THRESHOLD) ? 3 :
-           t >  d * (0.0f + RT_CULL_THRESHOLD) ? 2 :
-           t >= d * (0.0f - RT_CULL_THRESHOLD) ? 4 : 0;
+    return t >  (1.0f + RT_CULL_THRESHOLD) * d ? 1 :
+           t >= (1.0f - RT_CULL_THRESHOLD) * d ? 3 :
+           t >  (0.0f + RT_CULL_THRESHOLD) * d ? 2 :
+           t >= (0.0f - RT_CULL_THRESHOLD) * d ? 4 : 0;
 }
 
 /*
@@ -419,12 +418,12 @@ rt_cell edge_to_edge(rt_vec4 p0,
         t = RT_FABS(t);
 
         /* calculate u parameter and test bounds */
-        u = d * (q1[pk] - p0[pk]);
+        u = (q1[pk] - p0[pk]) * d;
 
         /* if hit outside with margin,
          * return miss */
-        if (u < t * (RT_MIN(p1[pk], p2[pk]) - p0[pk] - RT_CULL_THRESHOLD)
-        ||  u > t * (RT_MAX(p1[pk], p2[pk]) - p0[pk] + RT_CULL_THRESHOLD))
+        if (u < (RT_MIN(p1[pk], p2[pk]) - p0[pk] - RT_CULL_THRESHOLD) * t
+        ||  u > (RT_MAX(p1[pk], p2[pk]) - p0[pk] + RT_CULL_THRESHOLD) * t)
         {
             return 0;
         }
@@ -435,12 +434,12 @@ rt_cell edge_to_edge(rt_vec4 p0,
         d = RT_FABS(d);
 
         /* calculate v parameter and test bounds */
-        v = t * (p1[qk] - p0[qk]);
+        v = (p1[qk] - p0[qk]) * t;
 
         /* if hit outside with margin,
          * return miss */
-        if (v < d * (RT_MIN(q1[qk], q2[qk]) - p0[qk] - RT_CULL_THRESHOLD)
-        ||  v > d * (RT_MAX(q1[qk], q2[qk]) - p0[qk] + RT_CULL_THRESHOLD))
+        if (v < (RT_MIN(q1[qk], q2[qk]) - p0[qk] - RT_CULL_THRESHOLD) * d
+        ||  v > (RT_MAX(q1[qk], q2[qk]) - p0[qk] + RT_CULL_THRESHOLD) * d)
         {
             return 0;
         }
@@ -485,12 +484,12 @@ rt_cell edge_to_edge(rt_vec4 p0,
         d = RT_FABS(d);
 
         /* calculate v parameter and test bounds */
-        v = s * RT_VECTOR_DOT(ep, nx);
+        v = RT_VECTOR_DOT(ep, nx) * s;
 
         /* if hit outside with margin,
          * return miss */
-        if (v < d * (0.0f - RT_CULL_THRESHOLD)
-        ||  v > d * (1.0f + RT_CULL_THRESHOLD))
+        if (v < (0.0f - RT_CULL_THRESHOLD) * d
+        ||  v > (1.0f + RT_CULL_THRESHOLD) * d)
         {
             return 0;
         }
@@ -507,26 +506,26 @@ rt_cell edge_to_edge(rt_vec4 p0,
         t = RT_FABS(t);
 
         /* calculate u parameter and test bounds */
-        u = s * RT_VECTOR_DOT(eq, nx);
+        u = RT_VECTOR_DOT(eq, nx) * s;
 
         /* if hit outside with margin,
          * return miss */
-        if (u < t * (0.0f - RT_CULL_THRESHOLD)
-        ||  u > t * (1.0f + RT_CULL_THRESHOLD))
+        if (u < (0.0f - RT_CULL_THRESHOLD) * t
+        ||  u > (1.0f + RT_CULL_THRESHOLD) * t)
         {
             return 0;
         }
 
-        t *= s * v;
+        t *= v * s;
     }
 
     /*            | 0 |           | 1 |            */
     /* -----------|-*-|-----------|-*-|----------- */
     /*      0     | 4 |     2     | 3 |     1      */
-    return t >  d * (1.0f + RT_CULL_THRESHOLD) ? 1 :
-           t >= d * (1.0f - RT_CULL_THRESHOLD) ? 3 :
-           t >  d * (0.0f + RT_CULL_THRESHOLD) ? 2 :
-           t >= d * (0.0f - RT_CULL_THRESHOLD) ? 4 : 0;
+    return t >  (1.0f + RT_CULL_THRESHOLD) * d ? 1 :
+           t >= (1.0f - RT_CULL_THRESHOLD) * d ? 3 :
+           t >  (0.0f + RT_CULL_THRESHOLD) * d ? 2 :
+           t >= (0.0f - RT_CULL_THRESHOLD) * d ? 4 : 0;
 }
 
 /*
@@ -605,10 +604,12 @@ rt_cell surf_hole(rt_Surface *srf, rt_Surface *ref)
 static
 rt_cell surf_clip(rt_Surface *srf, rt_Surface *clp)
 {
-    rt_cell side = 0;
-    rt_cell skip = 0;
+    rt_cell c = 0;
 
+    /* init custom clippers list */
     rt_ELEM *elm = (rt_ELEM *)srf->s_srf->msc_p[2];
+
+    rt_cell skip = 0;
 
     /* run through custom clippers list */
     for (; elm != RT_NULL; elm = elm->next)
@@ -632,12 +633,14 @@ rt_cell surf_clip(rt_Surface *srf, rt_Surface *clp)
            outside of accum segment, stop */
         if (obj == clp && skip == 0)
         {
-            side = elm->data;
+            c = elm->data;
             break;
         }
     }
 
-    return side == 0 ? 0 : 1 + ((1 + side) >> 1);
+    /* convert inner/outer
+     * from (-1, +1) to (1, 2) notation */
+    return c == 0 ? 0 : 1 + ((1 + c) >> 1);
 }
 
 /*
@@ -650,15 +653,15 @@ rt_cell surf_clip(rt_Surface *srf, rt_Surface *clp)
 static
 rt_cell surf_conc(rt_Surface *srf)
 {
-    rt_cell conc = 0;
+    rt_cell c = 0;
 
     if (srf->tag == RT_TAG_CONE
     ||  srf->tag == RT_TAG_HYPERBOLOID)
     {
-        conc = 1;
+        c = 1;
     }
 
-    return conc;
+    return c;
 }
 
 /*
@@ -671,7 +674,7 @@ rt_cell surf_conc(rt_Surface *srf)
 static
 rt_cell cbox_conc(rt_Surface *srf)
 {
-    rt_cell conc = 0;
+    rt_cell c = 0;
 
     rt_vec4  zro = {0.0f, 0.0f, 0.0f, 0.0f};
     rt_real *pps = srf->trnode == srf ? zro : srf->pos;
@@ -683,10 +686,10 @@ rt_cell cbox_conc(rt_Surface *srf)
     &&   srf->bmax[srf->mp_k] > pps[srf->mp_k]
     ||   srf->sci[RT_W] > 0.0f))
     {
-        conc = 1;
+        c = 1;
     }
 
-    return conc;
+    return c;
 }
 
 /*
@@ -729,15 +732,19 @@ rt_cell surf_cbox(rt_vec4 pos, rt_Surface *srf)
 {
     rt_cell c = 0;
 
+    /* transform "pos" to "srf" trnode space,
+     * where cbox is defined */
     rt_vec4  loc;
     rt_real *pps = surf_tran(loc, pos, srf);
 
-    if (pps[RT_X] - RT_CULL_THRESHOLD < srf->cmin[RT_X]
-    ||  pps[RT_X] + RT_CULL_THRESHOLD > srf->cmax[RT_X]
-    ||  pps[RT_Y] - RT_CULL_THRESHOLD < srf->cmin[RT_Y]
-    ||  pps[RT_Y] + RT_CULL_THRESHOLD > srf->cmax[RT_Y]
-    ||  pps[RT_Z] - RT_CULL_THRESHOLD < srf->cmin[RT_Z]
-    ||  pps[RT_Z] + RT_CULL_THRESHOLD > srf->cmax[RT_Z])
+    /* margin is applied to "pps"
+     * as cmin/cmax might be infinite */
+    if (pps[RT_X] - RT_CULL_THRESHOLD <= srf->cmin[RT_X]
+    ||  pps[RT_X] + RT_CULL_THRESHOLD >= srf->cmax[RT_X]
+    ||  pps[RT_Y] - RT_CULL_THRESHOLD <= srf->cmin[RT_Y]
+    ||  pps[RT_Y] + RT_CULL_THRESHOLD >= srf->cmax[RT_Y]
+    ||  pps[RT_Z] - RT_CULL_THRESHOLD <= srf->cmin[RT_Z]
+    ||  pps[RT_Z] + RT_CULL_THRESHOLD >= srf->cmax[RT_Z])
     {
         c = 1;
     }
@@ -757,15 +764,19 @@ rt_cell surf_bbox(rt_vec4 pos, rt_Surface *srf)
 {
     rt_cell c = 0;
 
+    /* transform "pos" to "srf" trnode space,
+     * where bbox is defined */
     rt_vec4  loc;
     rt_real *pps = surf_tran(loc, pos, srf);
 
-    if (pps[RT_X] + RT_CULL_THRESHOLD > srf->bmin[RT_X]
-    &&  pps[RT_X] - RT_CULL_THRESHOLD < srf->bmax[RT_X]
-    &&  pps[RT_Y] + RT_CULL_THRESHOLD > srf->bmin[RT_Y]
-    &&  pps[RT_Y] - RT_CULL_THRESHOLD < srf->bmax[RT_Y]
-    &&  pps[RT_Z] + RT_CULL_THRESHOLD > srf->bmin[RT_Z]
-    &&  pps[RT_Z] - RT_CULL_THRESHOLD < srf->bmax[RT_Z])
+    /* margin is applied to "pps"
+     * for consistency with surf_cbox */
+    if (pps[RT_X] + RT_CULL_THRESHOLD >= srf->bmin[RT_X]
+    &&  pps[RT_X] - RT_CULL_THRESHOLD <= srf->bmax[RT_X]
+    &&  pps[RT_Y] + RT_CULL_THRESHOLD >= srf->bmin[RT_Y]
+    &&  pps[RT_Y] - RT_CULL_THRESHOLD <= srf->bmax[RT_Y]
+    &&  pps[RT_Z] + RT_CULL_THRESHOLD >= srf->bmin[RT_Z]
+    &&  pps[RT_Z] - RT_CULL_THRESHOLD <= srf->bmax[RT_Z])
     {
         c = 1;
     }
@@ -777,56 +788,50 @@ rt_cell surf_bbox(rt_vec4 pos, rt_Surface *srf)
  * Determine which side of non-clipped "srf" is seen from "pos".
  *
  * Return values:
- *  0 - none (on the surface)
+ *  0 - none (on the surface with margin)
  *  1 - inner
  *  2 - outer
  */
 static
 rt_cell surf_side(rt_vec4 pos, rt_Surface *srf)
 {
-    rt_cell side = 0;
-
     rt_vec4  loc;
     rt_real *pps = surf_tran(loc, pos, srf);
 
-    rt_vec4 dff;
+    if (srf->trnode != srf)
+    {
+        loc[RT_X] = pps[RT_X] - srf->pos[RT_X];
+        loc[RT_Y] = pps[RT_Y] - srf->pos[RT_Y];
+        loc[RT_Z] = pps[RT_Z] - srf->pos[RT_Z];
+    }
 
-    if (srf->trnode == srf)
-    {
-        dff[RT_X] = pps[RT_X];
-        dff[RT_Y] = pps[RT_Y];
-        dff[RT_Z] = pps[RT_Z];
-    }
-    else
-    {
-        dff[RT_X] = pps[RT_X] - srf->pos[RT_X];
-        dff[RT_Y] = pps[RT_Y] - srf->pos[RT_Y];
-        dff[RT_Z] = pps[RT_Z] - srf->pos[RT_Z];
-    }
+    rt_real d;
 
     if (srf->tag == RT_TAG_PLANE)
     {
-        rt_real dot = RT_VECTOR_DOT(dff, srf->sck);
-        side = RT_SIGN(dot);
+        d = RT_VECTOR_DOT(loc, srf->sck);
     }
     else
     {
-        rt_real doj = RT_VECTOR_DOT(dff, srf->scj);
-        rt_real doi = dff[RT_X] * dff[RT_X] * srf->sci[RT_X]
-                    + dff[RT_Y] * dff[RT_Y] * srf->sci[RT_Y]
-                    + dff[RT_Z] * dff[RT_Z] * srf->sci[RT_Z];
-        rt_real dot = doi - doj - srf->sci[RT_W];
-        side = RT_SIGN(dot);
+        rt_real dcj = RT_VECTOR_DOT(loc, srf->scj);
+        rt_real dci = loc[RT_X] * loc[RT_X] * srf->sci[RT_X]
+                    + loc[RT_Y] * loc[RT_Y] * srf->sci[RT_Y]
+                    + loc[RT_Z] * loc[RT_Z] * srf->sci[RT_Z];
+        d = dci - dcj - srf->sci[RT_W];
     }
 
-    return side == 0 ? 0 : 1 + ((1 + side) >> 1);
+    /*            | 0 |            */
+    /* -----------|-*-|----------- */
+    /*      1     | 0 |     2      */
+    return d >  (0.0f + RT_CULL_THRESHOLD) ? 2 :
+           d >= (0.0f - RT_CULL_THRESHOLD) ? 0 : 1;
 }
 
 /*
  * Determine which side of clipped "srf" is seen from "pos".
  *
  * Return values:
- *  0 - none (on the surface)
+ *  0 - none (on the surface with margin)
  *  1 - inner
  *  2 - outer
  *  3 - both
@@ -1056,8 +1061,7 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
     }
 
     /* check first if bounding spheres interpenetrate */
-    rt_real f = 0.0f;
-    rt_real len = 0.0f;
+    rt_real f = 0.0f, len = 0.0f;
 
     f = srf->mid[RT_X] - ref->mid[RT_X];
     len += f * f;
