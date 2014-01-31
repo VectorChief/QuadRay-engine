@@ -241,8 +241,8 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
  *  0 - don't intersect
  *  1 - intersect o-p-q
  *  2 - intersect o-q-p
- *  3 - intersect o-p=q (to handle bbox stacking)
- *  4 - intersect o=q-p (to handle bbox stacking)
+ *  3 - intersect o-p=q, to handle bbox stacking
+ *  4 - intersect o=q-p, to handle bbox stacking
  */
 static
 rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
@@ -375,8 +375,8 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
  *  0 - don't intersect
  *  1 - intersect o-p-q
  *  2 - intersect o-q-p
- *  3 - intersect o-p=q (to handle bbox stacking)
- *  4 - intersect o=q-p (to handle bbox stacking)
+ *  3 - intersect o-p=q, to handle bbox stacking
+ *  4 - intersect o=q-p, to handle bbox stacking
  */
 static
 rt_cell edge_to_edge(rt_vec4 p0,
@@ -594,13 +594,13 @@ rt_cell surf_hole(rt_Surface *srf, rt_Surface *ref)
 }
 
 /*
- * Determine which side of clipper "clp" outside of any accum segment
- * surface "srf" is clipped by.
+ * Determine whether surface "clp" outside of any accum segment
+ * clips surface "srf" and which "clp" side "srf" is clipped by.
  *
  * Return values:
- *  0 - not clipped or "clp" inside accum segment
- *  1 - clipped by "clp" inner side
- *  2 - clipped by "clp" outer side
+ *  0 - no, might be inside accum segment
+ *  1 - yes, inner
+ *  2 - yes, outer
  */
 static
 rt_cell surf_clip(rt_Surface *srf, rt_Surface *clp)
@@ -722,11 +722,12 @@ rt_real *surf_tran(rt_vec4 loc, rt_vec4 pos, rt_Surface *srf)
 }
 
 /*
- * Determine if "pos" is outside of "srf" cbox minus margin.
+ * Determine if "pos" is outside "srf" cbox plus margin.
  *
  * Return values:
  *  0 - no
  *  1 - yes
+ *  2 - yes, on the border with margin
  */
 static
 rt_cell surf_cbox(rt_vec4 pos, rt_Surface *srf)
@@ -740,6 +741,16 @@ rt_cell surf_cbox(rt_vec4 pos, rt_Surface *srf)
 
     /* margin is applied to "pps"
      * as cmin/cmax might be infinite */
+    if (pps[RT_X] + RT_CULL_THRESHOLD <  srf->cmin[RT_X]
+    ||  pps[RT_X] - RT_CULL_THRESHOLD >  srf->cmax[RT_X]
+    ||  pps[RT_Y] + RT_CULL_THRESHOLD <  srf->cmin[RT_Y]
+    ||  pps[RT_Y] - RT_CULL_THRESHOLD >  srf->cmax[RT_Y]
+    ||  pps[RT_Z] + RT_CULL_THRESHOLD <  srf->cmin[RT_Z]
+    ||  pps[RT_Z] - RT_CULL_THRESHOLD >  srf->cmax[RT_Z])
+    {
+        c = 1;
+    }
+    else
     if (pps[RT_X] - RT_CULL_THRESHOLD <= srf->cmin[RT_X]
     ||  pps[RT_X] + RT_CULL_THRESHOLD >= srf->cmax[RT_X]
     ||  pps[RT_Y] - RT_CULL_THRESHOLD <= srf->cmin[RT_Y]
@@ -747,18 +758,22 @@ rt_cell surf_cbox(rt_vec4 pos, rt_Surface *srf)
     ||  pps[RT_Z] - RT_CULL_THRESHOLD <= srf->cmin[RT_Z]
     ||  pps[RT_Z] + RT_CULL_THRESHOLD >= srf->cmax[RT_Z])
     {
-        c = 1;
+        c = 2;
     }
 
+    /*    inner   | b |   outer    */
+    /* -----------|-*-|----------- */
+    /*      0     | 2 |     1      */
     return c;
 }
 
 /*
- * Determine if "pos" is inside of "srf" bbox plus margin.
+ * Determine if "pos" is inside "srf" bbox minus margin.
  *
  * Return values:
  *  0 - no
  *  1 - yes
+ *  2 - yes, on the border with margin
  */
 static
 rt_cell surf_bbox(rt_vec4 pos, rt_Surface *srf)
@@ -772,6 +787,16 @@ rt_cell surf_bbox(rt_vec4 pos, rt_Surface *srf)
 
     /* margin is applied to "pps"
      * for consistency with surf_cbox */
+    if (pps[RT_X] - RT_CULL_THRESHOLD >  srf->bmin[RT_X]
+    &&  pps[RT_X] + RT_CULL_THRESHOLD <  srf->bmax[RT_X]
+    &&  pps[RT_Y] - RT_CULL_THRESHOLD >  srf->bmin[RT_Y]
+    &&  pps[RT_Y] + RT_CULL_THRESHOLD <  srf->bmax[RT_Y]
+    &&  pps[RT_Z] - RT_CULL_THRESHOLD >  srf->bmin[RT_Z]
+    &&  pps[RT_Z] + RT_CULL_THRESHOLD <  srf->bmax[RT_Z])
+    {
+        c = 1;
+    }
+    else
     if (pps[RT_X] + RT_CULL_THRESHOLD >= srf->bmin[RT_X]
     &&  pps[RT_X] - RT_CULL_THRESHOLD <= srf->bmax[RT_X]
     &&  pps[RT_Y] + RT_CULL_THRESHOLD >= srf->bmin[RT_Y]
@@ -779,9 +804,12 @@ rt_cell surf_bbox(rt_vec4 pos, rt_Surface *srf)
     &&  pps[RT_Z] + RT_CULL_THRESHOLD >= srf->bmin[RT_Z]
     &&  pps[RT_Z] - RT_CULL_THRESHOLD <= srf->bmax[RT_Z])
     {
-        c = 1;
+        c = 2;
     }
 
+    /*    inner   | b |   outer    */
+    /* -----------|-*-|----------- */
+    /*      1     | 2 |     0      */
     return c;
 }
 
@@ -789,7 +817,7 @@ rt_cell surf_bbox(rt_vec4 pos, rt_Surface *srf)
  * Determine which side of non-clipped "srf" is seen from "pos".
  *
  * Return values:
- *  0 - none (on the surface with margin)
+ *  0 - none, on the surface with margin
  *  1 - inner
  *  2 - outer
  */
@@ -821,7 +849,7 @@ rt_cell surf_side(rt_vec4 pos, rt_Surface *srf)
         d = dci - dcj - srf->sci[RT_W];
     }
 
-    /*            | 0 |            */
+    /*    inner   | s |   outer    */
     /* -----------|-*-|----------- */
     /*      1     | 0 |     2      */
     return d >  (0.0f + RT_CULL_THRESHOLD) ? 2 :
@@ -834,7 +862,7 @@ rt_cell surf_side(rt_vec4 pos, rt_Surface *srf)
  * Return values:
  *  1 - inner
  *  2 - outer
- *  3 - both (also if on the surface with margin)
+ *  3 - both, also if on the surface with margin
  */
 rt_cell cbox_side(rt_real *pos, rt_Surface *srf)
 {
@@ -884,7 +912,7 @@ rt_cell cbox_side(rt_real *pos, rt_Surface *srf)
     k = surf_cbox(pos, srf);
 
     /* check if "pos" is outside of "srf" cbox */
-    if (k == 1)
+    if (k != 0)
     {
         c = 3;
         return c;
@@ -937,7 +965,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
     len = RT_SQRT(len);
     ang = len <= RT_CULL_THRESHOLD ? 0.0f : ang / len;
 
-    rt_real shw_ang = len >= shw->rad ?
+    rt_real shw_ang = len >= shw->rad && len > RT_CULL_THRESHOLD ?
                         RT_ASIN(shw->rad / len) : (rt_real)RT_2_PI;
 
     f = len = 0.0f;
@@ -952,7 +980,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
     len = RT_SQRT(len);
     ang = len <= RT_CULL_THRESHOLD ? 0.0f : ang / len;
 
-    rt_real srf_ang = len >= srf->rad ?
+    rt_real srf_ang = len >= srf->rad && len > RT_CULL_THRESHOLD ?
                         RT_ASIN(srf->rad / len) : (rt_real)RT_2_PI;
 
     ang = RT_ACOS(ang);
@@ -971,7 +999,11 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
     }
 
     /* check if "lgt" pos is inside "shw" bbox */
-    if (surf_bbox(lgt->pos, shw) == 1)
+    rt_cell k;
+
+    k = surf_bbox(lgt->pos, shw);
+
+    if (k != 0)
     {
         return 1;
     }
@@ -986,11 +1018,12 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 
         for (i = 0; i < shw->verts_num; i++)
         {
-            if (vert_to_face(lgt->pos, shw->verts[i].pos,
+            k = vert_to_face(lgt->pos, shw->verts[i].pos,
                              srf->verts[fc->index[0]].pos,
                              srf->verts[fc->index[1]].pos,
                              srf->verts[fc->index[2]].pos,
-                             fc->k, fc->i, fc->j) == 1)
+                             fc->k, fc->i, fc->j);
+            if (k == 1)
             {
                 return 1;
             }
@@ -998,11 +1031,12 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
             {
                 continue;
             }
-            if (vert_to_face(lgt->pos, shw->verts[i].pos,
+            k = vert_to_face(lgt->pos, shw->verts[i].pos,
                              srf->verts[fc->index[2]].pos,
                              srf->verts[fc->index[3]].pos,
                              srf->verts[fc->index[0]].pos,
-                             fc->k, fc->i, fc->j) == 1)
+                             fc->k, fc->i, fc->j);
+            if (k == 1)
             {
                 return 1;
             }
@@ -1016,11 +1050,12 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 
         for (i = 0; i < srf->verts_num; i++)
         {
-            if (vert_to_face(lgt->pos, srf->verts[i].pos,
+            k = vert_to_face(lgt->pos, srf->verts[i].pos,
                              shw->verts[fc->index[0]].pos,
                              shw->verts[fc->index[1]].pos,
                              shw->verts[fc->index[2]].pos,
-                             fc->k, fc->i, fc->j) == 2)
+                             fc->k, fc->i, fc->j);
+            if (k == 2 || k == 4)
             {
                 return 1;
             }
@@ -1028,11 +1063,12 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
             {
                 continue;
             }
-            if (vert_to_face(lgt->pos, srf->verts[i].pos,
+            k = vert_to_face(lgt->pos, srf->verts[i].pos,
                              shw->verts[fc->index[2]].pos,
                              shw->verts[fc->index[3]].pos,
                              shw->verts[fc->index[0]].pos,
-                             fc->k, fc->i, fc->j) == 2)
+                             fc->k, fc->i, fc->j);
+            if (k == 2 || k == 4)
             {
                 return 1;
             }
@@ -1048,11 +1084,12 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
         {
             rt_EDGE *ei = &shw->edges[i];
 
-            if (edge_to_edge(lgt->pos,
+            k = edge_to_edge(lgt->pos,
                              shw->verts[ei->index[0]].pos,
                              shw->verts[ei->index[1]].pos, ei->k,
                              srf->verts[ej->index[0]].pos,
-                             srf->verts[ej->index[1]].pos, ej->k) == 1)
+                             srf->verts[ej->index[1]].pos, ej->k);
+            if (k == 1)
             {
                 return 1;
             }
@@ -1067,8 +1104,8 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
  *
  * Return values:
  *  0 - no
- *  1 - yes (quick - might be fully inside)
- *  2 - yes (thorough - borders intersect)
+ *  1 - yes, quick - might be fully inside
+ *  2 - yes, thorough - borders intersect
  */
 static
 rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
@@ -1097,12 +1134,18 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
     }
 
     /* check if one bbox's mid is inside another */
-    if (surf_bbox(ref->mid, srf) == 1)
+    rt_cell k;
+
+    k = surf_bbox(ref->mid, srf);
+
+    if (k != 0)
     {
         return 1;
     }
 
-    if (surf_bbox(srf->mid, ref) == 1)
+    k = surf_bbox(srf->mid, ref);
+
+    if (k != 0)
     {
         return 1;
     }
@@ -1119,12 +1162,13 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
         {
             rt_EDGE *ei = &ref->edges[i];
 
-            if (vert_to_face(ref->verts[ei->index[0]].pos,
+            k = vert_to_face(ref->verts[ei->index[0]].pos,
                              ref->verts[ei->index[1]].pos,
                              srf->verts[fc->index[0]].pos,
                              srf->verts[fc->index[1]].pos,
                              srf->verts[fc->index[2]].pos,
-                             fc->k, fc->i, fc->j) == 2)
+                             fc->k, fc->i, fc->j);
+            if (k == 2)
             {
                 return 2;
             }
@@ -1132,12 +1176,13 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
             {
                 continue;
             }
-            if (vert_to_face(ref->verts[ei->index[0]].pos,
+            k = vert_to_face(ref->verts[ei->index[0]].pos,
                              ref->verts[ei->index[1]].pos,
                              srf->verts[fc->index[2]].pos,
                              srf->verts[fc->index[3]].pos,
                              srf->verts[fc->index[0]].pos,
-                             fc->k, fc->i, fc->j) == 2)
+                             fc->k, fc->i, fc->j);
+            if (k == 2)
             {
                 return 2;
             }
@@ -1153,12 +1198,13 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
         {
             rt_EDGE *ei = &srf->edges[i];
 
-            if (vert_to_face(srf->verts[ei->index[0]].pos,
+            k = vert_to_face(srf->verts[ei->index[0]].pos,
                              srf->verts[ei->index[1]].pos,
                              ref->verts[fc->index[0]].pos,
                              ref->verts[fc->index[1]].pos,
                              ref->verts[fc->index[2]].pos,
-                             fc->k, fc->i, fc->j) == 2)
+                             fc->k, fc->i, fc->j);
+            if (k == 2)
             {
                 return 2;
             }
@@ -1166,12 +1212,13 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
             {
                 continue;
             }
-            if (vert_to_face(srf->verts[ei->index[0]].pos,
+            k = vert_to_face(srf->verts[ei->index[0]].pos,
                              srf->verts[ei->index[1]].pos,
                              ref->verts[fc->index[2]].pos,
                              ref->verts[fc->index[3]].pos,
                              ref->verts[fc->index[0]].pos,
-                             fc->k, fc->i, fc->j) == 2)
+                             fc->k, fc->i, fc->j);
+            if (k == 2)
             {
                 return 2;
             }
@@ -1185,7 +1232,7 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
  * Determine which side of clipped "srf" is seen from "ref" bbox.
  *
  * Return values:
- *  0 - none
+ *  0 - none, if both surfaces are the same plane
  *  1 - inner
  *  2 - outer
  *  3 - both
@@ -1335,7 +1382,7 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
         for (i = 0; i < ref->verts_num; i++)
         {
             k = surf_cbox(ref->verts[i].pos, srf);
-            if (k == 1)
+            if (k != 0)
             {
                 c |= 1;
                 break;
