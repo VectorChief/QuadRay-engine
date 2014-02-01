@@ -12,7 +12,7 @@
 #include "rtarch.h"
 #include "rtbase.h"
 
-#define RUN_LEVEL       9
+#define RUN_LEVEL       10
 #define VERBOSE         RT_FALSE
 #define CYC_SIZE        1000000
 
@@ -73,11 +73,14 @@ struct rt_SIMD_INFO_EXT : public rt_SIMD_INFO
     rt_cell cyc;
 #define inf_CYC         DP(0x128)
 
+    rt_cell tmp;
+#define inf_TMP         DP(0x12C)
+
     rt_cell size;
-#define inf_SIZE        DP(0x12C)
+#define inf_SIZE        DP(0x130)
 
     rt_pntr label;
-#define inf_LABEL       DP(0x130)
+#define inf_LABEL       DP(0x134)
 
 };
 
@@ -1007,6 +1010,9 @@ rt_void S_run_level09(rt_SIMD_INFO_EXT *info)
         label_ld(cyc_beg) /* load to Reax */
         movxx_st(Reax, Mebp, inf_LABEL)
 
+        movxx_ld(Reax, Mebp, inf_CYC)
+        movxx_st(Reax, Mebp, inf_TMP)
+
     LBL(cyc_beg)
 
         movxx_ld(Recx, Mebp, inf_IAR0)
@@ -1065,8 +1071,8 @@ rt_void S_run_level09(rt_SIMD_INFO_EXT *info)
         divxn_xm(Medi, DP(0x0C))
         movxx_st(Reax, Mesi, DP(0x0C))
 
-        subxx_mi(Mebp, inf_CYC, IB(1))
-        cmpxx_mi(Mebp, inf_CYC, IB(0))
+        subxx_mi(Mebp, inf_TMP, IB(1))
+        cmpxx_mi(Mebp, inf_TMP, IB(0))
         jeqxx_lb(cyc_end)
         jmpxx_mm(Mebp, inf_LABEL)
         jmpxx_lb(cyc_beg) /* the same jump as above */
@@ -1116,6 +1122,117 @@ rt_void P_run_level09(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 #endif /* RUN_LEVEL  9 */
 
 /******************************************************************************/
+/******************************   RUN LEVEL 10   ******************************/
+/******************************************************************************/
+
+#if RUN_LEVEL >= 10
+
+rt_void C_run_level10(rt_SIMD_INFO_EXT *info)
+{
+    rt_cell i, j, n = info->size;
+    rt_real *far0 = info->far0;
+    rt_real *fco1 = info->fco1;
+    rt_real *fco2 = info->fco2;
+
+    i = info->cyc;
+    while (i-->0)
+    {
+        j = n;
+        while (j-->0)
+        {
+            fco1[j] = RT_MIN(far0[j], far0[(j + 4) % n]);
+            fco2[j] = RT_MAX(far0[j], far0[(j + 4) % n]);
+        }
+    }
+}
+
+rt_void S_run_level10(rt_SIMD_INFO_EXT *info)
+{
+    rt_cell i;
+
+#define AJ0             DP(0x000)
+#define AJ1             DP(0x010)
+#define AJ2             DP(0x020)
+
+    i = info->cyc;
+    while (i-->0)
+    {
+        ASM_ENTER(info)
+
+        movxx_ld(Recx, Mebp, inf_FAR0)
+        movxx_ld(Redx, Mebp, inf_FSO1)
+        movxx_ld(Rebx, Mebp, inf_FSO2)
+
+        movpx_ld(Xmm0, Mecx, AJ0)
+        movpx_ld(Xmm1, Mecx, AJ1)
+        movpx_rr(Xmm2, Xmm0)
+        minps_rr(Xmm2, Xmm1)
+        movpx_rr(Xmm3, Xmm0)
+        maxps_rr(Xmm3, Xmm1)
+        movpx_st(Xmm2, Medx, AJ0)
+        movpx_st(Xmm3, Mebx, AJ0)
+
+        movpx_ld(Xmm0, Mecx, AJ1)
+        movpx_ld(Xmm1, Mecx, AJ2)
+        movpx_rr(Xmm2, Xmm0)
+        minps_rr(Xmm2, Xmm1)
+        movpx_rr(Xmm3, Xmm0)
+        maxps_rr(Xmm3, Xmm1)
+        movpx_st(Xmm2, Medx, AJ1)
+        movpx_st(Xmm3, Mebx, AJ1)
+
+        movpx_ld(Xmm0, Mecx, AJ2)
+        movpx_ld(Xmm1, Mecx, AJ0)
+        movpx_rr(Xmm2, Xmm0)
+        minps_rr(Xmm2, Xmm1)
+        movpx_rr(Xmm3, Xmm0)
+        maxps_rr(Xmm3, Xmm1)
+        movpx_st(Xmm2, Medx, AJ2)
+        movpx_st(Xmm3, Mebx, AJ2)
+
+        ASM_LEAVE(info)
+    }
+}
+
+rt_void P_run_level10(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+{
+    rt_cell j, n;
+
+    rt_real *far0 = info->far0;
+    rt_real *fco1 = info->fco1;
+    rt_real *fco2 = info->fco2;
+    rt_real *fso1 = info->fso1;
+    rt_real *fso2 = info->fso2;
+
+    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n", 10);
+
+    j = n = info->size;
+    while (j-->0)
+    {
+        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v)
+        {
+            continue;
+        }
+
+        RT_LOGI("farr[%d] = %e, farr[%d] = %e\n",
+                j, far0[j], (j + 4) % n, far0[(j + 4) % n]);
+
+        RT_LOGI("C MIN(farr[%d],farr[%d]) = %e, MAX(farr[%d],farr[%d]) = %e\n",
+                j, (j + 4) % n, fco1[j], j, (j + 4) % n, fco2[j]);
+
+        RT_LOGI("S MIN(farr[%d],farr[%d]) = %e, MAX(farr[%d],farr[%d]) = %e\n",
+                j, (j + 4) % n, fso1[j], j, (j + 4) % n, fso2[j]);
+    }
+
+    RT_LOGI("Time C = %d\n", (rt_cell)tC);
+    RT_LOGI("Time S = %d\n", (rt_cell)tS);
+
+    RT_LOGI("----------------------------------------------------\n");
+}
+
+#endif /* RUN_LEVEL 10 */
+
+/******************************************************************************/
 /*********************************   TABLES   *********************************/
 /******************************************************************************/
 
@@ -1160,6 +1277,10 @@ C_run_levelXX Carr[RUN_LEVEL] =
 #if RUN_LEVEL >=  9
     C_run_level09,
 #endif /* RUN_LEVEL  9 */
+
+#if RUN_LEVEL >= 10
+    C_run_level10,
+#endif /* RUN_LEVEL 10 */
 };
 
 S_run_levelXX Sarr[RUN_LEVEL] =
@@ -1199,6 +1320,10 @@ S_run_levelXX Sarr[RUN_LEVEL] =
 #if RUN_LEVEL >=  9
     S_run_level09,
 #endif /* RUN_LEVEL  9 */
+
+#if RUN_LEVEL >= 10
+    S_run_level10,
+#endif /* RUN_LEVEL 10 */
 };
 
 P_run_levelXX Parr[RUN_LEVEL] =
@@ -1238,6 +1363,10 @@ P_run_levelXX Parr[RUN_LEVEL] =
 #if RUN_LEVEL >=  9
     P_run_level09,
 #endif /* RUN_LEVEL  9 */
+
+#if RUN_LEVEL >= 10
+    P_run_level10,
+#endif /* RUN_LEVEL 10 */
 };
 
 /******************************************************************************/
