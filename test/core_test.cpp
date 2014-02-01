@@ -10,20 +10,20 @@
 
 #include "engine.h"
 
-#define RUN_LEVEL       12
-#define VERBOSE         RT_FALSE
-#define CYC_SIZE        5
+#define RUN_LEVEL           12
+#define VERBOSE             RT_FALSE
+#define CYC_SIZE            5
 
-#define RT_X_RES        800
-#define RT_Y_RES        480
+#define RT_X_RES            800
+#define RT_Y_RES            480
 
-#define CHN(px, sh)     ((px) >> (sh) & 0xFF)    
+#define CHN(px, sh)         ((px) >> (sh) & 0xFF)    
 
-#define IEQ(i1, i2)     (abs((i1) - (i2)) <= 2)
-#define PEQ(p1, p2)     (IEQ(CHN(p1, 24), CHN(p2, 24)) &&                   \
-                         IEQ(CHN(p1, 16), CHN(p2, 16)) &&                   \
-                         IEQ(CHN(p1,  8), CHN(p2,  8)) &&                   \
-                         IEQ(CHN(p1,  0), CHN(p2,  0)))
+#define IEQ(i1, i2)         (abs((i1) - (i2)) <= 2)
+#define PEQ(p1, p2)         (IEQ(CHN(p1, 24), CHN(p2, 24)) &&               \
+                             IEQ(CHN(p1, 16), CHN(p2, 16)) &&               \
+                             IEQ(CHN(p1,  8), CHN(p2,  8)) &&               \
+                             IEQ(CHN(p1,  0), CHN(p2,  0)))
 
 rt_cell     x_res   = RT_X_RES;
 rt_cell     y_res   = RT_Y_RES;
@@ -84,7 +84,7 @@ rt_cell frame_cmp(rt_word *f1, rt_word *f2)
 
 #include "scn_test01.h"
 
-rt_void test01(rt_cell opts)
+rt_void o_test01(rt_cell opts)
 {
     scene = new rt_Scene(&scn_test01::sc_root,
                         x_res, y_res, x_row, RT_NULL,
@@ -105,7 +105,7 @@ rt_void test01(rt_cell opts)
 
 #include "scn_test02.h"
 
-rt_void test02(rt_cell opts)
+rt_void o_test02(rt_cell opts)
 {
     scene = new rt_Scene(&scn_test02::sc_root,
                         x_res, y_res, x_row, RT_NULL,
@@ -126,7 +126,7 @@ rt_void test02(rt_cell opts)
 
 #include "scn_test03.h"
 
-rt_void test03(rt_cell opts)
+rt_void o_test03(rt_cell opts)
 {
     scene = new rt_Scene(&scn_test03::sc_root,
                         x_res, y_res, x_row, RT_NULL,
@@ -147,7 +147,7 @@ rt_void test03(rt_cell opts)
 
 #include "scn_test04.h"
 
-rt_void test04(rt_cell opts)
+rt_void o_test04(rt_cell opts)
 {
     scene = new rt_Scene(&scn_test04::sc_root,
                         x_res, y_res, x_row, RT_NULL,
@@ -168,7 +168,7 @@ rt_void test04(rt_cell opts)
 
 #include "scn_test05.h"
 
-rt_void test05(rt_cell opts)
+rt_void o_test05(rt_cell opts)
 {
     scene = new rt_Scene(&scn_test05::sc_root,
                         x_res, y_res, x_row, RT_NULL,
@@ -189,7 +189,7 @@ rt_void test05(rt_cell opts)
 
 #include "scn_test06.h"
 
-rt_void test06(rt_cell opts)
+rt_void o_test06(rt_cell opts)
 {
     scene = new rt_Scene(&scn_test06::sc_root,
                         x_res, y_res, x_row, RT_NULL,
@@ -210,7 +210,7 @@ rt_void test06(rt_cell opts)
 
 #include "scn_test07.h"
 
-rt_void test07(rt_cell opts)
+rt_void o_test07(rt_cell opts)
 {
     scene = new rt_Scene(&scn_test07::sc_root,
                         x_res, y_res, x_row, RT_NULL,
@@ -231,7 +231,7 @@ rt_void test07(rt_cell opts)
 
 #include "scn_test08.h"
 
-rt_void test08(rt_cell opts)
+rt_void o_test08(rt_cell opts)
 {
     scene = new rt_Scene(&scn_test08::sc_root,
                         x_res, y_res, x_row, RT_NULL,
@@ -252,7 +252,7 @@ rt_void test08(rt_cell opts)
 
 #include "scn_test09.h"
 
-rt_void test09(rt_cell opts)
+rt_void o_test09(rt_cell opts)
 {
     scene = new rt_Scene(&scn_test09::sc_root,
                         x_res, y_res, x_row, RT_NULL,
@@ -273,7 +273,7 @@ rt_void test09(rt_cell opts)
 
 #include "scn_test10.h"
 
-rt_void test10(rt_cell opts)
+rt_void o_test10(rt_cell opts)
 {
     scene = new rt_Scene(&scn_test10::sc_root,
                         x_res, y_res, x_row, RT_NULL,
@@ -294,7 +294,7 @@ rt_void test10(rt_cell opts)
 
 #include "scn_test11.h"
 
-rt_void test11(rt_cell opts)
+rt_void o_test11(rt_cell opts)
 {
     scene = new rt_Scene(&scn_test11::sc_root,
                         x_res, y_res, x_row, RT_NULL,
@@ -315,7 +315,7 @@ rt_void test11(rt_cell opts)
 
 #include "scn_test12.h"
 
-rt_void test12(rt_cell opts)
+rt_void o_test12(rt_cell opts)
 {
     scene = new rt_Scene(&scn_test12::sc_root,
                         x_res, y_res, x_row, RT_NULL,
@@ -334,54 +334,54 @@ rt_void test12(rt_cell opts)
 
 typedef rt_void (*testXX)(rt_cell);
 
-testXX test[RUN_LEVEL] =
+testXX o_test[RUN_LEVEL] =
 {
 #if RUN_LEVEL >=  1
-    test01,
+    o_test01,
 #endif /* RUN_LEVEL  1 */
 
 #if RUN_LEVEL >=  2
-    test02,
+    o_test02,
 #endif /* RUN_LEVEL  2 */
 
 #if RUN_LEVEL >=  3
-    test03,
+    o_test03,
 #endif /* RUN_LEVEL  3 */
 
 #if RUN_LEVEL >=  4
-    test04,
+    o_test04,
 #endif /* RUN_LEVEL  4 */
 
 #if RUN_LEVEL >=  5
-    test05,
+    o_test05,
 #endif /* RUN_LEVEL  5 */
 
 #if RUN_LEVEL >=  6
-    test06,
+    o_test06,
 #endif /* RUN_LEVEL  6 */
 
 #if RUN_LEVEL >=  7
-    test07,
+    o_test07,
 #endif /* RUN_LEVEL  7 */
 
 #if RUN_LEVEL >=  8
-    test08,
+    o_test08,
 #endif /* RUN_LEVEL  8 */
 
 #if RUN_LEVEL >=  9
-    test09,
+    o_test09,
 #endif /* RUN_LEVEL  9 */
 
 #if RUN_LEVEL >= 10
-    test10,
+    o_test10,
 #endif /* RUN_LEVEL 10 */
 
 #if RUN_LEVEL >= 11
-    test11,
+    o_test11,
 #endif /* RUN_LEVEL 11 */
 
 #if RUN_LEVEL >= 12
-    test12,
+    o_test12,
 #endif /* RUN_LEVEL 12 */
 };
 
@@ -406,7 +406,7 @@ rt_cell main()
         try
         {
             scene = RT_NULL;
-            test[i](RT_OPTS_NONE);
+            o_test[i](RT_OPTS_NONE);
 
             time1 = get_time();
 
@@ -422,9 +422,10 @@ rt_cell main()
             frame_cpy(frame, scene->get_frame());
             delete scene;
 
+            /* --------------------------------- */
 
             scene = RT_NULL;
-            test[i](RT_OPTS_FULL);
+            o_test[i](RT_OPTS_FULL);
 
             time1 = get_time();
 
@@ -447,7 +448,7 @@ rt_cell main()
         RT_LOGI("----------------------------------------------------\n");
     }
 
-#if   defined (WIN32) /* Win32, MSVC ---------------------------------------- */
+#if   defined (RT_WIN32) /* Win32, MSVC ------------------------------------ */
 
     RT_LOGI("Type any letter and press ENTER to exit:");
     rt_char str[256]; /* not secure, do not inherit this practice */
@@ -458,7 +459,7 @@ rt_cell main()
     return 0;
 }
 
-#if   defined (WIN32) /* Win32, MSVC ---------------------------------------- */
+#if   defined (RT_WIN32) /* Win32, MSVC ------------------------------------- */
 
 #include <windows.h>
 
@@ -471,7 +472,7 @@ rt_long get_time()
     return (rt_long)(tm.QuadPart * 1000 / fr.QuadPart);
 }
 
-#elif defined (linux) /* Linux, GCC ----------------------------------------- */
+#elif defined (RT_LINUX) /* Linux, GCC -------------------------------------- */
 
 #include <sys/time.h>
 

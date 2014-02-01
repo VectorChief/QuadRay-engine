@@ -12,75 +12,81 @@
 #include "rtarch.h"
 #include "rtbase.h"
 
-#define RUN_LEVEL       12
-#define VERBOSE         RT_FALSE
-#define CYC_SIZE        1000000
+#define RUN_LEVEL           12
+#define VERBOSE             RT_FALSE
+#define CYC_SIZE            1000000
 
-#define ARR_SIZE        12 /* hardcoded in asm sections */
-#define MASK            (RT_SIMD_ALIGN - 1) /* SIMD alignment mask */
+#define ARR_SIZE            12 /* hardcoded in asm sections */
+#define MASK                (RT_SIMD_ALIGN - 1) /* SIMD alignment mask */
 
-#define FRK(f)          (f < 10.0       ? 1.0           :                   \
-                         f < 100.0      ? 10.0          :                   \
-                         f < 1000.0     ? 100.0         :                   \
-                         f < 10000.0    ? 1000.0        :                   \
-                         f < 100000.0   ? 10000.0       :                   \
-                         f < 1000000.0  ? 100000.0      :                   \
-                                          1000000.0)
+#define FRK(f)              (f < 10.0       ? 1.0           :               \
+                             f < 100.0      ? 10.0          :               \
+                             f < 1000.0     ? 100.0         :               \
+                             f < 10000.0    ? 1000.0        :               \
+                             f < 100000.0   ? 10000.0       :               \
+                             f < 1000000.0  ? 100000.0      :               \
+                                              1000000.0)
 
-#define FEQ(f1, f2)     (fabsf(f1 - f2) < 0.0002f * RT_MIN(FRK(f1), FRK(f2)))
-#define IEQ(i1, i2)     (i1 == i2)
+#define FEQ(f1, f2)         (fabs(f1 - f2) < 0.0002 * RT_MIN(FRK(f1), FRK(f2)))
+#define IEQ(i1, i2)         (i1 == i2)
 
-#define RT_LOGI         printf
-#define RT_LOGE         printf
+#define RT_LOGI             printf
+#define RT_LOGE             printf
 
-
-/* NOTE: displacements start where rt_SIMD_INFO ends (at 0x100) */
-
-struct rt_SIMD_INFO_EXT : public rt_SIMD_INFO
+/*
+ * Extended SIMD info structure for asm enter/leave.
+ * Serves as container for test arrays and internal varibales.
+ * Displacements start where rt_SIMD_INFO ends (at 0x100).
+ */
+struct rt_SIMD_INFOX : public rt_SIMD_INFO
 {
+    /* floating point arrays */
+
     rt_real*far0;
-#define inf_FAR0        DP(0x100)
+#define inf_FAR0            DP(0x100)
 
     rt_real*fco1;
-#define inf_FCO1        DP(0x104)
+#define inf_FCO1            DP(0x104)
 
     rt_real*fco2;
-#define inf_FCO2        DP(0x108)
+#define inf_FCO2            DP(0x108)
 
     rt_real*fso1;
-#define inf_FSO1        DP(0x10C)
+#define inf_FSO1            DP(0x10C)
 
     rt_real*fso2;
-#define inf_FSO2        DP(0x110)
+#define inf_FSO2            DP(0x110)
 
+    /* integer arrays */
 
     rt_cell*iar0;
-#define inf_IAR0        DP(0x114)
+#define inf_IAR0            DP(0x114)
 
     rt_cell*ico1;
-#define inf_ICO1        DP(0x118)
+#define inf_ICO1            DP(0x118)
 
     rt_cell*ico2;
-#define inf_ICO2        DP(0x11C)
+#define inf_ICO2            DP(0x11C)
 
     rt_cell*iso1;
-#define inf_ISO1        DP(0x120)
+#define inf_ISO1            DP(0x120)
 
     rt_cell*iso2;
-#define inf_ISO2        DP(0x124)
+#define inf_ISO2            DP(0x124)
 
+    /* internal variables */
 
     rt_cell cyc;
-#define inf_CYC         DP(0x128)
+#define inf_CYC             DP(0x128)
 
     rt_cell tmp;
-#define inf_TMP         DP(0x12C)
+#define inf_TMP             DP(0x12C)
 
     rt_cell size;
-#define inf_SIZE        DP(0x130)
+#define inf_SIZE            DP(0x130)
 
     rt_pntr label;
-#define inf_LABEL       DP(0x134)
+#define inf_LABEL           DP(0x134)
 
 };
 
@@ -90,7 +96,7 @@ struct rt_SIMD_INFO_EXT : public rt_SIMD_INFO
 
 #if RUN_LEVEL >=  1
 
-rt_void C_run_level01(rt_SIMD_INFO_EXT *info)
+rt_void c_test01(rt_SIMD_INFOX *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -109,13 +115,13 @@ rt_void C_run_level01(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level01(rt_SIMD_INFO_EXT *info)
+rt_void s_test01(rt_SIMD_INFOX *info)
 {
     rt_cell i;
 
-#define AJ0             DP(0x000)
-#define AJ1             DP(0x010)
-#define AJ2             DP(0x020)
+#define AJ0                 DP(0x000)
+#define AJ1                 DP(0x010)
+#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -157,7 +163,7 @@ rt_void S_run_level01(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level01(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void p_test01(rt_SIMD_INFOX *info)
 {
     rt_cell j, n;
 
@@ -167,12 +173,10 @@ rt_void P_run_level01(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_real *fso1 = info->fso1;
     rt_real *fso2 = info->fso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  1);
-
     j = n = info->size;
     while (j-->0)
     {
-        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v)
+        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !VERBOSE)
         {
             continue;
         }
@@ -186,11 +190,6 @@ rt_void P_run_level01(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
         RT_LOGI("S farr[%d]+farr[%d] = %e, farr[%d]-farr[%d] = %e\n",
                 j, (j + 4) % n, fso1[j], j, (j + 4) % n, fso2[j]);
     }
-
-    RT_LOGI("Time C = %d\n", (rt_cell)tC);
-    RT_LOGI("Time S = %d\n", (rt_cell)tS);
-
-    RT_LOGI("----------------------------------------------------\n");
 }
 
 #endif /* RUN_LEVEL  1 */
@@ -201,7 +200,7 @@ rt_void P_run_level01(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >=  2
 
-rt_void C_run_level02(rt_SIMD_INFO_EXT *info)
+rt_void c_test02(rt_SIMD_INFOX *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -220,13 +219,13 @@ rt_void C_run_level02(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level02(rt_SIMD_INFO_EXT *info)
+rt_void s_test02(rt_SIMD_INFOX *info)
 {
     rt_cell i;
 
-#define AJ0             DP(0x000)
-#define AJ1             DP(0x010)
-#define AJ2             DP(0x020)
+#define AJ0                 DP(0x000)
+#define AJ1                 DP(0x010)
+#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -268,7 +267,7 @@ rt_void S_run_level02(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level02(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void p_test02(rt_SIMD_INFOX *info)
 {
     rt_cell j, n;
 
@@ -278,12 +277,10 @@ rt_void P_run_level02(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_real *fso1 = info->fso1;
     rt_real *fso2 = info->fso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  2);
-
     j = n = info->size;
     while (j-->0)
     {
-        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v)
+        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !VERBOSE)
         {
             continue;
         }
@@ -298,11 +295,6 @@ rt_void P_run_level02(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
                 j, (j + 4) % n, fso1[j], j, (j + 4) % n, fso2[j]);
 
     }
-
-    RT_LOGI("Time C = %d\n", (rt_cell)tC);
-    RT_LOGI("Time S = %d\n", (rt_cell)tS);
-
-    RT_LOGI("----------------------------------------------------\n");
 }
 
 #endif /* RUN_LEVEL  2 */
@@ -313,7 +305,7 @@ rt_void P_run_level02(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >=  3
 
-rt_void C_run_level03(rt_SIMD_INFO_EXT *info)
+rt_void c_test03(rt_SIMD_INFOX *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -332,13 +324,13 @@ rt_void C_run_level03(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level03(rt_SIMD_INFO_EXT *info)
+rt_void s_test03(rt_SIMD_INFOX *info)
 {
     rt_cell i;
 
-#define AJ0             DP(0x000)
-#define AJ1             DP(0x010)
-#define AJ2             DP(0x020)
+#define AJ0                 DP(0x000)
+#define AJ1                 DP(0x010)
+#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -380,7 +372,7 @@ rt_void S_run_level03(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level03(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void p_test03(rt_SIMD_INFOX *info)
 {
     rt_cell j, n;
 
@@ -390,12 +382,10 @@ rt_void P_run_level03(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  3);
-
     j = n = info->size;
     while (j-->0)
     {
-        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !VERBOSE)
         {
             continue;
         }
@@ -409,11 +399,6 @@ rt_void P_run_level03(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
         RT_LOGI("S (farr[%d] > farr[%d]) = %X, (farr[%d] >= farr[%d]) = %X\n",
                 j, (j + 4) % n, iso1[j], j, (j + 4) % n, iso2[j]);
     }
-
-    RT_LOGI("Time C = %d\n", (rt_cell)tC);
-    RT_LOGI("Time S = %d\n", (rt_cell)tS);
-
-    RT_LOGI("----------------------------------------------------\n");
 }
 
 #endif /* RUN_LEVEL  3 */
@@ -424,7 +409,7 @@ rt_void P_run_level03(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >=  4
 
-rt_void C_run_level04(rt_SIMD_INFO_EXT *info)
+rt_void c_test04(rt_SIMD_INFOX *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -443,13 +428,13 @@ rt_void C_run_level04(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level04(rt_SIMD_INFO_EXT *info)
+rt_void s_test04(rt_SIMD_INFOX *info)
 {
     rt_cell i;
 
-#define AJ0             DP(0x000)
-#define AJ1             DP(0x010)
-#define AJ2             DP(0x020)
+#define AJ0                 DP(0x000)
+#define AJ1                 DP(0x010)
+#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -491,7 +476,7 @@ rt_void S_run_level04(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level04(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void p_test04(rt_SIMD_INFOX *info)
 {
     rt_cell j, n;
 
@@ -501,12 +486,10 @@ rt_void P_run_level04(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  4);
-
     j = n = info->size;
     while (j-->0)
     {
-        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !VERBOSE)
         {
             continue;
         }
@@ -520,11 +503,6 @@ rt_void P_run_level04(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
         RT_LOGI("S (farr[%d] < farr[%d]) = %X, (farr[%d] <= farr[%d]) = %X\n",
                 j, (j + 4) % n, iso1[j], j, (j + 4) % n, iso2[j]);
     }
-
-    RT_LOGI("Time C = %d\n", (rt_cell)tC);
-    RT_LOGI("Time S = %d\n", (rt_cell)tS);
-
-    RT_LOGI("----------------------------------------------------\n");
 }
 
 #endif /* RUN_LEVEL  4 */
@@ -535,7 +513,7 @@ rt_void P_run_level04(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >=  5
 
-rt_void C_run_level05(rt_SIMD_INFO_EXT *info)
+rt_void c_test05(rt_SIMD_INFOX *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -554,13 +532,13 @@ rt_void C_run_level05(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level05(rt_SIMD_INFO_EXT *info)
+rt_void s_test05(rt_SIMD_INFOX *info)
 {
     rt_cell i;
 
-#define AJ0             DP(0x000)
-#define AJ1             DP(0x010)
-#define AJ2             DP(0x020)
+#define AJ0                 DP(0x000)
+#define AJ1                 DP(0x010)
+#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -602,7 +580,7 @@ rt_void S_run_level05(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level05(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void p_test05(rt_SIMD_INFOX *info)
 {
     rt_cell j, n;
 
@@ -612,12 +590,10 @@ rt_void P_run_level05(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  5);
-
     j = n = info->size;
     while (j-->0)
     {
-        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !VERBOSE)
         {
             continue;
         }
@@ -631,11 +607,6 @@ rt_void P_run_level05(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
         RT_LOGI("S (farr[%d] == farr[%d]) = %X, (farr[%d] != farr[%d]) = %X\n",
                 j, (j + 4) % n, iso1[j], j, (j + 4) % n, iso2[j]);
     }
-
-    RT_LOGI("Time C = %d\n", (rt_cell)tC);
-    RT_LOGI("Time S = %d\n", (rt_cell)tS);
-
-    RT_LOGI("----------------------------------------------------\n");
 }
 
 #endif /* RUN_LEVEL  5 */
@@ -646,7 +617,7 @@ rt_void P_run_level05(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >=  6
 
-rt_void C_run_level06(rt_SIMD_INFO_EXT *info)
+rt_void c_test06(rt_SIMD_INFOX *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -666,13 +637,13 @@ rt_void C_run_level06(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level06(rt_SIMD_INFO_EXT *info)
+rt_void s_test06(rt_SIMD_INFOX *info)
 {
     rt_cell i;
 
-#define AJ0             DP(0x000)
-#define AJ1             DP(0x010)
-#define AJ2             DP(0x020)
+#define AJ0                 DP(0x000)
+#define AJ1                 DP(0x010)
+#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -713,7 +684,7 @@ rt_void S_run_level06(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level06(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void p_test06(rt_SIMD_INFOX *info)
 {
     rt_cell j, n;
 
@@ -724,12 +695,10 @@ rt_void P_run_level06(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_cell *iso1 = info->iso1;
     rt_real *fso2 = info->fso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  6);
-
     j = n = info->size;
     while (j-->0)
     {
-        if (IEQ(ico1[j], iso1[j]) && FEQ(fco2[j], fso2[j]) && !v)
+        if (IEQ(ico1[j], iso1[j]) && FEQ(fco2[j], fso2[j]) && !VERBOSE)
         {
             continue;
         }
@@ -743,11 +712,6 @@ rt_void P_run_level06(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
         RT_LOGI("S (rt_cell)farr[%d] = %d, (rt_real)iarr[%d] = %e\n",
                 j, iso1[j], j, fso2[j]);
     }
-
-    RT_LOGI("Time C = %d\n", (rt_cell)tC);
-    RT_LOGI("Time S = %d\n", (rt_cell)tS);
-
-    RT_LOGI("----------------------------------------------------\n");
 }
 
 #endif /* RUN_LEVEL  6 */
@@ -758,7 +722,7 @@ rt_void P_run_level06(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >=  7
 
-rt_void C_run_level07(rt_SIMD_INFO_EXT *info)
+rt_void c_test07(rt_SIMD_INFOX *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -777,13 +741,13 @@ rt_void C_run_level07(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level07(rt_SIMD_INFO_EXT *info)
+rt_void s_test07(rt_SIMD_INFOX *info)
 {
     rt_cell i;
 
-#define AJ0             DP(0x000)
-#define AJ1             DP(0x010)
-#define AJ2             DP(0x020)
+#define AJ0                 DP(0x000)
+#define AJ1                 DP(0x010)
+#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -822,7 +786,7 @@ rt_void S_run_level07(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level07(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void p_test07(rt_SIMD_INFOX *info)
 {
     rt_cell j, n;
 
@@ -832,12 +796,10 @@ rt_void P_run_level07(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_real *fso1 = info->fso1;
     rt_real *fso2 = info->fso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  7);
-
     j = n = info->size;
     while (j-->0)
     {
-        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v)
+        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !VERBOSE)
         {
             continue;
         }
@@ -851,11 +813,6 @@ rt_void P_run_level07(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
         RT_LOGI("S sqrt(farr[%d]) = %e, 1.0/farr[%d] = %e\n",
                 j, fso1[j], j, fso2[j]);
     }
-
-    RT_LOGI("Time C = %d\n", (rt_cell)tC);
-    RT_LOGI("Time S = %d\n", (rt_cell)tS);
-
-    RT_LOGI("----------------------------------------------------\n");
 }
 
 #endif /* RUN_LEVEL  7 */
@@ -866,7 +823,7 @@ rt_void P_run_level07(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >=  8
 
-rt_void C_run_level08(rt_SIMD_INFO_EXT *info)
+rt_void c_test08(rt_SIMD_INFOX *info)
 {
     rt_cell i, j, n = info->size;
     rt_cell *iar0 = info->iar0;
@@ -885,13 +842,13 @@ rt_void C_run_level08(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level08(rt_SIMD_INFO_EXT *info)
+rt_void s_test08(rt_SIMD_INFOX *info)
 {
     rt_cell i;
 
-#define AJ0             DP(0x000)
-#define AJ1             DP(0x010)
-#define AJ2             DP(0x020)
+#define AJ0                 DP(0x000)
+#define AJ1                 DP(0x010)
+#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -939,7 +896,7 @@ rt_void S_run_level08(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level08(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void p_test08(rt_SIMD_INFOX *info)
 {
     rt_cell j, n;
 
@@ -949,12 +906,10 @@ rt_void P_run_level08(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  8);
-
     j = n = info->size;
     while (j-->0)
     {
-        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !VERBOSE)
         {
             continue;
         }
@@ -969,11 +924,6 @@ rt_void P_run_level08(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
                 j, j, iso1[j], j, j, iso2[j]);
 
     }
-
-    RT_LOGI("Time C = %d\n", (rt_cell)tC);
-    RT_LOGI("Time S = %d\n", (rt_cell)tS);
-
-    RT_LOGI("----------------------------------------------------\n");
 }
 
 #endif /* RUN_LEVEL  8 */
@@ -984,7 +934,7 @@ rt_void P_run_level08(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >=  9
 
-rt_void C_run_level09(rt_SIMD_INFO_EXT *info)
+rt_void c_test09(rt_SIMD_INFOX *info)
 {
     rt_cell i, j, n = info->size;
     rt_cell *iar0 = info->iar0;
@@ -1003,7 +953,7 @@ rt_void C_run_level09(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level09(rt_SIMD_INFO_EXT *info)
+rt_void s_test09(rt_SIMD_INFOX *info)
 {
     ASM_ENTER(info)
 
@@ -1082,7 +1032,7 @@ rt_void S_run_level09(rt_SIMD_INFO_EXT *info)
     ASM_LEAVE(info)
 }
 
-rt_void P_run_level09(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void p_test09(rt_SIMD_INFOX *info)
 {
     rt_cell j, n;
 
@@ -1092,12 +1042,10 @@ rt_void P_run_level09(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n",  9);
-
     j = n = info->size;
     while (j-->0)
     {
-        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !VERBOSE)
         {
             continue;
         }
@@ -1112,11 +1060,6 @@ rt_void P_run_level09(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
                 j, (j + 4) % n, iso1[j], j, (j + 4) % n, iso2[j]);
 
     }
-
-    RT_LOGI("Time C = %d\n", (rt_cell)tC);
-    RT_LOGI("Time S = %d\n", (rt_cell)tS);
-
-    RT_LOGI("----------------------------------------------------\n");
 }
 
 #endif /* RUN_LEVEL  9 */
@@ -1127,7 +1070,7 @@ rt_void P_run_level09(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 10
 
-rt_void C_run_level10(rt_SIMD_INFO_EXT *info)
+rt_void c_test10(rt_SIMD_INFOX *info)
 {
     rt_cell i, j, n = info->size;
     rt_real *far0 = info->far0;
@@ -1146,13 +1089,13 @@ rt_void C_run_level10(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level10(rt_SIMD_INFO_EXT *info)
+rt_void s_test10(rt_SIMD_INFOX *info)
 {
     rt_cell i;
 
-#define AJ0             DP(0x000)
-#define AJ1             DP(0x010)
-#define AJ2             DP(0x020)
+#define AJ0                 DP(0x000)
+#define AJ1                 DP(0x010)
+#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -1194,7 +1137,7 @@ rt_void S_run_level10(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level10(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void p_test10(rt_SIMD_INFOX *info)
 {
     rt_cell j, n;
 
@@ -1204,12 +1147,10 @@ rt_void P_run_level10(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_real *fso1 = info->fso1;
     rt_real *fso2 = info->fso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n", 10);
-
     j = n = info->size;
     while (j-->0)
     {
-        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v)
+        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !VERBOSE)
         {
             continue;
         }
@@ -1223,11 +1164,6 @@ rt_void P_run_level10(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
         RT_LOGI("S MIN(farr[%d],farr[%d]) = %e, MAX(farr[%d],farr[%d]) = %e\n",
                 j, (j + 4) % n, fso1[j], j, (j + 4) % n, fso2[j]);
     }
-
-    RT_LOGI("Time C = %d\n", (rt_cell)tC);
-    RT_LOGI("Time S = %d\n", (rt_cell)tS);
-
-    RT_LOGI("----------------------------------------------------\n");
 }
 
 #endif /* RUN_LEVEL 10 */
@@ -1238,7 +1174,7 @@ rt_void P_run_level10(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 11
 
-rt_void C_run_level11(rt_SIMD_INFO_EXT *info)
+rt_void c_test11(rt_SIMD_INFOX *info)
 {
     rt_cell i, j, n = info->size;
     rt_cell *iar0 = info->iar0;
@@ -1257,13 +1193,13 @@ rt_void C_run_level11(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level11(rt_SIMD_INFO_EXT *info)
+rt_void s_test11(rt_SIMD_INFOX *info)
 {
     rt_cell i;
 
-#define AJ0             DP(0x000)
-#define AJ1             DP(0x010)
-#define AJ2             DP(0x020)
+#define AJ0                 DP(0x000)
+#define AJ1                 DP(0x010)
+#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -1311,7 +1247,7 @@ rt_void S_run_level11(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void P_run_level11(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void p_test11(rt_SIMD_INFOX *info)
 {
     rt_cell j, n;
 
@@ -1321,12 +1257,10 @@ rt_void P_run_level11(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n", 11);
-
     j = n = info->size;
     while (j-->0)
     {
-        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !VERBOSE)
         {
             continue;
         }
@@ -1341,11 +1275,6 @@ rt_void P_run_level11(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
                 j, j, iso1[j], j, j, iso2[j]);
 
     }
-
-    RT_LOGI("Time C = %d\n", (rt_cell)tC);
-    RT_LOGI("Time S = %d\n", (rt_cell)tS);
-
-    RT_LOGI("----------------------------------------------------\n");
 }
 
 #endif /* RUN_LEVEL 11 */
@@ -1356,7 +1285,7 @@ rt_void P_run_level11(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 
 #if RUN_LEVEL >= 12
 
-rt_void C_run_level12(rt_SIMD_INFO_EXT *info)
+rt_void c_test12(rt_SIMD_INFOX *info)
 {
     rt_cell i, j, n = info->size;
     rt_cell *iar0 = info->iar0;
@@ -1375,13 +1304,13 @@ rt_void C_run_level12(rt_SIMD_INFO_EXT *info)
     }
 }
 
-rt_void S_run_level12(rt_SIMD_INFO_EXT *info)
+rt_void s_test12(rt_SIMD_INFOX *info)
 {
     rt_cell i;
 
-#define AJ0             DP(0x000)
-#define AJ1             DP(0x010)
-#define AJ2             DP(0x020)
+#define AJ0                 DP(0x000)
+#define AJ1                 DP(0x010)
+#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -1430,8 +1359,7 @@ rt_void S_run_level12(rt_SIMD_INFO_EXT *info)
     }
 }
 
-
-rt_void P_run_level12(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+rt_void p_test12(rt_SIMD_INFOX *info)
 {
     rt_cell j, n;
 
@@ -1441,13 +1369,10 @@ rt_void P_run_level12(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n", 12);
-
     j = n = info->size;
     while (j-->0)
-
     {
-        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !VERBOSE)
         {
             continue;
         }
@@ -1462,11 +1387,6 @@ rt_void P_run_level12(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
                 j, j, iso1[j], j, j, iso2[j]);
 
     }
-
-    RT_LOGI("Time C = %d\n", (rt_cell)tC);
-    RT_LOGI("Time S = %d\n", (rt_cell)tS);
-
-    RT_LOGI("----------------------------------------------------\n");
 }
 
 #endif /* RUN_LEVEL 12 */
@@ -1475,160 +1395,158 @@ rt_void P_run_level12(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 /*********************************   TABLES   *********************************/
 /******************************************************************************/
 
-typedef rt_void (*C_run_levelXX)(rt_SIMD_INFO_EXT *);
-typedef rt_void (*S_run_levelXX)(rt_SIMD_INFO_EXT *);
-typedef rt_void (*P_run_levelXX)(rt_SIMD_INFO_EXT *, rt_long, rt_long, rt_bool);
+typedef rt_void (*testXX)(rt_SIMD_INFOX *);
 
-C_run_levelXX Carr[RUN_LEVEL] =
+testXX c_test[RUN_LEVEL] =
 {
 #if RUN_LEVEL >=  1
-    C_run_level01,
+    c_test01,
 #endif /* RUN_LEVEL  1 */
 
 #if RUN_LEVEL >=  2
-    C_run_level02,
+    c_test02,
 #endif /* RUN_LEVEL  2 */
 
 #if RUN_LEVEL >=  3
-    C_run_level03,
+    c_test03,
 #endif /* RUN_LEVEL  3 */
 
 #if RUN_LEVEL >=  4
-    C_run_level04,
+    c_test04,
 #endif /* RUN_LEVEL  4 */
 
 #if RUN_LEVEL >=  5
-    C_run_level05,
+    c_test05,
 #endif /* RUN_LEVEL  5 */
 
 #if RUN_LEVEL >=  6
-    C_run_level06,
+    c_test06,
 #endif /* RUN_LEVEL  6 */
 
 #if RUN_LEVEL >=  7
-    C_run_level07,
+    c_test07,
 #endif /* RUN_LEVEL  7 */
 
 #if RUN_LEVEL >=  8
-    C_run_level08,
+    c_test08,
 #endif /* RUN_LEVEL  8 */
 
 #if RUN_LEVEL >=  9
-    C_run_level09,
+    c_test09,
 #endif /* RUN_LEVEL  9 */
 
 #if RUN_LEVEL >= 10
-    C_run_level10,
+    c_test10,
 #endif /* RUN_LEVEL 10 */
 
 #if RUN_LEVEL >= 11
-    C_run_level11,
+    c_test11,
 #endif /* RUN_LEVEL 11 */
 
 #if RUN_LEVEL >= 12
-    C_run_level12,
+    c_test12,
 #endif /* RUN_LEVEL 12 */
 };
 
-S_run_levelXX Sarr[RUN_LEVEL] =
+testXX s_test[RUN_LEVEL] =
 {
 #if RUN_LEVEL >=  1
-    S_run_level01,
+    s_test01,
 #endif /* RUN_LEVEL  1 */
 
 #if RUN_LEVEL >=  2
-    S_run_level02,
+    s_test02,
 #endif /* RUN_LEVEL  2 */
 
 #if RUN_LEVEL >=  3
-    S_run_level03,
+    s_test03,
 #endif /* RUN_LEVEL  3 */
 
 #if RUN_LEVEL >=  4
-    S_run_level04,
+    s_test04,
 #endif /* RUN_LEVEL  4 */
 
 #if RUN_LEVEL >=  5
-    S_run_level05,
+    s_test05,
 #endif /* RUN_LEVEL  5 */
 
 #if RUN_LEVEL >=  6
-    S_run_level06,
+    s_test06,
 #endif /* RUN_LEVEL  6 */
 
 #if RUN_LEVEL >=  7
-    S_run_level07,
+    s_test07,
 #endif /* RUN_LEVEL  7 */
 
 #if RUN_LEVEL >=  8
-    S_run_level08,
+    s_test08,
 #endif /* RUN_LEVEL  8 */
 
 #if RUN_LEVEL >=  9
-    S_run_level09,
+    s_test09,
 #endif /* RUN_LEVEL  9 */
 
 #if RUN_LEVEL >= 10
-    S_run_level10,
+    s_test10,
 #endif /* RUN_LEVEL 10 */
 
 #if RUN_LEVEL >= 11
-    S_run_level11,
+    s_test11,
 #endif /* RUN_LEVEL 11 */
 
 #if RUN_LEVEL >= 12
-    S_run_level12,
+    s_test12,
 #endif /* RUN_LEVEL 12 */
 };
 
-P_run_levelXX Parr[RUN_LEVEL] =
+testXX p_test[RUN_LEVEL] =
 {
 #if RUN_LEVEL >=  1
-    P_run_level01,
+    p_test01,
 #endif /* RUN_LEVEL  1 */
 
 #if RUN_LEVEL >=  2
-    P_run_level02,
+    p_test02,
 #endif /* RUN_LEVEL  2 */
 
 #if RUN_LEVEL >=  3
-    P_run_level03,
+    p_test03,
 #endif /* RUN_LEVEL  3 */
 
 #if RUN_LEVEL >=  4
-    P_run_level04,
+    p_test04,
 #endif /* RUN_LEVEL  4 */
 
 #if RUN_LEVEL >=  5
-    P_run_level05,
+    p_test05,
 #endif /* RUN_LEVEL  5 */
 
 #if RUN_LEVEL >=  6
-    P_run_level06,
+    p_test06,
 #endif /* RUN_LEVEL  6 */
 
 #if RUN_LEVEL >=  7
-    P_run_level07,
+    p_test07,
 #endif /* RUN_LEVEL  7 */
 
 #if RUN_LEVEL >=  8
-    P_run_level08,
+    p_test08,
 #endif /* RUN_LEVEL  8 */
 
 #if RUN_LEVEL >=  9
-    P_run_level09,
+    p_test09,
 #endif /* RUN_LEVEL  9 */
 
 #if RUN_LEVEL >= 10
-    P_run_level10,
+    p_test10,
 #endif /* RUN_LEVEL 10 */
 
 #if RUN_LEVEL >= 11
-    P_run_level11,
+    p_test11,
 #endif /* RUN_LEVEL 11 */
 
 #if RUN_LEVEL >= 12
-    P_run_level12,
+    p_test12,
 #endif /* RUN_LEVEL 12 */
 };
 
@@ -1711,8 +1629,8 @@ rt_cell main()
 
     memcpy(iar0, iarr, sizeof(iarr));
 
-    rt_pntr info = malloc(sizeof(rt_SIMD_INFO_EXT) + MASK);
-    rt_SIMD_INFO_EXT *inf0 = (rt_SIMD_INFO_EXT *)(((rt_word)info + MASK) & ~MASK);
+    rt_pntr info = malloc(sizeof(rt_SIMD_INFOX) + MASK);
+    rt_SIMD_INFOX *inf0 = (rt_SIMD_INFOX *)(((rt_word)info + MASK) & ~MASK);
 
     RT_SIMD_SET(inf0->gpc01, +1.0f);
     RT_SIMD_SET(inf0->gpc02, -0.5f);
@@ -1742,27 +1660,37 @@ rt_cell main()
 
     for (i = 0; i < RUN_LEVEL; i++)
     {
+        RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n", i+1);
+
         time1 = get_time();
 
-        Carr[i](inf0);
+        c_test[i](inf0);
 
         time2 = get_time();
         tC = time2 - time1;
+        RT_LOGI("Time C = %d\n", (rt_cell)tC);
+
+        /* --------------------------------- */
 
         time1 = get_time();
 
-        Sarr[i](inf0);
+        s_test[i](inf0);
 
         time2 = get_time();
         tS = time2 - time1;
+        RT_LOGI("Time S = %d\n", (rt_cell)tS);
 
-        Parr[i](inf0, tC, tS, VERBOSE);
+        /* --------------------------------- */
+
+        p_test[i](inf0);
+
+        RT_LOGI("----------------------------------------------------\n");
     }
 
     free(info);
     free(marr);
 
-#if   defined (WIN32) /* Win32, MSVC ---------------------------------------- */
+#if   defined (RT_WIN32) /* Win32, MSVC ------------------------------------- */
 
     RT_LOGI("Type any letter and press ENTER to exit:");
     rt_char str[256]; /* not secure, do not inherit this practice */
@@ -1773,7 +1701,7 @@ rt_cell main()
     return 0;
 }
 
-#if   defined (WIN32) /* Win32, MSVC ---------------------------------------- */
+#if   defined (RT_WIN32) /* Win32, MSVC ------------------------------------- */
 
 #include <windows.h>
 
@@ -1786,7 +1714,7 @@ rt_long get_time()
     return (rt_long)(tm.QuadPart * 1000 / fr.QuadPart);
 }
 
-#elif defined (linux) /* Linux, GCC ----------------------------------------- */
+#elif defined (RT_LINUX) /* Linux, GCC -------------------------------------- */
 
 #include <sys/time.h>
 
