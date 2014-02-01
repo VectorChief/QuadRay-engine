@@ -12,7 +12,7 @@
 #include "rtarch.h"
 #include "rtbase.h"
 
-#define RUN_LEVEL       10
+#define RUN_LEVEL       11
 #define VERBOSE         RT_FALSE
 #define CYC_SIZE        1000000
 
@@ -880,7 +880,7 @@ rt_void C_run_level08(rt_SIMD_INFO_EXT *info)
         while (j-->0)
         {
             ico1[j] = iar0[j] + (iar0[j] << 1);
-            ico2[j] = iar0[j] + (iar0[j] >> 2);
+            ico2[j] = iar0[j] - (iar0[j] >> 2);
         }
     }
 }
@@ -909,7 +909,7 @@ rt_void S_run_level08(rt_SIMD_INFO_EXT *info)
         addpx_rr(Xmm2, Xmm0)
         movpx_rr(Xmm3, Xmm1)
         shrpx_ri(Xmm1, IB(2))
-        addpx_rr(Xmm3, Xmm1)
+        subpx_rr(Xmm3, Xmm1)
         movpx_st(Xmm2, Medx, AJ0)
         movpx_st(Xmm3, Mebx, AJ0)
 
@@ -920,7 +920,7 @@ rt_void S_run_level08(rt_SIMD_INFO_EXT *info)
         addpx_rr(Xmm2, Xmm0)
         movpx_rr(Xmm3, Xmm1)
         shrpx_ri(Xmm1, IB(2))
-        addpx_rr(Xmm3, Xmm1)
+        subpx_rr(Xmm3, Xmm1)
         movpx_st(Xmm2, Medx, AJ1)
         movpx_st(Xmm3, Mebx, AJ1)
 
@@ -931,7 +931,7 @@ rt_void S_run_level08(rt_SIMD_INFO_EXT *info)
         addpx_rr(Xmm2, Xmm0)
         movpx_rr(Xmm3, Xmm1)
         shrpx_ri(Xmm1, IB(2))
-        addpx_rr(Xmm3, Xmm1)
+        subpx_rr(Xmm3, Xmm1)
         movpx_st(Xmm2, Medx, AJ2)
         movpx_st(Xmm3, Mebx, AJ2)
 
@@ -1233,6 +1233,124 @@ rt_void P_run_level10(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
 #endif /* RUN_LEVEL 10 */
 
 /******************************************************************************/
+/******************************   RUN LEVEL 11   ******************************/
+/******************************************************************************/
+
+#if RUN_LEVEL >= 11
+
+rt_void C_run_level11(rt_SIMD_INFO_EXT *info)
+{
+    rt_cell i, j, n = info->size;
+    rt_cell *iar0 = info->iar0;
+    rt_cell *ico1 = info->ico1;
+    rt_cell *ico2 = info->ico2;
+
+    i = info->cyc;
+    while (i-->0)
+    {
+        j = n;
+        while (j-->0)
+        {
+            ico1[j] = iar0[j] | (iar0[j] << 7);
+            ico2[j] = iar0[j] ^ (iar0[j] >> 3);
+        }
+    }
+}
+
+rt_void S_run_level11(rt_SIMD_INFO_EXT *info)
+{
+    rt_cell i;
+
+#define AJ0             DP(0x000)
+#define AJ1             DP(0x010)
+#define AJ2             DP(0x020)
+
+    i = info->cyc;
+    while (i-->0)
+    {
+        ASM_ENTER(info)
+
+        movxx_ld(Resi, Mebp, inf_IAR0)
+        movxx_ld(Redx, Mebp, inf_ISO1)
+        movxx_ld(Rebx, Mebp, inf_ISO2)
+
+        movpx_ld(Xmm0, Mesi, AJ0)
+        movpx_ld(Xmm1, Mesi, AJ0)
+        movpx_rr(Xmm2, Xmm0)
+        shlpx_ri(Xmm0, IB(7))
+        orrpx_rr(Xmm2, Xmm0)
+        movpx_rr(Xmm3, Xmm1)
+        shrpx_ri(Xmm1, IB(3))
+        xorpx_rr(Xmm3, Xmm1)
+        movpx_st(Xmm2, Medx, AJ0)
+        movpx_st(Xmm3, Mebx, AJ0)
+
+        movpx_ld(Xmm0, Mesi, AJ1)
+        movpx_ld(Xmm1, Mesi, AJ1)
+        movpx_rr(Xmm2, Xmm0)
+        shlpx_ri(Xmm0, IB(7))
+        orrpx_rr(Xmm2, Xmm0)
+        movpx_rr(Xmm3, Xmm1)
+        shrpx_ri(Xmm1, IB(3))
+        xorpx_rr(Xmm3, Xmm1)
+        movpx_st(Xmm2, Medx, AJ1)
+        movpx_st(Xmm3, Mebx, AJ1)
+
+        movpx_ld(Xmm0, Mesi, AJ2)
+        movpx_ld(Xmm1, Mesi, AJ2)
+        movpx_rr(Xmm2, Xmm0)
+        shlpx_ri(Xmm0, IB(7))
+        orrpx_rr(Xmm2, Xmm0)
+        movpx_rr(Xmm3, Xmm1)
+        shrpx_ri(Xmm1, IB(3))
+        xorpx_rr(Xmm3, Xmm1)
+        movpx_st(Xmm2, Medx, AJ2)
+        movpx_st(Xmm3, Mebx, AJ2)
+
+        ASM_LEAVE(info)
+    }
+}
+
+rt_void P_run_level11(rt_SIMD_INFO_EXT *info, rt_long tC, rt_long tS, rt_bool v)
+{
+    rt_cell j, n;
+
+    rt_cell *iar0 = info->iar0;
+    rt_cell *ico1 = info->ico1;
+    rt_cell *ico2 = info->ico2;
+    rt_cell *iso1 = info->iso1;
+    rt_cell *iso2 = info->iso2;
+
+    RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n", 11);
+
+    j = n = info->size;
+    while (j-->0)
+    {
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v)
+        {
+            continue;
+        }
+
+        RT_LOGI("iarr[%d] = %d\n",
+                j, iar0[j]);
+
+        RT_LOGI("C iarr[%d]|(iarr[%d]<<7) = %d, iarr[%d]^(iarr[%d]>>3) = %d\n",
+                j, j, ico1[j], j, j, ico2[j]);
+
+        RT_LOGI("S iarr[%d]|(iarr[%d]<<7) = %d, iarr[%d]^(iarr[%d]>>3) = %d\n",
+                j, j, iso1[j], j, j, iso2[j]);
+
+    }
+
+    RT_LOGI("Time C = %d\n", (rt_cell)tC);
+    RT_LOGI("Time S = %d\n", (rt_cell)tS);
+
+    RT_LOGI("----------------------------------------------------\n");
+}
+
+#endif /* RUN_LEVEL 11 */
+
+/******************************************************************************/
 /*********************************   TABLES   *********************************/
 /******************************************************************************/
 
@@ -1281,6 +1399,10 @@ C_run_levelXX Carr[RUN_LEVEL] =
 #if RUN_LEVEL >= 10
     C_run_level10,
 #endif /* RUN_LEVEL 10 */
+
+#if RUN_LEVEL >= 11
+    C_run_level11,
+#endif /* RUN_LEVEL 11 */
 };
 
 S_run_levelXX Sarr[RUN_LEVEL] =
@@ -1324,6 +1446,10 @@ S_run_levelXX Sarr[RUN_LEVEL] =
 #if RUN_LEVEL >= 10
     S_run_level10,
 #endif /* RUN_LEVEL 10 */
+
+#if RUN_LEVEL >= 11
+    S_run_level11,
+#endif /* RUN_LEVEL 11 */
 };
 
 P_run_levelXX Parr[RUN_LEVEL] =
@@ -1367,6 +1493,10 @@ P_run_levelXX Parr[RUN_LEVEL] =
 #if RUN_LEVEL >= 10
     P_run_level10,
 #endif /* RUN_LEVEL 10 */
+
+#if RUN_LEVEL >= 11
+    P_run_level11,
+#endif /* RUN_LEVEL 11 */
 };
 
 /******************************************************************************/
