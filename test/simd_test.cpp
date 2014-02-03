@@ -12,7 +12,7 @@
 #include "rtarch.h"
 #include "rtbase.h"
 
-#define RUN_LEVEL           12
+#define RUN_LEVEL           13
 #define VERBOSE             RT_FALSE
 #define CYC_SIZE            1000000
 
@@ -759,26 +759,20 @@ rt_void s_test07(rt_SIMD_INFOX *info)
         movxx_ld(Rebx, Mebp, inf_FSO2)
 
         movpx_ld(Xmm0, Mecx, AJ0)
-        movpx_rr(Xmm1, Xmm0)
-        rsqps_rr(Xmm2, Xmm0) /* destroys Xmm0 */
-        mulps_rr(Xmm2, Xmm1)
-        rcpps_rr(Xmm3, Xmm1) /* destroys Xmm1 */
+        sqrps_rr(Xmm2, Xmm0)
+        rcpps_rr(Xmm3, Xmm0) /* destroys Xmm0 */
         movpx_st(Xmm2, Medx, AJ0)
         movpx_st(Xmm3, Mebx, AJ0)
 
         movpx_ld(Xmm0, Mecx, AJ1)
-        movpx_rr(Xmm1, Xmm0)
-        rsqps_rr(Xmm2, Xmm0) /* destroys Xmm0 */
-        mulps_rr(Xmm2, Xmm1)
-        rcpps_rr(Xmm3, Xmm1) /* destroys Xmm1 */
+        sqrps_rr(Xmm2, Xmm0)
+        rcpps_rr(Xmm3, Xmm0) /* destroys Xmm0 */
         movpx_st(Xmm2, Medx, AJ1)
         movpx_st(Xmm3, Mebx, AJ1)
 
         movpx_ld(Xmm0, Mecx, AJ2)
-        movpx_rr(Xmm1, Xmm0)
-        rsqps_rr(Xmm2, Xmm0) /* destroys Xmm0 */
-        mulps_rr(Xmm2, Xmm1)
-        rcpps_rr(Xmm3, Xmm1) /* destroys Xmm1 */
+        sqrps_rr(Xmm2, Xmm0)
+        rcpps_rr(Xmm3, Xmm0) /* destroys Xmm0 */
         movpx_st(Xmm2, Medx, AJ2)
         movpx_st(Xmm3, Mebx, AJ2)
 
@@ -807,10 +801,10 @@ rt_void p_test07(rt_SIMD_INFOX *info)
         RT_LOGI("farr[%d] = %e\n",
                 j, far0[j]);
 
-        RT_LOGI("C sqrt(farr[%d]) = %e, 1.0/farr[%d] = %e\n",
+        RT_LOGI("C sqrtf(farr[%d]) = %e, 1.0f/farr[%d] = %e\n",
                 j, fco1[j], j, fco2[j]);
 
-        RT_LOGI("S sqrt(farr[%d]) = %e, 1.0/farr[%d] = %e\n",
+        RT_LOGI("S sqrtf(farr[%d]) = %e, 1.0f/farr[%d] = %e\n",
                 j, fso1[j], j, fso2[j]);
     }
 }
@@ -1392,6 +1386,101 @@ rt_void p_test12(rt_SIMD_INFOX *info)
 #endif /* RUN_LEVEL 12 */
 
 /******************************************************************************/
+/******************************   RUN LEVEL 13   ******************************/
+/******************************************************************************/
+
+#if RUN_LEVEL >= 13
+
+rt_void c_test13(rt_SIMD_INFOX *info)
+{
+    rt_cell i, j, n = info->size;
+    rt_real *far0 = info->far0;
+    rt_real *fco1 = info->fco1;
+    rt_real *fco2 = info->fco2;
+
+    i = info->cyc;
+    while (i-->0)
+    {
+        j = n;
+        while (j-->0)
+        {
+            fco1[j] = powf(far0[j], 1.0f / 3.0f);
+            fco2[j] = 1.0f / sqrtf(far0[j]);
+        }
+    }
+}
+
+rt_void s_test13(rt_SIMD_INFOX *info)
+{
+    rt_cell i;
+
+#define AJ0                 DP(0x000)
+#define AJ1                 DP(0x010)
+#define AJ2                 DP(0x020)
+
+    i = info->cyc;
+    while (i-->0)
+    {
+        ASM_ENTER(info)
+
+        movxx_ld(Recx, Mebp, inf_FAR0)
+        movxx_ld(Redx, Mebp, inf_FSO1)
+        movxx_ld(Rebx, Mebp, inf_FSO2)
+
+        movpx_ld(Xmm0, Mecx, AJ0)
+        cbrps_rr(Xmm2, Xmm5, Xmm6, Xmm0) /* destroys Xmm5, Xmm6 */
+        rsqps_rr(Xmm3, Xmm0) /* destroys Xmm0 */
+        movpx_st(Xmm2, Medx, AJ0)
+        movpx_st(Xmm3, Mebx, AJ0)
+
+        movpx_ld(Xmm0, Mecx, AJ1)
+        cbrps_rr(Xmm2, Xmm5, Xmm6, Xmm0) /* destroys Xmm5, Xmm6 */
+        rsqps_rr(Xmm3, Xmm0) /* destroys Xmm0 */
+        movpx_st(Xmm2, Medx, AJ1)
+        movpx_st(Xmm3, Mebx, AJ1)
+
+        movpx_ld(Xmm0, Mecx, AJ2)
+        cbrps_rr(Xmm2, Xmm5, Xmm6, Xmm0) /* destroys Xmm5, Xmm6 */
+        rsqps_rr(Xmm3, Xmm0) /* destroys Xmm0 */
+        movpx_st(Xmm2, Medx, AJ2)
+        movpx_st(Xmm3, Mebx, AJ2)
+
+        ASM_LEAVE(info)
+    }
+}
+
+rt_void p_test13(rt_SIMD_INFOX *info)
+{
+    rt_cell j, n;
+
+    rt_real *far0 = info->far0;
+    rt_real *fco1 = info->fco1;
+    rt_real *fco2 = info->fco2;
+    rt_real *fso1 = info->fso1;
+    rt_real *fso2 = info->fso2;
+
+    j = n = info->size;
+    while (j-->0)
+    {
+        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !VERBOSE)
+        {
+            continue;
+        }
+
+        RT_LOGI("farr[%d] = %e\n",
+                j, far0[j]);
+
+        RT_LOGI("C powf(farr[%d],1.0f/3.0f) = %e, 1.0f/sqrtf(farr[%d]) = %e\n",
+                j, fco1[j], j, fco2[j]);
+
+        RT_LOGI("S powf(farr[%d],1.0f/3.0f) = %e, 1.0f/sqrtf(farr[%d]) = %e\n",
+                j, fso1[j], j, fso2[j]);
+    }
+}
+
+#endif /* RUN_LEVEL 13 */
+
+/******************************************************************************/
 /*********************************   TABLES   *********************************/
 /******************************************************************************/
 
@@ -1446,6 +1535,10 @@ testXX c_test[RUN_LEVEL] =
 #if RUN_LEVEL >= 12
     c_test12,
 #endif /* RUN_LEVEL 12 */
+
+#if RUN_LEVEL >= 13
+    c_test13,
+#endif /* RUN_LEVEL 13 */
 };
 
 testXX s_test[RUN_LEVEL] =
@@ -1497,6 +1590,10 @@ testXX s_test[RUN_LEVEL] =
 #if RUN_LEVEL >= 12
     s_test12,
 #endif /* RUN_LEVEL 12 */
+
+#if RUN_LEVEL >= 13
+    s_test13,
+#endif /* RUN_LEVEL 13 */
 };
 
 testXX p_test[RUN_LEVEL] =
@@ -1548,6 +1645,10 @@ testXX p_test[RUN_LEVEL] =
 #if RUN_LEVEL >= 12
     p_test12,
 #endif /* RUN_LEVEL 12 */
+
+#if RUN_LEVEL >= 13
+    p_test13,
+#endif /* RUN_LEVEL 13 */
 };
 
 /******************************************************************************/
@@ -1635,6 +1736,8 @@ rt_cell main()
     RT_SIMD_SET(inf0->gpc01, +1.0f);
     RT_SIMD_SET(inf0->gpc02, -0.5f);
     RT_SIMD_SET(inf0->gpc03, +3.0f);
+    RT_SIMD_SET(inf0->gpc04, 0x7FFFFFFF);
+    RT_SIMD_SET(inf0->gpc05, 0x3F800000);
 
     inf0->far0 = far0;
     inf0->fco1 = fco1;

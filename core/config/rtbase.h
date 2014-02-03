@@ -56,8 +56,14 @@ struct rt_SIMD_INFO
     rt_real gpc03[4];       /* +3.0 */
 #define inf_GPC03           DP(0x020)
 
-    rt_real pad01[28];      /* reserved, do not use! */
-#define inf_PAD01           DP(0x030)
+    rt_word gpc04[4];       /* 0x7FFFFFFF */
+#define inf_GPC04           DP(0x030)
+
+    rt_word gpc05[4];       /* 0x3F800000 */
+#define inf_GPC05           DP(0x040)
+
+    rt_real pad01[20];      /* reserved, do not use! */
+#define inf_PAD01           DP(0x050)
 
     /* internal variables */
 

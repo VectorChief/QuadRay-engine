@@ -214,6 +214,64 @@
         EMITW(0xF3000D50 | MTM(Tmm1,    Tmm1,    Tmm2))                     \
         EMITW(0xF3000D50 | MTM(REG(RG), Tmm3,    Tmm1))
 
+/* cbr,
+ * original idea: Russell Borogove (kaleja[AT]estarcion[DOT]com)
+ * posted at http://www.musicdsp.org/showone.php?id=206
+ * converted to 4-way vector version by VectorChief */
+
+#define cbrps_rr(RG, R1, R2, RM) /* destroys value in R1, R2 (temp regs) */ \
+        /* cube root estimate, the exponent is divided by three             \
+         * in such a way that remainder bits get shoved into                \
+         * the top of the normalized mantissa */                            \
+        movpx_ld(W(R2), Mebp, inf_GPC04)                                    \
+        movpx_rr(W(RG), W(RM))                                              \
+        andpx_rr(W(RG), W(R2))   /* exponent & mantissa in biased-127 */    \
+        subpx_ld(W(RG), Mebp, inf_GPC05) /* convert to 2's complement */    \
+        shrpn_ri(W(RG), IB(10))  /* RG / 1024 */                            \
+        movpx_rr(W(R1), W(RG))   /* RG * 341 (next 8 ops) */                \
+        shlpx_ri(W(R1), IB(2))                                              \
+        addpx_rr(W(RG), W(R1))                                              \
+        shlpx_ri(W(R1), IB(2))                                              \
+        addpx_rr(W(RG), W(R1))                                              \
+        shlpx_ri(W(R1), IB(2))                                              \
+        addpx_rr(W(RG), W(R1))                                              \
+        shlpx_ri(W(R1), IB(2))                                              \
+        addpx_rr(W(RG), W(R1))   /* RG * (341/1024) ~= RG * (0.333) */      \
+        addpx_ld(W(RG), Mebp, inf_GPC05) /* back to biased-127 */           \
+        andpx_rr(W(RG), W(R2))   /* remask exponent & mantissa */           \
+        annpx_rr(W(R2), W(RM))   /* original sign */                        \
+        orrpx_rr(W(RG), W(R2))   /* new exponent & mantissa, old sign */    \
+        /* 1st Newton-Raphson approx */                                     \
+        movpx_rr(W(R1), W(RG))                                              \
+        mulps_rr(W(R1), W(RG))                                              \
+        movpx_rr(W(R2), W(R1))                                              \
+        mulps_ld(W(R1), Mebp, inf_GPC03)                                    \
+        rceps_rr(W(R1), W(R1))                                              \
+        mulps_rr(W(R2), W(RG))                                              \
+        subps_rr(W(R2), W(RM))                                              \
+        mulps_rr(W(R2), W(R1))                                              \
+        subps_rr(W(RG), W(R2))                                              \
+        /* 2nd Newton-Raphson approx */                                     \
+        movpx_rr(W(R1), W(RG))                                              \
+        mulps_rr(W(R1), W(RG))                                              \
+        movpx_rr(W(R2), W(R1))                                              \
+        mulps_ld(W(R1), Mebp, inf_GPC03)                                    \
+        rceps_rr(W(R1), W(R1))                                              \
+        mulps_rr(W(R2), W(RG))                                              \
+        subps_rr(W(R2), W(RM))                                              \
+        mulps_rr(W(R2), W(R1))                                              \
+        subps_rr(W(RG), W(R2))                                              \
+        /* 3rd Newton-Raphson approx */                                     \
+        movpx_rr(W(R1), W(RG))                                              \
+        mulps_rr(W(R1), W(RG))                                              \
+        movpx_rr(W(R2), W(R1))                                              \
+        mulps_ld(W(R1), Mebp, inf_GPC03)                                    \
+        rceps_rr(W(R1), W(R1))                                              \
+        mulps_rr(W(R2), W(RG))                                              \
+        subps_rr(W(R2), W(RM))                                              \
+        mulps_rr(W(R2), W(R1))                                              \
+        subps_rr(W(RG), W(R2))
+
 /* rcp */
 
 #define rceps_rr(RG, RM)                                                    \
