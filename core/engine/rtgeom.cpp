@@ -237,6 +237,11 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
  * Determine if vert "p1" and face "q0-q1-q2" intersect as seen from vert "p0".
  * False-positives are allowed due to computational inaccuracy.
  *
+ * Based on the original idea by Tomas Möller and Ben Trumbore
+ * presented in the article "Fast, Minimum Storage Ray/Triangle Intersection"
+ * available at http://www.graphics.cornell.edu/pubs/1997/MT97.html
+ * converted to division-less version with margins by VectorChief.
+ *
  * Return values:
  *  0 - don't intersect
  *  1 - intersect o-p-q
@@ -370,6 +375,11 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
 /*
  * Determine if edge "p1-p2" and edge "q1-q2" intersect as seen from vert "p0".
  * False-positives are allowed due to computational inaccuracy.
+ *
+ * Based on the original idea by Tomas Möller and Ben Trumbore
+ * presented in the article "Fast, Minimum Storage Ray/Triangle Intersection"
+ * available at http://www.graphics.cornell.edu/pubs/1997/MT97.html
+ * converted to division-less version with margins by VectorChief.
  *
  * Return values:
  *  0 - don't intersect

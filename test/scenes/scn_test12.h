@@ -231,14 +231,6 @@ rt_OBJECT ob_tree[] =
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {    0.0,        0.0,        5.0    },
-        },
-        RT_OBJ_ARRAY(&ob_camera01)
-    },
-    {
-        {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   -2.0,        0.0,        4.5    },
         },
         RT_OBJ_ARRAY(&ob_light01)
@@ -250,6 +242,14 @@ rt_OBJECT ob_tree[] =
 /* pos */   {   +2.0,        0.0,        4.5    },
         },
         RT_OBJ_ARRAY(&ob_light01)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {    0.0,        0.0,        5.0    },
+        },
+        RT_OBJ_ARRAY(&ob_camera01)
     },
 };
 
