@@ -18,7 +18,8 @@ SRC_LIST =                          \
         core_test.cpp
 
 core_test:
-	g++ -O3 -g -fexceptions -DRT_PATH="../" \
+	g++ -O3 -g -fexceptions \
+        -DRT_PATH="../" \
         -DRT_LINUX -DRT_ARM -DRT_DEBUG=1 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=1 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} -o core_test.arm
