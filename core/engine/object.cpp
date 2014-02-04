@@ -1810,27 +1810,27 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     if (trnode != RT_NULL)
     {
         rt_vec4 vt0;
-        vt0[mp_i] = bmin[mp_i];
-        vt0[mp_j] = bmin[mp_j];
-        vt0[mp_k] = bmin[mp_k];
+        vt0[mp_i] = bmax[mp_i];
+        vt0[mp_j] = bmax[mp_j];
+        vt0[mp_k] = bmax[mp_k];
         vt0[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt1;
-        vt1[mp_i] = bmax[mp_i];
-        vt1[mp_j] = bmin[mp_j];
-        vt1[mp_k] = bmin[mp_k];
+        vt1[mp_i] = bmin[mp_i];
+        vt1[mp_j] = bmax[mp_j];
+        vt1[mp_k] = bmax[mp_k];
         vt1[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt2;
-        vt2[mp_i] = bmax[mp_i];
-        vt2[mp_j] = bmax[mp_j];
-        vt2[mp_k] = bmin[mp_k];
+        vt2[mp_i] = bmin[mp_i];
+        vt2[mp_j] = bmin[mp_j];
+        vt2[mp_k] = bmax[mp_k];
         vt2[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt3;
-        vt3[mp_i] = bmin[mp_i];
-        vt3[mp_j] = bmax[mp_j];
-        vt3[mp_k] = bmin[mp_k];
+        vt3[mp_i] = bmax[mp_i];
+        vt3[mp_j] = bmin[mp_j];
+        vt3[mp_k] = bmax[mp_k];
         vt3[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         matrix_mul_vector(verts[0x0].pos, (*pmtx), vt0);
@@ -1849,24 +1849,24 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     }
     else
     {
-        verts[0x0].pos[mp_i] = bmin[mp_i];
-        verts[0x0].pos[mp_j] = bmin[mp_j];
-        verts[0x0].pos[mp_k] = bmin[mp_k];
+        verts[0x0].pos[mp_i] = bmax[mp_i];
+        verts[0x0].pos[mp_j] = bmax[mp_j];
+        verts[0x0].pos[mp_k] = bmax[mp_k];
         verts[0x0].pos[mp_l] = 1.0f;
 
-        verts[0x1].pos[mp_i] = bmax[mp_i];
-        verts[0x1].pos[mp_j] = bmin[mp_j];
-        verts[0x1].pos[mp_k] = bmin[mp_k];
+        verts[0x1].pos[mp_i] = bmin[mp_i];
+        verts[0x1].pos[mp_j] = bmax[mp_j];
+        verts[0x1].pos[mp_k] = bmax[mp_k];
         verts[0x1].pos[mp_l] = 1.0f;
 
-        verts[0x2].pos[mp_i] = bmax[mp_i];
-        verts[0x2].pos[mp_j] = bmax[mp_j];
-        verts[0x2].pos[mp_k] = bmin[mp_k];
+        verts[0x2].pos[mp_i] = bmin[mp_i];
+        verts[0x2].pos[mp_j] = bmin[mp_j];
+        verts[0x2].pos[mp_k] = bmax[mp_k];
         verts[0x2].pos[mp_l] = 1.0f;
 
-        verts[0x3].pos[mp_i] = bmin[mp_i];
-        verts[0x3].pos[mp_j] = bmax[mp_j];
-        verts[0x3].pos[mp_k] = bmin[mp_k];
+        verts[0x3].pos[mp_i] = bmax[mp_i];
+        verts[0x3].pos[mp_j] = bmin[mp_j];
+        verts[0x3].pos[mp_k] = bmax[mp_k];
         verts[0x3].pos[mp_l] = 1.0f;
 
         edges[0x0].k = mp_i;
@@ -1929,25 +1929,25 @@ rt_EDGE qd_edges[] =
     {0x1, 0x2},
     {0x2, 0x3},
     {0x3, 0x0},
-    {0x4, 0x5},
-    {0x5, 0x6},
-    {0x6, 0x7},
-    {0x7, 0x4},
     {0x0, 0x4},
     {0x1, 0x5},
     {0x2, 0x6},
     {0x3, 0x7},
+    {0x7, 0x6},
+    {0x6, 0x5},
+    {0x5, 0x4},
+    {0x4, 0x7},
 };
 
 static
 rt_FACE qd_faces[] = 
 {
     {0x0, 0x1, 0x2, 0x3},
-    {0x4, 0x5, 0x6, 0x7},
     {0x0, 0x4, 0x5, 0x1},
     {0x1, 0x5, 0x6, 0x2},
     {0x2, 0x6, 0x7, 0x3},
     {0x3, 0x7, 0x4, 0x0},
+    {0x7, 0x6, 0x5, 0x4},
 };
 
 /*
@@ -2018,51 +2018,51 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     if (trnode != RT_NULL)
     {
         rt_vec4 vt0;
-        vt0[mp_i] = bmin[mp_i];
-        vt0[mp_j] = bmin[mp_j];
-        vt0[mp_k] = bmin[mp_k];
+        vt0[mp_i] = bmax[mp_i];
+        vt0[mp_j] = bmax[mp_j];
+        vt0[mp_k] = bmax[mp_k];
         vt0[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt1;
-        vt1[mp_i] = bmax[mp_i];
-        vt1[mp_j] = bmin[mp_j];
-        vt1[mp_k] = bmin[mp_k];
+        vt1[mp_i] = bmin[mp_i];
+        vt1[mp_j] = bmax[mp_j];
+        vt1[mp_k] = bmax[mp_k];
         vt1[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt2;
-        vt2[mp_i] = bmax[mp_i];
-        vt2[mp_j] = bmax[mp_j];
-        vt2[mp_k] = bmin[mp_k];
+        vt2[mp_i] = bmin[mp_i];
+        vt2[mp_j] = bmin[mp_j];
+        vt2[mp_k] = bmax[mp_k];
         vt2[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt3;
-        vt3[mp_i] = bmin[mp_i];
-        vt3[mp_j] = bmax[mp_j];
-        vt3[mp_k] = bmin[mp_k];
+        vt3[mp_i] = bmax[mp_i];
+        vt3[mp_j] = bmin[mp_j];
+        vt3[mp_k] = bmax[mp_k];
         vt3[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt4;
-        vt4[mp_i] = bmin[mp_i];
-        vt4[mp_j] = bmin[mp_j];
-        vt4[mp_k] = bmax[mp_k];
+        vt4[mp_i] = bmax[mp_i];
+        vt4[mp_j] = bmax[mp_j];
+        vt4[mp_k] = bmin[mp_k];
         vt4[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt5;
-        vt5[mp_i] = bmax[mp_i];
-        vt5[mp_j] = bmin[mp_j];
-        vt5[mp_k] = bmax[mp_k];
+        vt5[mp_i] = bmin[mp_i];
+        vt5[mp_j] = bmax[mp_j];
+        vt5[mp_k] = bmin[mp_k];
         vt5[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt6;
-        vt6[mp_i] = bmax[mp_i];
-        vt6[mp_j] = bmax[mp_j];
-        vt6[mp_k] = bmax[mp_k];
+        vt6[mp_i] = bmin[mp_i];
+        vt6[mp_j] = bmin[mp_j];
+        vt6[mp_k] = bmin[mp_k];
         vt6[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt7;
-        vt7[mp_i] = bmin[mp_i];
-        vt7[mp_j] = bmax[mp_j];
-        vt7[mp_k] = bmax[mp_k];
+        vt7[mp_i] = bmax[mp_i];
+        vt7[mp_j] = bmin[mp_j];
+        vt7[mp_k] = bmin[mp_k];
         vt7[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         matrix_mul_vector(verts[0x0].pos, (*pmtx), vt0);
@@ -2115,44 +2115,44 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     }
     else
     {
-        verts[0x0].pos[mp_i] = bmin[mp_i];
-        verts[0x0].pos[mp_j] = bmin[mp_j];
-        verts[0x0].pos[mp_k] = bmin[mp_k];
+        verts[0x0].pos[mp_i] = bmax[mp_i];
+        verts[0x0].pos[mp_j] = bmax[mp_j];
+        verts[0x0].pos[mp_k] = bmax[mp_k];
         verts[0x0].pos[mp_l] = 1.0f;
 
-        verts[0x1].pos[mp_i] = bmax[mp_i];
-        verts[0x1].pos[mp_j] = bmin[mp_j];
-        verts[0x1].pos[mp_k] = bmin[mp_k];
+        verts[0x1].pos[mp_i] = bmin[mp_i];
+        verts[0x1].pos[mp_j] = bmax[mp_j];
+        verts[0x1].pos[mp_k] = bmax[mp_k];
         verts[0x1].pos[mp_l] = 1.0f;
 
-        verts[0x2].pos[mp_i] = bmax[mp_i];
-        verts[0x2].pos[mp_j] = bmax[mp_j];
-        verts[0x2].pos[mp_k] = bmin[mp_k];
+        verts[0x2].pos[mp_i] = bmin[mp_i];
+        verts[0x2].pos[mp_j] = bmin[mp_j];
+        verts[0x2].pos[mp_k] = bmax[mp_k];
         verts[0x2].pos[mp_l] = 1.0f;
 
-        verts[0x3].pos[mp_i] = bmin[mp_i];
-        verts[0x3].pos[mp_j] = bmax[mp_j];
-        verts[0x3].pos[mp_k] = bmin[mp_k];
+        verts[0x3].pos[mp_i] = bmax[mp_i];
+        verts[0x3].pos[mp_j] = bmin[mp_j];
+        verts[0x3].pos[mp_k] = bmax[mp_k];
         verts[0x3].pos[mp_l] = 1.0f;
 
-        verts[0x4].pos[mp_i] = bmin[mp_i];
-        verts[0x4].pos[mp_j] = bmin[mp_j];
-        verts[0x4].pos[mp_k] = bmax[mp_k];
+        verts[0x4].pos[mp_i] = bmax[mp_i];
+        verts[0x4].pos[mp_j] = bmax[mp_j];
+        verts[0x4].pos[mp_k] = bmin[mp_k];
         verts[0x4].pos[mp_l] = 1.0f;
 
-        verts[0x5].pos[mp_i] = bmax[mp_i];
-        verts[0x5].pos[mp_j] = bmin[mp_j];
-        verts[0x5].pos[mp_k] = bmax[mp_k];
+        verts[0x5].pos[mp_i] = bmin[mp_i];
+        verts[0x5].pos[mp_j] = bmax[mp_j];
+        verts[0x5].pos[mp_k] = bmin[mp_k];
         verts[0x5].pos[mp_l] = 1.0f;
 
-        verts[0x6].pos[mp_i] = bmax[mp_i];
-        verts[0x6].pos[mp_j] = bmax[mp_j];
-        verts[0x6].pos[mp_k] = bmax[mp_k];
+        verts[0x6].pos[mp_i] = bmin[mp_i];
+        verts[0x6].pos[mp_j] = bmin[mp_j];
+        verts[0x6].pos[mp_k] = bmin[mp_k];
         verts[0x6].pos[mp_l] = 1.0f;
 
-        verts[0x7].pos[mp_i] = bmin[mp_i];
-        verts[0x7].pos[mp_j] = bmax[mp_j];
-        verts[0x7].pos[mp_k] = bmax[mp_k];
+        verts[0x7].pos[mp_i] = bmax[mp_i];
+        verts[0x7].pos[mp_j] = bmin[mp_j];
+        verts[0x7].pos[mp_k] = bmin[mp_k];
         verts[0x7].pos[mp_l] = 1.0f;
 
         edges[0x0].k = mp_i;
@@ -2160,38 +2160,38 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         edges[0x2].k = mp_i;
         edges[0x3].k = mp_j;
 
-        edges[0x4].k = mp_i;
-        edges[0x5].k = mp_j;
-        edges[0x6].k = mp_i;
-        edges[0x7].k = mp_j;
+        edges[0x4].k = mp_k;
+        edges[0x5].k = mp_k;
+        edges[0x6].k = mp_k;
+        edges[0x7].k = mp_k;
 
-        edges[0x8].k = mp_k;
-        edges[0x9].k = mp_k;
-        edges[0xA].k = mp_k;
-        edges[0xB].k = mp_k;
+        edges[0x8].k = mp_i;
+        edges[0x9].k = mp_j;
+        edges[0xA].k = mp_i;
+        edges[0xB].k = mp_j;
 
         faces[0x0].k = mp_k;
         faces[0x0].i = mp_i;
         faces[0x0].j = mp_j;
 
-        faces[0x1].k = mp_k;
-        faces[0x1].i = mp_i;
-        faces[0x1].j = mp_j;
+        faces[0x1].k = mp_j;
+        faces[0x1].i = mp_k;
+        faces[0x1].j = mp_i;
 
-        faces[0x2].k = mp_j;
+        faces[0x2].k = mp_i;
         faces[0x2].i = mp_k;
-        faces[0x2].j = mp_i;
+        faces[0x2].j = mp_j;
 
-        faces[0x3].k = mp_i;
+        faces[0x3].k = mp_j;
         faces[0x3].i = mp_k;
-        faces[0x3].j = mp_j;
+        faces[0x3].j = mp_i;
 
-        faces[0x4].k = mp_j;
+        faces[0x4].k = mp_i;
         faces[0x4].i = mp_k;
-        faces[0x4].j = mp_i;
+        faces[0x4].j = mp_j;
 
-        faces[0x5].k = mp_i;
-        faces[0x5].i = mp_k;
+        faces[0x5].k = mp_k;
+        faces[0x5].i = mp_i;
         faces[0x5].j = mp_j;
     }
 
