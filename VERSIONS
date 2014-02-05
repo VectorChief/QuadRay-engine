@@ -1,3 +1,17 @@
+v0.5.8: Performance optimizations, additional core and simd tests
+  - add exception handling for worker threads, check out of memory
+  - refine exception handling, memory estimates per-frame
+  - extended core test coverage, run level 10 to 12
+  - eliminate division in rtgeom routines to avoid corner cases
+  - fix bbox adjust optimization, add pixel equality macro to core test
+  - add border margin checks to more rtgeom routines, code clean up
+  - extended simd test coverage, run level 10 to 12
+  - core and simd test framework clean up, make files adjustments
+  - add cube root instruction to simd test framework
+  - extended simd test coverage, run level 13, move rtarch files to config
+  - extended core test coverage, run level 13, add credits for borrowed code
+  - adjust bbox faces to have counter-clockwise verts order for front side
+
 v0.5.7: Performance optimizations, core test framework
   - add runtime flags for optimizations
   - adjust class access levels according to actual use
