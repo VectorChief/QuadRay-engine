@@ -19,7 +19,7 @@
 
 #define CHN(px, sh)         ((px) >> (sh) & 0xFF)    
 
-#define IEQ(i1, i2)         (abs((i1) - (i2)) <= 2)
+#define IEQ(i1, i2)         (abs((rt_cell)((i1) - (i2))) <= 2)
 #define PEQ(p1, p2)         (IEQ(CHN(p1, 24), CHN(p2, 24)) &&               \
                              IEQ(CHN(p1, 16), CHN(p2, 16)) &&               \
                              IEQ(CHN(p1,  8), CHN(p2,  8)) &&               \
