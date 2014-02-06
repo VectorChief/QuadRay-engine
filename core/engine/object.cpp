@@ -1575,6 +1575,9 @@ rt_void rt_Surface::update_minmax()
     cmax[RT_Y] = +RT_INF;
     cmax[RT_Z] = +RT_INF;
 
+    /* reinit custom clippers list */
+    elm = (rt_ELEM *)s_srf->msc_p[2];
+
     skip = 0;
 
     /* run through custom clippers list */
