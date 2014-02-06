@@ -238,6 +238,11 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
 /*
  * Determine if vert "p1" and face "q0-q1-q2" intersect from vert "p0".
  *
+ * Based on the original idea by Tomas Möller and Ben Trumbore
+ * presented in the article "Fast, Minimum Storage Ray/Triangle Intersection"
+ * available at http://www.graphics.cornell.edu/pubs/1997/MT97.html
+ * converted to version with margins by VectorChief.
+ *
  * Return values:
  *  0 - don't intersect (or lie on the same plane)
  *  1 - intersect o-p-q ( ^ dir: 0, 3)
@@ -287,20 +292,6 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1, rt_cell dir,
 
         if (v <= nx[qj] - RT_CULL_THRESHOLD
         ||  v >= mx[qj] + RT_CULL_THRESHOLD)
-        {
-            return 0;
-        }
-
-        if (t >= 1.0f - RT_CULL_THRESHOLD
-        &&  t <= 1.0f + RT_CULL_THRESHOLD
-        && (u >= nx[qi] - RT_CULL_THRESHOLD
-        &&  u <= nx[qi] + RT_CULL_THRESHOLD
-        ||  u >= mx[qi] - RT_CULL_THRESHOLD
-        &&  u <= mx[qi] + RT_CULL_THRESHOLD
-        ||  v >= nx[qj] - RT_CULL_THRESHOLD
-        &&  v <= nx[qj] + RT_CULL_THRESHOLD
-        ||  v >= mx[qj] - RT_CULL_THRESHOLD
-        &&  v <= mx[qj] + RT_CULL_THRESHOLD))
         {
             return 0;
         }
@@ -369,27 +360,20 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1, rt_cell dir,
         /* calculate t, analog of distance to intersection */
 
         t = RT_VECTOR_DOT(e2, nx) * inv_det;
-
-        if (t >= 1.0f - RT_CULL_THRESHOLD
-        &&  t <= 1.0f + RT_CULL_THRESHOLD
-        && (u >= 0.0f - RT_CULL_THRESHOLD
-        &&  u <= 0.0f + RT_CULL_THRESHOLD
-        ||  v >= 0.0f - RT_CULL_THRESHOLD
-        &&  v <= 0.0f + RT_CULL_THRESHOLD
-        ||  v >= 1.0f - RT_CULL_THRESHOLD - u
-        &&  v <= 1.0f + RT_CULL_THRESHOLD - u))
-        {
-            return 0;
-        }
     }
 
-    /* sort outward */
-    return t <= 0.0f ? 0 : t >= 1.0f + RT_CULL_THRESHOLD ? 1 ^ dir :
-                           t <= 1.0f - RT_CULL_THRESHOLD ? 2 ^ dir : 3;
+    return t <= 0.0f - RT_CULL_THRESHOLD ? 0 :
+           t >= 1.0f + RT_CULL_THRESHOLD ? 1 ^ dir :
+           t <= 1.0f - RT_CULL_THRESHOLD ? 2 ^ dir : 3;
 }
 
 /*
  * Determine if edge "p1-p2" and edge "q1-q2" intersect from vert "p0".
+ *
+ * Based on the original idea by Tomas Möller and Ben Trumbore
+ * presented in the article "Fast, Minimum Storage Ray/Triangle Intersection"
+ * available at http://www.graphics.cornell.edu/pubs/1997/MT97.html
+ * converted to version with margins by VectorChief.
  *
  * Return values:
  *  0 - don't intersect (or lie on the same plane)
@@ -456,20 +440,6 @@ rt_cell edge_to_edge(rt_vec4 p0,
 
         if (v <= nx[qk] - RT_CULL_THRESHOLD
         ||  v >= mx[qk] + RT_CULL_THRESHOLD)
-        {
-            return 0;
-        }
-
-        if (t >= 1.0f - RT_CULL_THRESHOLD
-        &&  t <= 1.0f + RT_CULL_THRESHOLD
-        && (u >= nx[pk] - RT_CULL_THRESHOLD
-        &&  u <= nx[pk] + RT_CULL_THRESHOLD
-        ||  u >= mx[pk] - RT_CULL_THRESHOLD
-        &&  u <= mx[pk] + RT_CULL_THRESHOLD
-        ||  v >= nx[qk] - RT_CULL_THRESHOLD
-        &&  v <= nx[qk] + RT_CULL_THRESHOLD
-        ||  v >= mx[qk] - RT_CULL_THRESHOLD
-        &&  v <= mx[qk] + RT_CULL_THRESHOLD))
         {
             return 0;
         }
@@ -542,25 +512,11 @@ rt_cell edge_to_edge(rt_vec4 p0,
         {
             return 0;
         }
-
-        if (t >= 1.0f - RT_CULL_THRESHOLD
-        &&  t <= 1.0f + RT_CULL_THRESHOLD
-        && (u >= 0.0f - RT_CULL_THRESHOLD
-        &&  u <= 0.0f + RT_CULL_THRESHOLD
-        ||  u >= 1.0f - RT_CULL_THRESHOLD
-        &&  u <= 1.0f + RT_CULL_THRESHOLD
-        ||  v >= 0.0f - RT_CULL_THRESHOLD
-        &&  v <= 0.0f + RT_CULL_THRESHOLD
-        ||  v >= 1.0f - RT_CULL_THRESHOLD
-        &&  v <= 1.0f + RT_CULL_THRESHOLD))
-        {
-            return 0;
-        }
     }
 
-    /* sort outward */
-    return t <= 0.0f ? 0 : t >= 1.0f + RT_CULL_THRESHOLD ? 1 :
-                           t <= 1.0f - RT_CULL_THRESHOLD ? 2 : 3;
+    return t <= 0.0f - RT_CULL_THRESHOLD ? 0 :
+           t >= 1.0f + RT_CULL_THRESHOLD ? 1 :
+           t <= 1.0f - RT_CULL_THRESHOLD ? 2 : 3;
 }
 
 /*
@@ -608,10 +564,10 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
     len += f * f;
 
     len = RT_SQRT(len);
-    ang /= len;
+    ang = len <= RT_CULL_THRESHOLD ? 0.0f : ang / len;
 
-    rt_real shw_ang = len > shw->rad ?
-                            RT_ASIN(shw->rad / len) : (rt_real)RT_2_PI;
+    rt_real shw_ang = len >= shw->rad && len > RT_CULL_THRESHOLD ?
+                        RT_ASIN(shw->rad / len) : (rt_real)RT_2_PI;
 
     f = 0.0f;
     len = 0.0f;
@@ -624,10 +580,10 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
     len += f * f;
 
     len = RT_SQRT(len);
-    ang /= len;
+    ang = len <= RT_CULL_THRESHOLD ? 0.0f : ang / len;
 
-    rt_real srf_ang = len > srf->rad ?
-                            RT_ASIN(srf->rad / len) : (rt_real)RT_2_PI;
+    rt_real srf_ang = len >= srf->rad && len > RT_CULL_THRESHOLD ?
+                        RT_ASIN(srf->rad / len) : (rt_real)RT_2_PI;
 
     ang = RT_ACOS(ang);
 
