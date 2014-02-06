@@ -239,6 +239,11 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
  * Determine if vert "p1" and face "q0-q1-q2" intersect from vert "p0".
  * False-positives are allowed in certain corner cases.
  *
+ * Based on the original idea by Tomas Möller and Ben Trumbore
+ * presented in the article "Fast, Minimum Storage Ray/Triangle Intersection"
+ * available at http://www.graphics.cornell.edu/pubs/1997/MT97.html
+ * converted to version with margins by VectorChief.
+ *
  * Return values:
  *  0 - don't intersect
  *  1 - intersect o-p-q
@@ -411,6 +416,11 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
 /*
  * Determine if edge "p1-p2" and edge "q1-q2" intersect from vert "p0".
  * False-positives are allowed in certain corner cases.
+ *
+ * Based on the original idea by Tomas Möller and Ben Trumbore
+ * presented in the article "Fast, Minimum Storage Ray/Triangle Intersection"
+ * available at http://www.graphics.cornell.edu/pubs/1997/MT97.html
+ * converted to version with margins by VectorChief.
  *
  * Return values:
  *  0 - don't intersect
@@ -1001,10 +1011,10 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
     len += f * f;
 
     len = RT_SQRT(len);
-    ang /= len;
+    ang = len <= RT_CULL_THRESHOLD ? 0.0f : ang / len;
 
-    rt_real shw_ang = len > shw->rad ?
-                            RT_ASIN(shw->rad / len) : (rt_real)RT_2_PI;
+    rt_real shw_ang = len >= shw->rad && len > RT_CULL_THRESHOLD ?
+                        RT_ASIN(shw->rad / len) : (rt_real)RT_2_PI;
 
     f = 0.0f;
     len = 0.0f;
@@ -1017,10 +1027,10 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
     len += f * f;
 
     len = RT_SQRT(len);
-    ang /= len;
+    ang = len <= RT_CULL_THRESHOLD ? 0.0f : ang / len;
 
-    rt_real srf_ang = len > srf->rad ?
-                            RT_ASIN(srf->rad / len) : (rt_real)RT_2_PI;
+    rt_real srf_ang = len >= srf->rad && len > RT_CULL_THRESHOLD ?
+                        RT_ASIN(srf->rad / len) : (rt_real)RT_2_PI;
 
     ang = RT_ACOS(ang);
 
@@ -1043,7 +1053,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
     }
 
     /* check if bounding boxes cast shadows */
-    rt_cell i, j;
+    rt_cell i, j, k;
 
     for (j = 0; j < srf->faces_num; j++)
     {
@@ -1080,11 +1090,11 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 
         for (i = 0; i < srf->verts_num; i++)
         {
-            if (vert_to_face(lgt->pos, srf->verts[i].pos,
+            if ((k = vert_to_face(lgt->pos, srf->verts[i].pos,
                              shw->verts[fc->index[0]].pos,
                              shw->verts[fc->index[1]].pos,
                              shw->verts[fc->index[2]].pos,
-                             fc->k, fc->i, fc->j) == 2)
+                             fc->k, fc->i, fc->j)) == 2 || k == 4)
             {
                 return 1;
             }
@@ -1092,11 +1102,11 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
             {
                 continue;
             }
-            if (vert_to_face(lgt->pos, srf->verts[i].pos,
+            if ((k = vert_to_face(lgt->pos, srf->verts[i].pos,
                              shw->verts[fc->index[2]].pos,
                              shw->verts[fc->index[3]].pos,
                              shw->verts[fc->index[0]].pos,
-                             fc->k, fc->i, fc->j) == 2)
+                             fc->k, fc->i, fc->j)) == 2 || k == 4)
             {
                 return 1;
             }
@@ -1139,14 +1149,13 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 static
 rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
 {
-    rt_cell i, j;
-
+    /* check if surfaces differ and have bounds */
     if (srf->verts_num == 0 || ref->verts_num == 0 || srf == ref)
     {
         return 2;
     }
 
-    /* check if bounding spheres interpenetrate */
+    /* check first if bounding spheres interpenetrate */
     rt_real f = 0.0f;
     rt_real len = 0.0f;
 
@@ -1176,6 +1185,8 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
     }
 
     /* check if edges of one bbox intersect faces of another */
+    rt_cell i, j;
+
     for (j = 0; j < srf->faces_num; j++)
     {
         rt_FACE *fc = &srf->faces[j];
