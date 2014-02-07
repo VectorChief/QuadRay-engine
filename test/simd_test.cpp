@@ -4,13 +4,16 @@
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
 
-#include <math.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
 
 #include "rtarch.h"
 #include "rtbase.h"
+
+/******************************************************************************/
+/*******************************   DEFINITIONS   ******************************/
+/******************************************************************************/
 
 #define RUN_LEVEL           13
 #define VERBOSE             RT_FALSE
@@ -32,6 +35,12 @@
 
 #define RT_LOGI             printf
 #define RT_LOGE             printf
+
+/******************************************************************************/
+/***************************   VARS, FUNCS, TYPES   ***************************/
+/******************************************************************************/
+
+static rt_bool v_mode = VERBOSE;
 
 /*
  * Extended SIMD info structure for asm enter/leave.
@@ -176,7 +185,7 @@ rt_void p_test01(rt_SIMD_INFOX *info)
     j = n = info->size;
     while (j-->0)
     {
-        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !VERBOSE)
+        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
         {
             continue;
         }
@@ -280,7 +289,7 @@ rt_void p_test02(rt_SIMD_INFOX *info)
     j = n = info->size;
     while (j-->0)
     {
-        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !VERBOSE)
+        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
         {
             continue;
         }
@@ -385,7 +394,7 @@ rt_void p_test03(rt_SIMD_INFOX *info)
     j = n = info->size;
     while (j-->0)
     {
-        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !VERBOSE)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
         {
             continue;
         }
@@ -489,7 +498,7 @@ rt_void p_test04(rt_SIMD_INFOX *info)
     j = n = info->size;
     while (j-->0)
     {
-        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !VERBOSE)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
         {
             continue;
         }
@@ -593,7 +602,7 @@ rt_void p_test05(rt_SIMD_INFOX *info)
     j = n = info->size;
     while (j-->0)
     {
-        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !VERBOSE)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
         {
             continue;
         }
@@ -698,7 +707,7 @@ rt_void p_test06(rt_SIMD_INFOX *info)
     j = n = info->size;
     while (j-->0)
     {
-        if (IEQ(ico1[j], iso1[j]) && FEQ(fco2[j], fso2[j]) && !VERBOSE)
+        if (IEQ(ico1[j], iso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
         {
             continue;
         }
@@ -793,7 +802,7 @@ rt_void p_test07(rt_SIMD_INFOX *info)
     j = n = info->size;
     while (j-->0)
     {
-        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !VERBOSE)
+        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
         {
             continue;
         }
@@ -903,7 +912,7 @@ rt_void p_test08(rt_SIMD_INFOX *info)
     j = n = info->size;
     while (j-->0)
     {
-        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !VERBOSE)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
         {
             continue;
         }
@@ -1039,7 +1048,7 @@ rt_void p_test09(rt_SIMD_INFOX *info)
     j = n = info->size;
     while (j-->0)
     {
-        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !VERBOSE)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
         {
             continue;
         }
@@ -1144,7 +1153,7 @@ rt_void p_test10(rt_SIMD_INFOX *info)
     j = n = info->size;
     while (j-->0)
     {
-        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !VERBOSE)
+        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
         {
             continue;
         }
@@ -1254,7 +1263,7 @@ rt_void p_test11(rt_SIMD_INFOX *info)
     j = n = info->size;
     while (j-->0)
     {
-        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !VERBOSE)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
         {
             continue;
         }
@@ -1366,7 +1375,7 @@ rt_void p_test12(rt_SIMD_INFOX *info)
     j = n = info->size;
     while (j-->0)
     {
-        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !VERBOSE)
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
         {
             continue;
         }
@@ -1462,7 +1471,7 @@ rt_void p_test13(rt_SIMD_INFOX *info)
     j = n = info->size;
     while (j-->0)
     {
-        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !VERBOSE)
+        if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
         {
             continue;
         }
@@ -1677,8 +1686,25 @@ rt_long get_time();
  * iso1 - int aligned S out 1
  * iso2 - int aligned S out 2
  */
-rt_cell main()
+rt_cell main(rt_cell argc, rt_char *argv[])
 {
+    rt_cell k;
+
+    if (argc >= 2)
+    {
+        RT_LOGI("argc = %d\n", argc);
+        for (k = 0; k < argc; k++)
+        {
+            RT_LOGI("argv[%d] = %s\n", k, argv[k]);
+        }
+    }
+
+    if (argc >= 2 && strcmp(argv[1], "-v") == 0)
+    {
+        RT_LOGI("Verbose mode enabled\n");
+        v_mode = RT_TRUE;
+    }
+
     rt_pntr marr = malloc(10 * ARR_SIZE * sizeof(rt_word) + MASK);
     rt_pntr mar0 = (rt_pntr)(((rt_word)marr + MASK) & ~MASK);
 
@@ -1803,6 +1829,10 @@ rt_cell main()
 
     return 0;
 }
+
+/******************************************************************************/
+/**********************************   UTILS   *********************************/
+/******************************************************************************/
 
 #if   defined (RT_WIN32) /* Win32, MSVC ------------------------------------- */
 

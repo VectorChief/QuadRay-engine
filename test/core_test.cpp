@@ -10,6 +10,10 @@
 
 #include "engine.h"
 
+/******************************************************************************/
+/*******************************   DEFINITIONS   ******************************/
+/******************************************************************************/
+
 #define RUN_LEVEL           13
 #define VERBOSE             RT_FALSE
 #define CYC_SIZE            3
@@ -25,14 +29,19 @@
                              IEQ(CHN(p1,  8), CHN(p2,  8)) &&               \
                              IEQ(CHN(p1,  0), CHN(p2,  0)))
 
-rt_cell     x_res   = RT_X_RES;
-rt_cell     y_res   = RT_Y_RES;
-rt_cell     x_row   = RT_X_RES;
-rt_word     frame[RT_X_RES * RT_Y_RES];
+/******************************************************************************/
+/***************************   VARS, FUNCS, TYPES   ***************************/
+/******************************************************************************/
 
-rt_cell     fsaa    = RT_FSAA_NO;
+static rt_bool v_mode = VERBOSE;
 
-rt_Scene   *scene   = RT_NULL;
+static rt_cell x_res = RT_X_RES;
+static rt_cell y_res = RT_Y_RES;
+static rt_cell x_row = RT_X_RES;
+static rt_word frame[RT_X_RES * RT_Y_RES];
+
+static rt_cell fsaa = RT_FSAA_NO;
+static rt_Scene *scene = RT_NULL;
 
 static
 rt_void frame_cpy(rt_word *fd, rt_word *fs)
@@ -62,13 +71,13 @@ rt_cell frame_cmp(rt_word *f1, rt_word *f2)
         RT_LOGI("Frames differ (%06X %06X) at x = %d, y = %d\n",
                     f1[i], f2[i], i % x_row, i / x_row);
 
-        if (!VERBOSE)
+        if (!v_mode)
         {
             break;
         }
     }
 
-    if (VERBOSE && ret == 0)
+    if (v_mode && ret == 0)
     {
         RT_LOGI("Frames are identical\n");
     }
@@ -416,8 +425,25 @@ testXX o_test[RUN_LEVEL] =
 
 rt_long get_time();
 
-rt_cell main()
+rt_cell main(rt_cell argc, rt_char *argv[])
 {
+    rt_cell k;
+
+    if (argc >= 2)
+    {
+        RT_LOGI("argc = %d\n", argc);
+        for (k = 0; k < argc; k++)
+        {
+            RT_LOGI("argv[%d] = %s\n", k, argv[k]);
+        }
+    }
+
+    if (argc >= 2 && strcmp(argv[1], "-v") == 0)
+    {
+        RT_LOGI("Verbose mode enabled\n");
+        v_mode = RT_TRUE;
+    }
+
     rt_long time1 = 0;
     rt_long time2 = 0;
     rt_long tN = 0;
@@ -483,6 +509,10 @@ rt_cell main()
 
     return 0;
 }
+
+/******************************************************************************/
+/**********************************   UTILS   *********************************/
+/******************************************************************************/
 
 #if   defined (RT_WIN32) /* Win32, MSVC ------------------------------------- */
 

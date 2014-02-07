@@ -45,9 +45,8 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 {
     rt_cell i;
 
-    if (argc > 1)
+    if (argc >= 2)
     {
-        RT_LOGI("\n");
         RT_LOGI("argc = %d\n", argc);
         for (i = 0; i < argc; i++)
         {
