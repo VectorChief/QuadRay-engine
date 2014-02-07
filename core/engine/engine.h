@@ -7,10 +7,9 @@
 #ifndef RT_ENGINE_H
 #define RT_ENGINE_H
 
-#include "rtarch.h"
 #include "rtbase.h"
+#include "thread.h"
 #include "object.h"
-#include "tracer.h"
 
 /******************************************************************************/
 /*******************************   DEFINITIONS   ******************************/
@@ -23,61 +22,21 @@
 
 /* Classes */
 
-class rt_SceneThread;
 class rt_Scene;
+class rt_SceneThread;
 
 /******************************************************************************/
-/*********************************   THREAD   *********************************/
+/******************************   STATE-LOGGING   *****************************/
 /******************************************************************************/
 
-/*
- * SceneThread contains set of structures used by the scene manager per thread.
- */
-class rt_SceneThread : public rt_Heap
-{
-/*  fields */
+rt_void print_cam(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj);
+rt_void print_lgt(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj);
+rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj);
+rt_void print_lst(rt_pstr mgn, rt_ELEM *elm);
 
-    private:
-
-    /* scene pointer and thread index */
-    rt_Scene           *scene;
-    rt_cell             index;
-
-    /* surface's projected bbox
-     * x-coord boundaries in the tilebuffer */
-    rt_cell            *txmin;
-    rt_cell            *txmax;
-    /* temporary bbox verts buffer */
-    rt_VERT            *verts;
-
-    public:
-
-    /* backend specific structures */
-    rt_SIMD_INFOX      *s_inf;
-    rt_SIMD_CAMERA     *s_cam;
-    rt_SIMD_CONTEXT    *s_ctx;
-
-    /* memory pool in the heap
-     * for temporary per-frame allocs */
-    rt_pntr             mpool;
-    rt_word             msize;
-
-/*  methods */
-
-    public:
-
-    rt_SceneThread(rt_Scene *scene, rt_cell index);
-
-    virtual
-   ~rt_SceneThread();
-
-    rt_void     tiling(rt_vec4 p1, rt_vec4 p2);
-    rt_void     insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf);
-
-    rt_void     stile(rt_Surface *srf);
-    rt_ELEM*    ssort(rt_Object *obj);
-    rt_ELEM*    lsort(rt_Object *obj);
-};
+/******************************************************************************/
+/*****************************   MULTI-THREADING   ****************************/
+/******************************************************************************/
 
 typedef rt_pntr (*rt_FUNC_INIT)(rt_cell thnum, rt_Scene *scn);
 typedef rt_void (*rt_FUNC_TERM)(rt_pntr tdata, rt_cell thnum);
@@ -89,7 +48,7 @@ typedef rt_void (*rt_FUNC_RENDER)(rt_pntr tdata, rt_cell thnum, rt_cell phase);
 /******************************************************************************/
 
 /*
- * Scene manager.
+ * Scene manager (or instance of the engine).
  */
 class rt_Scene : private rt_LogRedirect, private rt_Registry
 {
@@ -137,7 +96,7 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
 
     /* scene threads array and its
      * platform-specific handle */
-    rt_word             thnum;
+    rt_cell             thnum;
     rt_SceneThread    **tharr;
     rt_pntr             tdata;
 

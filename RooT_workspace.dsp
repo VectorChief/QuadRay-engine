@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "core/config/" /I "core/engine/" /I "core/system/" /I "core/tracer/" /I "data/materials/" /I "data/objects/" /I "data/scenes/" /I "data/textures/" /D RT_PATH="./" /D "RT_WIN32" /D "RT_X86" /D RT_DEBUG=0 /D RT_FULLSCREEN=0 /D RT_EMBED_STDOUT=1 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "NDEBUG" /FR /YX /FD /Zm500 /c
+# ADD CPP /nologo /W3 /GX /O2 /I "core/config/" /I "core/engine/" /I "core/object/" /I "core/system/" /I "core/tracer/" /I "data/materials/" /I "data/objects/" /I "data/scenes/" /I "data/textures/" /D RT_PATH="./" /D "RT_WIN32" /D "RT_X86" /D RT_DEBUG=0 /D RT_FULLSCREEN=0 /D RT_EMBED_STDOUT=1 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "NDEBUG" /FR /YX /FD /Zm500 /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x419 /d "NDEBUG"
@@ -69,7 +69,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "core/config/" /I "core/engine/" /I "core/system/" /I "core/tracer/" /I "data/materials/" /I "data/objects/" /I "data/scenes/" /I "data/textures/" /D RT_PATH="./" /D "RT_WIN32" /D "RT_X86" /D RT_DEBUG=1 /D RT_FULLSCREEN=0 /D RT_EMBED_STDOUT=1 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /FR /YX /FD /GZ /Zm500 /c
+# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "core/config/" /I "core/engine/" /I "core/object/" /I "core/system/" /I "core/tracer/" /I "data/materials/" /I "data/objects/" /I "data/scenes/" /I "data/textures/" /D RT_PATH="./" /D "RT_WIN32" /D "RT_X86" /D RT_DEBUG=1 /D RT_FULLSCREEN=0 /D RT_EMBED_STDOUT=1 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /FR /YX /FD /GZ /Zm500 /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x419 /d "_DEBUG"
@@ -115,19 +115,19 @@ SOURCE=.\core\config\rtarch.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\tracer\rtarch_arm.h
+SOURCE=.\core\config\rtarch_arm.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\tracer\rtarch_arm_mpe.h
+SOURCE=.\core\config\rtarch_arm_mpe.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\tracer\rtarch_x86.h
+SOURCE=.\core\config\rtarch_x86.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\tracer\rtarch_x86_sse.h
+SOURCE=.\core\config\rtarch_x86_sse.h
 # End Source File
 # Begin Source File
 
@@ -151,31 +151,43 @@ SOURCE=.\core\engine\engine.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\engine\format.h
+SOURCE=.\core\engine\thread.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\engine\object.cpp
+SOURCE=.\core\engine\thread.h
+# End Source File
+# End Group
+# Begin Group "object"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\core\object\format.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\engine\object.h
+SOURCE=.\core\object\object.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\engine\rtgeom.cpp
+SOURCE=.\core\object\object.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\engine\rtgeom.h
+SOURCE=.\core\object\rtgeom.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\engine\rtimag.cpp
+SOURCE=.\core\object\rtgeom.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\engine\rtimag.h
+SOURCE=.\core\object\rtimag.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\core\object\rtimag.h
 # End Source File
 # End Group
 # Begin Group "system"
