@@ -178,8 +178,8 @@
 
 /* cbr */
 
-/* defined in rtarch.h
- * under "COMMON SIMD INSTRUCTIONS" section */
+        /* cbe, cbs, cbr defined in rtarch.h
+         * under "COMMON SIMD INSTRUCTIONS" section */
 
 /* rcp */
 
@@ -187,12 +187,14 @@
         EMITB(0x0F) EMITB(0x53)                                             \
             MRM(REG(RG), MOD(RM), REG(RM))
 
-#define rcpps_rr(RG, RM) /* destroys value in RM */                         \
-        rceps_rr(W(RG), W(RM))                                              \
+#define rcsps_rr(RG, RM) /* destroys value in RM */                         \
         mulps_rr(W(RM), W(RG))                                              \
         mulps_rr(W(RM), W(RG))                                              \
         addps_rr(W(RG), W(RG))                                              \
         subps_rr(W(RG), W(RM))
+
+        /* rcp defined in rtarch.h
+         * under "COMMON SIMD INSTRUCTIONS" section */
 
 /* rsq */
 
@@ -200,13 +202,15 @@
         EMITB(0x0F) EMITB(0x52)                                             \
             MRM(REG(RG), MOD(RM), REG(RM))
 
-#define rsqps_rr(RG, RM) /* destroys value in RM */                         \
-        rseps_rr(W(RG), W(RM))                                              \
+#define rssps_rr(RG, RM) /* destroys value in RM */                         \
         mulps_rr(W(RM), W(RG))                                              \
         mulps_rr(W(RM), W(RG))                                              \
         subps_ld(W(RM), Mebp, inf_GPC03)                                    \
-        mulps_rr(W(RG), W(RM))                                              \
-        mulps_ld(W(RG), Mebp, inf_GPC02)
+        mulps_ld(W(RM), Mebp, inf_GPC02)                                    \
+        mulps_rr(W(RG), W(RM))
+
+        /* rsq defined in rtarch.h
+         * under "COMMON SIMD INSTRUCTIONS" section */
 
 /* min */
 

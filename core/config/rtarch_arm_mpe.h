@@ -216,35 +216,33 @@
 
 /* cbr */
 
-/* defined in rtarch.h
- * under "COMMON SIMD INSTRUCTIONS" section */
+        /* cbe, cbs, cbr defined in rtarch.h
+         * under "COMMON SIMD INSTRUCTIONS" section */
 
 /* rcp */
 
 #define rceps_rr(RG, RM)                                                    \
         EMITW(0xF3BB0540 | MTM(REG(RG), 0x00,    REG(RM)))
 
-#define rcsps_rr(RG, RM) /* not portable, do not use outside */             \
-        EMITW(0xF2000F50 | MTM(REG(RG), REG(RG), REG(RM)))
+#define rcsps_rr(RG, RM) /* destroys value in RM */                         \
+        EMITW(0xF2000F50 | MTM(REG(RM), REG(RM), REG(RG)))                  \
+        EMITW(0xF3000D50 | MTM(REG(RG), REG(RG), REG(RM)))
 
-#define rcpps_rr(RG, RM) /* destroys value in RM */                         \
-        rceps_rr(W(RG), W(RM))                                              \
-        rcsps_rr(W(RM), W(RG))                                              \
-        mulps_rr(W(RG), W(RM))
+        /* rcp defined in rtarch.h
+         * under "COMMON SIMD INSTRUCTIONS" section */
 
 /* rsq */
 
 #define rseps_rr(RG, RM)                                                    \
         EMITW(0xF3BB05C0 | MTM(REG(RG), 0x00,    REG(RM)))
 
-#define rssps_rr(RG, RM) /* not portable, do not use outside */             \
-        EMITW(0xF2200F50 | MTM(REG(RG), REG(RG), REG(RM)))
+#define rssps_rr(RG, RM) /* destroys value in RM */                         \
+        EMITW(0xF3000D50 | MTM(REG(RM), REG(RM), REG(RG)))                  \
+        EMITW(0xF2200F50 | MTM(REG(RM), REG(RM), REG(RG)))                  \
+        EMITW(0xF3000D50 | MTM(REG(RG), REG(RG), REG(RM)))
 
-#define rsqps_rr(RG, RM) /* destroys value in RM */                         \
-        rseps_rr(W(RG), W(RM))                                              \
-        mulps_rr(W(RM), W(RG))                                              \
-        rssps_rr(W(RM), W(RG))                                              \
-        mulps_rr(W(RG), W(RM))
+        /* rsq defined in rtarch.h
+         * under "COMMON SIMD INSTRUCTIONS" section */
 
 /* min */
 
