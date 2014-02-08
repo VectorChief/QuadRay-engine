@@ -23,7 +23,7 @@
 
 #define CHN(px, sh)         ((px) >> (sh) & 0xFF)    
 
-#define IEQ(i1, i2)         (abs((rt_cell)((i1) - (i2))) <= 2)
+#define IEQ(i1, i2)         (abs((rt_cell)((i1) - (i2))) <= t_diff)
 #define PEQ(p1, p2)         (IEQ(CHN(p1, 24), CHN(p2, 24)) &&               \
                              IEQ(CHN(p1, 16), CHN(p2, 16)) &&               \
                              IEQ(CHN(p1,  8), CHN(p2,  8)) &&               \
@@ -34,6 +34,7 @@
 /******************************************************************************/
 
 static rt_bool v_mode = VERBOSE;
+static rt_cell t_diff = 2;
 
 static rt_cell x_res = RT_X_RES;
 static rt_cell y_res = RT_Y_RES;
@@ -438,10 +439,26 @@ rt_cell main(rt_cell argc, rt_char *argv[])
         }
     }
 
-    if (argc >= 2 && strcmp(argv[1], "-v") == 0)
+    for (k = 1; k < argc; k++)
     {
-        RT_LOGI("Verbose mode enabled\n");
-        v_mode = RT_TRUE;
+        if (strcmp(argv[k], "-v") == 0 && v_mode == RT_FALSE)
+        {
+            v_mode = RT_TRUE;
+            RT_LOGI("Verbose mode enabled\n");
+        }
+        if (strcmp(argv[k], "-d") == 0 && ++k < argc)
+        {
+            t_diff = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1 && t_diff >= 0 && t_diff <= 9)
+            {
+                RT_LOGI("Diff threshold overriden: %d\n", t_diff);
+            }
+            else
+            {
+                RT_LOGI("Diff threshold value out of range\n");
+                return 0;
+            }
+        }
     }
 
     rt_long time1 = 0;

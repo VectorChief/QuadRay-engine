@@ -22,15 +22,15 @@
 #define ARR_SIZE            12 /* hardcoded in asm sections */
 #define MASK                (RT_SIMD_ALIGN - 1) /* SIMD alignment mask */
 
-#define FRK(f)              (f < 10.0       ? 1.0           :               \
-                             f < 100.0      ? 10.0          :               \
-                             f < 1000.0     ? 100.0         :               \
-                             f < 10000.0    ? 1000.0        :               \
-                             f < 100000.0   ? 10000.0       :               \
-                             f < 1000000.0  ? 100000.0      :               \
-                                              1000000.0)
+#define FRK(f)              (f < 10.0       ?    0.0001     :               \
+                             f < 100.0      ?    0.001      :               \
+                             f < 1000.0     ?    0.01       :               \
+                             f < 10000.0    ?    0.1        :               \
+                             f < 100000.0   ?    1.0        :               \
+                             f < 1000000.0  ?   10.0        :               \
+                                               100.0 )
 
-#define FEQ(f1, f2)         (fabs(f1 - f2) < 0.0002 * RT_MIN(FRK(f1), FRK(f2)))
+#define FEQ(f1, f2)         (fabs(f1 - f2) < t_diff * RT_MIN(FRK(f1), FRK(f2)))
 #define IEQ(i1, i2)         (i1 == i2)
 
 #define RT_LOGI             printf
@@ -41,6 +41,7 @@
 /******************************************************************************/
 
 static rt_bool v_mode = VERBOSE;
+static rt_cell t_diff = 2;
 
 /*
  * Extended SIMD info structure for asm enter/leave.
@@ -1699,10 +1700,26 @@ rt_cell main(rt_cell argc, rt_char *argv[])
         }
     }
 
-    if (argc >= 2 && strcmp(argv[1], "-v") == 0)
+    for (k = 1; k < argc; k++)
     {
-        RT_LOGI("Verbose mode enabled\n");
-        v_mode = RT_TRUE;
+        if (strcmp(argv[k], "-v") == 0 && v_mode == RT_FALSE)
+        {
+            v_mode = RT_TRUE;
+            RT_LOGI("Verbose mode enabled\n");
+        }
+        if (strcmp(argv[k], "-d") == 0 && ++k < argc)
+        {
+            t_diff = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1 && t_diff >= 0 && t_diff <= 9)
+            {
+                RT_LOGI("Diff threshold overriden: %d\n", t_diff);
+            }
+            else
+            {
+                RT_LOGI("Diff threshold value out of range\n");
+                return 0;
+            }
+        }
     }
 
     rt_pntr marr = malloc(10 * ARR_SIZE * sizeof(rt_word) + MASK);
