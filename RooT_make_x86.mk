@@ -2,7 +2,6 @@
 INC_PATH =                          \
         -Icore/config/              \
         -Icore/engine/              \
-        -Icore/object/              \
         -Icore/system/              \
         -Icore/tracer/              \
         -Idata/materials/           \
@@ -15,10 +14,9 @@ LIB_PATH =
 
 SRC_LIST =                          \
         core/engine/engine.cpp      \
-        core/engine/thread.cpp      \
-        core/object/object.cpp      \
-        core/object/rtgeom.cpp      \
-        core/object/rtimag.cpp      \
+        core/engine/object.cpp      \
+        core/engine/rtgeom.cpp      \
+        core/engine/rtimag.cpp      \
         core/system/system.cpp      \
         core/tracer/tracer.cpp      \
         RooT_linux.cpp

@@ -2,7 +2,6 @@
 INC_PATH =                          \
         -I../core/config/           \
         -I../core/engine/           \
-        -I../core/object/           \
         -I../core/system/           \
         -I../core/tracer/           \
         -I../data/materials/        \
@@ -12,10 +11,9 @@ INC_PATH =                          \
 
 SRC_LIST =                          \
         ../core/engine/engine.cpp   \
-        ../core/engine/thread.cpp   \
-        ../core/object/object.cpp   \
-        ../core/object/rtgeom.cpp   \
-        ../core/object/rtimag.cpp   \
+        ../core/engine/object.cpp   \
+        ../core/engine/rtgeom.cpp   \
+        ../core/engine/rtimag.cpp   \
         ../core/system/system.cpp   \
         ../core/tracer/tracer.cpp   \
         core_test.cpp

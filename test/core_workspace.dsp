@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "../core/config/" /I "../core/engine/" /I "../core/object/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/textures/" /I "scenes/" /D RT_PATH="../" /D "RT_WIN32" /D "RT_X86" /D RT_DEBUG=0 /D RT_EMBED_STDOUT=0 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /Zm500 /c
+# ADD CPP /nologo /W3 /GX /O2 /I "../core/config/" /I "../core/engine/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/textures/" /I "scenes/" /D RT_PATH="../" /D "RT_WIN32" /D "RT_X86" /D RT_DEBUG=0 /D RT_EMBED_STDOUT=0 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /Zm500 /c
 # ADD BASE RSC /l 0x419 /d "NDEBUG"
 # ADD RSC /l 0x419 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -66,7 +66,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "../core/config/" /I "../core/engine/" /I "../core/object/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/textures/" /I "scenes/" /D RT_PATH="../" /D "RT_WIN32" /D "RT_X86" /D RT_DEBUG=1 /D RT_EMBED_STDOUT=0 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /Zm500 /c
+# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "../core/config/" /I "../core/engine/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/textures/" /I "scenes/" /D RT_PATH="../" /D "RT_WIN32" /D "RT_X86" /D RT_DEBUG=1 /D RT_EMBED_STDOUT=0 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /Zm500 /c
 # ADD BASE RSC /l 0x419 /d "_DEBUG"
 # ADD RSC /l 0x419 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -138,43 +138,31 @@ SOURCE=..\core\engine\engine.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\core\engine\thread.cpp
+SOURCE=..\core\engine\format.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\core\engine\thread.h
-# End Source File
-# End Group
-# Begin Group "object"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=..\core\object\format.h
+SOURCE=..\core\engine\object.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\core\object\object.cpp
+SOURCE=..\core\engine\object.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\core\object\object.h
+SOURCE=..\core\engine\rtgeom.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\core\object\rtgeom.cpp
+SOURCE=..\core\engine\rtgeom.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\core\object\rtgeom.h
+SOURCE=..\core\engine\rtimag.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\core\object\rtimag.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\core\object\rtimag.h
+SOURCE=..\core\engine\rtimag.h
 # End Source File
 # End Group
 # Begin Group "system"
