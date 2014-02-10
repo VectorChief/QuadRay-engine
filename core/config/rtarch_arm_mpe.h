@@ -9,6 +9,7 @@
 
 #include "rtarch_arm.h"
 
+#define RT_SIMD_WIDTH       4
 #define RT_SIMD_ALIGN       16
 #define RT_SIMD_SET(a, v)   a[0] = v; a[1] = v; a[2] = v; a[3] = v
 

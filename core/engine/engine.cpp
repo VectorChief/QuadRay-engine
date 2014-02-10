@@ -5,6 +5,7 @@
 /******************************************************************************/
 
 #include <string.h>
+#include <stdlib.h>
 
 #include "engine.h"
 #include "rtgeom.h"
@@ -254,7 +255,7 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
     }
 }
 
-#define RT_PRINT_CLP_LST(lst)                                               \
+#define RT_PRINT_CLP(lst)                                                   \
         RT_LOGI("---------------------------------------------");           \
         RT_LOGI("-------------------- clp --------------------");           \
         RT_LOGI("---------------------------------------------");           \
@@ -952,7 +953,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 
         if (g_print && srf->s_srf->msc_p[2] != RT_NULL)
         {
-            RT_PRINT_CLP_LST((rt_ELEM *)srf->s_srf->msc_p[2]);
+            RT_PRINT_CLP((rt_ELEM *)srf->s_srf->msc_p[2]);
         }
 
         pto = (rt_ELEM **)&srf->s_srf->lst_p[1];
@@ -1306,6 +1307,18 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame ptr must be SIMD-aligned or NULL */
         throw rt_Exception("scene data is locked by another instance");
     }
 
+    /* x_row, frame's stride (in 32-bit pixels, not bytes!),
+     * can be greater than x_res, in which case the frame
+     * occupies only a portion (rectangle) of the framebuffer,
+     * or negative, in which case frame starts at the last line
+     * and consecutive lines are located backwards in memory,
+     * x_row must contain the whole number of SIMD widths */
+    if (x_res == 0 || abs(x_row) < x_res
+    ||  y_res == 0 || abs(x_row) & (RT_SIMD_WIDTH - 1))
+    {
+        throw rt_Exception("frambuffer's dimensions are not valid");
+    }
+
     /* init framebuffer's dimensions and pointer */
     this->x_res = x_res;
     this->y_res = y_res;
@@ -1314,8 +1327,12 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame ptr must be SIMD-aligned or NULL */
     if (frame == RT_NULL)
     {
         frame = (rt_word *)
-                alloc(x_res * y_res * sizeof(rt_word),
-                                RT_SIMD_ALIGN);
+                alloc(abs(x_row) * y_res * sizeof(rt_word), RT_SIMD_ALIGN);
+
+        if (x_row < 0)
+        {
+            frame += abs(x_row) * (y_res - 1);
+        }
     }
     else
     if ((rt_word)frame & (RT_SIMD_ALIGN - 1) != 0)
@@ -1355,7 +1372,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame ptr must be SIMD-aligned or NULL */
         throw rt_Exception("scene's root is not an array");
     }
 
-    root = new rt_Array(this, RT_NULL, &rootobj); /* init srf_num */
+    root = new rt_Array(this, RT_NULL, &rootobj); /* also init *_num fields */
 
     if (cam_head == RT_NULL)
     {
@@ -2086,7 +2103,7 @@ rt_void rt_Scene::render_fps(rt_word x, rt_word y,
     {
         k = arr[i];
         src = &digits[k][0][0];
-        dst = frame + y * x_res + x + (c * d - 1 - i) * dW * z;
+        dst = frame + y * x_row + x + (c * d - 1 - i) * dW * z;
 
         for (yd = 0; yd < dH; yd++)
         {
@@ -2102,7 +2119,7 @@ rt_void rt_Scene::render_fps(rt_word x, rt_word y,
                     src++;
                 }
 
-                dst += x_res - dW * z;
+                dst += x_row - dW * z;
                 src -= dW;
             }
 
