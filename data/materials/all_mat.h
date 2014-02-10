@@ -15,7 +15,8 @@
 /*********************************   LEGEND   *********************************/
 /******************************************************************************/
 
-/* Recommended naming scheme for materials:
+/*
+ * Recommended naming scheme for materials:
  *
  * - All material names start with mt_ followed by 1 or 2 parts.
  *
@@ -36,7 +37,7 @@
  *   texture sets across all materials.
  *
  * - Complex materials can be placed in separate files mat_*.h, where * is
- *   material's name (for example mat_crate01.h), materials names in this
+ *   material's name (for example mat_crate01.h), material names in this
  *   case follow the same rules as described above (for example mt_crate01)
  */
 

@@ -7,9 +7,10 @@
 #ifndef RT_TEX_CRATE01_H
 #define RT_TEX_CRATE01_H
 
-/* Texture data below was converted with "./RooT.x86 -t <fullpath>" option.
+/*
+ * Texture data below was converted with "./RooT.x86 -t <fullpath>" option.
  * Original texture source:
- * http://free-texture-site.blogspot.ru/search/label/Crate
+ * http://free-texture-site.blogspot.ru/2010/10/free-wooden-crate-texture.html
  */
 rt_word dt_tex_crate01[256][256] =
 {

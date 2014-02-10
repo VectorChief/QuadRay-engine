@@ -120,10 +120,11 @@
 
 /* cbr */
 
-/* Based on the original idea by Russell Borogove (kaleja[AT]estarcion[DOT]com)
+/*
+ * Based on the original idea by Russell Borogove (kaleja[AT]estarcion[DOT]com)
  * available at http://www.musicdsp.org/showone.php?id=206
- * converted to 4-way SIMD version by VectorChief. */
-
+ * converted to 4-way SIMD version by VectorChief.
+ */
 #define cbeps_rr(RG, R1, R2, RM) /* destroys value in R1, R2 (temp regs) */ \
         /* cube root estimate, the exponent is divided by three             \
          * in such a way that remainder bits get shoved into                \
