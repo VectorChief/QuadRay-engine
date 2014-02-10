@@ -21,7 +21,7 @@
  *
  * - Every scene must have SCENE object defined in format.h called sc_root.
  *   The root object contains references to the rest of the objects tree
- *   and is used by the engine to instanciate the scene in run time.
+ *   and is used by the engine to instantiate the scene in run time.
  *
  * - Every scene must have at least one CAMERA object defined in format.h.
  *

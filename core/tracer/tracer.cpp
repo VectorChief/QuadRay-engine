@@ -9,6 +9,35 @@
 #include "system.h"
 
 /******************************************************************************/
+/*********************************   LEGEND   *********************************/
+/******************************************************************************/
+
+/*
+ * tracer.cpp: Implementation of the raytracing rendering backend.
+ *
+ * Raytracing rendering subsystem of the engine responsible for determining
+ * pixel colors in the framebuffer by tracing rays of light back from camera,
+ * through scene objects (surfaces) to the light sources.
+ *
+ * Computation of ray intersections with scene surfaces is written on
+ * a unified SIMD macro assembler (rtarch.h) for maximum performance.
+ *
+ * The efficient use of SIMD is achieved by processing four rays at a time
+ * to match SIMD register width (hence the name of the project) as well as
+ * implementing carefully crafted SIMD-aligned data structures used together
+ * with manual register allocation scheme to avoid unnecessary copying.
+ *
+ * Unified SIMD assembler is designed in a way to be compatible with different
+ * processor architectures, while maintaining strictly defined common API,
+ * thus application logic can be written and maintained in one place.
+ *
+ * At present, Intel SSE (1 and 2) and ARM MPE (aka NEON) are supported
+ * in 32-bit mode, with the possibility to extend support to 64-bit mode
+ * along with more available registers, wider SIMD and other architectures,
+ * though a significant redesign of some portions of the code might be needed.
+ */
+
+/******************************************************************************/
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 

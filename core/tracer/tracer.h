@@ -11,6 +11,61 @@
 #include "rtbase.h"
 
 /******************************************************************************/
+/*******************************   DEFINITIONS   ******************************/
+/******************************************************************************/
+
+/* Material properties.
+ * Value bit-range must not overlap with context flags (defined in tracer.cpp),
+ * as they are packed together into the same context field.
+ * Current CHECK_PROP macro (in tracer.cpp) accepts values upto 16-bit. */
+
+#define RT_PROP_TEXTURE     0x00000010
+#define RT_PROP_REFLECT     0x00000020
+#define RT_PROP_REFRACT     0x00000040
+#define RT_PROP_SPECULAR    0x00000080
+#define RT_PROP_NORMAL      0x00000100
+#define RT_PROP_OPAQUE      0x00000200
+#define RT_PROP_TRANSP      0x00000400
+#define RT_PROP_LIGHT       0x00001000
+#define RT_PROP_METAL       0x00002000
+
+/* Structures */
+
+struct rt_ELEM;
+struct rt_SIMD_INFOX;
+
+struct rt_SIMD_CONTEXT;
+struct rt_SIMD_CAMERA;
+struct rt_SIMD_LIGHT;
+
+struct rt_SIMD_SURFACE;
+struct rt_SIMD_PLANE;
+struct rt_SIMD_CYLINDER;
+struct rt_SIMD_SPHERE;
+struct rt_SIMD_CONE;
+struct rt_SIMD_PARABOLOID;
+struct rt_SIMD_HYPERBOLOID;
+
+struct rt_SIMD_MATERIAL;
+
+/******************************************************************************/
+/***************************   GLOBAL ENTRY POINTS   **************************/
+/******************************************************************************/
+
+/*
+ * Backend's global entry point (hence 0).
+ * Update surfaces's backend-specific fields.
+ */
+rt_void update0(rt_SIMD_SURFACE *s_srf);
+
+/*
+ * Backend's global entry point (hence 0).
+ * Render frame based on the data structures
+ * prepared by the engine.
+ */
+rt_void render0(rt_SIMD_INFOX *s_inf);
+
+/******************************************************************************/
 /**********************************   MISC   **********************************/
 /******************************************************************************/
 
@@ -800,22 +855,6 @@ struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
 /******************************************************************************/
 
 /*
- * Material properties.
- * Value bit-range must not overlap with context flags (defined in tracer.cpp),
- * as they are packed together into the same context field.
- * Current CHECK_PROP macro (defined in tracer.cpp) accepts values upto 16-bit.
- */
-#define RT_PROP_TEXTURE     0x00000010
-#define RT_PROP_REFLECT     0x00000020
-#define RT_PROP_REFRACT     0x00000040
-#define RT_PROP_SPECULAR    0x00000080
-#define RT_PROP_NORMAL      0x00000100
-#define RT_PROP_OPAQUE      0x00000200
-#define RT_PROP_TRANSP      0x00000400
-#define RT_PROP_LIGHT       0x00001000
-#define RT_PROP_METAL       0x00002000
-
-/*
  * SIMD material structure with properties.
  * Structure is read-only in backend.
  */
@@ -889,23 +928,6 @@ struct rt_SIMD_MATERIAL
 #define mat_C_ONE           DP(0x120)
 
 };
-
-/******************************************************************************/
-/***************************   GLOBAL ENTRY POINTS   **************************/
-/******************************************************************************/
-
-/*
- * Backend's global entry point (hence 0).
- * Update surfaces's backend-specific fields.
- */
-rt_void update0(rt_SIMD_SURFACE *s_srf);
-
-/*
- * Backend's global entry point (hence 0).
- * Render frame based on the data structures
- * prepared by the engine.
- */
-rt_void render0(rt_SIMD_INFOX *s_inf);
 
 #endif /* RT_TRACER_H */
 

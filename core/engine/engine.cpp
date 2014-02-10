@@ -8,8 +8,35 @@
 
 #include "engine.h"
 #include "rtgeom.h"
-#include "system.h"
-#include "tracer.h"
+
+/******************************************************************************/
+/*********************************   LEGEND   *********************************/
+/******************************************************************************/
+
+/*
+ * engine.cpp: Implementation of the scene manager.
+ *
+ * Main file of the engine responsible for instantiating and managing the scene.
+ * It contains the definition of SceneThread and Scene classes along with
+ * the set of algorithms needed to process objects in the scene in order
+ * to prepare data structures used by the rendering backend (tracer.cpp).
+ *
+ * Processing of objects consists of two major parts: update and render,
+ * of which only update is handled by the engine, while render is passed
+ * to the rendering backend once all data structures have been prepared.
+ *
+ * Update in turn consists of three phases:
+ * 0th phase (sequential) - hierarchical traversal of the objects tree
+ * 1st phase (multi-threaded) - update auxiliary per-object data fields
+ * 2nd phase (multi-threaded) - build cross-object lists based on relations
+ *
+ * First two update phases are handled by the object hierarchy (object.cpp),
+ * while engine performs building of surface's tile lists, custom per-side
+ * lights and shadows lists, reflection/refraction surface lists.
+ *
+ * Both update and render support multi-threading and use array of SceneThread
+ * objects to separate working data sets and therefore avoid thread locking.
+ */
 
 /******************************************************************************/
 /******************************   STATE-LOGGING   *****************************/

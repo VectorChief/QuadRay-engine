@@ -9,7 +9,36 @@
 #include "object.h"
 #include "rtgeom.h"
 #include "rtimag.h"
-#include "system.h"
+
+/******************************************************************************/
+/*********************************   LEGEND   *********************************/
+/******************************************************************************/
+
+/*
+ * object.cpp: Implementation of the objects hierarchy.
+ *
+ * Main companion file of the engine responsible for instantiating and managing
+ * the objects hierarchy. It contains the definition of Object class (the root
+ * of the hierarchy) and its derivative classes along with the set of algorithms
+ * needed to construct and update per-object fields and cross-object relations.
+ *
+ * Object handles first two phases of the update initiated by the engine:
+ * 0th phase (sequential) - hierarchical traversal of the objects tree
+ * - computes transform matrix from the root down to the leaf objects
+ * - determines intermediate transform nodes used later for transform caching
+ * - rebuilds surface's custom clipping list based on scene-defined relations
+ * 1st phase (multi-threaded) - update auxiliary per-object data fields
+ * - computes surface's inverse transform matrix, bounding and clipping boxes,
+ *   bounding volume (sphere), backend-related SIMD fields (tracer.h)
+ *
+ * In order to avoid cross-dependencies on the engine, object file contains
+ * the definition of Registry interface inherited by the engine's Scene class,
+ * instance of which is then passed to object's constructors and serves as
+ * both objects registry and memory heap (system.cpp).
+ *
+ * Registry's heap allocations are not allowed in multi-threaded phases
+ * as SceneThread's heaps are used in this case to avoid race conditions.
+ */
 
 /******************************************************************************/
 /*********************************   OBJECT   *********************************/

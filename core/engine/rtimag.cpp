@@ -10,6 +10,20 @@
 #include "system.h"
 
 /******************************************************************************/
+/*********************************   LEGEND   *********************************/
+/******************************************************************************/
+
+/*
+ * rtimag.cpp: Implementation of the image library.
+ *
+ * Utility file for the engine responsible for image loading, saving and
+ * conversion to C static array initializer format suitable for embedding.
+ *
+ * Utility file names are usually in the form of rt****.cpp/h,
+ * while core engine parts are located in ******.cpp/h files.
+ */
+
+/******************************************************************************/
 /********************************   TEXTURE   *********************************/
 /******************************************************************************/
 

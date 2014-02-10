@@ -10,6 +10,20 @@
 #include "system.h"
 
 /******************************************************************************/
+/*********************************   LEGEND   *********************************/
+/******************************************************************************/
+
+/*
+ * rtgeom.cpp: Implementation of the geometry utils.
+ *
+ * Utility file for the engine responsible for vector-matrix operations
+ * as well as routines to determine bounding and clipping boxes relationship.
+ *
+ * Utility file names are usually in the form of rt****.cpp/h,
+ * while core engine parts are located in ******.cpp/h files.
+ */
+
+/******************************************************************************/
 /********************************   MATRICES   ********************************/
 /******************************************************************************/
 

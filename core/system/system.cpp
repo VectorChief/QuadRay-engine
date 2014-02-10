@@ -7,6 +7,18 @@
 #include "system.h"
 
 /******************************************************************************/
+/*********************************   LEGEND   *********************************/
+/******************************************************************************/
+
+/*
+ * system.cpp: Implementation of the system layer.
+ *
+ * System layer of the engine responsible for file I/O operations,
+ * fast linear memory heap allocations, error and info logging
+ * as well as definitions of List template and Exception classes.
+ */
+
+/******************************************************************************/
 /**********************************   FILE   **********************************/
 /******************************************************************************/
 
