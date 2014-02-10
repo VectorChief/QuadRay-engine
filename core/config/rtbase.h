@@ -11,6 +11,7 @@
 
 #include <math.h>
 #include <float.h>
+#include <stdlib.h>
 
 /* Generic types */
 
@@ -115,13 +116,17 @@ struct rt_SIMD_INFO
 #define RT_2_PI             (2.0 * RT_PI)
 #define RT_PI_2             (RT_PI / 2.0)
 
-#define RT_SIGN(a)          ((a)  <    0.0f ? -1 :                          \
-                             (a)  >    0.0f ? +1 :                          \
-                              0)
+/* Math macros */
+
+#define RT_ABS(a)           (abs((rt_cell)(a)))
 
 #define RT_FABS(a)          (fabsf(a))
 
 #define RT_FLOOR(a)         ((rt_cell)floorf(a))
+
+#define RT_SIGN(a)          ((a)  <    0.0f ? -1 :                          \
+                             (a)  >    0.0f ? +1 :                          \
+                              0)
 
 #define RT_SQRT(a)          ((a)  <=   0.0f ?  0.0f :                       \
                              sqrtf(a))

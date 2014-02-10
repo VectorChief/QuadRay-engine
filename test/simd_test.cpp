@@ -4,9 +4,9 @@
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
 
-#include <stdio.h>
 #include <malloc.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "rtarch.h"
 #include "rtbase.h"
@@ -27,11 +27,10 @@
                              f < 1000.0     ?    0.01       :               \
                              f < 10000.0    ?    0.1        :               \
                              f < 100000.0   ?    1.0        :               \
-                             f < 1000000.0  ?   10.0        :               \
-                                               100.0 )
-
-#define FEQ(f1, f2)         (fabs(f1 - f2) < t_diff * RT_MIN(FRK(f1), FRK(f2)))
+                             f < 1000000.0  ?   10.0        :  100.0)
 #define IEQ(i1, i2)         (i1 == i2)
+#define FEQ(f1, f2)         (RT_FABS((f1) - (f2)) <= t_diff *               \
+                             RT_MIN(FRK(f1), FRK(f2)))
 
 #define RT_LOGI             printf
 #define RT_LOGE             printf

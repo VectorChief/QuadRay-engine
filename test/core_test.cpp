@@ -4,7 +4,6 @@
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
 
-#include <stdlib.h>
 #include <malloc.h>
 #include <string.h>
 
@@ -22,8 +21,7 @@
 #define RT_Y_RES            480
 
 #define CHN(px, sh)         ((px) >> (sh) & 0xFF)    
-
-#define IEQ(i1, i2)         (abs((rt_cell)((i1) - (i2))) <= t_diff)
+#define IEQ(i1, i2)         (RT_ABS((i1) - (i2)) <= t_diff)
 #define PEQ(p1, p2)         (IEQ(CHN(p1, 24), CHN(p2, 24)) &&               \
                              IEQ(CHN(p1, 16), CHN(p2, 16)) &&               \
                              IEQ(CHN(p1,  8), CHN(p2,  8)) &&               \
