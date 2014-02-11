@@ -39,8 +39,11 @@ static XGCValues   gc_values   = {0};
 
 rt_cell main_init();
 rt_cell main_loop();
-rt_cell main_done();
+rt_cell main_term();
 
+/*
+ * Program's main entry point.
+ */
 rt_cell main(rt_cell argc, rt_char *argv[])
 {
     rt_cell i;
@@ -179,7 +182,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 
     ret = main_init();
     ret = main_loop();
-    ret = main_done();
+    ret = main_term();
 
     /* destroy image */
     XShmDetach(disp, &shminfo);
@@ -197,21 +200,26 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 }
 
 /******************************************************************************/
-/********************************   THREADING   *******************************/
+/*****************************   MULTI-THREADING   ****************************/
 /******************************************************************************/
 
+/* thread's exception variables */
 static rt_cell  eout = 0, emax = 0;
 static rt_pstr *estr = RT_NULL;
 
+/* platform-specific thread */
 struct rt_THREAD
 {
+    rt_Scene           *scene;
     rt_cell            *cmd;
     rt_cell             index;
-    rt_Scene           *scene;
-    pthread_barrier_t  *barr;
     pthread_t           pthr;
+    pthread_barrier_t  *barr;
 };
 
+/*
+ * Worker thread's entry point.
+ */
 rt_pntr worker_thread(rt_pntr p)
 {
     rt_THREAD *thread = (rt_THREAD *)p;
@@ -261,15 +269,20 @@ rt_pntr worker_thread(rt_pntr p)
     return RT_NULL;
 }
 
+/* platform-specific pool
+ * of "thnum" threads */
 struct rt_THREAD_POOL
 {
+    rt_Scene           *scene;
+    rt_cell             cmd;
     rt_cell             thnum;
     rt_THREAD          *thread;
-    rt_Scene           *scene;
     pthread_barrier_t   barr[2];
-    rt_cell             cmd;
 };
 
+/*
+ * Initialize platform-specific pool of "thnum" threads.
+ */
 rt_pntr init_threads(rt_cell thnum, rt_Scene *scn)
 {
     eout = 0; emax = thnum;
@@ -295,6 +308,8 @@ rt_pntr init_threads(rt_cell thnum, rt_Scene *scn)
     }
 
     tpool->scene = scn;
+    tpool->cmd = 0;
+    tpool->thnum = thnum;
     tpool->thread = (rt_THREAD *)malloc(sizeof(rt_THREAD) * thnum);
 
     if (tpool->thread == RT_NULL)
@@ -305,17 +320,15 @@ rt_pntr init_threads(rt_cell thnum, rt_Scene *scn)
     pthread_barrier_init(&tpool->barr[0], NULL, thnum + 1);
     pthread_barrier_init(&tpool->barr[1], NULL, thnum + 1);
 
-    tpool->cmd = 0;
-    tpool->thnum = thnum;
-
     for (i = 0, a = 0; i < thnum; i++, a++)
     {
         rt_THREAD *thread = tpool->thread;
 
+        thread[i].scene  = scn;
         thread[i].cmd    = &tpool->cmd;
         thread[i].index  = i;
-        thread[i].scene  = scn;
         thread[i].barr   = tpool->barr;
+
         pthread_create(&thread[i].pthr, NULL, worker_thread, &thread[i]);
 
         while (!CPU_ISSET(a, &cpuset_pr))
@@ -331,6 +344,9 @@ rt_pntr init_threads(rt_cell thnum, rt_Scene *scn)
     return tpool;
 }
 
+/*
+ * Terminate platform-specific pool of "thnum" threads.
+ */
 rt_void term_threads(rt_pntr tdata, rt_cell thnum)
 {
     rt_cell i;
@@ -366,6 +382,10 @@ rt_void term_threads(rt_pntr tdata, rt_cell thnum)
     eout = emax = 0;
 }
 
+/*
+ * Task platform-specific pool of "thnum" threads to update scene,
+ * block until finished.
+ */
 rt_void update_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
 {
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
@@ -375,6 +395,10 @@ rt_void update_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
     pthread_barrier_wait(&tpool->barr[1]);
 }
 
+/*
+ * Task platform-specific pool of "thnum" threads to render scene,
+ * block until finished.
+ */
 rt_void render_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
 {
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
@@ -385,9 +409,12 @@ rt_void render_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
 }
 
 /******************************************************************************/
-/********************************   RENDERING   *******************************/
+/*******************************   EVENT-LOOP   *******************************/
 /******************************************************************************/
 
+/*
+ * Initialize event loop.
+ */
 rt_cell main_init()
 {
     try
@@ -431,6 +458,9 @@ static rt_byte r_keys[KEY_MASK + 1];
 /* toggle on release */
 #define R_KEYS(k)   (r_keys[(k) & KEY_MASK])
 
+/*
+ * Event loop's main step.
+ */
 rt_cell main_step()
 {
     if (scene == RT_NULL)
@@ -524,7 +554,10 @@ rt_cell main_step()
     return 1;
 }
 
-rt_cell main_done()
+/*
+ * Terminate event loop.
+ */
+rt_cell main_term()
 {
     if (scene == RT_NULL)
     {
@@ -545,6 +578,9 @@ rt_cell main_done()
     return 1;
 }
 
+/*
+ * Implementation of the event loop.
+ */
 rt_cell main_loop()
 {
     /* event loop */

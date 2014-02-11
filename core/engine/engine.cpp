@@ -1250,8 +1250,9 @@ rt_SceneThread::~rt_SceneThread()
 /******************************************************************************/
 
 /*
- * Initialize platform-specific handle for pool of "thnum" threads.
- * Local stub used when platform threading functions are not provided.
+ * Initialize platform-specific pool of "thnum" threads.
+ * Local stub below is used when platform threading functions are not provided
+ * or during state-logging.
  */
 static
 rt_void* init_threads(rt_cell thnum, rt_Scene *scn)
@@ -1260,8 +1261,9 @@ rt_void* init_threads(rt_cell thnum, rt_Scene *scn)
 }
 
 /*
- * Terminate platform-specific handle for pool of "thnum" threads.
- * Local stub used when platform threading functions are not provided.
+ * Terminate platform-specific pool of "thnum" threads.
+ * Local stub below is used when platform threading functions are not provided
+ * or during state-logging.
  */
 static
 rt_void term_threads(rt_void *tdata, rt_cell thnum)
@@ -1271,8 +1273,9 @@ rt_void term_threads(rt_void *tdata, rt_cell thnum)
 
 /*
  * Task platform-specific pool of "thnum" threads to update scene,
- * block until finished. Simulate threading with sequential run.
- * Local stub used when platform threading functions are not provided.
+ * block until finished.
+ * Local stub below is used when platform threading functions are not provided
+ * or during state-logging. Simulate threading with sequential run.
  */
 static
 rt_void update_scene(rt_void *tdata, rt_cell thnum, rt_cell phase)
@@ -1289,8 +1292,9 @@ rt_void update_scene(rt_void *tdata, rt_cell thnum, rt_cell phase)
 
 /*
  * Task platform-specific pool of "thnum" threads to render scene,
- * block until finished. Simulate threading with sequential run.
- * Local stub used when platform threading functions are not provided.
+ * block until finished.
+ * Local stub below is used when platform threading functions are not provided
+ * or during state-logging. Simulate threading with sequential run.
  */
 static
 rt_void render_scene(rt_void *tdata, rt_cell thnum, rt_cell phase)
