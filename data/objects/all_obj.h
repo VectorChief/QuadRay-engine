@@ -16,6 +16,8 @@
 /******************************************************************************/
 
 /*
+ * all_obj.h: Common file for all objects.
+ *
  * Recommended naming scheme for objects:
  *
  * - All object names start with **_ followed by object's specific name,

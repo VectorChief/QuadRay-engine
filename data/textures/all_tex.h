@@ -14,6 +14,8 @@
 /******************************************************************************/
 
 /*
+ * all_tex.h: Common file for all textures.
+ *
  * Recommended naming scheme for textures:
  *
  * - Textures can be loaded from external binary image files or embedded

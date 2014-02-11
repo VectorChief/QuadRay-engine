@@ -11,6 +11,19 @@
 #include "rtconf.h"
 
 /******************************************************************************/
+/*********************************   LEGEND   *********************************/
+/******************************************************************************/
+
+/*
+ * format.h: Interface for the scene data format.
+ *
+ * Definitions provided in this file are used to specify scene data (in a form
+ * of C static struct initializers) by storing pointers to previously defined
+ * structures and thus building objects hierachy and relations.
+ * Recommended naming scheme for C++ types and definitions is given in rtbase.h.
+ */
+
+/******************************************************************************/
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
@@ -574,7 +587,6 @@ rt_cell HB_(rt_HYPERBOLOID *pobj)
 struct rt_SCENE
 {
     rt_OBJ              root;
-
     rt_pntr             lock;
 };
 

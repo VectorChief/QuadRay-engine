@@ -18,6 +18,12 @@
 /******************************************************************************/
 
 /*
+ * rtarch_arm_mpe.h: Implementation of ARM SIMD instructions.
+ *
+ * This file is a part of the unified SIMD assembler framework (rtarch.h)
+ * designed to be compatible with different processor architectures,
+ * while maintaining strictly defined common API.
+ *
  * Recommended naming scheme for instructions:
  *
  * cmdpx_ri - applies [cmd] to [r]egister from [i]mmediate

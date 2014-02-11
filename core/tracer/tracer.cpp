@@ -32,7 +32,7 @@
  * thus application logic can be written and maintained in one place.
  *
  * At present, Intel SSE (1 and 2) and ARM MPE (aka NEON) are supported
- * in 32-bit mode, with the possibility to extend support to 64-bit mode
+ * in 32-bit mode, with possibility to extend support to 64-bit mode
  * along with more available registers, wider SIMD and other architectures,
  * though a significant redesign of some portions of the code might be needed.
  */

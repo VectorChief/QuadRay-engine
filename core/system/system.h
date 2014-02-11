@@ -15,6 +15,17 @@
 #include "rtconf.h"
 
 /******************************************************************************/
+/*********************************   LEGEND   *********************************/
+/******************************************************************************/
+
+/*
+ * system.h: Interface for the system layer.
+ *
+ * More detailed description of this subsystem is given in system.cpp.
+ * Recommended naming scheme for C++ types and definitions is given in rtbase.h.
+ */
+
+/******************************************************************************/
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
@@ -65,6 +76,7 @@ class rt_File
 /**********************************   HEAP   **********************************/
 /******************************************************************************/
 
+/* memory chunk header */
 struct rt_CHUNK
 {
     rt_byte            *ptr;
@@ -178,7 +190,7 @@ extern rt_FUNC_PRINT_ERR    f_print_err;
 
 /*
  * LogRedirect is an interface for scene manager
- * used for changing global log functions.
+ * used for replacing default log functions.
  */
 class rt_LogRedirect /* must be first in scene init */
 {

@@ -8,6 +8,29 @@
 #define RT_RTARCH_H
 
 /******************************************************************************/
+/*********************************   LEGEND   *********************************/
+/******************************************************************************/
+
+/*
+ * rtarch.h: Main architecture selection file.
+ *
+ * Main file of the unified SIMD assembler framework
+ * designed to be compatible with different processor architectures,
+ * while maintaining strictly defined common API.
+ *
+ * Definitions provided in this file are intended to hide the differences of
+ * inline assembly implementations in various compilers and operating systems,
+ * while definitions of particular instruction sets are delegated to
+ * corresponding companion files named rtarch_***.h for core instructions
+ * and rtarch_***_***.h for SIMD instructions.
+ *
+ * At present, Intel SSE (1 and 2) and ARM MPE (aka NEON) are supported
+ * in 32-bit mode, with possibility to extend support to 64-bit mode
+ * along with more available registers, wider SIMD and other architectures,
+ * though a significant redesign of some portions of the code might be needed.
+ */
+
+/******************************************************************************/
 /***************************   OS, COMPILER, ARCH   ***************************/
 /******************************************************************************/
 

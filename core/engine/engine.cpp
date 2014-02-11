@@ -22,7 +22,7 @@
  * to prepare data structures used by the rendering backend (tracer.cpp).
  *
  * Processing of objects consists of two major parts: update and render,
- * of which only update is handled by the engine, while render is passed
+ * of which only update is handled by the engine, while render is delegated
  * to the rendering backend once all data structures have been prepared.
  *
  * Update in turn consists of three phases:

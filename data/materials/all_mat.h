@@ -16,6 +16,8 @@
 /******************************************************************************/
 
 /*
+ * all_mat.h: Common file for all materials.
+ *
  * Recommended naming scheme for materials:
  *
  * - All material names start with mt_ followed by 1 or 2 parts.

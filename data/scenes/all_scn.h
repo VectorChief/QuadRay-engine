@@ -14,6 +14,8 @@
 /******************************************************************************/
 
 /*
+ * all_scn.h: Common file for all scenes.
+ *
  * Recommended naming scheme for scenes:
  *
  * - All scene namespaces start with scn_ followed by scene's specific name,

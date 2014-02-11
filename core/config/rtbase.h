@@ -7,11 +7,45 @@
 #ifndef RT_RTBASE_H
 #define RT_RTBASE_H
 
-/* Generic includes */
-
 #include <math.h>
 #include <float.h>
 #include <stdlib.h>
+
+/******************************************************************************/
+/*********************************   LEGEND   *********************************/
+/******************************************************************************/
+
+/*
+ * rtbase.h: Base type definitions file.
+ *
+ * Recommended naming scheme for C++ types and definitions:
+ *
+ * - All scalar type names start with rt_ followed by type's specific name
+ *   in lower case in a form of rt_****. For example: rt_cell or rt_vec4.
+ *
+ * - All structure names start with rt_ followed by structure's specific name
+ *   in upper case with _ used as separator for complex names.
+ *   All SIMD-aligned structures used in backend start with rt_SIMD_ prefix.
+ *   For example: rt_ELEM or rt_SIMD_INFOX.
+ *
+ * - All class names start with rt_ followed by class's specific name
+ *   in camel case without separator. For example: rt_Scene or rt_SceneThread.
+ *
+ * - All function names including class methods are in lower case with _ used
+ *   as separator for complex names. For example: update_slice or render_fps.
+ *
+ * - All function type names start with rt_FUNC_ followed by function type's
+ *   specific name in upper case with _ used as separator for complex names.
+ *   For example: rt_FUNC_INIT or rt_FUNC_UPDATE.
+ *
+ * - All preprocessor definition names and macros start with RT_ followed by
+ *   specific name in upper case with _ used as separator for complex names.
+ *   For example: RT_ALIGN or RT_ARR_SIZE.
+ */
+
+/******************************************************************************/
+/*******************************   DEFINITIONS   ******************************/
+/******************************************************************************/
 
 /* Generic types */
 

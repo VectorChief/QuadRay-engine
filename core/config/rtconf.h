@@ -7,6 +7,21 @@
 #ifndef RT_RTCONF_H
 #define RT_RTCONF_H
 
+/******************************************************************************/
+/*********************************   LEGEND   *********************************/
+/******************************************************************************/
+
+/*
+ * rtconf.h: Main configuration file.
+ *
+ * Definitions provided in this file are used to configure different subsystems
+ * of the engine, specify paths, thresholds and optimization flags.
+ */
+
+/******************************************************************************/
+/*******************************   DEFINITIONS   ******************************/
+/******************************************************************************/
+
 #define RT_STACK_DEPTH          10
 #define RT_THREADS_NUM          16
 
