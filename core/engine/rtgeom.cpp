@@ -14,7 +14,7 @@
 /******************************************************************************/
 
 /*
- * rtgeom.cpp: Implementation of the geometry utils.
+ * rtgeom.cpp: Implementation of the geometry utils library.
  *
  * Utility file for the engine responsible for vector-matrix operations
  * as well as routines to determine bounding and clipping boxes relationship.
@@ -1121,6 +1121,176 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
     }
 
     return 0;
+}
+
+/*
+ * Determine if "srf" and "ref" bboxes are in correct order as seen from "obj".
+ *
+ * Return values:
+ *  1 - don't swap
+ *  2 - do swap
+ *  3 - neutral
+ *  4 - unsortable
+ */
+rt_cell bbox_sort(rt_Object *obj, rt_Surface *srf, rt_Surface *ref)
+{
+    /* check if surfaces differ and have bounds */
+    if (srf->verts_num == 0 || ref->verts_num == 0 || srf == ref)
+    {
+        return 4;
+    }
+
+    /* check order for bounding boxes */
+    rt_cell i, j, k, c = 0;
+
+    /* run through "ref" faces and "srf" verts */
+    for (j = 0; j < ref->faces_num; j++)
+    {
+        rt_FACE *fc = &ref->faces[j];
+
+        for (i = 0; i < srf->verts_num; i++)
+        {
+            k = vert_to_face(obj->pos, srf->verts[i].pos,
+                             ref->verts[fc->index[0]].pos,
+                             ref->verts[fc->index[1]].pos,
+                             ref->verts[fc->index[2]].pos,
+                             fc->k, fc->i, fc->j);
+            if (k == 4)
+            {
+                k =  2;
+            }
+            if (k == 1 || k == 2)
+            {
+                if (c == 0)
+                {
+                    c =  k;
+                }
+                else
+                if (c != k)
+                {
+                    return 4;
+                }
+            }
+            if (fc->k < 3)
+            {
+                continue;
+            }
+            k = vert_to_face(obj->pos, srf->verts[i].pos,
+                             ref->verts[fc->index[2]].pos,
+                             ref->verts[fc->index[3]].pos,
+                             ref->verts[fc->index[0]].pos,
+                             fc->k, fc->i, fc->j);
+            if (k == 4)
+            {
+                k =  2;
+            }
+            if (k == 1 || k == 2)
+            {
+                if (c == 0)
+                {
+                    c =  k;
+                }
+                else
+                if (c != k)
+                {
+                    return 4;
+                }
+            }
+        }
+    }
+
+    /* run through "srf" faces and "ref" verts */
+    for (j = 0; j < srf->faces_num; j++)
+    {
+        rt_FACE *fc = &srf->faces[j];
+
+        for (i = 0; i < ref->verts_num; i++)
+        {
+            k = vert_to_face(obj->pos, ref->verts[i].pos,
+                             srf->verts[fc->index[0]].pos,
+                             srf->verts[fc->index[1]].pos,
+                             srf->verts[fc->index[2]].pos,
+                             fc->k, fc->i, fc->j);
+            if (k == 4)
+            {
+                k =  2;
+            }
+            k ^= 3;
+            if (k == 1 || k == 2)
+            {
+                if (c == 0)
+                {
+                    c =  k;
+                }
+                else
+                if (c != k)
+                {
+                    return 4;
+                }
+            }
+            if (fc->k < 3)
+            {
+                continue;
+            }
+            k = vert_to_face(obj->pos, ref->verts[i].pos,
+                             srf->verts[fc->index[2]].pos,
+                             srf->verts[fc->index[3]].pos,
+                             srf->verts[fc->index[0]].pos,
+                             fc->k, fc->i, fc->j);
+            if (k == 4)
+            {
+                k =  2;
+            }
+            k ^= 3;
+            if (k == 1 || k == 2)
+            {
+                if (c == 0)
+                {
+                    c =  k;
+                }
+                else
+                if (c != k)
+                {
+                    return 4;
+                }
+            }
+        }
+    }
+
+    /* run through "ref" edges and "srf" edges */
+    for (j = 0; j < ref->edges_num; j++)
+    {
+        rt_EDGE *ej = &ref->edges[j];
+
+        for (i = 0; i < srf->edges_num; i++)
+        {
+            rt_EDGE *ei = &srf->edges[i];
+
+            k = edge_to_edge(obj->pos,
+                             srf->verts[ei->index[0]].pos,
+                             srf->verts[ei->index[1]].pos, ei->k,
+                             ref->verts[ej->index[0]].pos,
+                             ref->verts[ej->index[1]].pos, ej->k);
+            if (k == 4)
+            {
+                k =  2;
+            }
+            if (k == 1 || k == 2)
+            {
+                if (c == 0)
+                {
+                    c =  k;
+                }
+                else
+                if (c != k)
+                {
+                    return 4;
+                }
+            }
+        }
+    }
+
+    return c == 0 ? 3 : c;
 }
 
 /*

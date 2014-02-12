@@ -16,7 +16,7 @@
 /******************************************************************************/
 
 /*
- * rtgeom.h: Interface for the geometry utils.
+ * rtgeom.h: Interface for the geometry utils library.
  *
  * More detailed description of this subsystem is given in rtgeom.cpp.
  * Recommended naming scheme for C++ types and definitions is given in rtbase.h.
@@ -87,13 +87,23 @@ while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
 rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf);
 
 /*
+ * Determine if "srf" and "ref" bboxes are in correct order as seen from "obj".
+ *
+ * Return values:
+ *  1 - don't swap
+ *  2 - neutral
+ *  3 - swap
+ *  4 - unsortable
+ */
+rt_cell bbox_sort(rt_Object *obj, rt_Surface *srf, rt_Surface *ref);
+
+/*
  * Determine which side of clipped "srf" is seen from "pos".
  *
  * Return values:
- *  0 - none (on the surface)
  *  1 - inner
  *  2 - outer
- *  3 - both
+ *  3 - both, also if on the surface with margin
  */
 rt_cell cbox_side(rt_real *pos, rt_Surface *srf);
 
@@ -101,7 +111,7 @@ rt_cell cbox_side(rt_real *pos, rt_Surface *srf);
  * Determine which side of clipped "srf" is seen from "ref" bbox.
  *
  * Return values:
- *  0 - none
+ *  0 - none, if both surfaces are the same plane
  *  1 - inner
  *  2 - outer
  *  3 - both
