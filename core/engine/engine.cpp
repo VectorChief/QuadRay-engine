@@ -647,126 +647,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
 {
     rt_ELEM *elm = RT_NULL;
 
-    if (srf != RT_NULL)
-    {
-        /* alloc new element for srf */
-        elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
-        elm->data = 0;
-        elm->simd = srf->s_srf;
-        elm->temp = srf;
-
-        rt_ELEM *lst[2], *nxt;
-        rt_Array *arr[2];
-
-        lst[0] = RT_NULL;
-        arr[0] = srf->trnode != RT_NULL && srf->trnode != srf ?
-                 (rt_Array *)srf->trnode : RT_NULL;
-
-        lst[1] = RT_NULL;
-        arr[1] = srf->bvnode != RT_NULL && RT_IS_SURFACE(obj) ?
-                 (rt_Array *)srf->bvnode : RT_NULL;
-
-        rt_cell i, k = 0, n = (arr[0] != RT_NULL) + (arr[1] != RT_NULL);
-
-        if (n != 0)
-        {
-            /* search matching existing trnode/bvnode for insertion */
-            for (nxt = *ptr; nxt != RT_NULL; nxt = nxt->next)
-            {
-                for (i = 0; i < 2; i++)
-                {
-                    if (arr[i] == nxt->temp && (nxt->data & 0x3) == i)
-                    {
-#if RT_DEBUG == 1
-                        if (arr[i] == RT_NULL
-                        ||  lst[i] != RT_NULL)
-                        {
-                            throw rt_Exception("inconsistency in surface list");
-                        }
-#endif /* RT_DEBUG */
-                        lst[i] = nxt;
-                        ptr = &nxt->next;
-                        k++;
-                        if (k == n)
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        k = -1;
-
-        if (n == 2)
-        {
-            /* determine trnode/bvnode order on the branch */
-            if (arr[0] == arr[1])
-            {
-                k = 0;
-            }
-            else
-            {
-                for (i = 0; i < 2; i++)
-                {
-                    rt_Array *par = RT_NULL;
-                    for (par = (rt_Array *)arr[i]->parent; par != RT_NULL;
-                         par = (rt_Array *)par->parent)
-                    {
-                        if (par == arr[1 - i])
-                        {
-                            k = i;
-                            break;
-                        }
-                    }
-                    if (k == i)
-                    {
-                        break;
-                    }
-                }
-            }
-        }
-        else
-        if (arr[0] != RT_NULL)
-        {
-            k = 0;
-        }
-        else
-        if (arr[1] != RT_NULL)
-        {
-            k = 1;
-        }
-
-        if (n != 0 && k == -1)
-        {
-            throw rt_Exception("trnode and bvnode are not on the same branch");
-        }
-        if (n == 2 && lst[k] != RT_NULL && lst[1 - k] == RT_NULL)
-        {
-            throw rt_Exception("inconsistency between trnode and bvnode");
-        }
-
-        /* insert element according to found position */
-        elm->next = *ptr;
-       *ptr = elm;
-
-        for (i = 0; i < n; i++, k = 1 - k)
-        {
-            if (arr[k] != RT_NULL && lst[k] == RT_NULL)
-            {
-                /* alloc new trnode/bvnode element as none has been found */
-                nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
-                nxt->data = (rt_cell)elm | k; /* last element plus flag */
-                nxt->simd = arr[k]->s_srf;
-                nxt->temp = arr[k];
-                /* insert element according to found position */
-                nxt->next = *ptr;
-               *ptr = nxt;
-            }
-        }
-    }
-    else
-    if (RT_IS_LIGHT(obj))
+    if (srf == RT_NULL && RT_IS_LIGHT(obj))
     {
         rt_Light *lgt = (rt_Light *)obj;
 
@@ -778,6 +659,435 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         /* insert element as list head */
         elm->next = *ptr;
        *ptr = elm;
+    }
+
+    if (srf == RT_NULL)
+    {
+        return;
+    }
+
+    /* alloc new element for srf */
+    elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+    elm->data = 0;
+    elm->simd = srf->s_srf;
+    elm->temp = srf;
+
+    rt_ELEM *lst[2], *nxt;
+    rt_Array *arr[2];
+
+    lst[0] = RT_NULL;
+    arr[0] = srf->trnode != RT_NULL && srf->trnode != srf ?
+                    (rt_Array *)srf->trnode : RT_NULL;
+
+    lst[1] = RT_NULL;
+    arr[1] = srf->bvnode != RT_NULL && RT_IS_SURFACE(obj) ?
+                    (rt_Array *)srf->bvnode : RT_NULL;
+
+    rt_cell i, k = 0, n = (arr[0] != RT_NULL) + (arr[1] != RT_NULL);
+
+    if (n != 0)
+    {
+        /* search matching existing trnode/bvnode for insertion */
+        for (nxt = *ptr; nxt != RT_NULL; nxt = nxt->next)
+        {
+            for (i = 0; i < 2; i++)
+            {
+                if (arr[i] == nxt->temp && (nxt->data & 0x3) == i)
+                {
+#if RT_DEBUG == 1
+                    if (arr[i] == RT_NULL
+                    ||  lst[i] != RT_NULL)
+                    {
+                        throw rt_Exception("inconsistency in surface list");
+                    }
+#endif /* RT_DEBUG */
+                    lst[i] = nxt;
+                    ptr = &nxt->next;
+                    k++;
+                    if (k == n)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    k = -1;
+
+    if (n == 2)
+    {
+        /* determine trnode/bvnode order on the branch */
+        if (arr[0] == arr[1])
+        {
+            k = 0;
+        }
+        else
+        {
+            for (i = 0; i < 2; i++)
+            {
+                rt_Array *par = RT_NULL;
+                for (par = (rt_Array *)arr[i]->parent; par != RT_NULL;
+                     par = (rt_Array *)par->parent)
+                {
+                    if (par == arr[1 - i])
+                    {
+                        k = i;
+                        break;
+                    }
+                }
+                if (k == i)
+                {
+                    break;
+                }
+            }
+        }
+    }
+    else
+    if (arr[0] != RT_NULL)
+    {
+        k = 0;
+    }
+    else
+    if (arr[1] != RT_NULL)
+    {
+        k = 1;
+    }
+
+    if (n != 0 && k == -1)
+    {
+        throw rt_Exception("trnode and bvnode are not on the same branch");
+    }
+    if (n == 2 && lst[k] != RT_NULL && lst[1 - k] == RT_NULL)
+    {
+        throw rt_Exception("inconsistency between trnode and bvnode");
+    }
+
+    /* insert element according to found position */
+    elm->next = *ptr;
+   *ptr = elm;
+
+    for (i = 0; i < n; i++, k = 1 - k)
+    {
+        if (arr[k] != RT_NULL && lst[k] == RT_NULL)
+        {
+            /* alloc new trnode/bvnode element as none has been found */
+            nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+            nxt->data = (rt_cell)elm | k; /* last element plus flag */
+            nxt->simd = arr[k]->s_srf;
+            nxt->temp = arr[k];
+            /* insert element according to found position */
+            nxt->next = *ptr;
+           *ptr = nxt;
+        }
+    }
+
+    /* sort surfaces in the list "ptr" (ver 1)
+     * based on bbox order as seen from "obj",
+     * temporarily not compatible with TARRAY, VARRAY opts */
+#if RT_OPTS_INSERT == 1 && RT_OPTS_TARRAY == 0 && RT_OPTS_VARRAY == 0
+    if ((scene->opts & RT_OPTS_INSERT) == 0)
+#endif /* RT_OPTS_INSERT */
+    {
+        return;
+    }
+
+    /* "state" helps to avoid stored order value re-computation
+     * when the whole sublist is being moved (one element at a time) */
+    rt_cell state = 0;
+    rt_ELEM *prv = RT_NULL;
+
+    /* phase 1, push "elm" through the list "ptr" for as long as possible,
+     * order value re-computation is avoided via "state" variable */
+    for (nxt = elm->next; nxt != RT_NULL; )
+    {
+        /* compute the order value between "elm" and "nxt" elements */
+        rt_cell op = bbox_sort(obj, (rt_Surface *)elm->temp,
+                                    (rt_Surface *)nxt->temp);
+        switch (op)
+        {
+            /* move "elm" forward if the "op" is
+             * either "do swap" or "neutral" */
+            case 2:
+            op = 1;
+            case 3:
+            elm->next = nxt->next;
+            if (prv != RT_NULL)
+            {
+                if (state != 0)
+                {
+                    prv->data = state;
+                }
+                else
+                {
+                    prv->data = bbox_sort(obj, (rt_Surface *)prv->temp,
+                                               (rt_Surface *)nxt->temp);
+                }
+                prv->next = nxt;
+            }
+            else
+            {
+               *ptr = nxt;
+            }
+            /* if current "elm" position is transitory, "state" keeps
+             * previously computed order value between "prv" and "nxt",
+             * thus the order value can be restored to "prv" data field
+             * (without re-computation) as the "elm" advances further */
+            state = nxt->data;
+            nxt->data = op;
+            nxt->next = elm;
+            prv = nxt;
+            nxt = elm->next;
+            break;
+
+            /* stop phase 1 if the "op" is
+             * either "don't swap" or "unsortable" */
+            default:
+            elm->data = op;
+            /* reset "state" as the "elm" has found its place */
+            state = 0;
+            nxt = RT_NULL;
+            break;
+        }
+    }
+
+    rt_ELEM *end, *tlp, *cur, *ipt, *jpt;
+
+    /* phase 2, find the "end" of the strict-order-chain from "elm" */
+    for (end = elm; end->data == 1 || end->data == 4; end = end->next);
+
+    /* phase 3, move the elements from behind "elm" strict-order-chain
+     * right in front of the "elm" as computed order value dictates,
+     * order value re-computation is avoided via "state" variables */
+    for (tlp = end, nxt = end->next; nxt != RT_NULL; )
+    {
+        rt_bool gr = RT_FALSE;
+        /* compute the order value between "elm" and "nxt" elements */
+        rt_cell op = bbox_sort(obj, (rt_Surface *)elm->temp,
+                                    (rt_Surface *)nxt->temp);
+        switch (op)
+        {
+            /* move "nxt" in front of the "elm"
+             * if the "op" is "do swap" */
+            case 2:
+            op = 1;
+            /* check if there is a tail from "end->next"
+             * up to "tlp" to comb out thoroughly before
+             * moving "nxt" (along with its strict-order-chain
+             * from "tlp->next") to the front of the "elm" */
+            if (tlp != end)
+            {
+                /* local "state" helps to avoid stored order value
+                 * re-computation for tail's sublists joining the comb */
+                rt_cell state = 0;
+                cur = tlp;
+                /* run through the tail area from "end->next"
+                 * up to "tlp" backwards, while combing out
+                 * elements to move along with "nxt" */
+                while (cur != end)
+                {
+                    /* search for "cur" previous element,
+                     * can be optimized out for dual-linked list,
+                     * use "simd" ptr as "prev" during sorting? */
+                    for (ipt = end; ipt->next != cur; ipt = ipt->next);
+                    rt_bool mv = RT_FALSE;
+                    rt_ELEM *iel = ipt->next;
+                    /* run through the strict-order-chain from "tlp->next"
+                     * up to "nxt" (which serves as a comb for the tail)
+                     * and compute new order values for each tail element */
+                    for (jpt = tlp; jpt != nxt; jpt = jpt->next)
+                    {
+                        rt_ELEM *jel = jpt->next;
+                        rt_cell op = bbox_sort(obj, (rt_Surface *)cur->temp,
+                                                    (rt_Surface *)jel->temp);
+                        /* check if order is strict, then stop
+                         * and mark "cur" as moving with "nxt",
+                         * "cur" will then be added to "nxt" comb */
+                        if (op == 1 || op == 4)
+                        {
+                            mv = RT_TRUE;
+                            break;
+                        }
+                    }
+                    if (mv == RT_TRUE)
+                    {
+                        gr = RT_TRUE;
+                        /* check if "cur" was the last tail's element,
+                         * then repair "tlp" stored order value as the
+                         * tail gets shorten by one element "cur",
+                         * which at the same time joins the comb */
+                        if (tlp == cur)
+                        {
+                            /* repair "tlp" stored order value before it moves
+                             * to its prev, "ipt" serves as "tlp" prev */
+                            if (tlp->data == 0)
+                            {
+                                cur = tlp->next;
+                                tlp->data = 
+                                     bbox_sort(obj, (rt_Surface *)tlp->temp,
+                                                    (rt_Surface *)cur->temp);
+                            }
+                            /* move "tlp" to its prev */
+                            tlp = ipt;
+                        }
+                        /* move "cur" from the middle of the tail
+                         * to the front of the comb, "iel" serves
+                         * as "cur" and "ipt" serves as "cur" prev */
+                        else
+                        {
+                            /* local "state" keeps previously computed order
+                             * value between "cur" and the front of the comb,
+                             * thus the order value can be restored to
+                             * "cur" data field (without re-computation)
+                             * if the whole sublist is being moved
+                             * to the front of the comb "tlp->next" */
+                            cur = tlp->next;
+                            if (state != 0)
+                            {
+                                iel->data = state;
+                            }
+                            else
+                            {
+                                iel->data = 
+                                     bbox_sort(obj, (rt_Surface *)iel->temp,
+                                                    (rt_Surface *)cur->temp);
+                            }
+                            state = ipt->data;
+                            ipt->data = 0;
+                            ipt->next = iel->next;
+                            iel->next = cur;
+                            tlp->data = 0;
+                            tlp->next = iel;
+                        }
+                    }
+                    else
+                    {
+                        /* reset local "state" as tail's sublist
+                         * (joining the comb) is being broken,
+                         * repair "cur" stored order value before it
+                         * moves to its prev, "iel" serves as "cur" */
+                        if (state != 0)
+                        {
+                            state = 0;
+                            cur = iel->next;
+                            iel->data = 
+                                 bbox_sort(obj, (rt_Surface *)iel->temp,
+                                                (rt_Surface *)cur->temp);
+                        }
+                    }
+                    /* move "cur" to its prev */
+                    cur = ipt;
+                }
+                /* reset local "state" as the tail has been combed out,
+                 * repair "end" stored order value (to the rest of the tail),
+                 * "ipt" serves as "end" */
+                if (state != 0)
+                {
+                    state = 0;
+                    cur = ipt->next;
+                    ipt->data = bbox_sort(obj, (rt_Surface *)ipt->temp,
+                                               (rt_Surface *)cur->temp);
+                }
+            }
+            /* reset "state" if the comb has grown with tail elements */
+            if (state != 0 && gr == RT_TRUE)
+            {
+                state = 0;
+            }
+            /* move "nxt" along with its comb (if any)
+             * from "tlp->next" to the front of the "elm" */
+            cur = tlp->next;
+            if (prv != RT_NULL)
+            {
+                if (state != 0)
+                {
+                    prv->data = state;
+                }
+                else
+                {
+                    prv->data = bbox_sort(obj, (rt_Surface *)prv->temp,
+                                               (rt_Surface *)cur->temp);
+                }
+                prv->next = cur;
+            }
+            else
+            {
+               *ptr = cur;
+            }
+            cur = nxt->next;
+            tlp->data = 0;
+            tlp->next = cur;
+            /* "state" keeps previously computed order value between "nxt"
+             * and "nxt->next", thus the order value can be restored to
+             * "prv" data field (without re-computation) if the whole
+             * sublist is being moved from "nxt" to the front of the "elm" */
+            state = nxt->data;
+            nxt->data = op;
+            nxt->next = elm;
+            prv = nxt;
+            nxt = cur;
+            break;
+
+            /* move "nxt" forward if the "op" is
+             * "don't swap", "neutral" or "unsortable" */
+            default:
+            /* if "nxt" stored order value (to "nxt->next")
+             * is "neutral", then strict-order-chain
+             * from "tlp->next" up to "nxt" is being broken
+             * as "nxt" moves, thus "tlp" catches up with "nxt" */
+            if (nxt->data != 1 && nxt->data != 4)
+            {
+                /* repair "tlp" stored order value
+                 * before it catches up with "nxt" */
+                if (tlp->data == 0)
+                {
+                    cur = tlp->next;
+                    tlp->data = bbox_sort(obj, (rt_Surface *)tlp->temp,
+                                               (rt_Surface *)cur->temp);
+                }
+                /* reset "state" as "tlp" moves forward */
+                state = 0;
+                /* move "tlp" to "nxt" before it advances */
+                tlp = nxt;
+            }
+            /* when "nxt" runs away from "tlp" it grows a
+             * strict-order-chain from "tlp->next" up to "nxt",
+             * which then serves as a comb for the tail area
+             * from "end->next" up to "tlp" */
+            nxt = nxt->next;
+            break;
+        }
+    }
+    /* repair "tlp" stored order value
+     * if there are elements left behind it */
+    cur = tlp->next;
+    if (tlp->data == 0 && cur != RT_NULL)
+    {
+        tlp->data = bbox_sort(obj, (rt_Surface *)tlp->temp,
+                                   (rt_Surface *)cur->temp);
+    }
+}
+
+/*
+ * Filter the list "ptr" for a given object "obj".
+ */
+rt_void rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
+{
+    if (ptr == RT_NULL)
+    {
+        return;
+    }
+
+    rt_ELEM *elm = *ptr;
+
+    for (; elm != RT_NULL; elm = elm->next)
+    {
+        rt_Object *obj = (rt_Object *)elm->temp;
+
+        if (RT_IS_SURFACE(obj))
+        {
+            elm->data = 0;
+        }
     }
 }
 
@@ -1034,6 +1344,17 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
         }
     }
 
+#if RT_OPTS_INSERT != 0
+    if ((scene->opts & RT_OPTS_INSERT) != 0)
+    {
+#if RT_OPTS_2SIDED != 0
+        filter(obj, pto);
+        filter(obj, pti);
+#endif /* RT_OPTS_2SIDED */
+        filter(obj, ptr);
+    }
+#endif /* RT_OPTS_INSERT */
+
     if (srf == RT_NULL)
     {
         return lst;
@@ -1198,6 +1519,17 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
                 insert(lgt, psr, shw);
             }
         }
+
+#if RT_OPTS_INSERT != 0
+        if ((scene->opts & RT_OPTS_INSERT) != 0)
+        {
+#if RT_OPTS_2SIDED != 0
+            filter(lgt, pso);
+            filter(lgt, psi);
+#endif /* RT_OPTS_2SIDED */
+            filter(lgt, psr);
+        }
+#endif /* RT_OPTS_INSERT */
 
         if (g_print)
         {
