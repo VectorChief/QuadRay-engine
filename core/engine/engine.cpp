@@ -782,7 +782,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         }
     }
 
-    /* sort surfaces in the list "ptr" (ver 1)
+    /* sort surfaces in the list "ptr" (ver 2)
      * based on bbox order as seen from "obj",
      * temporarily not compatible with TARRAY, VARRAY opts */
 #if RT_OPTS_INSERT == 1 && RT_OPTS_TARRAY == 0 && RT_OPTS_VARRAY == 0
@@ -809,6 +809,8 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
             /* move "elm" forward if the "op" is
              * either "do swap" or "neutral" */
             case 2:
+            /* as the swap operation is performed below
+             * the stored order value becomes "don't swap" */
             op = 1;
             case 3:
             elm->next = nxt->next;
@@ -853,7 +855,8 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
 
     rt_ELEM *end, *tlp, *cur, *ipt, *jpt;
 
-    /* phase 2, find the "end" of the strict-order-chain from "elm" */
+    /* phase 2, find the "end" of the strict-order-chain from "elm",
+     * order values "don't swap" and "unsortable" are considered strict */
     for (end = elm; end->data == 1 || end->data == 4; end = end->next);
 
     /* phase 3, move the elements from behind "elm" strict-order-chain
@@ -870,6 +873,8 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
             /* move "nxt" in front of the "elm"
              * if the "op" is "do swap" */
             case 2:
+            /* as the swap operation is performed below
+             * the stored order value becomes "don't swap" */
             op = 1;
             /* check if there is a tail from "end->next"
              * up to "tlp" to comb out thoroughly before
@@ -886,20 +891,37 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                  * elements to move along with "nxt" */
                 while (cur != end)
                 {
+                    rt_bool mv = RT_FALSE;
                     /* search for "cur" previous element,
                      * can be optimized out for dual-linked list,
                      * use "simd" ptr as "prev" during sorting? */
                     for (ipt = end; ipt->next != cur; ipt = ipt->next);
-                    rt_bool mv = RT_FALSE;
                     rt_ELEM *iel = ipt->next;
                     /* run through the strict-order-chain from "tlp->next"
                      * up to "nxt" (which serves as a comb for the tail)
                      * and compute new order values for each tail element */
                     for (jpt = tlp; jpt != nxt; jpt = jpt->next)
                     {
+                        rt_cell op = 0;
                         rt_ELEM *jel = jpt->next;
-                        rt_cell op = bbox_sort(obj, (rt_Surface *)cur->temp,
-                                                    (rt_Surface *)jel->temp);
+                        /* if "tlp" stored order value to the first
+                         * comb element is not reset, use it as "op",
+                         * "cur" serves as "tlp" */
+                        if (cur->next == jel && cur->data != 0)
+                        {
+                            op = cur->data;
+                        }
+                        else
+                        {
+                            op = bbox_sort(obj, (rt_Surface *)cur->temp,
+                                                (rt_Surface *)jel->temp);
+                        }
+                        /* repair "tlp" stored order value to the first
+                         * comb element, "cur" serves as "tlp" */
+                        if (cur->next == jel && cur->data == 0)
+                        {
+                            cur->data = op;
+                        }
                         /* check if order is strict, then stop
                          * and mark "cur" as moving with "nxt",
                          * "cur" will then be added to "nxt" comb */
@@ -909,24 +931,15 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                             break;
                         }
                     }
+                    /* check if "cur" needs to move (join the comb) */
                     if (mv == RT_TRUE)
                     {
                         gr = RT_TRUE;
                         /* check if "cur" was the last tail's element,
-                         * then repair "tlp" stored order value as the
-                         * tail gets shorten by one element "cur",
+                         * then tail gets shorten by one element "cur",
                          * which at the same time joins the comb */
-                        if (tlp == cur)
+                        if (cur == tlp)
                         {
-                            /* repair "tlp" stored order value before it moves
-                             * to its prev, "ipt" serves as "tlp" prev */
-                            if (tlp->data == 0)
-                            {
-                                cur = tlp->next;
-                                tlp->data = 
-                                     bbox_sort(obj, (rt_Surface *)tlp->temp,
-                                                    (rt_Surface *)cur->temp);
-                            }
                             /* move "tlp" to its prev */
                             tlp = ipt;
                         }
@@ -960,6 +973,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                             tlp->next = iel;
                         }
                     }
+                    /* "cur" doesn't move (stays in the tail) */
                     else
                     {
                         /* reset local "state" as tail's sublist
@@ -1084,6 +1098,9 @@ rt_void rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
     {
         rt_Object *obj = (rt_Object *)elm->temp;
 
+        /* if the list element is surface
+         * reset stored order value used in sorting
+         * to keep it clean for the backend */
         if (RT_IS_SURFACE(obj))
         {
             elm->data = 0;
