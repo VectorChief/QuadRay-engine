@@ -782,7 +782,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         }
     }
 
-    /* sort surfaces in the list "ptr" (ver 2)
+    /* sort surfaces in the list "ptr" (ver 3)
      * based on bbox order as seen from "obj",
      * temporarily not compatible with TARRAY, VARRAY opts */
 #if RT_OPTS_INSERT == 1 && RT_OPTS_TARRAY == 0 && RT_OPTS_VARRAY == 0
@@ -891,6 +891,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                  * elements to move along with "nxt" */
                 while (cur != end)
                 {
+                    rt_cell rl = 0;
                     rt_bool mv = RT_FALSE;
                     /* search for "cur" previous element,
                      * can be optimized out for dual-linked list,
@@ -921,6 +922,12 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                         if (cur->next == jel && cur->data == 0)
                         {
                             cur->data = op;
+                        }
+                        /* remember "cur" computed order value to the first
+                         * comb element, if "cur" is not "tlp" */
+                        if (tlp->next == jel && cur != tlp)
+                        {
+                            rl = op;
                         }
                         /* check if order is strict, then stop
                          * and mark "cur" as moving with "nxt",
@@ -961,9 +968,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                             }
                             else
                             {
-                                iel->data = 
-                                     bbox_sort(obj, (rt_Surface *)iel->temp,
-                                                    (rt_Surface *)cur->temp);
+                                iel->data = rl;
                             }
                             state = ipt->data;
                             ipt->data = 0;
