@@ -782,7 +782,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         }
     }
 
-    /* sort surfaces in the list "ptr" (ver 3)
+    /* sort surfaces in the list "ptr" (ver 4)
      * based on bbox order as seen from "obj",
      * temporarily not compatible with TARRAY, VARRAY opts */
 #if RT_OPTS_INSERT == 1 && RT_OPTS_TARRAY == 0 && RT_OPTS_VARRAY == 0
@@ -912,6 +912,15 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                         {
                             op = cur->data;
                         }
+                        else
+                        /* if "state" is not reset, it stores the order value
+                         * from "cur" to the first comb element (last moved),
+                         * use it as "op" */
+                        if (tlp->next == jel && state != 0)
+                        {
+                            op = state;
+                        }
+                        /* compute new order value */
                         else
                         {
                             op = bbox_sort(obj, (rt_Surface *)cur->temp,
