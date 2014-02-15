@@ -1252,7 +1252,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
 
                     /* alloc new trnode element as none has been found */
                     nxt = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
-                    nxt->data = (rt_cell)elm->next; /* trnode's end */
+                    nxt->data = (rt_cell)elm; /* trnode's last elem */
                     nxt->simd = arr->s_srf;
                     nxt->temp = arr;
                     /* insert element as list head */

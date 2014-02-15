@@ -514,7 +514,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
         movpx_st(Xmm0, Mecx, ctx_PARAM(0))      /* tmp_v -> PARAM */
         movpx_st(Xmm0, Mecx, ctx_LOCAL(0))      /* tmp_v -> LOCAL */
-        movxx_mi(Mecx, ctx_LOCAL(OBJ), IW(0xFFFFFFFF))
 
         jmpxx_lb(XX_set)
 
@@ -615,11 +614,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #if RT_FEAT_TRANSFORM_ARRAY
 
         /* ctx_LOCAL(OBJ) holds trnode's
-         * end element for transform caching,
-         * caching is not applied if -1 */
+         * last element for transform caching,
+         * caching is not applied if NULL */
         cmpxx_mi(Mebx, srf_SRF_P(TAG), IB(0))
         jltxn_lb(OO_dff)                        /* signed comparison */
-        cmpxx_mi(Mecx, ctx_LOCAL(OBJ), IW(0xFFFFFFFF))
+        cmpxx_mi(Mecx, ctx_LOCAL(OBJ), IB(0))
         jeqxx_lb(OO_dff)
 
         movpx_ld(Xmm1, Mecx, ctx_DFF_X)
@@ -636,14 +635,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm2, Mecx, ctx_DFF_J)
         movpx_st(Xmm3, Mecx, ctx_DFF_K)
 
-        /* check if surface's next is trnode's
-         * end element for transform caching */
-        movxx_ld(Reax, Mesi, elm_NEXT)
-        cmpxx_rm(Reax, Mecx, ctx_LOCAL(OBJ))
+        /* check if surface is trnode's
+         * last element for transform caching */
+        cmpxx_rm(Resi, Mecx, ctx_LOCAL(OBJ))
         jnexx_lb(OO_trm)
 
         /* reset ctx_LOCAL(OBJ) if so */
-        movxx_mi(Mecx, ctx_LOCAL(OBJ), IW(0xFFFFFFFF))
+        movxx_mi(Mecx, ctx_LOCAL(OBJ), IB(0))
         jmpxx_lb(OO_trm)
 
     LBL(OO_dff)
@@ -727,7 +725,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm6, Mecx, ctx_DFF_Z)
 
         /* enable transform caching from trnode,
-         * init ctx_LOCAL(OBJ) as end element */
+         * init ctx_LOCAL(OBJ) as last element */
         movxx_ld(Reax, Mesi, elm_DATA)
         movxx_st(Reax, Mecx, ctx_LOCAL(OBJ))
         jmpxx_lb(OO_ray)
@@ -982,7 +980,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ld(Reax, Mebx, srf_MSC_P(OBJ))    /* load trnode's simd ptr */
         movxx_st(Reax, Mecx, ctx_LOCAL(LST))    /* save trnode's simd ptr */
 
-        movxx_ri(Redx, IW(0xFFFFFFFF))
+        movxx_ri(Redx, IB(0))
         movxx_ld(Redi, Mebx, srf_MSC_P(CLP))
 
     LBL(CC_cyc)
@@ -1017,11 +1015,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #if RT_FEAT_TRANSFORM_ARRAY
 
         /* Redx holds trnode's
-         * end element for transform caching,
-         * caching is not applied if -1 */
+         * last element for transform caching,
+         * caching is not applied if NULL */
         cmpxx_mi(Mebx, srf_SRF_P(TAG), IB(0))
         jltxn_lb(CC_arr)                        /* signed comparison */
-        cmpxx_ri(Redx, IW(0xFFFFFFFF))
+        cmpxx_ri(Redx, IB(0))
         jeqxx_lb(CC_dff)
 
         movpx_ld(Xmm1, Mecx, ctx_NRM_X)
@@ -1042,14 +1040,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use context's normal fields (NRM)
          * as temporary storage for clipping */
 
-        /* check if clipper's next is trnode's
-         * end element for transform caching */
-        movxx_ld(Reax, Medi, elm_NEXT)
-        cmpxx_rr(Reax, Redx)
+        /* check if clipper is trnode's
+         * last element for transform caching */
+        cmpxx_rr(Redi, Redx)
         jnexx_lb(CC_trm)
 
         /* reset Redx if so */
-        movxx_ri(Redx, IW(0xFFFFFFFF))
+        movxx_ri(Redx, IB(0))
         jmpxx_lb(CC_trm)
 
     LBL(CC_arr)
@@ -1081,7 +1078,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * as temporary storage for clipping */
 
         /* enable transform caching from trnode,
-         * init Redx as end element */
+         * init Redx as last element */
         movxx_ld(Redx, Medi, elm_DATA)
         jmpxx_lb(CC_end)
 
@@ -1158,7 +1155,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * as temporary storage for clipping */
 
         /* enable transform caching from trnode,
-         * init Redx as end element */
+         * init Redx as last element */
         movxx_ld(Redx, Medi, elm_DATA)
         jmpxx_lb(CC_end)
 
@@ -1426,7 +1423,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_st(Xmm0, Mecx, ctx_T_MIN)         /* tmp_v -> T_MIN */
         movpx_st(Xmm0, Mecx, ctx_LOCAL(0))      /* tmp_v -> LOCAL */
-        movxx_mi(Mecx, ctx_LOCAL(OBJ), IW(0xFFFFFFFF))
 
         movxx_ld(Resi, Medi, elm_DATA)          /* load shadow list */
         jmpxx_lb(OO_cyc)
@@ -1817,7 +1813,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_st(Xmm0, Mecx, ctx_T_MIN)         /* tmp_v -> T_MIN */
         movpx_st(Xmm0, Mecx, ctx_LOCAL(0))      /* tmp_v -> LOCAL */
-        movxx_mi(Mecx, ctx_LOCAL(OBJ), IW(0xFFFFFFFF))
 
         jmpxx_lb(OO_cyc)
 
@@ -1987,7 +1982,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_st(Xmm0, Mecx, ctx_T_MIN)         /* tmp_v -> T_MIN */
         movpx_st(Xmm0, Mecx, ctx_LOCAL(0))      /* tmp_v -> LOCAL */
-        movxx_mi(Mecx, ctx_LOCAL(OBJ), IW(0xFFFFFFFF))
 
         jmpxx_lb(OO_cyc)
 
@@ -2113,7 +2107,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         shrxx_ri(Reax, IB(2))
         shlxx_ri(Reax, IB(2))
         movxx_rr(Resi, Reax)
-        jmpxx_lb(OO_cyc)
+        jmpxx_lb(OO_end)
 
 #endif /* RT_FEAT_BOUNDINGV_ARRAY */
 
