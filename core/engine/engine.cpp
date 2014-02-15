@@ -782,7 +782,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         }
     }
 
-    /* sort surfaces in the list "ptr" (ver 4)
+    /* sort surfaces in the list "ptr" (ver 5)
      * based on bbox order as seen from "obj",
      * temporarily not compatible with TARRAY, VARRAY opts */
 #if RT_OPTS_INSERT == 1 && RT_OPTS_TARRAY == 0 && RT_OPTS_VARRAY == 0
@@ -834,7 +834,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
             /* if current "elm" position is transitory, "state" keeps
              * previously computed order value between "prv" and "nxt",
              * thus the order value can be restored to "prv" data field
-             * (without re-computation) as the "elm" advances further */
+             * without re-computation as the "elm" advances further */
             state = nxt->data;
             nxt->data = op;
             nxt->next = elm;
@@ -883,7 +883,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
             if (tlp != end)
             {
                 /* local "state" helps to avoid stored order value
-                 * re-computation for tail's sublists joining the comb */
+                 * re-computation for tail's elements joining the comb */
                 rt_cell state = 0;
                 cur = tlp;
                 /* run through the tail area from "end->next"
@@ -891,7 +891,6 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                  * elements to move along with "nxt" */
                 while (cur != end)
                 {
-                    rt_cell rl = 0;
                     rt_bool mv = RT_FALSE;
                     /* search for "cur" previous element,
                      * can be optimized out for dual-linked list,
@@ -928,19 +927,20 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                         }
                         /* repair "tlp" stored order value to the first
                          * comb element, "cur" serves as "tlp" */
-                        if (cur->next == jel && cur->data == 0)
+                        if (cur->next == jel)
                         {
                             cur->data = op;
                         }
+                        else
                         /* remember "cur" computed order value to the first
-                         * comb element, if "cur" is not "tlp" */
-                        if (tlp->next == jel && cur != tlp)
+                         * comb element in the "state", if "cur" != "tlp" */
+                        if (tlp->next == jel)
                         {
-                            rl = op;
+                            state = op;
                         }
                         /* check if order is strict, then stop
                          * and mark "cur" as moving with "nxt",
-                         * "cur" will then be added to "nxt" comb */
+                         * "cur" will then be added to the comb */
                         if (op == 1 || op == 4)
                         {
                             mv = RT_TRUE;
@@ -956,7 +956,8 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                          * which at the same time joins the comb */
                         if (cur == tlp)
                         {
-                            /* move "tlp" to its prev */
+                            /* move "tlp" to its prev, its stored order value
+                             * is always repaired in the combing stage above */
                             tlp = ipt;
                         }
                         /* move "cur" from the middle of the tail
@@ -964,21 +965,12 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                          * as "cur" and "ipt" serves as "cur" prev */
                         else
                         {
+                            cur = tlp->next;
+                            iel->data = state;
                             /* local "state" keeps previously computed order
                              * value between "cur" and the front of the comb,
                              * thus the order value can be restored to
-                             * "cur" data field (without re-computation)
-                             * if the whole sublist is being moved
-                             * to the front of the comb "tlp->next" */
-                            cur = tlp->next;
-                            if (state != 0)
-                            {
-                                iel->data = state;
-                            }
-                            else
-                            {
-                                iel->data = rl;
-                            }
+                             * "cur" data field without re-computation */
                             state = ipt->data;
                             ipt->data = 0;
                             ipt->next = iel->next;
@@ -990,35 +982,34 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                     /* "cur" doesn't move (stays in the tail) */
                     else
                     {
-                        /* reset local "state" as tail's sublist
-                         * (joining the comb) is being broken,
-                         * repair "cur" stored order value before it
+                        /* repair "cur" stored order value before it
                          * moves to its prev, "iel" serves as "cur" */
-                        if (state != 0)
+                        if (iel->data == 0)
                         {
-                            state = 0;
                             cur = iel->next;
                             iel->data = 
                                  bbox_sort(obj, (rt_Surface *)iel->temp,
                                                 (rt_Surface *)cur->temp);
                         }
+                        /* reset local "state" as tail's sublist
+                         * (joining the comb) is being broken */
+                        state = 0;
                     }
                     /* move "cur" to its prev */
                     cur = ipt;
                 }
-                /* reset local "state" as the tail has been combed out,
-                 * repair "end" stored order value (to the rest of the tail),
+                /* repair "end" stored order value (to the rest of the tail),
                  * "ipt" serves as "end" */
-                if (state != 0)
+                if (ipt->data == 0)
                 {
-                    state = 0;
                     cur = ipt->next;
                     ipt->data = bbox_sort(obj, (rt_Surface *)ipt->temp,
                                                (rt_Surface *)cur->temp);
                 }
             }
-            /* reset "state" if the comb has grown with tail elements */
-            if (state != 0 && gr == RT_TRUE)
+            /* reset "state" if the comb has grown with tail elements, thus
+             * breaking the sublist moving to the front of the "elm" */
+            if (gr == RT_TRUE)
             {
                 state = 0;
             }
@@ -1047,7 +1038,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
             tlp->next = cur;
             /* "state" keeps previously computed order value between "nxt"
              * and "nxt->next", thus the order value can be restored to
-             * "prv" data field (without re-computation) if the whole
+             * "prv" data field without re-computation if the whole
              * sublist is being moved from "nxt" to the front of the "elm" */
             state = nxt->data;
             nxt->data = op;
@@ -1073,7 +1064,8 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                     tlp->data = bbox_sort(obj, (rt_Surface *)tlp->temp,
                                                (rt_Surface *)cur->temp);
                 }
-                /* reset "state" as "tlp" moves forward */
+                /* reset "state" as "tlp" moves forward, thus
+                 * breaking the sublist moving to the front of the "elm" */
                 state = 0;
                 /* move "tlp" to "nxt" before it advances */
                 tlp = nxt;
