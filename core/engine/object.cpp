@@ -1195,12 +1195,12 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
             if (srf->trnode != RT_NULL && srf->trnode != srf)
             {
                 rt_cell acc  = 0;
-                rt_ELEM *trn = RT_NULL, *nxt = *ptr;
+                rt_ELEM *nxt;
 
                 /* search matching existing trnode for insertion
                  * either within current accum segment
                  * or outside of any accum segment */
-                for (; nxt != RT_NULL; nxt = nxt->next)
+                for (nxt = *ptr; nxt != RT_NULL; nxt = nxt->next)
                 {
                     /* (acc == 0) either accum-enter-marker
                      * hasn't been inserted yet (current accum segment)
@@ -1208,7 +1208,6 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
                     if (acc == 0
                     &&  nxt->temp == srf->trnode)
                     {
-                        trn = nxt;
                         break;
                     }
 
@@ -1223,6 +1222,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
                     if (acc == 0 
                     &&  nxt->data == RT_ACCUM_LEAVE)
                     {
+                        nxt = RT_NULL;
                         break;
                     }
 
@@ -1242,7 +1242,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
                     }
                 }
 
-                if (trn == RT_NULL)
+                if (nxt == RT_NULL)
                 {
                     /* insert element as list head */
                     elm->next = *ptr;
@@ -1251,19 +1251,19 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
                     rt_Array *arr = (rt_Array *)obj->trnode;
 
                     /* alloc new trnode element as none has been found */
-                    elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
-                    elm->data = (rt_cell)*ptr; /* trnode's last element */
-                    elm->simd = arr->s_srf;
-                    elm->temp = arr;
+                    nxt = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
+                    nxt->data = (rt_cell)elm->next; /* trnode's end */
+                    nxt->simd = arr->s_srf;
+                    nxt->temp = arr;
                     /* insert element as list head */
-                    elm->next = *ptr;
-                   *ptr = elm;
+                    nxt->next = *ptr;
+                   *ptr = nxt;
                 }
                 else
                 {
                     /* insert element under existing trnode */
-                    elm->next = trn->next;
-                    trn->next = elm;
+                    elm->next = nxt->next;
+                    nxt->next = elm;
                 }
             }
             else

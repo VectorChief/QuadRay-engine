@@ -773,7 +773,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         {
             /* alloc new trnode/bvnode element as none has been found */
             nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
-            nxt->data = (rt_cell)elm | k; /* last element plus flag */
+            nxt->data = (rt_cell)elm->next | k; /* node's end plus flag */
             nxt->simd = arr[k]->s_srf;
             nxt->temp = arr[k];
             /* insert element according to found position */
@@ -2019,7 +2019,7 @@ rt_void rt_Scene::render(rt_long time)
 
                         /* alloc new trnode element as none has been found */
                         trn = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
-                        trn->data = (rt_cell)tls; /* trnode's last element */
+                        trn->data = (rt_cell)tls->next; /* trnode's end */
                         trn->simd = arr->s_srf;
                         trn->temp = arr;
                         /* insert element as list head */

@@ -83,10 +83,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf);
 /*
  * Generic list element structure.
  * Field names explanation:
- *   data - aux data field (trnode's last element, accum marker, shadow list)
- *   simd - pointer to SIMD structure (rt_SIMD_LIGHT, rt_SIMD_SURFACE)
+ *   data - aux data field (node's end, clip side, accum marker, shadow list)
+ *   simd - pointer to the SIMD structure (rt_SIMD_LIGHT, rt_SIMD_SURFACE)
  *   temp - aux temp field (high-level object, not used in backend)
- *   next - pointer to next element
+ *   next - pointer to the next element
  * Structure is read-only in backend.
  */
 struct rt_ELEM
