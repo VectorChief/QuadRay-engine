@@ -83,8 +83,8 @@ class rt_SceneThread : public rt_Heap
    ~rt_SceneThread();
 
     rt_void     tiling(rt_vec4 p1, rt_vec4 p2);
-    rt_void     insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf);
-    rt_void     filter(rt_Object *obj, rt_ELEM **ptr);
+    rt_ELEM*    insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf);
+    rt_ELEM*    filter(rt_Object *obj, rt_ELEM **ptr);
 
     rt_void     stile(rt_Surface *srf);
     rt_ELEM*    ssort(rt_Object *obj);

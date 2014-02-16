@@ -642,8 +642,9 @@ rt_void rt_SceneThread::tiling(rt_vec4 p1, rt_vec4 p2)
  * Insert new element derived from "srf" to a list "ptr"
  * for a given object "obj". If "srf" is NULL and "obj" is LIGHT,
  * insert new element derived from "obj" to a list "ptr".
+ * Return outer-most new element (not always list's head).
  */
-rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
+rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
 {
     rt_ELEM *elm = RT_NULL;
 
@@ -663,13 +664,13 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
 
     if (srf == RT_NULL)
     {
-        return;
+        return elm;
     }
 
     /* alloc new element for srf */
     elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
     elm->data = 0;
-    elm->simd = srf->s_srf;
+    elm->simd = RT_NULL;
     elm->temp = srf;
 
     rt_ELEM *lst[2], *nxt;
@@ -685,60 +686,58 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
 
     rt_cell i, k = 0, n = (arr[0] != RT_NULL) + (arr[1] != RT_NULL);
 
-    if (n != 0)
+    nxt = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
+
+    /* search matching existing trnode/bvnode for insertion,
+     * run through the list hierachy to find inner-most list,
+     * node's "simd" field holds pointer to array's sublist
+     * along with node's type in the lower 2 bits (trnode/bvnode) */
+    for (; nxt != RT_NULL && k < n; nxt = nxt->next)
     {
-        /* search matching existing trnode/bvnode for insertion */
-        for (nxt = *ptr; nxt != RT_NULL; nxt = nxt->next)
+        for (i = 0; i < 2 && k < n; i++)
         {
-            for (i = 0; i < 2; i++)
+            if (arr[i] == nxt->temp && ((rt_cell)nxt->simd & 0x3) == i)
             {
-                if (arr[i] == nxt->temp && (nxt->data & 0x3) == i)
-                {
 #if RT_DEBUG == 1
-                    if (arr[i] == RT_NULL
-                    ||  lst[i] != RT_NULL)
-                    {
-                        throw rt_Exception("inconsistency in surface list");
-                    }
-#endif /* RT_DEBUG */
-                    lst[i] = nxt;
-                    ptr = &nxt->next;
-                    k++;
-                    if (k == n)
-                    {
-                        break;
-                    }
+                if (arr[i] == RT_NULL || lst[i] != RT_NULL)
+                {
+                    throw rt_Exception("inconsistency in surface list");
                 }
+#endif /* RT_DEBUG */
+                lst[i] = nxt;
+                ptr = (rt_ELEM **)&nxt->simd;
+                nxt = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
+                k++;
             }
         }
     }
 
     k = -1;
 
+    /* determine trnode/bvnode order on the branch,
+     * "k" is set to the index of the inner-most node */
     if (n == 2)
     {
-        /* determine trnode/bvnode order on the branch */
+        /* if the same array serves as both trnode and bvnode,
+         * select trnode as inner-most */
         if (arr[0] == arr[1])
         {
             k = 0;
         }
+        /* otherwise, determine the order by searching the nodes
+         * among each other's parents */
         else
         {
-            for (i = 0; i < 2; i++)
+            for (i = 0; i < 2 && k < 0; i++)
             {
-                rt_Array *par = RT_NULL;
-                for (par = (rt_Array *)arr[i]->parent; par != RT_NULL;
-                     par = (rt_Array *)par->parent)
+                rt_Array *par = (rt_Array *)arr[i]->parent;
+                for (; par != RT_NULL; par = (rt_Array *)par->parent)
                 {
                     if (par == arr[1 - i])
                     {
                         k = i;
                         break;
                     }
-                }
-                if (k == i)
-                {
-                    break;
                 }
             }
         }
@@ -754,32 +753,55 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         k = 1;
     }
 
-    if (n != 0 && k == -1)
+    /* check if trnode/bvnode are not
+     * among each other's parents */
+    if (n == 2 && k == -1)
     {
         throw rt_Exception("trnode and bvnode are not on the same branch");
     }
+    /* check if the inner-most node is already
+     * in the list, while the outer-most is not */
     if (n == 2 && lst[k] != RT_NULL && lst[1 - k] == RT_NULL)
     {
         throw rt_Exception("inconsistency between trnode and bvnode");
     }
 
-    /* insert element according to found position */
-    elm->next = *ptr;
-   *ptr = elm;
-
+    rt_ELEM **org = RT_NULL;
+    /* select outer-most node for insertion first */
+    if (n == 2)
+    {
+        k = 1 - k;
+    }
+    /* allocate new node elements from outer-most to inner-most
+     * if they are not already in the list */
     for (i = 0; i < n; i++, k = 1 - k)
     {
         if (arr[k] != RT_NULL && lst[k] == RT_NULL)
         {
             /* alloc new trnode/bvnode element as none has been found */
             nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
-            nxt->data = (rt_cell)elm | k; /* node's last elem plus flag */
-            nxt->simd = arr[k]->s_srf;
+            nxt->data = 0;
+            nxt->simd = (rt_pntr)k; /* node's type */
             nxt->temp = arr[k];
             /* insert element according to found position */
-            nxt->next = *ptr;
-           *ptr = nxt;
+            nxt->next = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
+           *ptr = (rt_ELEM *)((rt_cell)nxt | (rt_cell)*ptr & 0x3);
+            if (org == RT_NULL)
+            {
+                org = ptr;
+            }
+            ptr = (rt_ELEM **)&nxt->simd;
         }
+    }
+
+    /* insert element according to found position */
+    elm->next = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
+   *ptr = (rt_ELEM *)((rt_cell)elm | (rt_cell)*ptr & 0x3);
+    /* prepare outer-most new element for sorting */
+    if (org != RT_NULL)
+    {
+        ptr = org;
+        elm = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
     }
 
     /* sort surfaces in the list "ptr" (ver 5)
@@ -789,7 +811,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     if ((scene->opts & RT_OPTS_INSERT) == 0)
 #endif /* RT_OPTS_INSERT */
     {
-        return;
+        return elm;
     }
 
     /* "state" helps to avoid stored order value re-computation
@@ -829,7 +851,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
             }
             else
             {
-               *ptr = nxt;
+               *ptr = (rt_ELEM *)((rt_cell)nxt | (rt_cell)*ptr & 0x3);
             }
             /* if current "elm" position is transitory, "state" keeps
              * previously computed order value between "prv" and "nxt",
@@ -894,7 +916,8 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                     rt_bool mv = RT_FALSE;
                     /* search for "cur" previous element,
                      * can be optimized out for dual-linked list,
-                     * use "simd" ptr as "prev" during sorting? */
+                     * though the overhead of managing dual-linked list
+                     * can easily overweight the added benefit */
                     for (ipt = end; ipt->next != cur; ipt = ipt->next);
                     rt_ELEM *iel = ipt->next;
                     /* run through the strict-order-chain from "tlp->next"
@@ -1031,7 +1054,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
             }
             else
             {
-               *ptr = cur;
+               *ptr = (rt_ELEM *)((rt_cell)cur | (rt_cell)*ptr & 0x3);
             }
             cur = nxt->next;
             tlp->data = 0;
@@ -1086,32 +1109,60 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         tlp->data = bbox_sort(obj, (rt_Surface *)tlp->temp,
                                    (rt_Surface *)cur->temp);
     }
+
+    return elm;
 }
 
 /*
- * Filter the list "ptr" for a given object "obj".
+ * Filter the list "ptr" for a given object "obj" by
+ * converting hierarchical sorted sublists back into
+ * a single flat list suitable for rendering backend,
+ * while cleaning "data" and "simd" fields at the same time.
+ * Return last leaf element of the list hierarchy (recursive).
  */
-rt_void rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
+rt_ELEM* rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
 {
+    rt_ELEM *elm = RT_NULL, *nxt;
+
     if (ptr == RT_NULL)
     {
-        return;
+        return elm;
     }
 
-    rt_ELEM *elm = *ptr;
+    nxt = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
 
-    for (; elm != RT_NULL; elm = elm->next)
+    for (; nxt != RT_NULL; nxt = nxt->next)
     {
-        rt_Object *obj = (rt_Object *)elm->temp;
+        /* only node elements are allowed in surface lists */
+        rt_Node *nd = (rt_Node *)nxt->temp;
 
-        /* if the list element is surface
-         * reset stored order value used in sorting
-         * to keep it clean for the backend */
-        if (RT_IS_SURFACE(obj))
+        /* if the list element is surface,
+         * reset "data" field used as stored order value
+         * in sorting to keep it clean for the backend */
+        if (RT_IS_SURFACE(nd))
         {
-            elm->data = 0;
+            elm = nxt;
+            nxt->data = 0;
+            nxt->simd = nd->s_srf;
+        }
+        else
+        /* if the list element is array,
+         * find the last leaf element of its sublist hierarchy
+         * and set it to the "data" field along with node's type,
+         * previously kept in its "simd" field's lower 2 bits */
+        if (RT_IS_ARRAY(nd))
+        {
+            ptr = (rt_ELEM **)&nxt->simd;
+            elm = filter(obj, ptr);
+            elm->next = nxt->next;
+            nxt->data = (rt_cell)elm | (rt_cell)*ptr & 0x3;
+            nxt->next = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
+            nxt->simd = nd->s_srf;
+            nxt = elm;
         }
     }
+
+    return elm;
 }
 
 /*
