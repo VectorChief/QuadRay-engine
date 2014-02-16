@@ -1140,7 +1140,61 @@ rt_cell bbox_sort(rt_Object *obj, rt_Surface *srf, rt_Surface *ref)
         return 4;
     }
 
-    /* check order for bounding boxes */
+    /* check first the order for bounding spheres */
+    rt_vec4 ref_vec;
+
+    ref_vec[RT_X] = ref->mid[RT_X] - obj->pos[RT_X];
+    ref_vec[RT_Y] = ref->mid[RT_Y] - obj->pos[RT_Y];
+    ref_vec[RT_Z] = ref->mid[RT_Z] - obj->pos[RT_Z];
+    ref_vec[RT_W] = 0.0f;
+
+    rt_vec4 srf_vec;
+
+    srf_vec[RT_X] = srf->mid[RT_X] - obj->pos[RT_X];
+    srf_vec[RT_Y] = srf->mid[RT_Y] - obj->pos[RT_Y];
+    srf_vec[RT_Z] = srf->mid[RT_Z] - obj->pos[RT_Z];
+    srf_vec[RT_W] = 0.0f;
+
+    rt_real ang = RT_VECTOR_DOT(ref_vec, srf_vec);
+
+    rt_real f = 0.0f, len = 0.0f;
+
+    f = ref_vec[RT_X];
+    len += f * f;
+    f = ref_vec[RT_Y];
+    len += f * f;
+    f = ref_vec[RT_Z];
+    len += f * f;
+
+    len = RT_SQRT(len);
+    ang = len <= RT_CULL_THRESHOLD ? 0.0f : ang / len;
+
+    rt_real ref_ang = len >= ref->rad && len > RT_CULL_THRESHOLD ?
+                        RT_ASIN(ref->rad / len) : (rt_real)RT_2_PI;
+
+    f = len = 0.0f;
+
+    f = srf_vec[RT_X];
+    len += f * f;
+    f = srf_vec[RT_Y];
+    len += f * f;
+    f = srf_vec[RT_Z];
+    len += f * f;
+
+    len = RT_SQRT(len);
+    ang = len <= RT_CULL_THRESHOLD ? 0.0f : ang / len;
+
+    rt_real srf_ang = len >= srf->rad && len > RT_CULL_THRESHOLD ?
+                        RT_ASIN(srf->rad / len) : (rt_real)RT_2_PI;
+
+    ang = RT_ACOS(ang);
+
+    if (ref_ang + srf_ang < ang)
+    {
+        return 3;
+    }
+
+    /* check the order for bounding boxes */
     rt_cell i, j, k, c = 0;
 
     /* run through "ref" faces and "srf" verts */
