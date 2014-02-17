@@ -118,7 +118,7 @@ class rt_Material;
 /******************************************************************************/
 
 /*
- * Registry is an interface for scene manager to keep track of all objects.
+ * Registry is an interface for the scene manager to keep track of all objects.
  */
 class rt_Registry : public rt_Heap
 {
@@ -267,7 +267,7 @@ class rt_Object
 /******************************************************************************/
 
 /*
- * Camera is a special object that facilitates the rendering of other objects.
+ * Camera is a special object which facilitates the rendering of other objects.
  */
 class rt_Camera : public rt_Object, public rt_List<rt_Camera>
 {
@@ -316,7 +316,7 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
 /******************************************************************************/
 
 /*
- * Light is a special object that influences the rendering of other objects.
+ * Light is a special object which influences the rendering of other objects.
  */
 class rt_Light : public rt_Object, public rt_List<rt_Light>
 {
@@ -348,7 +348,7 @@ class rt_Light : public rt_Object, public rt_List<rt_Light>
 /******************************************************************************/
 
 /*
- * Node is an object that itself is or contains renderable.
+ * Node is an object which itself is or contains renderable (surface).
  * Only node elements can be inserted into backend surface lists.
  */
 class rt_Node : public rt_Object
@@ -364,9 +364,9 @@ class rt_Node : public rt_Object
 
     rt_SIMD_SURFACE    *s_srf;
 
-    /* bounding sphere center */
+    /* bounding volume center */
     rt_vec4             mid;
-    /* bounding sphere radius */
+    /* bounding volume radius */
     rt_real             rad;
 
 /*  methods */
@@ -396,7 +396,7 @@ class rt_Node : public rt_Object
 /******************************************************************************/
 
 /*
- * Array is a node that contains group of objects
+ * Array is a node which contains group of objects
  * under the same branch in the hierarchy.
  * It may contain renderables (surfaces), other arrays and
  * special objects (cameras, lights).
@@ -439,7 +439,7 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
 /******************************************************************************/
 
 /*
- * Surface is a node that represents renderable shapes.
+ * Surface is a node which represents renderable shapes.
  */
 class rt_Surface : public rt_Node, public rt_List<rt_Surface>
 {
