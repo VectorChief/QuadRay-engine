@@ -676,6 +676,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     rt_ELEM *lst[2], *nxt;
     rt_Array *arr[2];
 
+    /* determine if surface belongs to any trnode/bvnode objects,
+     * index in the array below also serves as node's type in the list */
     lst[0] = RT_NULL;
     arr[0] = srf->trnode != RT_NULL && srf->trnode != srf ?
                     (rt_Array *)srf->trnode : RT_NULL;
@@ -684,45 +686,17 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     arr[1] = srf->bvnode != RT_NULL && RT_IS_SURFACE(obj) ?
                     (rt_Array *)srf->bvnode : RT_NULL;
 
-    rt_cell i, k = 0, n = (arr[0] != RT_NULL) + (arr[1] != RT_NULL);
-
-    nxt = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
-
-    /* search matching existing trnode/bvnode for insertion,
-     * run through the list hierachy to find inner-most list,
-     * node's "simd" field holds pointer to array's sublist
-     * along with node's type in the lower 2 bits (trnode/bvnode) */
-    for (; nxt != RT_NULL && k < n; nxt = nxt->next)
-    {
-        for (i = 0; i < 2 && k < n; i++)
-        {
-            if (arr[i] == nxt->temp && ((rt_cell)nxt->simd & 0x3) == i)
-            {
-#if RT_DEBUG == 1
-                if (arr[i] == RT_NULL || lst[i] != RT_NULL)
-                {
-                    throw rt_Exception("inconsistency in surface list");
-                }
-#endif /* RT_DEBUG */
-                lst[i] = nxt;
-                ptr = (rt_ELEM **)&nxt->simd;
-                nxt = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
-                k++;
-            }
-        }
-    }
-
-    k = -1;
+    rt_cell i, k = -1, n = (arr[0] != RT_NULL) + (arr[1] != RT_NULL);
 
     /* determine trnode/bvnode order on the branch,
-     * "k" is set to the index of the inner-most node */
+     * "k" is set to the index of the outer-most node */
     if (n == 2)
     {
         /* if the same array serves as both trnode and bvnode,
-         * select trnode as inner-most */
+         * select bvnode as outer-most */
         if (arr[0] == arr[1])
         {
-            k = 0;
+            k = 1;
         }
         /* otherwise, determine the order by searching the nodes
          * among each other's parents */
@@ -730,15 +704,21 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         {
             for (i = 0; i < 2 && k < 0; i++)
             {
-                rt_Array *par = (rt_Array *)arr[i]->parent;
+                rt_Array *par = (rt_Array *)arr[1 - i]->parent;
                 for (; par != RT_NULL; par = (rt_Array *)par->parent)
                 {
-                    if (par == arr[1 - i])
+                    if (par == arr[i])
                     {
                         k = i;
                         break;
                     }
                 }
+            }
+            /* check if trnode/bvnode are not
+             * among each other's parents */
+            if (k == -1)
+            {
+                throw rt_Exception("trnode/bvnode are not on the same branch");
             }
         }
     }
@@ -753,45 +733,52 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         k = 1;
     }
 
-    /* check if trnode/bvnode are not
-     * among each other's parents */
-    if (n == 2 && k == -1)
+    nxt = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
+
+    /* search matching existing trnode/bvnode for insertion,
+     * run through the list hierachy to find the inner-most node,
+     * node's "simd" field holds pointer to node's sublist
+     * along with node's type in the lower 2 bits (trnode/bvnode) */
+    for (i = 0; nxt != RT_NULL && i < n; nxt = nxt->next)
     {
-        throw rt_Exception("trnode and bvnode are not on the same branch");
+        if (arr[k] == nxt->temp && ((rt_cell)nxt->simd & 0x3) == k)
+        {
+            lst[k] = nxt;
+            /* set insertion point to existing node's sublist */
+            ptr = (rt_ELEM **)&nxt->simd;
+            /* search next node (inner-most) in existing node's sublist */
+            nxt = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
+            k = 1 - k;
+            i++;
+        }
     }
-    /* check if the inner-most node is already
-     * in the list, while the outer-most is not */
-    if (n == 2 && lst[k] != RT_NULL && lst[1 - k] == RT_NULL)
-    {
-        throw rt_Exception("inconsistency between trnode and bvnode");
-    }
+    /* search above is desgined in such a way, that contents
+     * of one array node can now be split across the boundary
+     * of another array node by inserting two different node
+     * elements of the same type belonging to the same array,
+     * one into another array node's sublist and one outside,
+     * this allows for greater flexibility in trnode/bvnode
+     * relationship, something not allowed in previous versions */
 
     rt_ELEM **org = RT_NULL;
-    /* select outer-most node for insertion first */
-    if (n == 2)
-    {
-        k = 1 - k;
-    }
     /* allocate new node elements from outer-most to inner-most
      * if they are not already in the list */
-    for (i = 0; i < n; i++, k = 1 - k)
+    for (; i < n; i++, k = 1 - k)
     {
-        if (arr[k] != RT_NULL && lst[k] == RT_NULL)
+        /* alloc new trnode/bvnode element as none has been found */
+        nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+        nxt->data = 0;
+        nxt->simd = (rt_pntr)k; /* node's type */
+        nxt->temp = arr[k];
+        /* insert element according to found position */
+        nxt->next = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
+       *ptr = (rt_ELEM *)((rt_cell)nxt | (rt_cell)*ptr & 0x3);
+        if (org == RT_NULL)
         {
-            /* alloc new trnode/bvnode element as none has been found */
-            nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
-            nxt->data = 0;
-            nxt->simd = (rt_pntr)k; /* node's type */
-            nxt->temp = arr[k];
-            /* insert element according to found position */
-            nxt->next = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
-           *ptr = (rt_ELEM *)((rt_cell)nxt | (rt_cell)*ptr & 0x3);
-            if (org == RT_NULL)
-            {
-                org = ptr;
-            }
-            ptr = (rt_ELEM **)&nxt->simd;
+            org = ptr;
         }
+        /* set insertion point to new node's sublist */
+        ptr = (rt_ELEM **)&nxt->simd;
     }
 
     /* insert element according to found position */
@@ -802,7 +789,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
      * and thus reduce potential overdraw in the rendering backend,
      * as array's bounding volume is final at this point
      * it is correct to pass it through the sorting routine below
-     * before other elements are added into its sublist */
+     * before other elements are added into its node's sublist */
     if (org != RT_NULL)
     {
         ptr = org;
@@ -812,10 +799,11 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     /* sort nodes in the list "ptr" with the new element "elm"
      * based on the bounding volume order as seen from "obj",
      * sorting is always applied to a single flat list
-     * whether it's a top-level list or array's sublist
-     * treating both surface and array nodes as single
-     * whole elements, thus array sublist's contents
-     * don't intermix with higher level list nodes */
+     * whether it's a top-level list or array node's sublist
+     * treating both surface and array nodes in that list
+     * as single whole elements, thus sorting never violates
+     * the boundaries of the array node sublists as they are
+     * determined by the search/insert algorithm above */
 #if RT_OPTS_INSERT == 1
     if ((scene->opts & RT_OPTS_INSERT) == 0)
 #endif /* RT_OPTS_INSERT */
@@ -824,7 +812,10 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     }
 
     /* "state" helps to avoid stored order value re-computation
-     * when the whole sublist is being moved (one element at a time) */
+     * when the whole sublist is being moved (one element at a time),
+     * the term sublist used here and below refers to a continuous portion
+     * of a single flat list as opposed to the same term used above
+     * to separate different layers of the list hierarchy */
     rt_cell state = 0;
     rt_ELEM *prv = RT_NULL;
 
