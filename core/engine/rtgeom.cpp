@@ -1124,7 +1124,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 }
 
 /*
- * Determine if "srf" and "ref" bboxes are in correct order as seen from "obj".
+ * Determine if "nd1" and "nd2" bounds are in correct order as seen from "obj".
  *
  * Return values:
  *  1 - don't swap
@@ -1132,66 +1132,125 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
  *  3 - neutral
  *  4 - unsortable
  */
-rt_cell bbox_sort(rt_Object *obj, rt_Surface *srf, rt_Surface *ref)
+rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
 {
-    /* check if surfaces differ and have bounds */
-    if (srf->verts_num == 0 || ref->verts_num == 0 || srf == ref)
+    /* check if nodes differ and have bounds */
+    if (nd1->rad == 0.0f || nd2->rad == 0.0f || nd1 == nd2)
     {
         return 4;
     }
 
     /* check first the order for bounding spheres */
-    rt_vec4 ref_vec;
+    rt_vec4 nd2_vec;
 
-    ref_vec[RT_X] = ref->mid[RT_X] - obj->pos[RT_X];
-    ref_vec[RT_Y] = ref->mid[RT_Y] - obj->pos[RT_Y];
-    ref_vec[RT_Z] = ref->mid[RT_Z] - obj->pos[RT_Z];
-    ref_vec[RT_W] = 0.0f;
+    nd2_vec[RT_X] = nd2->mid[RT_X] - obj->pos[RT_X];
+    nd2_vec[RT_Y] = nd2->mid[RT_Y] - obj->pos[RT_Y];
+    nd2_vec[RT_Z] = nd2->mid[RT_Z] - obj->pos[RT_Z];
+    nd2_vec[RT_W] = 0.0f;
 
-    rt_vec4 srf_vec;
+    rt_vec4 nd1_vec;
 
-    srf_vec[RT_X] = srf->mid[RT_X] - obj->pos[RT_X];
-    srf_vec[RT_Y] = srf->mid[RT_Y] - obj->pos[RT_Y];
-    srf_vec[RT_Z] = srf->mid[RT_Z] - obj->pos[RT_Z];
-    srf_vec[RT_W] = 0.0f;
+    nd1_vec[RT_X] = nd1->mid[RT_X] - obj->pos[RT_X];
+    nd1_vec[RT_Y] = nd1->mid[RT_Y] - obj->pos[RT_Y];
+    nd1_vec[RT_Z] = nd1->mid[RT_Z] - obj->pos[RT_Z];
+    nd1_vec[RT_W] = 0.0f;
 
-    rt_real ang = RT_VECTOR_DOT(ref_vec, srf_vec);
+    rt_real ang = RT_VECTOR_DOT(nd2_vec, nd1_vec);
 
     rt_real f = 0.0f, len = 0.0f;
 
-    f = ref_vec[RT_X];
+    f = nd2_vec[RT_X];
     len += f * f;
-    f = ref_vec[RT_Y];
+    f = nd2_vec[RT_Y];
     len += f * f;
-    f = ref_vec[RT_Z];
+    f = nd2_vec[RT_Z];
     len += f * f;
 
     len = RT_SQRT(len);
     ang = len <= RT_CULL_THRESHOLD ? 0.0f : ang / len;
 
-    rt_real ref_ang = len >= ref->rad && len > RT_CULL_THRESHOLD ?
-                        RT_ASIN(ref->rad / len) : (rt_real)RT_2_PI;
+    rt_real nd2_ang = len >= nd2->rad && len > RT_CULL_THRESHOLD ?
+                        RT_ASIN(nd2->rad / len) : (rt_real)RT_2_PI;
 
     f = len = 0.0f;
 
-    f = srf_vec[RT_X];
+    f = nd1_vec[RT_X];
     len += f * f;
-    f = srf_vec[RT_Y];
+    f = nd1_vec[RT_Y];
     len += f * f;
-    f = srf_vec[RT_Z];
+    f = nd1_vec[RT_Z];
     len += f * f;
 
     len = RT_SQRT(len);
     ang = len <= RT_CULL_THRESHOLD ? 0.0f : ang / len;
 
-    rt_real srf_ang = len >= srf->rad && len > RT_CULL_THRESHOLD ?
-                        RT_ASIN(srf->rad / len) : (rt_real)RT_2_PI;
+    rt_real nd1_ang = len >= nd1->rad && len > RT_CULL_THRESHOLD ?
+                        RT_ASIN(nd1->rad / len) : (rt_real)RT_2_PI;
 
     ang = RT_ACOS(ang);
 
-    if (ref_ang + srf_ang < ang)
+    if (nd2_ang + nd1_ang < ang)
     {
         return 3;
+    }
+
+    rt_Surface *srf = RT_IS_SURFACE(nd1) ? (rt_Surface *)nd1 : RT_NULL;
+    rt_Surface *ref = RT_IS_SURFACE(nd2) ? (rt_Surface *)nd2 : RT_NULL;
+
+    /* check if at least one of the nodes is an array,
+     * then determine the order based only on bounding spheres */
+    if (srf == RT_NULL || ref == RT_NULL)
+    {
+        /* check first if bounding spheres interpenetrate */
+        rt_real f = 0.0f, len = 0.0f;
+
+        f = nd1->mid[RT_X] - nd2->mid[RT_X];
+        len += f * f;
+        f = nd1->mid[RT_Y] - nd2->mid[RT_Y];
+        len += f * f;
+        f = nd1->mid[RT_Z] - nd2->mid[RT_Z];
+        len += f * f;
+
+        len = RT_SQRT(len);
+
+        if (nd1->rad + nd2->rad >= len)
+        {
+            return 4;
+        }
+
+        /* TODO: add macros to rtgeom.h for VEC3/VEC4, MAT3/MAT4
+         * operations: SET, ADD, SUB, MUL, DOT, LEN, DET, INV */
+
+        f = len = 0.0f;
+
+        f = nd1->mid[RT_X] - obj->pos[RT_X];
+        len += f * f;
+        f = nd1->mid[RT_Y] - obj->pos[RT_Y];
+        len += f * f;
+        f = nd1->mid[RT_Z] - obj->pos[RT_Z];
+        len += f * f;
+
+        rt_real nd1_len = len;
+
+        f = len = 0.0f;
+
+        f = nd2->mid[RT_X] - obj->pos[RT_X];
+        len += f * f;
+        f = nd2->mid[RT_Y] - obj->pos[RT_Y];
+        len += f * f;
+        f = nd2->mid[RT_Z] - obj->pos[RT_Z];
+        len += f * f;
+
+        rt_real nd2_len = len;
+
+        if (nd1_len < nd2_len)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
     }
 
     /* check the order for bounding boxes */

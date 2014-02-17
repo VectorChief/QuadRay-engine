@@ -805,9 +805,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     }
 
     /* sort surfaces in the list "ptr" (ver 5)
-     * based on bbox order as seen from "obj",
-     * temporarily not compatible with TARRAY, VARRAY opts */
-#if RT_OPTS_INSERT == 1 && RT_OPTS_TARRAY == 0 && RT_OPTS_VARRAY == 0
+     * based on bbox order as seen from "obj" */
+#if RT_OPTS_INSERT == 1
     if ((scene->opts & RT_OPTS_INSERT) == 0)
 #endif /* RT_OPTS_INSERT */
     {

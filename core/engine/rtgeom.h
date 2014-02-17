@@ -87,15 +87,15 @@ while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
 rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf);
 
 /*
- * Determine if "srf" and "ref" bboxes are in correct order as seen from "obj".
+ * Determine if "nd1" and "nd2" bounds are in correct order as seen from "obj".
  *
  * Return values:
  *  1 - don't swap
- *  2 - neutral
- *  3 - swap
+ *  2 - do swap
+ *  3 - neutral
  *  4 - unsortable
  */
-rt_cell bbox_sort(rt_Object *obj, rt_Surface *srf, rt_Surface *ref);
+rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2);
 
 /*
  * Determine which side of clipped "srf" is seen from "pos".
