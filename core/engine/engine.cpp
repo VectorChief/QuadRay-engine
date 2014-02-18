@@ -1211,7 +1211,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
             vec[RT_Y] = vrt[k].pos[RT_Y] - scene->org[RT_Y];
             vec[RT_Z] = vrt[k].pos[RT_Z] - scene->org[RT_Z];
 
-            dot = RT_VECTOR_DOT(vec, scene->nrm);
+            dot = RT_VEC3_DOT(vec, scene->nrm);
 
             verts[k].pos[RT_Z] = dot;
             verts[k].pos[RT_W] = -1.0f; /* tag: behind screen plane */
@@ -1224,7 +1224,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
                 vec[RT_Y] = vrt[k].pos[RT_Y] - scene->pos[RT_Y];
                 vec[RT_Z] = vrt[k].pos[RT_Z] - scene->pos[RT_Z];
 
-                dot = RT_VECTOR_DOT(vec, scene->nrm) / scene->cam->pov;
+                dot = RT_VEC3_DOT(vec, scene->nrm) / scene->cam->pov;
 
                 vec[RT_X] /= dot; /* dot >= (pov - RT_CLIP_THRESHOLD) */
                 vec[RT_Y] /= dot; /* pov >= (2  *  RT_CLIP_THRESHOLD) */
@@ -1234,8 +1234,8 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
                 vec[RT_Y] -= scene->dir[RT_Y];
                 vec[RT_Z] -= scene->dir[RT_Z];
 
-                verts[k].pos[RT_X] = RT_VECTOR_DOT(vec, scene->htl);
-                verts[k].pos[RT_Y] = RT_VECTOR_DOT(vec, scene->vtl);
+                verts[k].pos[RT_X] = RT_VEC3_DOT(vec, scene->htl);
+                verts[k].pos[RT_Y] = RT_VEC3_DOT(vec, scene->vtl);
 
                 verts[k].pos[RT_W] = +1.0f; /* tag: in front of screen plane */
 
@@ -1298,8 +1298,8 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
                 vec[RT_Y] += vrt[ndx[j]].pos[RT_Y] - scene->org[RT_Y];
                 vec[RT_Z] += vrt[ndx[j]].pos[RT_Z] - scene->org[RT_Z];
 
-                verts[verts_num].pos[RT_X] = RT_VECTOR_DOT(vec, scene->htl);
-                verts[verts_num].pos[RT_Y] = RT_VECTOR_DOT(vec, scene->vtl);
+                verts[verts_num].pos[RT_X] = RT_VEC3_DOT(vec, scene->htl);
+                verts[verts_num].pos[RT_Y] = RT_VEC3_DOT(vec, scene->vtl);
 
                 ndx[i] = verts_num;
                 verts_num++;

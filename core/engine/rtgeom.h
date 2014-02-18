@@ -56,19 +56,33 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1);
 /******************************************************************************/
 
 /*
- * Compute vector dot-product.
+ * Compute vec3 sum.
  */
-#define RT_VECTOR_DOT(v1, v2)                                               \
-(                                                                           \
-    v1[RT_X] * v2[RT_X] +                                                   \
-    v1[RT_Y] * v2[RT_Y] +                                                   \
-    v1[RT_Z] * v2[RT_Z]                                                     \
-)
+#define RT_VEC3_ADD(vp, v1, v2)                                             \
+do                                                                          \
+{                                                                           \
+    vp[RT_X] = v1[RT_X] + v2[RT_X];                                         \
+    vp[RT_Y] = v1[RT_Y] + v2[RT_Y];                                         \
+    vp[RT_Z] = v1[RT_Z] + v2[RT_Z];                                         \
+}                                                                           \
+while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
 
 /*
- * Compute vector cross-product.
+ * Compute vec3 difference.
  */
-#define RT_VECTOR_CROSS(vp, v1, v2)                                         \
+#define RT_VEC3_SUB(vp, v1, v2)                                             \
+do                                                                          \
+{                                                                           \
+    vp[RT_X] = v1[RT_X] - v2[RT_X];                                         \
+    vp[RT_Y] = v1[RT_Y] - v2[RT_Y];                                         \
+    vp[RT_Z] = v1[RT_Z] - v2[RT_Z];                                         \
+}                                                                           \
+while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
+
+/*
+ * Compute vec3 cross-product.
+ */
+#define RT_VEC3_MUL(vp, v1, v2)                                             \
 do                                                                          \
 {                                                                           \
     vp[RT_X] = v1[RT_Y] * v2[RT_Z] - v2[RT_Y] * v1[RT_Z];                   \
@@ -76,6 +90,24 @@ do                                                                          \
     vp[RT_Z] = v1[RT_X] * v2[RT_Y] - v2[RT_X] * v1[RT_Y];                   \
 }                                                                           \
 while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
+
+/*
+ * Compute vec3 dot-product.
+ */
+#define RT_VEC3_DOT(v1, v2)                                                 \
+(                                                                           \
+    v1[RT_X] * v2[RT_X] +                                                   \
+    v1[RT_Y] * v2[RT_Y] +                                                   \
+    v1[RT_Z] * v2[RT_Z]                                                     \
+)
+
+/*
+ * Compute vec3 length.
+ */
+#define RT_VEC3_LEN(vc)                                                     \
+(                                                                           \
+    RT_SQRT(RT_VEC3_DOT(vc, vc))                                            \
+)
 
 /*
  * Determine if "shw" bbox casts shadow on "srf" bbox from "lgt" pos.
