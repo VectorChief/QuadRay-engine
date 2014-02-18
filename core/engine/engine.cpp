@@ -670,7 +670,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     /* alloc new element for srf */
     elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
     elm->data = 0;
-    elm->simd = RT_NULL;
+    elm->simd = srf->s_srf;
     elm->temp = srf;
 
     rt_ELEM *lst[2], *nxt;
@@ -1418,16 +1418,25 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
         }
     }
 
-#if RT_OPTS_INSERT != 0
-    if ((scene->opts & RT_OPTS_INSERT) != 0)
+#if RT_OPTS_INSERT != 0 || RT_OPTS_TARRAY != 0 || RT_OPTS_VARRAY != 0
+    if ((scene->opts & RT_OPTS_INSERT) != 0
+    ||  (scene->opts & RT_OPTS_TARRAY) != 0
+    ||  (scene->opts & RT_OPTS_VARRAY) != 0)
     {
-#if RT_OPTS_2SIDED != 0
-        filter(obj, pto);
-        filter(obj, pti);
-#endif /* RT_OPTS_2SIDED */
-        filter(obj, ptr);
+        if (pto != RT_NULL && *pto != RT_NULL)
+        {
+            filter(obj, pto);
+        }
+        if (pti != RT_NULL && *pti != RT_NULL)
+        {
+            filter(obj, pti);
+        }
+        if (*ptr != RT_NULL)
+        {
+            filter(obj, ptr);
+        }
     }
-#endif /* RT_OPTS_INSERT */
+#endif /* RT_OPTS_INSERT, RT_OPTS_TARRAY, RT_OPTS_VARRAY */
 
     if (srf == RT_NULL)
     {
@@ -1436,7 +1445,6 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 
     if (g_print)
     {
-#if RT_OPTS_2SIDED != 0
         if (*pto != RT_NULL)
         {
             RT_PRINT_LST_OUTER(*pto);
@@ -1445,7 +1453,6 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
         {
             RT_PRINT_LST_INNER(*pti);
         }
-#endif /* RT_OPTS_2SIDED */
         if (*ptr != RT_NULL)
         {
             RT_PRINT_LST(*ptr);
@@ -1458,11 +1465,9 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
     {
        *pto = lst;
        *pti = lst;
-
-        return RT_NULL;
     }
 
-    return lst;
+    return RT_NULL;
 }
 
 /*
@@ -1507,10 +1512,10 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
     for (lgt = scene->lgt_head; lgt != RT_NULL; lgt = lgt->next)
     {
         rt_ELEM **psr = RT_NULL;
-#if RT_OPTS_2SIDED != 0
         rt_ELEM **pso = RT_NULL;
         rt_ELEM **psi = RT_NULL;
 
+#if RT_OPTS_2SIDED != 0
         if ((scene->opts & RT_OPTS_2SIDED) != 0 && srf != RT_NULL)
         {
             rt_cell c = cbox_side(lgt->pos, srf);
@@ -1594,20 +1599,28 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             }
         }
 
-#if RT_OPTS_INSERT != 0
-        if ((scene->opts & RT_OPTS_INSERT) != 0)
+#if RT_OPTS_INSERT != 0 || RT_OPTS_TARRAY != 0 || RT_OPTS_VARRAY != 0
+        if ((scene->opts & RT_OPTS_INSERT) != 0
+        ||  (scene->opts & RT_OPTS_TARRAY) != 0
+        ||  (scene->opts & RT_OPTS_VARRAY) != 0)
         {
-#if RT_OPTS_2SIDED != 0
-            filter(lgt, pso);
-            filter(lgt, psi);
-#endif /* RT_OPTS_2SIDED */
-            filter(lgt, psr);
+            if (pso != RT_NULL && *pso != RT_NULL)
+            {
+                filter(lgt, pso);
+            }
+            if (psi != RT_NULL && *psi != RT_NULL)
+            {
+                filter(lgt, psi);
+            }
+            if (psr != RT_NULL && *psr != RT_NULL)
+            {
+                filter(lgt, psr);
+            }
         }
-#endif /* RT_OPTS_INSERT */
+#endif /* RT_OPTS_INSERT, RT_OPTS_TARRAY, RT_OPTS_VARRAY */
 
         if (g_print)
         {
-#if RT_OPTS_2SIDED != 0
             if (pso != RT_NULL && *pso != RT_NULL)
             {
                 RT_PRINT_SHW_OUTER(*pso);
@@ -1616,7 +1629,6 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             {
                 RT_PRINT_SHW_INNER(*psi);
             }
-#endif /* RT_OPTS_2SIDED */
             if (psr != RT_NULL && *psr != RT_NULL)
             {
                 RT_PRINT_SHW(*psr);
@@ -1636,11 +1648,9 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
     {
        *pto = lst;
        *pti = lst;
-
-        return RT_NULL;
     }
 
-    return lst;
+    return RT_NULL;
 }
 
 /*
