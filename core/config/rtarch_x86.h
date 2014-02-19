@@ -131,8 +131,8 @@
 /* displacement VAL,  TYP,  CMD */
 
 #define DP(im)  (im), 0x00, EMITW((im) & 0xFFF)
-#define DH(im)  (im), 0x00, EMITW((im) & 0xFFFF)
-#define DW(im)  (im), 0x00, EMITW((im) & 0xFFFFFFFF)
+#define DH(im)  (im), 0x00, EMITW((im) & 0xFFFF)        /* SIMD-only (in ARM) */
+#define DW(im)  (im), 0x00, EMITW((im) & 0xFFFFFFFF)    /* SIMD-only (in ARM) */
 
 #define PLAIN   0x00, 0x00, EMPTY
 
