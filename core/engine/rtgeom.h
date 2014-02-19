@@ -52,62 +52,163 @@ rt_void matrix_from_transform(rt_mat4 mp, rt_TRANSFORM3D *t1);
 rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1);
 
 /******************************************************************************/
-/********************************   GEOMETRY   ********************************/
+/*********************************   VECTORS   ********************************/
 /******************************************************************************/
 
+/**********************************   VEC2   **********************************/
+
+/* ---------------------------------   ADD   -------------------------------- */
+
 /*
- * Compute vec3 sum.
+ * Compute the sum of two vec2.
  */
-#define RT_VEC3_ADD(vp, v1, v2)                                             \
+#define RT_VEC2_ADD(vr, va, vb)                                             \
 do                                                                          \
 {                                                                           \
-    vp[RT_X] = v1[RT_X] + v2[RT_X];                                         \
-    vp[RT_Y] = v1[RT_Y] + v2[RT_Y];                                         \
-    vp[RT_Z] = v1[RT_Z] + v2[RT_Z];                                         \
+    vr[0] = va[0] + vb[0];                                                  \
+    vr[1] = va[1] + vb[1];                                                  \
+}                                                                           \
+while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
+
+/* ---------------------------------   SUB   -------------------------------- */
+
+/*
+ * Compute the difference of two vec2.
+ */
+#define RT_VEC2_SUB(vr, va, vb)                                             \
+do                                                                          \
+{                                                                           \
+    vr[0] = va[0] - vb[0];                                                  \
+    vr[1] = va[1] - vb[1];                                                  \
+}                                                                           \
+while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
+
+/* ---------------------------------   MUL   -------------------------------- */
+
+/*
+ * Compute the cross-product of two vec2 (complex numbers).
+ */
+#define RT_VEC2_MUL(vr, va, vb)                                             \
+do                                                                          \
+{                                                                           \
+    vr[0] = va[0] * vb[0] - vb[1] * va[1];                                  \
+    vr[1] = va[0] * vb[1] + vb[0] * va[1];                                  \
 }                                                                           \
 while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
 
 /*
- * Compute vec3 difference.
+ * Compute the product of vec2 and 1 scalar value.
  */
-#define RT_VEC3_SUB(vp, v1, v2)                                             \
+#define RT_VEC2_MUL_VAL1(vr, va, sa)                                        \
 do                                                                          \
 {                                                                           \
-    vp[RT_X] = v1[RT_X] - v2[RT_X];                                         \
-    vp[RT_Y] = v1[RT_Y] - v2[RT_Y];                                         \
-    vp[RT_Z] = v1[RT_Z] - v2[RT_Z];                                         \
+    vr[0] = va[0] * sa;                                                     \
+    vr[1] = va[1] * sa;                                                     \
 }                                                                           \
 while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
 
-/*
- * Compute vec3 cross-product.
- */
-#define RT_VEC3_MUL(vp, v1, v2)                                             \
-do                                                                          \
-{                                                                           \
-    vp[RT_X] = v1[RT_Y] * v2[RT_Z] - v2[RT_Y] * v1[RT_Z];                   \
-    vp[RT_Y] = v1[RT_Z] * v2[RT_X] - v2[RT_Z] * v1[RT_X];                   \
-    vp[RT_Z] = v1[RT_X] * v2[RT_Y] - v2[RT_X] * v1[RT_Y];                   \
-}                                                                           \
-while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
+/* ---------------------------------   DOT   -------------------------------- */
 
 /*
- * Compute vec3 dot-product.
+ * Compute the dot-product of two vec2.
  */
-#define RT_VEC3_DOT(v1, v2)                                                 \
+#define RT_VEC2_DOT(va, vb)                                                 \
 (                                                                           \
-    v1[RT_X] * v2[RT_X] +                                                   \
-    v1[RT_Y] * v2[RT_Y] +                                                   \
-    v1[RT_Z] * v2[RT_Z]                                                     \
+    va[0] * vb[0] +                                                         \
+    va[1] * vb[1]                                                           \
 )
 
+/* ---------------------------------   LEN   -------------------------------- */
+
 /*
- * Compute vec3 length.
+ * Compute the length of vec2.
  */
-#define RT_VEC3_LEN(vc)                                                     \
+#define RT_VEC2_LEN(va)                                                     \
 (                                                                           \
-    RT_SQRT(RT_VEC3_DOT(vc, vc))                                            \
+    RT_SQRT(RT_VEC2_DOT(va, va))                                            \
 )
+
+/**********************************   VEC3   **********************************/
+
+/* ---------------------------------   ADD   -------------------------------- */
+
+/*
+ * Compute the sum of two vec3.
+ */
+#define RT_VEC3_ADD(vr, va, vb)                                             \
+do                                                                          \
+{                                                                           \
+    vr[0] = va[0] + vb[0];                                                  \
+    vr[1] = va[1] + vb[1];                                                  \
+    vr[2] = va[2] + vb[2];                                                  \
+}                                                                           \
+while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
+
+/* ---------------------------------   SUB   -------------------------------- */
+
+/*
+ * Compute the difference of two vec3.
+ */
+#define RT_VEC3_SUB(vr, va, vb)                                             \
+do                                                                          \
+{                                                                           \
+    vr[0] = va[0] - vb[0];                                                  \
+    vr[1] = va[1] - vb[1];                                                  \
+    vr[2] = va[2] - vb[2];                                                  \
+}                                                                           \
+while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
+
+/* ---------------------------------   MUL   -------------------------------- */
+
+/*
+ * Compute the cross-product of two vec3.
+ */
+#define RT_VEC3_MUL(vr, va, vb)                                             \
+do                                                                          \
+{                                                                           \
+    vr[0] = va[1] * vb[2] - vb[1] * va[2];                                  \
+    vr[1] = va[2] * vb[0] - vb[2] * va[0];                                  \
+    vr[2] = va[0] * vb[1] - vb[0] * va[1];                                  \
+}                                                                           \
+while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
+
+/*
+ * Compute the product of vec3 and 1 scalar value.
+ */
+#define RT_VEC3_MUL_VAL1(vr, va, sa)                                        \
+do                                                                          \
+{                                                                           \
+    vr[0] = va[0] * sa;                                                     \
+    vr[1] = va[1] * sa;                                                     \
+    vr[2] = va[2] * sa;                                                     \
+}                                                                           \
+while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
+
+/* ---------------------------------   DOT   -------------------------------- */
+
+/*
+ * Compute the dot-product of two vec3.
+ */
+#define RT_VEC3_DOT(va, vb)                                                 \
+(                                                                           \
+    va[0] * vb[0] +                                                         \
+    va[1] * vb[1] +                                                         \
+    va[2] * vb[2]                                                           \
+)
+
+/* ---------------------------------   LEN   -------------------------------- */
+
+/*
+ * Compute the length of vec3.
+ */
+#define RT_VEC3_LEN(va)                                                     \
+(                                                                           \
+    RT_SQRT(RT_VEC3_DOT(va, va))                                            \
+)
+
+/******************************************************************************/
+/********************************   GEOMETRY   ********************************/
+/******************************************************************************/
 
 /*
  * Determine if "shw" bbox casts shadow on "srf" bbox from "lgt" pos.
@@ -126,6 +227,8 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf);
  *  2 - do swap
  *  3 - neutral
  *  4 - unsortable
+ *  TODO: change numbers so that stored order value fits into the lower 2 bits,
+ *  thus enabling the use of "data" field as "prev" in the engine if needed.
  */
 rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2);
 

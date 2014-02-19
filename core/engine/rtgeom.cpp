@@ -334,7 +334,7 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
          * ray's vector and 2nd edge */
         RT_VEC3_MUL(mx, pr, e2);
 
-        /* calculate determinant */
+        /* calculate determinant "d" */
         d = RT_VEC3_DOT(e1, mx);
 
         /* make sure inequality is multiplied
@@ -491,7 +491,7 @@ rt_cell edge_to_edge(rt_vec4 p0,
          * 2nd and 1st edge origins */
         RT_VEC3_MUL(nx, qr, pr);
 
-        /* projection of 2nd edge origin
+        /* distance from origin to 2nd edge
          * in common orthogonal direction */
         t = RT_VEC3_DOT(qr, mx);
 
@@ -513,7 +513,7 @@ rt_cell edge_to_edge(rt_vec4 p0,
         /* apply to "t" the sign of "t" */
         t *= s;
 
-        /* projection of 1st edge origin
+        /* distance from origin to 1st edge
          * in common orthogonal direction */
         d = RT_VEC3_DOT(pr, mx);
 
@@ -1124,6 +1124,8 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
  *  2 - do swap
  *  3 - neutral
  *  4 - unsortable
+ *  TODO: change numbers so that stored order value fits into the lower 2 bits,
+ *  thus enabling the use of "data" field as "prev" in the engine if needed.
  */
 rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
 {

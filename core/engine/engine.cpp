@@ -39,6 +39,19 @@
  */
 
 /******************************************************************************/
+/*******************************   DEFINITIONS   ******************************/
+/******************************************************************************/
+
+/*
+ * Macros for packed 4-byte aligned pointer and lower 2 bits flag.
+ */
+#define RT_GET_FLG(x)           ((rt_cell)(x) & 0x3)
+#define RT_SET_FLG(x, t, v)     x = (t)((rt_cell)(v) | (rt_cell)(x) & ~0x3)
+
+#define RT_GET_PTR(x)           (rt_ELEM *)((rt_cell)(x) & ~0x3)
+#define RT_SET_PTR(x, t, v)     x = (t)((rt_cell)(v) | RT_GET_FLG(x))
+
+/******************************************************************************/
 /******************************   STATE-LOGGING   *****************************/
 /******************************************************************************/
 
@@ -214,7 +227,7 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     RT_LOGI("elm: %08X, ", (rt_word)elm);
 
     rt_cell d = elm != RT_NULL ? elm->data : 0;
-    rt_cell i = RT_MAX(0, d + 2), n = d & 0x3;
+    rt_cell i = RT_MAX(0, d + 2), n = RT_GET_FLG(d);
 
     if (s_srf != RT_NULL && obj != RT_NULL)
     {
@@ -733,7 +746,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         k = 1;
     }
 
-    nxt = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
+    nxt = RT_GET_PTR(*ptr);
 
     /* search matching existing trnode/bvnode for insertion,
      * run through the list hierachy to find the inner-most node,
@@ -741,13 +754,13 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
      * along with node's type in the lower 2 bits (trnode/bvnode) */
     for (i = 0; nxt != RT_NULL && i < n; nxt = nxt->next)
     {
-        if (arr[k] == nxt->temp && ((rt_cell)nxt->simd & 0x3) == k)
+        if (arr[k] == nxt->temp && RT_GET_FLG(nxt->simd) == k)
         {
             lst[k] = nxt;
             /* set insertion point to existing node's sublist */
             ptr = (rt_ELEM **)&nxt->simd;
             /* search next node (inner-most) in existing node's sublist */
-            nxt = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
+            nxt = RT_GET_PTR(*ptr);
             k = 1 - k;
             i++;
         }
@@ -768,11 +781,12 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         /* alloc new trnode/bvnode element as none has been found */
         nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
         nxt->data = 0;
-        nxt->simd = (rt_pntr)k; /* node's type */
+        nxt->simd = RT_NULL;
+        RT_SET_FLG(nxt->simd, rt_pntr, k); /* node's type */
         nxt->temp = arr[k];
         /* insert element according to found position */
-        nxt->next = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
-       *ptr = (rt_ELEM *)((rt_cell)nxt | (rt_cell)*ptr & 0x3);
+        nxt->next = RT_GET_PTR(*ptr);
+        RT_SET_PTR(*ptr, rt_ELEM *, nxt);
         if (org == RT_NULL)
         {
             org = ptr;
@@ -782,8 +796,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     }
 
     /* insert element according to found position */
-    elm->next = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
-   *ptr = (rt_ELEM *)((rt_cell)elm | (rt_cell)*ptr & 0x3);
+    elm->next = RT_GET_PTR(*ptr);
+    RT_SET_PTR(*ptr, rt_ELEM *, elm);
     /* prepare outer-most new element for sorting
      * in order to figure out its optimal position in the list
      * and thus reduce potential overdraw in the rendering backend,
@@ -793,7 +807,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     if (org != RT_NULL)
     {
         ptr = org;
-        elm = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
+        elm = RT_GET_PTR(*ptr);
     }
 
     /* sort nodes in the list "ptr" with the new element "elm"
@@ -851,7 +865,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
             }
             else
             {
-               *ptr = (rt_ELEM *)((rt_cell)nxt | (rt_cell)*ptr & 0x3);
+                RT_SET_PTR(*ptr, rt_ELEM *, nxt);
             }
             /* if current "elm" position is transitory, "state" keeps
              * previously computed order value between "prv" and "nxt",
@@ -1054,7 +1068,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
             }
             else
             {
-               *ptr = (rt_ELEM *)((rt_cell)cur | (rt_cell)*ptr & 0x3);
+                RT_SET_PTR(*ptr, rt_ELEM *, cur);
             }
             cur = nxt->next;
             tlp->data = 0;
@@ -1129,7 +1143,7 @@ rt_ELEM* rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
         return elm;
     }
 
-    nxt = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
+    nxt = RT_GET_PTR(*ptr);
 
     for (; nxt != RT_NULL; nxt = nxt->next)
     {
@@ -1155,8 +1169,8 @@ rt_ELEM* rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
             ptr = (rt_ELEM **)&nxt->simd;
             elm = filter(obj, ptr);
             elm->next = nxt->next;
-            nxt->data = (rt_cell)elm | (rt_cell)*ptr & 0x3;
-            nxt->next = (rt_ELEM *)((rt_cell)*ptr & ~0x3);
+            nxt->data = (rt_cell)elm | RT_GET_FLG(*ptr);
+            nxt->next = RT_GET_PTR(*ptr);
             nxt->simd = nd->s_srf;
             nxt = elm;
         }

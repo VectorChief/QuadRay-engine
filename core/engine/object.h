@@ -27,8 +27,9 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
-/* Camera actions */
-
+/*
+ * Camera actions.
+ */
 #define RT_CAMERA_CROUCH            0
 #define RT_CAMERA_JUMP              1
 
@@ -47,9 +48,11 @@
 #define RT_CAMERA_ROTATE_LEFT       12
 #define RT_CAMERA_ROTATE_RIGHT      13
 
-/* Update flags,
+/*
+ * Update flags,
  * some values are hardcoded in rendering backend,
- * change with care! */
+ * change with care!
+ */
 
 /* set for object which has
  * non-trivial axis scaling

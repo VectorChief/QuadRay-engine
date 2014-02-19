@@ -27,8 +27,9 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
-/* Fullscreen anti-aliasing modes */
-
+/*
+ * Fullscreen anti-aliasing modes.
+ */
 #define RT_FSAA_NO                  0
 #define RT_FSAA_4X                  1
 
