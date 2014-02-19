@@ -1789,8 +1789,10 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame ptr must be SIMD-aligned or NULL */
     this->frame = frame;
 
     /* init tilebuffer's dimensions and pointer */
-    tile_w = RT_TILE_W;
-    tile_h = RT_TILE_H;
+    tile_w = RT_MAX(RT_TILE_W, 1);
+    tile_h = RT_MAX(RT_TILE_H, 1);
+
+    tile_w = ((tile_w + RT_SIMD_WIDTH - 1) / RT_SIMD_WIDTH) * RT_SIMD_WIDTH;
 
     tiles_in_row = (x_res + tile_w - 1) / tile_w;
     tiles_in_col = (y_res + tile_h - 1) / tile_h;
@@ -1802,7 +1804,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame ptr must be SIMD-aligned or NULL */
     factor = 1.0f / (rt_real)x_res;
     aspect = (rt_real)y_res * factor;
 
-    depth = RT_STACK_DEPTH;
+    depth = RT_MAX(RT_STACK_DEPTH, 0);
     fsaa  = RT_FSAA_NO;
 
     /* instantiate objects hierarchy */
@@ -1831,7 +1833,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame ptr must be SIMD-aligned or NULL */
     scn->lock = this;
 
     /* create scene threads array */
-    thnum = RT_THREADS_NUM;
+    thnum = RT_MAX(RT_THREADS_NUM, 1);
 
     tharr = (rt_SceneThread **)
             alloc(sizeof(rt_SceneThread *) * thnum, RT_ALIGN);
