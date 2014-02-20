@@ -269,7 +269,7 @@
 #define FETCH_PROP()                                                        \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
-        mulxn_ri(Reax, IB(S * 4))                                           \
+        mulxn_ri(Reax, IB(RT_SIMD_WIDTH * 4))                               \
         movpx_ld(Xmm7, Iebx, srf_SBASE)                                     \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         shlxx_ri(Reax, IB(3))                                               \

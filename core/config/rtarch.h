@@ -144,20 +144,27 @@
 /******************************************************************************/
 
 /*
+ * SIMD quad-factor.
+ */
+#define RT_SIMD_QUADS       (RT_SIMD_WIDTH / 4)
+
+/*
+ * Short name Q for RT_SIMD_QUADS.
+ * Not to be used outside backend headers.
+ */
+#ifdef Q
+#undef Q
+#endif /* in case Q is defined outside of the engine */
+#define Q                   RT_SIMD_QUADS
+
+/*
  * Short name S for RT_SIMD_WIDTH.
+ * Not to be used outside backend headers.
  */
 #ifdef S
 #undef S
 #endif /* in case S is defined outside of the engine */
 #define S                   RT_SIMD_WIDTH
-
-/*
- * Short name Q for SIMD quad-factor.
- */
-#ifdef Q
-#undef Q
-#endif /* in case Q is defined outside of the engine */
-#define Q                   (S / 4)
 
 #if S < 4 /* wider SIMD are supported in structs, S = {8, 16} were tested */
 #error "SIMD width must be at least 4 for QuadRay engine"
@@ -213,7 +220,7 @@ struct rt_SIMD_INFO
 /*
  * Based on the original idea by Russell Borogove (kaleja[AT]estarcion[DOT]com)
  * available at http://www.musicdsp.org/showone.php?id=206
- * converted to 4-way SIMD version by VectorChief.
+ * converted to S-way SIMD version by VectorChief.
  */
 #define cbeps_rr(RG, R1, R2, RM) /* destroys value in R1, R2 (temp regs) */ \
         /* cube root estimate, the exponent is divided by three             \
