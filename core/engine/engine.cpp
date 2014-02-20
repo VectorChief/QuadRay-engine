@@ -844,11 +844,11 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         {
             /* move "elm" forward if the "op" is
              * either "do swap" or "neutral" */
-            case 2:
+            case 4:
             /* as the swap operation is performed below
              * the stored order value becomes "don't swap" */
-            op = 1;
-            case 3:
+            op = 3;
+            case 1:
             elm->next = nxt->next;
             if (prv != RT_NULL)
             {
@@ -893,7 +893,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
 
     /* phase 2, find the "end" of the strict-order-chain from "elm",
      * order values "don't swap" and "unsortable" are considered strict */
-    for (end = elm; end->data == 1 || end->data == 4; end = end->next);
+    for (end = elm; end->data == 3 || end->data == 2; end = end->next);
 
     /* phase 3, move the elements from behind "elm" strict-order-chain
      * right in front of the "elm" as computed order value dictates,
@@ -908,10 +908,10 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         {
             /* move "nxt" in front of the "elm"
              * if the "op" is "do swap" */
-            case 2:
+            case 4:
             /* as the swap operation is performed below
              * the stored order value becomes "don't swap" */
-            op = 1;
+            op = 3;
             /* check if there is a tail from "end->next"
              * up to "tlp" to comb out thoroughly before
              * moving "nxt" (along with its strict-order-chain
@@ -930,8 +930,10 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                     rt_bool mv = RT_FALSE;
                     /* search for "cur" previous element,
                      * can be optimized out for dual-linked list,
-                     * though the overhead of managing dual-linked list
-                     * can easily overweight the added benefit */
+                     * though the runtime overhead of managing dual-linked list
+                     * can easily overweight the added benefit, use ptr packed
+                     * into "data" field with "op" as prev if needed, the same
+                     * way as "simd" stores array node's sublist with type */
                     for (ipt = end; ipt->next != cur; ipt = ipt->next);
                     rt_ELEM *iel = ipt->next;
                     /* run through the strict-order-chain from "tlp->next"
@@ -978,7 +980,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                         /* check if order is strict, then stop
                          * and mark "cur" as moving with "nxt",
                          * "cur" will then be added to the comb */
-                        if (op == 1 || op == 4)
+                        if (op == 3 || op == 2)
                         {
                             mv = RT_TRUE;
                             break;
@@ -1091,7 +1093,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
              * is "neutral", then strict-order-chain
              * from "tlp->next" up to "nxt" is being broken
              * as "nxt" moves, thus "tlp" catches up with "nxt" */
-            if (nxt->data != 1 && nxt->data != 4)
+            if (nxt->data != 3 && nxt->data != 2)
             {
                 /* repair "tlp" stored order value
                  * before it catches up with "nxt" */

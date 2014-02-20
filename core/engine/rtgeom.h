@@ -223,12 +223,10 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf);
  * Determine if "nd1" and "nd2" bounds are in correct order as seen from "obj".
  *
  * Return values:
- *  1 - don't swap
- *  2 - do swap
- *  3 - neutral
- *  4 - unsortable
- *  TODO: change numbers so that stored order value fits into the lower 2 bits,
- *  thus enabling the use of "data" field as "prev" in the engine if needed.
+ *  1 - neutral
+ *  2 - unsortable
+ *  3 - don't swap
+ *  4 - do swap, never stored in rt_ELEM's "data" field in the engine
  */
 rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2);
 

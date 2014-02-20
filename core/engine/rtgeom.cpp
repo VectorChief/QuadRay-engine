@@ -1120,19 +1120,17 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
  * Determine if "nd1" and "nd2" bounds are in correct order as seen from "obj".
  *
  * Return values:
- *  1 - don't swap
- *  2 - do swap
- *  3 - neutral
- *  4 - unsortable
- *  TODO: change numbers so that stored order value fits into the lower 2 bits,
- *  thus enabling the use of "data" field as "prev" in the engine if needed.
+ *  1 - neutral
+ *  2 - unsortable
+ *  3 - don't swap
+ *  4 - do swap, never stored in rt_ELEM's "data" field in the engine
  */
 rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
 {
     /* check if nodes differ and have bounds */
     if (nd1->rad == 0.0f || nd2->rad == 0.0f || nd1 == nd2)
     {
-        return 4;
+        return 2;
     }
 
     /* check first the order for bounding spheres */
@@ -1186,7 +1184,7 @@ rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
 
     if (nd2_ang + nd1_ang < ang)
     {
-        return 3;
+        return 1;
     }
 
     rt_Surface *srf = RT_IS_SURFACE(nd1) ? (rt_Surface *)nd1 : RT_NULL;
@@ -1210,7 +1208,7 @@ rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
 
         if (nd1->rad + nd2->rad >= len)
         {
-            return 4;
+            return 2;
         }
 
         /* TODO: add macros to rtgeom.h for VEC3/VEC4, MAT3/MAT4
@@ -1240,11 +1238,11 @@ rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
 
         if (nd1_len < nd2_len)
         {
-            return 1;
+            return 3;
         }
         else
         {
-            return 2;
+            return 4;
         }
     }
 
@@ -1276,7 +1274,7 @@ rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
                 else
                 if (c != k)
                 {
-                    return 4;
+                    return 2;
                 }
             }
             if (fc->k < 3)
@@ -1301,7 +1299,7 @@ rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
                 else
                 if (c != k)
                 {
-                    return 4;
+                    return 2;
                 }
             }
         }
@@ -1333,7 +1331,7 @@ rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
                 else
                 if (c != k)
                 {
-                    return 4;
+                    return 2;
                 }
             }
             if (fc->k < 3)
@@ -1359,7 +1357,7 @@ rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
                 else
                 if (c != k)
                 {
-                    return 4;
+                    return 2;
                 }
             }
         }
@@ -1392,13 +1390,13 @@ rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
                 else
                 if (c != k)
                 {
-                    return 4;
+                    return 2;
                 }
             }
         }
     }
 
-    return c == 0 ? 3 : c;
+    return c == 0 ? 1 : c + 2;
 }
 
 /*
