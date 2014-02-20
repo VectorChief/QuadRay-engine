@@ -47,8 +47,9 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
-/* Generic types */
-
+/*
+ * Generic types
+ */
 typedef float               rt_real;
 
 typedef float               rt_vec2[2];
@@ -76,57 +77,26 @@ typedef void               *rt_pntr;
 typedef const char          rt_astr[];
 typedef const char         *rt_pstr;
 
-/* Complex types */
-
-struct rt_SIMD_INFO
-{
-    /* general purpose constants */
-
-    rt_real gpc01[4];       /* +1.0 */
-#define inf_GPC01           DP(0x000)
-
-    rt_real gpc02[4];       /* -0.5 */
-#define inf_GPC02           DP(0x010)
-
-    rt_real gpc03[4];       /* +3.0 */
-#define inf_GPC03           DP(0x020)
-
-    rt_word gpc04[4];       /* 0x7FFFFFFF */
-#define inf_GPC04           DP(0x030)
-
-    rt_word gpc05[4];       /* 0x3F800000 */
-#define inf_GPC05           DP(0x040)
-
-    rt_real pad01[20];      /* reserved, do not use! */
-#define inf_PAD01           DP(0x050)
-
-    /* internal variables */
-
-    rt_word fctrl;
-#define inf_FCTRL           DP(0x0A0)
-
-    rt_word pad02[23];      /* reserved, do not use! */
-#define inf_PAD02           DP(0x0A4)
-
-};
-
-/* Generic definitions */
-
+/*
+ * Generic definitions
+ */
 #define RT_NULL             0
 #define RT_ALIGN            4
 
 #define RT_FALSE            0
 #define RT_TRUE             1
 
-/* Generic macros */
-
+/*
+ * Generic macros
+ */
 #define RT_ARR_SIZE(a)      (sizeof(a) / sizeof(a[0]))
 
 #define RT_MIN(a, b)        ((a) < (b) ? (a) : (b))
 #define RT_MAX(a, b)        ((a) > (b) ? (a) : (b))
 
-/* Vector components */
-
+/*
+ * Vector components
+ */
 #define RT_X                0
 #define RT_Y                1
 #define RT_Z                2
@@ -142,16 +112,18 @@ struct rt_SIMD_INFO
 #define RT_B                2
 #define RT_A                3   /* A - Alpha channel */
 
-/* Math definitions */
-
+/*
+ * Math definitions
+ */
 #define RT_INF              FLT_MAX
 
 #define RT_PI               3.14159265358
 #define RT_2_PI             (2.0 * RT_PI)
 #define RT_PI_2             (RT_PI / 2.0)
 
-/* Math macros */
-
+/*
+ * Math macros
+ */
 #define RT_ABS(a)           (abs((rt_cell)(a)))
 
 #define RT_FABS(a)          (fabsf(a))

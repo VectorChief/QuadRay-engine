@@ -19,7 +19,7 @@
 #define VERBOSE             RT_FALSE
 #define CYC_SIZE            1000000
 
-#define ARR_SIZE            12 /* hardcoded in asm sections */
+#define ARR_SIZE            S*3 /* hardcoded in asm sections, S = SIMD width */
 #define MASK                (RT_SIMD_ALIGN - 1) /* SIMD alignment mask */
 
 #define FRK(f)              (f < 10.0       ?    0.0001     :               \
@@ -43,61 +43,72 @@ static rt_bool v_mode = VERBOSE;
 static rt_cell t_diff = 2;
 
 /*
- * Extended SIMD info structure for asm enter/leave.
- * Serves as container for test arrays and internal varibales.
- * Displacements start where rt_SIMD_INFO ends (at 0x100).
+ * Extended SIMD info structure for asm enter/leave
+ * serves as a container for test arrays and internal varibales.
+ * Note that DP offsets below start where rt_SIMD_INFO ends (at Q*0x100).
+ * SIMD width is taken into account via S and Q from rtarch.h
  */
 struct rt_SIMD_INFOX : public rt_SIMD_INFO
 {
     /* floating point arrays */
 
     rt_real*far0;
-#define inf_FAR0            DP(0x100)
+#define inf_FAR0            DP(Q*0x100+0x000)
 
     rt_real*fco1;
-#define inf_FCO1            DP(0x104)
+#define inf_FCO1            DP(Q*0x100+0x004)
 
     rt_real*fco2;
-#define inf_FCO2            DP(0x108)
+#define inf_FCO2            DP(Q*0x100+0x008)
 
     rt_real*fso1;
-#define inf_FSO1            DP(0x10C)
+#define inf_FSO1            DP(Q*0x100+0x00C)
 
     rt_real*fso2;
-#define inf_FSO2            DP(0x110)
+#define inf_FSO2            DP(Q*0x100+0x010)
 
     /* integer arrays */
 
     rt_cell*iar0;
-#define inf_IAR0            DP(0x114)
+#define inf_IAR0            DP(Q*0x100+0x014)
 
     rt_cell*ico1;
-#define inf_ICO1            DP(0x118)
+#define inf_ICO1            DP(Q*0x100+0x018)
 
     rt_cell*ico2;
-#define inf_ICO2            DP(0x11C)
+#define inf_ICO2            DP(Q*0x100+0x01C)
 
     rt_cell*iso1;
-#define inf_ISO1            DP(0x120)
+#define inf_ISO1            DP(Q*0x100+0x020)
 
     rt_cell*iso2;
-#define inf_ISO2            DP(0x124)
+#define inf_ISO2            DP(Q*0x100+0x024)
 
     /* internal variables */
 
     rt_cell cyc;
-#define inf_CYC             DP(0x128)
+#define inf_CYC             DP(Q*0x100+0x028)
 
-    rt_cell tmp;
-#define inf_TMP             DP(0x12C)
+    rt_cell loc;
+#define inf_LOC             DP(Q*0x100+0x02C)
 
     rt_cell size;
-#define inf_SIZE            DP(0x130)
+#define inf_SIZE            DP(Q*0x100+0x030)
+
+    rt_cell simd;
+#define inf_SIMD            DP(Q*0x100+0x034)
 
     rt_pntr label;
-#define inf_LABEL           DP(0x134)
+#define inf_LABEL           DP(Q*0x100+0x038)
 
 };
+
+/*
+ * SIMD offsets within array.
+ */
+#define AJ0                 DP(Q*0x000)
+#define AJ1                 DP(Q*0x010)
+#define AJ2                 DP(Q*0x020)
 
 /******************************************************************************/
 /******************************   RUN LEVEL  1   ******************************/
@@ -118,8 +129,8 @@ rt_void c_test01(rt_SIMD_INFOX *info)
         j = n;
         while (j-->0)
         {
-            fco1[j] = far0[j] + far0[(j + 4) % n];
-            fco2[j] = far0[j] - far0[(j + 4) % n];
+            fco1[j] = far0[j] + far0[(j + S) % n];
+            fco2[j] = far0[j] - far0[(j + S) % n];
         }
     }
 }
@@ -127,10 +138,6 @@ rt_void c_test01(rt_SIMD_INFOX *info)
 rt_void s_test01(rt_SIMD_INFOX *info)
 {
     rt_cell i;
-
-#define AJ0                 DP(0x000)
-#define AJ1                 DP(0x010)
-#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -191,13 +198,13 @@ rt_void p_test01(rt_SIMD_INFOX *info)
         }
 
         RT_LOGI("farr[%d] = %e, farr[%d] = %e\n",
-                j, far0[j], (j + 4) % n, far0[(j + 4) % n]);
+                j, far0[j], (j + S) % n, far0[(j + S) % n]);
 
         RT_LOGI("C farr[%d]+farr[%d] = %e, farr[%d]-farr[%d] = %e\n",
-                j, (j + 4) % n, fco1[j], j, (j + 4) % n, fco2[j]);
+                j, (j + S) % n, fco1[j], j, (j + S) % n, fco2[j]);
 
         RT_LOGI("S farr[%d]+farr[%d] = %e, farr[%d]-farr[%d] = %e\n",
-                j, (j + 4) % n, fso1[j], j, (j + 4) % n, fso2[j]);
+                j, (j + S) % n, fso1[j], j, (j + S) % n, fso2[j]);
     }
 }
 
@@ -222,8 +229,8 @@ rt_void c_test02(rt_SIMD_INFOX *info)
         j = n;
         while (j-->0)
         {
-            fco1[j] = far0[j] * far0[(j + 4) % n];
-            fco2[j] = far0[j] / far0[(j + 4) % n];
+            fco1[j] = far0[j] * far0[(j + S) % n];
+            fco2[j] = far0[j] / far0[(j + S) % n];
         }
     }
 }
@@ -231,10 +238,6 @@ rt_void c_test02(rt_SIMD_INFOX *info)
 rt_void s_test02(rt_SIMD_INFOX *info)
 {
     rt_cell i;
-
-#define AJ0                 DP(0x000)
-#define AJ1                 DP(0x010)
-#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -295,13 +298,13 @@ rt_void p_test02(rt_SIMD_INFOX *info)
         }
 
         RT_LOGI("farr[%d] = %e, farr[%d] = %e\n",
-                j, far0[j], (j + 4) % n, far0[(j + 4) % n]);
+                j, far0[j], (j + S) % n, far0[(j + S) % n]);
 
         RT_LOGI("C farr[%d]*farr[%d] = %e, farr[%d]/farr[%d] = %e\n",
-                j, (j + 4) % n, fco1[j], j, (j + 4) % n, fco2[j]);
+                j, (j + S) % n, fco1[j], j, (j + S) % n, fco2[j]);
 
         RT_LOGI("S farr[%d]*farr[%d] = %e, farr[%d]/farr[%d] = %e\n",
-                j, (j + 4) % n, fso1[j], j, (j + 4) % n, fso2[j]);
+                j, (j + S) % n, fso1[j], j, (j + S) % n, fso2[j]);
 
     }
 }
@@ -327,8 +330,8 @@ rt_void c_test03(rt_SIMD_INFOX *info)
         j = n;
         while (j-->0)
         {
-            ico1[j] = (far0[j] >  far0[(j + 4) % n]) ? 0xFFFFFFFF : 0x00000000;
-            ico2[j] = (far0[j] >= far0[(j + 4) % n]) ? 0xFFFFFFFF : 0x00000000;
+            ico1[j] = (far0[j] >  far0[(j + S) % n]) ? 0xFFFFFFFF : 0x00000000;
+            ico2[j] = (far0[j] >= far0[(j + S) % n]) ? 0xFFFFFFFF : 0x00000000;
         }
     }
 }
@@ -336,10 +339,6 @@ rt_void c_test03(rt_SIMD_INFOX *info)
 rt_void s_test03(rt_SIMD_INFOX *info)
 {
     rt_cell i;
-
-#define AJ0                 DP(0x000)
-#define AJ1                 DP(0x010)
-#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -400,13 +399,13 @@ rt_void p_test03(rt_SIMD_INFOX *info)
         }
 
         RT_LOGI("farr[%d] = %e, farr[%d] = %e\n",
-                j, far0[j], (j + 4) % n, far0[(j + 4) % n]);
+                j, far0[j], (j + S) % n, far0[(j + S) % n]);
 
         RT_LOGI("C (farr[%d] > farr[%d]) = %X, (farr[%d] >= farr[%d]) = %X\n",
-                j, (j + 4) % n, ico1[j], j, (j + 4) % n, ico2[j]);
+                j, (j + S) % n, ico1[j], j, (j + S) % n, ico2[j]);
 
         RT_LOGI("S (farr[%d] > farr[%d]) = %X, (farr[%d] >= farr[%d]) = %X\n",
-                j, (j + 4) % n, iso1[j], j, (j + 4) % n, iso2[j]);
+                j, (j + S) % n, iso1[j], j, (j + S) % n, iso2[j]);
     }
 }
 
@@ -431,8 +430,8 @@ rt_void c_test04(rt_SIMD_INFOX *info)
         j = n;
         while (j-->0)
         {
-            ico1[j] = (far0[j] <  far0[(j + 4) % n]) ? 0xFFFFFFFF : 0x00000000;
-            ico2[j] = (far0[j] <= far0[(j + 4) % n]) ? 0xFFFFFFFF : 0x00000000;
+            ico1[j] = (far0[j] <  far0[(j + S) % n]) ? 0xFFFFFFFF : 0x00000000;
+            ico2[j] = (far0[j] <= far0[(j + S) % n]) ? 0xFFFFFFFF : 0x00000000;
         }
     }
 }
@@ -440,10 +439,6 @@ rt_void c_test04(rt_SIMD_INFOX *info)
 rt_void s_test04(rt_SIMD_INFOX *info)
 {
     rt_cell i;
-
-#define AJ0                 DP(0x000)
-#define AJ1                 DP(0x010)
-#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -504,13 +499,13 @@ rt_void p_test04(rt_SIMD_INFOX *info)
         }
 
         RT_LOGI("farr[%d] = %e, farr[%d] = %e\n",
-                j, far0[j], (j + 4) % n, far0[(j + 4) % n]);
+                j, far0[j], (j + S) % n, far0[(j + S) % n]);
 
         RT_LOGI("C (farr[%d] < farr[%d]) = %X, (farr[%d] <= farr[%d]) = %X\n",
-                j, (j + 4) % n, ico1[j], j, (j + 4) % n, ico2[j]);
+                j, (j + S) % n, ico1[j], j, (j + S) % n, ico2[j]);
 
         RT_LOGI("S (farr[%d] < farr[%d]) = %X, (farr[%d] <= farr[%d]) = %X\n",
-                j, (j + 4) % n, iso1[j], j, (j + 4) % n, iso2[j]);
+                j, (j + S) % n, iso1[j], j, (j + S) % n, iso2[j]);
     }
 }
 
@@ -535,8 +530,8 @@ rt_void c_test05(rt_SIMD_INFOX *info)
         j = n;
         while (j-->0)
         {
-            ico1[j] = (far0[j] == far0[(j + 4) % n]) ? 0xFFFFFFFF : 0x00000000;
-            ico2[j] = (far0[j] != far0[(j + 4) % n]) ? 0xFFFFFFFF : 0x00000000;
+            ico1[j] = (far0[j] == far0[(j + S) % n]) ? 0xFFFFFFFF : 0x00000000;
+            ico2[j] = (far0[j] != far0[(j + S) % n]) ? 0xFFFFFFFF : 0x00000000;
         }
     }
 }
@@ -544,10 +539,6 @@ rt_void c_test05(rt_SIMD_INFOX *info)
 rt_void s_test05(rt_SIMD_INFOX *info)
 {
     rt_cell i;
-
-#define AJ0                 DP(0x000)
-#define AJ1                 DP(0x010)
-#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -608,13 +599,13 @@ rt_void p_test05(rt_SIMD_INFOX *info)
         }
 
         RT_LOGI("farr[%d] = %e, farr[%d] = %e\n",
-                j, far0[j], (j + 4) % n, far0[(j + 4) % n]);
+                j, far0[j], (j + S) % n, far0[(j + S) % n]);
 
         RT_LOGI("C (farr[%d] == farr[%d]) = %X, (farr[%d] != farr[%d]) = %X\n",
-                j, (j + 4) % n, ico1[j], j, (j + 4) % n, ico2[j]);
+                j, (j + S) % n, ico1[j], j, (j + S) % n, ico2[j]);
 
         RT_LOGI("S (farr[%d] == farr[%d]) = %X, (farr[%d] != farr[%d]) = %X\n",
-                j, (j + 4) % n, iso1[j], j, (j + 4) % n, iso2[j]);
+                j, (j + S) % n, iso1[j], j, (j + S) % n, iso2[j]);
     }
 }
 
@@ -649,10 +640,6 @@ rt_void c_test06(rt_SIMD_INFOX *info)
 rt_void s_test06(rt_SIMD_INFOX *info)
 {
     rt_cell i;
-
-#define AJ0                 DP(0x000)
-#define AJ1                 DP(0x010)
-#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -754,10 +741,6 @@ rt_void s_test07(rt_SIMD_INFOX *info)
 {
     rt_cell i;
 
-#define AJ0                 DP(0x000)
-#define AJ1                 DP(0x010)
-#define AJ2                 DP(0x020)
-
     i = info->cyc;
     while (i-->0)
     {
@@ -848,10 +831,6 @@ rt_void c_test08(rt_SIMD_INFOX *info)
 rt_void s_test08(rt_SIMD_INFOX *info)
 {
     rt_cell i;
-
-#define AJ0                 DP(0x000)
-#define AJ1                 DP(0x010)
-#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -950,8 +929,8 @@ rt_void c_test09(rt_SIMD_INFOX *info)
         j = n;
         while (j-->0)
         {
-            ico1[j] = iar0[j] * iar0[(j + 4) % n];
-            ico2[j] = iar0[j] / iar0[(j + 4) % n];
+            ico1[j] = iar0[j] * iar0[(j + S) % n];
+            ico2[j] = iar0[j] / iar0[(j + S) % n];
         }
     }
 }
@@ -964,7 +943,7 @@ rt_void s_test09(rt_SIMD_INFOX *info)
         movxx_st(Reax, Mebp, inf_LABEL)
 
         movxx_ld(Reax, Mebp, inf_CYC)
-        movxx_st(Reax, Mebp, inf_TMP)
+        movxx_st(Reax, Mebp, inf_LOC)
 
     LBL(cyc_beg)
 
@@ -975,57 +954,44 @@ rt_void s_test09(rt_SIMD_INFOX *info)
 
     LBL(loc_beg)
 
-        movxx_ld(Reax, Mecx, DP(0x00))
-        mulxn_xm(Mecx, DP(0x10))
-        movxx_st(Reax, Mebx, DP(0x00))
-        movxx_ld(Reax, Mecx, DP(0x00))
+        movxx_ld(Reax, Mecx, DP(Q*0x000))
+        mulxn_xm(Mecx, DP(Q*0x010))
+        movxx_st(Reax, Mebx, DP(Q*0x000))
+        movxx_ld(Reax, Mecx, DP(Q*0x000))
         movxx_ri(Redx, IB(0))
-        divxn_xm(Mecx, DP(0x10))
-        movxx_st(Reax, Mesi, DP(0x00))
+        divxn_xm(Mecx, DP(Q*0x010))
+        movxx_st(Reax, Mesi, DP(Q*0x000))
 
         addxx_ri(Recx, IB(4))
         addxx_ri(Rebx, IB(4))
         addxx_ri(Resi, IB(4))
         subxx_ri(Redi, IB(1))
-        cmpxx_ri(Redi, IB(4))
+        cmpxx_ri(Redi, IB(S))
         jgtxx_lb(loc_beg)
 
         movxx_ld(Redi, Mebp, inf_IAR0)
+        movxx_mi(Mebp, inf_SIMD, IB(S))
 
-        movxx_ld(Reax, Mecx, DP(0x00))
-        mulxn_xm(Medi, DP(0x00))
-        movxx_st(Reax, Mebx, DP(0x00))
-        movxx_ld(Reax, Mecx, DP(0x00))
+    LBL(smd_beg)
+
+        movxx_ld(Reax, Mecx, DP(Q*0x000))
+        mulxn_xm(Medi, DP(Q*0x000))
+        movxx_st(Reax, Mebx, DP(Q*0x000))
+        movxx_ld(Reax, Mecx, DP(Q*0x000))
         movxx_ri(Redx, IB(0))
-        divxn_xm(Medi, DP(0x00))
-        movxx_st(Reax, Mesi, DP(0x00))
+        divxn_xm(Medi, DP(Q*0x000))
+        movxx_st(Reax, Mesi, DP(Q*0x000))
 
-        movxx_ld(Reax, Mecx, DP(0x04))
-        mulxn_xm(Medi, DP(0x04))
-        movxx_st(Reax, Mebx, DP(0x04))
-        movxx_ld(Reax, Mecx, DP(0x04))
-        movxx_ri(Redx, IB(0))
-        divxn_xm(Medi, DP(0x04))
-        movxx_st(Reax, Mesi, DP(0x04))
+        addxx_ri(Recx, IB(4))
+        addxx_ri(Rebx, IB(4))
+        addxx_ri(Resi, IB(4))
+        addxx_ri(Redi, IB(4))
+        subxx_mi(Mebp, inf_SIMD, IB(1))
+        cmpxx_mi(Mebp, inf_SIMD, IB(0))
+        jgtxx_lb(smd_beg)
 
-        movxx_ld(Reax, Mecx, DP(0x08))
-        mulxn_xm(Medi, DP(0x08))
-        movxx_st(Reax, Mebx, DP(0x08))
-        movxx_ld(Reax, Mecx, DP(0x08))
-        movxx_ri(Redx, IB(0))
-        divxn_xm(Medi, DP(0x08))
-        movxx_st(Reax, Mesi, DP(0x08))
-
-        movxx_ld(Reax, Mecx, DP(0x0C))
-        mulxn_xm(Medi, DP(0x0C))
-        movxx_st(Reax, Mebx, DP(0x0C))
-        movxx_ld(Reax, Mecx, DP(0x0C))
-        movxx_ri(Redx, IB(0))
-        divxn_xm(Medi, DP(0x0C))
-        movxx_st(Reax, Mesi, DP(0x0C))
-
-        subxx_mi(Mebp, inf_TMP, IB(1))
-        cmpxx_mi(Mebp, inf_TMP, IB(0))
+        subxx_mi(Mebp, inf_LOC, IB(1))
+        cmpxx_mi(Mebp, inf_LOC, IB(0))
         jeqxx_lb(cyc_end)
         jmpxx_mm(Mebp, inf_LABEL)
         jmpxx_lb(cyc_beg) /* the same jump as above */
@@ -1054,13 +1020,13 @@ rt_void p_test09(rt_SIMD_INFOX *info)
         }
 
         RT_LOGI("iarr[%d] = %d, iarr[%d] = %d\n",
-                j, iar0[j], (j + 4) % n, iar0[(j + 4) % n]);
+                j, iar0[j], (j + S) % n, iar0[(j + S) % n]);
 
         RT_LOGI("C iarr[%d]*iarr[%d] = %d, iarr[%d]/iarr[%d] = %d\n",
-                j, (j + 4) % n, ico1[j], j, (j + 4) % n, ico2[j]);
+                j, (j + S) % n, ico1[j], j, (j + S) % n, ico2[j]);
 
         RT_LOGI("S iarr[%d]*iarr[%d] = %d, iarr[%d]/iarr[%d] = %d\n",
-                j, (j + 4) % n, iso1[j], j, (j + 4) % n, iso2[j]);
+                j, (j + S) % n, iso1[j], j, (j + S) % n, iso2[j]);
 
     }
 }
@@ -1086,8 +1052,8 @@ rt_void c_test10(rt_SIMD_INFOX *info)
         j = n;
         while (j-->0)
         {
-            fco1[j] = RT_MIN(far0[j], far0[(j + 4) % n]);
-            fco2[j] = RT_MAX(far0[j], far0[(j + 4) % n]);
+            fco1[j] = RT_MIN(far0[j], far0[(j + S) % n]);
+            fco2[j] = RT_MAX(far0[j], far0[(j + S) % n]);
         }
     }
 }
@@ -1095,10 +1061,6 @@ rt_void c_test10(rt_SIMD_INFOX *info)
 rt_void s_test10(rt_SIMD_INFOX *info)
 {
     rt_cell i;
-
-#define AJ0                 DP(0x000)
-#define AJ1                 DP(0x010)
-#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -1159,13 +1121,13 @@ rt_void p_test10(rt_SIMD_INFOX *info)
         }
 
         RT_LOGI("farr[%d] = %e, farr[%d] = %e\n",
-                j, far0[j], (j + 4) % n, far0[(j + 4) % n]);
+                j, far0[j], (j + S) % n, far0[(j + S) % n]);
 
         RT_LOGI("C MIN(farr[%d],farr[%d]) = %e, MAX(farr[%d],farr[%d]) = %e\n",
-                j, (j + 4) % n, fco1[j], j, (j + 4) % n, fco2[j]);
+                j, (j + S) % n, fco1[j], j, (j + S) % n, fco2[j]);
 
         RT_LOGI("S MIN(farr[%d],farr[%d]) = %e, MAX(farr[%d],farr[%d]) = %e\n",
-                j, (j + 4) % n, fso1[j], j, (j + 4) % n, fso2[j]);
+                j, (j + S) % n, fso1[j], j, (j + S) % n, fso2[j]);
     }
 }
 
@@ -1199,10 +1161,6 @@ rt_void c_test11(rt_SIMD_INFOX *info)
 rt_void s_test11(rt_SIMD_INFOX *info)
 {
     rt_cell i;
-
-#define AJ0                 DP(0x000)
-#define AJ1                 DP(0x010)
-#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -1311,10 +1269,6 @@ rt_void s_test12(rt_SIMD_INFOX *info)
 {
     rt_cell i;
 
-#define AJ0                 DP(0x000)
-#define AJ1                 DP(0x010)
-#define AJ2                 DP(0x020)
-
     i = info->cyc;
     while (i-->0)
     {
@@ -1422,10 +1376,6 @@ rt_void c_test13(rt_SIMD_INFOX *info)
 rt_void s_test13(rt_SIMD_INFOX *info)
 {
     rt_cell i;
-
-#define AJ0                 DP(0x000)
-#define AJ1                 DP(0x010)
-#define AJ2                 DP(0x020)
 
     i = info->cyc;
     while (i-->0)
@@ -1722,9 +1672,10 @@ rt_cell main(rt_cell argc, rt_char *argv[])
     }
 
     rt_pntr marr = malloc(10 * ARR_SIZE * sizeof(rt_word) + MASK);
+    memset(marr, 0, 10 * ARR_SIZE * sizeof(rt_word) + MASK);
     rt_pntr mar0 = (rt_pntr)(((rt_word)marr + MASK) & ~MASK);
 
-    rt_real farr[ARR_SIZE] =
+    rt_real farr[4*3] =
     {
         34.2785,
         113.98764,
@@ -1746,9 +1697,12 @@ rt_cell main(rt_cell argc, rt_char *argv[])
     rt_real *fso1 = (rt_real *)mar0 + ARR_SIZE * 3;
     rt_real *fso2 = (rt_real *)mar0 + ARR_SIZE * 4;
 
-    memcpy(far0, farr, sizeof(farr));
+    for (k = 0; k < Q; k++)
+    {
+        memcpy(far0 + RT_ARR_SIZE(farr) * k, farr, sizeof(farr));
+    }
 
-    rt_cell iarr[ARR_SIZE] =
+    rt_cell iarr[4*3] =
     {
         285,
         113,
@@ -1770,7 +1724,10 @@ rt_cell main(rt_cell argc, rt_char *argv[])
     rt_cell *iso1 = (rt_cell *)mar0 + ARR_SIZE * 8;
     rt_cell *iso2 = (rt_cell *)mar0 + ARR_SIZE * 9;
 
-    memcpy(iar0, iarr, sizeof(iarr));
+    for (k = 0; k < Q; k++)
+    {
+        memcpy(iar0 + RT_ARR_SIZE(iarr) * k, iarr, sizeof(iarr));
+    }
 
     rt_pntr info = malloc(sizeof(rt_SIMD_INFOX) + MASK);
     rt_SIMD_INFOX *inf0 = (rt_SIMD_INFOX *)(((rt_word)info + MASK) & ~MASK);

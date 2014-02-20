@@ -988,9 +988,9 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         return;
     }
 
-    s_srf->a_map[RT_I] = RT_X << 4;
-    s_srf->a_map[RT_J] = RT_Y << 4;
-    s_srf->a_map[RT_K] = RT_Z << 4;
+    s_srf->a_map[RT_I] = RT_X * S * 4;
+    s_srf->a_map[RT_J] = RT_Y * S * 4;
+    s_srf->a_map[RT_K] = RT_Z * S * 4;
     s_srf->a_map[RT_L] = mtx_has_trm;
 
     s_srf->a_sgn[RT_I] = 0;
@@ -1376,14 +1376,14 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
          * select aux vector fields for axis mapping in backend structures */
         rt_cell shift = trnode != RT_NULL ? 3 : 0;
 
-        s_srf->a_map[RT_I] = (mp_i + shift) << 4;
-        s_srf->a_map[RT_J] = (mp_j + shift) << 4;
-        s_srf->a_map[RT_K] = (mp_k + shift) << 4;
+        s_srf->a_map[RT_I] = (mp_i + shift) * S * 4;
+        s_srf->a_map[RT_J] = (mp_j + shift) * S * 4;
+        s_srf->a_map[RT_K] = (mp_k + shift) * S * 4;
         s_srf->a_map[RT_L] = mtx_has_trm;
 
-        s_srf->a_sgn[RT_I] = (sgn[RT_I] > 0 ? 0 : 1) << 4;
-        s_srf->a_sgn[RT_J] = (sgn[RT_J] > 0 ? 0 : 1) << 4;
-        s_srf->a_sgn[RT_K] = (sgn[RT_K] > 0 ? 0 : 1) << 4;
+        s_srf->a_sgn[RT_I] = (sgn[RT_I] > 0 ? 0 : 1) * S * 4;
+        s_srf->a_sgn[RT_J] = (sgn[RT_J] > 0 ? 0 : 1) * S * 4;
+        s_srf->a_sgn[RT_K] = (sgn[RT_K] > 0 ? 0 : 1) * S * 4;
         s_srf->a_sgn[RT_L] = 0;
 
         invert_matrix();
@@ -2955,8 +2955,8 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
             rg->alloc(sizeof(rt_SIMD_MATERIAL),
                                 RT_SIMD_ALIGN);
 
-    s_mat->t_map[RT_X] = map[RT_X] << 4;
-    s_mat->t_map[RT_Y] = map[RT_Y] << 4;
+    s_mat->t_map[RT_X] = map[RT_X] * S * 4;
+    s_mat->t_map[RT_Y] = map[RT_Y] * S * 4;
     s_mat->t_map[2] = 0;
     s_mat->t_map[3] = 0;
 
@@ -2979,10 +2979,8 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
         x_lg2++;
     }
 
+    RT_SIMD_SET(s_mat->yshft, 0);
     s_mat->yshft[0] = x_lg2;
-    s_mat->yshft[1] = 0;
-    s_mat->yshft[2] = 0;
-    s_mat->yshft[3] = 0;
 
     RT_SIMD_SET(s_mat->tex_p, tx->ptex);
     RT_SIMD_SET(s_mat->cmask, 0xFF);

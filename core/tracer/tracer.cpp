@@ -263,15 +263,16 @@
 /*
  * Material properties.
  * Fetch properties from material into the context's local FLG field
- * based on the currently set SIDE flag.
- * Load SIDE's sign into Xmm7 for normals.
+ * based on the currently set SIDE flag, also load SIDE flag
+ * as sign into Xmm7 for normals.
  */
 #define FETCH_PROP()                                                        \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
-        shlxx_ri(Reax, IB(4))                                               \
+        mulxn_ri(Reax, IB(S * 4))                                           \
         movpx_ld(Xmm7, Iebx, srf_SBASE)                                     \
-        shrxx_ri(Reax, IB(1))                                               \
+        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
+        shlxx_ri(Reax, IB(3))                                               \
         movxx_ld(Reax, Iebx, srf_MAT_P(FLG))                                \
         orrxx_st(Reax, Mecx, ctx_LOCAL(FLG))
 

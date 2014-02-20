@@ -19,28 +19,16 @@
  *
  * More detailed description of this subsystem is given in tracer.cpp.
  * Recommended naming scheme for C++ types and definitions is given in rtbase.h.
+ *
+ * Note that DP offsets below accept only 12-bit values (0xFFF),
+ * use DH and DW for 16-bit and 32-bit SIMD offsets respectively,
+ * place packed scalar fields at the top of the structs to be within DP reach.
+ * SIMD width is taken into account via S and Q from rtarch.h
  */
 
 /******************************************************************************/
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
-
-/*
- * Internal short name S for RT_SIMD_WIDTH.
- * Note that DP offsets below accept only 12-bit values (0xFFF),
- * use DH and DW for 16-bit and 32-bit SIMD offsets respectively,
- * place packed scalar fields at the top of the struct for DP.
- * SIMD width needs to be taken into account in offset values!
- */
-#ifdef S
-#undef S
-#endif /* in case S is defined outside of the engine */
-
-#define S                   RT_SIMD_WIDTH
-
-#if S < 4 || S > 4 /* wider SIMD are not yet supported */
-#error "SIMD width must be at least 4 for QuadRay engine"
-#endif /* in case S is smaller than 4 */
 
 /*
  * Material properties.
@@ -101,7 +89,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf);
 /*
  * Generic list element structure.
  * Field names explanation:
- *   data - aux data field (last elem, clip side, accum marker, shadow list)
+ *   data - aux data field (last element, clip side, accum marker, shadow list)
  *   simd - pointer to the SIMD structure (rt_SIMD_LIGHT, rt_SIMD_SURFACE)
  *   temp - aux temp field (high-level object, not used in backend)
  *   next - pointer to the next element
@@ -124,8 +112,10 @@ struct rt_ELEM
 };
 
 /*
- * Extended SIMD info structure for asm enter/leave.
- * Serves as root for all other SIMD structures passed to backend.
+ * Extended SIMD info structure for asm enter/leave
+ * serves as a container for all other SIMD structures passed to backend,
+ * contains backend's internal variables as well as local entry points.
+ * Note that DP offsets below start where rt_SIMD_INFO ends (at Q*0x100).
  * Structure is read-write in backend.
  */
 struct rt_SIMD_INFOX : public rt_SIMD_INFO
@@ -133,136 +123,136 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     /* external parameters */
 
     rt_pntr ctx;
-#define inf_CTX             DP(0x100)
+#define inf_CTX             DP(Q*0x100+0x000)
 
     rt_pntr cam;
-#define inf_CAM             DP(0x104)
+#define inf_CAM             DP(Q*0x100+0x004)
 
     rt_pntr lst;
-#define inf_LST             DP(0x108)
+#define inf_LST             DP(Q*0x100+0x008)
 
     rt_word pad10;
-#define inf_PAD10           DP(0x10C)
+#define inf_PAD10           DP(Q*0x100+0x00C)
 
 
     rt_word frm_w;
-#define inf_FRM_W           DP(0x110)
+#define inf_FRM_W           DP(Q*0x100+0x010)
 
     rt_word frm_h;
-#define inf_FRM_H           DP(0x114)
+#define inf_FRM_H           DP(Q*0x100+0x014)
 
     rt_cell frm_row;
-#define inf_FRM_ROW         DP(0x118)
+#define inf_FRM_ROW         DP(Q*0x100+0x018)
 
     rt_pntr frame;
-#define inf_FRAME           DP(0x11C)
+#define inf_FRAME           DP(Q*0x100+0x01C)
 
 
     rt_cell index;
-#define inf_INDEX           DP(0x120)
+#define inf_INDEX           DP(Q*0x100+0x020)
 
     rt_word thnum;
-#define inf_THNUM           DP(0x124)
+#define inf_THNUM           DP(Q*0x100+0x024)
 
     rt_word depth;
-#define inf_DEPTH           DP(0x128)
+#define inf_DEPTH           DP(Q*0x100+0x028)
 
     rt_cell fsaa;
-#define inf_FSAA            DP(0x12C)
+#define inf_FSAA            DP(Q*0x100+0x02C)
 
 
     rt_word tile_w;
-#define inf_TILE_W          DP(0x130)
+#define inf_TILE_W          DP(Q*0x100+0x030)
 
     rt_word tile_h;
-#define inf_TILE_H          DP(0x134)
+#define inf_TILE_H          DP(Q*0x100+0x034)
 
     rt_cell tls_row;
-#define inf_TLS_ROW         DP(0x138)
+#define inf_TLS_ROW         DP(Q*0x100+0x038)
 
     rt_pntr tiles;
-#define inf_TILES           DP(0x13C)
+#define inf_TILES           DP(Q*0x100+0x03C)
 
     /* internal variables */
 
     rt_word frm_x;
-#define inf_FRM_X           DP(0x140)
+#define inf_FRM_X           DP(Q*0x100+0x040)
 
     rt_word frm_y;
-#define inf_FRM_Y           DP(0x144)
+#define inf_FRM_Y           DP(Q*0x100+0x044)
 
     rt_pntr frm;
-#define inf_FRM             DP(0x148)
+#define inf_FRM             DP(Q*0x100+0x048)
 
     rt_word tls_x;
-#define inf_TLS_X           DP(0x14C)
+#define inf_TLS_X           DP(Q*0x100+0x04C)
 
     rt_pntr tls;
-#define inf_TLS             DP(0x150)
+#define inf_TLS             DP(Q*0x100+0x050)
 
     rt_word pad11[35];
-#define inf_PAD11           DP(0x154)
+#define inf_PAD11           DP(Q*0x100+0x054)
 
     /* specular pow entry points */
 
     rt_pntr pow_e0;
-#define inf_POW_E0          DP(0x1E0)
+#define inf_POW_E0          DP(Q*0x100+0x0E0)
 
     rt_pntr pow_e1;
-#define inf_POW_E1          DP(0x1E4)
+#define inf_POW_E1          DP(Q*0x100+0x0E4)
 
     rt_pntr pow_e2;
-#define inf_POW_E2          DP(0x1E8)
+#define inf_POW_E2          DP(Q*0x100+0x0E8)
 
     rt_pntr pow_e3;
-#define inf_POW_E3          DP(0x1EC)
+#define inf_POW_E3          DP(Q*0x100+0x0EC)
 
     rt_pntr pow_e4;
-#define inf_POW_E4          DP(0x1F0)
+#define inf_POW_E4          DP(Q*0x100+0x0F0)
 
     rt_pntr pow_en;
-#define inf_POW_EN          DP(0x1F4)
+#define inf_POW_EN          DP(Q*0x100+0x0F4)
 
     rt_word pad12[2];
-#define inf_PAD12           DP(0x1F8)
+#define inf_PAD12           DP(Q*0x100+0x0F8)
 
     /* surface entry points */
 
     rt_pntr ptr_pl;
-#define inf_PTR_PL          DP(0x200)
+#define inf_PTR_PL          DP(Q*0x100+0x100)
 
     rt_pntr clp_pl;
-#define inf_CLP_PL          DP(0x204)
+#define inf_CLP_PL          DP(Q*0x100+0x104)
 
     rt_pntr ptr_cl;
-#define inf_PTR_CL          DP(0x208)
+#define inf_PTR_CL          DP(Q*0x100+0x108)
 
     rt_pntr clp_cl;
-#define inf_CLP_CL          DP(0x20C)
+#define inf_CLP_CL          DP(Q*0x100+0x10C)
 
     rt_pntr ptr_sp;
-#define inf_PTR_SP          DP(0x210)
+#define inf_PTR_SP          DP(Q*0x100+0x110)
 
     rt_pntr clp_sp;
-#define inf_CLP_SP          DP(0x214)
+#define inf_CLP_SP          DP(Q*0x100+0x114)
 
     rt_pntr ptr_cn;
-#define inf_PTR_CN          DP(0x218)
+#define inf_PTR_CN          DP(Q*0x100+0x118)
 
     rt_pntr clp_cn;
-#define inf_CLP_CN          DP(0x21C)
+#define inf_CLP_CN          DP(Q*0x100+0x11C)
 
     rt_pntr ptr_pb;
-#define inf_PTR_PB          DP(0x220)
+#define inf_PTR_PB          DP(Q*0x100+0x120)
 
     rt_pntr clp_pb;
-#define inf_CLP_PB          DP(0x224)
+#define inf_CLP_PB          DP(Q*0x100+0x124)
 
     rt_pntr ptr_hb;
-#define inf_PTR_HB          DP(0x228)
+#define inf_PTR_HB          DP(Q*0x100+0x128)
 
     rt_pntr clp_hb;
-#define inf_CLP_HB          DP(0x22C)
+#define inf_CLP_HB          DP(Q*0x100+0x12C)
 
 };
 
@@ -288,204 +278,206 @@ struct rt_SIMD_CONTEXT
     /* origin */
 
     rt_real org_x[S];
-#define ctx_ORG_X           DP(0x000)
+#define ctx_ORG_X           DP(Q*0x000)
 
     rt_real org_y[S];
-#define ctx_ORG_Y           DP(0x010)
+#define ctx_ORG_Y           DP(Q*0x010)
 
     rt_real org_z[S];
-#define ctx_ORG_Z           DP(0x020)
+#define ctx_ORG_Z           DP(Q*0x020)
 
     /* depth min */
 
     rt_real t_min[S];
-#define ctx_T_MIN           DP(0x030)
+#define ctx_T_MIN           DP(Q*0x030)
 
     /* ray */
 
-#define ctx_RAY_O           DP(0x040)
+#define ctx_RAY_O           DP(Q*0x040)
 
     rt_real ray_x[S];
-#define ctx_RAY_X           DP(0x040)
+#define ctx_RAY_X           DP(Q*0x040)
 
     rt_real ray_y[S];
-#define ctx_RAY_Y           DP(0x050)
+#define ctx_RAY_Y           DP(Q*0x050)
 
     rt_real ray_z[S];
-#define ctx_RAY_Z           DP(0x060)
+#define ctx_RAY_Z           DP(Q*0x060)
 
     rt_real ray_i[S];
-#define ctx_RAY_I           DP(0x070)
+#define ctx_RAY_I           DP(Q*0x070)
 
     rt_real ray_j[S];
-#define ctx_RAY_J           DP(0x080)
+#define ctx_RAY_J           DP(Q*0x080)
 
     rt_real ray_k[S];
-#define ctx_RAY_K           DP(0x090)
+#define ctx_RAY_K           DP(Q*0x090)
 
     /* diff */
 
-#define ctx_DFF_O           DP(0x0A0)
+#define ctx_DFF_O           DP(Q*0x0A0)
 
     rt_real dff_x[S];
-#define ctx_DFF_X           DP(0x0A0)
+#define ctx_DFF_X           DP(Q*0x0A0)
 
     rt_real dff_y[S];
-#define ctx_DFF_Y           DP(0x0B0)
+#define ctx_DFF_Y           DP(Q*0x0B0)
 
     rt_real dff_z[S];
-#define ctx_DFF_Z           DP(0x0C0)
+#define ctx_DFF_Z           DP(Q*0x0C0)
 
     rt_real dff_i[S];
-#define ctx_DFF_I           DP(0x0D0)
+#define ctx_DFF_I           DP(Q*0x0D0)
 
     rt_real dff_j[S];
-#define ctx_DFF_J           DP(0x0E0)
+#define ctx_DFF_J           DP(Q*0x0E0)
 
     rt_real dff_k[S];
-#define ctx_DFF_K           DP(0x0F0)
+#define ctx_DFF_K           DP(Q*0x0F0)
 
     /* surface coords
      * for texturing */
 
-#define ctx_TEX_O           DP(0x100)
+#define ctx_TEX_O           DP(Q*0x100)
 
     rt_real tex_u[S];
-#define ctx_TEX_U           DP(0x100)
+#define ctx_TEX_U           DP(Q*0x100)
 
     rt_real tex_v[S];
-#define ctx_TEX_V           DP(0x110)
+#define ctx_TEX_V           DP(Q*0x110)
 
     /* texture color */
 
     rt_real tex_r[S];
-#define ctx_TEX_R           DP(0x120)
+#define ctx_TEX_R           DP(Q*0x120)
 
     rt_real tex_g[S];
-#define ctx_TEX_G           DP(0x130)
+#define ctx_TEX_G           DP(Q*0x130)
 
     rt_real tex_b[S];
-#define ctx_TEX_B           DP(0x140)
+#define ctx_TEX_B           DP(Q*0x140)
 
     /* color buffer */
 
-    rt_cell c_ptr[4];
-#define ctx_C_PTR(nx)       DP(0x150 + nx)
+    rt_cell c_ptr[S];
+#define ctx_C_PTR(nx)       DP(Q*0x150 + nx)
 
-    rt_cell c_buf[4];
-#define ctx_C_BUF(nx)       DP(0x160 + nx)
+    rt_cell c_buf[S];
+#define ctx_C_BUF(nx)       DP(Q*0x160 + nx)
 
     /* result color */
 
-    rt_real col_r[4];
-#define ctx_COL_R(nx)       DP(0x170 + nx)
+    rt_real col_r[S];
+#define ctx_COL_R(nx)       DP(Q*0x170 + nx)
 
-    rt_real col_g[4];
-#define ctx_COL_G(nx)       DP(0x180 + nx)
+    rt_real col_g[S];
+#define ctx_COL_G(nx)       DP(Q*0x180 + nx)
 
-    rt_real col_b[4];
-#define ctx_COL_B(nx)       DP(0x190 + nx)
+    rt_real col_b[S];
+#define ctx_COL_B(nx)       DP(Q*0x190 + nx)
 
     /* misc */
 
-    rt_cell param[4];
-#define ctx_PARAM(nx)       DP(0x1A0 + nx)
+    rt_cell param[S];
+#define ctx_PARAM(nx)       DP(Q*0x1A0 + nx)
 
-    rt_cell local[4];
-#define ctx_LOCAL(nx)       DP(0x1B0 + nx)
+    rt_cell local[S];
+#define ctx_LOCAL(nx)       DP(Q*0x1B0 + nx)
 
-    rt_real t_val[4];
-#define ctx_T_VAL(nx)       DP(0x1C0 + nx)
+    rt_real t_val[S];
+#define ctx_T_VAL(nx)       DP(Q*0x1C0 + nx)
 
-    rt_real t_buf[4];
-#define ctx_T_BUF(nx)       DP(0x1D0 + nx)
+    rt_real t_buf[S];
+#define ctx_T_BUF(nx)       DP(Q*0x1D0 + nx)
 
-    rt_cell tmask[4];
-#define ctx_TMASK(nx)       DP(0x1E0 + nx)
+    rt_cell tmask[S];
+#define ctx_TMASK(nx)       DP(Q*0x1E0 + nx)
 
     rt_cell xmask[S];
-#define ctx_XMASK           DP(0x1F0)
+#define ctx_XMASK           DP(Q*0x1F0)
 
 
     rt_cell xtmp1[S];
-#define ctx_XTMP1           DP(0x200)
+#define ctx_XTMP1           DP(Q*0x200)
 
     rt_cell xtmp2[S];
-#define ctx_XTMP2           DP(0x210)
+#define ctx_XTMP2           DP(Q*0x210)
 
     rt_cell xtmp3[S];
-#define ctx_XTMP3           DP(0x220)
+#define ctx_XTMP3           DP(Q*0x220)
 
     rt_cell c_tmp[S];
-#define ctx_C_TMP           DP(0x230)
+#define ctx_C_TMP           DP(Q*0x230)
 
     /* normal */
 
-#define ctx_NRM_O           DP(0x240)
+#define ctx_NRM_O           DP(Q*0x240)
 
     rt_real nrm_x[S];
-#define ctx_NRM_X           DP(0x240)
+#define ctx_NRM_X           DP(Q*0x240)
 
     rt_real nrm_y[S];
-#define ctx_NRM_Y           DP(0x250)
+#define ctx_NRM_Y           DP(Q*0x250)
 
     rt_real nrm_z[S];
-#define ctx_NRM_Z           DP(0x260)
+#define ctx_NRM_Z           DP(Q*0x260)
 
     rt_real nrm_i[S];
-#define ctx_NRM_I           DP(0x270)
+#define ctx_NRM_I           DP(Q*0x270)
 
     rt_real nrm_j[S];
-#define ctx_NRM_J           DP(0x280)
+#define ctx_NRM_J           DP(Q*0x280)
 
     rt_real nrm_k[S];
-#define ctx_NRM_K           DP(0x290)
+#define ctx_NRM_K           DP(Q*0x290)
 
-    rt_word pad05[24];
-#define ctx_PAD05           DP(0x2A0)
+    /* reserved area 1 */
+
+    rt_word pad01[S*6];
+#define ctx_PAD01           DP(Q*0x2A0)
 
     /* hit, overlapping next context,
      * new origin */
 
     rt_real hit_x[S];
-#define ctx_HIT_X           DP(0x300)
+#define ctx_HIT_X           DP(Q*0x300)
 
     rt_real hit_y[S];
-#define ctx_HIT_Y           DP(0x310)
+#define ctx_HIT_Y           DP(Q*0x310)
 
     rt_real hit_z[S];
-#define ctx_HIT_Z           DP(0x320)
+#define ctx_HIT_Z           DP(Q*0x320)
 
     /* new depth min */
 
     rt_real t_new[S];
-#define ctx_T_NEW           DP(0x330)
+#define ctx_T_NEW           DP(Q*0x330)
 
     /* new ray */
 
-#define ctx_NEW_O           DP(0x340)
+#define ctx_NEW_O           DP(Q*0x340)
 
     rt_real new_x[S];
-#define ctx_NEW_X           DP(0x340)
+#define ctx_NEW_X           DP(Q*0x340)
 
     rt_real new_y[S];
-#define ctx_NEW_Y           DP(0x350)
+#define ctx_NEW_Y           DP(Q*0x350)
 
     rt_real new_z[S];
-#define ctx_NEW_Z           DP(0x360)
+#define ctx_NEW_Z           DP(Q*0x360)
 
     rt_real new_i[S];
-#define ctx_NEW_I           DP(0x370)
+#define ctx_NEW_I           DP(Q*0x370)
 
     rt_real new_j[S];
-#define ctx_NEW_J           DP(0x380)
+#define ctx_NEW_J           DP(Q*0x380)
 
     rt_real new_k[S];
-#define ctx_NEW_K           DP(0x390)
+#define ctx_NEW_K           DP(Q*0x390)
 
 };
 
-#define RT_STACK_STEP       0x300
+#define RT_STACK_STEP       Q*0x300
 
 /******************************************************************************/
 /*********************************   CAMERA   *********************************/
@@ -502,59 +494,59 @@ struct rt_SIMD_CAMERA
     /* ray initial direction */
 
     rt_real dir_x[S];
-#define cam_DIR_X           DP(0x000)
+#define cam_DIR_X           DP(Q*0x000)
 
     rt_real dir_y[S];
-#define cam_DIR_Y           DP(0x010)
+#define cam_DIR_Y           DP(Q*0x010)
 
     rt_real dir_z[S];
-#define cam_DIR_Z           DP(0x020)
+#define cam_DIR_Z           DP(Q*0x020)
 
     /* depth max value */
 
     rt_real t_max[S];
-#define cam_T_MAX           DP(0x030)
+#define cam_T_MAX           DP(Q*0x030)
 
     /* ray update horizontal */
 
     rt_real hor_x[S];
-#define cam_HOR_X           DP(0x040)
+#define cam_HOR_X           DP(Q*0x040)
 
     rt_real hor_y[S];
-#define cam_HOR_Y           DP(0x050)
+#define cam_HOR_Y           DP(Q*0x050)
 
     rt_real hor_z[S];
-#define cam_HOR_Z           DP(0x060)
+#define cam_HOR_Z           DP(Q*0x060)
 
     /* ray update vertical */
 
     rt_real ver_x[S];
-#define cam_VER_X           DP(0x070)
+#define cam_VER_X           DP(Q*0x070)
 
     rt_real ver_y[S];
-#define cam_VER_Y           DP(0x080)
+#define cam_VER_Y           DP(Q*0x080)
 
     rt_real ver_z[S];
-#define cam_VER_Z           DP(0x090)
+#define cam_VER_Z           DP(Q*0x090)
 
     /* color masks */
 
     rt_real clamp[S];
-#define cam_CLAMP           DP(0x0A0)
+#define cam_CLAMP           DP(Q*0x0A0)
 
     rt_cell cmask[S];
-#define cam_CMASK           DP(0x0B0)
+#define cam_CMASK           DP(Q*0x0B0)
 
     /* ambient color */
 
     rt_real col_r[S];
-#define cam_COL_R           DP(0x0C0)
+#define cam_COL_R           DP(Q*0x0C0)
 
     rt_real col_g[S];
-#define cam_COL_G           DP(0x0D0)
+#define cam_COL_G           DP(Q*0x0D0)
 
     rt_real col_b[S];
-#define cam_COL_B           DP(0x0E0)
+#define cam_COL_B           DP(Q*0x0E0)
 
 };
 
@@ -571,43 +563,43 @@ struct rt_SIMD_LIGHT
     /* light position */
 
     rt_real pos_x[S];
-#define lgt_POS_X           DP(0x000)
+#define lgt_POS_X           DP(Q*0x000)
 
     rt_real pos_y[S];
-#define lgt_POS_Y           DP(0x010)
+#define lgt_POS_Y           DP(Q*0x010)
 
     rt_real pos_z[S];
-#define lgt_POS_Z           DP(0x020)
+#define lgt_POS_Z           DP(Q*0x020)
 
     /* depth max value */
 
     rt_real t_max[S];
-#define lgt_T_MAX           DP(0x030)
+#define lgt_T_MAX           DP(Q*0x030)
 
     /* light color */
 
     rt_real col_r[S];
-#define lgt_COL_R           DP(0x040)
+#define lgt_COL_R           DP(Q*0x040)
 
     rt_real col_g[S];
-#define lgt_COL_G           DP(0x050)
+#define lgt_COL_G           DP(Q*0x050)
 
     rt_real col_b[S];
-#define lgt_COL_B           DP(0x060)
+#define lgt_COL_B           DP(Q*0x060)
 
     /* light attenuation */
 
     rt_real a_qdr[S];
-#define lgt_A_QDR           DP(0x070)
+#define lgt_A_QDR           DP(Q*0x070)
 
     rt_real a_lnr[S];
-#define lgt_A_LNR           DP(0x080)
+#define lgt_A_LNR           DP(Q*0x080)
 
     rt_real a_cnt[S];
-#define lgt_A_CNT           DP(0x090)
+#define lgt_A_CNT           DP(Q*0x090)
 
     rt_real a_rng[S];
-#define lgt_A_RNG           DP(0x0A0)
+#define lgt_A_RNG           DP(Q*0x0A0)
 
 };
 
@@ -624,114 +616,114 @@ struct rt_SIMD_SURFACE
     /* surface position */
 
     rt_real pos_x[S];
-#define srf_POS_X           DP(0x000)
+#define srf_POS_X           DP(Q*0x000)
 
     rt_real pos_y[S];
-#define srf_POS_Y           DP(0x010)
+#define srf_POS_Y           DP(Q*0x010)
 
     rt_real pos_z[S];
-#define srf_POS_Z           DP(0x020)
+#define srf_POS_Z           DP(Q*0x020)
 
     /* constant for clipping */
 
     rt_cell c_tmp[S];
-#define srf_C_TMP           DP(0x030)
+#define srf_C_TMP           DP(Q*0x030)
 
     /* axis min clippers */
 
     rt_real min_x[S];
-#define srf_MIN_X           DP(0x040)
+#define srf_MIN_X           DP(Q*0x040)
 
     rt_real min_y[S];
-#define srf_MIN_Y           DP(0x050)
+#define srf_MIN_Y           DP(Q*0x050)
 
     rt_real min_z[S];
-#define srf_MIN_Z           DP(0x060)
+#define srf_MIN_Z           DP(Q*0x060)
 
     /* axis max clippers */
 
     rt_real max_x[S];
-#define srf_MAX_X           DP(0x070)
+#define srf_MAX_X           DP(Q*0x070)
 
     rt_real max_y[S];
-#define srf_MAX_Y           DP(0x080)
+#define srf_MAX_Y           DP(Q*0x080)
 
     rt_real max_z[S];
-#define srf_MAX_Z           DP(0x090)
+#define srf_MAX_Z           DP(Q*0x090)
 
     /* axis clippers toggles (on/off) */
 
-    rt_cell min_t[4];
-#define srf_MIN_T(nx)       DP(0x0A0 + nx)
+    rt_cell min_t[S];
+#define srf_MIN_T(nx)       DP(Q*0x0A0 + nx)
 
-    rt_cell max_t[4];
-#define srf_MAX_T(nx)       DP(0x0B0 + nx)
+    rt_cell max_t[S];
+#define srf_MAX_T(nx)       DP(Q*0x0B0 + nx)
 
     /* surface axis mapping */
 
-    rt_cell a_map[4];
-#define srf_A_MAP(nx)       DP(0x0C0 + nx)
+    rt_cell a_map[S];
+#define srf_A_MAP(nx)       DP(Q*0x0C0 + nx)
 
-    rt_cell a_sgn[4];
-#define srf_A_SGN(nx)       DP(0x0D0 + nx)
+    rt_cell a_sgn[S];
+#define srf_A_SGN(nx)       DP(Q*0x0D0 + nx)
 
     /* sign masks */
 
     rt_cell sbase[S];
-#define srf_SBASE           DP(0x0E0)
+#define srf_SBASE           DP(Q*0x0E0)
 
     rt_cell smask[S];
-#define srf_SMASK           DP(0x0F0)
+#define srf_SMASK           DP(Q*0x0F0)
 
     /* misc pointers */
 
-    rt_pntr mat_p[4];
-#define srf_MAT_P(nx)       DP(0x100 + nx)
+    rt_pntr mat_p[S];
+#define srf_MAT_P(nx)       DP(Q*0x100 + nx)
 
-    rt_pntr srf_p[4];
-#define srf_SRF_P(nx)       DP(0x110 + nx)
+    rt_pntr srf_p[S];
+#define srf_SRF_P(nx)       DP(Q*0x110 + nx)
 
-    rt_pntr msc_p[4];
-#define srf_MSC_P(nx)       DP(0x120 + nx)
+    rt_pntr msc_p[S];
+#define srf_MSC_P(nx)       DP(Q*0x120 + nx)
 
-    rt_pntr lst_p[4];
-#define srf_LST_P(nx)       DP(0x130 + nx)
+    rt_pntr lst_p[S];
+#define srf_LST_P(nx)       DP(Q*0x130 + nx)
 
     /* transform coeffs */
 
     rt_real tci_x[S];
-#define srf_TCI_X           DP(0x140)
+#define srf_TCI_X           DP(Q*0x140)
 
     rt_real tci_y[S];
-#define srf_TCI_Y           DP(0x150)
+#define srf_TCI_Y           DP(Q*0x150)
 
     rt_real tci_z[S];
-#define srf_TCI_Z           DP(0x160)
+#define srf_TCI_Z           DP(Q*0x160)
 
 
     rt_real tcj_x[S];
-#define srf_TCJ_X           DP(0x170)
+#define srf_TCJ_X           DP(Q*0x170)
 
     rt_real tcj_y[S];
-#define srf_TCJ_Y           DP(0x180)
+#define srf_TCJ_Y           DP(Q*0x180)
 
     rt_real tcj_z[S];
-#define srf_TCJ_Z           DP(0x190)
+#define srf_TCJ_Z           DP(Q*0x190)
 
 
     rt_real tck_x[S];
-#define srf_TCK_X           DP(0x1A0)
+#define srf_TCK_X           DP(Q*0x1A0)
 
     rt_real tck_y[S];
-#define srf_TCK_Y           DP(0x1B0)
+#define srf_TCK_Y           DP(Q*0x1B0)
 
     rt_real tck_z[S];
-#define srf_TCK_Z           DP(0x1C0)
+#define srf_TCK_Z           DP(Q*0x1C0)
 
     /* reserved area 1 */
 
-    rt_real pad01[12];
-#define srf_PAD01           DP(0x1D0)
+    rt_real pad01[S*3];
+#define srf_PAD01           DP(Q*0x1D0)
 
 };
 
@@ -746,16 +738,16 @@ struct rt_SIMD_SURFACE
 struct rt_SIMD_PLANE : public rt_SIMD_SURFACE
 {
     rt_real nrm_k[S];
-#define xpl_NRM_K           DP(0x200)
+#define xpl_NRM_K           DP(Q*0x200)
 
     rt_cell msc_1[S];
-#define xpl_MSC_1           DP(0x210)
+#define xpl_MSC_1           DP(Q*0x210)
 
     rt_cell msc_2[S];
-#define xpl_MSC_2           DP(0x220)
+#define xpl_MSC_2           DP(Q*0x220)
 
     rt_real msc_3[S];
-#define xpl_MSC_3           DP(0x230)
+#define xpl_MSC_3           DP(Q*0x230)
 
 };
 
@@ -770,16 +762,16 @@ struct rt_SIMD_PLANE : public rt_SIMD_SURFACE
 struct rt_SIMD_CYLINDER : public rt_SIMD_SURFACE
 {
     rt_real rad_2[S];
-#define xcl_RAD_2           DP(0x200)
+#define xcl_RAD_2           DP(Q*0x200)
 
     rt_real i_rad[S];
-#define xcl_I_RAD           DP(0x210)
+#define xcl_I_RAD           DP(Q*0x210)
 
     rt_real msc_2[S];
-#define xcl_MSC_2           DP(0x220)
+#define xcl_MSC_2           DP(Q*0x220)
 
     rt_real msc_3[S];
-#define xcl_MSC_3           DP(0x230)
+#define xcl_MSC_3           DP(Q*0x230)
 
 };
 
@@ -794,16 +786,16 @@ struct rt_SIMD_CYLINDER : public rt_SIMD_SURFACE
 struct rt_SIMD_SPHERE : public rt_SIMD_SURFACE
 {
     rt_real rad_2[S];
-#define xsp_RAD_2           DP(0x200)
+#define xsp_RAD_2           DP(Q*0x200)
 
     rt_real i_rad[S];
-#define xsp_I_RAD           DP(0x210)
+#define xsp_I_RAD           DP(Q*0x210)
 
     rt_real msc_2[S];
-#define xsp_MSC_2           DP(0x220)
+#define xsp_MSC_2           DP(Q*0x220)
 
     rt_real msc_3[S];
-#define xsp_MSC_3           DP(0x230)
+#define xsp_MSC_3           DP(Q*0x230)
 
 };
 
@@ -818,16 +810,16 @@ struct rt_SIMD_SPHERE : public rt_SIMD_SURFACE
 struct rt_SIMD_CONE : public rt_SIMD_SURFACE
 {
     rt_real rat_2[S];
-#define xcn_RAT_2           DP(0x200)
+#define xcn_RAT_2           DP(Q*0x200)
 
     rt_real i_rat[S];
-#define xcn_I_RAT           DP(0x210)
+#define xcn_I_RAT           DP(Q*0x210)
 
     rt_real msc_2[S];
-#define xcn_MSC_2           DP(0x220)
+#define xcn_MSC_2           DP(Q*0x220)
 
     rt_real msc_3[S];
-#define xcn_MSC_3           DP(0x230)
+#define xcn_MSC_3           DP(Q*0x230)
 
 };
 
@@ -842,16 +834,16 @@ struct rt_SIMD_CONE : public rt_SIMD_SURFACE
 struct rt_SIMD_PARABOLOID : public rt_SIMD_SURFACE
 {
     rt_real par_2[S];
-#define xpb_PAR_2           DP(0x200)
+#define xpb_PAR_2           DP(Q*0x200)
 
     rt_real i_par[S];
-#define xpb_I_PAR           DP(0x210)
+#define xpb_I_PAR           DP(Q*0x210)
 
     rt_real par_k[S];
-#define xpb_PAR_K           DP(0x220)
+#define xpb_PAR_K           DP(Q*0x220)
 
     rt_real one_k[S];
-#define xpb_ONE_K           DP(0x230)
+#define xpb_ONE_K           DP(Q*0x230)
 
 };
 
@@ -866,16 +858,16 @@ struct rt_SIMD_PARABOLOID : public rt_SIMD_SURFACE
 struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
 {
     rt_real rat_2[S];
-#define xhb_RAT_2           DP(0x200)
+#define xhb_RAT_2           DP(Q*0x200)
 
     rt_real i_rat[S];
-#define xhb_I_RAT           DP(0x210)
+#define xhb_I_RAT           DP(Q*0x210)
 
     rt_real hyp_k[S];
-#define xhb_HYP_K           DP(0x220)
+#define xhb_HYP_K           DP(Q*0x220)
 
     rt_real one_k[S];
-#define xhb_ONE_K           DP(0x230)
+#define xhb_ONE_K           DP(Q*0x230)
 
 };
 
@@ -892,73 +884,71 @@ struct rt_SIMD_MATERIAL
     /* texture transform */
 
     rt_real xscal[S];
-#define mat_XSCAL           DP(0x000)
+#define mat_XSCAL           DP(Q*0x000)
 
     rt_real yscal[S];
-#define mat_YSCAL           DP(0x010)
+#define mat_YSCAL           DP(Q*0x010)
 
     rt_real xoffs[S];
-#define mat_XOFFS           DP(0x020)
+#define mat_XOFFS           DP(Q*0x020)
 
     rt_real yoffs[S];
-#define mat_YOFFS           DP(0x030)
+#define mat_YOFFS           DP(Q*0x030)
 
     /* texture mapping */
 
     rt_cell xmask[S];
-#define mat_XMASK           DP(0x040)
+#define mat_XMASK           DP(Q*0x040)
 
     rt_cell ymask[S];
-#define mat_YMASK           DP(0x050)
+#define mat_YMASK           DP(Q*0x050)
 
     rt_cell yshft[S];
-#define mat_YSHFT           DP(0x060)
+#define mat_YSHFT           DP(Q*0x060)
 
     rt_pntr tex_p[S];
-#define mat_TEX_P           DP(0x070)
+#define mat_TEX_P           DP(Q*0x070)
 
     /* texture axis mapping */
 
-    rt_cell t_map[4];
-#define mat_T_MAP(nx)       DP(0x080 + nx)
+    rt_cell t_map[S];
+#define mat_T_MAP(nx)       DP(Q*0x080 + nx)
 
     /* color masks */
 
     rt_cell cmask[S];
-#define mat_CMASK           DP(0x090)
+#define mat_CMASK           DP(Q*0x090)
 
     /* properties */
 
     rt_real l_dff[S];
-#define mat_L_DFF           DP(0x0A0)
+#define mat_L_DFF           DP(Q*0x0A0)
 
     rt_real l_spc[S];
-#define mat_L_SPC           DP(0x0B0)
+#define mat_L_SPC           DP(Q*0x0B0)
 
     rt_word l_pow[S];
-#define mat_L_POW           DP(0x0C0)
+#define mat_L_POW           DP(Q*0x0C0)
 
     rt_pntr pow_p[S];
-#define mat_POW_P           DP(0x0D0)
+#define mat_POW_P           DP(Q*0x0D0)
 
     rt_real c_rfl[S];
-#define mat_C_RFL           DP(0x0E0)
+#define mat_C_RFL           DP(Q*0x0E0)
 
     rt_real c_trn[S];
-#define mat_C_TRN           DP(0x0F0)
+#define mat_C_TRN           DP(Q*0x0F0)
 
     rt_real c_rfr[S];
-#define mat_C_RFR           DP(0x100)
+#define mat_C_RFR           DP(Q*0x100)
 
     rt_real rfr_2[S];
-#define mat_RFR_2           DP(0x110)
+#define mat_RFR_2           DP(Q*0x110)
 
     rt_real c_one[S];
-#define mat_C_ONE           DP(0x120)
+#define mat_C_ONE           DP(Q*0x120)
 
 };
-
-#undef S /* internal S short name for RT_SIMD_WIDTH */
 
 #endif /* RT_TRACER_H */
 

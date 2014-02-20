@@ -7,6 +7,8 @@
 #ifndef RT_RTARCH_H
 #define RT_RTARCH_H
 
+#include "rtbase.h"
+
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/
 /******************************************************************************/
@@ -20,7 +22,7 @@
  *
  * Definitions provided in this file are intended to hide the differences of
  * inline assembly implementations in various compilers and operating systems,
- * while definitions of particular instruction sets are delegated to
+ * while definitions of particular instruction sets are delegated to the
  * corresponding companion files named rtarch_***.h for core instructions
  * and rtarch_***_***.h for SIMD instructions.
  *
@@ -136,6 +138,71 @@
 #endif /* RT_X86, RT_ARM */
 
 #endif /* OS, COMPILER, ARCH */
+
+/******************************************************************************/
+/*******************************   DEFINITIONS   ******************************/
+/******************************************************************************/
+
+/*
+ * Short name S for RT_SIMD_WIDTH.
+ */
+#ifdef S
+#undef S
+#endif /* in case S is defined outside of the engine */
+#define S                   RT_SIMD_WIDTH
+
+/*
+ * Short name Q for SIMD quad-factor.
+ */
+#ifdef Q
+#undef Q
+#endif /* in case Q is defined outside of the engine */
+#define Q                   (S / 4)
+
+#if S < 4 /* wider SIMD are supported in structs, S = {8, 16} were tested */
+#error "SIMD width must be at least 4 for QuadRay engine"
+#endif /* in case S is smaller than 4 */
+
+/*
+ * SIMD info structure for asm enter/leave contains internal variables
+ * and general purpose constants used internally by some instructions.
+ * Note that DP offsets below accept only 12-bit values (0xFFF),
+ * use DH and DW for 16-bit and 32-bit SIMD offsets respectively,
+ * place packed scalar fields at the top of the structs to be within DP reach.
+ * SIMD width is taken into account via S and Q defined above.
+ * Structure is read-write in backend.
+ */
+struct rt_SIMD_INFO
+{
+    /* internal variables */
+
+    rt_word fctrl;
+#define inf_FCTRL           DP(0x000)
+
+    rt_word pad01[S-1];     /* reserved, do not use! */
+#define inf_PAD01           DP(0x004)
+
+    /* general purpose constants */
+
+    rt_real gpc01[S];       /* +1.0 */
+#define inf_GPC01           DP(Q*0x010)
+
+    rt_real gpc02[S];       /* -0.5 */
+#define inf_GPC02           DP(Q*0x020)
+
+    rt_real gpc03[S];       /* +3.0 */
+#define inf_GPC03           DP(Q*0x030)
+
+    rt_word gpc04[S];       /* 0x7FFFFFFF */
+#define inf_GPC04           DP(Q*0x040)
+
+    rt_word gpc05[S];       /* 0x3F800000 */
+#define inf_GPC05           DP(Q*0x050)
+
+    rt_real pad02[S*10];    /* reserved, do not use! */
+#define inf_PAD02           DP(Q*0x060)
+
+};
 
 /******************************************************************************/
 /************************   COMMON SIMD INSTRUCTIONS   ************************/
