@@ -462,6 +462,7 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_cell index) :
 
     /* init memory pool in the heap for temporary per-frame allocs */
     mpool = RT_NULL;
+    /* estimates are done in Scene once all counters have been initialized */
     msize = 0;
 
     /* allocate misc arrays for tiling */
@@ -1860,21 +1861,26 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame ptr must be SIMD-aligned or NULL */
     {
         tharr[i] = new rt_SceneThread(this, i);
 
-        /* estimate per frame allocs to reduce system calls per thread */
+        /* estimate per-frame allocs to reduce system calls per thread */
         tharr[i]->msize =  /* upper bound per surface for tiling */
             (tiles_in_row * tiles_in_col + /* plus reflections/refractions */
-            2 * (srf_num + arr_num * 2) + /* plus lights and shadows */
-            2 * (lgt_num * (1 + srf_num + arr_num * 2))) * /* per side */
+            (srf_num + arr_num * 2 + /* plus lights and shadows */
+            (srf_num + arr_num * 1 + 1) * lgt_num) * 2) * /* for both sides */
             sizeof(rt_ELEM) * (srf_num + thnum - 1) / thnum; /* per thread */
     }
 
     /* init memory pool in the heap for temporary per-frame allocs */
     mpool = RT_NULL; /* rough estimate for surface relations/templates */
     msize = ((srf_num + 1) * (srf_num + 1) * 2 + /* plus two surface lists */
-            2 * (srf_num + arr_num) + /* plus one lights and shadows list */
-            lgt_num * (1 + srf_num + arr_num * 2) + /* plus array nodes */
+            (srf_num + arr_num * 1) * 2 + /* plus lights and shadows list */
+            (srf_num + arr_num * 1 + 1) * lgt_num + /* plus array nodes */
             tiles_in_row * tiles_in_col * arr_num) *  /* for tiling */
             sizeof(rt_ELEM);                        /* for main thread */
+
+    /* in the estimates above (arr_num * x) depends on whether both
+     * trnode/bvnode are allowed in the list or just one of them,
+     * if the estimates are not accurate the engine would still work,
+     * though not as efficient due to unnecessary allocations per frame */
 
     /* init threads management functions */
     if (f_init != RT_NULL && f_term != RT_NULL
@@ -1916,11 +1922,11 @@ rt_void rt_Scene::render(rt_long time)
     rt_cell i;
 
     /* reserve memory for temporary per-frame allocs */
-    mpool = reserve(msize, RT_ALIGN);
+    mpool = reserve(msize, RT_QUAD_ALIGN);
 
     for (i = 0; i < thnum; i++)
     {
-        tharr[i]->mpool = tharr[i]->reserve(tharr[i]->msize, RT_ALIGN);
+        tharr[i]->mpool = tharr[i]->reserve(tharr[i]->msize, RT_QUAD_ALIGN);
     }
 
     /* print state beg */
