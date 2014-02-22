@@ -82,6 +82,7 @@ typedef const char         *rt_pstr;
  */
 #define RT_NULL             0
 #define RT_ALIGN            4
+#define RT_QUAD_ALIGN       16 /* not dependent on SIMD align */
 
 #define RT_FALSE            0
 #define RT_TRUE             1

@@ -43,12 +43,12 @@
 /******************************************************************************/
 
 /*
- * Macros for packed 4-byte aligned pointer and lower 2 bits flag.
+ * Macros for packed 16-byte aligned pointer and lower 4 bits flag.
  */
-#define RT_GET_FLG(x)           ((rt_cell)(x) & 0x3)
-#define RT_SET_FLG(x, t, v)     x = (t)((rt_cell)(v) | (rt_cell)(x) & ~0x3)
+#define RT_GET_FLG(x)           ((rt_cell)(x) & 0xF)
+#define RT_SET_FLG(x, t, v)     x = (t)((rt_cell)(v) | (rt_cell)(x) & ~0xF)
 
-#define RT_GET_PTR(x)           (rt_ELEM *)((rt_cell)(x) & ~0x3)
+#define RT_GET_PTR(x)           (rt_ELEM *)((rt_cell)(x) & ~0xF)
 #define RT_SET_PTR(x, t, v)     x = (t)((rt_cell)(v) | RT_GET_FLG(x))
 
 /******************************************************************************/
@@ -666,7 +666,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         rt_Light *lgt = (rt_Light *)obj;
 
         /* alloc new element for lgt */
-        elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+        elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
         elm->data = (rt_cell)scene->slist; /* all srf are potential shadows */
         elm->simd = lgt->s_lgt;
         elm->temp = lgt;
@@ -681,7 +681,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     }
 
     /* alloc new element for srf */
-    elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+    elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
     elm->data = 0;
     elm->simd = srf->s_srf;
     elm->temp = srf;
@@ -751,7 +751,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     /* search matching existing trnode/bvnode for insertion,
      * run through the list hierachy to find the inner-most node,
      * node's "simd" field holds pointer to node's sublist
-     * along with node's type in the lower 2 bits (trnode/bvnode) */
+     * along with node's type in the lower 4 bits (trnode/bvnode) */
     for (i = 0; nxt != RT_NULL && i < n; nxt = nxt->next)
     {
         if (arr[k] == nxt->temp && RT_GET_FLG(nxt->simd) == k)
@@ -779,7 +779,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     for (; i < n; i++, k = 1 - k)
     {
         /* alloc new trnode/bvnode element as none has been found */
-        nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+        nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
         nxt->data = 0;
         nxt->simd = RT_NULL;
         RT_SET_FLG(nxt->simd, rt_pntr, k); /* node's type */
@@ -1165,7 +1165,7 @@ rt_ELEM* rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
         /* if the list element is array,
          * find the last leaf element of its sublist hierarchy
          * and set it to the "data" field along with node's type,
-         * previously kept in its "simd" field's lower 2 bits */
+         * previously kept in its "simd" field's lower 4 bits */
         if (RT_IS_ARRAY(nd))
         {
             ptr = (rt_ELEM **)&nxt->simd;
@@ -1351,7 +1351,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
     {
         for (j = txmin[i]; j <= txmax[i]; j++)
         {
-            elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+            elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
             elm->data = i << 16 | j;
             elm->simd = srf->s_srf;
             elm->temp = srf;
@@ -2038,7 +2038,7 @@ rt_void rt_Scene::render(rt_long time)
         for (nxt = slist; nxt != RT_NULL; nxt = nxt->next)
         {
             /* alloc new element as nxt copy */
-            elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+            elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
             elm->data = nxt->data;
             elm->simd = nxt->simd;
             elm->temp = nxt->temp;
@@ -2097,7 +2097,7 @@ rt_void rt_Scene::render(rt_long time)
                         rt_Array *arr = (rt_Array *)srf->trnode;
 
                         /* alloc new trnode element as none has been found */
-                        trn = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+                        trn = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                         trn->data = (rt_cell)tls; /* trnode's last elem */
                         trn->simd = arr->s_srf;
                         trn->temp = arr;

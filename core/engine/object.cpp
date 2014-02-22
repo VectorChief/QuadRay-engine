@@ -854,7 +854,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
                 if (rel[i].obj1 == -1 && rel[i].obj2 >= 0 && acc == 0)
                 {
                     acc = 1;
-                    elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
+                    elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                     elm->data = RT_ACCUM_ENTER;
                     elm->simd = RT_NULL;
                     elm->temp = RT_NULL; /* accum marker */
@@ -863,7 +863,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
                 }
                 if (rel[i].obj1 >= -1 && rel[i].obj2 >= 0)
                 {
-                    elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
+                    elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                     elm->data = rel[i].rel;
                     elm->simd = RT_NULL;
                     elm->temp = obj_arr_r[rel[i].obj2];
@@ -882,7 +882,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
                 if (rel[i].obj1 >= 0 && rel[i].obj2 == -1 && acc == 1)
                 {
                     acc = 0;
-                    elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
+                    elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                     elm->data = RT_ACCUM_LEAVE;
                     elm->simd = RT_NULL;
                     elm->temp = RT_NULL; /* accum marker */
@@ -1162,7 +1162,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
         if (obj == RT_NULL)
         {
             /* alloc new element for accum marker */
-            elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
+            elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
             elm->data = rel;
             elm->simd = RT_NULL; /* accum marker */
             elm->temp = RT_NULL;
@@ -1179,7 +1179,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
             /* populate array element with sub-objects */
             for (i = 0; i < arr->obj_num; i++)
             {
-                elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
+                elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                 elm->data = rel;
                 elm->simd = RT_NULL;
                 elm->temp = arr->obj_arr[i];
@@ -1194,7 +1194,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
             rt_Surface *srf = (rt_Surface *)obj;
 
             /* alloc new element for srf */
-            elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
+            elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
             elm->data = rel;
             elm->simd = srf->s_srf;
             elm->temp = srf;
@@ -1258,7 +1258,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
                     rt_Array *arr = (rt_Array *)obj->trnode;
 
                     /* alloc new trnode element as none has been found */
-                    nxt = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_ALIGN);
+                    nxt = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                     nxt->data = (rt_cell)elm; /* trnode's last elem */
                     nxt->simd = arr->s_srf;
                     nxt->temp = arr;
