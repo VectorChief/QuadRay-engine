@@ -1642,12 +1642,19 @@ rt_void rt_Surface::update_minmax()
  */
 rt_void rt_Surface::update_bounds()
 {
-    rt_cell i;
-    rt_real f = 1.0f / (rt_real)verts_num;
-
     mid[RT_X] = 0.0f;
     mid[RT_Y] = 0.0f;
     mid[RT_Z] = 0.0f;
+
+    rad = 0.0f;
+
+    if (verts_num == 0)
+    {
+        return;
+    }
+
+    rt_cell i;
+    rt_real f = 1.0f / (rt_real)verts_num;
 
     for (i = 0; i < verts_num; i++)
     {
@@ -1655,8 +1662,6 @@ rt_void rt_Surface::update_bounds()
         mid[RT_Y] += verts[i].pos[RT_Y] * f;
         mid[RT_Z] += verts[i].pos[RT_Z] * f;
     }
-
-    rad = 0.0f;
 
     for (i = 0; i < verts_num; i++)
     {
