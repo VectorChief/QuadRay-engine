@@ -51,6 +51,8 @@
 #define RT_GET_PTR(x)           (rt_ELEM *)((rt_cell)(x) & ~0xF)
 #define RT_SET_PTR(x, t, v)     x = (t)((rt_cell)(v) | RT_GET_FLG(x))
 
+#define RT_GET_ADR(x)           (rt_ELEM **)&(x)
+
 /******************************************************************************/
 /******************************   STATE-LOGGING   *****************************/
 /******************************************************************************/
@@ -759,7 +761,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         {
             lst[k] = nxt;
             /* set insertion point to existing node's sublist */
-            ptr = (rt_ELEM **)&nxt->simd;
+            ptr = RT_GET_ADR(nxt->simd);
             /* search next node (inner-most) in existing node's sublist */
             nxt = RT_GET_PTR(*ptr);
             k = 1 - k;
@@ -793,7 +795,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
             org = ptr;
         }
         /* set insertion point to new node's sublist */
-        ptr = (rt_ELEM **)&nxt->simd;
+        ptr = RT_GET_ADR(nxt->simd);
     }
 
     /* insert element according to found position */
@@ -1169,7 +1171,7 @@ rt_ELEM* rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
          * previously kept in its "simd" field's lower 4 bits */
         if (RT_IS_ARRAY(nd))
         {
-            ptr = (rt_ELEM **)&nxt->simd;
+            ptr = RT_GET_ADR(nxt->simd);
             elm = filter(obj, ptr);
             elm->next = nxt->next;
             nxt->data = (rt_cell)elm | RT_GET_FLG(*ptr);
@@ -1345,7 +1347,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
         }
     }
 
-    rt_ELEM **ptr = (rt_ELEM **)&srf->s_srf->msc_p[0];
+    rt_ELEM **ptr = RT_GET_ADR(srf->s_srf->msc_p[0]);
 
     /* fill marked tiles with surface data */
     for (i = 0; i < scene->tiles_in_col; i++)
@@ -1383,8 +1385,8 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
             RT_PRINT_CLP((rt_ELEM *)srf->s_srf->msc_p[2]);
         }
 
-        pto = (rt_ELEM **)&srf->s_srf->lst_p[1];
-        pti = (rt_ELEM **)&srf->s_srf->lst_p[3];
+        pto = RT_GET_ADR(srf->s_srf->lst_p[1]);
+        pti = RT_GET_ADR(srf->s_srf->lst_p[3]);
 
 #if RT_OPTS_RENDER != 0
         if ((scene->opts & RT_OPTS_RENDER) != 0
@@ -1501,8 +1503,8 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
     {
         srf = (rt_Surface *)obj;
 
-        pto = (rt_ELEM **)&srf->s_srf->lst_p[0];
-        pti = (rt_ELEM **)&srf->s_srf->lst_p[2];
+        pto = RT_GET_ADR(srf->s_srf->lst_p[0]);
+        pti = RT_GET_ADR(srf->s_srf->lst_p[2]);
 
 #if RT_OPTS_SHADOW != 0
         if ((scene->opts & RT_OPTS_SHADOW) != 0)
@@ -1541,7 +1543,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             {
                 insert(lgt, pto, RT_NULL);
 
-                pso = (rt_ELEM **)&(*pto)->data;
+                pso = RT_GET_ADR((*pto)->data);
                *pso = RT_NULL;
 
                 if (g_print)
@@ -1553,7 +1555,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             {
                 insert(lgt, pti, RT_NULL);
 
-                psi = (rt_ELEM **)&(*pti)->data;
+                psi = RT_GET_ADR((*pti)->data);
                *psi = RT_NULL;
 
                 if (g_print)
@@ -1567,7 +1569,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
         {
             insert(lgt, ptr, RT_NULL);
 
-            psr = (rt_ELEM **)&(*ptr)->data;
+            psr = RT_GET_ADR((*ptr)->data);
 
             if (g_print && srf != RT_NULL)
             {
