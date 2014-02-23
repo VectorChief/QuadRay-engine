@@ -83,7 +83,7 @@ class rt_SceneThread : public rt_Heap
     virtual
    ~rt_SceneThread();
 
-    rt_void     tiling(rt_vec4 p1, rt_vec4 p2);
+    rt_void     tiling(rt_vec2 p1, rt_vec2 p2);
     rt_ELEM*    insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf);
     rt_ELEM*    filter(rt_Object *obj, rt_ELEM **ptr);
 

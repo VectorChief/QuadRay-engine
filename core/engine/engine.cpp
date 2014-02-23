@@ -43,7 +43,7 @@
 /******************************************************************************/
 
 /*
- * Macros for packed 16-byte aligned pointer and lower 4 bits flag.
+ * Macros for packed 16-byte-aligned pointer and lower-4-bits flag.
  */
 #define RT_GET_FLG(x)           ((rt_cell)(x) & 0xF)
 #define RT_SET_FLG(x, t, v)     x = (t)((rt_cell)(v) | (rt_cell)(x) & ~0xF)
@@ -503,11 +503,11 @@ do                                                                          \
 while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
 
 /*
- * Update surface's projected bbox boundaries in tilebuffer
- * by processing one bbox edge at a time.
+ * Update surface's projected bbox boundaries in the tilebuffer
+ * by processing one bbox edge at a time, bbox faces are not used.
  * The tilebuffer is reset for every surface from outside of this function.
  */
-rt_void rt_SceneThread::tiling(rt_vec4 p1, rt_vec4 p2)
+rt_void rt_SceneThread::tiling(rt_vec2 p1, rt_vec2 p2)
 {
     rt_real *pt, n1[3][2], n2[3][2];
     rt_real dx, dy, xx, yy, rt, px;
@@ -1133,7 +1133,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
 }
 
 /*
- * Filter the list "ptr" for a given object "obj" by
+ * Filter list "ptr" for a given object "obj" by
  * converting hierarchical sorted sublists back into
  * a single flat list suitable for rendering backend,
  * while cleaning "data" and "simd" fields at the same time.
@@ -1162,7 +1162,6 @@ rt_ELEM* rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
         {
             elm = nxt;
             nxt->data = 0;
-            nxt->simd = nd->s_srf;
         }
         else
         /* if the list element is array,
@@ -1226,9 +1225,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
 
         for (k = 0; k < srf->verts_num; k++)
         {
-            vec[RT_X] = vrt[k].pos[RT_X] - scene->org[RT_X];
-            vec[RT_Y] = vrt[k].pos[RT_Y] - scene->org[RT_Y];
-            vec[RT_Z] = vrt[k].pos[RT_Z] - scene->org[RT_Z];
+            RT_VEC3_SUB(vec, vrt[k].pos, scene->org);
 
             dot = RT_VEC3_DOT(vec, scene->nrm);
 
@@ -1239,19 +1236,16 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
              * the rest are processed with edges */
             if (dot >= 0.0f || RT_FABS(dot) <= RT_CLIP_THRESHOLD)
             {
-                vec[RT_X] = vrt[k].pos[RT_X] - scene->pos[RT_X];
-                vec[RT_Y] = vrt[k].pos[RT_Y] - scene->pos[RT_Y];
-                vec[RT_Z] = vrt[k].pos[RT_Z] - scene->pos[RT_Z];
+                RT_VEC3_SUB(vec, vrt[k].pos, scene->pos);
 
                 dot = RT_VEC3_DOT(vec, scene->nrm) / scene->cam->pov;
 
-                vec[RT_X] /= dot; /* dot >= (pov - RT_CLIP_THRESHOLD) */
-                vec[RT_Y] /= dot; /* pov >= (2  *  RT_CLIP_THRESHOLD) */
-                vec[RT_Z] /= dot; /* thus: (dot >= RT_CLIP_THRESHOLD) */
+                RT_VEC3_MUL_VAL1(vec, vec, 1.0f / dot);
+                /* dot >= (pov - RT_CLIP_THRESHOLD) */
+                /* pov >= (2  *  RT_CLIP_THRESHOLD) */
+                /* thus: (dot >= RT_CLIP_THRESHOLD) */
 
-                vec[RT_X] -= scene->dir[RT_X];
-                vec[RT_Y] -= scene->dir[RT_Y];
-                vec[RT_Z] -= scene->dir[RT_Z];
+                RT_VEC3_SUB(vec, vec, scene->dir);
 
                 verts[k].pos[RT_X] = RT_VEC3_DOT(vec, scene->htl);
                 verts[k].pos[RT_Y] = RT_VEC3_DOT(vec, scene->vtl);
@@ -1297,25 +1291,20 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
                     continue;
                 }
 
-                /* process edge with one "in front of"
-                 * and one "behind" vertices */
+                /* process edge with one in front of
+                 * and one behind screen plane vertices */
                 j = 1 - i;
 
                 /* clip edge at screen plane crossing,
                  * generate new vertex */
-                vec[RT_X] = vrt[ndx[i]].pos[RT_X] - vrt[ndx[j]].pos[RT_X];
-                vec[RT_Y] = vrt[ndx[i]].pos[RT_Y] - vrt[ndx[j]].pos[RT_Y];
-                vec[RT_Z] = vrt[ndx[i]].pos[RT_Z] - vrt[ndx[j]].pos[RT_Z];
+                RT_VEC3_SUB(vec, vrt[ndx[i]].pos, vrt[ndx[j]].pos);
 
                 dot = zed[j] / (zed[j] - zed[i]); /* () >= RT_CLIP_THRESHOLD */
 
-                vec[RT_X] *= dot;
-                vec[RT_Y] *= dot;
-                vec[RT_Z] *= dot;
+                RT_VEC3_MUL_VAL1(vec, vec, dot);
 
-                vec[RT_X] += vrt[ndx[j]].pos[RT_X] - scene->org[RT_X];
-                vec[RT_Y] += vrt[ndx[j]].pos[RT_Y] - scene->org[RT_Y];
-                vec[RT_Z] += vrt[ndx[j]].pos[RT_Z] - scene->org[RT_Z];
+                RT_VEC3_ADD(vec, vec, vrt[ndx[j]].pos);
+                RT_VEC3_SUB(vec, vec, scene->org);
 
                 verts[verts_num].pos[RT_X] = RT_VEC3_DOT(vec, scene->htl);
                 verts[verts_num].pos[RT_Y] = RT_VEC3_DOT(vec, scene->vtl);
@@ -1945,45 +1934,27 @@ rt_void rt_Scene::render(rt_long time)
     /* update rays positioning and steppers */
     rt_real h, v;
 
-    pos[RT_X] = cam->pos[RT_X];
-    pos[RT_Y] = cam->pos[RT_Y];
-    pos[RT_Z] = cam->pos[RT_Z];
+    RT_VEC3_SET(pos, cam->pos);
+    RT_VEC3_SET(hor, cam->hor);
+    RT_VEC3_SET(ver, cam->ver);
+    RT_VEC3_SET(nrm, cam->nrm);
 
-    hor[RT_X] = cam->hor[RT_X];
-    hor[RT_Y] = cam->hor[RT_Y];
-    hor[RT_Z] = cam->hor[RT_Z];
-
-    ver[RT_X] = cam->ver[RT_X];
-    ver[RT_Y] = cam->ver[RT_Y];
-    ver[RT_Z] = cam->ver[RT_Z];
-
-    nrm[RT_X] = cam->nrm[RT_X];
-    nrm[RT_Y] = cam->nrm[RT_Y];
-    nrm[RT_Z] = cam->nrm[RT_Z];
-
-            h = (1.0f);
-            v = (aspect);
+    h = -0.5f * 1.0f;
+    v = -0.5f * aspect;
 
     /* aim rays at camera's top-left corner */
-    dir[RT_X] = (nrm[RT_X] * cam->pov - (hor[RT_X] * h + ver[RT_X] * v) * 0.5f);
-    dir[RT_Y] = (nrm[RT_Y] * cam->pov - (hor[RT_Y] * h + ver[RT_Y] * v) * 0.5f);
-    dir[RT_Z] = (nrm[RT_Z] * cam->pov - (hor[RT_Z] * h + ver[RT_Z] * v) * 0.5f);
+    RT_VEC3_MUL_VAL1(dir, nrm, cam->pov);
+    RT_VEC3_MAD_VAL1(dir, hor, h);
+    RT_VEC3_MAD_VAL1(dir, ver, v);
 
     /* update tiles positioning and steppers */
-    org[RT_X] = (pos[RT_X] + dir[RT_X]);
-    org[RT_Y] = (pos[RT_Y] + dir[RT_Y]);
-    org[RT_Z] = (pos[RT_Z] + dir[RT_Z]);
+    RT_VEC3_ADD(org, pos, dir);
 
-            h = (1.0f / (factor * tile_w)); /* x_res / tile_w */
-            v = (1.0f / (factor * tile_h)); /* x_res / tile_h */
+    h = 1.0f / (factor * tile_w); /* x_res / tile_w */
+    v = 1.0f / (factor * tile_h); /* x_res / tile_h */
 
-    htl[RT_X] = (hor[RT_X] * h);
-    htl[RT_Y] = (hor[RT_Y] * h);
-    htl[RT_Z] = (hor[RT_Z] * h);
-
-    vtl[RT_X] = (ver[RT_X] * v);
-    vtl[RT_Y] = (ver[RT_Y] * v);
-    vtl[RT_Z] = (ver[RT_Z] * v);
+    RT_VEC3_MUL_VAL1(htl, hor, h);
+    RT_VEC3_MUL_VAL1(vtl, ver, v);
 
     /* multi-threaded update */
 #if RT_OPTS_THREAD != 0
@@ -2159,30 +2130,20 @@ rt_void rt_Scene::render(rt_long time)
     }
 
     /* aim rays at pixel centers */
-    hor[RT_X] *= factor;
-    hor[RT_Y] *= factor;
-    hor[RT_Z] *= factor;
+    RT_VEC3_MUL_VAL1(hor, hor, factor);
+    RT_VEC3_MUL_VAL1(ver, ver, factor);
 
-    ver[RT_X] *= factor;
-    ver[RT_Y] *= factor;
-    ver[RT_Z] *= factor;
-
-    dir[RT_X] += (hor[RT_X] + ver[RT_X]) * 0.5f;
-    dir[RT_Y] += (hor[RT_Y] + ver[RT_Y]) * 0.5f;
-    dir[RT_Z] += (hor[RT_Z] + ver[RT_Z]) * 0.5f;
+    RT_VEC3_MAD_VAL1(dir, hor, 0.5f);
+    RT_VEC3_MAD_VAL1(dir, ver, 0.5f);
 
     /* accumulate ambient from camera and all light sources */
-    amb[RT_R] = cam->cam->col.hdr[RT_R] * cam->cam->lum[0];
-    amb[RT_G] = cam->cam->col.hdr[RT_G] * cam->cam->lum[0];
-    amb[RT_B] = cam->cam->col.hdr[RT_B] * cam->cam->lum[0];
+    RT_VEC3_MUL_VAL1(amb, cam->cam->col.hdr, cam->cam->lum[0]);
 
     rt_Light *lgt = RT_NULL;
 
     for (lgt = lgt_head; lgt != RT_NULL; lgt = lgt->next)
     {
-        amb[RT_R] += lgt->lgt->col.hdr[RT_R] * lgt->lgt->lum[0];
-        amb[RT_G] += lgt->lgt->col.hdr[RT_G] * lgt->lgt->lum[0];
-        amb[RT_B] += lgt->lgt->col.hdr[RT_B] * lgt->lgt->lum[0];
+        RT_VEC3_MAD_VAL1(amb, lgt->lgt->col.hdr, lgt->lgt->lum[0]);
     }
 
     /* multi-threaded render */
@@ -2286,10 +2247,10 @@ rt_void rt_Scene::render_slice(rt_cell index, rt_cell phase)
         fdh[2] = (+ar-as);
         fdh[3] = (+ar+as);
 
-        fdv[0] = (+ar-as) + index;
-        fdv[1] = (-ar-as) + index;
-        fdv[2] = (+ar+as) + index;
-        fdv[3] = (-ar+as) + index;
+        fdv[0] = (+ar-as) + (rt_real)index;
+        fdv[1] = (-ar-as) + (rt_real)index;
+        fdv[2] = (+ar+as) + (rt_real)index;
+        fdv[3] = (-ar+as) + (rt_real)index;
 
         fhr = 1.0f;
         fvr = (rt_real)thnum;
@@ -2587,14 +2548,11 @@ rt_void rt_Scene::render_fps(rt_word x, rt_word y,
                     {
                        *dst++ = *src;
                     }
-
                     src++;
                 }
-
                 dst += x_row - dW * z;
                 src -= dW;
             }
-
             src += dW;
         }
     }
