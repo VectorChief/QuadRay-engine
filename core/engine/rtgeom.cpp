@@ -725,9 +725,7 @@ rt_real *surf_tran(rt_vec4 loc, rt_vec4 pos, rt_Surface *srf)
 
     if (srf->trnode != RT_NULL)
     {
-        dff[RT_X] = pps[RT_X] - srf->trnode->pos[RT_X];
-        dff[RT_Y] = pps[RT_Y] - srf->trnode->pos[RT_Y];
-        dff[RT_Z] = pps[RT_Z] - srf->trnode->pos[RT_Z];
+        RT_VEC3_SUB(dff, pps, srf->trnode->pos);
         dff[RT_W] = 0.0f;
 
         matrix_mul_vector(loc, srf->trnode->inv, dff);
@@ -759,20 +757,20 @@ rt_cell surf_cbox(rt_vec4 pos, rt_Surface *srf)
     /* margin is applied to "pps"
      * as cmin/cmax might be infinite */
     if (pps[RT_X] + RT_CULL_THRESHOLD <  srf->cmin[RT_X]
-    ||  pps[RT_X] - RT_CULL_THRESHOLD >  srf->cmax[RT_X]
     ||  pps[RT_Y] + RT_CULL_THRESHOLD <  srf->cmin[RT_Y]
-    ||  pps[RT_Y] - RT_CULL_THRESHOLD >  srf->cmax[RT_Y]
     ||  pps[RT_Z] + RT_CULL_THRESHOLD <  srf->cmin[RT_Z]
+    ||  pps[RT_X] - RT_CULL_THRESHOLD >  srf->cmax[RT_X]
+    ||  pps[RT_Y] - RT_CULL_THRESHOLD >  srf->cmax[RT_Y]
     ||  pps[RT_Z] - RT_CULL_THRESHOLD >  srf->cmax[RT_Z])
     {
         c = 1;
     }
     else
     if (pps[RT_X] - RT_CULL_THRESHOLD <= srf->cmin[RT_X]
-    ||  pps[RT_X] + RT_CULL_THRESHOLD >= srf->cmax[RT_X]
     ||  pps[RT_Y] - RT_CULL_THRESHOLD <= srf->cmin[RT_Y]
-    ||  pps[RT_Y] + RT_CULL_THRESHOLD >= srf->cmax[RT_Y]
     ||  pps[RT_Z] - RT_CULL_THRESHOLD <= srf->cmin[RT_Z]
+    ||  pps[RT_X] + RT_CULL_THRESHOLD >= srf->cmax[RT_X]
+    ||  pps[RT_Y] + RT_CULL_THRESHOLD >= srf->cmax[RT_Y]
     ||  pps[RT_Z] + RT_CULL_THRESHOLD >= srf->cmax[RT_Z])
     {
         c = 2;
@@ -805,20 +803,20 @@ rt_cell surf_bbox(rt_vec4 pos, rt_Surface *srf)
     /* margin is applied to "pps"
      * for consistency with surf_cbox */
     if (pps[RT_X] - RT_CULL_THRESHOLD >  srf->bmin[RT_X]
-    &&  pps[RT_X] + RT_CULL_THRESHOLD <  srf->bmax[RT_X]
     &&  pps[RT_Y] - RT_CULL_THRESHOLD >  srf->bmin[RT_Y]
-    &&  pps[RT_Y] + RT_CULL_THRESHOLD <  srf->bmax[RT_Y]
     &&  pps[RT_Z] - RT_CULL_THRESHOLD >  srf->bmin[RT_Z]
+    &&  pps[RT_X] + RT_CULL_THRESHOLD <  srf->bmax[RT_X]
+    &&  pps[RT_Y] + RT_CULL_THRESHOLD <  srf->bmax[RT_Y]
     &&  pps[RT_Z] + RT_CULL_THRESHOLD <  srf->bmax[RT_Z])
     {
         c = 1;
     }
     else
     if (pps[RT_X] + RT_CULL_THRESHOLD >= srf->bmin[RT_X]
-    &&  pps[RT_X] - RT_CULL_THRESHOLD <= srf->bmax[RT_X]
     &&  pps[RT_Y] + RT_CULL_THRESHOLD >= srf->bmin[RT_Y]
-    &&  pps[RT_Y] - RT_CULL_THRESHOLD <= srf->bmax[RT_Y]
     &&  pps[RT_Z] + RT_CULL_THRESHOLD >= srf->bmin[RT_Z]
+    &&  pps[RT_X] - RT_CULL_THRESHOLD <= srf->bmax[RT_X]
+    &&  pps[RT_Y] - RT_CULL_THRESHOLD <= srf->bmax[RT_Y]
     &&  pps[RT_Z] - RT_CULL_THRESHOLD <= srf->bmax[RT_Z])
     {
         c = 2;
@@ -846,9 +844,7 @@ rt_cell surf_side(rt_vec4 pos, rt_Surface *srf)
 
     if (srf->trnode != srf)
     {
-        loc[RT_X] = pps[RT_X] - srf->pos[RT_X];
-        loc[RT_Y] = pps[RT_Y] - srf->pos[RT_Y];
-        loc[RT_Z] = pps[RT_Z] - srf->pos[RT_Z];
+        RT_VEC3_SUB(loc, pps, srf->pos);
     }
 
     rt_real d;
@@ -955,54 +951,26 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 
     /* check first if bounding spheres cast shadows */
     rt_vec4 shw_vec;
-
-    shw_vec[RT_X] = shw->mid[RT_X] - lgt->pos[RT_X];
-    shw_vec[RT_Y] = shw->mid[RT_Y] - lgt->pos[RT_Y];
-    shw_vec[RT_Z] = shw->mid[RT_Z] - lgt->pos[RT_Z];
-    shw_vec[RT_W] = 0.0f;
+    RT_VEC3_SUB(shw_vec, shw->mid, lgt->pos);
+    rt_real shw_len = RT_VEC3_LEN(shw_vec);
 
     rt_vec4 srf_vec;
+    RT_VEC3_SUB(srf_vec, srf->mid, lgt->pos);
+    rt_real srf_len = RT_VEC3_LEN(srf_vec);
 
-    srf_vec[RT_X] = srf->mid[RT_X] - lgt->pos[RT_X];
-    srf_vec[RT_Y] = srf->mid[RT_Y] - lgt->pos[RT_Y];
-    srf_vec[RT_Z] = srf->mid[RT_Z] - lgt->pos[RT_Z];
-    srf_vec[RT_W] = 0.0f;
+    rt_real dff_ang = RT_VEC3_DOT(shw_vec, srf_vec);
 
-    rt_real ang = RT_VEC3_DOT(shw_vec, srf_vec);
+    dff_ang = shw_len <= RT_CULL_THRESHOLD ? 0.0f : dff_ang / shw_len;
+    rt_real shw_ang = shw_len >= shw->rad && shw_len > RT_CULL_THRESHOLD ?
+                        RT_ASIN(shw->rad / shw_len) : (rt_real)RT_2_PI;
 
-    rt_real f = 0.0f, len = 0.0f;
+    dff_ang = srf_len <= RT_CULL_THRESHOLD ? 0.0f : dff_ang / srf_len;
+    rt_real srf_ang = srf_len >= srf->rad && srf_len > RT_CULL_THRESHOLD ?
+                        RT_ASIN(srf->rad / srf_len) : (rt_real)RT_2_PI;
 
-    f = shw_vec[RT_X];
-    len += f * f;
-    f = shw_vec[RT_Y];
-    len += f * f;
-    f = shw_vec[RT_Z];
-    len += f * f;
+    dff_ang = RT_ACOS(dff_ang);
 
-    len = RT_SQRT(len);
-    ang = len <= RT_CULL_THRESHOLD ? 0.0f : ang / len;
-
-    rt_real shw_ang = len >= shw->rad && len > RT_CULL_THRESHOLD ?
-                        RT_ASIN(shw->rad / len) : (rt_real)RT_2_PI;
-
-    f = len = 0.0f;
-
-    f = srf_vec[RT_X];
-    len += f * f;
-    f = srf_vec[RT_Y];
-    len += f * f;
-    f = srf_vec[RT_Z];
-    len += f * f;
-
-    len = RT_SQRT(len);
-    ang = len <= RT_CULL_THRESHOLD ? 0.0f : ang / len;
-
-    rt_real srf_ang = len >= srf->rad && len > RT_CULL_THRESHOLD ?
-                        RT_ASIN(srf->rad / len) : (rt_real)RT_2_PI;
-
-    ang = RT_ACOS(ang);
-
-    if (shw_ang + srf_ang < ang)
+    if (shw_ang + srf_ang < dff_ang)
     {
         return 0;
     }
@@ -1134,55 +1102,27 @@ rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
     }
 
     /* check first the order for bounding spheres */
-    rt_vec4 nd2_vec;
-
-    nd2_vec[RT_X] = nd2->mid[RT_X] - obj->pos[RT_X];
-    nd2_vec[RT_Y] = nd2->mid[RT_Y] - obj->pos[RT_Y];
-    nd2_vec[RT_Z] = nd2->mid[RT_Z] - obj->pos[RT_Z];
-    nd2_vec[RT_W] = 0.0f;
-
     rt_vec4 nd1_vec;
+    RT_VEC3_SUB(nd1_vec, nd1->mid, obj->pos);
+    rt_real nd1_len = RT_VEC3_LEN(nd1_vec);
 
-    nd1_vec[RT_X] = nd1->mid[RT_X] - obj->pos[RT_X];
-    nd1_vec[RT_Y] = nd1->mid[RT_Y] - obj->pos[RT_Y];
-    nd1_vec[RT_Z] = nd1->mid[RT_Z] - obj->pos[RT_Z];
-    nd1_vec[RT_W] = 0.0f;
+    rt_vec4 nd2_vec;
+    RT_VEC3_SUB(nd2_vec, nd2->mid, obj->pos);
+    rt_real nd2_len = RT_VEC3_LEN(nd2_vec);
 
-    rt_real ang = RT_VEC3_DOT(nd2_vec, nd1_vec);
+    rt_real dff_ang = RT_VEC3_DOT(nd1_vec, nd2_vec);
 
-    rt_real f = 0.0f, len = 0.0f;
+    dff_ang = nd1_len <= RT_CULL_THRESHOLD ? 0.0f : dff_ang / nd1_len;
+    rt_real nd1_ang = nd1_len >= nd1->rad && nd1_len > RT_CULL_THRESHOLD ?
+                        RT_ASIN(nd1->rad / nd1_len) : (rt_real)RT_2_PI;
 
-    f = nd2_vec[RT_X];
-    len += f * f;
-    f = nd2_vec[RT_Y];
-    len += f * f;
-    f = nd2_vec[RT_Z];
-    len += f * f;
+    dff_ang = nd2_len <= RT_CULL_THRESHOLD ? 0.0f : dff_ang / nd2_len;
+    rt_real nd2_ang = nd2_len >= nd2->rad && nd2_len > RT_CULL_THRESHOLD ?
+                        RT_ASIN(nd2->rad / nd2_len) : (rt_real)RT_2_PI;
 
-    len = RT_SQRT(len);
-    ang = len <= RT_CULL_THRESHOLD ? 0.0f : ang / len;
+    dff_ang = RT_ACOS(dff_ang);
 
-    rt_real nd2_ang = len >= nd2->rad && len > RT_CULL_THRESHOLD ?
-                        RT_ASIN(nd2->rad / len) : (rt_real)RT_2_PI;
-
-    f = len = 0.0f;
-
-    f = nd1_vec[RT_X];
-    len += f * f;
-    f = nd1_vec[RT_Y];
-    len += f * f;
-    f = nd1_vec[RT_Z];
-    len += f * f;
-
-    len = RT_SQRT(len);
-    ang = len <= RT_CULL_THRESHOLD ? 0.0f : ang / len;
-
-    rt_real nd1_ang = len >= nd1->rad && len > RT_CULL_THRESHOLD ?
-                        RT_ASIN(nd1->rad / len) : (rt_real)RT_2_PI;
-
-    ang = RT_ACOS(ang);
-
-    if (nd2_ang + nd1_ang < ang)
+    if (nd1_ang + nd2_ang < dff_ang)
     {
         return 1;
     }
@@ -1195,46 +1135,14 @@ rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
     if (srf == RT_NULL || ref == RT_NULL)
     {
         /* check first if bounding spheres interpenetrate */
-        rt_real f = 0.0f, len = 0.0f;
+        rt_vec4 dff_vec;
+        RT_VEC3_SUB(dff_vec, nd1->mid, nd2->mid);
+        rt_real dff_len = RT_VEC3_LEN(dff_vec);
 
-        f = nd1->mid[RT_X] - nd2->mid[RT_X];
-        len += f * f;
-        f = nd1->mid[RT_Y] - nd2->mid[RT_Y];
-        len += f * f;
-        f = nd1->mid[RT_Z] - nd2->mid[RT_Z];
-        len += f * f;
-
-        len = RT_SQRT(len);
-
-        if (nd1->rad + nd2->rad >= len)
+        if (nd1->rad + nd2->rad >= dff_len)
         {
             return 2;
         }
-
-        /* TODO: add macros to rtgeom.h for VEC3/VEC4, MAT3/MAT4
-         * operations: SET, ADD, SUB, MUL, DOT, LEN, DET, INV */
-
-        f = len = 0.0f;
-
-        f = nd1->mid[RT_X] - obj->pos[RT_X];
-        len += f * f;
-        f = nd1->mid[RT_Y] - obj->pos[RT_Y];
-        len += f * f;
-        f = nd1->mid[RT_Z] - obj->pos[RT_Z];
-        len += f * f;
-
-        rt_real nd1_len = len;
-
-        f = len = 0.0f;
-
-        f = nd2->mid[RT_X] - obj->pos[RT_X];
-        len += f * f;
-        f = nd2->mid[RT_Y] - obj->pos[RT_Y];
-        len += f * f;
-        f = nd2->mid[RT_Z] - obj->pos[RT_Z];
-        len += f * f;
-
-        rt_real nd2_len = len;
 
         if (nd1_len < nd2_len)
         {
@@ -1417,18 +1325,11 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
     }
 
     /* check first if bounding spheres interpenetrate */
-    rt_real f = 0.0f, len = 0.0f;
+    rt_vec4 dff_vec;
+    RT_VEC3_SUB(dff_vec, srf->mid, ref->mid);
+    rt_real dff_len = RT_VEC3_LEN(dff_vec);
 
-    f = srf->mid[RT_X] - ref->mid[RT_X];
-    len += f * f;
-    f = srf->mid[RT_Y] - ref->mid[RT_Y];
-    len += f * f;
-    f = srf->mid[RT_Z] - ref->mid[RT_Z];
-    len += f * f;
-
-    len = RT_SQRT(len);
-
-    if (srf->rad + ref->rad < len)
+    if (srf->rad + ref->rad < dff_len)
     {
         return 0;
     }
