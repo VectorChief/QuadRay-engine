@@ -52,6 +52,34 @@ do                                                                          \
 }                                                                           \
 while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
 
+/* ---------------------------------   MIN   -------------------------------- */
+
+/*
+ * Compute the minimum of two vec3.
+ */
+#define RT_VEC3_MIN(vr, va, vb)                                             \
+do                                                                          \
+{                                                                           \
+    vr[0] = RT_MIN(va[0], vb[0]);                                           \
+    vr[1] = RT_MIN(va[1], vb[1]);                                           \
+    vr[2] = RT_MIN(va[2], vb[2]);                                           \
+}                                                                           \
+while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
+
+/* ---------------------------------   MAX   -------------------------------- */
+
+/*
+ * Compute the maximum of two vec3.
+ */
+#define RT_VEC3_MAX(vr, va, vb)                                             \
+do                                                                          \
+{                                                                           \
+    vr[0] = RT_MAX(va[0], vb[0]);                                           \
+    vr[1] = RT_MAX(va[1], vb[1]);                                           \
+    vr[2] = RT_MAX(va[2], vb[2]);                                           \
+}                                                                           \
+while (0) /* "do {...} while (0)" to enforce semicolon ";" at the end */
+
 /* ---------------------------------   ADD   -------------------------------- */
 
 /*
@@ -174,16 +202,26 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1);
 /******************************************************************************/
 
 /*
- * Determine if "shw" bbox casts shadow on "srf" bbox from "lgt" pos.
+ * Determine which side of clipped "srf" is seen from "obj".
+ *
+ * Return values:
+ *  1 - inner
+ *  2 - outer
+ *  3 - both, also if on the surface with margin
+ */
+rt_cell cbox_side(rt_Object *obj, rt_Surface *srf);
+
+/*
+ * Determine if "shw" bbox casts shadow on "srf" bbox as seen from "obj".
  *
  * Return values:
  *  0 - no
  *  1 - yes
  */
-rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf);
+rt_cell bbox_shad(rt_Object *obj, rt_Surface *shw, rt_Surface *srf);
 
 /*
- * Determine if "nd1" and "nd2" bounds are in correct order as seen from "obj".
+ * Determine the order of "nd1" and "nd2" bboxes as seen from "obj".
  *
  * Return values:
  *  1 - neutral
@@ -192,16 +230,6 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf);
  *  4 - do swap, never stored in rt_ELEM's "data" field in the engine
  */
 rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2);
-
-/*
- * Determine which side of clipped "srf" is seen from "pos".
- *
- * Return values:
- *  1 - inner
- *  2 - outer
- *  3 - both, also if on the surface with margin
- */
-rt_cell cbox_side(rt_real *pos, rt_Surface *srf);
 
 /*
  * Determine which side of clipped "srf" is seen from "ref" bbox.

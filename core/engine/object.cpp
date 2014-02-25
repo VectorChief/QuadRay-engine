@@ -1022,22 +1022,18 @@ rt_void rt_Array::update_bvnode(rt_Array *bvnode, rt_bool mode)
  */
 rt_void rt_Array::update_bounds()
 {
-    mid[RT_X] = pos[RT_X];
-    mid[RT_Y] = pos[RT_Y];
-    mid[RT_Z] = pos[RT_Z];
+    RT_VEC3_SET(mid, pos);
+
+    rad = 0.0f;
 
     if (trnode != RT_NULL && trnode != this)
     {
-        mid[RT_X] += trnode->pos[RT_X];
-        mid[RT_Y] += trnode->pos[RT_Y];
-        mid[RT_Z] += trnode->pos[RT_Z];
+        RT_VEC3_ADD(mid, mid, trnode->pos);
     }
 
     RT_SIMD_SET(s_srf->pos_x, mid[RT_X]);
     RT_SIMD_SET(s_srf->pos_y, mid[RT_Y]);
     RT_SIMD_SET(s_srf->pos_z, mid[RT_Z]);
-
-    rad = 0.0f;
 
     rt_cell i;
 
@@ -1069,20 +1065,13 @@ rt_void rt_Array::update_bounds()
             continue;
         }
 
-        rt_real len = 0.0f, f;
+        rt_vec4 dff_vec;
+        RT_VEC3_SUB(dff_vec, arr->mid, nd->mid);
+        rt_real dff_len = RT_VEC3_LEN(dff_vec);
 
-        f = arr->mid[RT_X] - nd->mid[RT_X];
-        len += f * f;
-        f = arr->mid[RT_Y] - nd->mid[RT_Y];
-        len += f * f;
-        f = arr->mid[RT_Z] - nd->mid[RT_Z];
-        len += f * f;
-
-        len = RT_SQRT(len) + nd->rad;
-
-        if (arr->rad < len)
+        if (arr->rad < dff_len + nd->rad)
         {
-            arr->rad = len;
+            arr->rad = dff_len + nd->rad;
         }
     }
 
@@ -1502,25 +1491,15 @@ rt_void rt_Surface::recalc_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
     {
         invert_minmax(smin, smax, tmin, tmax);
 
-        tmin[RT_I] = RT_MAX(tmin[RT_I], srf->min[RT_I]);
-        tmin[RT_J] = RT_MAX(tmin[RT_J], srf->min[RT_J]);
-        tmin[RT_K] = RT_MAX(tmin[RT_K], srf->min[RT_K]);
-
-        tmax[RT_I] = RT_MIN(tmax[RT_I], srf->max[RT_I]);
-        tmax[RT_J] = RT_MIN(tmax[RT_J], srf->max[RT_J]);
-        tmax[RT_K] = RT_MIN(tmax[RT_K], srf->max[RT_K]);
+        RT_VEC3_MAX(tmin, tmin, srf->min);
+        RT_VEC3_MIN(tmax, tmax, srf->max);
     }
     else
     /* init bbox with original axis clippers */
     if (smin == RT_NULL && smax == RT_NULL)
     {
-        tmin[RT_I] = srf->min[RT_I];
-        tmin[RT_J] = srf->min[RT_J];
-        tmin[RT_K] = srf->min[RT_K];
-
-        tmax[RT_I] = srf->max[RT_I];
-        tmax[RT_J] = srf->max[RT_J];
-        tmax[RT_K] = srf->max[RT_K];
+        RT_VEC3_SET(tmin, srf->min);
+        RT_VEC3_SET(tmax, srf->max);
     }
 
     adjust_minmax(tmin, tmax, bmin, bmax, cmin, cmax);
@@ -1538,13 +1517,8 @@ rt_void rt_Surface::recalc_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
 
         direct_minmax(tmin, tmax, tmin, tmax);
 
-        pmin[RT_X] = RT_MAX(pmin[RT_X], tmin[RT_X]);
-        pmin[RT_Y] = RT_MAX(pmin[RT_Y], tmin[RT_Y]);
-        pmin[RT_Z] = RT_MAX(pmin[RT_Z], tmin[RT_Z]);
-
-        pmax[RT_X] = RT_MIN(pmax[RT_X], tmax[RT_X]);
-        pmax[RT_Y] = RT_MIN(pmax[RT_Y], tmax[RT_Y]);
-        pmax[RT_Z] = RT_MIN(pmax[RT_Z], tmax[RT_Z]);
+        RT_VEC3_MAX(pmin, pmin, tmin);
+        RT_VEC3_MIN(pmax, pmax, tmax);
 
         bmin = RT_NULL;
         bmax = RT_NULL;
@@ -1624,13 +1598,8 @@ rt_void rt_Surface::update_minmax()
 
     /* prepare cbox as temporary storage
      * for bbox adjustments by custom clippers */
-    cmin[RT_X] = -RT_INF;
-    cmin[RT_Y] = -RT_INF;
-    cmin[RT_Z] = -RT_INF;
-
-    cmax[RT_X] = +RT_INF;
-    cmax[RT_Y] = +RT_INF;
-    cmax[RT_Z] = +RT_INF;
+    RT_VEC3_SET_VAL1(cmin, -RT_INF);
+    RT_VEC3_SET_VAL1(cmax, +RT_INF);
 
     /* reinit custom clippers list */
     elm = (rt_ELEM *)s_srf->msc_p[2];
@@ -1678,9 +1647,7 @@ rt_void rt_Surface::update_minmax()
  */
 rt_void rt_Surface::update_bounds()
 {
-    mid[RT_X] = 0.0f;
-    mid[RT_Y] = 0.0f;
-    mid[RT_Z] = 0.0f;
+    RT_VEC3_SET_VAL1(mid, 0.0f);
 
     rad = 0.0f;
 
@@ -1694,25 +1661,18 @@ rt_void rt_Surface::update_bounds()
 
     for (i = 0; i < verts_num; i++)
     {
-        mid[RT_X] += verts[i].pos[RT_X] * f;
-        mid[RT_Y] += verts[i].pos[RT_Y] * f;
-        mid[RT_Z] += verts[i].pos[RT_Z] * f;
+        RT_VEC3_MAD_VAL1(mid, verts[i].pos, f);
     }
 
     for (i = 0; i < verts_num; i++)
     {
-        rt_real len = 0.0f;
+        rt_vec4 dff_vec;
+        RT_VEC3_SUB(dff_vec, mid, verts[i].pos);
+        rt_real dff_dot = RT_VEC3_DOT(dff_vec, dff_vec);
 
-        f = mid[RT_X] - verts[i].pos[RT_X];
-        len += f * f;
-        f = mid[RT_Y] - verts[i].pos[RT_Y];
-        len += f * f;
-        f = mid[RT_Z] - verts[i].pos[RT_Z];
-        len += f * f;
-
-        if (rad < len)
+        if (rad < dff_dot)
         {
-            rad = len;
+            rad = dff_dot;
         }
     }
 
@@ -1803,19 +1763,13 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
         if (obj_changed)
         {
-            sci[RT_X] = 0.0f;
-            sci[RT_Y] = 0.0f;
-            sci[RT_Z] = 0.0f;
+            RT_VEC3_SET_VAL1(sci, 0.0f);
             sci[RT_W] = 0.0f;
 
-            scj[RT_X] = 0.0f;
-            scj[RT_Y] = 0.0f;
-            scj[RT_Z] = 0.0f;
+            RT_VEC3_SET_VAL1(scj, 0.0f);
             scj[RT_W] = 0.0f;
 
-            sck[RT_X] = 0.0f;
-            sck[RT_Y] = 0.0f;
-            sck[RT_Z] = 0.0f;
+            RT_VEC3_SET_VAL1(sck, 0.0f);
             sck[RT_W] = 0.0f;
 
             sck[mp_k] = (rt_real)sgn[RT_K];
@@ -2013,19 +1967,13 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
         if (obj_changed)
         {
-            sci[RT_X] = 1.0f;
-            sci[RT_Y] = 1.0f;
-            sci[RT_Z] = 1.0f;
+            RT_VEC3_SET_VAL1(sci, 1.0f);
             sci[RT_W] = 0.0f;
 
-            scj[RT_X] = 0.0f;
-            scj[RT_Y] = 0.0f;
-            scj[RT_Z] = 0.0f;
+            RT_VEC3_SET_VAL1(scj, 0.0f);
             scj[RT_W] = 0.0f;
 
-            sck[RT_X] = 0.0f;
-            sck[RT_Y] = 0.0f;
-            sck[RT_Z] = 0.0f;
+            RT_VEC3_SET_VAL1(sck, 0.0f);
             sck[RT_W] = 0.0f;
         }
     }

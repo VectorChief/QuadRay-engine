@@ -1526,7 +1526,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 #if RT_OPTS_2SIDED != 0
         if ((scene->opts & RT_OPTS_2SIDED) != 0 && srf != RT_NULL)
         {
-            rt_cell c = cbox_side(lgt->pos, srf);
+            rt_cell c = cbox_side(lgt, srf);
 
             if (c & 2)
             {

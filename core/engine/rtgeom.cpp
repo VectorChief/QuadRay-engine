@@ -870,18 +870,18 @@ rt_cell surf_side(rt_vec4 pos, rt_Surface *srf)
 }
 
 /*
- * Determine which side of clipped "srf" is seen from "pos".
+ * Determine which side of clipped "srf" is seen from "obj".
  *
  * Return values:
  *  1 - inner
  *  2 - outer
  *  3 - both, also if on the surface with margin
  */
-rt_cell cbox_side(rt_real *pos, rt_Surface *srf)
+rt_cell cbox_side(rt_Object *obj, rt_Surface *srf)
 {
     rt_cell k, c = 0;
 
-    c = surf_side(pos, srf);
+    c = surf_side(obj->pos, srf);
 
     /* if "pos" is on the surface with margin,
      * return both sides */
@@ -922,7 +922,7 @@ rt_cell cbox_side(rt_real *pos, rt_Surface *srf)
         return c;
     }
 
-    k = surf_cbox(pos, srf);
+    k = surf_cbox(obj->pos, srf);
 
     /* check if "pos" is outside of "srf" cbox */
     if (k != 0)
@@ -935,13 +935,13 @@ rt_cell cbox_side(rt_real *pos, rt_Surface *srf)
 }
 
 /*
- * Determine if "shw" bbox casts shadow on "srf" bbox from "lgt" pos.
+ * Determine if "shw" bbox casts shadow on "srf" bbox as seen from "obj".
  *
  * Return values:
  *  0 - no
  *  1 - yes
  */
-rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
+rt_cell bbox_shad(rt_Object *obj, rt_Surface *shw, rt_Surface *srf)
 {
     /* check if surfaces differ and have bounds */
     if (srf->verts_num == 0 || shw->verts_num == 0 || srf == shw)
@@ -951,11 +951,11 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 
     /* check first if bounding spheres cast shadows */
     rt_vec4 shw_vec;
-    RT_VEC3_SUB(shw_vec, shw->mid, lgt->pos);
+    RT_VEC3_SUB(shw_vec, shw->mid, obj->pos);
     rt_real shw_len = RT_VEC3_LEN(shw_vec);
 
     rt_vec4 srf_vec;
-    RT_VEC3_SUB(srf_vec, srf->mid, lgt->pos);
+    RT_VEC3_SUB(srf_vec, srf->mid, obj->pos);
     rt_real srf_len = RT_VEC3_LEN(srf_vec);
 
     rt_real dff_ang = RT_VEC3_DOT(shw_vec, srf_vec);
@@ -977,16 +977,16 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 
     /* check if shadow bbox optimization is disabled in runtime */
 #if RT_OPTS_SHADOW_EXT1 != 0
-    if ((lgt->rg->opts & RT_OPTS_SHADOW_EXT1) == 0)
+    if ((obj->rg->opts & RT_OPTS_SHADOW_EXT1) == 0)
 #endif /* RT_OPTS_SHADOW_EXT1 */
     {
         return 1;
     }
 
-    /* check if "lgt" pos is inside "shw" bbox */
+    /* check if "obj" pos is inside "shw" bbox */
     rt_cell k;
 
-    k = surf_bbox(lgt->pos, shw);
+    k = surf_bbox(obj->pos, shw);
 
     if (k != 0)
     {
@@ -1003,7 +1003,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 
         for (i = 0; i < shw->verts_num; i++)
         {
-            k = vert_to_face(lgt->pos, shw->verts[i].pos,
+            k = vert_to_face(obj->pos, shw->verts[i].pos,
                              srf->verts[fc->index[0]].pos,
                              srf->verts[fc->index[1]].pos,
                              srf->verts[fc->index[2]].pos,
@@ -1016,7 +1016,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
             {
                 continue;
             }
-            k = vert_to_face(lgt->pos, shw->verts[i].pos,
+            k = vert_to_face(obj->pos, shw->verts[i].pos,
                              srf->verts[fc->index[2]].pos,
                              srf->verts[fc->index[3]].pos,
                              srf->verts[fc->index[0]].pos,
@@ -1035,7 +1035,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 
         for (i = 0; i < srf->verts_num; i++)
         {
-            k = vert_to_face(lgt->pos, srf->verts[i].pos,
+            k = vert_to_face(obj->pos, srf->verts[i].pos,
                              shw->verts[fc->index[0]].pos,
                              shw->verts[fc->index[1]].pos,
                              shw->verts[fc->index[2]].pos,
@@ -1048,7 +1048,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
             {
                 continue;
             }
-            k = vert_to_face(lgt->pos, srf->verts[i].pos,
+            k = vert_to_face(obj->pos, srf->verts[i].pos,
                              shw->verts[fc->index[2]].pos,
                              shw->verts[fc->index[3]].pos,
                              shw->verts[fc->index[0]].pos,
@@ -1069,7 +1069,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
         {
             rt_EDGE *ei = &shw->edges[i];
 
-            k = edge_to_edge(lgt->pos,
+            k = edge_to_edge(obj->pos,
                              shw->verts[ei->index[0]].pos,
                              shw->verts[ei->index[1]].pos, ei->k,
                              srf->verts[ej->index[0]].pos,
@@ -1085,7 +1085,7 @@ rt_cell bbox_shad(rt_Light *lgt, rt_Surface *shw, rt_Surface *srf)
 }
 
 /*
- * Determine if "nd1" and "nd2" bounds are in correct order as seen from "obj".
+ * Determine the order of "nd1" and "nd2" bboxes as seen from "obj".
  *
  * Return values:
  *  1 - neutral
