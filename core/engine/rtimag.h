@@ -16,7 +16,7 @@
 /******************************************************************************/
 
 /*
- * rtimag.h: Interface for the image library.
+ * rtimag.h: Interface for the image utils library.
  *
  * More detailed description of this subsystem is given in rtimag.cpp.
  * Recommended naming scheme for C++ types and definitions is given in rtbase.h.
@@ -27,15 +27,20 @@
 /******************************************************************************/
 
 /*
- * Load texture from file to memory.
+ * Load image from file to memory.
  */
-rt_void load_texture(rt_Registry *rg, rt_pstr name, rt_TEX *tx);
+rt_void load_image(rt_Registry *rg, rt_pstr name, rt_TEX *tx);
 
 /*
- * Convert texture from file to static array initializer.
+ * Save image from memory to file.
+ */
+rt_void save_image(rt_Registry *rg, rt_pstr name, rt_TEX *tx);
+
+/*
+ * Convert image from file to C static array initializer format.
  * Parameter fullpath must be editable char array.
  */
-rt_void convert_texture(rt_char *fullpath);
+rt_void convert_image(rt_char *fullpath);
 
 #endif /* RT_RTIMAG_H */
 

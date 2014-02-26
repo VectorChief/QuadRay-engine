@@ -23,7 +23,7 @@
 /******************************************************************************/
 
 /*
- * Instantiate file with given "name" and I/O "mode".
+ * Instantiate and open file with given "name" and I/O "mode".
  */
 rt_File::rt_File(rt_pstr name, rt_pstr mode)
 {
@@ -49,9 +49,9 @@ rt_cell rt_File::seek(rt_cell offset, rt_cell origin)
 }
 
 /*
- * Read "num" elements of "size" bytes into "data" buffer.
+ * Load "num" elements of "size" bytes into "data" buffer.
  */
-rt_word rt_File::read(rt_pntr data, rt_word size, rt_word num)
+rt_word rt_File::load(rt_pntr data, rt_word size, rt_word num)
 {
     return
 #if RT_EMBED_FILEIO == 0
@@ -61,9 +61,9 @@ rt_word rt_File::read(rt_pntr data, rt_word size, rt_word num)
 }
 
 /*
- * Write "num" elements of "size" bytes from "data" buffer.
+ * Save "num" elements of "size" bytes from "data" buffer.
  */
-rt_word rt_File::write(rt_pntr data, rt_word size, rt_word num)
+rt_word rt_File::save(rt_pntr data, rt_word size, rt_word num)
 {
     return
 #if RT_EMBED_FILEIO == 0
@@ -73,9 +73,9 @@ rt_word rt_File::write(rt_pntr data, rt_word size, rt_word num)
 }
 
 /*
- * Write formatted string with variable number of arguments.
+ * Print formatted string with variable number of arguments.
  */
-rt_cell rt_File::print(rt_pstr format, ...)
+rt_cell rt_File::fprint(rt_pstr format, ...)
 {
     rt_cell ret = 0;
 #if RT_EMBED_FILEIO == 0
@@ -92,7 +92,7 @@ rt_cell rt_File::print(rt_pstr format, ...)
 }
 
 /*
- * Write formatted string with given list of arguments.
+ * Print formatted string with given list of arguments.
  */
 rt_cell rt_File::vprint(rt_pstr format, va_list args)
 {
@@ -116,7 +116,7 @@ rt_cell rt_File::error()
 }
 
 /*
- * Destroy file.
+ * Destroy file after flushing and closing it.
  */
 rt_File::~rt_File()
 {
@@ -263,7 +263,7 @@ rt_File g_log_file(RT_PATH_DUMP_LOG, "w+");
 rt_File g_err_file(RT_PATH_DUMP_ERR, "w+");
 
 /*
- * Print info log into stdout and default info log file.
+ * Print log into stdout and default log file.
  */
 rt_void print_log(rt_pstr format, ...)
 {
@@ -277,7 +277,7 @@ rt_void print_log(rt_pstr format, ...)
 }
 
 /*
- * Print error log into stdout and default error log file.
+ * Print err into stdout and default err file.
  */
 rt_void print_err(rt_pstr format, ...)
 {

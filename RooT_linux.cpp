@@ -62,7 +62,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
         RT_LOGI("Converting textures\n");
         for (i = 2; i < argc; i++)
         {
-            convert_texture(argv[i]);
+            convert_image(argv[i]);
         }
         RT_LOGI("\nDone!\n");
         return 0;

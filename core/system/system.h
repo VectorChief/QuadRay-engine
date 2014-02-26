@@ -65,9 +65,9 @@ class rt_File
    ~rt_File();
 
     rt_cell seek(rt_cell offset, rt_cell origin);
-    rt_word read(rt_pntr data, rt_word size, rt_word num);
-    rt_word write(rt_pntr data, rt_word size, rt_word num);
-    rt_cell print(rt_pstr format, ...);
+    rt_word load(rt_pntr data, rt_word size, rt_word num);
+    rt_word save(rt_pntr data, rt_word size, rt_word num);
+    rt_cell fprint(rt_pstr format, ...);
     rt_cell vprint(rt_pstr format, va_list args);
     rt_cell error(); /* 0 - no error */
 };

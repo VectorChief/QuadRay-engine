@@ -14,7 +14,7 @@
 /******************************************************************************/
 
 /*
- * rtimag.cpp: Implementation of the image library.
+ * rtimag.cpp: Implementation of the image utils library.
  *
  * Utility file for the engine responsible for image loading, saving and
  * conversion to C static array initializer format suitable for embedding.
@@ -28,13 +28,13 @@
 /******************************************************************************/
 
 /*
- * Load texture from file to memory.
+ * Load image from file to memory.
  */
-rt_void load_texture(rt_Registry *rg, rt_pstr name, rt_TEX *tx)
+rt_void load_image(rt_Registry *rg, rt_pstr name, rt_TEX *tx)
 {
-    rt_word boffset;
+    rt_word boffset, bzero;
     rt_cell bwidth, bheight;
-    rt_half bdepth;
+    rt_half bdepth, bplanes, bsig;
 
     rt_File *f = RT_NULL;
     rt_word *p = RT_NULL;
@@ -59,11 +59,15 @@ rt_void load_texture(rt_Registry *rg, rt_pstr name, rt_TEX *tx)
         {
             break;
         }
+        if (f->load(&bsig, sizeof(bsig), 1) != 1)
+        {
+            break;
+        }
         if (f->seek(10, SEEK_SET) != 0)
         {
             break;
         }
-        if (f->read(&boffset, sizeof(boffset), 1) != 1)
+        if (f->load(&boffset, sizeof(boffset), 1) != 1)
         {
             break;
         }
@@ -71,32 +75,35 @@ rt_void load_texture(rt_Registry *rg, rt_pstr name, rt_TEX *tx)
         {
             break;
         }
-        if (f->read(&bwidth, sizeof(bwidth), 1) != 1)
+        if (f->load(&bwidth, sizeof(bwidth), 1) != 1)
         {
             break;
         }
-        if (f->seek(22, SEEK_SET) != 0)
+        if (f->load(&bheight, sizeof(bheight), 1) != 1)
         {
             break;
         }
-        if (f->read(&bheight, sizeof(bheight), 1) != 1)
+        if (f->load(&bplanes, sizeof(bplanes), 1) != 1)
         {
             break;
         }
-        if (f->seek(28, SEEK_SET) != 0)
+        if (f->load(&bdepth, sizeof(bdepth), 1) != 1)
         {
             break;
         }
-        if (f->read(&bdepth, sizeof(bdepth), 1) != 1)
+        if (f->load(&bzero, sizeof(bzero), 1) != 1)
         {
             break;
         }
-        if (bdepth != 24)
+        if (bsig != 0x4D42 || bplanes != 1 || bdepth != 24 || bzero != 0)
         {
             break;
         }
 
-        n = bwidth * bheight;
+        tx->x_dim = RT_ABS(bwidth);
+        tx->y_dim = RT_ABS(bheight);
+
+        n = tx->x_dim * tx->y_dim;
 
         tx->ptex = rg->alloc(n * sizeof(rt_word), RT_ALIGN);
         if (tx->ptex == RT_NULL)
@@ -104,14 +111,11 @@ rt_void load_texture(rt_Registry *rg, rt_pstr name, rt_TEX *tx)
             break;
         }
 
-        tx->x_dim = bwidth;
-        tx->y_dim = bheight;
-
         f->seek(boffset, SEEK_SET);
 
         for (i = 0, p = (rt_word *)tx->ptex; i < n; i++, p++)
         {
-            if (f->read(p, 3, 1) != 1)
+            if (f->load(p, 3, 1) != 1)
             {
                 break;
             }
@@ -132,14 +136,135 @@ rt_void load_texture(rt_Registry *rg, rt_pstr name, rt_TEX *tx)
         delete f;
     }
 
-    throw rt_Exception("failed to load texture");
+    throw rt_Exception("failed to load image");
 }
 
 /*
- * Convert texture from file to static array initializer.
- * Parameter "fullpath" must be editable char array.
+ * Save image from memory to file.
  */
-rt_void convert_texture(rt_char *fullpath)
+rt_void save_image(rt_Registry *rg, rt_pstr name, rt_TEX *tx)
+{
+    rt_word boffset = 54, binfo = 40, bmeter = 4000, bzero = 0;
+    rt_cell bwidth = RT_ABS(tx->x_dim), bheight = RT_ABS(tx->y_dim);
+    rt_word bsize = boffset + bwidth * bheight * 3;
+    rt_half bdepth = 24, bplanes = 1, bsig = 0x4D42;
+
+    rt_File *f = RT_NULL;
+    rt_word *p = RT_NULL;
+    rt_cell i, n;
+
+    rt_pstr path = RT_PATH_DUMP;
+    rt_cell len = strlen(path);
+    rt_char *fullpath = (rt_char *)rg->alloc(len + strlen(name) + 1, 0);
+
+    strcpy(fullpath, path);
+    strcpy(fullpath + len, name);
+
+    do
+    {
+        f = new rt_File(fullpath, "wb");
+
+        if (f->error() != 0)
+        {
+            break;
+        }
+        if (f->save(&bsig, sizeof(bsig), 1) != 1)
+        {
+            break;
+        }
+        if (f->save(&bsize, sizeof(bsize), 1) != 1)
+        {
+            break;
+        }
+        if (f->save(&bzero, sizeof(bzero), 1) != 1)
+        {
+            break;
+        }
+        if (f->save(&boffset, sizeof(boffset), 1) != 1)
+        {
+            break;
+        }
+        if (f->save(&binfo, sizeof(binfo), 1) != 1)
+        {
+            break;
+        }
+        if (f->save(&tx->x_dim, sizeof(tx->x_dim), 1) != 1)
+        {
+            break;
+        }
+        if (f->save(&tx->y_dim, sizeof(tx->y_dim), 1) != 1)
+        {
+            break;
+        }
+        if (f->save(&bplanes, sizeof(bplanes), 1) != 1)
+        {
+            break;
+        }
+        if (f->save(&bdepth, sizeof(bdepth), 1) != 1)
+        {
+            break;
+        }
+        if (f->save(&bzero, sizeof(bzero), 1) != 1)
+        {
+            break;
+        }
+
+        bsize -= boffset;
+
+        if (f->save(&bsize, sizeof(bsize), 1) != 1)
+        {
+            break;
+        }
+        if (f->save(&bmeter, sizeof(bmeter), 1) != 1)
+        {
+            break;
+        }
+        if (f->save(&bmeter, sizeof(bmeter), 1) != 1)
+        {
+            break;
+        }
+        if (f->save(&bzero, sizeof(bzero), 1) != 1)
+        {
+            break;
+        }
+        if (f->save(&bzero, sizeof(bzero), 1) != 1)
+        {
+            break;
+        }
+
+        n = bwidth * bheight;
+
+        for (i = 0, p = (rt_word *)tx->ptex; i < n; i++, p++)
+        {
+            if (f->save(p, 3, 1) != 1)
+            {
+                break;
+            }
+        }
+
+        if (i < n)
+        {
+            break;
+        }
+
+        delete f;
+        return;
+    }
+    while (0);
+
+    if (f != NULL)
+    {
+        delete f;
+    }
+
+    throw rt_Exception("failed to save image");
+}
+
+/*
+ * Convert image from file to C static array initializer format.
+ * Parameter fullpath must be editable char array.
+ */
+rt_void convert_image(rt_char *fullpath)
 {
     rt_word boffset;
     rt_cell bwidth, bheight;
@@ -170,7 +295,7 @@ rt_void convert_texture(rt_char *fullpath)
         {
             break;
         }
-        if (f->read(&boffset, sizeof(boffset), 1) != 1)
+        if (f->load(&boffset, sizeof(boffset), 1) != 1)
         {
             break;
         }
@@ -178,7 +303,7 @@ rt_void convert_texture(rt_char *fullpath)
         {
             break;
         }
-        if (f->read(&bwidth, sizeof(bwidth), 1) != 1)
+        if (f->load(&bwidth, sizeof(bwidth), 1) != 1)
         {
             break;
         }
@@ -186,7 +311,7 @@ rt_void convert_texture(rt_char *fullpath)
         {
             break;
         }
-        if (f->read(&bheight, sizeof(bheight), 1) != 1)
+        if (f->load(&bheight, sizeof(bheight), 1) != 1)
         {
             break;
         }
@@ -194,7 +319,7 @@ rt_void convert_texture(rt_char *fullpath)
         {
             break;
         }
-        if (f->read(&bdepth, sizeof(bdepth), 1) != 1)
+        if (f->load(&bdepth, sizeof(bdepth), 1) != 1)
         {
             break;
         }
@@ -218,9 +343,9 @@ rt_void convert_texture(rt_char *fullpath)
         for (len = len - 4; len > 0 && fullpath[len - 1] != '\\'
                                     && fullpath[len - 1] != '/'; len--);
 
-        o->print("rt_word dt_%s[%d][%d] =\n", &fullpath[len],
+        o->fprint("rt_word dt_%s[%d][%d] =\n", &fullpath[len],
                                                bheight, bwidth);
-        o->print("{");
+        o->fprint("{");
 
         n = bwidth * bheight;
 
@@ -228,14 +353,14 @@ rt_void convert_texture(rt_char *fullpath)
 
         for (i = 0, p = 0; i < n; i++)
         {
-            if (f->read(&p, 3, 1) != 1)
+            if (f->load(&p, 3, 1) != 1)
             {
                 break;
             }
 
             if (i % 6 == 0)
             {
-                o->print("\n   ");
+                o->fprint("\n   ");
             }
 
             for (k = 0; k < 8; k++)
@@ -244,10 +369,10 @@ rt_void convert_texture(rt_char *fullpath)
             }
             s[k] = 0;
 
-            o->print(" 0x%s,", s);
+            o->fprint(" 0x%s,", s);
         }
 
-        o->print("\n};\n");
+        o->fprint("\n};\n");
 
         if (i < n)
         {

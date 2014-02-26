@@ -2814,7 +2814,7 @@ rt_Texture::rt_Texture(rt_Registry *rg, rt_pstr name) :
 
     this->name = name;
 
-    load_texture(rg, name, &tex);
+    load_image(rg, name, &tex);
 }
 
 /*
