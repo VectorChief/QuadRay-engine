@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "rtarch.h"
 #include "rtbase.h"
 #include "rtconf.h"
 

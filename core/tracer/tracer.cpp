@@ -6,7 +6,6 @@
 
 #include "tracer.h"
 #include "format.h"
-#include "system.h"
 
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/
@@ -17,7 +16,7 @@
  *
  * Raytracing rendering subsystem of the engine responsible for determining
  * pixel colors in the framebuffer by tracing rays of light back from camera,
- * through scene objects (surfaces) to the light sources.
+ * through scene objects (surfaces) to light sources.
  *
  * Computation of ray intersections with scene surfaces is written on
  * a unified SIMD macro assembler (rtarch.h) for maximum performance.
@@ -29,7 +28,7 @@
  *
  * Unified SIMD assembler is designed in a way to be compatible with different
  * processor architectures, while maintaining strictly defined common API,
- * thus application logic can be written and maintained in one place.
+ * thus application logic can be written and maintained in one place (here).
  *
  * At present, Intel SSE (1 and 2) and ARM MPE (aka NEON) are supported
  * in 32-bit mode, with possibility to extend support to 64-bit mode
