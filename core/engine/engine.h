@@ -211,9 +211,13 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
                            rt_cell d, rt_word z, rt_word num);
 
     rt_word*    get_frame();
+    rt_void     print_state();
+
     rt_void     set_fsaa(rt_cell fsaa);
     rt_void     set_opts(rt_cell opts);
-    rt_void     print_state();
+
+    rt_void     next_cam();
+    rt_void     save_frame(rt_cell index);
 
     friend      class rt_SceneThread;
 };

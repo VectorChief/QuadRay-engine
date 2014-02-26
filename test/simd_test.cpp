@@ -44,7 +44,7 @@ static rt_cell t_diff = 2;
 
 /*
  * Extended SIMD info structure for asm enter/leave
- * serves as a container for test arrays and internal varibales.
+ * serves as a container for test arrays and internal variables.
  * Note that DP offsets below start where rt_SIMD_INFO ends (at Q*0x100).
  * SIMD width is taken into account via S and Q from rtarch.h
  */

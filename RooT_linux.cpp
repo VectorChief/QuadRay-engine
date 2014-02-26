@@ -438,12 +438,15 @@ rt_cell main_init()
 /* performance variables */
 static struct timeval tm;
 
-/* time counter varibales */
+/* time counter variables */
 static rt_long init_time = 0;
 static rt_long last_time = 0;
 static rt_long cur_time = 0;
+
+/* frame counter variables */
 static rt_real fps = 0.0f;
 static rt_word cnt = 0;
+static rt_word scr = 0;
 
 /* virtual keys arrays */
 #define KEY_MASK    0x01FF
@@ -501,6 +504,8 @@ rt_cell main_step()
 
         if (T_KEYS(XK_F1))      scene->print_state();
         if (T_KEYS(XK_F2))      fsaa = RT_FSAA_4X - fsaa;
+        if (T_KEYS(XK_F3))      scene->next_cam();
+        if (T_KEYS(XK_F4))      scene->save_frame(scr++);
         if (T_KEYS(XK_Escape))
         {
             return 0;

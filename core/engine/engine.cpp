@@ -8,6 +8,7 @@
 
 #include "engine.h"
 #include "rtgeom.h"
+#include "rtimag.h"
 
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/
@@ -2343,6 +2344,14 @@ rt_word* rt_Scene::get_frame()
 }
 
 /*
+ * Print current state.
+ */
+rt_void rt_Scene::print_state()
+{
+    g_print = RT_TRUE;
+}
+
+/*
  * Set fullscreen anti-aliasing mode.
  */
 rt_void rt_Scene::set_fsaa(rt_cell fsaa)
@@ -2364,11 +2373,39 @@ rt_void rt_Scene::set_opts(rt_cell opts)
 }
 
 /*
- * Print current state.
+ * Select next camera in the list.
  */
-rt_void rt_Scene::print_state()
+rt_void rt_Scene::next_cam()
 {
-    g_print = RT_TRUE;
+    if (cam->next != RT_NULL)
+    {
+        cam = cam->next;
+    }
+    else
+    {
+        cam = cam_head;
+    }
+}
+
+/*
+ * Save current frame.
+ */
+rt_void rt_Scene::save_frame(rt_cell index)
+{
+    rt_char name[] = "scrXXX.bmp";
+
+    name[5] = '0' + (index % 10);
+    index /= 10;
+    name[4] = '0' + (index % 10);
+    index /= 10;
+    name[3] = '0' + (index % 10);
+
+    rt_TEX tex;
+    tex.ptex = get_frame();
+    tex.x_dim = +x_res;
+    tex.y_dim = -y_res;
+
+    save_image(this, name, &tex);
 }
 
 /*
