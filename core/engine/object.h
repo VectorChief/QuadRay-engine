@@ -98,6 +98,64 @@ struct rt_FACE
     rt_cell k, i, j;
 };
 
+struct rt_BOUND;
+
+struct rt_BOUND
+{
+    /* host object pointer */
+    rt_pntr             obj;
+    /* host object tag */
+    rt_cell             tag;
+    /* host object inv matrix */
+    rt_mat4            *pinv;
+    /* host object trm matrix */
+    rt_mat4            *pmtx;
+    /* host object position */
+    rt_real            *pos;
+    /* optimization flags */
+    rt_cell            *opts;
+
+    /* host object trnode's
+     * BOUND struct pointer */
+    rt_BOUND           *trnode;
+
+    /* bounding box,
+     * all sides clipped or non-clipped are boundaries */
+    rt_vec4             bmin;
+    rt_vec4             bmax;
+
+    /* bounding box geometry */
+    rt_VERT            *verts;
+    rt_cell             verts_num;
+    rt_EDGE            *edges;
+    rt_cell             edges_num;
+    rt_FACE            *faces;
+    rt_cell             faces_num;
+
+    /* bounding volume center */
+    rt_vec4             mid;
+    /* bounding volume radius */
+    rt_real             rad;
+};
+
+struct rt_SHAPE : public rt_BOUND
+{
+    /* host object axis mapping */
+    rt_cell            *map;
+
+    /* clipping box,
+     * non-clipped sides are at respective +/-infinity */
+    rt_vec4             cmin;
+    rt_vec4             cmax;
+
+    /* surface shape coeffs */
+    rt_vec4             sci;
+    rt_vec4             scj;
+    rt_vec4             sck;
+    /* custom clippers list */
+    rt_ELEM           **ptr;
+};
+
 /* Classes */
 
 class rt_Registry;
@@ -228,6 +286,9 @@ class rt_Object
     rt_mat4             inv;
     rt_mat4             mtx;
     rt_real            *pos;
+
+    /* transformed bounding box and volume */
+    rt_BOUND           *trb;
 
     /* non-zero if object itself or
      * some of its parents changed */
@@ -404,8 +465,8 @@ class rt_Node : public rt_Object
 /*
  * Array is a node which contains group of objects
  * under the same branch in the hierarchy.
- * It may contain renderables (surfaces), other arrays and
- * special objects (cameras, lights).
+ * It may contain renderables (surfaces), other arrays (recursive)
+ * and special objects (cameras, lights).
  */
 class rt_Array : public rt_Node, public rt_List<rt_Array>
 {
@@ -413,12 +474,18 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
 
     private:
 
+    /* axis mapping matrix */
     rt_mat4             axm;
 
     public:
 
     rt_Object         **obj_arr;
     rt_cell             obj_num;
+
+    /* axis-aligned bounding box and volume
+     * used for bvnode in case if array
+     * serves as both trnode and bvnode */
+    rt_BOUND           *aab;
 
 /*  methods */
 
@@ -453,6 +520,7 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
 
     private:
 
+    /* per-side materials */
     rt_Material        *outer;
     rt_Material        *inner;
 
@@ -466,20 +534,15 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
 
     public:
 
+    /* surface shape extension to
+     * transformed bounding box and volume */
+    rt_SHAPE           *shp;
+
+    /* axis mapping shorteners */
     rt_cell             mp_i;
     rt_cell             mp_j;
     rt_cell             mp_k;
     rt_cell             mp_l;
-
-    /* bounding box,
-     * all sides clipped or non-clipped are boundaries */
-    rt_vec4             bmin;
-    rt_vec4             bmax;
-
-    /* clipping box,
-     * non-clipped sides are at respective +/-infinity */
-    rt_vec4             cmin;
-    rt_vec4             cmax;
 
     /* bounding box geometry */
     rt_VERT            *verts;
@@ -489,6 +552,7 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
     rt_FACE            *faces;
     rt_cell             faces_num;
 
+    /* surface shape coeffs */
     rt_vec4             sci;
     rt_vec4             scj;
     rt_vec4             sck;
@@ -766,7 +830,7 @@ class rt_Hyperboloid : public rt_Quadric
 
 /*
  * Texture contains data for images loaded from external files
- * in order to keep track of them and re-use them.
+ * in order to keep track of and re-use them.
  */
 class rt_Texture : public rt_List<rt_Texture>
 {

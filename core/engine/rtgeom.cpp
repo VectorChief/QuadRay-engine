@@ -568,9 +568,9 @@ rt_cell surf_hole(rt_Surface *srf, rt_Surface *ref)
     }
 
     /* check minmax clippers */
-    if (srf->cmin[RT_X] != -RT_INF || srf->cmax[RT_X] != +RT_INF
-    ||  srf->cmin[RT_Y] != -RT_INF || srf->cmax[RT_Y] != +RT_INF
-    ||  srf->cmin[RT_Z] != -RT_INF || srf->cmax[RT_Z] != +RT_INF)
+    if (srf->shp->cmin[RT_X] != -RT_INF || srf->shp->cmax[RT_X] != +RT_INF
+    ||  srf->shp->cmin[RT_Y] != -RT_INF || srf->shp->cmax[RT_Y] != +RT_INF
+    ||  srf->shp->cmin[RT_Z] != -RT_INF || srf->shp->cmax[RT_Z] != +RT_INF)
     {
         c |= 1;
     }
@@ -700,8 +700,8 @@ rt_cell cbox_conc(rt_Surface *srf)
     if ((srf->tag == RT_TAG_CONE
     ||   srf->tag == RT_TAG_HYPERBOLOID)
     &&  (srf->sci[RT_W] <= 0.0f
-    &&   srf->bmin[srf->mp_k] < pps[srf->mp_k]
-    &&   srf->bmax[srf->mp_k] > pps[srf->mp_k]
+    &&   srf->shp->bmin[srf->shp->map[RT_K]] < pps[srf->shp->map[RT_K]]
+    &&   srf->shp->bmax[srf->shp->map[RT_K]] > pps[srf->shp->map[RT_K]]
     ||   srf->sci[RT_W] > 0.0f))
     {
         c = 1;
@@ -756,22 +756,22 @@ rt_cell surf_cbox(rt_vec4 pos, rt_Surface *srf)
 
     /* margin is applied to "pps"
      * as cmin/cmax might be infinite */
-    if (pps[RT_X] + RT_CULL_THRESHOLD <  srf->cmin[RT_X]
-    ||  pps[RT_Y] + RT_CULL_THRESHOLD <  srf->cmin[RT_Y]
-    ||  pps[RT_Z] + RT_CULL_THRESHOLD <  srf->cmin[RT_Z]
-    ||  pps[RT_X] - RT_CULL_THRESHOLD >  srf->cmax[RT_X]
-    ||  pps[RT_Y] - RT_CULL_THRESHOLD >  srf->cmax[RT_Y]
-    ||  pps[RT_Z] - RT_CULL_THRESHOLD >  srf->cmax[RT_Z])
+    if (pps[RT_X] + RT_CULL_THRESHOLD <  srf->shp->cmin[RT_X]
+    ||  pps[RT_Y] + RT_CULL_THRESHOLD <  srf->shp->cmin[RT_Y]
+    ||  pps[RT_Z] + RT_CULL_THRESHOLD <  srf->shp->cmin[RT_Z]
+    ||  pps[RT_X] - RT_CULL_THRESHOLD >  srf->shp->cmax[RT_X]
+    ||  pps[RT_Y] - RT_CULL_THRESHOLD >  srf->shp->cmax[RT_Y]
+    ||  pps[RT_Z] - RT_CULL_THRESHOLD >  srf->shp->cmax[RT_Z])
     {
         c = 1;
     }
     else
-    if (pps[RT_X] - RT_CULL_THRESHOLD <= srf->cmin[RT_X]
-    ||  pps[RT_Y] - RT_CULL_THRESHOLD <= srf->cmin[RT_Y]
-    ||  pps[RT_Z] - RT_CULL_THRESHOLD <= srf->cmin[RT_Z]
-    ||  pps[RT_X] + RT_CULL_THRESHOLD >= srf->cmax[RT_X]
-    ||  pps[RT_Y] + RT_CULL_THRESHOLD >= srf->cmax[RT_Y]
-    ||  pps[RT_Z] + RT_CULL_THRESHOLD >= srf->cmax[RT_Z])
+    if (pps[RT_X] - RT_CULL_THRESHOLD <= srf->shp->cmin[RT_X]
+    ||  pps[RT_Y] - RT_CULL_THRESHOLD <= srf->shp->cmin[RT_Y]
+    ||  pps[RT_Z] - RT_CULL_THRESHOLD <= srf->shp->cmin[RT_Z]
+    ||  pps[RT_X] + RT_CULL_THRESHOLD >= srf->shp->cmax[RT_X]
+    ||  pps[RT_Y] + RT_CULL_THRESHOLD >= srf->shp->cmax[RT_Y]
+    ||  pps[RT_Z] + RT_CULL_THRESHOLD >= srf->shp->cmax[RT_Z])
     {
         c = 2;
     }
@@ -802,22 +802,22 @@ rt_cell surf_bbox(rt_vec4 pos, rt_Surface *srf)
 
     /* margin is applied to "pps"
      * for consistency with surf_cbox */
-    if (pps[RT_X] - RT_CULL_THRESHOLD >  srf->bmin[RT_X]
-    &&  pps[RT_Y] - RT_CULL_THRESHOLD >  srf->bmin[RT_Y]
-    &&  pps[RT_Z] - RT_CULL_THRESHOLD >  srf->bmin[RT_Z]
-    &&  pps[RT_X] + RT_CULL_THRESHOLD <  srf->bmax[RT_X]
-    &&  pps[RT_Y] + RT_CULL_THRESHOLD <  srf->bmax[RT_Y]
-    &&  pps[RT_Z] + RT_CULL_THRESHOLD <  srf->bmax[RT_Z])
+    if (pps[RT_X] - RT_CULL_THRESHOLD >  srf->shp->bmin[RT_X]
+    &&  pps[RT_Y] - RT_CULL_THRESHOLD >  srf->shp->bmin[RT_Y]
+    &&  pps[RT_Z] - RT_CULL_THRESHOLD >  srf->shp->bmin[RT_Z]
+    &&  pps[RT_X] + RT_CULL_THRESHOLD <  srf->shp->bmax[RT_X]
+    &&  pps[RT_Y] + RT_CULL_THRESHOLD <  srf->shp->bmax[RT_Y]
+    &&  pps[RT_Z] + RT_CULL_THRESHOLD <  srf->shp->bmax[RT_Z])
     {
         c = 1;
     }
     else
-    if (pps[RT_X] + RT_CULL_THRESHOLD >= srf->bmin[RT_X]
-    &&  pps[RT_Y] + RT_CULL_THRESHOLD >= srf->bmin[RT_Y]
-    &&  pps[RT_Z] + RT_CULL_THRESHOLD >= srf->bmin[RT_Z]
-    &&  pps[RT_X] - RT_CULL_THRESHOLD <= srf->bmax[RT_X]
-    &&  pps[RT_Y] - RT_CULL_THRESHOLD <= srf->bmax[RT_Y]
-    &&  pps[RT_Z] - RT_CULL_THRESHOLD <= srf->bmax[RT_Z])
+    if (pps[RT_X] + RT_CULL_THRESHOLD >= srf->shp->bmin[RT_X]
+    &&  pps[RT_Y] + RT_CULL_THRESHOLD >= srf->shp->bmin[RT_Y]
+    &&  pps[RT_Z] + RT_CULL_THRESHOLD >= srf->shp->bmin[RT_Z]
+    &&  pps[RT_X] - RT_CULL_THRESHOLD <= srf->shp->bmax[RT_X]
+    &&  pps[RT_Y] - RT_CULL_THRESHOLD <= srf->shp->bmax[RT_Y]
+    &&  pps[RT_Z] - RT_CULL_THRESHOLD <= srf->shp->bmax[RT_Z])
     {
         c = 2;
     }

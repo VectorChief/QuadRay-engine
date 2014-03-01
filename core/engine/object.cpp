@@ -47,8 +47,15 @@
 /*
  * Clip accumulator markers.
  */
-#define RT_ACCUM_ENTER              -1
-#define RT_ACCUM_LEAVE              +1
+#define RT_ACCUM_ENTER          -1
+#define RT_ACCUM_LEAVE          +1
+
+/*
+ * For surface's UV coords
+ *  to texture's XY coords mapping
+ */
+#define RT_U                    0
+#define RT_V                    1
 
 /******************************************************************************/
 /*********************************   OBJECT   *********************************/
@@ -68,10 +75,20 @@ rt_Object::rt_Object(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj)
 
     this->obj = obj;
     /* save original transform data */
-    otm = obj->trm;
+    this->otm = obj->trm;
     this->trm = &obj->trm;
-    pos = this->mtx[3];
+    this->pos = this->mtx[3];
     this->tag = obj->obj.tag;
+
+    trb = (rt_BOUND *)rg->alloc(RT_IS_SURFACE(this) ?
+                        sizeof(rt_SHAPE) : sizeof(rt_BOUND), RT_QUAD_ALIGN);
+
+    trb->obj = this;
+    trb->tag = this->tag;
+    trb->pinv = &this->inv;
+    trb->pmtx = &this->mtx;
+    trb->pos = this->mtx[3];
+    trb->opts = &rg->opts;
 
     obj->time = -1;
 
@@ -234,6 +251,15 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         memcpy(this->mtx, tmp_mtx, sizeof(rt_mat4));
 
         trnode = this;
+    }
+
+    if (trnode != RT_NULL)
+    {
+        trb->trnode = trnode->trb;
+    }
+    else
+    {
+        trb->trnode = RT_NULL;
     }
 }
 
@@ -674,6 +700,15 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     obj_num = obj->obj.obj_num;
     obj_arr = (rt_Object **)rg->alloc(obj_num * sizeof(rt_Object *), RT_ALIGN);
 
+    aab = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
+
+    aab->obj = this;
+    aab->tag = this->tag;
+    aab->pinv = &this->inv;
+    aab->pmtx = &this->mtx;
+    aab->pos = this->mtx[3];
+    aab->opts = &rg->opts;
+
     rt_OBJECT *arr = (rt_OBJECT *)obj->obj.pobj;
 
     rt_cell i, j; /* j - for skipping unsupported object tags */
@@ -764,6 +799,8 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     }
 
     rt_Node::update(time, mtx, flags);
+
+    aab->trnode = trb->trnode;
 
     rt_cell i, j;
     rt_mat4 *pmtx = &this->mtx;
@@ -1122,6 +1159,11 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
                     obj->obj.pmat_inner ? obj->obj.pmat_inner :
                                           srf->side_inner.pmat);
 
+    shp = (rt_SHAPE *)trb;
+
+    shp->map = map;
+    shp->ptr = (rt_ELEM **)&s_srf->msc_p[2];
+
 /*  rt_SIMD_SURFACE */
 
     s_srf->mat_p[0] = outer->s_mat;
@@ -1337,24 +1379,24 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
             return;
         }
 
-        s_srf->min_t[RT_X] = cmin[RT_X] == -RT_INF ? 0 : 1;
-        s_srf->min_t[RT_Y] = cmin[RT_Y] == -RT_INF ? 0 : 1;
-        s_srf->min_t[RT_Z] = cmin[RT_Z] == -RT_INF ? 0 : 1;
+        s_srf->min_t[RT_X] = shp->cmin[RT_X] == -RT_INF ? 0 : 1;
+        s_srf->min_t[RT_Y] = shp->cmin[RT_Y] == -RT_INF ? 0 : 1;
+        s_srf->min_t[RT_Z] = shp->cmin[RT_Z] == -RT_INF ? 0 : 1;
 
-        s_srf->max_t[RT_X] = cmax[RT_X] == +RT_INF ? 0 : 1;
-        s_srf->max_t[RT_Y] = cmax[RT_Y] == +RT_INF ? 0 : 1;
-        s_srf->max_t[RT_Z] = cmax[RT_Z] == +RT_INF ? 0 : 1;
+        s_srf->max_t[RT_X] = shp->cmax[RT_X] == +RT_INF ? 0 : 1;
+        s_srf->max_t[RT_Y] = shp->cmax[RT_Y] == +RT_INF ? 0 : 1;
+        s_srf->max_t[RT_Z] = shp->cmax[RT_Z] == +RT_INF ? 0 : 1;
 
         rt_vec4  zro = {0.0f, 0.0f, 0.0f, 0.0f};
         rt_real *pps = trnode == this ? zro : pos;
 
-        RT_SIMD_SET(s_srf->min_x, bmin[RT_X] - pps[RT_X]);
-        RT_SIMD_SET(s_srf->min_y, bmin[RT_Y] - pps[RT_Y]);
-        RT_SIMD_SET(s_srf->min_z, bmin[RT_Z] - pps[RT_Z]);
+        RT_SIMD_SET(s_srf->min_x, shp->bmin[RT_X] - pps[RT_X]);
+        RT_SIMD_SET(s_srf->min_y, shp->bmin[RT_Y] - pps[RT_Y]);
+        RT_SIMD_SET(s_srf->min_z, shp->bmin[RT_Z] - pps[RT_Z]);
 
-        RT_SIMD_SET(s_srf->max_x, bmax[RT_X] - pps[RT_X]);
-        RT_SIMD_SET(s_srf->max_y, bmax[RT_Y] - pps[RT_Y]);
-        RT_SIMD_SET(s_srf->max_z, bmax[RT_Z] - pps[RT_Z]);
+        RT_SIMD_SET(s_srf->max_x, shp->bmax[RT_X] - pps[RT_X]);
+        RT_SIMD_SET(s_srf->max_y, shp->bmax[RT_Y] - pps[RT_Y]);
+        RT_SIMD_SET(s_srf->max_z, shp->bmax[RT_Z] - pps[RT_Z]);
 
         if (obj_changed == 0)
         {
@@ -1554,9 +1596,9 @@ rt_void rt_Surface::update_minmax()
     {
         /* calculate bbox and cbox based on 
          * original axis clippers and surface shape */
-        recalc_minmax(RT_NULL,  RT_NULL,
-                      bmin,     bmax,
-                      cmin,     cmax);
+        recalc_minmax(RT_NULL,   RT_NULL,
+                      shp->bmin, shp->bmax,
+                      shp->cmin, shp->cmax);
         return;
     }
 
@@ -1592,14 +1634,14 @@ rt_void rt_Surface::update_minmax()
 
     /* first calculate only bbox based on 
      * original axis clippers and surface shape */
-    recalc_minmax(RT_NULL,  RT_NULL,
-                  bmin,     bmax,
-                  RT_NULL,  RT_NULL);
+    recalc_minmax(RT_NULL,   RT_NULL,
+                  shp->bmin, shp->bmax,
+                  RT_NULL,   RT_NULL);
 
     /* prepare cbox as temporary storage
      * for bbox adjustments by custom clippers */
-    RT_VEC3_SET_VAL1(cmin, -RT_INF);
-    RT_VEC3_SET_VAL1(cmax, +RT_INF);
+    RT_VEC3_SET_VAL1(shp->cmin, -RT_INF);
+    RT_VEC3_SET_VAL1(shp->cmax, +RT_INF);
 
     /* reinit custom clippers list */
     elm = (rt_ELEM *)s_srf->msc_p[2];
@@ -1630,16 +1672,16 @@ rt_void rt_Surface::update_minmax()
 
         /* accumulate bbox adjustments
          * from individual outer clippers into cbox */
-        srf->recalc_minmax(bmin,     bmax,
-                           RT_NULL,  RT_NULL,
-                           cmin,     cmax);
+        srf->recalc_minmax(shp->bmin, shp->bmax,
+                           RT_NULL,   RT_NULL,
+                           shp->cmin, shp->cmax);
     }
 
     /* apply bbox adjustments accumulated in cbox,
      * calculate final bbox and cbox for the surface */
-    recalc_minmax(cmin,     cmax,
-                  bmin,     bmax,
-                  cmin,     cmax);
+    recalc_minmax(shp->cmin, shp->cmax,
+                  shp->bmin, shp->bmax,
+                  shp->cmin, shp->cmax);
 }
 
 /*
@@ -1805,27 +1847,27 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     if (trnode != RT_NULL)
     {
         rt_vec4 vt0;
-        vt0[mp_i] = bmax[mp_i];
-        vt0[mp_j] = bmax[mp_j];
-        vt0[mp_k] = bmax[mp_k];
+        vt0[mp_i] = shp->bmax[mp_i];
+        vt0[mp_j] = shp->bmax[mp_j];
+        vt0[mp_k] = shp->bmax[mp_k];
         vt0[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt1;
-        vt1[mp_i] = bmin[mp_i];
-        vt1[mp_j] = bmax[mp_j];
-        vt1[mp_k] = bmax[mp_k];
+        vt1[mp_i] = shp->bmin[mp_i];
+        vt1[mp_j] = shp->bmax[mp_j];
+        vt1[mp_k] = shp->bmax[mp_k];
         vt1[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt2;
-        vt2[mp_i] = bmin[mp_i];
-        vt2[mp_j] = bmin[mp_j];
-        vt2[mp_k] = bmax[mp_k];
+        vt2[mp_i] = shp->bmin[mp_i];
+        vt2[mp_j] = shp->bmin[mp_j];
+        vt2[mp_k] = shp->bmax[mp_k];
         vt2[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt3;
-        vt3[mp_i] = bmax[mp_i];
-        vt3[mp_j] = bmin[mp_j];
-        vt3[mp_k] = bmax[mp_k];
+        vt3[mp_i] = shp->bmax[mp_i];
+        vt3[mp_j] = shp->bmin[mp_j];
+        vt3[mp_k] = shp->bmax[mp_k];
         vt3[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         matrix_mul_vector(verts[0x0].pos, (*pmtx), vt0);
@@ -1844,24 +1886,24 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     }
     else
     {
-        verts[0x0].pos[mp_i] = bmax[mp_i];
-        verts[0x0].pos[mp_j] = bmax[mp_j];
-        verts[0x0].pos[mp_k] = bmax[mp_k];
+        verts[0x0].pos[mp_i] = shp->bmax[mp_i];
+        verts[0x0].pos[mp_j] = shp->bmax[mp_j];
+        verts[0x0].pos[mp_k] = shp->bmax[mp_k];
         verts[0x0].pos[mp_l] = 1.0f;
 
-        verts[0x1].pos[mp_i] = bmin[mp_i];
-        verts[0x1].pos[mp_j] = bmax[mp_j];
-        verts[0x1].pos[mp_k] = bmax[mp_k];
+        verts[0x1].pos[mp_i] = shp->bmin[mp_i];
+        verts[0x1].pos[mp_j] = shp->bmax[mp_j];
+        verts[0x1].pos[mp_k] = shp->bmax[mp_k];
         verts[0x1].pos[mp_l] = 1.0f;
 
-        verts[0x2].pos[mp_i] = bmin[mp_i];
-        verts[0x2].pos[mp_j] = bmin[mp_j];
-        verts[0x2].pos[mp_k] = bmax[mp_k];
+        verts[0x2].pos[mp_i] = shp->bmin[mp_i];
+        verts[0x2].pos[mp_j] = shp->bmin[mp_j];
+        verts[0x2].pos[mp_k] = shp->bmax[mp_k];
         verts[0x2].pos[mp_l] = 1.0f;
 
-        verts[0x3].pos[mp_i] = bmax[mp_i];
-        verts[0x3].pos[mp_j] = bmin[mp_j];
-        verts[0x3].pos[mp_k] = bmax[mp_k];
+        verts[0x3].pos[mp_i] = shp->bmax[mp_i];
+        verts[0x3].pos[mp_j] = shp->bmin[mp_j];
+        verts[0x3].pos[mp_k] = shp->bmax[mp_k];
         verts[0x3].pos[mp_l] = 1.0f;
 
         edges[0x0].k = mp_i;
@@ -2007,51 +2049,51 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     if (trnode != RT_NULL)
     {
         rt_vec4 vt0;
-        vt0[mp_i] = bmax[mp_i];
-        vt0[mp_j] = bmax[mp_j];
-        vt0[mp_k] = bmax[mp_k];
+        vt0[mp_i] = shp->bmax[mp_i];
+        vt0[mp_j] = shp->bmax[mp_j];
+        vt0[mp_k] = shp->bmax[mp_k];
         vt0[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt1;
-        vt1[mp_i] = bmin[mp_i];
-        vt1[mp_j] = bmax[mp_j];
-        vt1[mp_k] = bmax[mp_k];
+        vt1[mp_i] = shp->bmin[mp_i];
+        vt1[mp_j] = shp->bmax[mp_j];
+        vt1[mp_k] = shp->bmax[mp_k];
         vt1[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt2;
-        vt2[mp_i] = bmin[mp_i];
-        vt2[mp_j] = bmin[mp_j];
-        vt2[mp_k] = bmax[mp_k];
+        vt2[mp_i] = shp->bmin[mp_i];
+        vt2[mp_j] = shp->bmin[mp_j];
+        vt2[mp_k] = shp->bmax[mp_k];
         vt2[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt3;
-        vt3[mp_i] = bmax[mp_i];
-        vt3[mp_j] = bmin[mp_j];
-        vt3[mp_k] = bmax[mp_k];
+        vt3[mp_i] = shp->bmax[mp_i];
+        vt3[mp_j] = shp->bmin[mp_j];
+        vt3[mp_k] = shp->bmax[mp_k];
         vt3[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt4;
-        vt4[mp_i] = bmax[mp_i];
-        vt4[mp_j] = bmax[mp_j];
-        vt4[mp_k] = bmin[mp_k];
+        vt4[mp_i] = shp->bmax[mp_i];
+        vt4[mp_j] = shp->bmax[mp_j];
+        vt4[mp_k] = shp->bmin[mp_k];
         vt4[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt5;
-        vt5[mp_i] = bmin[mp_i];
-        vt5[mp_j] = bmax[mp_j];
-        vt5[mp_k] = bmin[mp_k];
+        vt5[mp_i] = shp->bmin[mp_i];
+        vt5[mp_j] = shp->bmax[mp_j];
+        vt5[mp_k] = shp->bmin[mp_k];
         vt5[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt6;
-        vt6[mp_i] = bmin[mp_i];
-        vt6[mp_j] = bmin[mp_j];
-        vt6[mp_k] = bmin[mp_k];
+        vt6[mp_i] = shp->bmin[mp_i];
+        vt6[mp_j] = shp->bmin[mp_j];
+        vt6[mp_k] = shp->bmin[mp_k];
         vt6[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         rt_vec4 vt7;
-        vt7[mp_i] = bmax[mp_i];
-        vt7[mp_j] = bmin[mp_j];
-        vt7[mp_k] = bmin[mp_k];
+        vt7[mp_i] = shp->bmax[mp_i];
+        vt7[mp_j] = shp->bmin[mp_j];
+        vt7[mp_k] = shp->bmin[mp_k];
         vt7[mp_l] = 1.0f; /* takes pos in mtx into account */
 
         matrix_mul_vector(verts[0x0].pos, (*pmtx), vt0);
@@ -2104,44 +2146,44 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     }
     else
     {
-        verts[0x0].pos[mp_i] = bmax[mp_i];
-        verts[0x0].pos[mp_j] = bmax[mp_j];
-        verts[0x0].pos[mp_k] = bmax[mp_k];
+        verts[0x0].pos[mp_i] = shp->bmax[mp_i];
+        verts[0x0].pos[mp_j] = shp->bmax[mp_j];
+        verts[0x0].pos[mp_k] = shp->bmax[mp_k];
         verts[0x0].pos[mp_l] = 1.0f;
 
-        verts[0x1].pos[mp_i] = bmin[mp_i];
-        verts[0x1].pos[mp_j] = bmax[mp_j];
-        verts[0x1].pos[mp_k] = bmax[mp_k];
+        verts[0x1].pos[mp_i] = shp->bmin[mp_i];
+        verts[0x1].pos[mp_j] = shp->bmax[mp_j];
+        verts[0x1].pos[mp_k] = shp->bmax[mp_k];
         verts[0x1].pos[mp_l] = 1.0f;
 
-        verts[0x2].pos[mp_i] = bmin[mp_i];
-        verts[0x2].pos[mp_j] = bmin[mp_j];
-        verts[0x2].pos[mp_k] = bmax[mp_k];
+        verts[0x2].pos[mp_i] = shp->bmin[mp_i];
+        verts[0x2].pos[mp_j] = shp->bmin[mp_j];
+        verts[0x2].pos[mp_k] = shp->bmax[mp_k];
         verts[0x2].pos[mp_l] = 1.0f;
 
-        verts[0x3].pos[mp_i] = bmax[mp_i];
-        verts[0x3].pos[mp_j] = bmin[mp_j];
-        verts[0x3].pos[mp_k] = bmax[mp_k];
+        verts[0x3].pos[mp_i] = shp->bmax[mp_i];
+        verts[0x3].pos[mp_j] = shp->bmin[mp_j];
+        verts[0x3].pos[mp_k] = shp->bmax[mp_k];
         verts[0x3].pos[mp_l] = 1.0f;
 
-        verts[0x4].pos[mp_i] = bmax[mp_i];
-        verts[0x4].pos[mp_j] = bmax[mp_j];
-        verts[0x4].pos[mp_k] = bmin[mp_k];
+        verts[0x4].pos[mp_i] = shp->bmax[mp_i];
+        verts[0x4].pos[mp_j] = shp->bmax[mp_j];
+        verts[0x4].pos[mp_k] = shp->bmin[mp_k];
         verts[0x4].pos[mp_l] = 1.0f;
 
-        verts[0x5].pos[mp_i] = bmin[mp_i];
-        verts[0x5].pos[mp_j] = bmax[mp_j];
-        verts[0x5].pos[mp_k] = bmin[mp_k];
+        verts[0x5].pos[mp_i] = shp->bmin[mp_i];
+        verts[0x5].pos[mp_j] = shp->bmax[mp_j];
+        verts[0x5].pos[mp_k] = shp->bmin[mp_k];
         verts[0x5].pos[mp_l] = 1.0f;
 
-        verts[0x6].pos[mp_i] = bmin[mp_i];
-        verts[0x6].pos[mp_j] = bmin[mp_j];
-        verts[0x6].pos[mp_k] = bmin[mp_k];
+        verts[0x6].pos[mp_i] = shp->bmin[mp_i];
+        verts[0x6].pos[mp_j] = shp->bmin[mp_j];
+        verts[0x6].pos[mp_k] = shp->bmin[mp_k];
         verts[0x6].pos[mp_l] = 1.0f;
 
-        verts[0x7].pos[mp_i] = bmax[mp_i];
-        verts[0x7].pos[mp_j] = bmin[mp_j];
-        verts[0x7].pos[mp_k] = bmin[mp_k];
+        verts[0x7].pos[mp_i] = shp->bmax[mp_i];
+        verts[0x7].pos[mp_j] = shp->bmin[mp_j];
+        verts[0x7].pos[mp_k] = shp->bmin[mp_k];
         verts[0x7].pos[mp_l] = 1.0f;
 
         edges[0x0].k = mp_i;
@@ -2824,11 +2866,6 @@ rt_Texture::~rt_Texture()
 {
 
 }
-
-/* For surface's UV coords
- *  to texture's XY coords mapping */
-#define RT_U                0
-#define RT_V                1
 
 /*
  * Instantiate material.
