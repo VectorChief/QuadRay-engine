@@ -8,6 +8,7 @@
 
 #include "rtgeom.h"
 #include "system.h"
+#include "tracer.h"
 
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/
@@ -583,7 +584,7 @@ rt_cell surf_hole(rt_SHAPE *srf, rt_SHAPE *ref)
     /* run through custom clippers list */
     for (; elm != RT_NULL; elm = elm->next)
     {
-        rt_Object *obj = (rt_Object *)elm->temp;
+        rt_BOUND *obj = (rt_BOUND *)elm->temp;
 
         /* skip accum markers */
         if (obj == RT_NULL)
@@ -600,7 +601,7 @@ rt_cell surf_hole(rt_SHAPE *srf, rt_SHAPE *ref)
 
         /* if there is clipper other than "ref"
            or inside accum segment, stop */
-        if (obj != ref->obj || skip == 1)
+        if (obj != ref || skip == 1)
         {
             c |= 2;
             break;
@@ -632,7 +633,7 @@ rt_cell surf_clip(rt_SHAPE *srf, rt_SHAPE *clp)
     /* run through custom clippers list */
     for (; elm != RT_NULL; elm = elm->next)
     {
-        rt_Object *obj = (rt_Object *)elm->temp;
+        rt_BOUND *obj = (rt_BOUND *)elm->temp;
 
         /* skip accum markers */
         if (obj == RT_NULL)
@@ -649,7 +650,7 @@ rt_cell surf_clip(rt_SHAPE *srf, rt_SHAPE *clp)
 
         /* if there is clipper "clp"
            outside of accum segment, stop */
-        if (obj == clp->obj && skip == 0)
+        if (obj == clp && skip == 0)
         {
             c = elm->data;
             break;
@@ -944,8 +945,8 @@ rt_cell cbox_side(rt_SHAPE *srf, rt_vec4 pos)
  */
 rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 {
-    /* check if surfaces differ and have bounds */
-    if (nd1->verts_num == 0 || nd2->verts_num == 0 || nd1 == nd2)
+    /* check if nodes differ and have bounds */
+    if (nd1->rad == 0.0f || nd2->rad == 0.0f || nd1 == nd2)
     {
         return 1;
     }
@@ -1111,7 +1112,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 {
     /* check if nodes differ and have bounds */
-    if (nd1->verts_num == 0 || nd2->verts_num == 0 || nd1 == nd2)
+    if (nd1->rad == 0.0f || nd2->rad == 0.0f || nd1 == nd2)
     {
         return 2;
     }
@@ -1332,8 +1333,8 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 static
 rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
 {
-    /* check if surfaces differ and have bounds */
-    if (nd1->verts_num == 0 || nd2->verts_num == 0 || nd1 == nd2)
+    /* check if nodes differ and have bounds */
+    if (nd1->rad == 0.0f || nd2->rad == 0.0f || nd1 == nd2)
     {
         return 2;
     }

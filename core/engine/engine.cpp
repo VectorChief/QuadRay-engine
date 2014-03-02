@@ -284,7 +284,8 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
 {
     for (; elm != RT_NULL; elm = elm->next)
     {
-        rt_Object *obj = (rt_Object *)elm->temp;
+        rt_Object *obj = elm->temp == RT_NULL ? RT_NULL :
+                         (rt_Object *)((rt_BOUND *)elm->temp)->obj;
 
         if (obj != RT_NULL && RT_IS_LIGHT(obj))
         {
@@ -673,7 +674,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
         elm->data = (rt_cell)scene->slist; /* all srf are potential shadows */
         elm->simd = lgt->s_lgt;
-        elm->temp = lgt;
+        elm->temp = lgt->trb;
         /* insert element as list head */
         elm->next = *ptr;
        *ptr = elm;
@@ -688,7 +689,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
     elm->data = 0;
     elm->simd = srf->s_srf;
-    elm->temp = srf;
+    elm->temp = srf->trb;
 
     rt_ELEM *lst[2], *nxt;
     rt_Array *arr[2];
@@ -758,7 +759,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
      * along with node's type in the lower 4 bits (trnode/bvnode) */
     for (i = 0; nxt != RT_NULL && i < n; nxt = nxt->next)
     {
-        if (arr[k] == nxt->temp && RT_GET_FLG(nxt->simd) == k)
+        if (arr[k]->trb == nxt->temp && RT_GET_FLG(nxt->simd) == k)
         {
             lst[k] = nxt;
             /* set insertion point to existing node's sublist */
@@ -787,7 +788,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         nxt->data = 0;
         nxt->simd = RT_NULL;
         RT_SET_FLG(nxt->simd, rt_pntr, k); /* node's type */
-        nxt->temp = arr[k];
+        nxt->temp = arr[k]->trb;
         /* insert element according to found position */
         nxt->next = RT_GET_PTR(*ptr);
         RT_SET_PTR(*ptr, rt_ELEM *, nxt);
@@ -843,8 +844,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     {
         /* compute the order value between "elm" and "nxt" elements */
         rt_cell op = bbox_sort(obj->trb,
-                              ((rt_Node *)elm->temp)->trb,
-                              ((rt_Node *)nxt->temp)->trb);
+                              (rt_BOUND *)elm->temp,
+                              (rt_BOUND *)nxt->temp);
         switch (op)
         {
             /* move "elm" forward if the "op" is
@@ -864,8 +865,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 else
                 {
                     prv->data = bbox_sort(obj->trb,
-                                         ((rt_Node *)prv->temp)->trb,
-                                         ((rt_Node *)nxt->temp)->trb);
+                                         (rt_BOUND *)prv->temp,
+                                         (rt_BOUND *)nxt->temp);
                 }
                 prv->next = nxt;
             }
@@ -909,8 +910,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         rt_bool gr = RT_FALSE;
         /* compute the order value between "elm" and "nxt" elements */
         rt_cell op = bbox_sort(obj->trb,
-                              ((rt_Node *)elm->temp)->trb,
-                              ((rt_Node *)nxt->temp)->trb);
+                              (rt_BOUND *)elm->temp,
+                              (rt_BOUND *)nxt->temp);
         switch (op)
         {
             /* move "nxt" in front of the "elm"
@@ -969,8 +970,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                         else
                         {
                             op = bbox_sort(obj->trb,
-                                          ((rt_Node *)cur->temp)->trb,
-                                          ((rt_Node *)jel->temp)->trb);
+                                          (rt_BOUND *)cur->temp,
+                                          (rt_BOUND *)jel->temp);
                         }
                         /* repair "tlp" stored order value to the first
                          * comb element, "cur" serves as "tlp" */
@@ -1035,8 +1036,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                         {
                             cur = iel->next;
                             iel->data = bbox_sort(obj->trb,
-                                                 ((rt_Node *)iel->temp)->trb,
-                                                 ((rt_Node *)cur->temp)->trb);
+                                                 (rt_BOUND *)iel->temp,
+                                                 (rt_BOUND *)cur->temp);
                         }
                         /* reset local "state" as tail's sublist
                          * (joining the comb) is being broken */
@@ -1051,8 +1052,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 {
                     cur = ipt->next;
                     ipt->data = bbox_sort(obj->trb,
-                                         ((rt_Node *)ipt->temp)->trb,
-                                         ((rt_Node *)cur->temp)->trb);
+                                         (rt_BOUND *)ipt->temp,
+                                         (rt_BOUND *)cur->temp);
                 }
             }
             /* reset "state" if the comb has grown with tail elements, thus
@@ -1073,8 +1074,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 else
                 {
                     prv->data = bbox_sort(obj->trb,
-                                         ((rt_Node *)prv->temp)->trb,
-                                         ((rt_Node *)cur->temp)->trb);
+                                         (rt_BOUND *)prv->temp,
+                                         (rt_BOUND *)cur->temp);
                 }
                 prv->next = cur;
             }
@@ -1111,8 +1112,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 {
                     cur = tlp->next;
                     tlp->data = bbox_sort(obj->trb,
-                                         ((rt_Node *)tlp->temp)->trb,
-                                         ((rt_Node *)cur->temp)->trb);
+                                         (rt_BOUND *)tlp->temp,
+                                         (rt_BOUND *)cur->temp);
                 }
                 /* reset "state" as "tlp" moves forward, thus
                  * breaking the sublist moving to the front of the "elm" */
@@ -1134,8 +1135,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     if (tlp->data == 0 && cur != RT_NULL)
     {
         tlp->data = bbox_sort(obj->trb,
-                             ((rt_Node *)tlp->temp)->trb,
-                             ((rt_Node *)cur->temp)->trb);
+                             (rt_BOUND *)tlp->temp,
+                             (rt_BOUND *)cur->temp);
     }
 
     return elm;
@@ -1162,7 +1163,7 @@ rt_ELEM* rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
     for (; nxt != RT_NULL; nxt = nxt->next)
     {
         /* only node elements are allowed in surface lists */
-        rt_Node *nd = (rt_Node *)nxt->temp;
+        rt_Node *nd = (rt_Node *)((rt_BOUND *)nxt->temp)->obj;
 
         /* if the list element is surface,
          * reset "data" field used as stored order value
@@ -1356,7 +1357,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
             elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
             elm->data = i << 16 | j;
             elm->simd = srf->s_srf;
-            elm->temp = srf;
+            elm->temp = srf->trb;
            *ptr = elm;
             ptr = &elm->next;
         }
@@ -2040,16 +2041,16 @@ rt_void rt_Scene::render(rt_long time)
          * and optimize trnode handling for each tile */
         for (elm = stail; elm != RT_NULL; elm = elm->next)
         {
-            rt_Object *obj = (rt_Object *)elm->temp;
+            rt_Node *nd = (rt_Node *)((rt_BOUND *)elm->temp)->obj;
 
             /* skip trnode elements from reversed slist
              * as they are handled separately for each tile */
-            if (RT_IS_ARRAY(obj))
+            if (RT_IS_ARRAY(nd))
             {
                 continue;
             }
 
-            rt_Surface *srf = (rt_Surface *)elm->temp;
+            rt_Surface *srf = (rt_Surface *)nd;
 
             rt_ELEM *tls = (rt_ELEM *)srf->s_srf->msc_p[0], *trn;
 
@@ -2071,7 +2072,7 @@ rt_void rt_Scene::render(rt_long time)
                      * grouping for cached transform is retained from slist */
                     trn = tiles[tline + j];
 
-                    if (trn != RT_NULL && trn->temp == srf->trnode)
+                    if (trn != RT_NULL && trn->temp == srf->trnode->trb)
                     {
                         /* insert element under existing trnode */
                         tls->next = trn->next;
@@ -2089,7 +2090,7 @@ rt_void rt_Scene::render(rt_long time)
                         trn = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                         trn->data = (rt_cell)tls; /* trnode's last elem */
                         trn->simd = arr->s_srf;
-                        trn->temp = arr;
+                        trn->temp = arr->trb;
                         /* insert element as list head */
                         trn->next = tiles[tline + j];
                         tiles[tline + j] = trn;

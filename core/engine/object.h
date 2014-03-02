@@ -8,6 +8,7 @@
 #define RT_OBJECT_H
 
 #include "rtbase.h"
+#include "rtgeom.h"
 #include "format.h"
 #include "system.h"
 #include "tracer.h"
@@ -78,83 +79,6 @@
 /* select 1st phase of the update,
  * only srf-related fields are updated */
 #define RT_UPDATE_FLAG_SRF          (1 << 4)
-
-/* Structures */
-
-struct rt_VERT
-{
-    rt_vec4 pos;
-};
-
-struct rt_EDGE
-{
-    rt_cell index[2];
-    rt_cell k;
-};
-
-struct rt_FACE
-{
-    rt_cell index[4];
-    rt_cell k, i, j;
-};
-
-struct rt_BOUND;
-
-struct rt_BOUND
-{
-    /* host object pointer */
-    rt_pntr             obj;
-    /* host object tag */
-    rt_cell             tag;
-    /* host object inv matrix */
-    rt_mat4            *pinv;
-    /* host object trm matrix */
-    rt_mat4            *pmtx;
-    /* host object position */
-    rt_real            *pos;
-    /* optimization flags */
-    rt_cell            *opts;
-
-    /* host object trnode's
-     * BOUND struct pointer */
-    rt_BOUND           *trnode;
-
-    /* bounding box,
-     * all sides clipped or non-clipped are boundaries */
-    rt_vec4             bmin;
-    rt_vec4             bmax;
-
-    /* bounding box geometry */
-    rt_VERT            *verts;
-    rt_cell             verts_num;
-    rt_EDGE            *edges;
-    rt_cell             edges_num;
-    rt_FACE            *faces;
-    rt_cell             faces_num;
-
-    /* bounding volume center */
-    rt_vec4             mid;
-    /* bounding volume radius */
-    rt_real             rad;
-};
-
-struct rt_SHAPE : public rt_BOUND
-{
-    /* host object axis mapping */
-    rt_cell            *map;
-
-    /* clipping box,
-     * non-clipped sides are at respective +/-infinity */
-    rt_vec4             cmin;
-    rt_vec4             cmax;
-
-    /* surface shape coeffs */
-    rt_vec4             sci;
-    rt_vec4             scj;
-    rt_vec4             sck;
-    /* custom clippers list */
-    rt_ELEM           **ptr;
-};
 
 /* Classes */
 

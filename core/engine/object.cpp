@@ -83,6 +83,7 @@ rt_Object::rt_Object(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj)
     trb = (rt_BOUND *)rg->alloc(RT_IS_SURFACE(this) ?
                         sizeof(rt_SHAPE) : sizeof(rt_BOUND), RT_QUAD_ALIGN);
 
+    memset(trb, 0, sizeof(rt_BOUND));
     trb->obj = this;
     trb->tag = this->tag;
     trb->pinv = &this->inv;
@@ -755,6 +756,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
 
     aab = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
 
+    memset(aab, 0, sizeof(rt_BOUND));
     aab->obj = this;
     aab->tag = this->tag;
     aab->pinv = &this->inv;
@@ -933,7 +935,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
                     elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                     elm->data = rel[i].rel;
                     elm->simd = RT_NULL;
-                    elm->temp = obj_arr_r[rel[i].obj2];
+                    elm->temp = obj_arr_r[rel[i].obj2]->trb;
                     elm->next = RT_NULL;
                     obj_arr_r = obj_arr; /* reset right sub-array after use */
                     obj_num_r = obj_num;
@@ -1210,7 +1212,7 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
     shp = (rt_SHAPE *)trb;
 
     shp->map = map;
-    shp->ptr = (rt_ELEM **)&s_srf->msc_p[2];
+    shp->ptr = &s_srf->msc_p[2];
 
 /*  rt_SIMD_SURFACE */
 
@@ -1236,7 +1238,8 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
     {
         rt_ELEM *elm = RT_NULL;
         rt_cell rel = lst->data;
-        rt_Object *obj = (rt_Object *)lst->temp;
+        rt_Object *obj = lst->temp == RT_NULL ? RT_NULL :
+                         (rt_Object *)((rt_BOUND *)lst->temp)->obj;
 
         if (obj == RT_NULL)
         {
@@ -1261,7 +1264,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
                 elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                 elm->data = rel;
                 elm->simd = RT_NULL;
-                elm->temp = arr->obj_arr[i];
+                elm->temp = arr->obj_arr[i]->trb;
                 elm->next = RT_NULL;
 
                 add_relation(elm);
@@ -1276,7 +1279,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
             elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
             elm->data = rel;
             elm->simd = srf->s_srf;
-            elm->temp = srf;
+            elm->temp = srf->trb;
 
             if (srf->trnode != RT_NULL && srf->trnode != srf)
             {
@@ -1292,7 +1295,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
                      * hasn't been inserted yet (current accum segment)
                      * or outside of any accum segment */
                     if (acc == 0
-                    &&  nxt->temp == srf->trnode)
+                    &&  nxt->temp == srf->trnode->trb)
                     {
                         break;
                     }
@@ -1340,7 +1343,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
                     nxt = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                     nxt->data = (rt_cell)elm; /* trnode's last elem */
                     nxt->simd = arr->s_srf;
-                    nxt->temp = arr;
+                    nxt->temp = arr->trb;
                     /* insert element as list head */
                     nxt->next = *ptr;
                    *ptr = nxt;
@@ -1655,7 +1658,8 @@ rt_void rt_Surface::update_minmax()
     /* run through custom clippers list */
     for (; elm != RT_NULL; elm = elm->next)
     {
-        rt_Object *obj = (rt_Object *)elm->temp;
+        rt_Object *obj = elm->temp == RT_NULL ? RT_NULL :
+                         (rt_Object *)((rt_BOUND *)elm->temp)->obj;
 
         /* skip clip accum segments in the list */
         if (obj == RT_NULL)
@@ -1699,7 +1703,8 @@ rt_void rt_Surface::update_minmax()
     /* run through custom clippers list */
     for (; elm != RT_NULL; elm = elm->next)
     {
-        rt_Object *obj = (rt_Object *)elm->temp;
+        rt_Object *obj = elm->temp == RT_NULL ? RT_NULL :
+                         (rt_Object *)((rt_BOUND *)elm->temp)->obj;
 
         /* skip clip accum segments in the list */
         if (obj == RT_NULL)
