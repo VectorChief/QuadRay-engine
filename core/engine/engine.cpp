@@ -842,8 +842,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     for (nxt = elm->next; nxt != RT_NULL; )
     {
         /* compute the order value between "elm" and "nxt" elements */
-        rt_cell op = bbox_sort(obj, (rt_Node *)elm->temp,
-                                    (rt_Node *)nxt->temp);
+        rt_cell op = bbox_sort(obj->trb,
+                              ((rt_Node *)elm->temp)->trb,
+                              ((rt_Node *)nxt->temp)->trb);
         switch (op)
         {
             /* move "elm" forward if the "op" is
@@ -862,8 +863,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 }
                 else
                 {
-                    prv->data = bbox_sort(obj, (rt_Node *)prv->temp,
-                                               (rt_Node *)nxt->temp);
+                    prv->data = bbox_sort(obj->trb,
+                                         ((rt_Node *)prv->temp)->trb,
+                                         ((rt_Node *)nxt->temp)->trb);
                 }
                 prv->next = nxt;
             }
@@ -906,8 +908,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     {
         rt_bool gr = RT_FALSE;
         /* compute the order value between "elm" and "nxt" elements */
-        rt_cell op = bbox_sort(obj, (rt_Node *)elm->temp,
-                                    (rt_Node *)nxt->temp);
+        rt_cell op = bbox_sort(obj->trb,
+                              ((rt_Node *)elm->temp)->trb,
+                              ((rt_Node *)nxt->temp)->trb);
         switch (op)
         {
             /* move "nxt" in front of the "elm"
@@ -965,8 +968,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                         /* compute new order value */
                         else
                         {
-                            op = bbox_sort(obj, (rt_Node *)cur->temp,
-                                                (rt_Node *)jel->temp);
+                            op = bbox_sort(obj->trb,
+                                          ((rt_Node *)cur->temp)->trb,
+                                          ((rt_Node *)jel->temp)->trb);
                         }
                         /* repair "tlp" stored order value to the first
                          * comb element, "cur" serves as "tlp" */
@@ -1030,9 +1034,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                         if (iel->data == 0)
                         {
                             cur = iel->next;
-                            iel->data = 
-                                 bbox_sort(obj, (rt_Node *)iel->temp,
-                                                (rt_Node *)cur->temp);
+                            iel->data = bbox_sort(obj->trb,
+                                                 ((rt_Node *)iel->temp)->trb,
+                                                 ((rt_Node *)cur->temp)->trb);
                         }
                         /* reset local "state" as tail's sublist
                          * (joining the comb) is being broken */
@@ -1046,8 +1050,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 if (ipt->data == 0)
                 {
                     cur = ipt->next;
-                    ipt->data = bbox_sort(obj, (rt_Node *)ipt->temp,
-                                               (rt_Node *)cur->temp);
+                    ipt->data = bbox_sort(obj->trb,
+                                         ((rt_Node *)ipt->temp)->trb,
+                                         ((rt_Node *)cur->temp)->trb);
                 }
             }
             /* reset "state" if the comb has grown with tail elements, thus
@@ -1067,8 +1072,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 }
                 else
                 {
-                    prv->data = bbox_sort(obj, (rt_Node *)prv->temp,
-                                               (rt_Node *)cur->temp);
+                    prv->data = bbox_sort(obj->trb,
+                                         ((rt_Node *)prv->temp)->trb,
+                                         ((rt_Node *)cur->temp)->trb);
                 }
                 prv->next = cur;
             }
@@ -1104,8 +1110,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 if (tlp->data == 0)
                 {
                     cur = tlp->next;
-                    tlp->data = bbox_sort(obj, (rt_Node *)tlp->temp,
-                                               (rt_Node *)cur->temp);
+                    tlp->data = bbox_sort(obj->trb,
+                                         ((rt_Node *)tlp->temp)->trb,
+                                         ((rt_Node *)cur->temp)->trb);
                 }
                 /* reset "state" as "tlp" moves forward, thus
                  * breaking the sublist moving to the front of the "elm" */
@@ -1126,8 +1133,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     cur = tlp->next;
     if (tlp->data == 0 && cur != RT_NULL)
     {
-        tlp->data = bbox_sort(obj, (rt_Node *)tlp->temp,
-                                   (rt_Node *)cur->temp);
+        tlp->data = bbox_sort(obj->trb,
+                             ((rt_Node *)tlp->temp)->trb,
+                             ((rt_Node *)cur->temp)->trb);
     }
 
     return elm;
@@ -1410,7 +1418,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 #if RT_OPTS_2SIDED != 0
         if ((scene->opts & RT_OPTS_2SIDED) != 0 && srf != RT_NULL)
         {
-            rt_cell c = bbox_side(srf, ref);
+            rt_cell c = bbox_side(ref->trb, srf->shp);
 
             if (c & 2)
             {
@@ -1528,7 +1536,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 #if RT_OPTS_2SIDED != 0
         if ((scene->opts & RT_OPTS_2SIDED) != 0 && srf != RT_NULL)
         {
-            rt_cell c = cbox_side(lgt, srf);
+            rt_cell c = bbox_side(lgt->trb, srf->shp);
 
             if (c & 2)
             {
@@ -1583,7 +1591,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 
         for (shw = scene->srf_head; shw != RT_NULL; shw = shw->next)
         {
-            if (bbox_shad(lgt, shw, srf) == 0)
+            if (bbox_shad(lgt->trb, shw->trb, srf->trb) == 0)
             {
                 continue;
             }
@@ -1591,7 +1599,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 #if RT_OPTS_2SIDED != 0
             if ((scene->opts & RT_OPTS_2SIDED) != 0)
             {
-                rt_cell c = bbox_side(srf, shw);
+                rt_cell c = bbox_side(shw->trb, srf->shp);
 
                 if (c & 2 && pso != RT_NULL)
                 {

@@ -69,6 +69,7 @@
 #define RT_OPTS_ADJUST          (1 << 10)
 #define RT_OPTS_UPDATE          (1 << 11)
 #define RT_OPTS_INSERT          (1 << 12)
+#define RT_OPTS_INSERT_EXT1     (1 << 13)
 
 #define RT_OPTS_FULL            (                                           \
         RT_OPTS_THREAD          |                                           \
@@ -83,7 +84,8 @@
         RT_OPTS_2SIDED          |                                           \
         RT_OPTS_ADJUST          |                                           \
         RT_OPTS_UPDATE          |                                           \
-        RT_OPTS_INSERT          )
+        RT_OPTS_INSERT          |                                           \
+        RT_OPTS_INSERT_EXT1     )
 
 #endif /* RT_RTCONF_H */
 

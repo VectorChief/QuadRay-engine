@@ -202,23 +202,13 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1);
 /******************************************************************************/
 
 /*
- * Determine which side of clipped "srf" is seen from "obj".
- *
- * Return values:
- *  1 - inner
- *  2 - outer
- *  3 - both, also if on the surface with margin
- */
-rt_cell cbox_side(rt_Object *obj, rt_Surface *srf);
-
-/*
- * Determine if "shw" bbox casts shadow on "srf" bbox as seen from "obj".
+ * Determine if "nd1" bbox casts shadow on "nd2" bbox as seen from "obj".
  *
  * Return values:
  *  0 - no
  *  1 - yes
  */
-rt_cell bbox_shad(rt_Object *obj, rt_Surface *shw, rt_Surface *srf);
+rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2);
 
 /*
  * Determine the order of "nd1" and "nd2" bboxes as seen from "obj".
@@ -227,20 +217,20 @@ rt_cell bbox_shad(rt_Object *obj, rt_Surface *shw, rt_Surface *srf);
  *  1 - neutral
  *  2 - unsortable
  *  3 - don't swap
- *  4 - do swap, never stored in rt_ELEM's "data" field in the engine
+ *  4 - do swap, not part of the stored order value in the engine
  */
-rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2);
+rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2);
 
 /*
- * Determine which side of clipped "srf" is seen from "ref" bbox.
+ * Determine which side of clipped "srf" is seen from "obj".
  *
  * Return values:
  *  0 - none, if both surfaces are the same plane
  *  1 - inner
  *  2 - outer
- *  3 - both
+ *  3 - both, also if on the surface with margin
  */
-rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref);
+rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf);
 
 #endif /* RT_RTGEOM_H */
 
