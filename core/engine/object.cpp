@@ -47,8 +47,8 @@
 /*
  * Clip accumulator markers.
  */
-#define RT_ACCUM_ENTER          -1
-#define RT_ACCUM_LEAVE          +1
+#define RT_ACCUM_ENTER          (-1)
+#define RT_ACCUM_LEAVE          (+1)
 
 /*
  * For surface's UV coords
@@ -700,15 +700,6 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     obj_num = obj->obj.obj_num;
     obj_arr = (rt_Object **)rg->alloc(obj_num * sizeof(rt_Object *), RT_ALIGN);
 
-    aab = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
-
-    aab->obj = this;
-    aab->tag = this->tag;
-    aab->pinv = &this->inv;
-    aab->pmtx = &this->mtx;
-    aab->pos = this->mtx[3];
-    aab->opts = &rg->opts;
-
     rt_OBJECT *arr = (rt_OBJECT *)obj->obj.pobj;
 
     rt_cell i, j; /* j - for skipping unsupported object tags */
@@ -761,6 +752,45 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
             break;
         }
     }
+
+    aab = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
+
+    aab->obj = this;
+    aab->tag = this->tag;
+    aab->pinv = &this->inv;
+    aab->pmtx = &this->mtx;
+    aab->pos = this->mtx[3];
+    aab->opts = &rg->opts;
+
+/*  rt_SIMD_SURFACE */
+
+    s_aab = (rt_SIMD_SURFACE *)
+            rg->alloc(RT_MAX(ssize, sizeof(rt_SIMD_SPHERE)), RT_SIMD_ALIGN);
+
+    s_aab->mat_p[0] = RT_NULL; /* outer material */
+    s_aab->mat_p[1] = RT_NULL; /* outer material props */
+    s_aab->mat_p[2] = RT_NULL; /* inner material */
+    s_aab->mat_p[3] = RT_NULL; /* inner material props */
+
+    s_aab->srf_p[0] = RT_NULL; /* surf ptr, filled in update0 */
+    s_aab->srf_p[1] = RT_NULL; /* reserved */
+    s_aab->srf_p[2] = RT_NULL; /* clip ptr, filled in update0 */
+    s_aab->srf_p[3] = (rt_pntr)tag; /* tag */
+
+    s_aab->msc_p[0] = RT_NULL; /* screen tiles */
+    s_aab->msc_p[1] = RT_NULL; /* reserved */
+    s_aab->msc_p[2] = RT_NULL; /* custom clippers */
+    s_aab->msc_p[3] = RT_NULL; /* trnode's simd ptr */
+
+    s_aab->lst_p[0] = RT_NULL; /* outer lights/shadows */
+    s_aab->lst_p[1] = RT_NULL; /* outer surfaces for rfl/rfr */
+    s_aab->lst_p[2] = RT_NULL; /* inner lights/shadows */
+    s_aab->lst_p[3] = RT_NULL; /* inner surfaces for rfl/rfr */
+
+    RT_SIMD_SET(s_aab->sbase, 0x00000000);
+    RT_SIMD_SET(s_aab->smask, 0x80000000);
+
+    RT_SIMD_SET(s_aab->c_tmp, 0xFFFFFFFF);
 }
 
 /*
@@ -1035,6 +1065,16 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     s_srf->a_sgn[RT_K] = 0;
     s_srf->a_sgn[RT_L] = 0;
 
+    s_aab->a_map[RT_I] = RT_X * RT_SIMD_WIDTH * 4;
+    s_aab->a_map[RT_J] = RT_Y * RT_SIMD_WIDTH * 4;
+    s_aab->a_map[RT_K] = RT_Z * RT_SIMD_WIDTH * 4;
+    s_aab->a_map[RT_L] = mtx_has_trm;
+
+    s_aab->a_sgn[RT_I] = 0;
+    s_aab->a_sgn[RT_J] = 0;
+    s_aab->a_sgn[RT_K] = 0;
+    s_aab->a_sgn[RT_L] = 0;
+
     invert_matrix();
 }
 
@@ -1059,18 +1099,22 @@ rt_void rt_Array::update_bvnode(rt_Array *bvnode, rt_bool mode)
  */
 rt_void rt_Array::update_bounds()
 {
-    RT_VEC3_SET(mid, pos);
+    RT_VEC3_SET(trb->mid, pos);
 
-    rad = 0.0f;
+    trb->rad = 0.0f;
 
     if (trnode != RT_NULL && trnode != this)
     {
-        RT_VEC3_ADD(mid, mid, trnode->pos);
+        RT_VEC3_ADD(trb->mid, trb->mid, trnode->pos);
     }
 
-    RT_SIMD_SET(s_srf->pos_x, mid[RT_X]);
-    RT_SIMD_SET(s_srf->pos_y, mid[RT_Y]);
-    RT_SIMD_SET(s_srf->pos_z, mid[RT_Z]);
+    RT_SIMD_SET(s_srf->pos_x, trb->mid[RT_X]);
+    RT_SIMD_SET(s_srf->pos_y, trb->mid[RT_Y]);
+    RT_SIMD_SET(s_srf->pos_z, trb->mid[RT_Z]);
+
+    RT_SIMD_SET(s_aab->pos_x, aab->mid[RT_X]);
+    RT_SIMD_SET(s_aab->pos_y, aab->mid[RT_Y]);
+    RT_SIMD_SET(s_aab->pos_z, aab->mid[RT_Z]);
 
     rt_cell i;
 
@@ -1103,12 +1147,12 @@ rt_void rt_Array::update_bounds()
         }
 
         rt_vec4 dff_vec;
-        RT_VEC3_SUB(dff_vec, arr->mid, nd->mid);
+        RT_VEC3_SUB(dff_vec, arr->trb->mid, nd->trb->mid);
         rt_real dff_len = RT_VEC3_LEN(dff_vec);
 
-        if (arr->rad < dff_len + nd->rad)
+        if (arr->trb->rad < dff_len + nd->trb->rad)
         {
-            arr->rad = dff_len + nd->rad;
+            arr->trb->rad = dff_len + nd->trb->rad;
         }
     }
 
@@ -1116,7 +1160,11 @@ rt_void rt_Array::update_bounds()
 
     rt_SIMD_SPHERE *s_xsp = (rt_SIMD_SPHERE *)s_srf;
 
-    RT_SIMD_SET(s_xsp->rad_2, rad * rad);
+    RT_SIMD_SET(s_xsp->rad_2, trb->rad * trb->rad);
+
+                    s_xsp = (rt_SIMD_SPHERE *)s_aab;
+
+    RT_SIMD_SET(s_xsp->rad_2, aab->rad * aab->rad);
 }
 
 /*
@@ -1362,9 +1410,9 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         mp_l = RT_W;
 
         /* check bbox geometry limits */
-        if (verts_num > RT_VERTS_LIMIT
-        ||  edges_num > RT_EDGES_LIMIT
-        ||  faces_num > RT_FACES_LIMIT)
+        if (shp->verts_num > RT_VERTS_LIMIT
+        ||  shp->edges_num > RT_EDGES_LIMIT
+        ||  shp->faces_num > RT_FACES_LIMIT)
         {
             throw rt_Exception("bbox geometry limits exceeded in surface");
         }
@@ -1689,36 +1737,36 @@ rt_void rt_Surface::update_minmax()
  */
 rt_void rt_Surface::update_bounds()
 {
-    RT_VEC3_SET_VAL1(mid, 0.0f);
+    RT_VEC3_SET_VAL1(shp->mid, 0.0f);
 
-    rad = 0.0f;
+    shp->rad = 0.0f;
 
-    if (verts_num == 0)
+    if (shp->verts_num == 0)
     {
         return;
     }
 
     rt_cell i;
-    rt_real f = 1.0f / (rt_real)verts_num;
+    rt_real f = 1.0f / (rt_real)shp->verts_num;
 
-    for (i = 0; i < verts_num; i++)
+    for (i = 0; i < shp->verts_num; i++)
     {
-        RT_VEC3_MAD_VAL1(mid, verts[i].pos, f);
+        RT_VEC3_MAD_VAL1(shp->mid, shp->verts[i].pos, f);
     }
 
-    for (i = 0; i < verts_num; i++)
+    for (i = 0; i < shp->verts_num; i++)
     {
         rt_vec4 dff_vec;
-        RT_VEC3_SUB(dff_vec, mid, verts[i].pos);
+        RT_VEC3_SUB(dff_vec, shp->mid, shp->verts[i].pos);
         rt_real dff_dot = RT_VEC3_DOT(dff_vec, dff_vec);
 
-        if (rad < dff_dot)
+        if (shp->rad < dff_dot)
         {
-            rad = dff_dot;
+            shp->rad = dff_dot;
         }
     }
 
-    rad = RT_SQRT(rad);
+    shp->rad = RT_SQRT(shp->rad);
 }
 
 /*
@@ -1764,27 +1812,30 @@ rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
     ||  srf->max[RT_I] == +RT_INF
     ||  srf->max[RT_J] == +RT_INF)
     {
-        verts_num = 0;
-        verts = RT_NULL;
+        shp->verts_num = 0;
+        shp->verts = RT_NULL;
 
-        edges_num = 0;
-        edges = RT_NULL;
+        shp->edges_num = 0;
+        shp->edges = RT_NULL;
 
-        faces_num = 0;
-        faces = RT_NULL;
+        shp->faces_num = 0;
+        shp->faces = RT_NULL;
     }
     else
     {
-        verts_num = 4;
-        verts = (rt_VERT *)rg->alloc(verts_num * sizeof(rt_VERT), RT_ALIGN);
+        shp->verts_num = 4;
+        shp->verts = (rt_VERT *)
+                     rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        edges_num = RT_ARR_SIZE(pl_edges);
-        edges = (rt_EDGE *)rg->alloc(edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(edges, pl_edges, edges_num * sizeof(rt_EDGE));
+        shp->edges_num = RT_ARR_SIZE(pl_edges);
+        shp->edges = (rt_EDGE *)
+                     rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(shp->edges, pl_edges, shp->edges_num * sizeof(rt_EDGE));
 
-        faces_num = RT_ARR_SIZE(pl_faces);
-        faces = (rt_FACE *)rg->alloc(faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(faces, pl_faces, faces_num * sizeof(rt_FACE));
+        shp->faces_num = RT_ARR_SIZE(pl_faces);
+        shp->faces = (rt_FACE *)
+                     rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(shp->faces, pl_faces, shp->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_PLANE */
@@ -1805,16 +1856,16 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
         if (obj_changed)
         {
-            RT_VEC3_SET_VAL1(sci, 0.0f);
-            sci[RT_W] = 0.0f;
+            RT_VEC3_SET_VAL1(shp->sci, 0.0f);
+            shp->sci[RT_W] = 0.0f;
 
-            RT_VEC3_SET_VAL1(scj, 0.0f);
-            scj[RT_W] = 0.0f;
+            RT_VEC3_SET_VAL1(shp->scj, 0.0f);
+            shp->scj[RT_W] = 0.0f;
 
-            RT_VEC3_SET_VAL1(sck, 0.0f);
-            sck[RT_W] = 0.0f;
+            RT_VEC3_SET_VAL1(shp->sck, 0.0f);
+            shp->sck[RT_W] = 0.0f;
 
-            sck[mp_k] = (rt_real)sgn[RT_K];
+            shp->sck[mp_k] = (rt_real)sgn[RT_K];
         }
     }
 
@@ -1832,7 +1883,7 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         return;
     }
 
-    if (verts == RT_NULL)
+    if (shp->verts == RT_NULL)
     {
         return;
     }
@@ -1870,50 +1921,50 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         vt3[mp_k] = shp->bmax[mp_k];
         vt3[mp_l] = 1.0f; /* takes pos in mtx into account */
 
-        matrix_mul_vector(verts[0x0].pos, (*pmtx), vt0);
-        matrix_mul_vector(verts[0x1].pos, (*pmtx), vt1);
-        matrix_mul_vector(verts[0x2].pos, (*pmtx), vt2);
-        matrix_mul_vector(verts[0x3].pos, (*pmtx), vt3);
+        matrix_mul_vector(shp->verts[0x0].pos, (*pmtx), vt0);
+        matrix_mul_vector(shp->verts[0x1].pos, (*pmtx), vt1);
+        matrix_mul_vector(shp->verts[0x2].pos, (*pmtx), vt2);
+        matrix_mul_vector(shp->verts[0x3].pos, (*pmtx), vt3);
 
-        edges[0x0].k = 3;
-        edges[0x1].k = 3;
-        edges[0x2].k = 3;
-        edges[0x3].k = 3;
+        shp->edges[0x0].k = 3;
+        shp->edges[0x1].k = 3;
+        shp->edges[0x2].k = 3;
+        shp->edges[0x3].k = 3;
 
-        faces[0x0].k = 3;
-        faces[0x0].i = 3;
-        faces[0x0].j = 3;
+        shp->faces[0x0].k = 3;
+        shp->faces[0x0].i = 3;
+        shp->faces[0x0].j = 3;
     }
     else
     {
-        verts[0x0].pos[mp_i] = shp->bmax[mp_i];
-        verts[0x0].pos[mp_j] = shp->bmax[mp_j];
-        verts[0x0].pos[mp_k] = shp->bmax[mp_k];
-        verts[0x0].pos[mp_l] = 1.0f;
+        shp->verts[0x0].pos[mp_i] = shp->bmax[mp_i];
+        shp->verts[0x0].pos[mp_j] = shp->bmax[mp_j];
+        shp->verts[0x0].pos[mp_k] = shp->bmax[mp_k];
+        shp->verts[0x0].pos[mp_l] = 1.0f;
 
-        verts[0x1].pos[mp_i] = shp->bmin[mp_i];
-        verts[0x1].pos[mp_j] = shp->bmax[mp_j];
-        verts[0x1].pos[mp_k] = shp->bmax[mp_k];
-        verts[0x1].pos[mp_l] = 1.0f;
+        shp->verts[0x1].pos[mp_i] = shp->bmin[mp_i];
+        shp->verts[0x1].pos[mp_j] = shp->bmax[mp_j];
+        shp->verts[0x1].pos[mp_k] = shp->bmax[mp_k];
+        shp->verts[0x1].pos[mp_l] = 1.0f;
 
-        verts[0x2].pos[mp_i] = shp->bmin[mp_i];
-        verts[0x2].pos[mp_j] = shp->bmin[mp_j];
-        verts[0x2].pos[mp_k] = shp->bmax[mp_k];
-        verts[0x2].pos[mp_l] = 1.0f;
+        shp->verts[0x2].pos[mp_i] = shp->bmin[mp_i];
+        shp->verts[0x2].pos[mp_j] = shp->bmin[mp_j];
+        shp->verts[0x2].pos[mp_k] = shp->bmax[mp_k];
+        shp->verts[0x2].pos[mp_l] = 1.0f;
 
-        verts[0x3].pos[mp_i] = shp->bmax[mp_i];
-        verts[0x3].pos[mp_j] = shp->bmin[mp_j];
-        verts[0x3].pos[mp_k] = shp->bmax[mp_k];
-        verts[0x3].pos[mp_l] = 1.0f;
+        shp->verts[0x3].pos[mp_i] = shp->bmax[mp_i];
+        shp->verts[0x3].pos[mp_j] = shp->bmin[mp_j];
+        shp->verts[0x3].pos[mp_k] = shp->bmax[mp_k];
+        shp->verts[0x3].pos[mp_l] = 1.0f;
 
-        edges[0x0].k = mp_i;
-        edges[0x1].k = mp_j;
-        edges[0x2].k = mp_i;
-        edges[0x3].k = mp_j;
+        shp->edges[0x0].k = mp_i;
+        shp->edges[0x1].k = mp_j;
+        shp->edges[0x2].k = mp_i;
+        shp->edges[0x3].k = mp_j;
 
-        faces[0x0].k = mp_k;
-        faces[0x0].i = mp_i;
-        faces[0x0].j = mp_j;
+        shp->faces[0x0].k = mp_k;
+        shp->faces[0x0].i = mp_i;
+        shp->faces[0x0].j = mp_j;
     }
 
     update_bounds();
@@ -2009,14 +2060,14 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
         if (obj_changed)
         {
-            RT_VEC3_SET_VAL1(sci, 1.0f);
-            sci[RT_W] = 0.0f;
+            RT_VEC3_SET_VAL1(shp->sci, 1.0f);
+            shp->sci[RT_W] = 0.0f;
 
-            RT_VEC3_SET_VAL1(scj, 0.0f);
-            scj[RT_W] = 0.0f;
+            RT_VEC3_SET_VAL1(shp->scj, 0.0f);
+            shp->scj[RT_W] = 0.0f;
 
-            RT_VEC3_SET_VAL1(sck, 0.0f);
-            sck[RT_W] = 0.0f;
+            RT_VEC3_SET_VAL1(shp->sck, 0.0f);
+            shp->sck[RT_W] = 0.0f;
         }
     }
 
@@ -2034,7 +2085,7 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         return;
     }
 
-    if (verts == RT_NULL)
+    if (shp->verts == RT_NULL)
     {
         return;
     }
@@ -2096,134 +2147,134 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         vt7[mp_k] = shp->bmin[mp_k];
         vt7[mp_l] = 1.0f; /* takes pos in mtx into account */
 
-        matrix_mul_vector(verts[0x0].pos, (*pmtx), vt0);
-        matrix_mul_vector(verts[0x1].pos, (*pmtx), vt1);
-        matrix_mul_vector(verts[0x2].pos, (*pmtx), vt2);
-        matrix_mul_vector(verts[0x3].pos, (*pmtx), vt3);
-        matrix_mul_vector(verts[0x4].pos, (*pmtx), vt4);
-        matrix_mul_vector(verts[0x5].pos, (*pmtx), vt5);
-        matrix_mul_vector(verts[0x6].pos, (*pmtx), vt6);
-        matrix_mul_vector(verts[0x7].pos, (*pmtx), vt7);
+        matrix_mul_vector(shp->verts[0x0].pos, (*pmtx), vt0);
+        matrix_mul_vector(shp->verts[0x1].pos, (*pmtx), vt1);
+        matrix_mul_vector(shp->verts[0x2].pos, (*pmtx), vt2);
+        matrix_mul_vector(shp->verts[0x3].pos, (*pmtx), vt3);
+        matrix_mul_vector(shp->verts[0x4].pos, (*pmtx), vt4);
+        matrix_mul_vector(shp->verts[0x5].pos, (*pmtx), vt5);
+        matrix_mul_vector(shp->verts[0x6].pos, (*pmtx), vt6);
+        matrix_mul_vector(shp->verts[0x7].pos, (*pmtx), vt7);
 
-        edges[0x0].k = 3;
-        edges[0x1].k = 3;
-        edges[0x2].k = 3;
-        edges[0x3].k = 3;
+        shp->edges[0x0].k = 3;
+        shp->edges[0x1].k = 3;
+        shp->edges[0x2].k = 3;
+        shp->edges[0x3].k = 3;
 
-        edges[0x4].k = 3;
-        edges[0x5].k = 3;
-        edges[0x6].k = 3;
-        edges[0x7].k = 3;
+        shp->edges[0x4].k = 3;
+        shp->edges[0x5].k = 3;
+        shp->edges[0x6].k = 3;
+        shp->edges[0x7].k = 3;
 
-        edges[0x8].k = 3;
-        edges[0x9].k = 3;
-        edges[0xA].k = 3;
-        edges[0xB].k = 3;
+        shp->edges[0x8].k = 3;
+        shp->edges[0x9].k = 3;
+        shp->edges[0xA].k = 3;
+        shp->edges[0xB].k = 3;
 
-        faces[0x0].k = 3;
-        faces[0x0].i = 3;
-        faces[0x0].j = 3;
+        shp->faces[0x0].k = 3;
+        shp->faces[0x0].i = 3;
+        shp->faces[0x0].j = 3;
 
-        faces[0x1].k = 3;
-        faces[0x1].i = 3;
-        faces[0x1].j = 3;
+        shp->faces[0x1].k = 3;
+        shp->faces[0x1].i = 3;
+        shp->faces[0x1].j = 3;
 
-        faces[0x2].k = 3;
-        faces[0x2].i = 3;
-        faces[0x2].j = 3;
+        shp->faces[0x2].k = 3;
+        shp->faces[0x2].i = 3;
+        shp->faces[0x2].j = 3;
 
-        faces[0x3].k = 3;
-        faces[0x3].i = 3;
-        faces[0x3].j = 3;
+        shp->faces[0x3].k = 3;
+        shp->faces[0x3].i = 3;
+        shp->faces[0x3].j = 3;
 
-        faces[0x4].k = 3;
-        faces[0x4].i = 3;
-        faces[0x4].j = 3;
+        shp->faces[0x4].k = 3;
+        shp->faces[0x4].i = 3;
+        shp->faces[0x4].j = 3;
 
-        faces[0x5].k = 3;
-        faces[0x5].i = 3;
-        faces[0x5].j = 3;
+        shp->faces[0x5].k = 3;
+        shp->faces[0x5].i = 3;
+        shp->faces[0x5].j = 3;
     }
     else
     {
-        verts[0x0].pos[mp_i] = shp->bmax[mp_i];
-        verts[0x0].pos[mp_j] = shp->bmax[mp_j];
-        verts[0x0].pos[mp_k] = shp->bmax[mp_k];
-        verts[0x0].pos[mp_l] = 1.0f;
+        shp->verts[0x0].pos[mp_i] = shp->bmax[mp_i];
+        shp->verts[0x0].pos[mp_j] = shp->bmax[mp_j];
+        shp->verts[0x0].pos[mp_k] = shp->bmax[mp_k];
+        shp->verts[0x0].pos[mp_l] = 1.0f;
 
-        verts[0x1].pos[mp_i] = shp->bmin[mp_i];
-        verts[0x1].pos[mp_j] = shp->bmax[mp_j];
-        verts[0x1].pos[mp_k] = shp->bmax[mp_k];
-        verts[0x1].pos[mp_l] = 1.0f;
+        shp->verts[0x1].pos[mp_i] = shp->bmin[mp_i];
+        shp->verts[0x1].pos[mp_j] = shp->bmax[mp_j];
+        shp->verts[0x1].pos[mp_k] = shp->bmax[mp_k];
+        shp->verts[0x1].pos[mp_l] = 1.0f;
 
-        verts[0x2].pos[mp_i] = shp->bmin[mp_i];
-        verts[0x2].pos[mp_j] = shp->bmin[mp_j];
-        verts[0x2].pos[mp_k] = shp->bmax[mp_k];
-        verts[0x2].pos[mp_l] = 1.0f;
+        shp->verts[0x2].pos[mp_i] = shp->bmin[mp_i];
+        shp->verts[0x2].pos[mp_j] = shp->bmin[mp_j];
+        shp->verts[0x2].pos[mp_k] = shp->bmax[mp_k];
+        shp->verts[0x2].pos[mp_l] = 1.0f;
 
-        verts[0x3].pos[mp_i] = shp->bmax[mp_i];
-        verts[0x3].pos[mp_j] = shp->bmin[mp_j];
-        verts[0x3].pos[mp_k] = shp->bmax[mp_k];
-        verts[0x3].pos[mp_l] = 1.0f;
+        shp->verts[0x3].pos[mp_i] = shp->bmax[mp_i];
+        shp->verts[0x3].pos[mp_j] = shp->bmin[mp_j];
+        shp->verts[0x3].pos[mp_k] = shp->bmax[mp_k];
+        shp->verts[0x3].pos[mp_l] = 1.0f;
 
-        verts[0x4].pos[mp_i] = shp->bmax[mp_i];
-        verts[0x4].pos[mp_j] = shp->bmax[mp_j];
-        verts[0x4].pos[mp_k] = shp->bmin[mp_k];
-        verts[0x4].pos[mp_l] = 1.0f;
+        shp->verts[0x4].pos[mp_i] = shp->bmax[mp_i];
+        shp->verts[0x4].pos[mp_j] = shp->bmax[mp_j];
+        shp->verts[0x4].pos[mp_k] = shp->bmin[mp_k];
+        shp->verts[0x4].pos[mp_l] = 1.0f;
 
-        verts[0x5].pos[mp_i] = shp->bmin[mp_i];
-        verts[0x5].pos[mp_j] = shp->bmax[mp_j];
-        verts[0x5].pos[mp_k] = shp->bmin[mp_k];
-        verts[0x5].pos[mp_l] = 1.0f;
+        shp->verts[0x5].pos[mp_i] = shp->bmin[mp_i];
+        shp->verts[0x5].pos[mp_j] = shp->bmax[mp_j];
+        shp->verts[0x5].pos[mp_k] = shp->bmin[mp_k];
+        shp->verts[0x5].pos[mp_l] = 1.0f;
 
-        verts[0x6].pos[mp_i] = shp->bmin[mp_i];
-        verts[0x6].pos[mp_j] = shp->bmin[mp_j];
-        verts[0x6].pos[mp_k] = shp->bmin[mp_k];
-        verts[0x6].pos[mp_l] = 1.0f;
+        shp->verts[0x6].pos[mp_i] = shp->bmin[mp_i];
+        shp->verts[0x6].pos[mp_j] = shp->bmin[mp_j];
+        shp->verts[0x6].pos[mp_k] = shp->bmin[mp_k];
+        shp->verts[0x6].pos[mp_l] = 1.0f;
 
-        verts[0x7].pos[mp_i] = shp->bmax[mp_i];
-        verts[0x7].pos[mp_j] = shp->bmin[mp_j];
-        verts[0x7].pos[mp_k] = shp->bmin[mp_k];
-        verts[0x7].pos[mp_l] = 1.0f;
+        shp->verts[0x7].pos[mp_i] = shp->bmax[mp_i];
+        shp->verts[0x7].pos[mp_j] = shp->bmin[mp_j];
+        shp->verts[0x7].pos[mp_k] = shp->bmin[mp_k];
+        shp->verts[0x7].pos[mp_l] = 1.0f;
 
-        edges[0x0].k = mp_i;
-        edges[0x1].k = mp_j;
-        edges[0x2].k = mp_i;
-        edges[0x3].k = mp_j;
+        shp->edges[0x0].k = mp_i;
+        shp->edges[0x1].k = mp_j;
+        shp->edges[0x2].k = mp_i;
+        shp->edges[0x3].k = mp_j;
 
-        edges[0x4].k = mp_k;
-        edges[0x5].k = mp_k;
-        edges[0x6].k = mp_k;
-        edges[0x7].k = mp_k;
+        shp->edges[0x4].k = mp_k;
+        shp->edges[0x5].k = mp_k;
+        shp->edges[0x6].k = mp_k;
+        shp->edges[0x7].k = mp_k;
 
-        edges[0x8].k = mp_i;
-        edges[0x9].k = mp_j;
-        edges[0xA].k = mp_i;
-        edges[0xB].k = mp_j;
+        shp->edges[0x8].k = mp_i;
+        shp->edges[0x9].k = mp_j;
+        shp->edges[0xA].k = mp_i;
+        shp->edges[0xB].k = mp_j;
 
-        faces[0x0].k = mp_k;
-        faces[0x0].i = mp_i;
-        faces[0x0].j = mp_j;
+        shp->faces[0x0].k = mp_k;
+        shp->faces[0x0].i = mp_i;
+        shp->faces[0x0].j = mp_j;
 
-        faces[0x1].k = mp_j;
-        faces[0x1].i = mp_k;
-        faces[0x1].j = mp_i;
+        shp->faces[0x1].k = mp_j;
+        shp->faces[0x1].i = mp_k;
+        shp->faces[0x1].j = mp_i;
 
-        faces[0x2].k = mp_i;
-        faces[0x2].i = mp_k;
-        faces[0x2].j = mp_j;
+        shp->faces[0x2].k = mp_i;
+        shp->faces[0x2].i = mp_k;
+        shp->faces[0x2].j = mp_j;
 
-        faces[0x3].k = mp_j;
-        faces[0x3].i = mp_k;
-        faces[0x3].j = mp_i;
+        shp->faces[0x3].k = mp_j;
+        shp->faces[0x3].i = mp_k;
+        shp->faces[0x3].j = mp_i;
 
-        faces[0x4].k = mp_i;
-        faces[0x4].i = mp_k;
-        faces[0x4].j = mp_j;
+        shp->faces[0x4].k = mp_i;
+        shp->faces[0x4].i = mp_k;
+        shp->faces[0x4].j = mp_j;
 
-        faces[0x5].k = mp_k;
-        faces[0x5].i = mp_i;
-        faces[0x5].j = mp_j;
+        shp->faces[0x5].k = mp_k;
+        shp->faces[0x5].i = mp_i;
+        shp->faces[0x5].j = mp_j;
     }
 
     update_bounds();
@@ -2264,27 +2315,30 @@ rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
     if (srf->min[RT_K] == -RT_INF
     ||  srf->max[RT_K] == +RT_INF)
     {
-        verts_num = 0;
-        verts = RT_NULL;
+        shp->verts_num = 0;
+        shp->verts = RT_NULL;
 
-        edges_num = 0;
-        edges = RT_NULL;
+        shp->edges_num = 0;
+        shp->edges = RT_NULL;
 
-        faces_num = 0;
-        faces = RT_NULL;
+        shp->faces_num = 0;
+        shp->faces = RT_NULL;
     }
     else
     {
-        verts_num = 8;
-        verts = (rt_VERT *)rg->alloc(verts_num * sizeof(rt_VERT), RT_ALIGN);
+        shp->verts_num = 8;
+        shp->verts = (rt_VERT *)
+                     rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        edges_num = RT_ARR_SIZE(qd_edges);
-        edges = (rt_EDGE *)rg->alloc(edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(edges, qd_edges, edges_num * sizeof(rt_EDGE));
+        shp->edges_num = RT_ARR_SIZE(qd_edges);
+        shp->edges = (rt_EDGE *)
+                     rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(shp->edges, qd_edges, shp->edges_num * sizeof(rt_EDGE));
 
-        faces_num = RT_ARR_SIZE(qd_faces);
-        faces = (rt_FACE *)rg->alloc(faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(faces, qd_faces, faces_num * sizeof(rt_FACE));
+        shp->faces_num = RT_ARR_SIZE(qd_faces);
+        shp->faces = (rt_FACE *)
+                     rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(shp->faces, qd_faces, shp->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_CYLINDER */
@@ -2308,8 +2362,8 @@ rt_void rt_Cylinder::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
         if (obj_changed)
         {
-            sci[mp_k] = 0.0f;
-            sci[RT_W] = xcl->rad * xcl->rad;
+            shp->sci[mp_k] = 0.0f;
+            shp->sci[RT_W] = xcl->rad * xcl->rad;
         }
     }
 
@@ -2375,27 +2429,30 @@ rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
 
     if (RT_FALSE)
     {
-        verts_num = 0;
-        verts = RT_NULL;
+        shp->verts_num = 0;
+        shp->verts = RT_NULL;
 
-        edges_num = 0;
-        edges = RT_NULL;
+        shp->edges_num = 0;
+        shp->edges = RT_NULL;
 
-        faces_num = 0;
-        faces = RT_NULL;
+        shp->faces_num = 0;
+        shp->faces = RT_NULL;
     }
     else
     {
-        verts_num = 8;
-        verts = (rt_VERT *)rg->alloc(verts_num * sizeof(rt_VERT), RT_ALIGN);
+        shp->verts_num = 8;
+        shp->verts = (rt_VERT *)
+                     rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        edges_num = RT_ARR_SIZE(qd_edges);
-        edges = (rt_EDGE *)rg->alloc(edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(edges, qd_edges, edges_num * sizeof(rt_EDGE));
+        shp->edges_num = RT_ARR_SIZE(qd_edges);
+        shp->edges = (rt_EDGE *)
+                     rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(shp->edges, qd_edges, shp->edges_num * sizeof(rt_EDGE));
 
-        faces_num = RT_ARR_SIZE(qd_faces);
-        faces = (rt_FACE *)rg->alloc(faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(faces, qd_faces, faces_num * sizeof(rt_FACE));
+        shp->faces_num = RT_ARR_SIZE(qd_faces);
+        shp->faces = (rt_FACE *)
+                     rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(shp->faces, qd_faces, shp->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_SPHERE */
@@ -2419,7 +2476,7 @@ rt_void rt_Sphere::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
         if (obj_changed)
         {
-            sci[RT_W] = xsp->rad * xsp->rad;
+            shp->sci[RT_W] = xsp->rad * xsp->rad;
         }
     }
 
@@ -2508,27 +2565,30 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
     if (srf->min[RT_K] == -RT_INF
     ||  srf->max[RT_K] == +RT_INF)
     {
-        verts_num = 0;
-        verts = RT_NULL;
+        shp->verts_num = 0;
+        shp->verts = RT_NULL;
 
-        edges_num = 0;
-        edges = RT_NULL;
+        shp->edges_num = 0;
+        shp->edges = RT_NULL;
 
-        faces_num = 0;
-        faces = RT_NULL;
+        shp->faces_num = 0;
+        shp->faces = RT_NULL;
     }
     else
     {
-        verts_num = 8;
-        verts = (rt_VERT *)rg->alloc(verts_num * sizeof(rt_VERT), RT_ALIGN);
+        shp->verts_num = 8;
+        shp->verts = (rt_VERT *)
+                     rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        edges_num = RT_ARR_SIZE(qd_edges);
-        edges = (rt_EDGE *)rg->alloc(edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(edges, qd_edges, edges_num * sizeof(rt_EDGE));
+        shp->edges_num = RT_ARR_SIZE(qd_edges);
+        shp->edges = (rt_EDGE *)
+                     rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(shp->edges, qd_edges, shp->edges_num * sizeof(rt_EDGE));
 
-        faces_num = RT_ARR_SIZE(qd_faces);
-        faces = (rt_FACE *)rg->alloc(faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(faces, qd_faces, faces_num * sizeof(rt_FACE));
+        shp->faces_num = RT_ARR_SIZE(qd_faces);
+        shp->faces = (rt_FACE *)
+                     rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(shp->faces, qd_faces, shp->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_CONE */
@@ -2552,7 +2612,7 @@ rt_void rt_Cone::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
         if (obj_changed)
         {
-            sci[mp_k] = -(xcn->rat * xcn->rat);
+            shp->sci[mp_k] = -(xcn->rat * xcn->rat);
         }
     }
 
@@ -2620,27 +2680,30 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
     if (srf->min[RT_K] == -RT_INF && xpb->par < 0.0f
     ||  srf->max[RT_K] == +RT_INF && xpb->par > 0.0f)
     {
-        verts_num = 0;
-        verts = RT_NULL;
+        shp->verts_num = 0;
+        shp->verts = RT_NULL;
 
-        edges_num = 0;
-        edges = RT_NULL;
+        shp->edges_num = 0;
+        shp->edges = RT_NULL;
 
-        faces_num = 0;
-        faces = RT_NULL;
+        shp->faces_num = 0;
+        shp->faces = RT_NULL;
     }
     else
     {
-        verts_num = 8;
-        verts = (rt_VERT *)rg->alloc(verts_num * sizeof(rt_VERT), RT_ALIGN);
+        shp->verts_num = 8;
+        shp->verts = (rt_VERT *)
+                     rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        edges_num = RT_ARR_SIZE(qd_edges);
-        edges = (rt_EDGE *)rg->alloc(edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(edges, qd_edges, edges_num * sizeof(rt_EDGE));
+        shp->edges_num = RT_ARR_SIZE(qd_edges);
+        shp->edges = (rt_EDGE *)
+                     rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(shp->edges, qd_edges, shp->edges_num * sizeof(rt_EDGE));
 
-        faces_num = RT_ARR_SIZE(qd_faces);
-        faces = (rt_FACE *)rg->alloc(faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(faces, qd_faces, faces_num * sizeof(rt_FACE));
+        shp->faces_num = RT_ARR_SIZE(qd_faces);
+        shp->faces = (rt_FACE *)
+                     rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(shp->faces, qd_faces, shp->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_PARABOLOID */
@@ -2666,8 +2729,8 @@ rt_void rt_Paraboloid::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
         if (obj_changed)
         {
-            sci[mp_k] = 0.0f;
-            scj[mp_k] = xpb->par * (rt_real)sgn[RT_K];
+            shp->sci[mp_k] = 0.0f;
+            shp->scj[mp_k] = xpb->par * (rt_real)sgn[RT_K];
         }
     }
 
@@ -2742,27 +2805,30 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
     if (srf->min[RT_K] == -RT_INF
     ||  srf->max[RT_K] == +RT_INF)
     {
-        verts_num = 0;
-        verts = RT_NULL;
+        shp->verts_num = 0;
+        shp->verts = RT_NULL;
 
-        edges_num = 0;
-        edges = RT_NULL;
+        shp->edges_num = 0;
+        shp->edges = RT_NULL;
 
-        faces_num = 0;
-        faces = RT_NULL;
+        shp->faces_num = 0;
+        shp->faces = RT_NULL;
     }
     else
     {
-        verts_num = 8;
-        verts = (rt_VERT *)rg->alloc(verts_num * sizeof(rt_VERT), RT_ALIGN);
+        shp->verts_num = 8;
+        shp->verts = (rt_VERT *)
+                     rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        edges_num = RT_ARR_SIZE(qd_edges);
-        edges = (rt_EDGE *)rg->alloc(edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(edges, qd_edges, edges_num * sizeof(rt_EDGE));
+        shp->edges_num = RT_ARR_SIZE(qd_edges);
+        shp->edges = (rt_EDGE *)
+                     rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(shp->edges, qd_edges, shp->edges_num * sizeof(rt_EDGE));
 
-        faces_num = RT_ARR_SIZE(qd_faces);
-        faces = (rt_FACE *)rg->alloc(faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(faces, qd_faces, faces_num * sizeof(rt_FACE));
+        shp->faces_num = RT_ARR_SIZE(qd_faces);
+        shp->faces = (rt_FACE *)
+                     rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(shp->faces, qd_faces, shp->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_HYPERBOLOID */
@@ -2789,8 +2855,8 @@ rt_void rt_Hyperboloid::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
         if (obj_changed)
         {
-            sci[mp_k] = -(xhb->rat * xhb->rat);
-            sci[RT_W] = xhb->hyp;
+            shp->sci[mp_k] = -(xhb->rat * xhb->rat);
+            shp->sci[RT_W] = xhb->hyp;
         }
     }
 

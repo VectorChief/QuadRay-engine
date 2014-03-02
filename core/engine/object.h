@@ -431,11 +431,6 @@ class rt_Node : public rt_Object
 
     rt_SIMD_SURFACE    *s_srf;
 
-    /* bounding volume center */
-    rt_vec4             mid;
-    /* bounding volume radius */
-    rt_real             rad;
-
 /*  methods */
 
     protected:
@@ -479,6 +474,7 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
 
     public:
 
+    /* array of objects */
     rt_Object         **obj_arr;
     rt_cell             obj_num;
 
@@ -486,6 +482,8 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
      * used for bvnode in case if array
      * serves as both trnode and bvnode */
     rt_BOUND           *aab;
+
+    rt_SIMD_SURFACE    *s_aab;
 
 /*  methods */
 
@@ -543,19 +541,6 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
     rt_cell             mp_j;
     rt_cell             mp_k;
     rt_cell             mp_l;
-
-    /* bounding box geometry */
-    rt_VERT            *verts;
-    rt_cell             verts_num;
-    rt_EDGE            *edges;
-    rt_cell             edges_num;
-    rt_FACE            *faces;
-    rt_cell             faces_num;
-
-    /* surface shape coeffs */
-    rt_vec4             sci;
-    rt_vec4             scj;
-    rt_vec4             sck;
 
 /*  methods */
 

@@ -1209,8 +1209,8 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
     rt_real tag[2], zed[2];
 
     /* verts_num may grow, use srf->verts_num if original is needed */
-    rt_cell verts_num = srf->verts_num;
-    rt_VERT *vrt = srf->verts;
+    rt_cell verts_num = srf->shp->verts_num;
+    rt_VERT *vrt = srf->shp->verts;
 
     /* project bbox onto the tilebuffer */
     if (verts_num != 0)
@@ -1222,9 +1222,10 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
         }
 
         /* process bbox vertices */
-        memset(verts, 0, sizeof(rt_VERT) * (2 * verts_num + srf->edges_num));
+        memset(verts, 0, sizeof(rt_VERT) *
+                         (2 * verts_num + srf->shp->edges_num));
 
-        for (k = 0; k < srf->verts_num; k++)
+        for (k = 0; k < srf->shp->verts_num; k++)
         {
             RT_VEC3_SUB(vec, vrt[k].pos, scene->org);
 
@@ -1267,11 +1268,11 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
         }
 
         /* process bbox edges */
-        for (k = 0; k < srf->edges_num; k++)
+        for (k = 0; k < srf->shp->edges_num; k++)
         {
             for (i = 0; i < 2; i++)
             {
-                ndx[i] = srf->edges[k].index[i];
+                ndx[i] = srf->shp->edges[k].index[i];
                 zed[i] = verts[ndx[i]].pos[RT_Z];
                 tag[i] = verts[ndx[i]].pos[RT_W];
             }
@@ -1319,7 +1320,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
         }
 
         /* tile all newly generated vertex pairs */
-        for (i = srf->verts_num; i < verts_num - 1; i++)
+        for (i = srf->shp->verts_num; i < verts_num - 1; i++)
         {
             for (j = i + 1; j < verts_num; j++)
             {

@@ -562,7 +562,7 @@ rt_cell surf_hole(rt_Surface *srf, rt_Surface *ref)
 {
     rt_cell c = 0;
 
-    if (srf->tag == RT_TAG_PLANE)
+    if (srf->shp->tag == RT_TAG_PLANE)
     {
         return c;
     }
@@ -673,8 +673,8 @@ rt_cell surf_conc(rt_Surface *srf)
 {
     rt_cell c = 0;
 
-    if (srf->tag == RT_TAG_CONE
-    ||  srf->tag == RT_TAG_HYPERBOLOID)
+    if (srf->shp->tag == RT_TAG_CONE
+    ||  srf->shp->tag == RT_TAG_HYPERBOLOID)
     {
         c = 1;
     }
@@ -695,14 +695,14 @@ rt_cell cbox_conc(rt_Surface *srf)
     rt_cell c = 0;
 
     rt_vec4  zro = {0.0f, 0.0f, 0.0f, 0.0f};
-    rt_real *pps = srf->trnode == srf ? zro : srf->pos;
+    rt_real *pps = srf->shp->trnode == srf->shp ? zro : srf->shp->pos;
 
-    if ((srf->tag == RT_TAG_CONE
-    ||   srf->tag == RT_TAG_HYPERBOLOID)
-    &&  (srf->sci[RT_W] <= 0.0f
+    if ((srf->shp->tag == RT_TAG_CONE
+    ||   srf->shp->tag == RT_TAG_HYPERBOLOID)
+    &&  (srf->shp->sci[RT_W] <= 0.0f
     &&   srf->shp->bmin[srf->shp->map[RT_K]] < pps[srf->shp->map[RT_K]]
     &&   srf->shp->bmax[srf->shp->map[RT_K]] > pps[srf->shp->map[RT_K]]
-    ||   srf->sci[RT_W] > 0.0f))
+    ||   srf->shp->sci[RT_W] > 0.0f))
     {
         c = 1;
     }
@@ -723,12 +723,12 @@ rt_real *surf_tran(rt_vec4 loc, rt_vec4 pos, rt_Surface *srf)
     rt_vec4  dff;
     rt_real *pps = pos;
 
-    if (srf->trnode != RT_NULL)
+    if (srf->shp->trnode != RT_NULL)
     {
-        RT_VEC3_SUB(dff, pps, srf->trnode->pos);
+        RT_VEC3_SUB(dff, pps, srf->shp->trnode->pos);
         dff[RT_W] = 0.0f;
 
-        matrix_mul_vector(loc, srf->trnode->inv, dff);
+        matrix_mul_vector(loc, *srf->shp->trnode->pinv, dff);
 
         pps = loc;
     }
@@ -842,24 +842,24 @@ rt_cell surf_side(rt_vec4 pos, rt_Surface *srf)
     rt_vec4  loc;
     rt_real *pps = surf_tran(loc, pos, srf);
 
-    if (srf->trnode != srf)
+    if (srf->shp->trnode != srf->shp)
     {
-        RT_VEC3_SUB(loc, pps, srf->pos);
+        RT_VEC3_SUB(loc, pps, srf->shp->pos);
     }
 
     rt_real d;
 
-    if (srf->tag == RT_TAG_PLANE)
+    if (srf->shp->tag == RT_TAG_PLANE)
     {
-        d = RT_VEC3_DOT(loc, srf->sck);
+        d = RT_VEC3_DOT(loc, srf->shp->sck);
     }
     else
     {
-        rt_real dcj = RT_VEC3_DOT(loc, srf->scj);
-        rt_real dci = loc[RT_X] * loc[RT_X] * srf->sci[RT_X]
-                    + loc[RT_Y] * loc[RT_Y] * srf->sci[RT_Y]
-                    + loc[RT_Z] * loc[RT_Z] * srf->sci[RT_Z];
-        d = dci - dcj - srf->sci[RT_W];
+        rt_real dcj = RT_VEC3_DOT(loc, srf->shp->scj);
+        rt_real dci = loc[RT_X] * loc[RT_X] * srf->shp->sci[RT_X]
+                    + loc[RT_Y] * loc[RT_Y] * srf->shp->sci[RT_Y]
+                    + loc[RT_Z] * loc[RT_Z] * srf->shp->sci[RT_Z];
+        d = dci - dcj - srf->shp->sci[RT_W];
     }
 
     /*    inner   | s |   outer    */
@@ -881,7 +881,7 @@ rt_cell cbox_side(rt_Object *obj, rt_Surface *srf)
 {
     rt_cell k, c = 0;
 
-    c = surf_side(obj->pos, srf);
+    c = surf_side(obj->trb->pos, srf);
 
     /* if "pos" is on the surface with margin,
      * return both sides */
@@ -891,7 +891,7 @@ rt_cell cbox_side(rt_Object *obj, rt_Surface *srf)
         return c;
     }
 
-    k = srf->tag == RT_TAG_PLANE ? 1 : 0;
+    k = srf->shp->tag == RT_TAG_PLANE ? 1 : 0;
 
     /* if "srf" is PLANE,
      * only one side can be seen */
@@ -922,7 +922,7 @@ rt_cell cbox_side(rt_Object *obj, rt_Surface *srf)
         return c;
     }
 
-    k = surf_cbox(obj->pos, srf);
+    k = surf_cbox(obj->trb->pos, srf);
 
     /* check if "pos" is outside of "srf" cbox */
     if (k != 0)
@@ -944,29 +944,29 @@ rt_cell cbox_side(rt_Object *obj, rt_Surface *srf)
 rt_cell bbox_shad(rt_Object *obj, rt_Surface *shw, rt_Surface *srf)
 {
     /* check if surfaces differ and have bounds */
-    if (srf->verts_num == 0 || shw->verts_num == 0 || srf == shw)
+    if (srf->shp->verts_num == 0 || shw->shp->verts_num == 0 || srf == shw)
     {
         return 1;
     }
 
     /* check first if bounding spheres cast shadows */
     rt_vec4 shw_vec;
-    RT_VEC3_SUB(shw_vec, shw->mid, obj->pos);
+    RT_VEC3_SUB(shw_vec, shw->trb->mid, obj->trb->pos);
     rt_real shw_len = RT_VEC3_LEN(shw_vec);
 
     rt_vec4 srf_vec;
-    RT_VEC3_SUB(srf_vec, srf->mid, obj->pos);
+    RT_VEC3_SUB(srf_vec, srf->trb->mid, obj->trb->pos);
     rt_real srf_len = RT_VEC3_LEN(srf_vec);
 
     rt_real dff_ang = RT_VEC3_DOT(shw_vec, srf_vec);
 
     dff_ang = shw_len <= RT_CULL_THRESHOLD ? 0.0f : dff_ang / shw_len;
-    rt_real shw_ang = shw_len >= shw->rad && shw_len > RT_CULL_THRESHOLD ?
-                        RT_ASIN(shw->rad / shw_len) : (rt_real)RT_2_PI;
+    rt_real shw_ang = shw_len >= shw->trb->rad && shw_len > RT_CULL_THRESHOLD ?
+                        RT_ASIN(shw->trb->rad / shw_len) : (rt_real)RT_2_PI;
 
     dff_ang = srf_len <= RT_CULL_THRESHOLD ? 0.0f : dff_ang / srf_len;
-    rt_real srf_ang = srf_len >= srf->rad && srf_len > RT_CULL_THRESHOLD ?
-                        RT_ASIN(srf->rad / srf_len) : (rt_real)RT_2_PI;
+    rt_real srf_ang = srf_len >= srf->trb->rad && srf_len > RT_CULL_THRESHOLD ?
+                        RT_ASIN(srf->trb->rad / srf_len) : (rt_real)RT_2_PI;
 
     dff_ang = RT_ACOS(dff_ang);
 
@@ -986,7 +986,7 @@ rt_cell bbox_shad(rt_Object *obj, rt_Surface *shw, rt_Surface *srf)
     /* check if "obj" pos is inside "shw" bbox */
     rt_cell k;
 
-    k = surf_bbox(obj->pos, shw);
+    k = surf_bbox(obj->trb->pos, shw);
 
     if (k != 0)
     {
@@ -997,16 +997,16 @@ rt_cell bbox_shad(rt_Object *obj, rt_Surface *shw, rt_Surface *srf)
     rt_cell i, j;
 
     /* run through "srf" faces and "shw" verts */
-    for (j = 0; j < srf->faces_num; j++)
+    for (j = 0; j < srf->shp->faces_num; j++)
     {
-        rt_FACE *fc = &srf->faces[j];
+        rt_FACE *fc = &srf->shp->faces[j];
 
-        for (i = 0; i < shw->verts_num; i++)
+        for (i = 0; i < shw->shp->verts_num; i++)
         {
-            k = vert_to_face(obj->pos, shw->verts[i].pos,
-                             srf->verts[fc->index[0]].pos,
-                             srf->verts[fc->index[1]].pos,
-                             srf->verts[fc->index[2]].pos,
+            k = vert_to_face(obj->trb->pos, shw->shp->verts[i].pos,
+                             srf->shp->verts[fc->index[0]].pos,
+                             srf->shp->verts[fc->index[1]].pos,
+                             srf->shp->verts[fc->index[2]].pos,
                              fc->k, fc->i, fc->j);
             if (k == 1)
             {
@@ -1016,10 +1016,10 @@ rt_cell bbox_shad(rt_Object *obj, rt_Surface *shw, rt_Surface *srf)
             {
                 continue;
             }
-            k = vert_to_face(obj->pos, shw->verts[i].pos,
-                             srf->verts[fc->index[2]].pos,
-                             srf->verts[fc->index[3]].pos,
-                             srf->verts[fc->index[0]].pos,
+            k = vert_to_face(obj->trb->pos, shw->shp->verts[i].pos,
+                             srf->shp->verts[fc->index[2]].pos,
+                             srf->shp->verts[fc->index[3]].pos,
+                             srf->shp->verts[fc->index[0]].pos,
                              fc->k, fc->i, fc->j);
             if (k == 1)
             {
@@ -1029,16 +1029,16 @@ rt_cell bbox_shad(rt_Object *obj, rt_Surface *shw, rt_Surface *srf)
     }
 
     /* run through "shw" faces and "srf" verts */
-    for (j = 0; j < shw->faces_num; j++)
+    for (j = 0; j < shw->shp->faces_num; j++)
     {
-        rt_FACE *fc = &shw->faces[j];
+        rt_FACE *fc = &shw->shp->faces[j];
 
-        for (i = 0; i < srf->verts_num; i++)
+        for (i = 0; i < srf->shp->verts_num; i++)
         {
-            k = vert_to_face(obj->pos, srf->verts[i].pos,
-                             shw->verts[fc->index[0]].pos,
-                             shw->verts[fc->index[1]].pos,
-                             shw->verts[fc->index[2]].pos,
+            k = vert_to_face(obj->trb->pos, srf->shp->verts[i].pos,
+                             shw->shp->verts[fc->index[0]].pos,
+                             shw->shp->verts[fc->index[1]].pos,
+                             shw->shp->verts[fc->index[2]].pos,
                              fc->k, fc->i, fc->j);
             if (k == 2 || k == 4)
             {
@@ -1048,10 +1048,10 @@ rt_cell bbox_shad(rt_Object *obj, rt_Surface *shw, rt_Surface *srf)
             {
                 continue;
             }
-            k = vert_to_face(obj->pos, srf->verts[i].pos,
-                             shw->verts[fc->index[2]].pos,
-                             shw->verts[fc->index[3]].pos,
-                             shw->verts[fc->index[0]].pos,
+            k = vert_to_face(obj->trb->pos, srf->shp->verts[i].pos,
+                             shw->shp->verts[fc->index[2]].pos,
+                             shw->shp->verts[fc->index[3]].pos,
+                             shw->shp->verts[fc->index[0]].pos,
                              fc->k, fc->i, fc->j);
             if (k == 2 || k == 4)
             {
@@ -1061,19 +1061,19 @@ rt_cell bbox_shad(rt_Object *obj, rt_Surface *shw, rt_Surface *srf)
     }
 
     /* run through "srf" edges and "shw" edges */
-    for (j = 0; j < srf->edges_num; j++)
+    for (j = 0; j < srf->shp->edges_num; j++)
     {
-        rt_EDGE *ej = &srf->edges[j];
+        rt_EDGE *ej = &srf->shp->edges[j];
 
-        for (i = 0; i < shw->edges_num; i++)
+        for (i = 0; i < shw->shp->edges_num; i++)
         {
-            rt_EDGE *ei = &shw->edges[i];
+            rt_EDGE *ei = &shw->shp->edges[i];
 
-            k = edge_to_edge(obj->pos,
-                             shw->verts[ei->index[0]].pos,
-                             shw->verts[ei->index[1]].pos, ei->k,
-                             srf->verts[ej->index[0]].pos,
-                             srf->verts[ej->index[1]].pos, ej->k);
+            k = edge_to_edge(obj->trb->pos,
+                             shw->shp->verts[ei->index[0]].pos,
+                             shw->shp->verts[ei->index[1]].pos, ei->k,
+                             srf->shp->verts[ej->index[0]].pos,
+                             srf->shp->verts[ej->index[1]].pos, ej->k);
             if (k == 1)
             {
                 return 1;
@@ -1096,29 +1096,29 @@ rt_cell bbox_shad(rt_Object *obj, rt_Surface *shw, rt_Surface *srf)
 rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
 {
     /* check if nodes differ and have bounds */
-    if (nd1->rad == 0.0f || nd2->rad == 0.0f || nd1 == nd2)
+    if (nd1->trb->rad == 0.0f || nd2->trb->rad == 0.0f || nd1 == nd2)
     {
         return 2;
     }
 
     /* check first the order for bounding spheres */
     rt_vec4 nd1_vec;
-    RT_VEC3_SUB(nd1_vec, nd1->mid, obj->pos);
+    RT_VEC3_SUB(nd1_vec, nd1->trb->mid, obj->trb->pos);
     rt_real nd1_len = RT_VEC3_LEN(nd1_vec);
 
     rt_vec4 nd2_vec;
-    RT_VEC3_SUB(nd2_vec, nd2->mid, obj->pos);
+    RT_VEC3_SUB(nd2_vec, nd2->trb->mid, obj->trb->pos);
     rt_real nd2_len = RT_VEC3_LEN(nd2_vec);
 
     rt_real dff_ang = RT_VEC3_DOT(nd1_vec, nd2_vec);
 
     dff_ang = nd1_len <= RT_CULL_THRESHOLD ? 0.0f : dff_ang / nd1_len;
-    rt_real nd1_ang = nd1_len >= nd1->rad && nd1_len > RT_CULL_THRESHOLD ?
-                        RT_ASIN(nd1->rad / nd1_len) : (rt_real)RT_2_PI;
+    rt_real nd1_ang = nd1_len >= nd1->trb->rad && nd1_len > RT_CULL_THRESHOLD ?
+                        RT_ASIN(nd1->trb->rad / nd1_len) : (rt_real)RT_2_PI;
 
     dff_ang = nd2_len <= RT_CULL_THRESHOLD ? 0.0f : dff_ang / nd2_len;
-    rt_real nd2_ang = nd2_len >= nd2->rad && nd2_len > RT_CULL_THRESHOLD ?
-                        RT_ASIN(nd2->rad / nd2_len) : (rt_real)RT_2_PI;
+    rt_real nd2_ang = nd2_len >= nd2->trb->rad && nd2_len > RT_CULL_THRESHOLD ?
+                        RT_ASIN(nd2->trb->rad / nd2_len) : (rt_real)RT_2_PI;
 
     dff_ang = RT_ACOS(dff_ang);
 
@@ -1136,10 +1136,10 @@ rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
     {
         /* check first if bounding spheres interpenetrate */
         rt_vec4 dff_vec;
-        RT_VEC3_SUB(dff_vec, nd1->mid, nd2->mid);
+        RT_VEC3_SUB(dff_vec, nd1->trb->mid, nd2->trb->mid);
         rt_real dff_len = RT_VEC3_LEN(dff_vec);
 
-        if (nd1->rad + nd2->rad >= dff_len)
+        if (nd1->trb->rad + nd2->trb->rad >= dff_len)
         {
             return 2;
         }
@@ -1158,16 +1158,16 @@ rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
     rt_cell i, j, k, c = 0;
 
     /* run through "ref" faces and "srf" verts */
-    for (j = 0; j < ref->faces_num; j++)
+    for (j = 0; j < ref->shp->faces_num; j++)
     {
-        rt_FACE *fc = &ref->faces[j];
+        rt_FACE *fc = &ref->shp->faces[j];
 
-        for (i = 0; i < srf->verts_num; i++)
+        for (i = 0; i < srf->shp->verts_num; i++)
         {
-            k = vert_to_face(obj->pos, srf->verts[i].pos,
-                             ref->verts[fc->index[0]].pos,
-                             ref->verts[fc->index[1]].pos,
-                             ref->verts[fc->index[2]].pos,
+            k = vert_to_face(obj->trb->pos, srf->shp->verts[i].pos,
+                             ref->shp->verts[fc->index[0]].pos,
+                             ref->shp->verts[fc->index[1]].pos,
+                             ref->shp->verts[fc->index[2]].pos,
                              fc->k, fc->i, fc->j);
             if (k == 4)
             {
@@ -1189,10 +1189,10 @@ rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
             {
                 continue;
             }
-            k = vert_to_face(obj->pos, srf->verts[i].pos,
-                             ref->verts[fc->index[2]].pos,
-                             ref->verts[fc->index[3]].pos,
-                             ref->verts[fc->index[0]].pos,
+            k = vert_to_face(obj->trb->pos, srf->shp->verts[i].pos,
+                             ref->shp->verts[fc->index[2]].pos,
+                             ref->shp->verts[fc->index[3]].pos,
+                             ref->shp->verts[fc->index[0]].pos,
                              fc->k, fc->i, fc->j);
             if (k == 4)
             {
@@ -1214,16 +1214,16 @@ rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
     }
 
     /* run through "srf" faces and "ref" verts */
-    for (j = 0; j < srf->faces_num; j++)
+    for (j = 0; j < srf->shp->faces_num; j++)
     {
-        rt_FACE *fc = &srf->faces[j];
+        rt_FACE *fc = &srf->shp->faces[j];
 
-        for (i = 0; i < ref->verts_num; i++)
+        for (i = 0; i < ref->shp->verts_num; i++)
         {
-            k = vert_to_face(obj->pos, ref->verts[i].pos,
-                             srf->verts[fc->index[0]].pos,
-                             srf->verts[fc->index[1]].pos,
-                             srf->verts[fc->index[2]].pos,
+            k = vert_to_face(obj->trb->pos, ref->shp->verts[i].pos,
+                             srf->shp->verts[fc->index[0]].pos,
+                             srf->shp->verts[fc->index[1]].pos,
+                             srf->shp->verts[fc->index[2]].pos,
                              fc->k, fc->i, fc->j);
             if (k == 4)
             {
@@ -1246,10 +1246,10 @@ rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
             {
                 continue;
             }
-            k = vert_to_face(obj->pos, ref->verts[i].pos,
-                             srf->verts[fc->index[2]].pos,
-                             srf->verts[fc->index[3]].pos,
-                             srf->verts[fc->index[0]].pos,
+            k = vert_to_face(obj->trb->pos, ref->shp->verts[i].pos,
+                             srf->shp->verts[fc->index[2]].pos,
+                             srf->shp->verts[fc->index[3]].pos,
+                             srf->shp->verts[fc->index[0]].pos,
                              fc->k, fc->i, fc->j);
             if (k == 4)
             {
@@ -1272,19 +1272,19 @@ rt_cell bbox_sort(rt_Object *obj, rt_Node *nd1, rt_Node *nd2)
     }
 
     /* run through "ref" edges and "srf" edges */
-    for (j = 0; j < ref->edges_num; j++)
+    for (j = 0; j < ref->shp->edges_num; j++)
     {
-        rt_EDGE *ej = &ref->edges[j];
+        rt_EDGE *ej = &ref->shp->edges[j];
 
-        for (i = 0; i < srf->edges_num; i++)
+        for (i = 0; i < srf->shp->edges_num; i++)
         {
-            rt_EDGE *ei = &srf->edges[i];
+            rt_EDGE *ei = &srf->shp->edges[i];
 
-            k = edge_to_edge(obj->pos,
-                             srf->verts[ei->index[0]].pos,
-                             srf->verts[ei->index[1]].pos, ei->k,
-                             ref->verts[ej->index[0]].pos,
-                             ref->verts[ej->index[1]].pos, ej->k);
+            k = edge_to_edge(obj->trb->pos,
+                             srf->shp->verts[ei->index[0]].pos,
+                             srf->shp->verts[ei->index[1]].pos, ei->k,
+                             ref->shp->verts[ej->index[0]].pos,
+                             ref->shp->verts[ej->index[1]].pos, ej->k);
             if (k == 4)
             {
                 k =  2;
@@ -1319,17 +1319,17 @@ static
 rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
 {
     /* check if surfaces differ and have bounds */
-    if (srf->verts_num == 0 || ref->verts_num == 0 || srf == ref)
+    if (srf->shp->verts_num == 0 || ref->shp->verts_num == 0 || srf == ref)
     {
         return 2;
     }
 
     /* check first if bounding spheres interpenetrate */
     rt_vec4 dff_vec;
-    RT_VEC3_SUB(dff_vec, srf->mid, ref->mid);
+    RT_VEC3_SUB(dff_vec, srf->trb->mid, ref->trb->mid);
     rt_real dff_len = RT_VEC3_LEN(dff_vec);
 
-    if (srf->rad + ref->rad < dff_len)
+    if (srf->trb->rad + ref->trb->rad < dff_len)
     {
         return 0;
     }
@@ -1337,14 +1337,14 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
     /* check if one bbox's mid is inside another */
     rt_cell k;
 
-    k = surf_bbox(ref->mid, srf);
+    k = surf_bbox(ref->trb->mid, srf);
 
     if (k != 0)
     {
         return 1;
     }
 
-    k = surf_bbox(srf->mid, ref);
+    k = surf_bbox(srf->trb->mid, ref);
 
     if (k != 0)
     {
@@ -1355,19 +1355,19 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
     rt_cell i, j;
 
     /* run through "srf" faces and "ref" edges */
-    for (j = 0; j < srf->faces_num; j++)
+    for (j = 0; j < srf->shp->faces_num; j++)
     {
-        rt_FACE *fc = &srf->faces[j];
+        rt_FACE *fc = &srf->shp->faces[j];
 
-        for (i = 0; i < ref->edges_num; i++)
+        for (i = 0; i < ref->shp->edges_num; i++)
         {
-            rt_EDGE *ei = &ref->edges[i];
+            rt_EDGE *ei = &ref->shp->edges[i];
 
-            k = vert_to_face(ref->verts[ei->index[0]].pos,
-                             ref->verts[ei->index[1]].pos,
-                             srf->verts[fc->index[0]].pos,
-                             srf->verts[fc->index[1]].pos,
-                             srf->verts[fc->index[2]].pos,
+            k = vert_to_face(ref->shp->verts[ei->index[0]].pos,
+                             ref->shp->verts[ei->index[1]].pos,
+                             srf->shp->verts[fc->index[0]].pos,
+                             srf->shp->verts[fc->index[1]].pos,
+                             srf->shp->verts[fc->index[2]].pos,
                              fc->k, fc->i, fc->j);
             if (k == 2)
             {
@@ -1377,11 +1377,11 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
             {
                 continue;
             }
-            k = vert_to_face(ref->verts[ei->index[0]].pos,
-                             ref->verts[ei->index[1]].pos,
-                             srf->verts[fc->index[2]].pos,
-                             srf->verts[fc->index[3]].pos,
-                             srf->verts[fc->index[0]].pos,
+            k = vert_to_face(ref->shp->verts[ei->index[0]].pos,
+                             ref->shp->verts[ei->index[1]].pos,
+                             srf->shp->verts[fc->index[2]].pos,
+                             srf->shp->verts[fc->index[3]].pos,
+                             srf->shp->verts[fc->index[0]].pos,
                              fc->k, fc->i, fc->j);
             if (k == 2)
             {
@@ -1391,19 +1391,19 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
     }
 
     /* run through "ref" faces and "srf" edges */
-    for (j = 0; j < ref->faces_num; j++)
+    for (j = 0; j < ref->shp->faces_num; j++)
     {
-        rt_FACE *fc = &ref->faces[j];
+        rt_FACE *fc = &ref->shp->faces[j];
 
-        for (i = 0; i < srf->edges_num; i++)
+        for (i = 0; i < srf->shp->edges_num; i++)
         {
-            rt_EDGE *ei = &srf->edges[i];
+            rt_EDGE *ei = &srf->shp->edges[i];
 
-            k = vert_to_face(srf->verts[ei->index[0]].pos,
-                             srf->verts[ei->index[1]].pos,
-                             ref->verts[fc->index[0]].pos,
-                             ref->verts[fc->index[1]].pos,
-                             ref->verts[fc->index[2]].pos,
+            k = vert_to_face(srf->shp->verts[ei->index[0]].pos,
+                             srf->shp->verts[ei->index[1]].pos,
+                             ref->shp->verts[fc->index[0]].pos,
+                             ref->shp->verts[fc->index[1]].pos,
+                             ref->shp->verts[fc->index[2]].pos,
                              fc->k, fc->i, fc->j);
             if (k == 2)
             {
@@ -1413,11 +1413,11 @@ rt_cell bbox_fuse(rt_Surface *srf, rt_Surface *ref)
             {
                 continue;
             }
-            k = vert_to_face(srf->verts[ei->index[0]].pos,
-                             srf->verts[ei->index[1]].pos,
-                             ref->verts[fc->index[2]].pos,
-                             ref->verts[fc->index[3]].pos,
-                             ref->verts[fc->index[0]].pos,
+            k = vert_to_face(srf->shp->verts[ei->index[0]].pos,
+                             srf->shp->verts[ei->index[1]].pos,
+                             ref->shp->verts[fc->index[2]].pos,
+                             ref->shp->verts[fc->index[3]].pos,
+                             ref->shp->verts[fc->index[0]].pos,
                              fc->k, fc->i, fc->j);
             if (k == 2)
             {
@@ -1442,7 +1442,7 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
 {
     rt_cell i, j, k, m, n, p, c = 0;
 
-    p = srf->tag == RT_TAG_PLANE ? 1 : 0;
+    p = srf->shp->tag == RT_TAG_PLANE ? 1 : 0;
 
     /* check if surfaces are the same */
     if (srf == ref)
@@ -1524,13 +1524,13 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
     /* check if all "ref" verts are on the same side */
     if (p == 1)
     {
-        if (ref->verts_num == 0)
+        if (ref->shp->verts_num == 0)
         {
             c |= 3;
         }
-        for (i = 0; i < ref->verts_num; i++)
+        for (i = 0; i < ref->shp->verts_num; i++)
         {
-            c |= surf_side(ref->verts[i].pos, srf);
+            c |= surf_side(ref->shp->verts[i].pos, srf);
             if (c == 3)
             {
                 break;
@@ -1552,9 +1552,9 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
     if (n == 1 && m == 0)
     {
         c |= 1;
-        for (i = 0; i < ref->verts_num; i++)
+        for (i = 0; i < ref->shp->verts_num; i++)
         {
-            n = surf_side(ref->verts[i].pos, srf);
+            n = surf_side(ref->shp->verts[i].pos, srf);
             if (n == 2)
             {
                 c |= 2;
@@ -1580,9 +1580,9 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
     if (k == 1)
     {
         c |= 2;
-        for (i = 0; i < ref->verts_num; i++)
+        for (i = 0; i < ref->shp->verts_num; i++)
         {
-            k = surf_cbox(ref->verts[i].pos, srf);
+            k = surf_cbox(ref->shp->verts[i].pos, srf);
             if (k != 0)
             {
                 c |= 1;
