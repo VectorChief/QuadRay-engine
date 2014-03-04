@@ -200,6 +200,10 @@ class rt_Object
      * (scaling, rotation or both) */
     rt_cell             mtx_has_trm;
 
+    /* axis mapping for trivial transform */
+    rt_cell             map[4];
+    rt_cell             sgn[4];
+
     public:
 
     rt_Registry        *rg;
@@ -345,11 +349,6 @@ class rt_Light : public rt_Object, public rt_List<rt_Light>
 class rt_Node : public rt_Object
 {
 /*  fields */
-
-    protected:
-
-    rt_cell             map[3];
-    rt_cell             sgn[3];
 
     public:
 

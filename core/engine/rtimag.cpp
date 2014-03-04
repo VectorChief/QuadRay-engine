@@ -7,7 +7,7 @@
 #include <string.h>
 
 #include "rtimag.h"
-#include "system.h"
+#include "rtconf.h"
 
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/
@@ -30,7 +30,7 @@
 /*
  * Load image from file to memory.
  */
-rt_void load_image(rt_Registry *rg, rt_pstr name, rt_TEX *tx)
+rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 {
     rt_word boffset, bzero;
     rt_cell bwidth, bheight;
@@ -46,7 +46,7 @@ rt_void load_image(rt_Registry *rg, rt_pstr name, rt_TEX *tx)
 
     rt_pstr path = RT_PATH_TEXTURES;
     rt_cell len = strlen(path);
-    rt_char *fullpath = (rt_char *)rg->alloc(len + strlen(name) + 1, 0);
+    rt_char *fullpath = (rt_char *)hp->alloc(len + strlen(name) + 1, 0);
 
     strcpy(fullpath, path);
     strcpy(fullpath + len, name);
@@ -105,7 +105,7 @@ rt_void load_image(rt_Registry *rg, rt_pstr name, rt_TEX *tx)
 
         n = tx->x_dim * tx->y_dim;
 
-        tx->ptex = rg->alloc(n * sizeof(rt_word), RT_ALIGN);
+        tx->ptex = hp->alloc(n * sizeof(rt_word), RT_ALIGN);
         if (tx->ptex == RT_NULL)
         {
             break;
@@ -142,7 +142,7 @@ rt_void load_image(rt_Registry *rg, rt_pstr name, rt_TEX *tx)
 /*
  * Save image from memory to file.
  */
-rt_void save_image(rt_Registry *rg, rt_pstr name, rt_TEX *tx)
+rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 {
     rt_word boffset = 54, binfo = 40, bmeter = 4000, bzero = 0;
     rt_cell bwidth = RT_ABS(tx->x_dim), bheight = RT_ABS(tx->y_dim);
@@ -155,7 +155,7 @@ rt_void save_image(rt_Registry *rg, rt_pstr name, rt_TEX *tx)
 
     rt_pstr path = RT_PATH_DUMP;
     rt_cell len = strlen(path);
-    rt_char *fullpath = (rt_char *)rg->alloc(len + strlen(name) + 1, 0);
+    rt_char *fullpath = (rt_char *)hp->alloc(len + strlen(name) + 1, 0);
 
     strcpy(fullpath, path);
     strcpy(fullpath + len, name);

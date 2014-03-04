@@ -7,11 +7,12 @@
 #ifndef RT_SYSTEM_H
 #define RT_SYSTEM_H
 
+#if RT_EMBED_FILEIO == 0
 #include <stdio.h>
+#endif /* RT_EMBED_FILEIO */
 #include <stdarg.h>
 
 #include "rtbase.h"
-#include "rtconf.h"
 
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/
@@ -52,7 +53,9 @@ class rt_File
 
     private:
 
+#if RT_EMBED_FILEIO == 0
     FILE               *file;
+#endif /* RT_EMBED_FILEIO */
 
 /*  methods */
 
@@ -75,7 +78,9 @@ class rt_File
 /**********************************   HEAP   **********************************/
 /******************************************************************************/
 
-/* memory chunk header */
+/*
+ * Memory chunk header structure.
+ */
 struct rt_CHUNK
 {
     rt_byte            *ptr;
@@ -84,6 +89,9 @@ struct rt_CHUNK
     rt_CHUNK           *next;
 };
 
+/*
+ * Memory alloc/free function types.
+ */
 typedef rt_pntr (*rt_FUNC_ALLOC)(rt_word size);
 typedef rt_void (*rt_FUNC_FREE)(rt_pntr ptr);
 

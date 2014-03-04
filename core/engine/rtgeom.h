@@ -22,6 +22,19 @@
  */
 
 /******************************************************************************/
+/*******************************   DEFINITIONS   ******************************/
+/******************************************************************************/
+
+/* Structures */
+
+struct rt_VERT;
+struct rt_EDGE;
+struct rt_FACE;
+
+struct rt_BOUND;
+struct rt_SHAPE;
+
+/******************************************************************************/
 /*********************************   VECTORS   ********************************/
 /******************************************************************************/
 
@@ -200,43 +213,55 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1);
 /********************************   GEOMETRY   ********************************/
 /******************************************************************************/
 
-/* Structures */
-
+/*
+ * Vert structure represents a single vertex in 3D space.
+ */
 struct rt_VERT
 {
     rt_vec4 pos;
 };
 
+/*
+ * Edge structure represents a single line segment in 3D space.
+ */
 struct rt_EDGE
 {
     rt_cell index[2];
     rt_cell k;
 };
 
+/*
+ * Face structure represents a single rectangle on a plane in 3D space.
+ */
 struct rt_FACE
 {
     rt_cell index[4];
     rt_cell k, i, j;
 };
 
-struct rt_BOUND;
-
+/*
+ * Bound structure represents object's boundary, which includes
+ * bounding box's local parameters, bounding box's global geometry,
+ * bounding sphere around bounding box and transform matrices.
+ */
 struct rt_BOUND
 {
-    /* host object pointer */
+    /* host object's pointer and tag */
     rt_pntr             obj;
-    /* host object tag */
     rt_cell             tag;
-    /* host object inv matrix */
+    /* host object's axis mapping */
+    rt_cell            *map;
+    rt_cell            *sgn;
+    /* host object's matrices */
     rt_mat4            *pinv;
-    /* host object trm matrix */
     rt_mat4            *pmtx;
-    /* host object position */
+    /* host object's position */
     rt_real            *pos;
-    /* optimization flags */
+
+    /* runtime optimization flags */
     rt_cell            *opts;
 
-    /* host object trnode's
+    /* host object's trnode
      * BOUND struct pointer */
     rt_BOUND           *trnode;
 
@@ -259,11 +284,13 @@ struct rt_BOUND
     rt_real             rad;
 };
 
+/*
+ * Shape structure represents surface's shape, which includes
+ * surface's geometry coefficients, custom clippers list and
+ * clipping box's local parameters based on axis clippers.
+ */
 struct rt_SHAPE : public rt_BOUND
 {
-    /* host object axis mapping */
-    rt_cell            *map;
-
     /* clipping box,
      * non-clipped sides are at respective +/-infinity */
     rt_vec4             cmin;

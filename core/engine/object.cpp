@@ -89,7 +89,17 @@ rt_Object::rt_Object(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj)
     trb->pinv = &this->inv;
     trb->pmtx = &this->mtx;
     trb->pos = this->mtx[3];
+    trb->map = this->map;
+    trb->sgn = this->sgn;
     trb->opts = &rg->opts;
+    trb->map[RT_I] = RT_X;
+    trb->map[RT_J] = RT_Y;
+    trb->map[RT_K] = RT_Z;
+    trb->map[RT_L] = RT_W;
+    trb->sgn[RT_I] = 0;
+    trb->sgn[RT_J] = 0;
+    trb->sgn[RT_K] = 0;
+    trb->sgn[RT_L] = 0;
 
     obj->time = -1;
 
@@ -762,7 +772,17 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     aab->pinv = &this->inv;
     aab->pmtx = &this->mtx;
     aab->pos = this->mtx[3];
+    aab->map = this->map;
+    aab->sgn = this->sgn;
     aab->opts = &rg->opts;
+    aab->map[RT_I] = RT_X;
+    aab->map[RT_J] = RT_Y;
+    aab->map[RT_K] = RT_Z;
+    aab->map[RT_L] = RT_W;
+    aab->sgn[RT_I] = 0;
+    aab->sgn[RT_J] = 0;
+    aab->sgn[RT_K] = 0;
+    aab->sgn[RT_L] = 0;
 
 /*  rt_SIMD_SURFACE */
 

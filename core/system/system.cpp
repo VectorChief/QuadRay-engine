@@ -4,7 +4,12 @@
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
 
+#if RT_EMBED_STDOUT == 0
+#include <stdio.h>
+#endif /* RT_EMBED_STDOUT */
+
 #include "system.h"
+#include "rtconf.h"
 
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/
@@ -27,8 +32,8 @@
  */
 rt_File::rt_File(rt_pstr name, rt_pstr mode)
 {
-    file = RT_NULL;
 #if RT_EMBED_FILEIO == 0
+    file = RT_NULL;
     if (name != RT_NULL && mode != RT_NULL)
     {
         file = fopen(name, mode);
@@ -112,7 +117,11 @@ rt_cell rt_File::vprint(rt_pstr format, va_list args)
  */
 rt_cell rt_File::error()
 {
-    return file == RT_NULL;
+    return 
+#if RT_EMBED_FILEIO == 0
+    file == RT_NULL ? 1 :
+#endif /* RT_EMBED_FILEIO */
+    0;
 }
 
 /*
@@ -126,8 +135,8 @@ rt_File::~rt_File()
         fflush(file);
         fclose(file);
     }
-#endif /* RT_EMBED_FILEIO */
     file = RT_NULL;
+#endif /* RT_EMBED_FILEIO */
 }
 
 /******************************************************************************/

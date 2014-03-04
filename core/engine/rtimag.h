@@ -9,7 +9,7 @@
 
 #include "rtbase.h"
 #include "format.h"
-#include "object.h"
+#include "system.h"
 
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/
@@ -29,12 +29,12 @@
 /*
  * Load image from file to memory.
  */
-rt_void load_image(rt_Registry *rg, rt_pstr name, rt_TEX *tx);
+rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx);
 
 /*
  * Save image from memory to file.
  */
-rt_void save_image(rt_Registry *rg, rt_pstr name, rt_TEX *tx);
+rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx);
 
 /*
  * Convert image from file to C static array initializer format.
