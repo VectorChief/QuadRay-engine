@@ -8,6 +8,7 @@
 #define RT_OBJECT_H
 
 #include "rtbase.h"
+#include "rtconf.h"
 #include "rtgeom.h"
 #include "format.h"
 #include "system.h"

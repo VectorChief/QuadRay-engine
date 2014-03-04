@@ -6,6 +6,7 @@
 
 #include <string.h>
 
+#include "rtconf.h"
 #include "rtgeom.h"
 #include "system.h"
 #include "tracer.h"

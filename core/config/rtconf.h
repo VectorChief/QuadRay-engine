@@ -34,9 +34,9 @@
 #define RT_PATH_DUMP_LOG        RT_PATH_TOSTR(RT_PATH)"dump/log.txt"
 #define RT_PATH_DUMP_ERR        RT_PATH_TOSTR(RT_PATH)"dump/err.txt"
 
-#if RT_EMBED_FILEIO == 1
-#define RT_EMBED_TEX            1
-#endif /* RT_EMBED_FILEIO */
+#if RT_EMBED_FILEIO == 1 && RT_EMBED_TEX == 0
+#error "RT_EMBED_TEX must be enabled if RT_EMBED_FILEIO is enabled"
+#endif /* RT_EMBED_FILEIO, RT_EMBED_TEX */
 
 #define RT_VERTS_LIMIT          8  /* maximum number of verts for bbox */
 #define RT_EDGES_LIMIT          12 /* maximum number of edges for bbox */

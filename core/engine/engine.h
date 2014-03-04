@@ -8,6 +8,7 @@
 #define RT_ENGINE_H
 
 #include "rtbase.h"
+#include "rtconf.h"
 #include "rtgeom.h"
 #include "object.h"
 #include "system.h"
