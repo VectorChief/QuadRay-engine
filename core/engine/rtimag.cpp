@@ -131,7 +131,7 @@ rt_void load_image(rt_Registry *rg, rt_pstr name, rt_TEX *tx)
     }
     while (0);
 
-    if (f != NULL)
+    if (f != RT_NULL)
     {
         delete f;
     }
@@ -252,7 +252,7 @@ rt_void save_image(rt_Registry *rg, rt_pstr name, rt_TEX *tx)
     }
     while (0);
 
-    if (f != NULL)
+    if (f != RT_NULL)
     {
         delete f;
     }
