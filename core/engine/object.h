@@ -187,6 +187,7 @@ class rt_Object
 
     protected:
 
+    /* original object's pointer */
     rt_OBJECT          *obj;
     /* original transform data */
     rt_TRANSFORM3D      otm;
@@ -209,19 +210,26 @@ class rt_Object
 
     rt_Registry        *rg;
 
+    /* object's transform and tag */
     rt_TRANSFORM3D     *trm;
     rt_cell             tag;
 
+    /* transform matrices */
     rt_mat4             inv;
     rt_mat4             mtx;
     rt_real            *pos;
 
-    /* transformed bounding box and volume */
-    rt_BOUND           *trb;
+    /* bounding box and volume,
+     * used for bvnode if present */
+    rt_BOUND           *box;
 
     /* non-zero if object itself or
      * some of its parents changed */
     rt_cell             obj_changed;
+
+    /* object's immediate parent
+     * in the hierarchy */
+    rt_Object          *parent;
 
     /* node up in the hierarchy with
      * non-trivial transform,
@@ -234,10 +242,6 @@ class rt_Object
      * to which object contributes
      * its own bounding volume */
     rt_Object          *bvnode;
-
-    /* object's immediate parent
-     * in the hierarchy */
-    rt_Object          *parent;
 
 /*  methods */
 
@@ -353,6 +357,8 @@ class rt_Node : public rt_Object
 
     public:
 
+    /* surface SIMD struct,
+     * used for trnode if present */
     rt_SIMD_SURFACE    *s_srf;
 
 /*  methods */
@@ -402,12 +408,13 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
     rt_Object         **obj_arr;
     rt_cell             obj_num;
 
-    /* axis-aligned bounding box and volume
-     * used for bvnode in case if array
-     * serves as both trnode and bvnode */
-    rt_BOUND           *aab;
+    /* bounding box and volume,
+     * used for trnode if present */
+    rt_BOUND           *aux;
 
-    rt_SIMD_SURFACE    *s_aab;
+    /* surface SIMD struct,
+     * used for bvnode if present */
+    rt_SIMD_SURFACE    *s_box;
 
 /*  methods */
 
@@ -457,7 +464,7 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
     public:
 
     /* surface shape extension to
-     * transformed bounding box and volume */
+     * bounding box and volume */
     rt_SHAPE           *shp;
 
     /* axis mapping shorteners */

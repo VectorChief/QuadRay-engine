@@ -674,7 +674,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
         elm->data = (rt_cell)scene->slist; /* all srf are potential shadows */
         elm->simd = lgt->s_lgt;
-        elm->temp = lgt->trb;
+        elm->temp = lgt->box;
         /* insert element as list head */
         elm->next = *ptr;
        *ptr = elm;
@@ -689,7 +689,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
     elm->data = 0;
     elm->simd = srf->s_srf;
-    elm->temp = srf->trb;
+    elm->temp = srf->box;
 
     rt_ELEM *lst[2], *nxt;
     rt_Array *arr[2];
@@ -759,7 +759,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
      * along with node's type in the lower 4 bits (trnode/bvnode) */
     for (i = 0; nxt != RT_NULL && i < n; nxt = nxt->next)
     {
-        if (arr[k]->trb == nxt->temp && RT_GET_FLG(nxt->simd) == k)
+        if (arr[k]->box == nxt->temp && RT_GET_FLG(nxt->simd) == k)
         {
             lst[k] = nxt;
             /* set insertion point to existing node's sublist */
@@ -788,7 +788,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         nxt->data = 0;
         nxt->simd = RT_NULL;
         RT_SET_FLG(nxt->simd, rt_pntr, k); /* node's type */
-        nxt->temp = arr[k]->trb;
+        nxt->temp = arr[k]->box;
         /* insert element according to found position */
         nxt->next = RT_GET_PTR(*ptr);
         RT_SET_PTR(*ptr, rt_ELEM *, nxt);
@@ -843,7 +843,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     for (nxt = elm->next; nxt != RT_NULL; )
     {
         /* compute the order value between "elm" and "nxt" elements */
-        rt_cell op = bbox_sort(obj->trb,
+        rt_cell op = bbox_sort(obj->box,
                               (rt_BOUND *)elm->temp,
                               (rt_BOUND *)nxt->temp);
         switch (op)
@@ -864,7 +864,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 }
                 else
                 {
-                    prv->data = bbox_sort(obj->trb,
+                    prv->data = bbox_sort(obj->box,
                                          (rt_BOUND *)prv->temp,
                                          (rt_BOUND *)nxt->temp);
                 }
@@ -909,7 +909,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     {
         rt_bool gr = RT_FALSE;
         /* compute the order value between "elm" and "nxt" elements */
-        rt_cell op = bbox_sort(obj->trb,
+        rt_cell op = bbox_sort(obj->box,
                               (rt_BOUND *)elm->temp,
                               (rt_BOUND *)nxt->temp);
         switch (op)
@@ -969,7 +969,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                         /* compute new order value */
                         else
                         {
-                            op = bbox_sort(obj->trb,
+                            op = bbox_sort(obj->box,
                                           (rt_BOUND *)cur->temp,
                                           (rt_BOUND *)jel->temp);
                         }
@@ -1035,7 +1035,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                         if (iel->data == 0)
                         {
                             cur = iel->next;
-                            iel->data = bbox_sort(obj->trb,
+                            iel->data = bbox_sort(obj->box,
                                                  (rt_BOUND *)iel->temp,
                                                  (rt_BOUND *)cur->temp);
                         }
@@ -1051,7 +1051,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 if (ipt->data == 0)
                 {
                     cur = ipt->next;
-                    ipt->data = bbox_sort(obj->trb,
+                    ipt->data = bbox_sort(obj->box,
                                          (rt_BOUND *)ipt->temp,
                                          (rt_BOUND *)cur->temp);
                 }
@@ -1073,7 +1073,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 }
                 else
                 {
-                    prv->data = bbox_sort(obj->trb,
+                    prv->data = bbox_sort(obj->box,
                                          (rt_BOUND *)prv->temp,
                                          (rt_BOUND *)cur->temp);
                 }
@@ -1111,7 +1111,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 if (tlp->data == 0)
                 {
                     cur = tlp->next;
-                    tlp->data = bbox_sort(obj->trb,
+                    tlp->data = bbox_sort(obj->box,
                                          (rt_BOUND *)tlp->temp,
                                          (rt_BOUND *)cur->temp);
                 }
@@ -1134,7 +1134,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     cur = tlp->next;
     if (tlp->data == 0 && cur != RT_NULL)
     {
-        tlp->data = bbox_sort(obj->trb,
+        tlp->data = bbox_sort(obj->box,
                              (rt_BOUND *)tlp->temp,
                              (rt_BOUND *)cur->temp);
     }
@@ -1357,7 +1357,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
             elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
             elm->data = i << 16 | j;
             elm->simd = srf->s_srf;
-            elm->temp = srf->trb;
+            elm->temp = srf->box;
            *ptr = elm;
             ptr = &elm->next;
         }
@@ -1419,7 +1419,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 #if RT_OPTS_2SIDED != 0
         if ((scene->opts & RT_OPTS_2SIDED) != 0 && srf != RT_NULL)
         {
-            rt_cell c = bbox_side(ref->trb, srf->shp);
+            rt_cell c = bbox_side(ref->box, srf->shp);
 
             if (c & 2)
             {
@@ -1537,7 +1537,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 #if RT_OPTS_2SIDED != 0
         if ((scene->opts & RT_OPTS_2SIDED) != 0 && srf != RT_NULL)
         {
-            rt_cell c = bbox_side(lgt->trb, srf->shp);
+            rt_cell c = bbox_side(lgt->box, srf->shp);
 
             if (c & 2)
             {
@@ -1592,7 +1592,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 
         for (shw = scene->srf_head; shw != RT_NULL; shw = shw->next)
         {
-            if (bbox_shad(lgt->trb, shw->trb, srf->trb) == 0)
+            if (bbox_shad(lgt->box, shw->box, srf->box) == 0)
             {
                 continue;
             }
@@ -1600,7 +1600,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 #if RT_OPTS_2SIDED != 0
             if ((scene->opts & RT_OPTS_2SIDED) != 0)
             {
-                rt_cell c = bbox_side(shw->trb, srf->shp);
+                rt_cell c = bbox_side(shw->box, srf->shp);
 
                 if (c & 2 && pso != RT_NULL)
                 {
@@ -2072,7 +2072,7 @@ rt_void rt_Scene::render(rt_long time)
                      * grouping for cached transform is retained from slist */
                     trn = tiles[tline + j];
 
-                    if (trn != RT_NULL && trn->temp == srf->trnode->trb)
+                    if (trn != RT_NULL && trn->temp == srf->trnode->box)
                     {
                         /* insert element under existing trnode */
                         tls->next = trn->next;
@@ -2090,7 +2090,7 @@ rt_void rt_Scene::render(rt_long time)
                         trn = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                         trn->data = (rt_cell)tls; /* trnode's last elem */
                         trn->simd = arr->s_srf;
-                        trn->temp = arr->trb;
+                        trn->temp = arr->box;
                         /* insert element as list head */
                         trn->next = tiles[tline + j];
                         tiles[tline + j] = trn;

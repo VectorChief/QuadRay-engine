@@ -80,28 +80,14 @@ rt_Object::rt_Object(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj)
     this->pos = this->mtx[3];
     this->tag = obj->obj.tag;
 
-    trb = (rt_BOUND *)rg->alloc(RT_IS_SURFACE(this) ?
-                        sizeof(rt_SHAPE) : sizeof(rt_BOUND), RT_QUAD_ALIGN);
-
-    memset(trb, 0, sizeof(rt_BOUND));
-    trb->obj = this;
-    trb->tag = this->tag;
-    trb->pinv = &this->inv;
-    trb->pmtx = &this->mtx;
-    trb->pos = this->mtx[3];
-    trb->map = this->map;
-    trb->sgn = this->sgn;
-    trb->opts = &rg->opts;
-    trb->map[RT_I] = RT_X;
-    trb->map[RT_J] = RT_Y;
-    trb->map[RT_K] = RT_Z;
-    trb->map[RT_L] = RT_W;
-    trb->sgn[RT_I] = 0;
-    trb->sgn[RT_J] = 0;
-    trb->sgn[RT_K] = 0;
-    trb->sgn[RT_L] = 0;
-
-    obj->time = -1;
+    this->map[RT_I] = RT_X;
+    this->map[RT_J] = RT_Y;
+    this->map[RT_K] = RT_Z;
+    this->map[RT_L] = RT_W;
+    this->sgn[RT_I] = 0;
+    this->sgn[RT_J] = 0;
+    this->sgn[RT_K] = 0;
+    this->sgn[RT_L] = 0;
 
     this->obj_changed = 0;
     this->obj_has_trm = 0;
@@ -110,6 +96,21 @@ rt_Object::rt_Object(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj)
     this->trnode = RT_NULL;
     this->bvnode = RT_NULL;
     this->parent = parent;
+
+    box = (rt_BOUND *)rg->alloc(RT_IS_SURFACE(this) ?
+                        sizeof(rt_SHAPE) : sizeof(rt_BOUND), RT_QUAD_ALIGN);
+
+    memset(box, 0, sizeof(rt_BOUND));
+    box->obj = this;
+    box->tag = this->tag;
+    box->pinv = &this->inv;
+    box->pmtx = &this->mtx;
+    box->pos = this->mtx[3];
+    box->map = this->map;
+    box->sgn = this->sgn;
+    box->opts = &rg->opts;
+
+    obj->time = -1;
 }
 
 /*
@@ -266,11 +267,11 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     if (trnode != RT_NULL)
     {
-        trb->trnode = trnode->trb;
+        box->trnode = trnode->box;
     }
     else
     {
-        trb->trnode = RT_NULL;
+        box->trnode = RT_NULL;
     }
 }
 
@@ -572,7 +573,6 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
 
     RT_SIMD_SET(s_srf->sbase, 0x00000000);
     RT_SIMD_SET(s_srf->smask, 0x80000000);
-
     RT_SIMD_SET(s_srf->c_tmp, 0xFFFFFFFF);
 }
 
@@ -764,55 +764,46 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
         }
     }
 
-    aab = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
+    aux = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
 
-    memset(aab, 0, sizeof(rt_BOUND));
-    aab->obj = this;
-    aab->tag = this->tag;
-    aab->pinv = &this->inv;
-    aab->pmtx = &this->mtx;
-    aab->pos = this->mtx[3];
-    aab->map = this->map;
-    aab->sgn = this->sgn;
-    aab->opts = &rg->opts;
-    aab->map[RT_I] = RT_X;
-    aab->map[RT_J] = RT_Y;
-    aab->map[RT_K] = RT_Z;
-    aab->map[RT_L] = RT_W;
-    aab->sgn[RT_I] = 0;
-    aab->sgn[RT_J] = 0;
-    aab->sgn[RT_K] = 0;
-    aab->sgn[RT_L] = 0;
+    memset(aux, 0, sizeof(rt_BOUND));
+    aux->obj = this;
+    aux->tag = this->tag;
+    aux->pinv = &this->inv;
+    aux->pmtx = &this->mtx;
+    aux->pos = this->mtx[3];
+    aux->map = this->map;
+    aux->sgn = this->sgn;
+    aux->opts = &rg->opts;
 
 /*  rt_SIMD_SURFACE */
 
-    s_aab = (rt_SIMD_SURFACE *)
+    s_box = (rt_SIMD_SURFACE *)
             rg->alloc(RT_MAX(ssize, sizeof(rt_SIMD_SPHERE)), RT_SIMD_ALIGN);
 
-    s_aab->mat_p[0] = RT_NULL; /* outer material */
-    s_aab->mat_p[1] = RT_NULL; /* outer material props */
-    s_aab->mat_p[2] = RT_NULL; /* inner material */
-    s_aab->mat_p[3] = RT_NULL; /* inner material props */
+    s_box->mat_p[0] = RT_NULL; /* outer material */
+    s_box->mat_p[1] = RT_NULL; /* outer material props */
+    s_box->mat_p[2] = RT_NULL; /* inner material */
+    s_box->mat_p[3] = RT_NULL; /* inner material props */
 
-    s_aab->srf_p[0] = RT_NULL; /* surf ptr, filled in update0 */
-    s_aab->srf_p[1] = RT_NULL; /* reserved */
-    s_aab->srf_p[2] = RT_NULL; /* clip ptr, filled in update0 */
-    s_aab->srf_p[3] = (rt_pntr)tag; /* tag */
+    s_box->srf_p[0] = RT_NULL; /* surf ptr, filled in update0 */
+    s_box->srf_p[1] = RT_NULL; /* reserved */
+    s_box->srf_p[2] = RT_NULL; /* clip ptr, filled in update0 */
+    s_box->srf_p[3] = (rt_pntr)tag; /* tag */
 
-    s_aab->msc_p[0] = RT_NULL; /* screen tiles */
-    s_aab->msc_p[1] = RT_NULL; /* reserved */
-    s_aab->msc_p[2] = RT_NULL; /* custom clippers */
-    s_aab->msc_p[3] = RT_NULL; /* trnode's simd ptr */
+    s_box->msc_p[0] = RT_NULL; /* screen tiles */
+    s_box->msc_p[1] = RT_NULL; /* reserved */
+    s_box->msc_p[2] = RT_NULL; /* custom clippers */
+    s_box->msc_p[3] = RT_NULL; /* trnode's simd ptr */
 
-    s_aab->lst_p[0] = RT_NULL; /* outer lights/shadows */
-    s_aab->lst_p[1] = RT_NULL; /* outer surfaces for rfl/rfr */
-    s_aab->lst_p[2] = RT_NULL; /* inner lights/shadows */
-    s_aab->lst_p[3] = RT_NULL; /* inner surfaces for rfl/rfr */
+    s_box->lst_p[0] = RT_NULL; /* outer lights/shadows */
+    s_box->lst_p[1] = RT_NULL; /* outer surfaces for rfl/rfr */
+    s_box->lst_p[2] = RT_NULL; /* inner lights/shadows */
+    s_box->lst_p[3] = RT_NULL; /* inner surfaces for rfl/rfr */
 
-    RT_SIMD_SET(s_aab->sbase, 0x00000000);
-    RT_SIMD_SET(s_aab->smask, 0x80000000);
-
-    RT_SIMD_SET(s_aab->c_tmp, 0xFFFFFFFF);
+    RT_SIMD_SET(s_box->sbase, 0x00000000);
+    RT_SIMD_SET(s_box->smask, 0x80000000);
+    RT_SIMD_SET(s_box->c_tmp, 0xFFFFFFFF);
 }
 
 /*
@@ -852,7 +843,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     rt_Node::update(time, mtx, flags);
 
-    aab->trnode = trb->trnode;
+    aux->trnode = box->trnode;
 
     rt_cell i, j;
     rt_mat4 *pmtx = &this->mtx;
@@ -955,7 +946,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
                     elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                     elm->data = rel[i].rel;
                     elm->simd = RT_NULL;
-                    elm->temp = obj_arr_r[rel[i].obj2]->trb;
+                    elm->temp = obj_arr_r[rel[i].obj2]->box;
                     elm->next = RT_NULL;
                     obj_arr_r = obj_arr; /* reset right sub-array after use */
                     obj_num_r = obj_num;
@@ -1087,15 +1078,15 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     s_srf->a_sgn[RT_K] = 0;
     s_srf->a_sgn[RT_L] = 0;
 
-    s_aab->a_map[RT_I] = RT_X * RT_SIMD_WIDTH * 4;
-    s_aab->a_map[RT_J] = RT_Y * RT_SIMD_WIDTH * 4;
-    s_aab->a_map[RT_K] = RT_Z * RT_SIMD_WIDTH * 4;
-    s_aab->a_map[RT_L] = mtx_has_trm;
+    s_box->a_map[RT_I] = RT_X * RT_SIMD_WIDTH * 4;
+    s_box->a_map[RT_J] = RT_Y * RT_SIMD_WIDTH * 4;
+    s_box->a_map[RT_K] = RT_Z * RT_SIMD_WIDTH * 4;
+    s_box->a_map[RT_L] = mtx_has_trm;
 
-    s_aab->a_sgn[RT_I] = 0;
-    s_aab->a_sgn[RT_J] = 0;
-    s_aab->a_sgn[RT_K] = 0;
-    s_aab->a_sgn[RT_L] = 0;
+    s_box->a_sgn[RT_I] = 0;
+    s_box->a_sgn[RT_J] = 0;
+    s_box->a_sgn[RT_K] = 0;
+    s_box->a_sgn[RT_L] = 0;
 
     invert_matrix();
 }
@@ -1117,26 +1108,26 @@ rt_void rt_Array::update_bvnode(rt_Array *bvnode, rt_bool mode)
 }
 
 /*
- * Update bounding sphere data.
+ * Update bounding volume data.
  */
 rt_void rt_Array::update_bounds()
 {
-    RT_VEC3_SET(trb->mid, pos);
+    RT_VEC3_SET(box->mid, pos);
 
-    trb->rad = 0.0f;
+    box->rad = 0.0f;
 
     if (trnode != RT_NULL && trnode != this)
     {
-        RT_VEC3_ADD(trb->mid, trb->mid, trnode->pos);
+        RT_VEC3_ADD(box->mid, box->mid, trnode->pos);
     }
 
-    RT_SIMD_SET(s_srf->pos_x, trb->mid[RT_X]);
-    RT_SIMD_SET(s_srf->pos_y, trb->mid[RT_Y]);
-    RT_SIMD_SET(s_srf->pos_z, trb->mid[RT_Z]);
+    RT_SIMD_SET(s_srf->pos_x, box->mid[RT_X]);
+    RT_SIMD_SET(s_srf->pos_y, box->mid[RT_Y]);
+    RT_SIMD_SET(s_srf->pos_z, box->mid[RT_Z]);
 
-    RT_SIMD_SET(s_aab->pos_x, aab->mid[RT_X]);
-    RT_SIMD_SET(s_aab->pos_y, aab->mid[RT_Y]);
-    RT_SIMD_SET(s_aab->pos_z, aab->mid[RT_Z]);
+    RT_SIMD_SET(s_box->pos_x, aux->mid[RT_X]);
+    RT_SIMD_SET(s_box->pos_y, aux->mid[RT_Y]);
+    RT_SIMD_SET(s_box->pos_z, aux->mid[RT_Z]);
 
     rt_cell i;
 
@@ -1169,12 +1160,12 @@ rt_void rt_Array::update_bounds()
         }
 
         rt_vec4 dff_vec;
-        RT_VEC3_SUB(dff_vec, arr->trb->mid, nd->trb->mid);
+        RT_VEC3_SUB(dff_vec, arr->box->mid, nd->box->mid);
         rt_real dff_len = RT_VEC3_LEN(dff_vec);
 
-        if (arr->trb->rad < dff_len + nd->trb->rad)
+        if (arr->box->rad < dff_len + nd->box->rad)
         {
-            arr->trb->rad = dff_len + nd->trb->rad;
+            arr->box->rad = dff_len + nd->box->rad;
         }
     }
 
@@ -1182,11 +1173,11 @@ rt_void rt_Array::update_bounds()
 
     rt_SIMD_SPHERE *s_xsp = (rt_SIMD_SPHERE *)s_srf;
 
-    RT_SIMD_SET(s_xsp->rad_2, trb->rad * trb->rad);
+    RT_SIMD_SET(s_xsp->rad_2, box->rad * box->rad);
 
-                    s_xsp = (rt_SIMD_SPHERE *)s_aab;
+                    s_xsp = (rt_SIMD_SPHERE *)s_box;
 
-    RT_SIMD_SET(s_xsp->rad_2, aab->rad * aab->rad);
+    RT_SIMD_SET(s_xsp->rad_2, aux->rad * aux->rad);
 }
 
 /*
@@ -1229,9 +1220,8 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
                     obj->obj.pmat_inner ? obj->obj.pmat_inner :
                                           srf->side_inner.pmat);
 
-    shp = (rt_SHAPE *)trb;
+    shp = (rt_SHAPE *)box;
 
-    shp->map = map;
     shp->ptr = &s_srf->msc_p[2];
 
 /*  rt_SIMD_SURFACE */
@@ -1284,7 +1274,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
                 elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                 elm->data = rel;
                 elm->simd = RT_NULL;
-                elm->temp = arr->obj_arr[i]->trb;
+                elm->temp = arr->obj_arr[i]->box;
                 elm->next = RT_NULL;
 
                 add_relation(elm);
@@ -1299,7 +1289,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
             elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
             elm->data = rel;
             elm->simd = srf->s_srf;
-            elm->temp = srf->trb;
+            elm->temp = srf->box;
 
             if (srf->trnode != RT_NULL && srf->trnode != srf)
             {
@@ -1315,7 +1305,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
                      * hasn't been inserted yet (current accum segment)
                      * or outside of any accum segment */
                     if (acc == 0
-                    &&  nxt->temp == srf->trnode->trb)
+                    &&  nxt->temp == srf->trnode->box)
                     {
                         break;
                     }
@@ -1363,7 +1353,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
                     nxt = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                     nxt->data = (rt_cell)elm; /* trnode's last elem */
                     nxt->simd = arr->s_srf;
-                    nxt->temp = arr->trb;
+                    nxt->temp = arr->box;
                     /* insert element as list head */
                     nxt->next = *ptr;
                    *ptr = nxt;
@@ -1758,7 +1748,7 @@ rt_void rt_Surface::update_minmax()
 }
 
 /*
- * Update bounding sphere data.
+ * Update bounding volume data.
  */
 rt_void rt_Surface::update_bounds()
 {
