@@ -759,7 +759,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
      * along with node's type in the lower 4 bits (trnode/bvnode) */
     for (i = 0; nxt != RT_NULL && i < n; nxt = nxt->next)
     {
-        if (arr[k]->box == nxt->temp && RT_GET_FLG(nxt->simd) == k)
+        if (arr[k] == ((rt_BOUND *)nxt->temp)->obj
+        &&  RT_GET_FLG(nxt->simd) == k)
         {
             lst[k] = nxt;
             /* set insertion point to existing node's sublist */
@@ -788,7 +789,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         nxt->data = 0;
         nxt->simd = RT_NULL;
         RT_SET_FLG(nxt->simd, rt_pntr, k); /* node's type */
-        nxt->temp = arr[k]->box;
+        nxt->temp = k == 0 ? arr[k]->aux : arr[k]->box;
         /* insert element according to found position */
         nxt->next = RT_GET_PTR(*ptr);
         RT_SET_PTR(*ptr, rt_ELEM *, nxt);
@@ -2072,7 +2073,9 @@ rt_void rt_Scene::render(rt_long time)
                      * grouping for cached transform is retained from slist */
                     trn = tiles[tline + j];
 
-                    if (trn != RT_NULL && trn->temp == srf->trnode->box)
+                    rt_Array *arr = (rt_Array *)srf->trnode;
+
+                    if (trn != RT_NULL && trn->temp == arr->aux)
                     {
                         /* insert element under existing trnode */
                         tls->next = trn->next;
@@ -2084,13 +2087,11 @@ rt_void rt_Scene::render(rt_long time)
                         tls->next = tiles[tline + j];
                         tiles[tline + j] = tls;
 
-                        rt_Array *arr = (rt_Array *)srf->trnode;
-
                         /* alloc new trnode element as none has been found */
                         trn = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                         trn->data = (rt_cell)tls; /* trnode's last elem */
                         trn->simd = arr->s_srf;
-                        trn->temp = arr->box;
+                        trn->temp = arr->aux;
                         /* insert element as list head */
                         trn->next = tiles[tline + j];
                         tiles[tline + j] = trn;

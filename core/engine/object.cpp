@@ -700,7 +700,7 @@ rt_Node::~rt_Node()
 rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
                    rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Node(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_SPHERE))),
+    rt_Node(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_SURFACE))),
     rt_List<rt_Array>(rg->get_arr())
 {
     rg->put_arr(this);
@@ -843,7 +843,14 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     rt_Node::update(time, mtx, flags);
 
-    aux->trnode = box->trnode;
+    if (trnode != RT_NULL)
+    {
+        aux->trnode = ((rt_Array *)trnode)->aux;
+    }
+    else
+    {
+        aux->trnode = RT_NULL;
+    }
 
     rt_cell i, j;
     rt_mat4 *pmtx = &this->mtx;
@@ -1112,22 +1119,16 @@ rt_void rt_Array::update_bvnode(rt_Array *bvnode, rt_bool mode)
  */
 rt_void rt_Array::update_bounds()
 {
-    RT_VEC3_SET(box->mid, pos);
+    RT_VEC3_SET(aux->mid, pos);
+    aux->rad = 0.0f;
 
+    RT_VEC3_SET(box->mid, pos);
     box->rad = 0.0f;
 
     if (trnode != RT_NULL && trnode != this)
     {
         RT_VEC3_ADD(box->mid, box->mid, trnode->pos);
     }
-
-    RT_SIMD_SET(s_srf->pos_x, box->mid[RT_X]);
-    RT_SIMD_SET(s_srf->pos_y, box->mid[RT_Y]);
-    RT_SIMD_SET(s_srf->pos_z, box->mid[RT_Z]);
-
-    RT_SIMD_SET(s_box->pos_x, aux->mid[RT_X]);
-    RT_SIMD_SET(s_box->pos_y, aux->mid[RT_Y]);
-    RT_SIMD_SET(s_box->pos_z, aux->mid[RT_Z]);
 
     rt_cell i;
 
@@ -1152,32 +1153,44 @@ rt_void rt_Array::update_bounds()
             continue;
         }
 
-        arr = (rt_Array *)nd->bvnode;
+        arr = (rt_Array *)(nd->trnode != nd ? nd->trnode : RT_NULL);
 
-        if (arr == RT_NULL)
+        if (arr != RT_NULL)
         {
-            continue;
+            rt_vec4 dff_vec;
+            RT_VEC3_SUB(dff_vec, arr->aux->mid, nd->box->mid);
+            rt_real dff_len = RT_VEC3_LEN(dff_vec);
+
+            if (arr->aux->rad < dff_len + nd->box->rad)
+            {
+                arr->aux->rad = dff_len + nd->box->rad;
+            }
         }
 
-        rt_vec4 dff_vec;
-        RT_VEC3_SUB(dff_vec, arr->box->mid, nd->box->mid);
-        rt_real dff_len = RT_VEC3_LEN(dff_vec);
+        arr = (rt_Array *)(nd->bvnode);
 
-        if (arr->box->rad < dff_len + nd->box->rad)
+        if (arr != RT_NULL)
         {
-            arr->box->rad = dff_len + nd->box->rad;
+            rt_vec4 dff_vec;
+            RT_VEC3_SUB(dff_vec, arr->box->mid, nd->box->mid);
+            rt_real dff_len = RT_VEC3_LEN(dff_vec);
+
+            if (arr->box->rad < dff_len + nd->box->rad)
+            {
+                arr->box->rad = dff_len + nd->box->rad;
+            }
         }
     }
 
+    RT_SIMD_SET(s_box->pos_x, box->mid[RT_X]);
+    RT_SIMD_SET(s_box->pos_y, box->mid[RT_Y]);
+    RT_SIMD_SET(s_box->pos_z, box->mid[RT_Z]);
+
 /*  rt_SIMD_SPHERE */
 
-    rt_SIMD_SPHERE *s_xsp = (rt_SIMD_SPHERE *)s_srf;
+    rt_SIMD_SPHERE *s_xsp = (rt_SIMD_SPHERE *)s_box;
 
     RT_SIMD_SET(s_xsp->rad_2, box->rad * box->rad);
-
-                    s_xsp = (rt_SIMD_SPHERE *)s_box;
-
-    RT_SIMD_SET(s_xsp->rad_2, aux->rad * aux->rad);
 }
 
 /*
@@ -1296,6 +1309,8 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
                 rt_cell acc  = 0;
                 rt_ELEM *nxt;
 
+                rt_Array *arr = (rt_Array *)srf->trnode;
+
                 /* search matching existing trnode for insertion
                  * either within current accum segment
                  * or outside of any accum segment */
@@ -1305,7 +1320,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
                      * hasn't been inserted yet (current accum segment)
                      * or outside of any accum segment */
                     if (acc == 0
-                    &&  nxt->temp == srf->trnode->box)
+                    &&  nxt->temp == arr->aux)
                     {
                         break;
                     }
@@ -1347,13 +1362,11 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
                     elm->next = *ptr;
                    *ptr = elm;
 
-                    rt_Array *arr = (rt_Array *)obj->trnode;
-
                     /* alloc new trnode element as none has been found */
                     nxt = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                     nxt->data = (rt_cell)elm; /* trnode's last elem */
                     nxt->simd = arr->s_srf;
-                    nxt->temp = arr->box;
+                    nxt->temp = arr->aux;
                     /* insert element as list head */
                     nxt->next = *ptr;
                    *ptr = nxt;
@@ -1753,7 +1766,6 @@ rt_void rt_Surface::update_minmax()
 rt_void rt_Surface::update_bounds()
 {
     RT_VEC3_SET_VAL1(shp->mid, 0.0f);
-
     shp->rad = 0.0f;
 
     if (shp->verts_num == 0)
