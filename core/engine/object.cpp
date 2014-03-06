@@ -1153,17 +1153,29 @@ rt_void rt_Array::update_bounds()
             continue;
         }
 
+        if (nd->box->rad == 0.0f)
+        {
+            continue;
+        }
+
         arr = (rt_Array *)(nd->trnode != nd ? nd->trnode : RT_NULL);
 
         if (arr != RT_NULL)
         {
-            rt_vec4 dff_vec;
-            RT_VEC3_SUB(dff_vec, arr->aux->mid, nd->box->mid);
-            rt_real dff_len = RT_VEC3_LEN(dff_vec);
-
-            if (arr->aux->rad < dff_len + nd->box->rad)
+            if (nd->box->rad != RT_INF)
             {
-                arr->aux->rad = dff_len + nd->box->rad;
+                rt_vec4 dff_vec;
+                RT_VEC3_SUB(dff_vec, arr->aux->mid, nd->box->mid);
+                rt_real dff_len = RT_VEC3_LEN(dff_vec);
+
+                if (arr->aux->rad < dff_len + nd->box->rad)
+                {
+                    arr->aux->rad = dff_len + nd->box->rad;
+                }
+            }
+            else
+            {
+                arr->aux->rad = RT_INF;
             }
         }
 
@@ -1171,15 +1183,27 @@ rt_void rt_Array::update_bounds()
 
         if (arr != RT_NULL)
         {
-            rt_vec4 dff_vec;
-            RT_VEC3_SUB(dff_vec, arr->box->mid, nd->box->mid);
-            rt_real dff_len = RT_VEC3_LEN(dff_vec);
-
-            if (arr->box->rad < dff_len + nd->box->rad)
+            if (nd->box->rad != RT_INF)
             {
-                arr->box->rad = dff_len + nd->box->rad;
+                rt_vec4 dff_vec;
+                RT_VEC3_SUB(dff_vec, arr->box->mid, nd->box->mid);
+                rt_real dff_len = RT_VEC3_LEN(dff_vec);
+
+                if (arr->box->rad < dff_len + nd->box->rad)
+                {
+                    arr->box->rad = dff_len + nd->box->rad;
+                }
+            }
+            else
+            {
+                arr->box->rad = RT_INF;
             }
         }
+    }
+
+    if (box->rad == 0.0f || box->rad == RT_INF)
+    {
+        return;
     }
 
     RT_SIMD_SET(s_box->pos_x, box->mid[RT_X]);
@@ -1235,6 +1259,7 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
 
     shp = (rt_SHAPE *)box;
 
+    shp->rad = RT_INF;
     shp->ptr = &s_srf->msc_p[2];
 
 /*  rt_SIMD_SURFACE */
@@ -1768,11 +1793,8 @@ rt_void rt_Surface::update_bounds()
     RT_VEC3_SET_VAL1(shp->mid, 0.0f);
     shp->rad = 0.0f;
 
-    if (shp->verts_num == 0)
-    {
-        return;
-    }
-
+    /* this function isn't called
+     * if shp->verts_num == 0 */
     rt_cell i;
     rt_real f = 1.0f / (rt_real)shp->verts_num;
 

@@ -947,7 +947,7 @@ rt_cell cbox_side(rt_SHAPE *srf, rt_vec4 pos)
 rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 {
     /* check if nodes differ and have bounds */
-    if (nd1->rad == 0.0f || nd2->rad == 0.0f || nd1 == nd2)
+    if (nd1->rad == RT_INF || nd2->rad == RT_INF || nd1 == nd2)
     {
         return 1;
     }
@@ -1113,7 +1113,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 {
     /* check if nodes differ and have bounds */
-    if (nd1->rad == 0.0f || nd2->rad == 0.0f || nd1 == nd2)
+    if (nd1->rad == RT_INF || nd2->rad == RT_INF || nd1 == nd2)
     {
         return 2;
     }
@@ -1335,7 +1335,7 @@ static
 rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
 {
     /* check if nodes differ and have bounds */
-    if (nd1->rad == 0.0f || nd2->rad == 0.0f || nd1 == nd2)
+    if (nd1->rad == RT_INF || nd2->rad == RT_INF || nd1 == nd2)
     {
         return 2;
     }
