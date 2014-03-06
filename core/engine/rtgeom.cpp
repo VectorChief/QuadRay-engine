@@ -992,9 +992,11 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         }
     }
 
-    /* check if shadow bbox optimization is disabled in runtime */
+    /* check if nodes don't have bounding boxes
+     * or shadow bbox optimization is disabled in runtime */
 #if RT_OPTS_SHADOW_EXT1 != 0
-    if ((*obj->opts & RT_OPTS_SHADOW_EXT1) == 0)
+    if (nd1->verts_num == 0 || nd2->verts_num == 0
+    || (*obj->opts & RT_OPTS_SHADOW_EXT1) == 0)
 #endif /* RT_OPTS_SHADOW_EXT1 */
     {
         return 1;
@@ -1162,9 +1164,11 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         }
     }
 
-    /* check if bbox sorting optimization is disabled in runtime */
+    /* check if nodes don't have bounding boxes
+     * or bbox sorting optimization is disabled in runtime */
 #if RT_OPTS_INSERT_EXT1 != 0
-    if ((*obj->opts & RT_OPTS_INSERT_EXT1) == 0)
+    if (nd1->verts_num == 0 || nd2->verts_num == 0
+    || (*obj->opts & RT_OPTS_INSERT_EXT1) == 0)
 #endif /* RT_OPTS_INSERT_EXT1 */
     {
         return 2;
@@ -1350,6 +1354,12 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
         return 0;
     }
 
+    /* check if nodes don't have bounding boxes */
+    if (nd1->verts_num == 0 || nd2->verts_num == 0)
+    {
+        return 2;
+    }
+
     /* check if one bbox's mid is inside another */
     rt_cell k;
 
@@ -1456,7 +1466,7 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
  */
 rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
 {
-    /* check if "obj" is CAMERA or LIGHT */
+    /* check if "obj" is LIGHT or CAMERA */
     if (RT_IS_LIGHT(obj) || RT_IS_CAMERA(obj))
     {
         return cbox_side(srf, obj->pos);

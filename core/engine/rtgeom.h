@@ -214,7 +214,7 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1);
 /******************************************************************************/
 
 /*
- * Vert structure represents a single vertex in 3D space.
+ * Vert structure represents vertex in world space.
  */
 struct rt_VERT
 {
@@ -222,7 +222,7 @@ struct rt_VERT
 };
 
 /*
- * Edge structure represents a single line segment in 3D space.
+ * Edge structure represents line segment in world space.
  */
 struct rt_EDGE
 {
@@ -231,7 +231,7 @@ struct rt_EDGE
 };
 
 /*
- * Face structure represents a single rectangle on a plane in 3D space.
+ * Face structure represents rectangle on a plane in world space.
  */
 struct rt_FACE
 {
