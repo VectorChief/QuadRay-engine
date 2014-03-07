@@ -155,7 +155,7 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     rt_cell i, c;
 
     /* reset object's own transform flags */
-    obj_has_trm = 0;
+    mtx_has_trm = 0;
 
     rt_real scl[] = {-1.0f, +1.0f};
 
@@ -168,7 +168,7 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     /* determine if object itself has
      * non-trivial scaling */
-    obj_has_trm |= (c == 3) ? 0 : RT_UPDATE_FLAG_SCL;
+    mtx_has_trm |= (c == 3) ? 0 : RT_UPDATE_FLAG_SCL;
 
     rt_real rot[] = {-270.0f, -180.0f, -90.0f, 0.0f, +90.0f, +180.0f, +270.0f};
 
@@ -181,20 +181,20 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     /* determine if object itself has
      * non-trivial rotation */
-    obj_has_trm |= (c == 3) ? 0 : RT_UPDATE_FLAG_ROT;
+    mtx_has_trm |= (c == 3) ? 0 : RT_UPDATE_FLAG_ROT;
 
-    if (obj_has_trm
+    if (mtx_has_trm
 #if RT_OPTS_FSCALE != 0
     && (rg->opts & RT_OPTS_FSCALE) == 0
 #endif /* RT_OPTS_FSCALE */
        )
     {
-        obj_has_trm = RT_UPDATE_FLAG_SCL | RT_UPDATE_FLAG_ROT;
+        mtx_has_trm = RT_UPDATE_FLAG_SCL | RT_UPDATE_FLAG_ROT;
     }
 
     /* determine if object's full matrix has
      * non-trivial transform */
-    mtx_has_trm = obj_has_trm |
+    obj_has_trm = mtx_has_trm |
                         (flags & RT_UPDATE_FLAG_SCL) |
                         (flags & RT_UPDATE_FLAG_ROT);
 
@@ -205,7 +205,7 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * correct trnode as parameter to update */
     for (trnode = parent; trnode != RT_NULL; trnode = trnode->parent)
     {
-        if (trnode->obj_has_trm)
+        if (trnode->mtx_has_trm)
         {
             break;
         }
@@ -215,8 +215,8 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * object's transform matrix has only its own transform,
      * except the case of scaling with trivial rotation,
      * when trnode's axis mapping is passed to sub-objects */
-    if (trnode != RT_NULL && trnode == parent && obj_has_trm == 0
-    &&  mtx_has_trm & RT_UPDATE_FLAG_ROT)
+    if (trnode != RT_NULL && trnode == parent && mtx_has_trm == 0
+    &&  obj_has_trm & RT_UPDATE_FLAG_ROT)
     {
         matrix_from_transform(this->mtx, trm);
     }
@@ -225,7 +225,7 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * before and after trnode with object's own matrix
      * to obtain object's full transform matrix
      * (no caching for this obj, it is its own trnode) */
-    if (trnode != RT_NULL && trnode != parent && obj_has_trm)
+    if (trnode != RT_NULL && trnode != parent && mtx_has_trm)
     {
         rt_mat4 obj_mtx, tmp_mtx;
         matrix_from_transform(obj_mtx, trm);
@@ -244,7 +244,7 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     /* if object itself has non-trivial transform, it is its own trnode,
      * not considering the case when object's transform is compensated
      * by parents' transforms resulting in object being axis-aligned */
-    if (obj_has_trm)
+    if (mtx_has_trm)
     {
         trnode = this;
     }
@@ -611,7 +611,7 @@ rt_void rt_Node::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * to objects which have scaling with trivial rotation
      * in their full transform matrix */
     if (trnode != this
-    ||  mtx_has_trm == RT_UPDATE_FLAG_SCL)
+    ||  obj_has_trm == RT_UPDATE_FLAG_SCL)
     {
         for (i = 0; i < 3; i++)
         {
@@ -634,7 +634,7 @@ rt_void rt_Node::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * separate axis mapping from transform matrix,
      * which would only have scalers on main diagonal */
     if (trnode == this
-    &&  mtx_has_trm == RT_UPDATE_FLAG_SCL)
+    &&  obj_has_trm == RT_UPDATE_FLAG_SCL)
     {
         for (i = 0; i < 3; i++)
         {
@@ -860,7 +860,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * separate axis mapping from transform matrix,
      * axis mapping is then passed to sub-objects */
     if (trnode == this
-    &&  mtx_has_trm == RT_UPDATE_FLAG_SCL)
+    &&  obj_has_trm == RT_UPDATE_FLAG_SCL)
     {
         if (obj_changed)
         {
@@ -882,7 +882,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * pass array's own transform flags */
     for (i = 0; i < obj_num; i++)
     {
-        obj_arr[i]->update(time, *pmtx, flags | obj_has_trm | obj_changed);
+        obj_arr[i]->update(time, *pmtx, flags | mtx_has_trm | obj_changed);
     }
 
     /* rebuild objects relations (custom clippers)
@@ -1078,7 +1078,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     s_srf->a_map[RT_I] = RT_X * RT_SIMD_WIDTH * 4;
     s_srf->a_map[RT_J] = RT_Y * RT_SIMD_WIDTH * 4;
     s_srf->a_map[RT_K] = RT_Z * RT_SIMD_WIDTH * 4;
-    s_srf->a_map[RT_L] = mtx_has_trm;
+    s_srf->a_map[RT_L] = obj_has_trm;
 
     s_srf->a_sgn[RT_I] = 0;
     s_srf->a_sgn[RT_J] = 0;
@@ -1088,7 +1088,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     s_box->a_map[RT_I] = RT_X * RT_SIMD_WIDTH * 4;
     s_box->a_map[RT_J] = RT_Y * RT_SIMD_WIDTH * 4;
     s_box->a_map[RT_K] = RT_Z * RT_SIMD_WIDTH * 4;
-    s_box->a_map[RT_L] = mtx_has_trm;
+    s_box->a_map[RT_L] = obj_has_trm;
 
     s_box->a_sgn[RT_I] = 0;
     s_box->a_sgn[RT_J] = 0;
@@ -1442,7 +1442,7 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
          * except the case of scaling with trivial rotation,
          * when axis mapping is separated from transform matrix */
         if (trnode == this
-        &&  mtx_has_trm & RT_UPDATE_FLAG_ROT)
+        &&  obj_has_trm & RT_UPDATE_FLAG_ROT)
         {
             map[RT_I] = RT_X;
             sgn[RT_I] = 1;
@@ -1509,7 +1509,7 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         s_srf->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
         s_srf->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
         s_srf->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
-        s_srf->a_map[RT_L] = mtx_has_trm;
+        s_srf->a_map[RT_L] = obj_has_trm;
 
         s_srf->a_sgn[RT_I] = (sgn[RT_I] > 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
         s_srf->a_sgn[RT_J] = (sgn[RT_J] > 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;

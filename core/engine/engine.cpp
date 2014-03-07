@@ -88,7 +88,6 @@ rt_void print_cam(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
 {
     RT_LOGI("%s", mgn);
     RT_LOGI("cam: %08X, ", (rt_word)obj);
-    RT_LOGI("CAM: %08X, ", (rt_word)RT_NULL);
     RT_LOGI("elm: %08X, ", (rt_word)elm);
     if (obj != RT_NULL)
     {
@@ -96,8 +95,8 @@ rt_void print_cam(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
         RT_LOGI("rot: {%f, %f, %f}",
             obj->trm->rot[RT_X], obj->trm->rot[RT_Y], obj->trm->rot[RT_Z]);
         RT_LOGI("    ");
-        RT_LOGI("pos: {%f, %f, %f}",
-            obj->pos[RT_X], obj->pos[RT_Y], obj->pos[RT_Z]);
+        RT_LOGI("pos,rad: {%f, %f, %f}, %f",
+            obj->pos[RT_X], obj->pos[RT_Y], obj->pos[RT_Z], obj->box->rad);
     }
     else
     {
@@ -130,20 +129,16 @@ rt_void print_cam(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
 static
 rt_void print_lgt(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
 {
-    rt_SIMD_LIGHT *s_lgt = elm != RT_NULL ? (rt_SIMD_LIGHT *)elm->simd :
-                           obj != RT_NULL ?   ((rt_Light *)obj)->s_lgt :
-                                                                RT_NULL;
     RT_LOGI("%s", mgn);
     RT_LOGI("lgt: %08X, ", (rt_word)obj);
-    RT_LOGI("LGT: %08X, ", (rt_word)s_lgt);
     RT_LOGI("elm: %08X, ", (rt_word)elm);
-    if (s_lgt != RT_NULL)
+    if (obj != RT_NULL)
     {
         RT_LOGI("    ");
         RT_LOGI("                                    ");
         RT_LOGI("    ");
-        RT_LOGI("pos: {%f, %f, %f}",
-            s_lgt->pos_x[0], s_lgt->pos_y[0], s_lgt->pos_z[0]);
+        RT_LOGI("pos,rad: {%f, %f, %f}, %f",
+            obj->pos[RT_X], obj->pos[RT_Y], obj->pos[RT_Z], obj->box->rad);
     }
     else
     {
@@ -221,35 +216,34 @@ rt_pstr markers[] =
 static
 rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
 {
-    rt_SIMD_SURFACE *s_srf = elm != RT_NULL ? (rt_SIMD_SURFACE *)elm->simd :
-                             obj != RT_NULL ?      ((rt_Node *)obj)->s_srf :
-                                                                    RT_NULL;
     RT_LOGI("%s", mgn);
     RT_LOGI("srf: %08X, ", (rt_word)obj);
-    RT_LOGI("SRF: %08X, ", (rt_word)s_srf);
     RT_LOGI("elm: %08X, ", (rt_word)elm);
 
     rt_cell d = elm != RT_NULL ? elm->data : 0;
     rt_cell i = RT_MAX(0, d + 2), n = RT_GET_FLG(d);
+    rt_real r = 0.0f;
 
-    if (s_srf != RT_NULL && obj != RT_NULL)
+    if (obj != RT_NULL)
     {
         if (RT_IS_ARRAY(obj))
         {
             RT_LOGI("    ");
             RT_LOGI("tag: AR, trm: %d, data = %08X %s ",
-                s_srf->a_map[3], d & 0xFFFFFFFC, nodes[n]);
+                obj->obj_has_trm, RT_GET_PTR(d), nodes[n]);
+            r = n == 0 ? ((rt_Array *)obj)->aux->rad : obj->box->rad;
         }
         else
         {
             RT_LOGI("    ");
             RT_LOGI("tag: %s, trm: %d, %s       ",
-                tags[obj->tag], s_srf->a_map[3],
+                tags[obj->tag], obj->obj_has_trm,
                 sides[RT_MIN(i, RT_ARR_SIZE(sides) - 1)]);
+            r = obj->box->rad;
         }
         RT_LOGI("    ");
-        RT_LOGI("pos: {%f, %f, %f}",
-            obj->pos[RT_X], obj->pos[RT_Y], obj->pos[RT_Z]);
+        RT_LOGI("pos,rad: {%f, %f, %f}, %f",
+            obj->pos[RT_X], obj->pos[RT_Y], obj->pos[RT_Z], r);
     }
     else
     {

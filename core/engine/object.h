@@ -187,20 +187,10 @@ class rt_Object
 
     protected:
 
-    /* original object's pointer */
+    /* original object pointer */
     rt_OBJECT          *obj;
     /* original transform data */
     rt_TRANSFORM3D      otm;
-
-    /* non-zero if object itself has
-     * non-trivial transform
-     * (scaling, rotation or both) */
-    rt_cell             obj_has_trm;
-
-    /* non-zero if object's full matrix has
-     * non-trivial transform
-     * (scaling, rotation or both) */
-    rt_cell             mtx_has_trm;
 
     /* axis mapping for trivial transform */
     rt_cell             map[4];
@@ -208,7 +198,12 @@ class rt_Object
 
     public:
 
+    /* registry pointer */
     rt_Registry        *rg;
+
+    /* bounding box and volume,
+     * used for bvnode if present */
+    rt_BOUND           *box;
 
     /* object's transform and tag */
     rt_TRANSFORM3D     *trm;
@@ -219,13 +214,20 @@ class rt_Object
     rt_mat4             mtx;
     rt_real            *pos;
 
-    /* bounding box and volume,
-     * used for bvnode if present */
-    rt_BOUND           *box;
-
     /* non-zero if object itself or
      * some of its parents changed */
     rt_cell             obj_changed;
+
+    /* non-zero if object itself or
+     * some of its parents has
+     * non-trivial transform
+     * (scaling, rotation or both) */
+    rt_cell             obj_has_trm;
+
+    /* non-zero if object's own matrix has
+     * non-trivial transform
+     * (scaling, rotation or both) */
+    rt_cell             mtx_has_trm;
 
     /* object's immediate parent
      * in the hierarchy */
