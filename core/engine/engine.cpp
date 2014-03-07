@@ -716,8 +716,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         {
             for (i = 0; i < 2 && k < 0; i++)
             {
-                rt_Array *par = (rt_Array *)arr[1 - i]->parent;
-                for (; par != RT_NULL; par = (rt_Array *)par->parent)
+                rt_Object *par = arr[1 - i]->parent;
+                for (; par != RT_NULL; par = par->parent)
                 {
                     if (par == arr[i])
                     {
@@ -745,13 +745,11 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         k = 1;
     }
 
-    nxt = RT_GET_PTR(*ptr);
-
     /* search matching existing trnode/bvnode for insertion,
      * run through the list hierachy to find the inner-most node,
      * node's "simd" field holds pointer to node's sublist
      * along with node's type in the lower 4 bits (trnode/bvnode) */
-    for (i = 0; nxt != RT_NULL && i < n; nxt = nxt->next)
+    for (nxt = RT_GET_PTR(*ptr), i = 0; nxt != RT_NULL && i < n;)
     {
         if (arr[k] == ((rt_BOUND *)nxt->temp)->obj
         &&  RT_GET_FLG(nxt->simd) == k)
@@ -763,6 +761,10 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
             nxt = RT_GET_PTR(*ptr);
             k = 1 - k;
             i++;
+        }
+        else
+        {
+            nxt = nxt->next;
         }
     }
     /* search above is desgined in such a way, that contents
@@ -1153,9 +1155,7 @@ rt_ELEM* rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
         return elm;
     }
 
-    nxt = RT_GET_PTR(*ptr);
-
-    for (; nxt != RT_NULL; nxt = nxt->next)
+    for (nxt = RT_GET_PTR(*ptr); nxt != RT_NULL; nxt = nxt->next)
     {
         /* only node elements are allowed in surface lists */
         rt_Node *nd = (rt_Node *)((rt_BOUND *)nxt->temp)->obj;
