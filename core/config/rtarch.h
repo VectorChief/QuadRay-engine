@@ -166,9 +166,14 @@
 #endif /* in case S is defined outside of the engine */
 #define S                   RT_SIMD_WIDTH
 
-#if S < 4 /* wider SIMD are supported in structs, S = {8, 16} were tested */
-#error "SIMD width must be at least 4 for QuadRay engine"
-#endif /* in case S is smaller than 4 */
+/*
+ * Wider SIMD are supported in backend structs (S = 8, 16 were tested),
+ * although there are some places in the code (tracer.cpp, engine.cpp),
+ * which still rely on S = 4 for proper operation.
+ */
+#if Q != RT_SIMD_QUADS || S != RT_SIMD_WIDTH || S % 4 != 0
+#error "SIMD width must be divisible by 4 for QuadRay engine"
+#endif /* in case S is not expressed in quads */
 
 /*
  * SIMD info structure for asm enter/leave contains internal variables

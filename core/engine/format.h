@@ -19,6 +19,10 @@
  * Definitions provided in this file are used to specify scene data (in a form
  * of C static struct initializers) by storing pointers to previously defined
  * structures and thus building objects hierachy and relations.
+ *
+ * All surfaces are defined in their local IJK space, where K is a rotational
+ * symmetry axis (also normal for plane) and IJ is a base orthogonal to K.
+ *
  * Recommended naming scheme for C++ types and definitions is given in rtbase.h.
  */
 
