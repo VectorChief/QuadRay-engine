@@ -49,10 +49,10 @@
 #define RT_GET_FLG(x)           ((rt_cell)(x) & 0xF)
 #define RT_SET_FLG(x, t, v)     x = (t)((rt_cell)(v) | (rt_cell)(x) & ~0xF)
 
-#define RT_GET_PTR(x)           (rt_ELEM *)((rt_cell)(x) & ~0xF)
+#define RT_GET_PTR(x)           ((rt_ELEM *)((rt_cell)(x) & ~0xF))
 #define RT_SET_PTR(x, t, v)     x = (t)((rt_cell)(v) | RT_GET_FLG(x))
 
-#define RT_GET_ADR(x)           (rt_ELEM **)&(x)
+#define RT_GET_ADR(x)           ((rt_ELEM **)&(x))
 
 /******************************************************************************/
 /******************************   STATE-LOGGING   *****************************/
@@ -88,7 +88,6 @@ rt_void print_cam(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
 {
     RT_LOGI("%s", mgn);
     RT_LOGI("cam: %08X, ", (rt_word)obj);
-    RT_LOGI("elm: %08X, ", (rt_word)elm);
     if (obj != RT_NULL)
     {
         RT_LOGI("    ");
@@ -131,7 +130,6 @@ rt_void print_lgt(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
 {
     RT_LOGI("%s", mgn);
     RT_LOGI("lgt: %08X, ", (rt_word)obj);
-    RT_LOGI("elm: %08X, ", (rt_word)elm);
     if (obj != RT_NULL)
     {
         RT_LOGI("    ");
@@ -217,8 +215,6 @@ static
 rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
 {
     RT_LOGI("%s", mgn);
-    RT_LOGI("srf: %08X, ", (rt_word)obj);
-    RT_LOGI("elm: %08X, ", (rt_word)elm);
 
     rt_cell d = elm != RT_NULL ? elm->data : 0;
     rt_cell i = RT_MAX(0, d + 2), n = RT_GET_FLG(d);
@@ -228,13 +224,16 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     {
         if (RT_IS_ARRAY(obj))
         {
+            RT_LOGI("arr: %08X, ", (rt_word)obj);
             RT_LOGI("    ");
             RT_LOGI("tag: AR, trm: %d, data = %08X %s ",
-                obj->obj_has_trm, RT_GET_PTR(d), nodes[n]);
+                obj->obj_has_trm,
+                ((rt_BOUND *)RT_GET_PTR(d)->temp)->obj, nodes[n]);
             r = n == 0 ? ((rt_Array *)obj)->aux->rad : obj->box->rad;
         }
         else
         {
+            RT_LOGI("srf: %08X, ", (rt_word)obj);
             RT_LOGI("    ");
             RT_LOGI("tag: %s, trm: %d, %s       ",
                 tags[obj->tag], obj->obj_has_trm,
