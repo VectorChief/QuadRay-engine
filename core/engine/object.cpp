@@ -80,15 +80,6 @@ rt_Object::rt_Object(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj)
     this->pos = this->mtx[3];
     this->tag = obj->obj.tag;
 
-    this->map[RT_I] = RT_X;
-    this->map[RT_J] = RT_Y;
-    this->map[RT_K] = RT_Z;
-    this->map[RT_L] = RT_W;
-    this->sgn[RT_I] = 0;
-    this->sgn[RT_J] = 0;
-    this->sgn[RT_K] = 0;
-    this->sgn[RT_L] = 0;
-
     this->obj_changed = 0;
     this->obj_has_trm = 0;
     this->mtx_has_trm = 0;
@@ -273,6 +264,23 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     {
         box->trnode = RT_NULL;
     }
+
+    /* axis mapping for trivial transform */
+    map[RT_I] = RT_X;
+    map[RT_J] = RT_Y;
+    map[RT_K] = RT_Z;
+    map[RT_L] = RT_W;
+
+    sgn[RT_I] = 1;
+    sgn[RT_J] = 1;
+    sgn[RT_K] = 1;
+    sgn[RT_L] = 1;
+
+    /* axis mapping shorteners */
+    mp_i = map[RT_I];
+    mp_j = map[RT_J];
+    mp_k = map[RT_K];
+    mp_l = map[RT_L];
 }
 
 /*
@@ -539,6 +547,34 @@ rt_Light::~rt_Light()
 /**********************************   NODE   **********************************/
 /******************************************************************************/
 
+static
+rt_EDGE bx_edges[] = 
+{
+    {0x0, 0x1},
+    {0x1, 0x2},
+    {0x2, 0x3},
+    {0x3, 0x0},
+    {0x0, 0x4},
+    {0x1, 0x5},
+    {0x2, 0x6},
+    {0x3, 0x7},
+    {0x7, 0x6},
+    {0x6, 0x5},
+    {0x5, 0x4},
+    {0x4, 0x7},
+};
+
+static
+rt_FACE bx_faces[] = 
+{
+    {0x0, 0x1, 0x2, 0x3},
+    {0x0, 0x4, 0x5, 0x1},
+    {0x1, 0x5, 0x6, 0x2},
+    {0x2, 0x6, 0x7, 0x3},
+    {0x3, 0x7, 0x4, 0x0},
+    {0x7, 0x6, 0x5, 0x4},
+};
+
 /*
  * Instantiate node object.
  */
@@ -627,12 +663,18 @@ rt_void rt_Node::update(rt_long time, rt_mat4 mtx, rt_cell flags)
                 }
             }
         }
+
+        /* axis mapping shorteners */
+        mp_i = map[RT_I];
+        mp_j = map[RT_J];
+        mp_k = map[RT_K];
+        mp_l = map[RT_L];
     }
 
     /* if object itself has non-trivial transform
      * and it is scaling with trivial rotation,
      * separate axis mapping from transform matrix,
-     * which would only have scalers on main diagonal */
+     * which would then only have scalers on main diagonal */
     if (trnode == this
     &&  obj_has_trm == RT_UPDATE_FLAG_SCL)
     {
@@ -652,6 +694,243 @@ rt_void rt_Node::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 rt_void rt_Node::update_bvnode(rt_Array *bvnode, rt_bool mode)
 {
     rt_Object::update_bvnode(bvnode, mode);
+}
+
+/*
+ * Update bounding box and volume geometry.
+ */
+rt_void rt_Node::update_bbgeom(rt_BOUND *box)
+{
+    if (box->obj != this)
+    {
+        throw rt_Exception("incorrect box in update_bbgeom");
+    }
+
+    do /* use "do {break} while(0)" instead of "goto label" */
+    {
+        /* bvnode's bbox is always in world space,
+         * thus skip transform (in else branch) even if trnode is present */
+        if (trnode != RT_NULL && !(RT_IS_ARRAY(this) && this->box == box))
+        {
+            rt_mat4 *pmtx = &trnode->mtx;
+
+            rt_vec4 vt0;
+            vt0[mp_i] = box->bmax[mp_i];
+            vt0[mp_j] = box->bmax[mp_j];
+            vt0[mp_k] = box->bmax[mp_k];
+            vt0[mp_l] = 1.0f; /* takes pos in mtx into account */
+
+            rt_vec4 vt1;
+            vt1[mp_i] = box->bmin[mp_i];
+            vt1[mp_j] = box->bmax[mp_j];
+            vt1[mp_k] = box->bmax[mp_k];
+            vt1[mp_l] = 1.0f; /* takes pos in mtx into account */
+
+            rt_vec4 vt2;
+            vt2[mp_i] = box->bmin[mp_i];
+            vt2[mp_j] = box->bmin[mp_j];
+            vt2[mp_k] = box->bmax[mp_k];
+            vt2[mp_l] = 1.0f; /* takes pos in mtx into account */
+
+            rt_vec4 vt3;
+            vt3[mp_i] = box->bmax[mp_i];
+            vt3[mp_j] = box->bmin[mp_j];
+            vt3[mp_k] = box->bmax[mp_k];
+            vt3[mp_l] = 1.0f; /* takes pos in mtx into account */
+
+            matrix_mul_vector(box->verts[0x0].pos, *pmtx, vt0);
+            matrix_mul_vector(box->verts[0x1].pos, *pmtx, vt1);
+            matrix_mul_vector(box->verts[0x2].pos, *pmtx, vt2);
+            matrix_mul_vector(box->verts[0x3].pos, *pmtx, vt3);
+
+            box->edges[0x0].k = 3;
+            box->edges[0x1].k = 3;
+            box->edges[0x2].k = 3;
+            box->edges[0x3].k = 3;
+
+            box->faces[0x0].k = 3;
+            box->faces[0x0].i = 3;
+            box->faces[0x0].j = 3;
+
+            if (tag == RT_TAG_PLANE)
+            {
+                break;
+            }
+
+            rt_vec4 vt4;
+            vt4[mp_i] = box->bmax[mp_i];
+            vt4[mp_j] = box->bmax[mp_j];
+            vt4[mp_k] = box->bmin[mp_k];
+            vt4[mp_l] = 1.0f; /* takes pos in mtx into account */
+
+            rt_vec4 vt5;
+            vt5[mp_i] = box->bmin[mp_i];
+            vt5[mp_j] = box->bmax[mp_j];
+            vt5[mp_k] = box->bmin[mp_k];
+            vt5[mp_l] = 1.0f; /* takes pos in mtx into account */
+
+            rt_vec4 vt6;
+            vt6[mp_i] = box->bmin[mp_i];
+            vt6[mp_j] = box->bmin[mp_j];
+            vt6[mp_k] = box->bmin[mp_k];
+            vt6[mp_l] = 1.0f; /* takes pos in mtx into account */
+
+            rt_vec4 vt7;
+            vt7[mp_i] = box->bmax[mp_i];
+            vt7[mp_j] = box->bmin[mp_j];
+            vt7[mp_k] = box->bmin[mp_k];
+            vt7[mp_l] = 1.0f; /* takes pos in mtx into account */
+
+            matrix_mul_vector(box->verts[0x4].pos, *pmtx, vt4);
+            matrix_mul_vector(box->verts[0x5].pos, *pmtx, vt5);
+            matrix_mul_vector(box->verts[0x6].pos, *pmtx, vt6);
+            matrix_mul_vector(box->verts[0x7].pos, *pmtx, vt7);
+
+            box->edges[0x4].k = 3;
+            box->edges[0x5].k = 3;
+            box->edges[0x6].k = 3;
+            box->edges[0x7].k = 3;
+
+            box->edges[0x8].k = 3;
+            box->edges[0x9].k = 3;
+            box->edges[0xA].k = 3;
+            box->edges[0xB].k = 3;
+
+            box->faces[0x1].k = 3;
+            box->faces[0x1].i = 3;
+            box->faces[0x1].j = 3;
+
+            box->faces[0x2].k = 3;
+            box->faces[0x2].i = 3;
+            box->faces[0x2].j = 3;
+
+            box->faces[0x3].k = 3;
+            box->faces[0x3].i = 3;
+            box->faces[0x3].j = 3;
+
+            box->faces[0x4].k = 3;
+            box->faces[0x4].i = 3;
+            box->faces[0x4].j = 3;
+
+            box->faces[0x5].k = 3;
+            box->faces[0x5].i = 3;
+            box->faces[0x5].j = 3;
+        }
+        else
+        {
+            box->verts[0x0].pos[mp_i] = box->bmax[mp_i];
+            box->verts[0x0].pos[mp_j] = box->bmax[mp_j];
+            box->verts[0x0].pos[mp_k] = box->bmax[mp_k];
+            box->verts[0x0].pos[mp_l] = 1.0f;
+
+            box->verts[0x1].pos[mp_i] = box->bmin[mp_i];
+            box->verts[0x1].pos[mp_j] = box->bmax[mp_j];
+            box->verts[0x1].pos[mp_k] = box->bmax[mp_k];
+            box->verts[0x1].pos[mp_l] = 1.0f;
+
+            box->verts[0x2].pos[mp_i] = box->bmin[mp_i];
+            box->verts[0x2].pos[mp_j] = box->bmin[mp_j];
+            box->verts[0x2].pos[mp_k] = box->bmax[mp_k];
+            box->verts[0x2].pos[mp_l] = 1.0f;
+
+            box->verts[0x3].pos[mp_i] = box->bmax[mp_i];
+            box->verts[0x3].pos[mp_j] = box->bmin[mp_j];
+            box->verts[0x3].pos[mp_k] = box->bmax[mp_k];
+            box->verts[0x3].pos[mp_l] = 1.0f;
+
+            box->edges[0x0].k = mp_i;
+            box->edges[0x1].k = mp_j;
+            box->edges[0x2].k = mp_i;
+            box->edges[0x3].k = mp_j;
+
+            box->faces[0x0].k = mp_k;
+            box->faces[0x0].i = mp_i;
+            box->faces[0x0].j = mp_j;
+
+            if (tag == RT_TAG_PLANE)
+            {
+                break;
+            }
+
+            box->verts[0x4].pos[mp_i] = box->bmax[mp_i];
+            box->verts[0x4].pos[mp_j] = box->bmax[mp_j];
+            box->verts[0x4].pos[mp_k] = box->bmin[mp_k];
+            box->verts[0x4].pos[mp_l] = 1.0f;
+
+            box->verts[0x5].pos[mp_i] = box->bmin[mp_i];
+            box->verts[0x5].pos[mp_j] = box->bmax[mp_j];
+            box->verts[0x5].pos[mp_k] = box->bmin[mp_k];
+            box->verts[0x5].pos[mp_l] = 1.0f;
+
+            box->verts[0x6].pos[mp_i] = box->bmin[mp_i];
+            box->verts[0x6].pos[mp_j] = box->bmin[mp_j];
+            box->verts[0x6].pos[mp_k] = box->bmin[mp_k];
+            box->verts[0x6].pos[mp_l] = 1.0f;
+
+            box->verts[0x7].pos[mp_i] = box->bmax[mp_i];
+            box->verts[0x7].pos[mp_j] = box->bmin[mp_j];
+            box->verts[0x7].pos[mp_k] = box->bmin[mp_k];
+            box->verts[0x7].pos[mp_l] = 1.0f;
+
+            box->edges[0x4].k = mp_k;
+            box->edges[0x5].k = mp_k;
+            box->edges[0x6].k = mp_k;
+            box->edges[0x7].k = mp_k;
+
+            box->edges[0x8].k = mp_i;
+            box->edges[0x9].k = mp_j;
+            box->edges[0xA].k = mp_i;
+            box->edges[0xB].k = mp_j;
+
+            box->faces[0x1].k = mp_j;
+            box->faces[0x1].i = mp_k;
+            box->faces[0x1].j = mp_i;
+
+            box->faces[0x2].k = mp_i;
+            box->faces[0x2].i = mp_k;
+            box->faces[0x2].j = mp_j;
+
+            box->faces[0x3].k = mp_j;
+            box->faces[0x3].i = mp_k;
+            box->faces[0x3].j = mp_i;
+
+            box->faces[0x4].k = mp_i;
+            box->faces[0x4].i = mp_k;
+            box->faces[0x4].j = mp_j;
+
+            box->faces[0x5].k = mp_k;
+            box->faces[0x5].i = mp_i;
+            box->faces[0x5].j = mp_j;
+        }
+    }
+    while (0);
+
+    RT_VEC3_SET_VAL1(box->mid, 0.0f);
+    box->rad = 0.0f;
+
+    /* this function isn't called
+     * if box->verts_num == 0 */
+    rt_cell i;
+    rt_real f = 1.0f / (rt_real)box->verts_num;
+
+    for (i = 0; i < box->verts_num; i++)
+    {
+        RT_VEC3_MAD_VAL1(box->mid, box->verts[i].pos, f);
+    }
+
+    for (i = 0; i < box->verts_num; i++)
+    {
+        rt_vec4 dff_vec;
+        RT_VEC3_SUB(dff_vec, box->mid, box->verts[i].pos);
+        rt_real dff_dot = RT_VEC3_DOT(dff_vec, dff_vec);
+
+        if (box->rad < dff_dot)
+        {
+            box->rad = dff_dot;
+        }
+    }
+
+    box->rad = RT_SQRT(box->rad);
 }
 
 /*
@@ -704,6 +983,52 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     rt_List<rt_Array>(rg->get_arr())
 {
     rg->put_arr(this);
+
+    aux = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
+
+    memset(aux, 0, sizeof(rt_BOUND));
+    aux->obj = this;
+    aux->tag = this->tag;
+    aux->pinv = &this->inv;
+    aux->pmtx = &this->mtx;
+    aux->pos = this->mtx[3];
+    aux->map = this->map;
+    aux->sgn = this->sgn;
+    aux->opts = &rg->opts;
+
+    if (RT_TRUE)
+    {
+        aux->verts_num = 8;
+        aux->verts = (rt_VERT *)
+                     rg->alloc(aux->verts_num * sizeof(rt_VERT), RT_ALIGN);
+
+        aux->edges_num = RT_ARR_SIZE(bx_edges);
+        aux->edges = (rt_EDGE *)
+                     rg->alloc(aux->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(aux->edges, bx_edges, aux->edges_num * sizeof(rt_EDGE));
+
+        aux->faces_num = RT_ARR_SIZE(bx_faces);
+        aux->faces = (rt_FACE *)
+                     rg->alloc(aux->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(aux->faces, bx_faces, aux->faces_num * sizeof(rt_FACE));
+    }
+
+    if (RT_TRUE)
+    {
+        box->verts_num = 8;
+        box->verts = (rt_VERT *)
+                     rg->alloc(box->verts_num * sizeof(rt_VERT), RT_ALIGN);
+
+        box->edges_num = RT_ARR_SIZE(bx_edges);
+        box->edges = (rt_EDGE *)
+                     rg->alloc(box->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(box->edges, bx_edges, box->edges_num * sizeof(rt_EDGE));
+
+        box->faces_num = RT_ARR_SIZE(bx_faces);
+        box->faces = (rt_FACE *)
+                     rg->alloc(box->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(box->faces, bx_faces, box->faces_num * sizeof(rt_FACE));
+    }
 
     obj_num = 0;
     obj_arr = RT_NULL;
@@ -763,18 +1088,6 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
             break;
         }
     }
-
-    aux = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
-
-    memset(aux, 0, sizeof(rt_BOUND));
-    aux->obj = this;
-    aux->tag = this->tag;
-    aux->pinv = &this->inv;
-    aux->pmtx = &this->mtx;
-    aux->pos = this->mtx[3];
-    aux->map = this->map;
-    aux->sgn = this->sgn;
-    aux->opts = &rg->opts;
 
 /*  rt_SIMD_SURFACE */
 
@@ -858,7 +1171,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     /* if array itself has non-trivial transform
      * and it is scaling with trivial rotation,
      * separate axis mapping from transform matrix,
-     * axis mapping is then passed to sub-objects */
+     * axis mapping matrix is then passed to sub-objects */
     if (trnode == this
     &&  obj_has_trm == RT_UPDATE_FLAG_SCL)
     {
@@ -876,6 +1189,23 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
         pmtx = &axm;
     }
+
+    /* axis mapping for trivial transform */
+    map[RT_I] = RT_X;
+    map[RT_J] = RT_Y;
+    map[RT_K] = RT_Z;
+    map[RT_L] = RT_W;
+
+    sgn[RT_I] = 1;
+    sgn[RT_J] = 1;
+    sgn[RT_K] = 1;
+    sgn[RT_L] = 1;
+
+    /* axis mapping shorteners */
+    mp_i = map[RT_I];
+    mp_j = map[RT_J];
+    mp_k = map[RT_K];
+    mp_l = map[RT_L];
 
     /* update every object in array
      * including sub-arrays (recursive),
@@ -1075,24 +1405,26 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         return;
     }
 
-    s_srf->a_map[RT_I] = RT_X * RT_SIMD_WIDTH * 4;
-    s_srf->a_map[RT_J] = RT_Y * RT_SIMD_WIDTH * 4;
-    s_srf->a_map[RT_K] = RT_Z * RT_SIMD_WIDTH * 4;
+    rt_cell shift = 0;
+
+    s_srf->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
+    s_srf->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
+    s_srf->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
     s_srf->a_map[RT_L] = obj_has_trm;
 
-    s_srf->a_sgn[RT_I] = 0;
-    s_srf->a_sgn[RT_J] = 0;
-    s_srf->a_sgn[RT_K] = 0;
+    s_srf->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_srf->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_srf->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
     s_srf->a_sgn[RT_L] = 0;
 
-    s_box->a_map[RT_I] = RT_X * RT_SIMD_WIDTH * 4;
-    s_box->a_map[RT_J] = RT_Y * RT_SIMD_WIDTH * 4;
-    s_box->a_map[RT_K] = RT_Z * RT_SIMD_WIDTH * 4;
+    s_box->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
+    s_box->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
+    s_box->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
     s_box->a_map[RT_L] = obj_has_trm;
 
-    s_box->a_sgn[RT_I] = 0;
-    s_box->a_sgn[RT_J] = 0;
-    s_box->a_sgn[RT_K] = 0;
+    s_box->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_box->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_box->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
     s_box->a_sgn[RT_L] = 0;
 
     invert_matrix();
@@ -1115,22 +1447,19 @@ rt_void rt_Array::update_bvnode(rt_Array *bvnode, rt_bool mode)
 }
 
 /*
- * Update bounding volume data.
+ * Update bounding box and volume.
  */
 rt_void rt_Array::update_bounds()
 {
-    RT_VEC3_SET(aux->mid, pos);
+    RT_VEC3_SET_VAL1(aux->bmin, +RT_INF);
+    RT_VEC3_SET_VAL1(aux->bmax, -RT_INF);
     aux->rad = 0.0f;
 
-    RT_VEC3_SET(box->mid, pos);
+    RT_VEC3_SET_VAL1(box->bmin, +RT_INF);
+    RT_VEC3_SET_VAL1(box->bmax, -RT_INF);
     box->rad = 0.0f;
 
-    if (trnode != RT_NULL && trnode != this)
-    {
-        RT_VEC3_ADD(box->mid, box->mid, trnode->pos);
-    }
-
-    rt_cell i;
+    rt_cell i, j, k;
 
     for (i = 0; i < obj_num; i++)
     {
@@ -1160,22 +1489,29 @@ rt_void rt_Array::update_bounds()
 
         arr = (rt_Array *)(nd->trnode != nd ? nd->trnode : RT_NULL);
 
-        if (arr != RT_NULL)
+        if (arr != RT_NULL && RT_IS_SURFACE(nd))
         {
             if (nd->box->rad != RT_INF)
             {
-                rt_vec4 dff_vec;
-                RT_VEC3_SUB(dff_vec, arr->aux->mid, nd->box->mid);
-                rt_real dff_len = RT_VEC3_LEN(dff_vec);
-
-                if (arr->aux->rad < dff_len + nd->box->rad)
+                for (k = 0; k < 3; k++)
                 {
-                    arr->aux->rad = dff_len + nd->box->rad;
+                    if (arr->aux->bmin[k] > nd->box->bmin[k])
+                    {
+                        arr->aux->bmin[k] = nd->box->bmin[k];
+                    }
+                    if (arr->aux->bmax[k] < nd->box->bmax[k])
+                    {
+                        arr->aux->bmax[k] = nd->box->bmax[k];
+                    }
                 }
             }
-            else
+            /* use rad temporarily as a tag for
+             * "empty" (rad == 0.0f),
+             * "finite" (0.0f < rad < RT_INF),
+             * "infinite" (rad == RT_INF) */
+            if (arr->aux->rad < nd->box->rad)
             {
-                arr->aux->rad = RT_INF;
+                arr->aux->rad = nd->box->rad;
             }
         }
 
@@ -1185,23 +1521,58 @@ rt_void rt_Array::update_bounds()
         {
             if (nd->box->rad != RT_INF)
             {
-                rt_vec4 dff_vec;
-                RT_VEC3_SUB(dff_vec, arr->box->mid, nd->box->mid);
-                rt_real dff_len = RT_VEC3_LEN(dff_vec);
-
-                if (arr->box->rad < dff_len + nd->box->rad)
+                if (nd->trnode == RT_NULL || RT_IS_ARRAY(nd))
                 {
-                    arr->box->rad = dff_len + nd->box->rad;
+                    for (k = 0; k < 3; k++)
+                    {
+                        if (arr->box->bmin[k] > nd->box->bmin[k])
+                        {
+                            arr->box->bmin[k] = nd->box->bmin[k];
+                        }
+                        if (arr->box->bmax[k] < nd->box->bmax[k])
+                        {
+                            arr->box->bmax[k] = nd->box->bmax[k];
+                        }
+                    }
+                }
+                else
+                {
+                    for (j = 0; j < nd->box->verts_num; j++)
+                    {
+                        for (k = 0; k < 3; k++)
+                        {
+                            if (arr->box->bmin[k] > nd->box->verts[j].pos[k])
+                            {
+                                arr->box->bmin[k] = nd->box->verts[j].pos[k];
+                            }
+                            if (arr->box->bmax[k] < nd->box->verts[j].pos[k])
+                            {
+                                arr->box->bmax[k] = nd->box->verts[j].pos[k];
+                            }
+                        }
+                    }
                 }
             }
-            else
+            /* use rad temporarily as a tag for
+             * "empty" (rad == 0.0f),
+             * "finite" (0.0f < rad < RT_INF),
+             * "infinite" (rad == RT_INF) */
+            if (arr->box->rad < nd->box->rad)
             {
-                arr->box->rad = RT_INF;
+                arr->box->rad = nd->box->rad;
             }
         }
     }
 
-    if (box->rad == 0.0f || box->rad == RT_INF)
+    if (aux->rad != 0.0f && aux->rad != RT_INF)
+    {
+        update_bbgeom(aux);
+    }
+    if (box->rad != 0.0f && box->rad != RT_INF)
+    {
+        update_bbgeom(box);
+    }
+    else
     {
         return;
     }
@@ -1436,30 +1807,6 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
             return;
         }
 
-        /* if object itself has non-trivial transform
-         * all rotation and scaling is already in the matrix,
-         * reset axis mapping to identity,
-         * except the case of scaling with trivial rotation,
-         * when axis mapping is separated from transform matrix */
-        if (trnode == this
-        &&  obj_has_trm & RT_UPDATE_FLAG_ROT)
-        {
-            map[RT_I] = RT_X;
-            sgn[RT_I] = 1;
-
-            map[RT_J] = RT_Y;
-            sgn[RT_J] = 1;
-
-            map[RT_K] = RT_Z;
-            sgn[RT_K] = 1;
-        }
-
-        /* axis mapping shorteners */
-        mp_i = map[RT_I];
-        mp_j = map[RT_J];
-        mp_k = map[RT_K];
-        mp_l = RT_W;
-
         /* check bbox geometry limits */
         if (shp->verts_num > RT_VERTS_LIMIT
         ||  shp->edges_num > RT_EDGES_LIMIT
@@ -1502,7 +1849,7 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
             return;
         }
 
-        /* if object or some of its parents has non-trivial transform,
+        /* if surface or some of its parents has non-trivial transform,
          * select aux vector fields for axis mapping in backend structures */
         rt_cell shift = trnode != RT_NULL ? 3 : 0;
 
@@ -1511,9 +1858,9 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         s_srf->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
         s_srf->a_map[RT_L] = obj_has_trm;
 
-        s_srf->a_sgn[RT_I] = (sgn[RT_I] > 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-        s_srf->a_sgn[RT_J] = (sgn[RT_J] > 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-        s_srf->a_sgn[RT_K] = (sgn[RT_K] > 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+        s_srf->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+        s_srf->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+        s_srf->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
         s_srf->a_sgn[RT_L] = 0;
 
         invert_matrix();
@@ -1786,39 +2133,6 @@ rt_void rt_Surface::update_minmax()
 }
 
 /*
- * Update bounding volume data.
- */
-rt_void rt_Surface::update_bounds()
-{
-    RT_VEC3_SET_VAL1(shp->mid, 0.0f);
-    shp->rad = 0.0f;
-
-    /* this function isn't called
-     * if shp->verts_num == 0 */
-    rt_cell i;
-    rt_real f = 1.0f / (rt_real)shp->verts_num;
-
-    for (i = 0; i < shp->verts_num; i++)
-    {
-        RT_VEC3_MAD_VAL1(shp->mid, shp->verts[i].pos, f);
-    }
-
-    for (i = 0; i < shp->verts_num; i++)
-    {
-        rt_vec4 dff_vec;
-        RT_VEC3_SUB(dff_vec, shp->mid, shp->verts[i].pos);
-        rt_real dff_dot = RT_VEC3_DOT(dff_vec, dff_vec);
-
-        if (shp->rad < dff_dot)
-        {
-            shp->rad = dff_dot;
-        }
-    }
-
-    shp->rad = RT_SQRT(shp->rad);
-}
-
-/*
  * Destroy surface object.
  */
 rt_Surface::~rt_Surface()
@@ -1830,21 +2144,6 @@ rt_Surface::~rt_Surface()
 /******************************************************************************/
 /**********************************   PLANE   *********************************/
 /******************************************************************************/
-
-static
-rt_EDGE pl_edges[] = 
-{
-    {0x0, 0x1},
-    {0x1, 0x2},
-    {0x2, 0x3},
-    {0x3, 0x0},
-};
-
-static
-rt_FACE pl_faces[] = 
-{
-    {0x0, 0x1, 0x2, 0x3},
-};
 
 /*
  * Instantiate plane surface object.
@@ -1876,15 +2175,15 @@ rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
         shp->verts = (rt_VERT *)
                      rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        shp->edges_num = RT_ARR_SIZE(pl_edges);
+        shp->edges_num = 4;
         shp->edges = (rt_EDGE *)
                      rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(shp->edges, pl_edges, shp->edges_num * sizeof(rt_EDGE));
+        memcpy(shp->edges, bx_edges, shp->edges_num * sizeof(rt_EDGE));
 
-        shp->faces_num = RT_ARR_SIZE(pl_faces);
+        shp->faces_num = 1;
         shp->faces = (rt_FACE *)
                      rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(shp->faces, pl_faces, shp->faces_num * sizeof(rt_FACE));
+        memcpy(shp->faces, bx_faces, shp->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_PLANE */
@@ -1932,91 +2231,12 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         return;
     }
 
-    if (shp->verts == RT_NULL)
+    if (box->verts == RT_NULL)
     {
         return;
     }
 
-    rt_mat4 *pmtx = &this->mtx;
-
-    if (trnode != RT_NULL && trnode != this)
-    {
-        pmtx = &trnode->mtx;
-    }
-
-    if (trnode != RT_NULL)
-    {
-        rt_vec4 vt0;
-        vt0[mp_i] = shp->bmax[mp_i];
-        vt0[mp_j] = shp->bmax[mp_j];
-        vt0[mp_k] = shp->bmax[mp_k];
-        vt0[mp_l] = 1.0f; /* takes pos in mtx into account */
-
-        rt_vec4 vt1;
-        vt1[mp_i] = shp->bmin[mp_i];
-        vt1[mp_j] = shp->bmax[mp_j];
-        vt1[mp_k] = shp->bmax[mp_k];
-        vt1[mp_l] = 1.0f; /* takes pos in mtx into account */
-
-        rt_vec4 vt2;
-        vt2[mp_i] = shp->bmin[mp_i];
-        vt2[mp_j] = shp->bmin[mp_j];
-        vt2[mp_k] = shp->bmax[mp_k];
-        vt2[mp_l] = 1.0f; /* takes pos in mtx into account */
-
-        rt_vec4 vt3;
-        vt3[mp_i] = shp->bmax[mp_i];
-        vt3[mp_j] = shp->bmin[mp_j];
-        vt3[mp_k] = shp->bmax[mp_k];
-        vt3[mp_l] = 1.0f; /* takes pos in mtx into account */
-
-        matrix_mul_vector(shp->verts[0x0].pos, (*pmtx), vt0);
-        matrix_mul_vector(shp->verts[0x1].pos, (*pmtx), vt1);
-        matrix_mul_vector(shp->verts[0x2].pos, (*pmtx), vt2);
-        matrix_mul_vector(shp->verts[0x3].pos, (*pmtx), vt3);
-
-        shp->edges[0x0].k = 3;
-        shp->edges[0x1].k = 3;
-        shp->edges[0x2].k = 3;
-        shp->edges[0x3].k = 3;
-
-        shp->faces[0x0].k = 3;
-        shp->faces[0x0].i = 3;
-        shp->faces[0x0].j = 3;
-    }
-    else
-    {
-        shp->verts[0x0].pos[mp_i] = shp->bmax[mp_i];
-        shp->verts[0x0].pos[mp_j] = shp->bmax[mp_j];
-        shp->verts[0x0].pos[mp_k] = shp->bmax[mp_k];
-        shp->verts[0x0].pos[mp_l] = 1.0f;
-
-        shp->verts[0x1].pos[mp_i] = shp->bmin[mp_i];
-        shp->verts[0x1].pos[mp_j] = shp->bmax[mp_j];
-        shp->verts[0x1].pos[mp_k] = shp->bmax[mp_k];
-        shp->verts[0x1].pos[mp_l] = 1.0f;
-
-        shp->verts[0x2].pos[mp_i] = shp->bmin[mp_i];
-        shp->verts[0x2].pos[mp_j] = shp->bmin[mp_j];
-        shp->verts[0x2].pos[mp_k] = shp->bmax[mp_k];
-        shp->verts[0x2].pos[mp_l] = 1.0f;
-
-        shp->verts[0x3].pos[mp_i] = shp->bmax[mp_i];
-        shp->verts[0x3].pos[mp_j] = shp->bmin[mp_j];
-        shp->verts[0x3].pos[mp_k] = shp->bmax[mp_k];
-        shp->verts[0x3].pos[mp_l] = 1.0f;
-
-        shp->edges[0x0].k = mp_i;
-        shp->edges[0x1].k = mp_j;
-        shp->edges[0x2].k = mp_i;
-        shp->edges[0x3].k = mp_j;
-
-        shp->faces[0x0].k = mp_k;
-        shp->faces[0x0].i = mp_i;
-        shp->faces[0x0].j = mp_j;
-    }
-
-    update_bounds();
+    update_bbgeom(box);
 }
 
 /*
@@ -2058,34 +2278,6 @@ rt_Plane::~rt_Plane()
 /******************************************************************************/
 /********************************   QUADRIC   *********************************/
 /******************************************************************************/
-
-static
-rt_EDGE qd_edges[] = 
-{
-    {0x0, 0x1},
-    {0x1, 0x2},
-    {0x2, 0x3},
-    {0x3, 0x0},
-    {0x0, 0x4},
-    {0x1, 0x5},
-    {0x2, 0x6},
-    {0x3, 0x7},
-    {0x7, 0x6},
-    {0x6, 0x5},
-    {0x5, 0x4},
-    {0x4, 0x7},
-};
-
-static
-rt_FACE qd_faces[] = 
-{
-    {0x0, 0x1, 0x2, 0x3},
-    {0x0, 0x4, 0x5, 0x1},
-    {0x1, 0x5, 0x6, 0x2},
-    {0x2, 0x6, 0x7, 0x3},
-    {0x3, 0x7, 0x4, 0x0},
-    {0x7, 0x6, 0x5, 0x4},
-};
 
 /*
  * Instantiate quadric surface object.
@@ -2134,199 +2326,12 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         return;
     }
 
-    if (shp->verts == RT_NULL)
+    if (box->verts == RT_NULL)
     {
         return;
     }
 
-    rt_mat4 *pmtx = &this->mtx;
-
-    if (trnode != RT_NULL && trnode != this)
-    {
-        pmtx = &trnode->mtx;
-    }
-
-    if (trnode != RT_NULL)
-    {
-        rt_vec4 vt0;
-        vt0[mp_i] = shp->bmax[mp_i];
-        vt0[mp_j] = shp->bmax[mp_j];
-        vt0[mp_k] = shp->bmax[mp_k];
-        vt0[mp_l] = 1.0f; /* takes pos in mtx into account */
-
-        rt_vec4 vt1;
-        vt1[mp_i] = shp->bmin[mp_i];
-        vt1[mp_j] = shp->bmax[mp_j];
-        vt1[mp_k] = shp->bmax[mp_k];
-        vt1[mp_l] = 1.0f; /* takes pos in mtx into account */
-
-        rt_vec4 vt2;
-        vt2[mp_i] = shp->bmin[mp_i];
-        vt2[mp_j] = shp->bmin[mp_j];
-        vt2[mp_k] = shp->bmax[mp_k];
-        vt2[mp_l] = 1.0f; /* takes pos in mtx into account */
-
-        rt_vec4 vt3;
-        vt3[mp_i] = shp->bmax[mp_i];
-        vt3[mp_j] = shp->bmin[mp_j];
-        vt3[mp_k] = shp->bmax[mp_k];
-        vt3[mp_l] = 1.0f; /* takes pos in mtx into account */
-
-        rt_vec4 vt4;
-        vt4[mp_i] = shp->bmax[mp_i];
-        vt4[mp_j] = shp->bmax[mp_j];
-        vt4[mp_k] = shp->bmin[mp_k];
-        vt4[mp_l] = 1.0f; /* takes pos in mtx into account */
-
-        rt_vec4 vt5;
-        vt5[mp_i] = shp->bmin[mp_i];
-        vt5[mp_j] = shp->bmax[mp_j];
-        vt5[mp_k] = shp->bmin[mp_k];
-        vt5[mp_l] = 1.0f; /* takes pos in mtx into account */
-
-        rt_vec4 vt6;
-        vt6[mp_i] = shp->bmin[mp_i];
-        vt6[mp_j] = shp->bmin[mp_j];
-        vt6[mp_k] = shp->bmin[mp_k];
-        vt6[mp_l] = 1.0f; /* takes pos in mtx into account */
-
-        rt_vec4 vt7;
-        vt7[mp_i] = shp->bmax[mp_i];
-        vt7[mp_j] = shp->bmin[mp_j];
-        vt7[mp_k] = shp->bmin[mp_k];
-        vt7[mp_l] = 1.0f; /* takes pos in mtx into account */
-
-        matrix_mul_vector(shp->verts[0x0].pos, (*pmtx), vt0);
-        matrix_mul_vector(shp->verts[0x1].pos, (*pmtx), vt1);
-        matrix_mul_vector(shp->verts[0x2].pos, (*pmtx), vt2);
-        matrix_mul_vector(shp->verts[0x3].pos, (*pmtx), vt3);
-        matrix_mul_vector(shp->verts[0x4].pos, (*pmtx), vt4);
-        matrix_mul_vector(shp->verts[0x5].pos, (*pmtx), vt5);
-        matrix_mul_vector(shp->verts[0x6].pos, (*pmtx), vt6);
-        matrix_mul_vector(shp->verts[0x7].pos, (*pmtx), vt7);
-
-        shp->edges[0x0].k = 3;
-        shp->edges[0x1].k = 3;
-        shp->edges[0x2].k = 3;
-        shp->edges[0x3].k = 3;
-
-        shp->edges[0x4].k = 3;
-        shp->edges[0x5].k = 3;
-        shp->edges[0x6].k = 3;
-        shp->edges[0x7].k = 3;
-
-        shp->edges[0x8].k = 3;
-        shp->edges[0x9].k = 3;
-        shp->edges[0xA].k = 3;
-        shp->edges[0xB].k = 3;
-
-        shp->faces[0x0].k = 3;
-        shp->faces[0x0].i = 3;
-        shp->faces[0x0].j = 3;
-
-        shp->faces[0x1].k = 3;
-        shp->faces[0x1].i = 3;
-        shp->faces[0x1].j = 3;
-
-        shp->faces[0x2].k = 3;
-        shp->faces[0x2].i = 3;
-        shp->faces[0x2].j = 3;
-
-        shp->faces[0x3].k = 3;
-        shp->faces[0x3].i = 3;
-        shp->faces[0x3].j = 3;
-
-        shp->faces[0x4].k = 3;
-        shp->faces[0x4].i = 3;
-        shp->faces[0x4].j = 3;
-
-        shp->faces[0x5].k = 3;
-        shp->faces[0x5].i = 3;
-        shp->faces[0x5].j = 3;
-    }
-    else
-    {
-        shp->verts[0x0].pos[mp_i] = shp->bmax[mp_i];
-        shp->verts[0x0].pos[mp_j] = shp->bmax[mp_j];
-        shp->verts[0x0].pos[mp_k] = shp->bmax[mp_k];
-        shp->verts[0x0].pos[mp_l] = 1.0f;
-
-        shp->verts[0x1].pos[mp_i] = shp->bmin[mp_i];
-        shp->verts[0x1].pos[mp_j] = shp->bmax[mp_j];
-        shp->verts[0x1].pos[mp_k] = shp->bmax[mp_k];
-        shp->verts[0x1].pos[mp_l] = 1.0f;
-
-        shp->verts[0x2].pos[mp_i] = shp->bmin[mp_i];
-        shp->verts[0x2].pos[mp_j] = shp->bmin[mp_j];
-        shp->verts[0x2].pos[mp_k] = shp->bmax[mp_k];
-        shp->verts[0x2].pos[mp_l] = 1.0f;
-
-        shp->verts[0x3].pos[mp_i] = shp->bmax[mp_i];
-        shp->verts[0x3].pos[mp_j] = shp->bmin[mp_j];
-        shp->verts[0x3].pos[mp_k] = shp->bmax[mp_k];
-        shp->verts[0x3].pos[mp_l] = 1.0f;
-
-        shp->verts[0x4].pos[mp_i] = shp->bmax[mp_i];
-        shp->verts[0x4].pos[mp_j] = shp->bmax[mp_j];
-        shp->verts[0x4].pos[mp_k] = shp->bmin[mp_k];
-        shp->verts[0x4].pos[mp_l] = 1.0f;
-
-        shp->verts[0x5].pos[mp_i] = shp->bmin[mp_i];
-        shp->verts[0x5].pos[mp_j] = shp->bmax[mp_j];
-        shp->verts[0x5].pos[mp_k] = shp->bmin[mp_k];
-        shp->verts[0x5].pos[mp_l] = 1.0f;
-
-        shp->verts[0x6].pos[mp_i] = shp->bmin[mp_i];
-        shp->verts[0x6].pos[mp_j] = shp->bmin[mp_j];
-        shp->verts[0x6].pos[mp_k] = shp->bmin[mp_k];
-        shp->verts[0x6].pos[mp_l] = 1.0f;
-
-        shp->verts[0x7].pos[mp_i] = shp->bmax[mp_i];
-        shp->verts[0x7].pos[mp_j] = shp->bmin[mp_j];
-        shp->verts[0x7].pos[mp_k] = shp->bmin[mp_k];
-        shp->verts[0x7].pos[mp_l] = 1.0f;
-
-        shp->edges[0x0].k = mp_i;
-        shp->edges[0x1].k = mp_j;
-        shp->edges[0x2].k = mp_i;
-        shp->edges[0x3].k = mp_j;
-
-        shp->edges[0x4].k = mp_k;
-        shp->edges[0x5].k = mp_k;
-        shp->edges[0x6].k = mp_k;
-        shp->edges[0x7].k = mp_k;
-
-        shp->edges[0x8].k = mp_i;
-        shp->edges[0x9].k = mp_j;
-        shp->edges[0xA].k = mp_i;
-        shp->edges[0xB].k = mp_j;
-
-        shp->faces[0x0].k = mp_k;
-        shp->faces[0x0].i = mp_i;
-        shp->faces[0x0].j = mp_j;
-
-        shp->faces[0x1].k = mp_j;
-        shp->faces[0x1].i = mp_k;
-        shp->faces[0x1].j = mp_i;
-
-        shp->faces[0x2].k = mp_i;
-        shp->faces[0x2].i = mp_k;
-        shp->faces[0x2].j = mp_j;
-
-        shp->faces[0x3].k = mp_j;
-        shp->faces[0x3].i = mp_k;
-        shp->faces[0x3].j = mp_i;
-
-        shp->faces[0x4].k = mp_i;
-        shp->faces[0x4].i = mp_k;
-        shp->faces[0x4].j = mp_j;
-
-        shp->faces[0x5].k = mp_k;
-        shp->faces[0x5].i = mp_i;
-        shp->faces[0x5].j = mp_j;
-    }
-
-    update_bounds();
+    update_bbgeom(box);
 }
 
 /*
@@ -2379,15 +2384,15 @@ rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
         shp->verts = (rt_VERT *)
                      rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        shp->edges_num = RT_ARR_SIZE(qd_edges);
+        shp->edges_num = RT_ARR_SIZE(bx_edges);
         shp->edges = (rt_EDGE *)
                      rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(shp->edges, qd_edges, shp->edges_num * sizeof(rt_EDGE));
+        memcpy(shp->edges, bx_edges, shp->edges_num * sizeof(rt_EDGE));
 
-        shp->faces_num = RT_ARR_SIZE(qd_faces);
+        shp->faces_num = RT_ARR_SIZE(bx_faces);
         shp->faces = (rt_FACE *)
                      rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(shp->faces, qd_faces, shp->faces_num * sizeof(rt_FACE));
+        memcpy(shp->faces, bx_faces, shp->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_CYLINDER */
@@ -2476,32 +2481,21 @@ rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
 {
     this->xsp = (rt_SPHERE *)obj->obj.pobj;
 
-    if (RT_FALSE)
-    {
-        shp->verts_num = 0;
-        shp->verts = RT_NULL;
-
-        shp->edges_num = 0;
-        shp->edges = RT_NULL;
-
-        shp->faces_num = 0;
-        shp->faces = RT_NULL;
-    }
-    else
+    if (RT_TRUE)
     {
         shp->verts_num = 8;
         shp->verts = (rt_VERT *)
                      rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        shp->edges_num = RT_ARR_SIZE(qd_edges);
+        shp->edges_num = RT_ARR_SIZE(bx_edges);
         shp->edges = (rt_EDGE *)
                      rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(shp->edges, qd_edges, shp->edges_num * sizeof(rt_EDGE));
+        memcpy(shp->edges, bx_edges, shp->edges_num * sizeof(rt_EDGE));
 
-        shp->faces_num = RT_ARR_SIZE(qd_faces);
+        shp->faces_num = RT_ARR_SIZE(bx_faces);
         shp->faces = (rt_FACE *)
                      rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(shp->faces, qd_faces, shp->faces_num * sizeof(rt_FACE));
+        memcpy(shp->faces, bx_faces, shp->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_SPHERE */
@@ -2629,15 +2623,15 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
         shp->verts = (rt_VERT *)
                      rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        shp->edges_num = RT_ARR_SIZE(qd_edges);
+        shp->edges_num = RT_ARR_SIZE(bx_edges);
         shp->edges = (rt_EDGE *)
                      rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(shp->edges, qd_edges, shp->edges_num * sizeof(rt_EDGE));
+        memcpy(shp->edges, bx_edges, shp->edges_num * sizeof(rt_EDGE));
 
-        shp->faces_num = RT_ARR_SIZE(qd_faces);
+        shp->faces_num = RT_ARR_SIZE(bx_faces);
         shp->faces = (rt_FACE *)
                      rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(shp->faces, qd_faces, shp->faces_num * sizeof(rt_FACE));
+        memcpy(shp->faces, bx_faces, shp->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_CONE */
@@ -2744,15 +2738,15 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
         shp->verts = (rt_VERT *)
                      rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        shp->edges_num = RT_ARR_SIZE(qd_edges);
+        shp->edges_num = RT_ARR_SIZE(bx_edges);
         shp->edges = (rt_EDGE *)
                      rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(shp->edges, qd_edges, shp->edges_num * sizeof(rt_EDGE));
+        memcpy(shp->edges, bx_edges, shp->edges_num * sizeof(rt_EDGE));
 
-        shp->faces_num = RT_ARR_SIZE(qd_faces);
+        shp->faces_num = RT_ARR_SIZE(bx_faces);
         shp->faces = (rt_FACE *)
                      rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(shp->faces, qd_faces, shp->faces_num * sizeof(rt_FACE));
+        memcpy(shp->faces, bx_faces, shp->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_PARABOLOID */
@@ -2869,15 +2863,15 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
         shp->verts = (rt_VERT *)
                      rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        shp->edges_num = RT_ARR_SIZE(qd_edges);
+        shp->edges_num = RT_ARR_SIZE(bx_edges);
         shp->edges = (rt_EDGE *)
                      rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(shp->edges, qd_edges, shp->edges_num * sizeof(rt_EDGE));
+        memcpy(shp->edges, bx_edges, shp->edges_num * sizeof(rt_EDGE));
 
-        shp->faces_num = RT_ARR_SIZE(qd_faces);
+        shp->faces_num = RT_ARR_SIZE(bx_faces);
         shp->faces = (rt_FACE *)
                      rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(shp->faces, qd_faces, shp->faces_num * sizeof(rt_FACE));
+        memcpy(shp->faces, bx_faces, shp->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_HYPERBOLOID */

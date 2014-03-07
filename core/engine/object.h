@@ -196,6 +196,12 @@ class rt_Object
     rt_cell             map[4];
     rt_cell             sgn[4];
 
+    /* axis mapping shorteners */
+    rt_cell             mp_i;
+    rt_cell             mp_j;
+    rt_cell             mp_k;
+    rt_cell             mp_l;
+
     public:
 
     /* registry pointer */
@@ -382,6 +388,8 @@ class rt_Node : public rt_Object
     virtual
     rt_void update_bvnode(rt_Array *bvnode, rt_bool mode);
 
+    rt_void update_bbgeom(rt_BOUND *box);
+
     rt_void invert_matrix();
 };
 
@@ -469,12 +477,6 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
      * bounding box and volume */
     rt_SHAPE           *shp;
 
-    /* axis mapping shorteners */
-    rt_cell             mp_i;
-    rt_cell             mp_j;
-    rt_cell             mp_k;
-    rt_cell             mp_l;
-
 /*  methods */
 
     protected:
@@ -507,8 +509,6 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
                           rt_vec4 cmin, rt_vec4 cmax); /* cbox */
 
     rt_void update_minmax();
-
-    rt_void update_bounds();
 };
 
 /******************************************************************************/
