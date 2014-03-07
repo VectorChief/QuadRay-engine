@@ -783,8 +783,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         /* alloc new trnode/bvnode element as none has been found */
         nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
         nxt->data = 0;
-        nxt->simd = RT_NULL;
-        RT_SET_FLG(nxt->simd, rt_pntr, k); /* node's type */
+        nxt->simd = (rt_pntr)k; /* node's type */
         nxt->temp = k == 0 ? arr[k]->aux : arr[k]->box;
         /* insert element according to found position */
         nxt->next = RT_GET_PTR(*ptr);
@@ -1178,9 +1177,10 @@ rt_ELEM* rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
             ptr = RT_GET_ADR(nxt->simd);
             elm = filter(obj, ptr);
             elm->next = nxt->next;
-            nxt->data = (rt_cell)elm | RT_GET_FLG(*ptr);
+            rt_cell k = RT_GET_FLG(*ptr);
+            nxt->data = (rt_cell)elm | k; /* node's type */
             nxt->next = RT_GET_PTR(*ptr);
-            nxt->simd = nd->s_srf;
+            nxt->simd = k == 0 ? nd->s_srf : ((rt_Array *)nd)->s_box;
             nxt = elm;
         }
     }
