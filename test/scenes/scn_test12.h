@@ -43,6 +43,31 @@ rt_PLANE pl_floor01 =
     },
 };
 
+rt_SPHERE sp_ball01 =
+{
+    {      /*   RT_I,       RT_J,       RT_K    */
+/* min */   {  -RT_INF,    -RT_INF,    -RT_INF  },
+/* max */   {  +RT_INF,    +RT_INF,    +RT_INF  },
+        {
+/* OUTER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_metal01_cyan01,
+        },
+        {
+/* INNER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_gray01,
+        },
+    },
+/* rad */   1.5,
+};
+
 rt_PLANE pl_pane01 =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
@@ -117,7 +142,7 @@ rt_SPHERE sp_ball03 =
 /* rad */   0.5,
 };
 
-rt_OBJECT ob_column01[] =
+rt_OBJECT ob_column02[] =
 {
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -135,6 +160,22 @@ rt_OBJECT ob_column01[] =
         },
         RT_OBJ_SPHERE(&sp_ball03)
     },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        0.2,        0.2    },
+/* rot */   {    0.0,       20.0,        0.0    },
+/* pos */   {    0.0,        0.0,        1.5    },
+        },
+        RT_OBJ_ARRAY(&ob_cube01)
+    },
+};
+
+rt_RELATION rl_column02[] =
+{
+    {  -1,  RT_REL_BOUND_ARRAY,  -1   },
+    {  -1,  RT_REL_MINUS_OUTER,   2   },
+    {   0,  RT_REL_MINUS_ACCUM,  -1   },
+    {   2,  RT_REL_MINUS_OUTER,   0   },
 };
 
 rt_OBJECT ob_base01[] =
@@ -150,10 +191,18 @@ rt_OBJECT ob_base01[] =
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {    0.0,        0.0,        1.5    },
+        },
+        RT_OBJ_SPHERE(&sp_ball01)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,     -135.0    },
 /* pos */   {   -4.5,       -4.5,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_column01)
+        RT_OBJ_ARRAY_REL(&ob_column02, &rl_column02)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -161,7 +210,7 @@ rt_OBJECT ob_base01[] =
 /* rot */   {    0.0,        0.0,      -45.0    },
 /* pos */   {   +4.5,       -4.5,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_column01)
+        RT_OBJ_ARRAY_REL(&ob_column02, &rl_column02)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
