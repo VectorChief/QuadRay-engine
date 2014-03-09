@@ -688,7 +688,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
      * run through the list hierachy to find the inner-most node,
      * node's "simd" field holds pointer to node's sublist
      * along with node's type in the lower 4 bits (trnode/bvnode) */
-    rt_ELEM *nxt, *lst = RT_IS_SURFACE(obj) ? srf->top : srf->trn;
+    rt_ELEM *nxt, *lst = RT_IS_CAMERA(obj) ? srf->trn : srf->top;
 
     for (nxt = RT_GET_PTR(*ptr); nxt != RT_NULL && lst != RT_NULL;)
     {
@@ -1868,7 +1868,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame ptr must be SIMD-aligned or NULL */
             (tiles_in_row * tiles_in_col + /* plus array nodes list */
             (arr_num + 2) +     /* plus reflections/refractions */
             (srf_num + arr_num * 2 + /* plus lights and shadows */
-            (srf_num + arr_num * 1 + 1) * lgt_num) * 2) * /* for both sides */
+            (srf_num + arr_num * 2 + 1) * lgt_num) * 2) * /* for both sides */
             sizeof(rt_ELEM) * (srf_num + thnum - 1) / thnum; /* per thread */
     }
 
@@ -1876,7 +1876,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame ptr must be SIMD-aligned or NULL */
     mpool = RT_NULL; /* rough estimate for surface relations/templates */
     msize = ((srf_num + 1) * (srf_num + 1) * 2 + /* plus two surface lists */
             (srf_num + arr_num * 1) * 2 + /* plus lights and shadows list */
-            (srf_num + arr_num * 1 + 1) * lgt_num + /* plus array nodes */
+            (srf_num + arr_num * 2 + 1) * lgt_num + /* plus array nodes */
             tiles_in_row * tiles_in_col * arr_num) *  /* for tiling */
             sizeof(rt_ELEM);                        /* for main thread */
 
