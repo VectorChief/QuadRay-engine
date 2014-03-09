@@ -124,6 +124,8 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     obj->time = time;
 
+    /* reset bvnode before
+     * it is set in array's update */
     bvnode = RT_NULL;
 
     /* inherit changed status from the hierarchy */
@@ -1793,19 +1795,24 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     {
         rt_Node::update(time, mtx, flags);
 
+        /* reset surface's trnode/bvnode sequence
+         * as it is rebuilt in engine's snode */
+        top = RT_NULL;
+        trn = RT_NULL;
+
         /* reset custom clippers list
          * as it is rebuilt in array's update */
         s_srf->msc_p[2] = RT_NULL;
-
-        /* trnode's simd ptr is needed in rendering backend
-         * to check if surface and its clippers belong to the same trnode */
-        s_srf->msc_p[3] = trnode == RT_NULL ?
-                                    RT_NULL : ((rt_Node *)trnode)->s_srf;
 
         if (obj_changed == 0)
         {
             return;
         }
+
+        /* trnode's simd ptr is needed in rendering backend
+         * to check if surface and its clippers belong to the same trnode */
+        s_srf->msc_p[3] = trnode == RT_NULL ?
+                                    RT_NULL : ((rt_Node *)trnode)->s_srf;
 
         /* check bbox geometry limits */
         if (shp->verts_num > RT_VERTS_LIMIT
@@ -1820,9 +1827,20 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     {
         update_minmax();
 
+        /* reset bvnode for boundless surfaces */
+        if (box->verts_num == 0)
+        {
+            bvnode = RT_NULL;
+        }
+
         if (srf_changed == 0)
         {
             return;
+        }
+
+        if (box->verts_num != 0)
+        {
+            update_bbgeom(box);
         }
 
         s_srf->min_t[RT_X] = shp->cmin[RT_X] == -RT_INF ? 0 : 1;
@@ -2220,23 +2238,7 @@ rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     if (flags & RT_UPDATE_FLAG_SRF)
     {
         rt_Surface::update(time, mtx, flags & ~RT_UPDATE_FLAG_OBJ);
-
-        if (srf_changed == 0)
-        {
-            return;
-        }
     }
-    else
-    {
-        return;
-    }
-
-    if (box->verts == RT_NULL)
-    {
-        return;
-    }
-
-    update_bbgeom(box);
 }
 
 /*
@@ -2315,23 +2317,7 @@ rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     if (flags & RT_UPDATE_FLAG_SRF)
     {
         rt_Surface::update(time, mtx, flags & ~RT_UPDATE_FLAG_OBJ);
-
-        if (srf_changed == 0)
-        {
-            return;
-        }
     }
-    else
-    {
-        return;
-    }
-
-    if (box->verts == RT_NULL)
-    {
-        return;
-    }
-
-    update_bbgeom(box);
 }
 
 /*

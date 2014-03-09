@@ -684,83 +684,21 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     elm->simd = srf->s_srf;
     elm->temp = srf->box;
 
-    rt_ELEM *lst[2], *nxt;
-    rt_Array *arr[2];
-
-    /* determine if surface belongs to any trnode/bvnode objects,
-     * index in the array below also serves as node's type in the list */
-    lst[0] = RT_NULL;
-    arr[0] = srf->trnode != RT_NULL && srf->trnode != srf ?
-                    (rt_Array *)srf->trnode : RT_NULL;
-
-    lst[1] = RT_NULL;
-    arr[1] = srf->bvnode != RT_NULL && RT_IS_SURFACE(obj) &&
-                    srf->bvnode->box->rad != RT_INF ?
-                    (rt_Array *)srf->bvnode : RT_NULL;
-
-    rt_cell i, k = -1, n = (arr[0] != RT_NULL) + (arr[1] != RT_NULL);
-
-    /* determine trnode/bvnode order on the branch,
-     * "k" is set to the index of the outer-most node */
-    if (n == 2)
-    {
-        /* if the same array serves as both trnode and bvnode,
-         * select bvnode as outer-most */
-        if (arr[0] == arr[1])
-        {
-            k = 1;
-        }
-        /* otherwise, determine the order by searching the nodes
-         * among each other's parents */
-        else
-        {
-            for (i = 0; i < 2 && k < 0; i++)
-            {
-                rt_Object *par = arr[1 - i]->parent;
-                for (; par != RT_NULL; par = par->parent)
-                {
-                    if (par == arr[i])
-                    {
-                        k = i;
-                        break;
-                    }
-                }
-            }
-            /* check if trnode/bvnode are not
-             * among each other's parents */
-            if (k == -1)
-            {
-                throw rt_Exception("trnode/bvnode are not on the same branch");
-            }
-        }
-    }
-    else
-    if (arr[0] != RT_NULL)
-    {
-        k = 0;
-    }
-    else
-    if (arr[1] != RT_NULL)
-    {
-        k = 1;
-    }
-
     /* search matching existing trnode/bvnode for insertion,
      * run through the list hierachy to find the inner-most node,
      * node's "simd" field holds pointer to node's sublist
      * along with node's type in the lower 4 bits (trnode/bvnode) */
-    for (nxt = RT_GET_PTR(*ptr), i = 0; nxt != RT_NULL && i < n;)
+    rt_ELEM *nxt, *lst = RT_IS_SURFACE(obj) ? srf->top : srf->trn;
+
+    for (nxt = RT_GET_PTR(*ptr); nxt != RT_NULL && lst != RT_NULL;)
     {
-        if (arr[k] == ((rt_BOUND *)nxt->temp)->obj
-        &&  RT_GET_FLG(nxt->simd) == k)
+        if (nxt->temp == lst->temp)
         {
-            lst[k] = nxt;
             /* set insertion point to existing node's sublist */
             ptr = RT_GET_ADR(nxt->simd);
-            /* search next node (inner-most) in existing node's sublist */
+            /* search next inner node in existing node's sublist */
             nxt = RT_GET_PTR(*ptr);
-            k = 1 - k;
-            i++;
+            lst = lst->next;
         }
         else
         {
@@ -775,16 +713,17 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
      * this allows for greater flexibility in trnode/bvnode
      * relationship, something not allowed in previous versions */
 
-    rt_ELEM **org = RT_NULL;
     /* allocate new node elements from outer-most to inner-most
      * if they are not already in the list */
-    for (; i < n; i++, k = 1 - k)
+    rt_ELEM **org = RT_NULL;
+
+    for (; lst != RT_NULL; lst = lst->next)
     {
         /* alloc new trnode/bvnode element as none has been found */
         nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
-        nxt->data = 0;
-        nxt->simd = (rt_pntr)k; /* node's type */
-        nxt->temp = k == 0 ? arr[k]->aux : arr[k]->box;
+        nxt->data = lst->data;
+        nxt->simd = lst->simd; /* node's type */
+        nxt->temp = lst->temp;
         /* insert element according to found position */
         nxt->next = RT_GET_PTR(*ptr);
         RT_SET_PTR(*ptr, rt_ELEM *, nxt);
@@ -1189,6 +1128,72 @@ rt_ELEM* rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
 }
 
 /*
+ * Build trnode/bvnode sequence for a given "srf".
+ */
+rt_void rt_SceneThread::snode(rt_Surface *srf)
+{
+    /* reset surface's trnode/bvnode sequence */
+    srf->top = RT_NULL;
+    srf->trn = RT_NULL;
+
+    /* build surface's trnode/bvnode sequence,
+     * trnodes hierarchy is flat as objects with
+     * non-trivial transform are their own trnodes,
+     * while bvnodes can have arbitrary depth
+     * above and below the trnode (if present) */
+    rt_ELEM *elm;
+    rt_Object *par;
+
+    /* phase 1, bvnodes (if any) below trnode (if any),
+     * if the same array serves as both trnode and bvnode,
+     * bvnode is considered above, thus trnode is inserted first */
+    for (par = srf->bvnode; par != RT_NULL &&
+         par->trnode == srf->trnode && par->trnode != par;
+         par = par->bvnode)
+    {
+        elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+        elm->data = 0;
+        elm->simd = (rt_pntr)1; /* node's type (bv) */
+        elm->temp = par->box;
+        elm->next = srf->top;
+        srf->top = elm;
+    }
+
+    /* phase 2, there can only be one trnode (if any),
+     * even though there might be other trnodes
+     * above and below in the objects hierarchy
+     * they themselves don't form the hierarchy
+     * as any trnode is always its own trnode */
+    if (srf->trnode != RT_NULL && srf->trnode != srf)
+    {
+        elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+        elm->data = 0;
+        elm->simd = (rt_pntr)0; /* node's type (tr) */
+        elm->temp = ((rt_Array *)srf->trnode)->aux;
+        elm->next = srf->top;
+        srf->top = elm;
+
+        elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+        elm->data = 0;
+        elm->simd = (rt_pntr)0; /* node's type (tr) */
+        elm->temp = ((rt_Array *)srf->trnode)->aux;
+        elm->next = RT_NULL;
+        srf->trn = elm;
+    }
+
+    /* phase 3, bvnodes (if any) above trnode (if any) */
+    for (; par != RT_NULL; par = par->bvnode)
+    {
+        elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+        elm->data = 0;
+        elm->simd = (rt_pntr)1; /* node's type (bv) */
+        elm->temp = par->box;
+        elm->next = srf->top;
+        srf->top = elm;
+    }
+}
+
+/*
  * Build tile list for a given "srf" based
  * on the area its projected bbox occupies in the tilebuffer.
  */
@@ -1203,7 +1208,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
         return;
     }
 
-    rt_ELEM *elm = RT_NULL;
+    rt_ELEM *elm;
     rt_cell i, j;
     rt_cell k;
 
@@ -1860,7 +1865,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame ptr must be SIMD-aligned or NULL */
 
         /* estimate per-frame allocs to reduce system calls per thread */
         tharr[i]->msize =  /* upper bound per surface for tiling */
-            (tiles_in_row * tiles_in_col + /* plus reflections/refractions */
+            (tiles_in_row * tiles_in_col + /* plus array nodes list */
+            (arr_num + 2) +     /* plus reflections/refractions */
             (srf_num + arr_num * 2 + /* plus lights and shadows */
             (srf_num + arr_num * 1 + 1) * lgt_num) * 2) * /* for both sides */
             sizeof(rt_ELEM) * (srf_num + thnum - 1) / thnum; /* per thread */
@@ -2201,6 +2207,9 @@ rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
             }
 
             srf->update(0, RT_NULL, RT_UPDATE_FLAG_SRF);
+
+            /* rebuild per-surface node list */
+            tharr[index]->snode(srf);
 
             /* rebuild per-surface tile list */
             tharr[index]->stile(srf);

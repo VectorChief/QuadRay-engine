@@ -473,6 +473,14 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
 
     public:
 
+    /* top of the trnode/bvnode
+     * sequence on the branch */
+    rt_ELEM            *top;
+
+    /* trnode element for cases
+     * where bvnode is not allowed */
+    rt_ELEM            *trn;
+
     /* surface shape extension to
      * bounding box and volume */
     rt_SHAPE           *shp;
