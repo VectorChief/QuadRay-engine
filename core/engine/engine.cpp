@@ -636,7 +636,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                  (rt_Array *)srf->trnode : RT_NULL;
 
         lst[1] = RT_NULL;
-        arr[1] = srf->bvnode != RT_NULL && RT_IS_SURFACE(obj) ?
+        arr[1] = srf->bvnode != RT_NULL && !RT_IS_CAMERA(obj) ?
                  (rt_Array *)srf->bvnode : RT_NULL;
 
         rt_cell i, k = 0, n = (arr[0] != RT_NULL) + (arr[1] != RT_NULL);
