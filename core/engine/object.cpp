@@ -45,7 +45,9 @@
 /******************************************************************************/
 
 /*
- * Clip accumulator markers.
+ * Clip accumulator markers,
+ * some values are hardcoded in rendering backend,
+ * change with care!
  */
 #define RT_ACCUM_ENTER          (-1)
 #define RT_ACCUM_LEAVE          (+1)
@@ -1224,7 +1226,9 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     {
         rt_RELATION *rel = obj->obj.prel;
 
-        rt_ELEM *lst = RT_NULL;
+        /* maintain reusable relations template list linked via "simd"
+         * used via "ptr", so that list elements are not reallocated */
+        rt_ELEM *lst = RT_NULL, *prv = RT_NULL, **ptr = &rg->rel;
         rt_cell acc  = 0;
 
         rt_Object **obj_arr_l = obj_arr; /* left  sub-array */
@@ -1273,18 +1277,32 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
                 if (rel[i].obj1 == -1 && rel[i].obj2 >= 0 && acc == 0)
                 {
                     acc = 1;
-                    elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
-                    elm->data = RT_ACCUM_ENTER;
-                    elm->simd = RT_NULL;
+                    elm = *ptr != RT_NULL ? *ptr :
+                          (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+                    if (*ptr == RT_NULL)
+                    {
+                       *ptr = elm;
+                        elm->simd = RT_NULL;
+                    }
+                    /* invert marker value as elem is added into tail
+                     * and the list is inverted when copied in surface */
+                    elm->data = RT_ACCUM_LEAVE;
                     elm->temp = RT_NULL; /* accum marker */
-                    elm->next = lst;
+                    elm->next = RT_NULL;
                     lst = elm;
+                    prv = elm;
+                    ptr = (rt_ELEM **)&elm->simd;
                 }
                 if (rel[i].obj1 >= -1 && rel[i].obj2 >= 0)
                 {
-                    elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+                    elm = *ptr != RT_NULL ? *ptr :
+                          (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+                    if (*ptr == RT_NULL)
+                    {
+                       *ptr = elm;
+                        elm->simd = RT_NULL;
+                    }
                     elm->data = rel[i].rel;
-                    elm->simd = RT_NULL;
                     elm->temp = obj_arr_r[rel[i].obj2]->box;
                     elm->next = RT_NULL;
                     obj_arr_r = obj_arr; /* reset right sub-array after use */
@@ -1292,8 +1310,9 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
                 }
                 if (rel[i].obj1 == -1 && rel[i].obj2 >= 0)
                 {
-                    elm->next = lst;
-                    lst = elm;
+                    prv->next = elm;
+                    prv = elm;
+                    ptr = (rt_ELEM **)&elm->simd;
                 }
                 break;
 
@@ -1301,12 +1320,23 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
                 if (rel[i].obj1 >= 0 && rel[i].obj2 == -1 && acc == 1)
                 {
                     acc = 0;
-                    elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
-                    elm->data = RT_ACCUM_LEAVE;
-                    elm->simd = RT_NULL;
+                    elm = *ptr != RT_NULL ? *ptr :
+                          (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+                    if (*ptr == RT_NULL)
+                    {
+                       *ptr = elm;
+                        elm->simd = RT_NULL;
+                    }
+                    /* invert marker value as elem is added into tail
+                     * and the list is inverted when copied in surface */
+                    elm->data = RT_ACCUM_ENTER;
                     elm->temp = RT_NULL; /* accum marker */
-                    elm->next = lst;
+                    elm->next = RT_NULL;
+                    prv->next = elm;
+                    elm = lst;
                     lst = RT_NULL;
+                    prv = RT_NULL;
+                    ptr = &rg->rel;
                 }
                 break;
 

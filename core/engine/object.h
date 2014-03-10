@@ -135,7 +135,11 @@ class rt_Registry : public rt_Heap
 
     public:
 
+    /* optimization flags */
     rt_cell             opts;
+
+    /* relations template */
+    rt_ELEM            *rel;
 
 /*  methods */
 
@@ -149,7 +153,7 @@ class rt_Registry : public rt_Heap
                     srf_head(RT_NULL), srf_num(0),
                     tex_head(RT_NULL), tex_num(0),
                     mat_head(RT_NULL), mat_num(0),
-                    opts(RT_OPTS_FULL) { }
+                    opts(RT_OPTS_FULL), rel(RT_NULL) { }
 
     virtual
    ~rt_Registry() { }

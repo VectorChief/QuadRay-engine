@@ -1948,6 +1948,9 @@ rt_void rt_Scene::render(rt_long time)
         RT_PRINT_TIME(time);
     }
 
+    /* reset relations template */
+    rel = RT_NULL;
+
     /* update the whole objects hierarchy */
     root->update(time, iden4, RT_UPDATE_FLAG_OBJ);
 
