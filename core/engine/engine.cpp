@@ -388,7 +388,7 @@ rt_void rt_Scene::render_fps(rt_word x, rt_word y,
     d = (d + 1) / 2;
 
     rt_word xd, yd, xz, yz;
-    rt_word *src = NULL, *dst = NULL;
+    rt_word *src = RT_NULL, *dst = RT_NULL;
 
     for (i = 0; i < c; i++)
     {
