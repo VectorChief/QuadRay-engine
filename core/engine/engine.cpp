@@ -688,7 +688,15 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
      * run through the list hierachy to find the inner-most node,
      * node's "simd" field holds pointer to node's sublist
      * along with node's type in the lower 4 bits (trnode/bvnode) */
-    rt_ELEM *nxt, *lst = RT_IS_CAMERA(obj) ? srf->trn : srf->top;
+    rt_ELEM *nxt, *lst = srf->top;
+
+#if RT_OPTS_TILING != 0
+    if (RT_IS_CAMERA(obj)
+    && (scene->opts & RT_OPTS_TILING) != 0)
+    {
+        lst = srf->trn;
+    }
+#endif /* RT_OPTS_TILING */
 
     for (nxt = RT_GET_PTR(*ptr); nxt != RT_NULL && lst != RT_NULL;)
     {
