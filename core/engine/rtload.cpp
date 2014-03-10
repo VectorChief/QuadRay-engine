@@ -250,7 +250,7 @@ rt_void load_texture(rt_Registry *rg, rt_pstr name, rt_TEX *tx)
     }
     while (0);
 
-    if (f != NULL)
+    if (f != RT_NULL)
     {
         delete f;
     }
