@@ -909,9 +909,9 @@ rt_void rt_Material::resolve_texture(rt_Registry *rg)
     if (tx->x_dim == 0 && tx->y_dim == 0 && tx->ptex != RT_NULL)
     {
         rt_pstr name = (rt_pstr)tx->ptex;
-        rt_Texture *tex = NULL;
+        rt_Texture *tex = RT_NULL;
 
-        for (tex = rg->get_tex(); tex != NULL; tex = tex->next)
+        for (tex = rg->get_tex(); tex != RT_NULL; tex = tex->next)
         {
             if (strcmp(name, tex->name) == 0)
             {
@@ -919,7 +919,7 @@ rt_void rt_Material::resolve_texture(rt_Registry *rg)
             }
         }
 
-        if (tex == NULL)
+        if (tex == RT_NULL)
         {
             tex = new rt_Texture(rg, name);
         }
