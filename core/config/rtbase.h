@@ -114,6 +114,13 @@ typedef const char         *rt_pstr;
 #define RT_A                3   /* A - Alpha channel */
 
 /*
+ * For surface's UV coords
+ *  to texture's XY coords mapping
+ */
+#define RT_U                0
+#define RT_V                1
+
+/*
  * Math definitions
  */
 #define RT_INF              FLT_MAX

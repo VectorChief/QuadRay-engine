@@ -41,25 +41,6 @@
  */
 
 /******************************************************************************/
-/*******************************   DEFINITIONS   ******************************/
-/******************************************************************************/
-
-/*
- * Clip accumulator markers,
- * some values are hardcoded in rendering backend,
- * change with care!
- */
-#define RT_ACCUM_ENTER          (-1)
-#define RT_ACCUM_LEAVE          (+1)
-
-/*
- * For surface's UV coords
- *  to texture's XY coords mapping
- */
-#define RT_U                    0
-#define RT_V                    1
-
-/******************************************************************************/
 /*********************************   OBJECT   *********************************/
 /******************************************************************************/
 
@@ -1291,7 +1272,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
                     elm->next = RT_NULL;
                     lst = elm;
                     prv = elm;
-                    ptr = (rt_ELEM **)&elm->simd;
+                    ptr = RT_GET_ADR(elm->simd);
                 }
                 if (rel[i].obj1 >= -1 && rel[i].obj2 >= 0)
                 {
@@ -1312,7 +1293,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
                 {
                     prv->next = elm;
                     prv = elm;
-                    ptr = (rt_ELEM **)&elm->simd;
+                    ptr = RT_GET_ADR(elm->simd);
                 }
                 break;
 
@@ -1681,7 +1662,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
     rt_Node::add_relation(lst);
 
     /* init custom clippers list */
-    rt_ELEM **ptr = (rt_ELEM **)&s_srf->msc_p[2];
+    rt_ELEM **ptr = RT_GET_ADR(s_srf->msc_p[2]);
 
     /* build custom clippers list
      * from given template "lst" */

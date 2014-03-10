@@ -46,6 +46,25 @@
 #define RT_PROP_LIGHT       0x00001000
 #define RT_PROP_METAL       0x00002000
 
+/*
+ * Clip accumulator markers,
+ * some values are hardcoded in rendering backend,
+ * change with care!
+ */
+#define RT_ACCUM_ENTER      (-1)
+#define RT_ACCUM_LEAVE      (+1)
+
+/*
+ * Macros for packed 16-byte-aligned pointer and lower-4-bits flag.
+ */
+#define RT_GET_FLG(x)       ((rt_cell)(x) & 0xF)
+#define RT_SET_FLG(x, t, v) x = (t)((rt_cell)(v) | (rt_cell)(x) & ~0xF)
+
+#define RT_GET_PTR(x)       ((rt_ELEM *)((rt_cell)(x) & ~0xF))
+#define RT_SET_PTR(x, t, v) x = (t)((rt_cell)(v) | RT_GET_FLG(x))
+
+#define RT_GET_ADR(x)       ((rt_ELEM **)&(x))
+
 /* Structures */
 
 struct rt_ELEM;
