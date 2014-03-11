@@ -72,10 +72,11 @@ rt_Object::rt_Object(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj)
     this->obj_has_trm = 0;
     this->mtx_has_trm = 0;
 
+    this->parent = parent;
     this->trnode = RT_NULL;
     this->bvnode = RT_NULL;
-    this->parent = parent;
 
+    /* init "box" bound structure used for bvnode if present */
     box = (rt_BOUND *)rg->alloc(RT_IS_SURFACE(this) ?
                         sizeof(rt_SHAPE) : sizeof(rt_BOUND), RT_QUAD_ALIGN);
 
@@ -93,7 +94,7 @@ rt_Object::rt_Object(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj)
 }
 
 /*
- * Build relations list based on given template "lst" from scene data.
+ * Build relations template based on given template "lst" from scene data.
  */
 rt_void rt_Object::add_relation(rt_ELEM *lst)
 {
@@ -105,7 +106,9 @@ rt_void rt_Object::add_relation(rt_ELEM *lst)
  */
 rt_void rt_Object::update_bvnode(rt_Array *bvnode, rt_bool mode)
 {
-    if (bvnode == this)
+    /* bvnode cannot be its own bvnode,
+     * there is no bvnode for boundless surfaces */
+    if (bvnode == this || box->verts_num == 0)
     {
         return;
     }
@@ -130,10 +133,6 @@ rt_void rt_Object::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
     }
 
     obj->time = time;
-
-    /* reset bvnode before
-     * it is set in array's update */
-    bvnode = RT_NULL;
 
     /* inherit changed status from the hierarchy */
     obj_changed = flags & RT_UPDATE_FLAG_ARR;
@@ -598,7 +597,7 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
 }
 
 /*
- * Build relations list based on given template "lst" from scene data.
+ * Build relations template based on given template "lst" from scene data.
  */
 rt_void rt_Node::add_relation(rt_ELEM *lst)
 {
@@ -972,6 +971,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
 {
     rg->put_arr(this);
 
+    /* init "aux" bound structure used for trnode if present */
     aux = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
 
     memset(aux, 0, sizeof(rt_BOUND));
@@ -1018,17 +1018,15 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
         memcpy(box->faces, bx_faces, box->faces_num * sizeof(rt_FACE));
     }
 
-    obj_num = 0;
-    obj_arr = RT_NULL;
+    /* process array's objects */
+    rt_OBJECT *arr = (rt_OBJECT *)obj->obj.pobj;
 
     obj_num = obj->obj.obj_num;
     obj_arr = (rt_Object **)rg->alloc(obj_num * sizeof(rt_Object *), RT_ALIGN);
 
-    rt_OBJECT *arr = (rt_OBJECT *)obj->obj.pobj;
-
     rt_cell i, j; /* j - for skipping unsupported object tags */
 
-    /* instantiate every object in array,
+    /* instantiate every object in array from scene data,
      * including sub-arrays (recursive) */
     for (i = 0, j = 0; i < obj->obj.obj_num; i++, j++)
     {
@@ -1077,6 +1075,219 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
         }
     }
 
+    /* process array's relations */
+    rt_RELATION *rel = obj->obj.prel;
+
+    /* maintain reusable relations template list linked via "simd"
+     * used via "ptr", so that list elements are not reallocated */
+    rt_ELEM *lst = RT_NULL, *prv = RT_NULL, **ptr = &rg->rel;
+    rt_cell acc  = 0;
+
+    rt_Object **obj_arr_l = obj_arr; /* left  sub-array */
+    rt_Object **obj_arr_r = obj_arr; /* right sub-array */
+
+    rt_cell     obj_num_l = obj_num; /* left  sub-array size */
+    rt_cell     obj_num_r = obj_num; /* right sub-array size */
+
+    /* build relations templates (custom clippers) from scene data */
+    for (i = 0; i < obj->obj.rel_num; i++)
+    {
+        if (rel[i].obj1 >= obj_num_l
+        ||  rel[i].obj2 >= obj_num_r)
+        {
+            continue;
+        }
+
+        rt_ELEM *elm = RT_NULL;
+
+        rt_Object *obj = RT_NULL;
+        rt_Array *arr = RT_NULL;
+        rt_bool mode = RT_FALSE;
+
+        switch (rel[i].rel)
+        {
+            case RT_REL_INDEX_ARRAY:
+            if (rel[i].obj1 >= 0 && rel[i].obj2 >= -1
+            &&  RT_IS_ARRAY(obj_arr_l[rel[i].obj1]))
+            {
+                rt_Array *arr = (rt_Array *)obj_arr_l[rel[i].obj1];
+                obj_arr_l = arr->obj_arr; /* select left  sub-array */
+                obj_num_l = arr->obj_num;   /* for next left  index */
+            }
+            if (rel[i].obj1 >= -1 && rel[i].obj2 >= 0
+            &&  RT_IS_ARRAY(obj_arr_r[rel[i].obj2]))
+            {
+                rt_Array *arr = (rt_Array *)obj_arr_r[rel[i].obj2];
+                obj_arr_r = arr->obj_arr; /* select right sub-array */
+                obj_num_r = arr->obj_num;   /* for next right index */
+            }
+            break;
+
+            case RT_REL_MINUS_INNER:
+            case RT_REL_MINUS_OUTER:
+            if (rel[i].obj1 == -1 && rel[i].obj2 >= 0 && acc == 0)
+            {
+                acc = 1;
+                elm = *ptr != RT_NULL ? *ptr :
+                      (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+                if (*ptr == RT_NULL)
+                {
+                   *ptr = elm;
+                    elm->simd = RT_NULL;
+                }
+                /* use original marker value as elements are inserted
+                 * into the list's tail here and the original relations
+                 * template from scene data is inverted twice, first
+                 * in surface's add_relation and second in engine's sclip,
+                 * thus accum markers will end up in correct order */
+                elm->data = RT_ACCUM_ENTER;
+                elm->temp = RT_NULL; /* accum marker */
+                elm->next = RT_NULL;
+                lst = elm;
+                prv = elm;
+                ptr = RT_GET_ADR(elm->simd);
+            }
+            if (rel[i].obj1 >= -1 && rel[i].obj2 >= 0)
+            {
+                elm = *ptr != RT_NULL ? *ptr :
+                      (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+                if (*ptr == RT_NULL)
+                {
+                   *ptr = elm;
+                    elm->simd = RT_NULL;
+                }
+                elm->data = rel[i].rel;
+                elm->temp = obj_arr_r[rel[i].obj2]->box;
+                elm->next = RT_NULL;
+                obj_arr_r = obj_arr; /* reset right sub-array after use */
+                obj_num_r = obj_num;
+            }
+            if (rel[i].obj1 == -1 && rel[i].obj2 >= 0)
+            {
+                prv->next = elm;
+                prv = elm;
+                ptr = RT_GET_ADR(elm->simd);
+            }
+            break;
+
+            case RT_REL_MINUS_ACCUM:
+            if (rel[i].obj1 >= 0 && rel[i].obj2 == -1 && acc == 1)
+            {
+                acc = 0;
+                elm = *ptr != RT_NULL ? *ptr :
+                      (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+                if (*ptr == RT_NULL)
+                {
+                   *ptr = elm;
+                    elm->simd = RT_NULL;
+                }
+                /* use original marker value as elements are inserted
+                 * into the list's tail here and the original relations
+                 * template from scene data is inverted twice, first
+                 * in surface's add_relation and second in engine's sclip,
+                 * thus accum markers will end up in correct order */
+                elm->data = RT_ACCUM_LEAVE;
+                elm->temp = RT_NULL; /* accum marker */
+                elm->next = RT_NULL;
+                prv->next = elm;
+                elm = lst;
+                lst = RT_NULL;
+                prv = RT_NULL;
+                ptr = &rg->rel;
+            }
+            break;
+
+            case RT_REL_BOUND_ARRAY:
+            if (rel[i].obj1 == -1 && rel[i].obj2 == -1)
+            {
+                obj = arr = this;
+                mode = RT_TRUE;
+            }
+            if (rel[i].obj1 == -1 && rel[i].obj2 >= 0
+            &&  RT_IS_ARRAY(obj_arr_r[rel[i].obj2]))
+            {
+                obj = arr = (rt_Array *)obj_arr_r[rel[i].obj2];
+                mode = RT_TRUE;
+            }
+            break;
+
+            case RT_REL_UNTIE_ARRAY:
+            if (rel[i].obj1 == -1 && rel[i].obj2 == -1)
+            {
+                obj = arr = this;
+                mode = RT_FALSE;
+            }
+            if (rel[i].obj1 == -1 && rel[i].obj2 >= 0
+            &&  RT_IS_ARRAY(obj_arr_r[rel[i].obj2]))
+            {
+                obj = arr = (rt_Array *)obj_arr_r[rel[i].obj2];
+                mode = RT_FALSE;
+            }
+            break;
+
+            case RT_REL_BOUND_INDEX:
+            if (rel[i].obj1 == -1 && rel[i].obj2 >= 0)
+            {
+                obj = obj_arr_r[rel[i].obj2];
+                arr = this;
+                mode = RT_TRUE;
+            }
+            if (rel[i].obj1 >= 0 && rel[i].obj2 >= 0
+            &&  RT_IS_ARRAY(obj_arr_l[rel[i].obj1]))
+            {
+                obj = obj_arr_r[rel[i].obj2];
+                arr = (rt_Array *)obj_arr_l[rel[i].obj1];
+                mode = RT_TRUE;
+            }
+            break;
+
+            case RT_REL_UNTIE_INDEX:
+            if (rel[i].obj1 == -1 && rel[i].obj2 >= 0)
+            {
+                obj = obj_arr_r[rel[i].obj2];
+                arr = this;
+                mode = RT_FALSE;
+            }
+            if (rel[i].obj1 >= 0 && rel[i].obj2 >= 0
+            &&  RT_IS_ARRAY(obj_arr_l[rel[i].obj1]))
+            {
+                obj = obj_arr_r[rel[i].obj2];
+                arr = (rt_Array *)obj_arr_l[rel[i].obj1];
+                mode = RT_FALSE;
+            }
+            break;
+
+            default:
+            break;
+        }
+
+        if (rel[i].obj1 >= 0 && elm != RT_NULL)
+        {
+            obj_arr_l[rel[i].obj1]->add_relation(elm);
+            obj_arr_l = obj_arr; /* reset left  sub-array after use */
+            obj_num_l = obj_num;
+        }
+        if (obj != RT_NULL && arr != RT_NULL)
+        {
+#if RT_OPTS_VARRAY != 0
+            if ((rg->opts & RT_OPTS_VARRAY) != 0)
+            {
+                obj->update_bvnode(arr, mode);
+            }
+#endif /* RT_OPTS_VARRAY */
+            if (rel[i].obj1 >= 0)
+            {
+                obj_arr_l = obj_arr; /* reset left  sub-array after use */
+                obj_num_l = obj_num;
+            }
+            if (rel[i].obj2 >= 0)
+            {
+                obj_arr_r = obj_arr; /* reset right sub-array after use */
+                obj_num_r = obj_num;
+            }
+        }
+    }
+
 /*  rt_SIMD_SURFACE */
 
     s_box = (rt_SIMD_SURFACE *)
@@ -1108,7 +1319,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
 }
 
 /*
- * Build relations list based on given template "lst" from scene data.
+ * Build relations template based on given template "lst" from scene data.
  */
 rt_void rt_Array::add_relation(rt_ELEM *lst)
 {
@@ -1206,219 +1417,6 @@ rt_void rt_Array::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
     {
         obj_arr[i]->update_matrix(time, *pmtx,
                                   flags | mtx_has_trm | obj_changed);
-    }
-
-    /* rebuild objects relations (custom clippers)
-     * after all transform flags have been updated,
-     * so that trnode elements are handled properly */
-    if (obj->obj.rel_num > 0)
-    {
-        rt_RELATION *rel = obj->obj.prel;
-
-        /* maintain reusable relations template list linked via "simd"
-         * used via "ptr", so that list elements are not reallocated */
-        rt_ELEM *lst = RT_NULL, *prv = RT_NULL, **ptr = &rg->rel;
-        rt_cell acc  = 0;
-
-        rt_Object **obj_arr_l = obj_arr; /* left  sub-array */
-        rt_Object **obj_arr_r = obj_arr; /* right sub-array */
-
-        rt_cell     obj_num_l = obj_num; /* left  sub-array size */
-        rt_cell     obj_num_r = obj_num; /* right sub-array size */
-
-        rt_cell i;
-
-        for (i = 0; i < obj->obj.rel_num; i++)
-        {
-            if (rel[i].obj1 >= obj_num_l
-            ||  rel[i].obj2 >= obj_num_r)
-            {
-                continue;
-            }
-
-            rt_ELEM *elm = RT_NULL;
-
-            rt_Object *obj = RT_NULL;
-            rt_Array *arr = RT_NULL;
-            rt_bool mode = RT_FALSE;
-
-            switch (rel[i].rel)
-            {
-                case RT_REL_INDEX_ARRAY:
-                if (rel[i].obj1 >= 0 && rel[i].obj2 >= -1
-                &&  RT_IS_ARRAY(obj_arr_l[rel[i].obj1]))
-                {
-                    rt_Array *arr = (rt_Array *)obj_arr_l[rel[i].obj1];
-                    obj_arr_l = arr->obj_arr; /* select left  sub-array */
-                    obj_num_l = arr->obj_num;   /* for next left  index */
-                }
-                if (rel[i].obj1 >= -1 && rel[i].obj2 >= 0
-                &&  RT_IS_ARRAY(obj_arr_r[rel[i].obj2]))
-                {
-                    rt_Array *arr = (rt_Array *)obj_arr_r[rel[i].obj2];
-                    obj_arr_r = arr->obj_arr; /* select right sub-array */
-                    obj_num_r = arr->obj_num;   /* for next right index */
-                }
-                break;
-
-                case RT_REL_MINUS_INNER:
-                case RT_REL_MINUS_OUTER:
-                if (rel[i].obj1 == -1 && rel[i].obj2 >= 0 && acc == 0)
-                {
-                    acc = 1;
-                    elm = *ptr != RT_NULL ? *ptr :
-                          (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
-                    if (*ptr == RT_NULL)
-                    {
-                       *ptr = elm;
-                        elm->simd = RT_NULL;
-                    }
-                    /* invert marker value as elem is added into tail
-                     * and the list is inverted when copied in surface */
-                    elm->data = RT_ACCUM_LEAVE;
-                    elm->temp = RT_NULL; /* accum marker */
-                    elm->next = RT_NULL;
-                    lst = elm;
-                    prv = elm;
-                    ptr = RT_GET_ADR(elm->simd);
-                }
-                if (rel[i].obj1 >= -1 && rel[i].obj2 >= 0)
-                {
-                    elm = *ptr != RT_NULL ? *ptr :
-                          (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
-                    if (*ptr == RT_NULL)
-                    {
-                       *ptr = elm;
-                        elm->simd = RT_NULL;
-                    }
-                    elm->data = rel[i].rel;
-                    elm->temp = obj_arr_r[rel[i].obj2]->box;
-                    elm->next = RT_NULL;
-                    obj_arr_r = obj_arr; /* reset right sub-array after use */
-                    obj_num_r = obj_num;
-                }
-                if (rel[i].obj1 == -1 && rel[i].obj2 >= 0)
-                {
-                    prv->next = elm;
-                    prv = elm;
-                    ptr = RT_GET_ADR(elm->simd);
-                }
-                break;
-
-                case RT_REL_MINUS_ACCUM:
-                if (rel[i].obj1 >= 0 && rel[i].obj2 == -1 && acc == 1)
-                {
-                    acc = 0;
-                    elm = *ptr != RT_NULL ? *ptr :
-                          (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
-                    if (*ptr == RT_NULL)
-                    {
-                       *ptr = elm;
-                        elm->simd = RT_NULL;
-                    }
-                    /* invert marker value as elem is added into tail
-                     * and the list is inverted when copied in surface */
-                    elm->data = RT_ACCUM_ENTER;
-                    elm->temp = RT_NULL; /* accum marker */
-                    elm->next = RT_NULL;
-                    prv->next = elm;
-                    elm = lst;
-                    lst = RT_NULL;
-                    prv = RT_NULL;
-                    ptr = &rg->rel;
-                }
-                break;
-
-                case RT_REL_BOUND_ARRAY:
-                if (rel[i].obj1 == -1 && rel[i].obj2 == -1)
-                {
-                    obj = arr = this;
-                    mode = RT_TRUE;
-                }
-                if (rel[i].obj1 == -1 && rel[i].obj2 >= 0
-                &&  RT_IS_ARRAY(obj_arr_r[rel[i].obj2]))
-                {
-                    obj = arr = (rt_Array *)obj_arr_r[rel[i].obj2];
-                    mode = RT_TRUE;
-                }
-                break;
-
-                case RT_REL_UNTIE_ARRAY:
-                if (rel[i].obj1 == -1 && rel[i].obj2 == -1)
-                {
-                    obj = arr = this;
-                    mode = RT_FALSE;
-                }
-                if (rel[i].obj1 == -1 && rel[i].obj2 >= 0
-                &&  RT_IS_ARRAY(obj_arr_r[rel[i].obj2]))
-                {
-                    obj = arr = (rt_Array *)obj_arr_r[rel[i].obj2];
-                    mode = RT_FALSE;
-                }
-                break;
-
-                case RT_REL_BOUND_INDEX:
-                if (rel[i].obj1 == -1 && rel[i].obj2 >= 0)
-                {
-                    obj = obj_arr_r[rel[i].obj2];
-                    arr = this;
-                    mode = RT_TRUE;
-                }
-                if (rel[i].obj1 >= 0 && rel[i].obj2 >= 0
-                &&  RT_IS_ARRAY(obj_arr_l[rel[i].obj1]))
-                {
-                    obj = obj_arr_r[rel[i].obj2];
-                    arr = (rt_Array *)obj_arr_l[rel[i].obj1];
-                    mode = RT_TRUE;
-                }
-                break;
-
-                case RT_REL_UNTIE_INDEX:
-                if (rel[i].obj1 == -1 && rel[i].obj2 >= 0)
-                {
-                    obj = obj_arr_r[rel[i].obj2];
-                    arr = this;
-                    mode = RT_FALSE;
-                }
-                if (rel[i].obj1 >= 0 && rel[i].obj2 >= 0
-                &&  RT_IS_ARRAY(obj_arr_l[rel[i].obj1]))
-                {
-                    obj = obj_arr_r[rel[i].obj2];
-                    arr = (rt_Array *)obj_arr_l[rel[i].obj1];
-                    mode = RT_FALSE;
-                }
-                break;
-
-                default:
-                break;
-            }
-
-            if (rel[i].obj1 >= 0 && elm != RT_NULL)
-            {
-                obj_arr_l[rel[i].obj1]->add_relation(elm);
-                obj_arr_l = obj_arr; /* reset left  sub-array after use */
-                obj_num_l = obj_num;
-            }
-            if (obj != RT_NULL && arr != RT_NULL)
-            {
-#if RT_OPTS_VARRAY != 0
-                if ((rg->opts & RT_OPTS_VARRAY) != 0)
-                {
-                    obj->update_bvnode(arr, mode);
-                }
-#endif /* RT_OPTS_VARRAY */
-                if (rel[i].obj1 >= 0)
-                {
-                    obj_arr_l = obj_arr; /* reset left  sub-array after use */
-                    obj_num_l = obj_num;
-                }
-                if (rel[i].obj2 >= 0)
-                {
-                    obj_arr_r = obj_arr; /* reset right sub-array after use */
-                    obj_num_r = obj_num;
-                }
-            }
-        }
     }
 }
 
@@ -1639,6 +1637,10 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
                     obj->obj.pmat_inner ? obj->obj.pmat_inner :
                                           srf->side_inner.pmat);
 
+    /* reset surface's relations template */
+    rel = RT_NULL;
+
+    /* init surface's shape structure */
     shp = (rt_SHAPE *)box;
 
     shp->rad = RT_INF;
@@ -1653,17 +1655,20 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
 }
 
 /*
- * Build relations list based on given template "lst" from scene data.
+ * Build relations template based on given template "lst" from scene data.
  */
 rt_void rt_Surface::add_relation(rt_ELEM *lst)
 {
     rt_Node::add_relation(lst);
 
-    /* init custom clippers list */
-    rt_ELEM **ptr = RT_GET_ADR(s_srf->msc_p[2]);
+    /* init surface's relations template */
+    rt_ELEM **ptr = RT_GET_ADR(rel);
 
-    /* build custom clippers list
-     * from given template "lst" */
+    /* build surface's relations template from given template "lst",
+     * as surface's relations template is inverted in engine's sclip
+     * and elements are inserted into the list's head here,
+     * the original relations template from scene data is inverted twice,
+     * thus accum enter/leave markers will end up in correct order */
     for (; lst != RT_NULL; lst = lst->next)
     {
         rt_ELEM *elm = RT_NULL;
@@ -1710,87 +1715,9 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
             elm->data = rel;
             elm->simd = srf->s_srf;
             elm->temp = srf->box;
-
-            if (srf->trnode != RT_NULL && srf->trnode != srf)
-            {
-                rt_cell acc  = 0;
-                rt_ELEM *nxt;
-
-                rt_Array *arr = (rt_Array *)srf->trnode;
-
-                /* search matching existing trnode for insertion
-                 * either within current accum segment
-                 * or outside of any accum segment */
-                for (nxt = *ptr; nxt != RT_NULL; nxt = nxt->next)
-                {
-                    /* (acc == 0) either accum-enter-marker
-                     * hasn't been inserted yet (current accum segment)
-                     * or outside of any accum segment */
-                    if (acc == 0
-                    &&  nxt->temp == arr->aux)
-                    {
-                        break;
-                    }
-
-                    /* skip all non-accum-marker elements */
-                    if (nxt->temp != RT_NULL)
-                    {
-                        continue;
-                    }
-
-                    /* didn't find trnode within current accum segment,
-                     * leaving cycle, new trnode element will be inserted */
-                    if (acc == 0 
-                    &&  nxt->data == RT_ACCUM_LEAVE)
-                    {
-                        nxt = RT_NULL;
-                        break;
-                    }
-
-                    /* skip accum segment different from the one
-                     * current element is being inserted into */
-                    if (acc == 0
-                    &&  nxt->data == RT_ACCUM_ENTER)
-                    {
-                        acc = 1;
-                    }
-
-                    /* keep track of accum segments */
-                    if (acc == 1
-                    &&  nxt->data == RT_ACCUM_LEAVE)
-                    {
-                        acc = 0;
-                    }
-                }
-
-                if (nxt == RT_NULL)
-                {
-                    /* insert element as list head */
-                    elm->next = *ptr;
-                   *ptr = elm;
-
-                    /* alloc new trnode element as none has been found */
-                    nxt = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
-                    nxt->data = (rt_cell)elm; /* trnode's last elem */
-                    nxt->simd = arr->s_srf;
-                    nxt->temp = arr->aux;
-                    /* insert element as list head */
-                    nxt->next = *ptr;
-                   *ptr = nxt;
-                }
-                else
-                {
-                    /* insert element under existing trnode */
-                    elm->next = nxt->next;
-                    nxt->next = elm;
-                }
-            }
-            else
-            {
-                /* insert element as list head */
-                elm->next = *ptr;
-               *ptr = elm;
-            }
+            /* insert element as list head */
+            elm->next = *ptr;
+           *ptr = elm;
         }
     }
 }
@@ -1801,15 +1728,6 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
 rt_void rt_Surface::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     rt_Node::update_matrix(time, mtx, flags);
-
-    /* reset surface's trnode/bvnode sequence
-     * as it is rebuilt in engine's snode */
-    top = RT_NULL;
-    trn = RT_NULL;
-
-    /* reset custom clippers list
-     * as it is rebuilt in array's update */
-    s_srf->msc_p[2] = RT_NULL;
 
     if (obj_changed == 0)
     {
@@ -2128,12 +2046,6 @@ rt_void rt_Surface::update_minmax()
 rt_void rt_Surface::update_bounds()
 {
     update_minmax();
-
-    /* reset bvnode for boundless surfaces */
-    if (box->verts_num == 0)
-    {
-        bvnode = RT_NULL;
-    }
 
     if (srf_changed == 0)
     {

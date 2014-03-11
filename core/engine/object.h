@@ -130,7 +130,7 @@ class rt_Registry : public rt_Heap
     /* optimization flags */
     rt_cell             opts;
 
-    /* relations template */
+    /* reusable relations template */
     rt_ELEM            *rel;
 
 /*  methods */
@@ -475,6 +475,9 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
     rt_cell             srf_changed;
 
     public:
+
+    /* surface's relations template */
+    rt_ELEM            *rel;
 
     /* top of the trnode/bvnode
      * sequence on the branch */

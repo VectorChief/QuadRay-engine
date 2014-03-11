@@ -93,6 +93,7 @@ class rt_SceneThread : public rt_Heap
     rt_ELEM*    filter(rt_Object *obj, rt_ELEM **ptr);
 
     rt_void     snode(rt_Surface *srf);
+    rt_void     sclip(rt_Surface *srf);
     rt_void     stile(rt_Surface *srf);
     rt_ELEM*    ssort(rt_Object *obj);
     rt_ELEM*    lsort(rt_Object *obj);

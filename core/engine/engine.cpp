@@ -674,11 +674,18 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
      * run through the list hierachy to find the inner-most node,
      * node's "simd" field holds pointer to node's sublist
      * along with node's type in the lower 4 bits (trnode/bvnode) */
-    rt_ELEM *nxt, *lst = srf->top;
+    rt_ELEM *nxt, *lst = srf->trn;
+
+#if RT_OPTS_VARRAY != 0
+    if ((scene->opts & RT_OPTS_VARRAY) != 0)
+    {
+        lst = srf->top;
+    }
+#endif /* RT_OPTS_VARRAY */
 
 #if RT_OPTS_TILING != 0
-    if (RT_IS_CAMERA(obj)
-    && (scene->opts & RT_OPTS_TILING) != 0)
+    if ((scene->opts & RT_OPTS_TILING) != 0
+    &&  RT_IS_CAMERA(obj))
     {
         lst = srf->trn;
     }
@@ -1184,6 +1191,138 @@ rt_void rt_SceneThread::snode(rt_Surface *srf)
         elm->temp = par->box;
         elm->next = srf->top;
         srf->top = elm;
+    }
+}
+
+/*
+ * Build custom clippers list from "srf" relations template
+ * after all transform flags have been updated,
+ * so that trnode elements are handled properly.
+ */
+rt_void rt_SceneThread::sclip(rt_Surface *srf)
+{
+    /* init surface's relations template */
+    rt_ELEM *lst = srf->rel;
+
+    /* init and reset custom clippers list */
+    rt_ELEM **ptr = RT_GET_ADR(srf->s_srf->msc_p[2]);
+   *ptr = RT_NULL;
+
+    /* build custom clippers list from given template "lst",
+     * as given template "lst" is inverted in surface's add_relation
+     * and elements are inserted into the list's head here,
+     * the original relations template from scene data is inverted twice,
+     * thus accum enter/leave markers will end up in correct order */
+    for (; lst != RT_NULL; lst = lst->next)
+    {
+        rt_ELEM *elm;
+        rt_cell rel = lst->data;
+        rt_Object *obj = lst->temp == RT_NULL ? RT_NULL :
+                         (rt_Object *)((rt_BOUND *)lst->temp)->obj;
+
+        if (obj == RT_NULL)
+        {
+            /* alloc new element for accum marker */
+            elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+            elm->data = rel;
+            elm->simd = RT_NULL; /* accum marker */
+            elm->temp = RT_NULL;
+            /* insert element as list head */
+            elm->next = *ptr;
+           *ptr = elm;
+        }
+        else
+        if (RT_IS_SURFACE(obj))
+        {
+            rt_Surface *srf = (rt_Surface *)obj;
+
+            /* alloc new element for srf */
+            elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+            elm->data = rel;
+            elm->simd = srf->s_srf;
+            elm->temp = srf->box;
+
+            if (srf->trnode != RT_NULL && srf->trnode != srf)
+            {
+                rt_cell acc  = 0;
+                rt_ELEM *nxt;
+
+                rt_Array *arr = (rt_Array *)srf->trnode;
+
+                /* search matching existing trnode for insertion
+                 * either within current accum segment
+                 * or outside of any accum segment */
+                for (nxt = *ptr; nxt != RT_NULL; nxt = nxt->next)
+                {
+                    /* (acc == 0) either accum-enter-marker
+                     * hasn't been inserted yet (current accum segment)
+                     * or outside of any accum segment */
+                    if (acc == 0
+                    &&  nxt->temp == arr->aux)
+                    {
+                        break;
+                    }
+
+                    /* skip all non-accum-marker elements */
+                    if (nxt->temp != RT_NULL)
+                    {
+                        continue;
+                    }
+
+                    /* didn't find trnode within current accum segment,
+                     * leaving cycle, new trnode element will be inserted */
+                    if (acc == 0 
+                    &&  nxt->data == RT_ACCUM_LEAVE)
+                    {
+                        nxt = RT_NULL;
+                        break;
+                    }
+
+                    /* skip accum segment different from the one
+                     * current element is being inserted into */
+                    if (acc == 0
+                    &&  nxt->data == RT_ACCUM_ENTER)
+                    {
+                        acc = 1;
+                    }
+
+                    /* keep track of accum segments */
+                    if (acc == 1
+                    &&  nxt->data == RT_ACCUM_LEAVE)
+                    {
+                        acc = 0;
+                    }
+                }
+
+                if (nxt == RT_NULL)
+                {
+                    /* insert element as list head */
+                    elm->next = *ptr;
+                   *ptr = elm;
+
+                    /* alloc new trnode element as none has been found */
+                    nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+                    nxt->data = (rt_cell)elm; /* trnode's last elem */
+                    nxt->simd = arr->s_srf;
+                    nxt->temp = arr->aux;
+                    /* insert element as list head */
+                    nxt->next = *ptr;
+                   *ptr = nxt;
+                }
+                else
+                {
+                    /* insert element under existing trnode */
+                    elm->next = nxt->next;
+                    nxt->next = elm;
+                }
+            }
+            else
+            {
+                /* insert element as list head */
+                elm->next = *ptr;
+               *ptr = elm;
+            }
+        }
     }
 }
 
@@ -1934,9 +2073,6 @@ rt_void rt_Scene::render(rt_long time)
         RT_PRINT_TIME(time);
     }
 
-    /* reset relations template */
-    rel = RT_NULL;
-
     /* update transform matrices in objects hierarchy */
     root->update_matrix(time, iden4, 0);
 
@@ -2205,6 +2341,7 @@ rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
                 continue;
             }
 
+            /* update array's fields */
             arr->update_fields();
         }
 
@@ -2215,14 +2352,19 @@ rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
                 continue;
             }
 
-            srf->update_fields();
-
-            srf->update_bounds();
-
-            /* rebuild per-surface node list */
+            /* rebuild surface's node list */
             tharr[index]->snode(srf);
 
-            /* rebuild per-surface tile list */
+            /* rebuild surface's clip list */
+            tharr[index]->sclip(srf);
+
+            /* update surface's fields */
+            srf->update_fields();
+
+            /* update surface's bounds */
+            srf->update_bounds();
+
+            /* rebuild surface's tile list */
             tharr[index]->stile(srf);
         }
     }
@@ -2241,13 +2383,13 @@ rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
                 RT_PRINT_SRF(srf);
             }
 
-            /* rebuild per-surface surface lists */
+            /* rebuild surface's rfl/rfr surface lists */
             tharr[index]->ssort(srf);
 
-            /* rebuild per-surface light/shadow lists */
+            /* rebuild surface's light/shadow lists */
             tharr[index]->lsort(srf);
 
-            /* update per-surface backend-related parts */
+            /* update surface's backend-related parts */
             update0(srf->s_srf);
         }
     }
