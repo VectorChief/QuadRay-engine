@@ -567,6 +567,9 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
 
     rt_Object(rg, parent, obj)
 {
+    /* reset relations template */
+    rel = RT_NULL;
+
 /*  rt_SIMD_SURFACE */
 
     s_srf = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
@@ -1637,9 +1640,6 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
                     obj->obj.pmat_inner ? obj->obj.pmat_inner :
                                           srf->side_inner.pmat);
 
-    /* reset surface's relations template */
-    rel = RT_NULL;
-
     /* init surface's shape structure */
     shp = (rt_SHAPE *)box;
 
@@ -1693,12 +1693,20 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
             rt_Array *arr = (rt_Array *)obj;
             rt_cell i;
 
+            /* init array's relations template */
+            rt_ELEM **ptr = RT_GET_ADR(arr->rel);
+
             /* populate array element with sub-objects */
             for (i = 0; i < arr->obj_num; i++)
             {
-                elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+                elm = *ptr != RT_NULL ? *ptr :
+                      (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+                if (*ptr == RT_NULL)
+                {
+                   *ptr = elm;
+                    elm->simd = RT_NULL;
+                }
                 elm->data = rel;
-                elm->simd = RT_NULL;
                 elm->temp = arr->obj_arr[i]->box;
                 elm->next = RT_NULL;
 

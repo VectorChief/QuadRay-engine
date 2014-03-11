@@ -130,7 +130,8 @@ class rt_Registry : public rt_Heap
     /* optimization flags */
     rt_cell             opts;
 
-    /* reusable relations template */
+    /* reusable relations template
+     * for clippers accum segments */
     rt_ELEM            *rel;
 
 /*  methods */
@@ -364,6 +365,10 @@ class rt_Node : public rt_Object
 
     public:
 
+    /* reusable relations template
+     * for arrays and surfaces */
+    rt_ELEM            *rel;
+
     /* surface SIMD struct,
      * used for trnode if present */
     rt_SIMD_SURFACE    *s_srf;
@@ -475,9 +480,6 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
     rt_cell             srf_changed;
 
     public:
-
-    /* surface's relations template */
-    rt_ELEM            *rel;
 
     /* top of the trnode/bvnode
      * sequence on the branch */
