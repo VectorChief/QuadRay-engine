@@ -261,9 +261,12 @@ class rt_Object
     virtual
     rt_void add_relation(rt_ELEM *lst);
     virtual
-    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
-    virtual
     rt_void update_bvnode(rt_Array *bvnode, rt_bool mode);
+
+    virtual
+    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags);
+    virtual
+    rt_void update_fields();
 };
 
 /******************************************************************************/
@@ -308,11 +311,11 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
    ~rt_Camera();
 
     virtual
-    rt_void update(rt_long time, rt_cell action);
+    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags);
     virtual
-    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
-    virtual
-    rt_void update_bvnode(rt_Array *bvnode, rt_bool mode);
+    rt_void update_fields();
+
+    rt_void update_action(rt_long time, rt_cell action);
 };
 
 /******************************************************************************/
@@ -342,9 +345,9 @@ class rt_Light : public rt_Object, public rt_List<rt_Light>
    ~rt_Light();
 
     virtual
-    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
+    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags);
     virtual
-    rt_void update_bvnode(rt_Array *bvnode, rt_bool mode);
+    rt_void update_fields();
 };
 
 /******************************************************************************/
@@ -369,6 +372,8 @@ class rt_Node : public rt_Object
 
     protected:
 
+    rt_void update_bbgeom(rt_BOUND *box);
+
     rt_Node(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
             rt_cell ssize);
 
@@ -380,13 +385,12 @@ class rt_Node : public rt_Object
     virtual
     rt_void add_relation(rt_ELEM *lst);
     virtual
-    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
-    virtual
     rt_void update_bvnode(rt_Array *bvnode, rt_bool mode);
 
-    rt_void update_bbgeom(rt_BOUND *box);
-
-    rt_void invert_matrix();
+    virtual
+    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags);
+    virtual
+    rt_void update_fields();
 };
 
 /******************************************************************************/
@@ -435,9 +439,12 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
     virtual
     rt_void add_relation(rt_ELEM *lst);
     virtual
-    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
-    virtual
     rt_void update_bvnode(rt_Array *bvnode, rt_bool mode);
+
+    virtual
+    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags);
+    virtual
+    rt_void update_fields();
 
     rt_void update_bounds();
 };
@@ -485,18 +492,6 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
 
     protected:
 
-    rt_Surface(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-               rt_cell ssize);
-
-    public:
-
-    virtual
-   ~rt_Surface();
-
-    virtual
-    rt_void add_relation(rt_ELEM *lst);
-    virtual
-    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
     virtual
     rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
                           rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
@@ -513,6 +508,22 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
                           rt_vec4 cmin, rt_vec4 cmax); /* cbox */
 
     rt_void update_minmax();
+
+    rt_Surface(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
+               rt_cell ssize);
+
+    public:
+
+    virtual
+   ~rt_Surface();
+
+    virtual
+    rt_void add_relation(rt_ELEM *lst);
+
+    virtual
+    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags);
+    virtual
+    rt_void update_fields();
 
     rt_void update_bounds();
 };
@@ -534,6 +545,13 @@ class rt_Plane : public rt_Surface
 
 /*  methods */
 
+    protected:
+
+    virtual
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
+
     public:
 
     rt_Plane(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
@@ -543,11 +561,7 @@ class rt_Plane : public rt_Surface
    ~rt_Plane();
 
     virtual
-    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
-    virtual
-    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
-                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
-                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
+    rt_void update_fields();
 };
 
 /******************************************************************************/
@@ -567,6 +581,11 @@ class rt_Quadric : public rt_Surface
 
     protected:
 
+    virtual
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
+
     rt_Quadric(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
                rt_cell ssize);
 
@@ -576,11 +595,7 @@ class rt_Quadric : public rt_Surface
    ~rt_Quadric();
 
     virtual
-    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
-    virtual
-    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
-                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
-                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
+    rt_void update_fields();
 };
 
 /******************************************************************************/
@@ -600,6 +615,13 @@ class rt_Cylinder : public rt_Quadric
 
 /*  methods */
 
+    protected:
+
+    virtual
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
+
     public:
 
     rt_Cylinder(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
@@ -609,11 +631,7 @@ class rt_Cylinder : public rt_Quadric
    ~rt_Cylinder();
 
     virtual
-    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
-    virtual
-    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
-                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
-                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
+    rt_void update_fields();
 };
 
 /******************************************************************************/
@@ -633,6 +651,13 @@ class rt_Sphere : public rt_Quadric
 
 /*  methods */
 
+    protected:
+
+    virtual
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
+
     public:
 
     rt_Sphere(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
@@ -642,11 +667,7 @@ class rt_Sphere : public rt_Quadric
    ~rt_Sphere();
 
     virtual
-    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
-    virtual
-    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
-                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
-                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
+    rt_void update_fields();
 };
 
 /******************************************************************************/
@@ -666,6 +687,13 @@ class rt_Cone : public rt_Quadric
 
 /*  methods */
 
+    protected:
+
+    virtual
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
+
     public:
 
     rt_Cone(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
@@ -675,11 +703,7 @@ class rt_Cone : public rt_Quadric
    ~rt_Cone();
 
     virtual
-    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
-    virtual
-    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
-                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
-                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
+    rt_void update_fields();
 };
 
 /******************************************************************************/
@@ -699,6 +723,13 @@ class rt_Paraboloid : public rt_Quadric
 
 /*  methods */
 
+    protected:
+
+    virtual
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
+
     public:
 
     rt_Paraboloid(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
@@ -708,11 +739,7 @@ class rt_Paraboloid : public rt_Quadric
    ~rt_Paraboloid();
 
     virtual
-    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
-    virtual
-    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
-                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
-                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
+    rt_void update_fields();
 };
 
 /******************************************************************************/
@@ -732,6 +759,13 @@ class rt_Hyperboloid : public rt_Quadric
 
 /*  methods */
 
+    protected:
+
+    virtual
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
+
     public:
 
     rt_Hyperboloid(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
@@ -741,11 +775,7 @@ class rt_Hyperboloid : public rt_Quadric
    ~rt_Hyperboloid();
 
     virtual
-    rt_void update(rt_long time, rt_mat4 mtx, rt_cell flags);
-    virtual
-    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
-                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
-                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
+    rt_void update_fields();
 };
 
 /******************************************************************************/

@@ -28,9 +28,9 @@
  *
  * Update in turn consists of four phases:
  * 0.5 phase (sequential) - hierarchical update of matrices in the objects tree
- * 1st phase (multi-threaded) - update auxiliary per-surface data fields
+ * 1st phase (multi-threaded) - update auxiliary per-object data fields
  * 1.5 phase (sequential) - hierarchical update of array bounds from surfaces
- * 2nd phase (multi-threaded) - build updated cross-surface lists
+ * 2nd phase (multi-threaded) - build updated cross-object lists
  *
  * First three update phases are handled by the object hierarchy (object.cpp),
  * while engine performs building of surface's tile lists, custom per-side
@@ -1908,7 +1908,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame ptr must be SIMD-aligned or NULL */
  */
 rt_void rt_Scene::update(rt_long time, rt_cell action)
 {
-    cam->update(time, action);
+    cam->update_action(time, action);
 }
 
 /*
@@ -1937,8 +1937,8 @@ rt_void rt_Scene::render(rt_long time)
     /* reset relations template */
     rel = RT_NULL;
 
-    /* update the whole objects hierarchy */
-    root->update(time, iden4, 0);
+    /* update transform matrices in objects hierarchy */
+    root->update_matrix(time, iden4, 0);
 
     /* update rays positioning and steppers */
     rt_real h, v;
@@ -1982,12 +1982,13 @@ rt_void rt_Scene::render(rt_long time)
         update_scene(this, thnum, 1);
     }
 
+    /* update arrays' bounds in objects hierarchy */
     root->update_bounds();
 
-    /* rebuild global surface list */
+    /* rebuild camera's surface list */
     slist = tharr[0]->ssort(cam);
 
-    /* rebuild global light/shadow list,
+    /* rebuild camera's light/shadow list,
      * slist is needed inside */
     llist = tharr[0]->lsort(cam);
 
@@ -2192,16 +2193,29 @@ rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
 {
     rt_cell i;
 
+    rt_Array *arr = RT_NULL;
     rt_Surface *srf = RT_NULL;
 
     if (phase == 1)
     {
+        for (arr = arr_head, i = 0; arr != RT_NULL; arr = arr->next, i++)
+        {
+            if ((i % thnum) != index)
+            {
+                continue;
+            }
+
+            arr->update_fields();
+        }
+
         for (srf = srf_head, i = 0; srf != RT_NULL; srf = srf->next, i++)
         {
             if ((i % thnum) != index)
             {
                 continue;
             }
+
+            srf->update_fields();
 
             srf->update_bounds();
 

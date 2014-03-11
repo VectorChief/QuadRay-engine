@@ -25,11 +25,11 @@
  * Object handles first three phases of the update initiated by the engine:
  * 0.5 phase (sequential) - hierarchical update of matrices in the objects tree
  * - compute transform matrix from the root down to the leaf objects
- * - compute array's inverse transform matrix needed in backend (tracer.cpp)
  * - determine intermediate transform nodes used later for transform caching
  * - rebuild surface's custom clipping list based on scene-defined relations
  * - determine intermediate bounding volume nodes based on scene data
- * 1st phase (multi-threaded) - update auxiliary per-surface data fields
+ * 1st phase (multi-threaded) - update auxiliary per-object data fields
+ * - compute array's inverse transform matrix needed in backend (tracer.cpp)
  * - compute surface's inverse transform matrix, bounding and clipping boxes,
  *   bounding volume (sphere), backend-related SIMD fields (tracer.h)
  * 1.5 phase (sequential) - hierarchical update of array bounds from surfaces
@@ -101,9 +101,28 @@ rt_void rt_Object::add_relation(rt_ELEM *lst)
 }
 
 /*
+ * Update bvnode pointer with given "mode".
+ */
+rt_void rt_Object::update_bvnode(rt_Array *bvnode, rt_bool mode)
+{
+    if (bvnode == this)
+    {
+        return;
+    }
+    if (mode == RT_TRUE  && this->bvnode == RT_NULL)
+    {
+        this->bvnode = bvnode;
+    }
+    if (mode == RT_FALSE && this->bvnode == bvnode)
+    {
+        this->bvnode = RT_NULL;
+    }
+}
+
+/*
  * Update object with given "time", matrix "mtx" and "flags".
  */
-rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Object::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     if (obj->f_anim != RT_NULL && obj->time != time)
     {
@@ -267,22 +286,11 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 }
 
 /*
- * Update bvnode pointer with given "mode".
+ * Update SIMD and other data fields.
  */
-rt_void rt_Object::update_bvnode(rt_Array *bvnode, rt_bool mode)
+rt_void rt_Object::update_fields()
 {
-    if (bvnode == this)
-    {
-        return;
-    }
-    if (mode == RT_TRUE  && this->bvnode == RT_NULL)
-    {
-        this->bvnode = bvnode;
-    }
-    if (mode == RT_FALSE && this->bvnode == bvnode)
-    {
-        this->bvnode = RT_NULL;
-    }
+
 }
 
 /*
@@ -331,14 +339,24 @@ rt_Camera::rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 /*
  * Update object with given "time", matrix "mtx" and "flags".
  */
-rt_void rt_Camera::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Camera::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
-    rt_Object::update(time, mtx, flags | cam_changed);
+    rt_Object::update_matrix(time, mtx, flags | cam_changed);
 
+    update_fields();
+}
+
+/*
+ * Update SIMD and other data fields.
+ */
+rt_void rt_Camera::update_fields()
+{
     if (obj_changed == 0)
     {
         return;
     }
+
+    rt_Object::update_fields();
 
     hor_sin = RT_SINA(trm->rot[RT_Z]);
     hor_cos = RT_COSA(trm->rot[RT_Z]);
@@ -349,7 +367,7 @@ rt_void rt_Camera::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 /*
  * Update camera with given "time" and "action".
  */
-rt_void rt_Camera::update(rt_long time, rt_cell action)
+rt_void rt_Camera::update_action(rt_long time, rt_cell action)
 {
     rt_real t = (time - obj->time) / 50.0f;
 
@@ -429,14 +447,6 @@ rt_void rt_Camera::update(rt_long time, rt_cell action)
 }
 
 /*
- * Update bvnode pointer with given "mode".
- */
-rt_void rt_Camera::update_bvnode(rt_Array *bvnode, rt_bool mode)
-{
-
-}
-
-/*
  * Destroy camera object.
  */
 rt_Camera::~rt_Camera()
@@ -486,26 +496,28 @@ rt_Light::rt_Light(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 /*
  * Update object with given "time", matrix "mtx" and "flags".
  */
-rt_void rt_Light::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Light::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
-    rt_Object::update(time, mtx, flags);
+    rt_Object::update_matrix(time, mtx, flags);
 
+    update_fields();
+}
+
+/*
+ * Update SIMD and other data fields.
+ */
+rt_void rt_Light::update_fields()
+{
     if (obj_changed == 0)
     {
         return;
     }
 
+    rt_Object::update_fields();
+
     RT_SIMD_SET(s_lgt->pos_x, pos[RT_X]);
     RT_SIMD_SET(s_lgt->pos_y, pos[RT_Y]);
     RT_SIMD_SET(s_lgt->pos_z, pos[RT_Z]);
-}
-
-/*
- * Update bvnode pointer with given "mode".
- */
-rt_void rt_Light::update_bvnode(rt_Array *bvnode, rt_bool mode)
-{
-
 }
 
 /*
@@ -594,11 +606,19 @@ rt_void rt_Node::add_relation(rt_ELEM *lst)
 }
 
 /*
+ * Update bvnode pointer with given "mode".
+ */
+rt_void rt_Node::update_bvnode(rt_Array *bvnode, rt_bool mode)
+{
+    rt_Object::update_bvnode(bvnode, mode);
+}
+
+/*
  * Update object with given "time", matrix "mtx" and "flags".
  */
-rt_void rt_Node::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Node::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
-    rt_Object::update(time, mtx, flags);
+    rt_Object::update_matrix(time, mtx, flags);
 
     if (obj_changed == 0)
     {
@@ -657,11 +677,39 @@ rt_void rt_Node::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 }
 
 /*
- * Update bvnode pointer with given "mode".
+ * Update SIMD and other data fields.
  */
-rt_void rt_Node::update_bvnode(rt_Array *bvnode, rt_bool mode)
+rt_void rt_Node::update_fields()
 {
-    rt_Object::update_bvnode(bvnode, mode);
+    if (obj_changed == 0)
+    {
+        return;
+    }
+
+    rt_Object::update_fields();
+
+    /* compute object's inverted transform matrix and store
+     * its values into backend fields along with current position */
+    if (trnode == this)
+    {
+        matrix_inverse(inv, this->mtx);
+
+        RT_SIMD_SET(s_srf->tci_x, inv[RT_X][RT_I]);
+        RT_SIMD_SET(s_srf->tci_y, inv[RT_Y][RT_I]);
+        RT_SIMD_SET(s_srf->tci_z, inv[RT_Z][RT_I]);
+
+        RT_SIMD_SET(s_srf->tcj_x, inv[RT_X][RT_J]);
+        RT_SIMD_SET(s_srf->tcj_y, inv[RT_Y][RT_J]);
+        RT_SIMD_SET(s_srf->tcj_z, inv[RT_Z][RT_J]);
+
+        RT_SIMD_SET(s_srf->tck_x, inv[RT_X][RT_K]);
+        RT_SIMD_SET(s_srf->tck_y, inv[RT_Y][RT_K]);
+        RT_SIMD_SET(s_srf->tck_z, inv[RT_Z][RT_K]);
+    }
+
+    RT_SIMD_SET(s_srf->pos_x, pos[RT_X]);
+    RT_SIMD_SET(s_srf->pos_y, pos[RT_Y]);
+    RT_SIMD_SET(s_srf->pos_z, pos[RT_Z]);
 }
 
 /*
@@ -902,34 +950,6 @@ rt_void rt_Node::update_bbgeom(rt_BOUND *box)
 }
 
 /*
- * Compute object's inverted transform matrix and store
- * its values into backend fields along with current position.
- */
-rt_void rt_Node::invert_matrix()
-{
-    if (trnode == this)
-    {
-        matrix_inverse(inv, this->mtx);
-
-        RT_SIMD_SET(s_srf->tci_x, inv[RT_X][RT_I]);
-        RT_SIMD_SET(s_srf->tci_y, inv[RT_Y][RT_I]);
-        RT_SIMD_SET(s_srf->tci_z, inv[RT_Z][RT_I]);
-
-        RT_SIMD_SET(s_srf->tcj_x, inv[RT_X][RT_J]);
-        RT_SIMD_SET(s_srf->tcj_y, inv[RT_Y][RT_J]);
-        RT_SIMD_SET(s_srf->tcj_z, inv[RT_Z][RT_J]);
-
-        RT_SIMD_SET(s_srf->tck_x, inv[RT_X][RT_K]);
-        RT_SIMD_SET(s_srf->tck_y, inv[RT_Y][RT_K]);
-        RT_SIMD_SET(s_srf->tck_z, inv[RT_Z][RT_K]);
-    }
-
-    RT_SIMD_SET(s_srf->pos_x, pos[RT_X]);
-    RT_SIMD_SET(s_srf->pos_y, pos[RT_Y]);
-    RT_SIMD_SET(s_srf->pos_z, pos[RT_Z]);
-}
-
-/*
  * Destroy node object.
  */
 rt_Node::~rt_Node()
@@ -1103,9 +1123,25 @@ rt_void rt_Array::add_relation(rt_ELEM *lst)
 }
 
 /*
+ * Update bvnode pointer for all sub-objects,
+ * including sub-arrays (recursive).
+ */
+rt_void rt_Array::update_bvnode(rt_Array *bvnode, rt_bool mode)
+{
+    rt_Node::update_bvnode(bvnode, mode);
+
+    rt_cell i;
+
+    for (i = 0; i < obj_num; i++)
+    {
+        obj_arr[i]->update_bvnode(bvnode, mode);
+    }
+}
+
+/*
  * Update object with given "time", matrix "mtx" and "flags".
  */
-rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Array::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
     /* update the whole hierarchy when called
      * for the first time or triggered explicitly */
@@ -1117,7 +1153,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
         flags |= RT_UPDATE_FLAG_ARR;
     }
 
-    rt_Node::update(time, mtx, flags);
+    rt_Node::update_matrix(time, mtx, flags);
 
     aux->trnode = trnode != RT_NULL ? ((rt_Array *)trnode)->aux : RT_NULL;
 
@@ -1168,7 +1204,8 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * pass array's own transform flags */
     for (i = 0; i < obj_num; i++)
     {
-        obj_arr[i]->update(time, *pmtx, flags | mtx_has_trm | obj_changed);
+        obj_arr[i]->update_matrix(time, *pmtx,
+                                  flags | mtx_has_trm | obj_changed);
     }
 
     /* rebuild objects relations (custom clippers)
@@ -1383,11 +1420,19 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
             }
         }
     }
+}
 
+/*
+ * Update SIMD and other data fields.
+ */
+rt_void rt_Array::update_fields()
+{
     if (obj_changed == 0)
     {
         return;
     }
+
+    rt_Node::update_fields();
 
     rt_cell shift = 0;
 
@@ -1410,24 +1455,6 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     s_box->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
     s_box->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
     s_box->a_sgn[RT_L] = 0;
-
-    invert_matrix();
-}
-
-/*
- * Update bvnode pointer for all sub-objects,
- * including sub-arrays (recursive).
- */
-rt_void rt_Array::update_bvnode(rt_Array *bvnode, rt_bool mode)
-{
-    rt_Node::update_bvnode(bvnode, mode);
-
-    rt_cell i;
-
-    for (i = 0; i < obj_num; i++)
-    {
-        obj_arr[i]->update_bvnode(bvnode, mode);
-    }
 }
 
 /*
@@ -1771,9 +1798,9 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
 /*
  * Update object with given "time", matrix "mtx" and "flags".
  */
-rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Surface::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
 {
-    rt_Node::update(time, mtx, flags);
+    rt_Node::update_matrix(time, mtx, flags);
 
     /* reset surface's trnode/bvnode sequence
      * as it is rebuilt in engine's snode */
@@ -1801,6 +1828,33 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     {
         throw rt_Exception("bbox geometry limits exceeded in surface");
     }
+}
+
+/*
+ * Update SIMD and other data fields.
+ */
+rt_void rt_Surface::update_fields()
+{
+    if (obj_changed == 0)
+    {
+        return;
+    }
+
+    rt_Node::update_fields();
+
+    /* if surface or some of its parents has non-trivial transform,
+     * select aux vector fields for axis mapping in backend structures */
+    rt_cell shift = trnode != RT_NULL ? 3 : 0;
+
+    s_srf->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
+    s_srf->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
+    s_srf->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
+    s_srf->a_map[RT_L] = obj_has_trm;
+
+    s_srf->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_srf->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_srf->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_srf->a_sgn[RT_L] = 0;
 }
 
 /*
@@ -2109,27 +2163,6 @@ rt_void rt_Surface::update_bounds()
     RT_SIMD_SET(s_srf->max_x, shp->bmax[RT_X] - pps[RT_X]);
     RT_SIMD_SET(s_srf->max_y, shp->bmax[RT_Y] - pps[RT_Y]);
     RT_SIMD_SET(s_srf->max_z, shp->bmax[RT_Z] - pps[RT_Z]);
-
-    if (obj_changed == 0)
-    {
-        return;
-    }
-
-    /* if surface or some of its parents has non-trivial transform,
-     * select aux vector fields for axis mapping in backend structures */
-    rt_cell shift = trnode != RT_NULL ? 3 : 0;
-
-    s_srf->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
-    s_srf->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
-    s_srf->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
-    s_srf->a_map[RT_L] = obj_has_trm;
-
-    s_srf->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_srf->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_srf->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_srf->a_sgn[RT_L] = 0;
-
-    invert_matrix();
 }
 
 /*
@@ -2194,25 +2227,27 @@ rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
 }
 
 /*
- * Update object with given "time", matrix "mtx" and "flags".
+ * Update SIMD and other data fields.
  */
-rt_void rt_Plane::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Plane::update_fields()
 {
-    rt_Surface::update(time, mtx, flags);
-
-    if (obj_changed)
+    if (obj_changed == 0)
     {
-        RT_VEC3_SET_VAL1(shp->sci, 0.0f);
-        shp->sci[RT_W] = 0.0f;
-
-        RT_VEC3_SET_VAL1(shp->scj, 0.0f);
-        shp->scj[RT_W] = 0.0f;
-
-        RT_VEC3_SET_VAL1(shp->sck, 0.0f);
-        shp->sck[RT_W] = 0.0f;
-
-        shp->sck[mp_k] = (rt_real)sgn[RT_K];
+        return;
     }
+
+    rt_Surface::update_fields();
+
+    RT_VEC3_SET_VAL1(shp->sci, 0.0f);
+    shp->sci[RT_W] = 0.0f;
+
+    RT_VEC3_SET_VAL1(shp->scj, 0.0f);
+    shp->scj[RT_W] = 0.0f;
+
+    RT_VEC3_SET_VAL1(shp->sck, 0.0f);
+    shp->sck[RT_W] = 0.0f;
+
+    shp->sck[mp_k] = (rt_real)sgn[RT_K];
 }
 
 /*
@@ -2267,23 +2302,25 @@ rt_Quadric::rt_Quadric(rt_Registry *rg, rt_Object *parent,
 }
 
 /*
- * Update object with given "time", matrix "mtx" and "flags".
+ * Update SIMD and other data fields.
  */
-rt_void rt_Quadric::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Quadric::update_fields()
 {
-    rt_Surface::update(time, mtx, flags);
-
-    if (obj_changed)
+    if (obj_changed == 0)
     {
-        RT_VEC3_SET_VAL1(shp->sci, 1.0f);
-        shp->sci[RT_W] = 0.0f;
-
-        RT_VEC3_SET_VAL1(shp->scj, 0.0f);
-        shp->scj[RT_W] = 0.0f;
-
-        RT_VEC3_SET_VAL1(shp->sck, 0.0f);
-        shp->sck[RT_W] = 0.0f;
+        return;
     }
+
+    rt_Surface::update_fields();
+
+    RT_VEC3_SET_VAL1(shp->sci, 1.0f);
+    shp->sci[RT_W] = 0.0f;
+
+    RT_VEC3_SET_VAL1(shp->scj, 0.0f);
+    shp->scj[RT_W] = 0.0f;
+
+    RT_VEC3_SET_VAL1(shp->sck, 0.0f);
+    shp->sck[RT_W] = 0.0f;
 }
 
 /*
@@ -2358,17 +2395,19 @@ rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
 }
 
 /*
- * Update object with given "time", matrix "mtx" and "flags".
+ * Update SIMD and other data fields.
  */
-rt_void rt_Cylinder::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Cylinder::update_fields()
 {
-    rt_Quadric::update(time, mtx, flags);
-
-    if (obj_changed)
+    if (obj_changed == 0)
     {
-        shp->sci[mp_k] = 0.0f;
-        shp->sci[RT_W] = xcl->rad * xcl->rad;
+        return;
     }
+
+    rt_Quadric::update_fields();
+
+    shp->sci[mp_k] = 0.0f;
+    shp->sci[RT_W] = xcl->rad * xcl->rad;
 }
 
 /*
@@ -2453,16 +2492,18 @@ rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
 }
 
 /*
- * Update object with given "time", matrix "mtx" and "flags".
+ * Update SIMD and other data fields.
  */
-rt_void rt_Sphere::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Sphere::update_fields()
 {
-    rt_Quadric::update(time, mtx, flags);
-
-    if (obj_changed)
+    if (obj_changed == 0)
     {
-        shp->sci[RT_W] = xsp->rad * xsp->rad;
+        return;
     }
+
+    rt_Quadric::update_fields();
+
+    shp->sci[RT_W] = xsp->rad * xsp->rad;
 }
 
 /*
@@ -2581,16 +2622,18 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
 }
 
 /*
- * Update object with given "time", matrix "mtx" and "flags".
+ * Update SIMD and other data fields.
  */
-rt_void rt_Cone::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Cone::update_fields()
 {
-    rt_Quadric::update(time, mtx, flags);
-
-    if (obj_changed)
+    if (obj_changed == 0)
     {
-        shp->sci[mp_k] = -(xcn->rat * xcn->rat);
+        return;
     }
+
+    rt_Quadric::update_fields();
+
+    shp->sci[mp_k] = -(xcn->rat * xcn->rat);
 }
 
 /*
@@ -2690,17 +2733,19 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
 }
 
 /*
- * Update object with given "time", matrix "mtx" and "flags".
+ * Update SIMD and other data fields.
  */
-rt_void rt_Paraboloid::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Paraboloid::update_fields()
 {
-    rt_Quadric::update(time, mtx, flags);
-
-    if (obj_changed)
+    if (obj_changed == 0)
     {
-        shp->sci[mp_k] = 0.0f;
-        shp->scj[mp_k] = xpb->par * (rt_real)sgn[RT_K];
+        return;
     }
+
+    rt_Quadric::update_fields();
+
+    shp->sci[mp_k] = 0.0f;
+    shp->scj[mp_k] = xpb->par * (rt_real)sgn[RT_K];
 }
 
 /*
@@ -2808,17 +2853,19 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
 }
 
 /*
- * Update object with given "time", matrix "mtx" and "flags".
+ * Update SIMD and other data fields.
  */
-rt_void rt_Hyperboloid::update(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Hyperboloid::update_fields()
 {
-    rt_Quadric::update(time, mtx, flags);
-
-    if (obj_changed)
+    if (obj_changed == 0)
     {
-        shp->sci[mp_k] = -(xhb->rat * xhb->rat);
-        shp->sci[RT_W] = xhb->hyp;
+        return;
     }
+
+    rt_Quadric::update_fields();
+
+    shp->sci[mp_k] = -(xhb->rat * xhb->rat);
+    shp->sci[RT_W] = xhb->hyp;
 }
 
 /*
