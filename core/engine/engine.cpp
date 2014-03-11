@@ -1129,10 +1129,15 @@ rt_ELEM* rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
 }
 
 /*
- * Build trnode/bvnode sequence for a given "srf".
+ * Build trnode/bvnode sequence for a given surface "srf"
+ * after all transform flags have been set in update_matrix,
+ * so that trnode elements are handled properly.
  */
 rt_void rt_SceneThread::snode(rt_Surface *srf)
 {
+    /* as temporary memory pool is released after every frame,
+     * always rebuild the list even if the surface hasn't changed */
+
     /* reset surface's trnode/bvnode sequence */
     srf->top = RT_NULL;
     srf->trn = RT_NULL;
@@ -1196,11 +1201,14 @@ rt_void rt_SceneThread::snode(rt_Surface *srf)
 
 /*
  * Build custom clippers list from "srf" relations template
- * after all transform flags have been updated,
+ * after all transform flags have been set in update_matrix,
  * so that trnode elements are handled properly.
  */
 rt_void rt_SceneThread::sclip(rt_Surface *srf)
 {
+    /* as temporary memory pool is released after every frame,
+     * always rebuild the list even if the surface hasn't changed */
+
     /* init surface's relations template */
     rt_ELEM *lst = srf->rel;
 
@@ -1327,7 +1335,7 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
 }
 
 /*
- * Build tile list for a given "srf" based
+ * Build tile list for a given surface "srf" based
  * on the area its projected bbox occupies in the tilebuffer.
  */
 rt_void rt_SceneThread::stile(rt_Surface *srf)
@@ -1500,7 +1508,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
 }
 
 /*
- * Build surface lists for a given "obj".
+ * Build surface lists for a given object "obj".
  * Surfaces have separate surface lists for each side.
  */
 rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
@@ -1623,7 +1631,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 }
 
 /*
- * Build light/shadow lists for a given "obj".
+ * Build light/shadow lists for a given object "obj".
  * Surfaces have separate light/shadow lists for each side.
  */
 rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)

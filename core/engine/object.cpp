@@ -1693,7 +1693,8 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
             rt_Array *arr = (rt_Array *)obj;
             rt_cell i;
 
-            /* init array's relations template */
+            /* init array's relations template
+             * used to avoid unnecessary allocs */
             rt_ELEM **ptr = RT_GET_ADR(arr->rel);
 
             /* populate array element with sub-objects */
@@ -1784,7 +1785,7 @@ rt_void rt_Surface::update_fields()
 }
 
 /*
- * Adjust bounding and clipping boxes according to surface shape.
+ * Adjust local-space bounding and clipping boxes according to surface shape.
  */
 rt_void rt_Surface::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
                                   rt_vec4 bmin, rt_vec4 bmax, /* bbox */
@@ -1805,6 +1806,9 @@ rt_void rt_Surface::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 /*
  * Transform world-space bounding or clipping box to local-space
  * by applying axis mapping (trivial transform).
+ * World-space for minmax data doesn't include trnode's transform matrix,
+ * which is used to compute final bounding box geometry, thus minmax data
+ * remains axis-aligned within (sub-)space up to trnode (if present).
  */
 rt_void rt_Surface::invert_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
                                   rt_vec4 dmin, rt_vec4 dmax) /* dst */
@@ -1834,6 +1838,9 @@ rt_void rt_Surface::invert_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 /*
  * Transform local-space bounding or clipping box to world-space
  * by applying axis mapping (trivial transform).
+ * World-space for minmax data doesn't include trnode's transform matrix,
+ * which is used to compute final bounding box geometry, thus minmax data
+ * remains axis-aligned within (sub-)space up to trnode (if present).
  */
 rt_void rt_Surface::direct_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
                                   rt_vec4 dmin, rt_vec4 dmax) /* dst */
@@ -2171,7 +2178,7 @@ rt_void rt_Plane::update_fields()
 }
 
 /*
- * Adjust bounding and clipping boxes according to surface shape.
+ * Adjust local-space bounding and clipping boxes according to surface shape.
  */
 rt_void rt_Plane::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
                                 rt_vec4 bmin, rt_vec4 bmax, /* bbox */
@@ -2244,7 +2251,7 @@ rt_void rt_Quadric::update_fields()
 }
 
 /*
- * Adjust bounding and clipping boxes according to surface shape.
+ * Adjust local-space bounding and clipping boxes according to surface shape.
  */
 rt_void rt_Quadric::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
                                   rt_vec4 bmin, rt_vec4 bmax, /* bbox */
@@ -2331,7 +2338,7 @@ rt_void rt_Cylinder::update_fields()
 }
 
 /*
- * Adjust bounding and clipping boxes according to surface shape.
+ * Adjust local-space bounding and clipping boxes according to surface shape.
  */
 rt_void rt_Cylinder::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
                                    rt_vec4 bmin, rt_vec4 bmax, /* bbox */
@@ -2427,7 +2434,7 @@ rt_void rt_Sphere::update_fields()
 }
 
 /*
- * Adjust bounding and clipping boxes according to surface shape.
+ * Adjust local-space bounding and clipping boxes according to surface shape.
  */
 rt_void rt_Sphere::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
                                  rt_vec4 bmin, rt_vec4 bmax, /* bbox */
@@ -2557,7 +2564,7 @@ rt_void rt_Cone::update_fields()
 }
 
 /*
- * Adjust bounding and clipping boxes according to surface shape.
+ * Adjust local-space bounding and clipping boxes according to surface shape.
  */
 rt_void rt_Cone::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
                                rt_vec4 bmin, rt_vec4 bmax, /* bbox */
@@ -2669,7 +2676,7 @@ rt_void rt_Paraboloid::update_fields()
 }
 
 /*
- * Adjust bounding and clipping boxes according to surface shape.
+ * Adjust local-space bounding and clipping boxes according to surface shape.
  */
 rt_void rt_Paraboloid::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
                                      rt_vec4 bmin, rt_vec4 bmax, /* bbox */
@@ -2789,7 +2796,7 @@ rt_void rt_Hyperboloid::update_fields()
 }
 
 /*
- * Adjust bounding and clipping boxes according to surface shape.
+ * Adjust local-space bounding and clipping boxes according to surface shape.
  */
 rt_void rt_Hyperboloid::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
                                       rt_vec4 bmin, rt_vec4 bmax, /* bbox */
