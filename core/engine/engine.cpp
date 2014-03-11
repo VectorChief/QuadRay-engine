@@ -26,12 +26,13 @@
  * of which only update is handled by the engine, while render is delegated
  * to the rendering backend once all data structures have been prepared.
  *
- * Update in turn consists of three phases:
- * 0th phase (sequential) - hierarchical traversal of the objects tree
- * 1st phase (multi-threaded) - update auxiliary per-object data fields
- * 2nd phase (multi-threaded) - build cross-object lists based on relations
+ * Update in turn consists of four phases:
+ * 0.5 phase (sequential) - hierarchical update of matrices in the objects tree
+ * 1st phase (multi-threaded) - update auxiliary per-surface data fields
+ * 1.5 phase (sequential) - hierarchical update of array bounds from surfaces
+ * 2nd phase (multi-threaded) - build updated cross-surface lists
  *
- * First two update phases are handled by the object hierarchy (object.cpp),
+ * First three update phases are handled by the object hierarchy (object.cpp),
  * while engine performs building of surface's tile lists, custom per-side
  * lights and shadows lists, reflection/refraction surface lists.
  *
@@ -1937,7 +1938,7 @@ rt_void rt_Scene::render(rt_long time)
     rel = RT_NULL;
 
     /* update the whole objects hierarchy */
-    root->update(time, iden4, RT_UPDATE_FLAG_OBJ);
+    root->update(time, iden4, 0);
 
     /* update rays positioning and steppers */
     rt_real h, v;
@@ -2202,7 +2203,7 @@ rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
                 continue;
             }
 
-            srf->update(0, RT_NULL, RT_UPDATE_FLAG_SRF);
+            srf->update_bounds();
 
             /* rebuild per-surface node list */
             tharr[index]->snode(srf);

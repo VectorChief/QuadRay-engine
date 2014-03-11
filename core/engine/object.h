@@ -73,14 +73,6 @@
  * some of its parents changed */
 #define RT_UPDATE_FLAG_ARR          (1 << 2)
 
-/* select 0th phase of the update,
- * only obj-related fields are updated */
-#define RT_UPDATE_FLAG_OBJ          (1 << 3)
-
-/* select 1st phase of the update,
- * only srf-related fields are updated */
-#define RT_UPDATE_FLAG_SRF          (1 << 4)
-
 /* Classes */
 
 class rt_Registry;
@@ -521,6 +513,8 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
                           rt_vec4 cmin, rt_vec4 cmax); /* cbox */
 
     rt_void update_minmax();
+
+    rt_void update_bounds();
 };
 
 /******************************************************************************/
