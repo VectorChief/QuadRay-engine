@@ -713,8 +713,8 @@ rt_cell cbox_conc(rt_SHAPE *srf)
 }
 
 /*
- * Transform "pos" into "srf" trnode space using "loc"
- * as temporary storage for return value.
+ * Transform "pos" into "srf" trnode's sub-world space
+ * using "loc" as temporary storage for return value.
  *
  * Return values:
  *  new pos
@@ -751,7 +751,7 @@ rt_cell surf_cbox(rt_SHAPE *srf, rt_vec4 pos)
 {
     rt_cell c = 0;
 
-    /* transform "pos" to "srf" trnode space,
+    /* transform "pos" to "srf" trnode's sub-world space,
      * where cbox is defined */
     rt_vec4  loc;
     rt_real *pps = surf_tran(srf, pos, loc);
@@ -797,7 +797,7 @@ rt_cell surf_bbox(rt_BOUND *srf, rt_vec4 pos)
 {
     rt_cell c = 0;
 
-    /* transform "pos" to "srf" trnode space,
+    /* transform "pos" to "srf" trnode's sub-world space,
      * where bbox is defined */
     rt_vec4  loc;
     rt_real *pps = surf_tran(srf, pos, loc);
@@ -841,9 +841,11 @@ rt_cell surf_bbox(rt_BOUND *srf, rt_vec4 pos)
 static
 rt_cell surf_side(rt_SHAPE *srf, rt_vec4 pos)
 {
+    /* transform "pos" to "srf" trnode's sub-world space */
     rt_vec4  loc;
     rt_real *pps = surf_tran(srf, pos, loc);
 
+    /* translate "pos" to "srf" local space */
     if (srf->trnode != srf)
     {
         RT_VEC3_SUB(loc, pps, srf->pos);
@@ -851,6 +853,8 @@ rt_cell surf_side(rt_SHAPE *srf, rt_vec4 pos)
 
     rt_real d;
 
+    /* surface's axis maping (trivial transform)
+     * is contained in "sci", "scj", "sck" fields */
     if (srf->tag == RT_TAG_PLANE)
     {
         d = RT_VEC3_DOT(loc, srf->sck);

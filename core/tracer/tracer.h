@@ -280,15 +280,15 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
 /******************************************************************************/
 
 /*
- * SIMD context structure to keep track of current state. New contexts for
+ * SIMD context structure keeps track of current state. New contexts for
  * secondary rays can be stacked upon previous ones by shifting pointer with
  * some overlap (to reduce copying overhead) until max stack depth is reached.
  * Vector field names explanation:
- *   VEC_X, VEC_Y, VEC_Z - world coords (or array trnode's transformed coords)
- *   VEC_I, VEC_J, VEC_K - intermediate coords after generic matrix transform
+ *   VEC_X, VEC_Y, VEC_Z - world space (reused for array trnode's sub-world org)
+ *   VEC_I, VEC_J, VEC_K - surface's sub-world space after trnode's transform
  *   VEC_O - baseline offset for axis mapping.
- * Regular axis mapping fetches from main XYZ fields (no matrix transform),
- * shifted axis mapping fetches from aux IJK fields after matrix transform,
+ * Regular axis mapping fetches from main XYZ fields (no trnode's transform),
+ * shifted axis mapping fetches from aux IJK fields after trnode's transform,
  * resulting (in both cases) in surface's local coords for canonical solvers.
  * Structure is read-write in backend.
  */

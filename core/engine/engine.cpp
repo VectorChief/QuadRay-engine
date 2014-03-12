@@ -1340,6 +1340,9 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
  */
 rt_void rt_SceneThread::stile(rt_Surface *srf)
 {
+    /* as temporary memory pool is released after every frame,
+     * always rebuild the list even if the surface hasn't changed */
+
     srf->s_srf->msc_p[0] = RT_NULL;
 
 #if RT_OPTS_TILING != 0
@@ -1513,6 +1516,9 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
  */
 rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 {
+    /* as temporary memory pool is released after every frame,
+     * always rebuild the list even if the object hasn't changed */
+
     rt_Surface *srf = RT_NULL;
     rt_ELEM **pto = RT_NULL;
     rt_ELEM **pti = RT_NULL;
@@ -1636,6 +1642,9 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
  */
 rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 {
+    /* as temporary memory pool is released after every frame,
+     * always rebuild the list even if the object hasn't changed */
+
     rt_Surface *srf = RT_NULL;
     rt_ELEM **pto = RT_NULL;
     rt_ELEM **pti = RT_NULL;
@@ -2742,7 +2751,7 @@ rt_void rt_Scene::render_fps(rt_word x, rt_word y,
     d = (d + 1) / 2;
 
     rt_word xd, yd, xz, yz;
-    rt_word *src = RT_NULL, *dst = RT_NULL;
+    rt_word *src, *dst;
 
     for (i = 0; i < c; i++)
     {
