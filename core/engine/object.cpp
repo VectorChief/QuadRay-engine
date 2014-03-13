@@ -104,7 +104,7 @@ rt_void rt_Object::add_relation(rt_ELEM *lst)
 /*
  * Update bvnode pointer with given "mode".
  */
-rt_void rt_Object::update_bvnode(rt_Array *bvnode, rt_bool mode)
+rt_void rt_Object::update_bvnode(rt_Object *bvnode, rt_bool mode)
 {
     /* bvnode cannot be its own bvnode,
      * there is no bvnode for boundless surfaces */
@@ -123,9 +123,10 @@ rt_void rt_Object::update_bvnode(rt_Array *bvnode, rt_bool mode)
 }
 
 /*
- * Update object with given "time", matrix "mtx" and "flags".
+ * Update object with given "time", matrix "mtx", "flags" and "trnode".
  */
-rt_void rt_Object::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Object::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
+                                 rt_Object *trnode)
 {
     if (obj->f_anim != RT_NULL && obj->time != time)
     {
@@ -197,18 +198,10 @@ rt_void rt_Object::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
                         (flags & RT_UPDATE_FLAG_SCL) |
                         (flags & RT_UPDATE_FLAG_ROT);
 
-    /* search for object's trnode
+    /* set object's trnode from the hierarchy
      * (node up in the hierarchy with non-trivial transform,
-     * relative to which object has trivial transform),
-     * can be potentially optimized out by passing
-     * correct trnode as parameter to update */
-    for (trnode = parent; trnode != RT_NULL; trnode = trnode->parent)
-    {
-        if (trnode->mtx_has_trm)
-        {
-            break;
-        }
-    }
+     * relative to which object has trivial transform) */
+    this->trnode = trnode;
 
     /* if object has its parent as trnode,
      * object's transform matrix has only its own transform,
@@ -245,7 +238,7 @@ rt_void rt_Object::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
      * by parents' transforms resulting in object being axis-aligned */
     if (mtx_has_trm)
     {
-        trnode = this;
+        this->trnode = trnode = this;
     }
 
     /* always compute full transform matrix
@@ -261,9 +254,10 @@ rt_void rt_Object::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
         matrix_mul_matrix(tmp_mtx, trnode->mtx, this->mtx);
         memcpy(this->mtx, tmp_mtx, sizeof(rt_mat4));
 
-        trnode = this;
+        this->trnode = trnode = this;
     }
 
+    /* set "box" bound's trnode for rtgeom */
     box->trnode = trnode != RT_NULL ? trnode->box : RT_NULL;
 
     /* axis mapping for trivial transform */
@@ -336,11 +330,12 @@ rt_Camera::rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 }
 
 /*
- * Update object with given "time", matrix "mtx" and "flags".
+ * Update object with given "time", matrix "mtx", "flags" and "trnode".
  */
-rt_void rt_Camera::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Camera::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
+                                 rt_Object *trnode)
 {
-    rt_Object::update_matrix(time, mtx, flags | cam_changed);
+    rt_Object::update_matrix(time, mtx, flags | cam_changed, trnode);
 
     update_fields();
 }
@@ -493,11 +488,12 @@ rt_Light::rt_Light(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 }
 
 /*
- * Update object with given "time", matrix "mtx" and "flags".
+ * Update object with given "time", matrix "mtx", "flags" and "trnode".
  */
-rt_void rt_Light::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Light::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
+                                rt_Object *trnode)
 {
-    rt_Object::update_matrix(time, mtx, flags);
+    rt_Object::update_matrix(time, mtx, flags, trnode);
 
     update_fields();
 }
@@ -610,22 +606,26 @@ rt_void rt_Node::add_relation(rt_ELEM *lst)
 /*
  * Update bvnode pointer with given "mode".
  */
-rt_void rt_Node::update_bvnode(rt_Array *bvnode, rt_bool mode)
+rt_void rt_Node::update_bvnode(rt_Object *bvnode, rt_bool mode)
 {
     rt_Object::update_bvnode(bvnode, mode);
 }
 
 /*
- * Update object with given "time", matrix "mtx" and "flags".
+ * Update object with given "time", matrix "mtx", "flags" and "trnode".
  */
-rt_void rt_Node::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Node::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
+                               rt_Object *trnode)
 {
-    rt_Object::update_matrix(time, mtx, flags);
+    rt_Object::update_matrix(time, mtx, flags, trnode);
 
     if (obj_changed == 0)
     {
         return;
     }
+
+    /* set trnode from object's updated trnode */
+    trnode = this->trnode;
 
     rt_cell i, j;
     rt_vec4 scl;
@@ -719,6 +719,15 @@ rt_void rt_Node::update_fields()
  */
 rt_void rt_Node::update_bbgeom(rt_BOUND *box)
 {
+    /* check bbox geometry limits */
+    if (box->verts_num > RT_VERTS_LIMIT
+    ||  box->edges_num > RT_EDGES_LIMIT
+    ||  box->faces_num > RT_FACES_LIMIT)
+    {
+        throw rt_Exception("bbox geometry limits exceeded");
+    }
+
+    /* check bbox ownership */
     if (box->obj != this)
     {
         throw rt_Exception("incorrect box in update_bbgeom");
@@ -1340,7 +1349,7 @@ rt_void rt_Array::add_relation(rt_ELEM *lst)
  * Update bvnode pointer for all sub-objects,
  * including sub-arrays (recursive).
  */
-rt_void rt_Array::update_bvnode(rt_Array *bvnode, rt_bool mode)
+rt_void rt_Array::update_bvnode(rt_Object *bvnode, rt_bool mode)
 {
     rt_Node::update_bvnode(bvnode, mode);
 
@@ -1353,9 +1362,10 @@ rt_void rt_Array::update_bvnode(rt_Array *bvnode, rt_bool mode)
 }
 
 /*
- * Update object with given "time", matrix "mtx" and "flags".
+ * Update object with given "time", matrix "mtx", "flags" and "trnode".
  */
-rt_void rt_Array::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Array::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
+                                rt_Object *trnode)
 {
     /* update the whole hierarchy when called
      * for the first time or triggered explicitly */
@@ -1367,8 +1377,12 @@ rt_void rt_Array::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
         flags |= RT_UPDATE_FLAG_ARR;
     }
 
-    rt_Node::update_matrix(time, mtx, flags);
+    rt_Node::update_matrix(time, mtx, flags, trnode);
 
+    /* set trnode from object's updated trnode */
+    trnode = this->trnode;
+
+    /* set "aux" bound's trnode for rtgeom */
     aux->trnode = trnode != RT_NULL ? ((rt_Array *)trnode)->aux : RT_NULL;
 
     rt_cell i, j;
@@ -1419,7 +1433,7 @@ rt_void rt_Array::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
     for (i = 0; i < obj_num; i++)
     {
         obj_arr[i]->update_matrix(time, *pmtx,
-                                  flags | mtx_has_trm | obj_changed);
+                                  flags | mtx_has_trm | obj_changed, trnode);
     }
 }
 
@@ -1459,7 +1473,7 @@ rt_void rt_Array::update_fields()
 }
 
 /*
- * Update bounding box and volume along with SIMD fields.
+ * Update bounding box and volume along with related SIMD fields.
  */
 rt_void rt_Array::update_bounds()
 {
@@ -1732,29 +1746,12 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
 }
 
 /*
- * Update object with given "time", matrix "mtx" and "flags".
+ * Update object with given "time", matrix "mtx", "flags" and "trnode".
  */
-rt_void rt_Surface::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags)
+rt_void rt_Surface::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
+                                  rt_Object *trnode)
 {
-    rt_Node::update_matrix(time, mtx, flags);
-
-    if (obj_changed == 0)
-    {
-        return;
-    }
-
-    /* trnode's simd ptr is needed in rendering backend
-     * to check if surface and its clippers belong to the same trnode */
-    s_srf->msc_p[3] = trnode == RT_NULL ?
-                                RT_NULL : ((rt_Node *)trnode)->s_srf;
-
-    /* check bbox geometry limits */
-    if (shp->verts_num > RT_VERTS_LIMIT
-    ||  shp->edges_num > RT_EDGES_LIMIT
-    ||  shp->faces_num > RT_FACES_LIMIT)
-    {
-        throw rt_Exception("bbox geometry limits exceeded in surface");
-    }
+    rt_Node::update_matrix(time, mtx, flags, trnode);
 }
 
 /*
@@ -1782,6 +1779,11 @@ rt_void rt_Surface::update_fields()
     s_srf->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
     s_srf->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
     s_srf->a_sgn[RT_L] = 0;
+
+    /* trnode's simd ptr is needed in rendering backend
+     * to check if surface and its clippers belong to the same trnode */
+    s_srf->msc_p[3] = trnode == RT_NULL ?
+                                RT_NULL : ((rt_Node *)trnode)->s_srf;
 }
 
 /*
@@ -2058,7 +2060,7 @@ rt_void rt_Surface::update_minmax()
 }
 
 /*
- * Update bounding box and volume along with SIMD fields.
+ * Update bounding box and volume along with related SIMD fields.
  */
 rt_void rt_Surface::update_bounds()
 {

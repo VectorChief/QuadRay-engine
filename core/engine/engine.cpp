@@ -1498,10 +1498,12 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
     {
         for (j = txmin[i]; j <= txmax[i]; j++)
         {
+            /* alloc new element for each srf tile */
             elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
             elm->data = i << 16 | j;
             elm->simd = srf->s_srf;
             elm->temp = srf->box;
+            /* insert element as list tail */
            *ptr = elm;
             ptr = &elm->next;
         }
@@ -2090,8 +2092,8 @@ rt_void rt_Scene::render(rt_long time)
         RT_PRINT_TIME(time);
     }
 
-    /* update transform matrices in objects hierarchy */
-    root->update_matrix(time, iden4, 0);
+    /* phase 0.5, update transform matrices in objects hierarchy */
+    root->update_matrix(time, iden4, 0, RT_NULL);
 
     /* update rays positioning and steppers */
     rt_real h, v;
@@ -2118,7 +2120,7 @@ rt_void rt_Scene::render(rt_long time)
     RT_VEC3_MUL_VAL1(htl, hor, h);
     RT_VEC3_MUL_VAL1(vtl, ver, v);
 
-    /* multi-threaded update */
+    /* 1st phase of multi-threaded update */
 #if RT_OPTS_THREAD != 0
     if ((opts & RT_OPTS_THREAD) != 0 && g_print == RT_FALSE)
     {
@@ -2135,7 +2137,7 @@ rt_void rt_Scene::render(rt_long time)
         update_scene(this, thnum, 1);
     }
 
-    /* update arrays' bounds in objects hierarchy */
+    /* phase 1.5, update arrays' bounds in objects hierarchy */
     root->update_bounds();
 
     /* rebuild camera's surface list */
@@ -2145,6 +2147,7 @@ rt_void rt_Scene::render(rt_long time)
      * slist is needed inside */
     llist = tharr[0]->lsort(cam);
 
+    /* 2nd phase of multi-threaded update */
 #if RT_OPTS_THREAD != 0
     if ((opts & RT_OPTS_THREAD) != 0 && g_print == RT_FALSE)
     {
@@ -2369,14 +2372,14 @@ rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
                 continue;
             }
 
+            /* update surface's fields */
+            srf->update_fields();
+
             /* rebuild surface's node list */
             tharr[index]->snode(srf);
 
             /* rebuild surface's clip list */
             tharr[index]->sclip(srf);
-
-            /* update surface's fields */
-            srf->update_fields();
 
             /* update surface's bounds */
             srf->update_bounds();

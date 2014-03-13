@@ -262,10 +262,11 @@ class rt_Object
     virtual
     rt_void add_relation(rt_ELEM *lst);
     virtual
-    rt_void update_bvnode(rt_Array *bvnode, rt_bool mode);
+    rt_void update_bvnode(rt_Object *bvnode, rt_bool mode);
 
     virtual
-    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags);
+    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
+                          rt_Object *trnode);
     virtual
     rt_void update_fields();
 };
@@ -312,7 +313,8 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
    ~rt_Camera();
 
     virtual
-    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags);
+    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
+                          rt_Object *trnode);
     virtual
     rt_void update_fields();
 
@@ -346,7 +348,8 @@ class rt_Light : public rt_Object, public rt_List<rt_Light>
    ~rt_Light();
 
     virtual
-    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags);
+    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
+                          rt_Object *trnode);
     virtual
     rt_void update_fields();
 };
@@ -390,10 +393,11 @@ class rt_Node : public rt_Object
     virtual
     rt_void add_relation(rt_ELEM *lst);
     virtual
-    rt_void update_bvnode(rt_Array *bvnode, rt_bool mode);
+    rt_void update_bvnode(rt_Object *bvnode, rt_bool mode);
 
     virtual
-    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags);
+    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
+                          rt_Object *trnode);
     virtual
     rt_void update_fields();
 };
@@ -444,10 +448,11 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
     virtual
     rt_void add_relation(rt_ELEM *lst);
     virtual
-    rt_void update_bvnode(rt_Array *bvnode, rt_bool mode);
+    rt_void update_bvnode(rt_Object *bvnode, rt_bool mode);
 
     virtual
-    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags);
+    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
+                          rt_Object *trnode);
     virtual
     rt_void update_fields();
 
@@ -526,7 +531,8 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
     rt_void add_relation(rt_ELEM *lst);
 
     virtual
-    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags);
+    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
+                          rt_Object *trnode);
     virtual
     rt_void update_fields();
 
