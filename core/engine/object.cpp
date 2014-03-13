@@ -128,65 +128,57 @@ rt_void rt_Object::update_bvnode(rt_Object *bvnode, rt_bool mode)
 }
 
 /*
- * Update object with given "time", matrix "mtx", "flags" and "trnode".
+ * Update object's status with given "time", "flags" and "trnode".
  */
-rt_void rt_Object::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
+rt_void rt_Object::update_status(rt_long time, rt_cell flags,
                                  rt_Object *trnode)
 {
-    /* if both update parts are reset in flags
-     * default to updating both parts */
-    if ((flags & RT_UPDATE_FLAG_OBJ) == 0
-    &&  (flags & RT_UPDATE_FLAG_MTX) == 0)
+    /* animator is called only once for object
+     * instances sharing the same scene data,
+     * part of sequential update (phase 0.5)
+     * as the code below is not thread-safe */
+    if (obj->f_anim != RT_NULL && obj->time != time)
     {
-        flags |= RT_UPDATE_FLAG_OBJ |
-                 RT_UPDATE_FLAG_MTX;
+        obj->f_anim(time, obj->time < 0 ? 0 : obj->time, trm, RT_NULL);
     }
 
-    /* check if update OBJ part is enabled */
-    if ((flags & RT_UPDATE_FLAG_OBJ) != 0)
+    /* always update time in scene data to distinguish
+     * between first update and any subsequent updates,
+     * even if animator is not present */
+    obj->time = time;
+
+    /* inherit changed status from the hierarchy */
+    obj_changed = flags & RT_UPDATE_FLAG_ARR;
+
+    /* update changed status for all object
+     * instances sharing the same scene data,
+     * even though animator is called only once */
+    if (obj->f_anim != RT_NULL)
     {
-        /* animator is called only once for object
-         * instances sharing the same scene data,
-         * part of sequential update (phase 0.5)
-         * as the code below is not thread-safe */
-        if (obj->f_anim != RT_NULL && obj->time != time)
-        {
-            obj->f_anim(time, obj->time < 0 ? 0 : obj->time, trm, RT_NULL);
-        }
-
-        /* always update time in scene data to distinguish
-         * between first update and any subsequent updates,
-         * even if animator is not present */
-        obj->time = time;
-
-        /* inherit changed status from the hierarchy */
-        obj_changed = flags & RT_UPDATE_FLAG_ARR;
-
-        /* update changed status for all object
-         * instances sharing the same scene data,
-         * even though animator is called only once */
-        if (obj->f_anim != RT_NULL)
-        {
-            obj_changed |= RT_UPDATE_FLAG_ARR;
-        }
-
-        if (obj_changed == 0)
-        {
-            return;
-        }
-
-        /* inherit transform flags from the hierarchy */
-        obj_has_trm = flags & RT_UPDATE_FLAG_SCL |
-                      flags & RT_UPDATE_FLAG_ROT;
-
-        /* set object's trnode from the hierarchy
-         * (node up in the hierarchy with non-trivial transform,
-         * relative to which object has trivial transform) */
-        this->trnode = trnode;
+        obj_changed |= RT_UPDATE_FLAG_ARR;
     }
 
-    /* check if update MTX part is disabled */
-    if ((flags & RT_UPDATE_FLAG_MTX) == 0)
+    if (obj_changed == 0)
+    {
+        return;
+    }
+
+    /* inherit transform flags from the hierarchy */
+    obj_has_trm = flags & RT_UPDATE_FLAG_SCL |
+                  flags & RT_UPDATE_FLAG_ROT;
+
+    /* set object's trnode from the hierarchy
+     * (node up in the hierarchy with non-trivial transform,
+     * relative to which object has trivial transform) */
+    this->trnode = trnode;
+}
+
+/*
+ * Update object's matrix with given "mtx".
+ */
+rt_void rt_Object::update_matrix(rt_mat4 mtx)
+{
+    if (obj_changed == 0)
     {
         return;
     }
@@ -274,7 +266,7 @@ rt_void rt_Object::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
      * by parents' transforms resulting in object being axis-aligned */
     if (mtx_has_trm)
     {
-        this->trnode = trnode = this;
+        trnode = this;
     }
 
     /* always compute full transform matrix
@@ -290,7 +282,7 @@ rt_void rt_Object::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
         matrix_mul_matrix(tmp_mtx, trnode->mtx, this->mtx);
         memcpy(this->mtx, tmp_mtx, sizeof(rt_mat4));
 
-        this->trnode = trnode = this;
+        trnode = this;
     }
 
     /* set "box" bound's trnode for rtgeom */
@@ -312,6 +304,17 @@ rt_void rt_Object::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
     mp_j = map[RT_J];
     mp_k = map[RT_K];
     mp_l = map[RT_L];
+}
+
+/*
+ * Update object with given "time", "flags", "trnode" and matrix "mtx".
+ */
+rt_void rt_Object::update_object(rt_long time, rt_cell flags,
+                                 rt_Object *trnode, rt_mat4 mtx)
+{
+    update_status(time, flags, trnode);
+
+    update_matrix(mtx);
 }
 
 /*
@@ -367,12 +370,12 @@ rt_Camera::rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 }
 
 /*
- * Update object with given "time", matrix "mtx", "flags" and "trnode".
+ * Update object with given "time", "flags", "trnode" and matrix "mtx".
  */
-rt_void rt_Camera::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
-                                 rt_Object *trnode)
+rt_void rt_Camera::update_object(rt_long time, rt_cell flags,
+                                 rt_Object *trnode, rt_mat4 mtx)
 {
-    rt_Object::update_matrix(time, mtx, flags | cam_changed, trnode);
+    rt_Object::update_object(time, flags | cam_changed, trnode, mtx);
 
     update_fields();
 }
@@ -527,12 +530,12 @@ rt_Light::rt_Light(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 }
 
 /*
- * Update object with given "time", matrix "mtx", "flags" and "trnode".
+ * Update object with given "time", "flags", "trnode" and matrix "mtx".
  */
-rt_void rt_Light::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
-                                rt_Object *trnode)
+rt_void rt_Light::update_object(rt_long time, rt_cell flags,
+                                rt_Object *trnode, rt_mat4 mtx)
 {
-    rt_Object::update_matrix(time, mtx, flags, trnode);
+    rt_Object::update_object(time, flags, trnode, mtx);
 
     update_fields();
 }
@@ -602,6 +605,10 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
 
     rt_Object(rg, parent, obj)
 {
+    /* reset matrix pointer
+     * for/from the hierarchy */
+    pmtx = RT_NULL;
+
     /* reset relations template */
     rel = RT_NULL;
 
@@ -651,20 +658,25 @@ rt_void rt_Node::update_bvnode(rt_Object *bvnode, rt_bool mode)
 }
 
 /*
- * Update object with given "time", matrix "mtx", "flags" and "trnode".
+ * Update object's status with given "time", "flags" and "trnode".
  */
-rt_void rt_Node::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
+rt_void rt_Node::update_status(rt_long time, rt_cell flags,
                                rt_Object *trnode)
 {
-    rt_Object::update_matrix(time, mtx, flags, trnode);
+    rt_Object::update_status(time, flags, trnode);
+}
 
+/*
+ * Update object's matrix with given "mtx".
+ */
+rt_void rt_Node::update_matrix(rt_mat4 mtx)
+{
     if (obj_changed == 0)
     {
         return;
     }
 
-    /* set trnode from object's updated trnode */
-    trnode = this->trnode;
+    rt_Object::update_matrix(mtx);
 
     rt_cell i, j;
     rt_vec4 scl;
@@ -715,6 +727,17 @@ rt_void rt_Node::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
             this->mtx[j][2] = iden4[j][2] * scl[i];
         }
     }
+}
+
+/*
+ * Update object with given "time", "flags", "trnode" and matrix "mtx".
+ */
+rt_void rt_Node::update_object(rt_long time, rt_cell flags,
+                               rt_Object *trnode, rt_mat4 mtx)
+{
+    update_status(time, flags, trnode);
+
+    update_matrix(mtx);
 }
 
 /*
@@ -1404,13 +1427,14 @@ rt_void rt_Array::update_bvnode(rt_Object *bvnode, rt_bool mode)
 }
 
 /*
- * Update object with given "time", matrix "mtx", "flags" and "trnode".
+ * Update object's status with given "time", "flags" and "trnode".
  */
-rt_void rt_Array::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
+rt_void rt_Array::update_status(rt_long time, rt_cell flags,
                                 rt_Object *trnode)
 {
-    /* update the whole hierarchy when called
-     * for the first time or triggered explicitly */
+    /* trigger update of the whole hierarchy
+     * when called for the first time or
+     * requested explicitly via time == -1 */
 #if RT_OPTS_UPDATE != 0
     if (obj->time == -1 && parent == RT_NULL
     || (rg->opts & RT_OPTS_UPDATE) == 0)
@@ -1419,19 +1443,30 @@ rt_void rt_Array::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
         flags |= RT_UPDATE_FLAG_ARR;
     }
 
-    rt_Node::update_matrix(time, mtx, flags, trnode);
+    rt_Node::update_status(time, flags, trnode);
 
     /* inherit array's changed status from object */
     arr_changed = obj_changed;
+}
 
-    /* set trnode from object's updated trnode */
-    trnode = this->trnode;
+/*
+ * Update object's matrix with given "mtx".
+ */
+rt_void rt_Array::update_matrix(rt_mat4 mtx)
+{
+    if (obj_changed == 0)
+    {
+        return;
+    }
+
+    rt_Node::update_matrix(mtx);
 
     /* set "aux" bound's trnode for rtgeom */
     aux->trnode = trnode != RT_NULL ? ((rt_Array *)trnode)->aux : RT_NULL;
 
-    rt_cell i, j;
-    rt_mat4 *pmtx = &this->mtx;
+    /* set matrix pointer for sub-objects
+     * to array's transform matrix */
+    pmtx = &this->mtx;
 
     /* if array itself has non-trivial transform
      * and it is scaling with trivial rotation,
@@ -1445,6 +1480,8 @@ rt_void rt_Array::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
             memset(axm, 0, sizeof(rt_mat4));
             axm[3][3] = 1.0f;
 
+            rt_cell i, j;
+
             for (i = 0; i < 3; i++)
             {
                 j = map[i];
@@ -1452,6 +1489,8 @@ rt_void rt_Array::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
             }
         }
 
+        /* set matrix pointer for sub-objects
+         * to axis mapping matrix */
         pmtx = &axm;
     }
 
@@ -1471,14 +1510,27 @@ rt_void rt_Array::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
     mp_j = map[RT_J];
     mp_k = map[RT_K];
     mp_l = map[RT_L];
+}
 
-    /* update every object in array
-     * including sub-arrays (recursive),
-     * pass array's own transform flags */
+/*
+ * Update object with given "time", "flags", "trnode" and matrix "mtx".
+ */
+rt_void rt_Array::update_object(rt_long time, rt_cell flags,
+                                rt_Object *trnode, rt_mat4 mtx)
+{
+    update_status(time, flags, trnode);
+
+    update_matrix(mtx);
+
+    rt_cell i;
+
+    /* update every object in array including sub-arrays (recursive),
+     * pass array's own transform flags, changed status,
+     * updated trnode and matrix pointer for sub-objects */
     for (i = 0; i < obj_num; i++)
     {
-        obj_arr[i]->update_matrix(time, *pmtx,
-                                  flags | mtx_has_trm | obj_changed, trnode);
+        obj_arr[i]->update_object(time, flags | mtx_has_trm | obj_changed,
+                                  this->trnode, *pmtx);
     }
 }
 
@@ -1698,10 +1750,6 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
     /* reset surface's changed status */
     srf_changed = 0;
 
-    /* reset matrix pointer
-     * from the hierarchy */
-    pmtx = RT_NULL;
-
     /* init outer side material */
     outer = new rt_Material(rg, &srf->side_outer,
                     obj->obj.pmat_outer ? obj->obj.pmat_outer :
@@ -1804,15 +1852,15 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
 }
 
 /*
- * Update object with given "time", matrix "mtx", "flags" and "trnode".
+ * Update object with given "time", "flags", "trnode" and matrix "mtx".
  */
-rt_void rt_Surface::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
-                                  rt_Object *trnode)
+rt_void rt_Surface::update_object(rt_long time, rt_cell flags,
+                                  rt_Object *trnode, rt_mat4 mtx)
 {
-    rt_Object::update_matrix(time, mtx, flags | RT_UPDATE_FLAG_OBJ, trnode);
+    update_status(time, flags, trnode);
 
     /* set matrix pointer
-     * from the hierarchy */
+     * from immediate parent array */
     pmtx = (rt_mat4 *)mtx;
 }
 
@@ -1826,7 +1874,9 @@ rt_void rt_Surface::update_fields()
         return;
     }
 
-    rt_Node::update_matrix(0, *pmtx, RT_UPDATE_FLAG_MTX, trnode);
+    /* pass matrix pointer
+     * from immediate parent array */
+    update_matrix(*pmtx);
 
     rt_Node::update_fields();
 

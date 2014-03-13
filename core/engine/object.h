@@ -73,12 +73,6 @@
  * some of its parents changed */
 #define RT_UPDATE_FLAG_ARR          (1 << 2)
 
-/* select OBJ part of the update */
-#define RT_UPDATE_FLAG_OBJ          (1 << 3)
-
-/* select MTX part of the update */
-#define RT_UPDATE_FLAG_MTX          (1 << 4)
-
 /* Classes */
 
 class rt_Registry;
@@ -258,6 +252,10 @@ class rt_Object
 
     protected:
 
+    rt_void update_status(rt_long time, rt_cell flags, rt_Object *trnode);
+
+    rt_void update_matrix(rt_mat4 mtx);
+
     rt_Object(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj);
 
     public:
@@ -271,8 +269,8 @@ class rt_Object
     rt_void update_bvnode(rt_Object *bvnode, rt_bool mode);
 
     virtual
-    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
-                          rt_Object *trnode);
+    rt_void update_object(rt_long time, rt_cell flags,
+                          rt_Object *trnode, rt_mat4 mtx);
     virtual
     rt_void update_fields();
 };
@@ -319,8 +317,8 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
    ~rt_Camera();
 
     virtual
-    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
-                          rt_Object *trnode);
+    rt_void update_object(rt_long time, rt_cell flags,
+                          rt_Object *trnode, rt_mat4 mtx);
     virtual
     rt_void update_fields();
 
@@ -354,8 +352,8 @@ class rt_Light : public rt_Object, public rt_List<rt_Light>
    ~rt_Light();
 
     virtual
-    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
-                          rt_Object *trnode);
+    rt_void update_object(rt_long time, rt_cell flags,
+                          rt_Object *trnode, rt_mat4 mtx);
     virtual
     rt_void update_fields();
 };
@@ -372,6 +370,12 @@ class rt_Node : public rt_Object
 {
 /*  fields */
 
+    protected:
+
+    /* matrix pointer
+     * for/from the hierarchy */
+    rt_mat4            *pmtx;
+
     public:
 
     /* reusable relations template
@@ -385,6 +389,10 @@ class rt_Node : public rt_Object
 /*  methods */
 
     protected:
+
+    rt_void update_status(rt_long time, rt_cell flags, rt_Object *trnode);
+
+    rt_void update_matrix(rt_mat4 mtx);
 
     rt_void update_bbgeom(rt_BOUND *box);
 
@@ -402,8 +410,8 @@ class rt_Node : public rt_Object
     rt_void update_bvnode(rt_Object *bvnode, rt_bool mode);
 
     virtual
-    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
-                          rt_Object *trnode);
+    rt_void update_object(rt_long time, rt_cell flags,
+                          rt_Object *trnode, rt_mat4 mtx);
     virtual
     rt_void update_fields();
 };
@@ -447,6 +455,12 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
 
 /*  methods */
 
+    protected:
+
+    rt_void update_status(rt_long time, rt_cell flags, rt_Object *trnode);
+
+    rt_void update_matrix(rt_mat4 mtx);
+
     public:
 
     rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
@@ -461,8 +475,8 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
     rt_void update_bvnode(rt_Object *bvnode, rt_bool mode);
 
     virtual
-    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
-                          rt_Object *trnode);
+    rt_void update_object(rt_long time, rt_cell flags,
+                          rt_Object *trnode, rt_mat4 mtx);
     virtual
     rt_void update_fields();
 
@@ -481,10 +495,6 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
 /*  fields */
 
     private:
-
-    /* matrix pointer
-     * from the hierarchy */
-    rt_mat4            *pmtx;
 
     /* per-side materials */
     rt_Material        *outer;
@@ -545,8 +555,8 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
     rt_void add_relation(rt_ELEM *lst);
 
     virtual
-    rt_void update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
-                          rt_Object *trnode);
+    rt_void update_object(rt_long time, rt_cell flags,
+                          rt_Object *trnode, rt_mat4 mtx);
     virtual
     rt_void update_fields();
 

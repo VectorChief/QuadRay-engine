@@ -2093,7 +2093,7 @@ rt_void rt_Scene::render(rt_long time)
     }
 
     /* phase 0.5, hierarchical update of arrays' transform matrices */
-    root->update_matrix(time, iden4, 0, RT_NULL);
+    root->update_object(time, 0, RT_NULL, iden4);
 
     /* update rays positioning and steppers */
     rt_real h, v;
