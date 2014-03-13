@@ -69,10 +69,14 @@ rt_Object::rt_Object(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj)
     this->pos = this->mtx[3];
     this->tag = obj->obj.tag;
 
+    /* reset object's changed status
+     * along with transform flags */
     this->obj_changed = 0;
     this->obj_has_trm = 0;
     this->mtx_has_trm = 0;
 
+    /* set object's immediate parent
+     * reset trnode and bvnode pointers */
     this->parent = parent;
     this->trnode = RT_NULL;
     this->bvnode = RT_NULL;
@@ -358,6 +362,7 @@ rt_Camera::rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
           cam->vpt[0] <= 2 * RT_CLIP_THRESHOLD ? /* minimum positive pov */
                          2 * RT_CLIP_THRESHOLD : cam->vpt[0];
 
+    /* reset camera's changed status */
     cam_changed = 0;
 }
 
@@ -387,6 +392,7 @@ rt_void rt_Camera::update_fields()
     hor_sin = RT_SINA(trm->rot[RT_Z]);
     hor_cos = RT_COSA(trm->rot[RT_Z]);
 
+    /* reset camera's changed status */
     cam_changed = 0;
 }
 
@@ -469,6 +475,7 @@ rt_void rt_Camera::update_action(rt_long time, rt_cell action)
         break;
     }
 
+    /* set camera's changed status */
     cam_changed = RT_UPDATE_FLAG_ARR;
 }
 
@@ -1015,6 +1022,9 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
 {
     rg->put_arr(this);
 
+    /* reset array's changed status */
+    arr_changed = 0;
+
     /* init "aux" bound structure used for trnode if present */
     aux = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
 
@@ -1411,6 +1421,9 @@ rt_void rt_Array::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
 
     rt_Node::update_matrix(time, mtx, flags, trnode);
 
+    /* inherit array's changed status from object */
+    arr_changed = obj_changed;
+
     /* set trnode from object's updated trnode */
     trnode = this->trnode;
 
@@ -1509,6 +1522,11 @@ rt_void rt_Array::update_fields()
  */
 rt_void rt_Array::update_bounds()
 {
+    if (arr_changed == 0)
+    {
+        return;
+    }
+
     RT_VEC3_SET_VAL1(aux->bmin, +RT_INF);
     RT_VEC3_SET_VAL1(aux->bmax, -RT_INF);
     aux->rad = 0.0f;
@@ -1622,6 +1640,7 @@ rt_void rt_Array::update_bounds()
         }
     }
 
+    /* update bounds geometry */
     if (aux->rad != 0.0f && aux->rad != RT_INF)
     {
         update_bbgeom(aux);
@@ -1736,7 +1755,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
             elm->data = rel;
             elm->simd = RT_NULL; /* accum marker */
             elm->temp = RT_NULL;
-            /* insert element as list head */
+            /* insert element as list's head */
             elm->next = *ptr;
            *ptr = elm;
         }
@@ -1777,7 +1796,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
             elm->data = rel;
             elm->simd = srf->s_srf;
             elm->temp = srf->box;
-            /* insert element as list head */
+            /* insert element as list's head */
             elm->next = *ptr;
            *ptr = elm;
         }
@@ -2000,6 +2019,7 @@ rt_void rt_Surface::recalc_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
  */
 rt_void rt_Surface::update_minmax()
 {
+    /* inherit surface's changed status from object */
     srf_changed = obj_changed;
 
     /* init custom clippers list */
@@ -2043,6 +2063,7 @@ rt_void rt_Surface::update_minmax()
             continue;
         }
 
+        /* update surface's changed status from clippers */
         srf_changed |= obj->obj_changed;
     }
 
@@ -2116,6 +2137,18 @@ rt_void rt_Surface::update_bounds()
         return;
     }
 
+    rt_Object *par;
+
+    /* update array's changed status from sub-objects,
+     * as the same non-zero value is only set but not checked
+     * it is safe to perform this update from multi-threaded phase,
+     * the updated value is then checked in the next sequential phase */
+    for (par = parent; par != RT_NULL; par = par->parent)
+    {
+        ((rt_Array *)par)->arr_changed |= srf_changed;
+    }
+
+    /* update bounds geometry */
     if (box->verts_num != 0)
     {
         update_bbgeom(box);

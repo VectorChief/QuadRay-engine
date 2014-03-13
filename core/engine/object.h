@@ -433,6 +433,10 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
     rt_Object         **obj_arr;
     rt_cell             obj_num;
 
+    /* non-zero if array itself or
+     * some of its sub-objects changed */
+    rt_cell             arr_changed;
+
     /* bounding box and volume,
      * used for trnode if present */
     rt_BOUND           *aux;
