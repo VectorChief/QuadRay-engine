@@ -73,6 +73,12 @@
  * some of its parents changed */
 #define RT_UPDATE_FLAG_ARR          (1 << 2)
 
+/* select OBJ part of the update */
+#define RT_UPDATE_FLAG_OBJ          (1 << 3)
+
+/* select MTX part of the update */
+#define RT_UPDATE_FLAG_MTX          (1 << 4)
+
 /* Classes */
 
 class rt_Registry;
@@ -471,6 +477,10 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
 /*  fields */
 
     private:
+
+    /* matrix pointer
+     * from the hierarchy */
+    rt_mat4            *pmtx;
 
     /* per-side materials */
     rt_Material        *outer;

@@ -26,15 +26,16 @@
  * of which only update is handled by the engine, while render is delegated
  * to the rendering backend once all data structures have been prepared.
  *
- * Update in turn consists of four phases:
- * 0.5 phase (sequential) - hierarchical update of matrices in the objects tree
- * 1st phase (multi-threaded) - update auxiliary per-object data fields
- * 1.5 phase (sequential) - hierarchical update of array bounds from surfaces
- * 2nd phase (multi-threaded) - build updated cross-object lists
+ * Update in turn consists of five phases:
+ * 0.5 phase (sequential) - hierarchical update of arrays' transform matrices
+ * 1st phase (multi-threaded) - update surfaces' transform matrices, data fields
+ * 2nd phase (multi-threaded) - update surfaces' clip lists, bounds, tile lists
+ * 2.5 phase (sequential) - hierarchical update of arrays' bounds from surfaces
+ * 3rd phase (multi-threaded) - build updated cross-surface lists
  *
- * First three update phases are handled by the object hierarchy (object.cpp),
- * while engine performs building of surface's tile lists, custom per-side
- * lights and shadows lists, reflection/refraction surface lists.
+ * Some parts of the update are handled by the objects hierarchy (object.cpp),
+ * while engine performs building of surface's node, clip and tile lists,
+ * custom per-side light/shadow and reflection/refraction surface lists.
  *
  * Both update and render support multi-threading and use array of SceneThread
  * objects to separate working data sets and therefore avoid thread locking.
@@ -1130,7 +1131,7 @@ rt_ELEM* rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
 
 /*
  * Build trnode/bvnode sequence for a given surface "srf"
- * after all transform flags have been set in update_matrix,
+ * after all transform flags have been set in update_fields,
  * so that trnode elements are handled properly.
  */
 rt_void rt_SceneThread::snode(rt_Surface *srf)
@@ -1201,7 +1202,7 @@ rt_void rt_SceneThread::snode(rt_Surface *srf)
 
 /*
  * Build custom clippers list from "srf" relations template
- * after all transform flags have been set in update_matrix,
+ * after all transform flags have been set in update_fields,
  * so that trnode elements are handled properly.
  */
 rt_void rt_SceneThread::sclip(rt_Surface *srf)
@@ -2088,11 +2089,10 @@ rt_void rt_Scene::render(rt_long time)
     if (g_print)
     {
         RT_PRINT_STATE_BEG();
-
         RT_PRINT_TIME(time);
     }
 
-    /* phase 0.5, update transform matrices in objects hierarchy */
+    /* phase 0.5, hierarchical update of arrays' transform matrices */
     root->update_matrix(time, iden4, 0, RT_NULL);
 
     /* update rays positioning and steppers */
@@ -2120,24 +2120,36 @@ rt_void rt_Scene::render(rt_long time)
     RT_VEC3_MUL_VAL1(htl, hor, h);
     RT_VEC3_MUL_VAL1(vtl, ver, v);
 
+    if (g_print)
+    {
+        RT_PRINT_CAM(cam);
+    }
+
     /* 1st phase of multi-threaded update */
 #if RT_OPTS_THREAD != 0
-    if ((opts & RT_OPTS_THREAD) != 0 && g_print == RT_FALSE)
+    if ((opts & RT_OPTS_THREAD) != 0 && !g_print)
     {
         this->f_update(tdata, thnum, 1);
     }
     else
 #endif /* RT_OPTS_THREAD */
     {
-        if (g_print)
-        {
-            RT_PRINT_CAM(cam);
-        }
-
         update_scene(this, thnum, 1);
     }
 
-    /* phase 1.5, update arrays' bounds in objects hierarchy */
+    /* 2nd phase of multi-threaded update */
+#if RT_OPTS_THREAD != 0
+    if ((opts & RT_OPTS_THREAD) != 0 && !g_print)
+    {
+        this->f_update(tdata, thnum, 2);
+    }
+    else
+#endif /* RT_OPTS_THREAD */
+    {
+        update_scene(this, thnum, 2);
+    }
+
+    /* phase 2.5, hierarchical update of arrays' bounds from surfaces */
     root->update_bounds();
 
     /* rebuild camera's surface list */
@@ -2147,23 +2159,22 @@ rt_void rt_Scene::render(rt_long time)
      * slist is needed inside */
     llist = tharr[0]->lsort(cam);
 
-    /* 2nd phase of multi-threaded update */
-#if RT_OPTS_THREAD != 0
-    if ((opts & RT_OPTS_THREAD) != 0 && g_print == RT_FALSE)
+    if (g_print)
     {
-        this->f_update(tdata, thnum, 2);
+        RT_PRINT_LGT_LST(llist);
+        RT_PRINT_SRF_LST(slist);
+    }
+
+    /* 3rd phase of multi-threaded update */
+#if RT_OPTS_THREAD != 0
+    if ((opts & RT_OPTS_THREAD) != 0 && !g_print)
+    {
+        this->f_update(tdata, thnum, 3);
     }
     else
 #endif /* RT_OPTS_THREAD */
     {
-        if (g_print)
-        {
-            RT_PRINT_LGT_LST(llist);
-
-            RT_PRINT_SRF_LST(slist);
-        }
-
-        update_scene(this, thnum, 2);
+        update_scene(this, thnum, 3);
     }
 
     /* screen tiling */
@@ -2328,7 +2339,6 @@ rt_void rt_Scene::render(rt_long time)
     if (g_print)
     {
         RT_PRINT_STATE_END();
-
         g_print = RT_FALSE;
     }
 
@@ -2361,7 +2371,8 @@ rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
                 continue;
             }
 
-            /* update array's fields */
+            /* update array's fields from transform matrix
+             * updated in sequential phase 0.5 */
             arr->update_fields();
         }
 
@@ -2372,24 +2383,41 @@ rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
                 continue;
             }
 
-            /* update surface's fields */
+            /* update surface's fields and transform matrix
+             * from parent array's transform matrix
+             * updated in sequential phase 0.5 */
             srf->update_fields();
 
-            /* rebuild surface's node list */
+            /* rebuild surface's node list (per-surface)
+             * based on transform flags updated above */
             tharr[index]->snode(srf);
-
-            /* rebuild surface's clip list */
-            tharr[index]->sclip(srf);
-
-            /* update surface's bounds */
-            srf->update_bounds();
-
-            /* rebuild surface's tile list */
-            tharr[index]->stile(srf);
         }
     }
     else
     if (phase == 2)
+    {
+        for (srf = srf_head, i = 0; srf != RT_NULL; srf = srf->next, i++)
+        {
+            if ((i % thnum) != index)
+            {
+                continue;
+            }
+
+            /* rebuild surface's clip list (cross-surface)
+             * based on transform flags updated in 1st phase above */
+            tharr[index]->sclip(srf);
+
+            /* update surface's bounds taking into account surfaces
+             * from custom clippers list updated above */
+            srf->update_bounds();
+
+            /* rebuild surface's tile list (per-surface)
+             * based on surface bounds updated above */
+            tharr[index]->stile(srf);
+        }
+    }
+    else
+    if (phase == 3)
     {
         for (srf = srf_head, i = 0; srf != RT_NULL; srf = srf->next, i++)
         {
@@ -2403,10 +2431,14 @@ rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
                 RT_PRINT_SRF(srf);
             }
 
-            /* rebuild surface's rfl/rfr surface lists */
+            /* rebuild surface's rfl/rfr surface lists (cross-surface)
+             * based on surface bounds updated in 2nd phase above
+             * and array bounds updated in sequential phase 2.5 */
             tharr[index]->ssort(srf);
 
-            /* rebuild surface's light/shadow lists */
+            /* rebuild surface's light/shadow lists (cross-surface)
+             * based on surface bounds updated in 2nd phase above
+             * and array bounds updated in sequential phase 2.5 */
             tharr[index]->lsort(srf);
 
             /* update surface's backend-related parts */

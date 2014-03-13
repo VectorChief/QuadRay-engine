@@ -22,18 +22,19 @@
  * of the hierarchy) and its derivative classes along with the set of algorithms
  * needed to construct and update per-object fields and cross-object relations.
  *
- * Object handles first three phases of the update initiated by the engine:
- * 0.5 phase (sequential) - hierarchical update of matrices in the objects tree
- * - compute transform matrix from the root down to the leaf objects
- * - determine intermediate transform nodes used later for transform caching
- * - rebuild surface's custom clipping list based on scene-defined relations
- * - determine intermediate bounding volume nodes based on scene data
- * 1st phase (multi-threaded) - update auxiliary per-object data fields
+ * Object handles the following parts of the update initiated by the engine:
+ * 0.5 phase (sequential) - hierarchical update of arrays' transform matrices
+ * - update object's transform in scene data via animator, time, flags
+ * - compute array's transform matrix from the root down to the leaf objects
+ * 1st phase (multi-threaded) - update surfaces' transform matrices, data fields
  * - compute array's inverse transform matrix needed in backend (tracer.cpp)
- * - compute surface's inverse transform matrix, bounding and clipping boxes,
- *   bounding volume (sphere), backend-related SIMD fields (tracer.h)
- * 1.5 phase (sequential) - hierarchical update of array bounds from surfaces
- * - compute array's bounding box and volume (sphere) from surfaces' bounding
+ * - compute surface's transform matrix from the immediate parent array
+ * - compute surface's inverse transform matrix, backend-related SIMD fields
+ * 2nd phase (multi-threaded) - update surfaces' clip lists, bounds, tile lists
+ * - update surface's bounding and clipping boxes, bounding volume (sphere),
+ *   taking into account surfaces from custom clippers list updated in 1st phase
+ * 2.5 phase (sequential) - hierarchical update of arrays' bounds from surfaces
+ * - update array's bounding box and volume (sphere) from surfaces' bounding
  *   boxes (trnode part: aux) and sub-arrays' bounding boxes (bvnode part: box)
  *
  * In order to avoid cross-dependencies on the engine, object file contains
@@ -128,22 +129,60 @@ rt_void rt_Object::update_bvnode(rt_Object *bvnode, rt_bool mode)
 rt_void rt_Object::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
                                  rt_Object *trnode)
 {
-    if (obj->f_anim != RT_NULL && obj->time != time)
+    /* if both update parts are reset in flags
+     * default to updating both parts */
+    if ((flags & RT_UPDATE_FLAG_OBJ) == 0
+    &&  (flags & RT_UPDATE_FLAG_MTX) == 0)
     {
-        obj->f_anim(time, obj->time < 0 ? 0 : obj->time, trm, RT_NULL);
+        flags |= RT_UPDATE_FLAG_OBJ |
+                 RT_UPDATE_FLAG_MTX;
     }
 
-    obj->time = time;
-
-    /* inherit changed status from the hierarchy */
-    obj_changed = flags & RT_UPDATE_FLAG_ARR;
-
-    if (obj->f_anim != RT_NULL)
+    /* check if update OBJ part is enabled */
+    if ((flags & RT_UPDATE_FLAG_OBJ) != 0)
     {
-        obj_changed = RT_UPDATE_FLAG_ARR;
+        /* animator is called only once for object
+         * instances sharing the same scene data,
+         * part of sequential update (phase 0.5)
+         * as the code below is not thread-safe */
+        if (obj->f_anim != RT_NULL && obj->time != time)
+        {
+            obj->f_anim(time, obj->time < 0 ? 0 : obj->time, trm, RT_NULL);
+        }
+
+        /* always update time in scene data to distinguish
+         * between first update and any subsequent updates,
+         * even if animator is not present */
+        obj->time = time;
+
+        /* inherit changed status from the hierarchy */
+        obj_changed = flags & RT_UPDATE_FLAG_ARR;
+
+        /* update changed status for all object
+         * instances sharing the same scene data,
+         * even though animator is called only once */
+        if (obj->f_anim != RT_NULL)
+        {
+            obj_changed |= RT_UPDATE_FLAG_ARR;
+        }
+
+        if (obj_changed == 0)
+        {
+            return;
+        }
+
+        /* inherit transform flags from the hierarchy */
+        obj_has_trm = flags & RT_UPDATE_FLAG_SCL |
+                      flags & RT_UPDATE_FLAG_ROT;
+
+        /* set object's trnode from the hierarchy
+         * (node up in the hierarchy with non-trivial transform,
+         * relative to which object has trivial transform) */
+        this->trnode = trnode;
     }
 
-    if (obj_changed == 0)
+    /* check if update MTX part is disabled */
+    if ((flags & RT_UPDATE_FLAG_MTX) == 0)
     {
         return;
     }
@@ -194,14 +233,7 @@ rt_void rt_Object::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
 
     /* determine if object's full matrix has
      * non-trivial transform */
-    obj_has_trm = mtx_has_trm |
-                        (flags & RT_UPDATE_FLAG_SCL) |
-                        (flags & RT_UPDATE_FLAG_ROT);
-
-    /* set object's trnode from the hierarchy
-     * (node up in the hierarchy with non-trivial transform,
-     * relative to which object has trivial transform) */
-    this->trnode = trnode;
+    obj_has_trm |= mtx_has_trm;
 
     /* if object has its parent as trnode,
      * object's transform matrix has only its own transform,
@@ -1642,15 +1674,22 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
 {
     rg->put_srf(this);
 
-    this->srf = (rt_SURFACE *)obj->obj.pobj;
+    srf = (rt_SURFACE *)obj->obj.pobj;
 
-    this->srf_changed = 0;
+    /* reset surface's changed status */
+    srf_changed = 0;
 
-    this->outer = new rt_Material(rg, &srf->side_outer,
+    /* reset matrix pointer
+     * from the hierarchy */
+    pmtx = RT_NULL;
+
+    /* init outer side material */
+    outer = new rt_Material(rg, &srf->side_outer,
                     obj->obj.pmat_outer ? obj->obj.pmat_outer :
                                           srf->side_outer.pmat);
 
-    this->inner = new rt_Material(rg, &srf->side_inner,
+    /* init inner side material */
+    inner = new rt_Material(rg, &srf->side_inner,
                     obj->obj.pmat_inner ? obj->obj.pmat_inner :
                                           srf->side_inner.pmat);
 
@@ -1751,7 +1790,11 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
 rt_void rt_Surface::update_matrix(rt_long time, rt_mat4 mtx, rt_cell flags,
                                   rt_Object *trnode)
 {
-    rt_Node::update_matrix(time, mtx, flags, trnode);
+    rt_Object::update_matrix(time, mtx, flags | RT_UPDATE_FLAG_OBJ, trnode);
+
+    /* set matrix pointer
+     * from the hierarchy */
+    pmtx = (rt_mat4 *)mtx;
 }
 
 /*
@@ -1763,6 +1806,8 @@ rt_void rt_Surface::update_fields()
     {
         return;
     }
+
+    rt_Node::update_matrix(0, *pmtx, RT_UPDATE_FLAG_MTX, trnode);
 
     rt_Node::update_fields();
 
@@ -2117,7 +2162,7 @@ rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
 
     rt_Surface(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_PLANE)))
 {
-    this->xpl = (rt_PLANE *)obj->obj.pobj;
+    xpl = (rt_PLANE *)obj->obj.pobj;
 
     if (srf->min[RT_I] == -RT_INF
     ||  srf->min[RT_J] == -RT_INF
@@ -2284,7 +2329,7 @@ rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
 
     rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_CYLINDER)))
 {
-    this->xcl = (rt_CYLINDER *)obj->obj.pobj;
+    xcl = (rt_CYLINDER *)obj->obj.pobj;
 
     if (srf->min[RT_K] == -RT_INF
     ||  srf->max[RT_K] == +RT_INF)
@@ -2393,7 +2438,7 @@ rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
 
     rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_SPHERE)))
 {
-    this->xsp = (rt_SPHERE *)obj->obj.pobj;
+    xsp = (rt_SPHERE *)obj->obj.pobj;
 
     if (RT_TRUE)
     {
@@ -2511,7 +2556,7 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
 
     rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_CONE)))
 {
-    this->xcn = (rt_CONE *)obj->obj.pobj;
+    xcn = (rt_CONE *)obj->obj.pobj;
 
     if (srf->min[RT_K] == -RT_INF
     ||  srf->max[RT_K] == +RT_INF)
@@ -2620,7 +2665,7 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
 
     rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_PARABOLOID)))
 {
-    this->xpb = (rt_PARABOLOID *)obj->obj.pobj;
+    xpb = (rt_PARABOLOID *)obj->obj.pobj;
 
     if (srf->min[RT_K] == -RT_INF && xpb->par < 0.0f
     ||  srf->max[RT_K] == +RT_INF && xpb->par > 0.0f)
@@ -2739,7 +2784,7 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
 
     rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_HYPERBOLOID)))
 {
-    this->xhb = (rt_HYPERBOLOID *)obj->obj.pobj;
+    xhb = (rt_HYPERBOLOID *)obj->obj.pobj;
 
     if (srf->min[RT_K] == -RT_INF
     ||  srf->max[RT_K] == +RT_INF)
