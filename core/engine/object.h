@@ -71,7 +71,7 @@
 
 /* set for object which has
  * some of its parents changed */
-#define RT_UPDATE_FLAG_ARR          (1 << 2)
+#define RT_UPDATE_FLAG_OBJ          (1 << 2)
 
 /* Classes */
 
@@ -188,6 +188,10 @@ class rt_Object
     rt_OBJECT          *obj;
     /* original transform data */
     rt_TRANSFORM3D      otm;
+
+    /* matrix pointer
+     * for/from the hierarchy */
+    rt_mat4            *pmtx;
 
     /* axis mapping for trivial transform */
     rt_cell             map[4];
@@ -369,12 +373,6 @@ class rt_Light : public rt_Object, public rt_List<rt_Light>
 class rt_Node : public rt_Object
 {
 /*  fields */
-
-    protected:
-
-    /* matrix pointer
-     * for/from the hierarchy */
-    rt_mat4            *pmtx;
 
     public:
 

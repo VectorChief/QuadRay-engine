@@ -69,6 +69,10 @@ rt_Object::rt_Object(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj)
     this->pos = this->mtx[3];
     this->tag = obj->obj.tag;
 
+    /* reset matrix pointer
+     * for/from the hierarchy */
+    this->pmtx = RT_NULL;
+
     /* reset object's changed status
      * along with transform flags */
     this->obj_changed = 0;
@@ -148,14 +152,14 @@ rt_void rt_Object::update_status(rt_long time, rt_cell flags,
     obj->time = time;
 
     /* inherit changed status from the hierarchy */
-    obj_changed = flags & RT_UPDATE_FLAG_ARR;
+    obj_changed = flags & RT_UPDATE_FLAG_OBJ;
 
     /* update changed status for all object
      * instances sharing the same scene data,
      * even though animator is called only once */
     if (obj->f_anim != RT_NULL)
     {
-        obj_changed |= RT_UPDATE_FLAG_ARR;
+        obj_changed |= RT_UPDATE_FLAG_OBJ;
     }
 
     if (obj_changed == 0)
@@ -375,9 +379,11 @@ rt_Camera::rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 rt_void rt_Camera::update_object(rt_long time, rt_cell flags,
                                  rt_Object *trnode, rt_mat4 mtx)
 {
-    rt_Object::update_object(time, flags | cam_changed, trnode, mtx);
+    update_status(time, flags | cam_changed, trnode);
 
-    update_fields();
+    /* set matrix pointer
+     * from immediate parent array */
+    pmtx = (rt_mat4 *)mtx;
 }
 
 /*
@@ -389,6 +395,10 @@ rt_void rt_Camera::update_fields()
     {
         return;
     }
+
+    /* pass matrix pointer
+     * from immediate parent array */
+    update_matrix(*pmtx);
 
     rt_Object::update_fields();
 
@@ -479,7 +489,7 @@ rt_void rt_Camera::update_action(rt_long time, rt_cell action)
     }
 
     /* set camera's changed status */
-    cam_changed = RT_UPDATE_FLAG_ARR;
+    cam_changed = RT_UPDATE_FLAG_OBJ;
 }
 
 /*
@@ -535,9 +545,11 @@ rt_Light::rt_Light(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 rt_void rt_Light::update_object(rt_long time, rt_cell flags,
                                 rt_Object *trnode, rt_mat4 mtx)
 {
-    rt_Object::update_object(time, flags, trnode, mtx);
+    update_status(time, flags, trnode);
 
-    update_fields();
+    /* set matrix pointer
+     * from immediate parent array */
+    pmtx = (rt_mat4 *)mtx;
 }
 
 /*
@@ -549,6 +561,10 @@ rt_void rt_Light::update_fields()
     {
         return;
     }
+
+    /* pass matrix pointer
+     * from immediate parent array */
+    update_matrix(*pmtx);
 
     rt_Object::update_fields();
 
@@ -605,10 +621,6 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
 
     rt_Object(rg, parent, obj)
 {
-    /* reset matrix pointer
-     * for/from the hierarchy */
-    pmtx = RT_NULL;
-
     /* reset relations template */
     rel = RT_NULL;
 
@@ -1440,7 +1452,7 @@ rt_void rt_Array::update_status(rt_long time, rt_cell flags,
     || (rg->opts & RT_OPTS_UPDATE) == 0)
 #endif /* RT_OPTS_UPDATE */
     {
-        flags |= RT_UPDATE_FLAG_ARR;
+        flags |= RT_UPDATE_FLAG_OBJ;
     }
 
     rt_Node::update_status(time, flags, trnode);

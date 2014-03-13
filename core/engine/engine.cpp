@@ -2095,6 +2095,18 @@ rt_void rt_Scene::render(rt_long time)
     /* phase 0.5, hierarchical update of arrays' transform matrices */
     root->update_object(time, 0, RT_NULL, iden4);
 
+    /* 1st phase of multi-threaded update */
+#if RT_OPTS_THREAD != 0
+    if ((opts & RT_OPTS_THREAD) != 0 && !g_print)
+    {
+        this->f_update(tdata, thnum, 1);
+    }
+    else
+#endif /* RT_OPTS_THREAD */
+    {
+        update_scene(this, thnum, 1);
+    }
+
     /* update rays positioning and steppers */
     rt_real h, v;
 
@@ -2123,18 +2135,6 @@ rt_void rt_Scene::render(rt_long time)
     if (g_print)
     {
         RT_PRINT_CAM(cam);
-    }
-
-    /* 1st phase of multi-threaded update */
-#if RT_OPTS_THREAD != 0
-    if ((opts & RT_OPTS_THREAD) != 0 && !g_print)
-    {
-        this->f_update(tdata, thnum, 1);
-    }
-    else
-#endif /* RT_OPTS_THREAD */
-    {
-        update_scene(this, thnum, 1);
     }
 
     /* 2nd phase of multi-threaded update */
@@ -2359,8 +2359,10 @@ rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
 {
     rt_cell i;
 
-    rt_Array *arr = RT_NULL;
-    rt_Surface *srf = RT_NULL;
+    rt_Array   *arr;
+    rt_Camera  *cam;
+    rt_Light   *lgt;
+    rt_Surface *srf;
 
     if (phase == 1)
     {
@@ -2374,6 +2376,32 @@ rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
             /* update array's fields from transform matrix
              * updated in sequential phase 0.5 */
             arr->update_fields();
+        }
+
+        for (cam = cam_head, i = 0; cam != RT_NULL; cam = cam->next, i++)
+        {
+            if ((i % thnum) != index)
+            {
+                continue;
+            }
+
+            /* update camera's fields and transform matrix
+             * from parent array's transform matrix
+             * updated in sequential phase 0.5 */
+            cam->update_fields();
+        }
+
+        for (lgt = lgt_head, i = 0; lgt != RT_NULL; lgt = lgt->next, i++)
+        {
+            if ((i % thnum) != index)
+            {
+                continue;
+            }
+
+            /* update light's fields and transform matrix
+             * from parent array's transform matrix
+             * updated in sequential phase 0.5 */
+            lgt->update_fields();
         }
 
         for (srf = srf_head, i = 0; srf != RT_NULL; srf = srf->next, i++)
