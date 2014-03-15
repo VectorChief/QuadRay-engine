@@ -635,13 +635,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm2, Mecx, ctx_DFF_J)
         movpx_st(Xmm3, Mecx, ctx_DFF_K)
 
-        /* check if surface is trnode's
-         * last element for transform caching */
-        cmpxx_rm(Resi, Mecx, ctx_LOCAL(OBJ))
-        jnexx_lb(OO_trm)
-
-        /* reset ctx_LOCAL(OBJ) if so */
-        movxx_mi(Mecx, ctx_LOCAL(OBJ), IB(0))
         jmpxx_lb(OO_trm)
 
     LBL(OO_dff)
@@ -3314,6 +3307,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
 
     LBL(OO_end)
+
+        /* check if surface is trnode's
+         * last element for transform caching */
+        cmpxx_rm(Resi, Mecx, ctx_LOCAL(OBJ))
+        jnexx_lb(OO_skp)
+
+        /* reset ctx_LOCAL(OBJ) if so */
+        movxx_mi(Mecx, ctx_LOCAL(OBJ), IB(0))
+
+    LBL(OO_skp)
 
         movxx_ld(Resi, Mesi, elm_NEXT)
         jmpxx_lb(OO_cyc)
