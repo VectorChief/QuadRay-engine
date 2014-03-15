@@ -635,6 +635,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm2, Mecx, ctx_DFF_J)
         movpx_st(Xmm3, Mecx, ctx_DFF_K)
 
+        /* check if surface is trnode's
+         * last element for transform caching */
+        cmpxx_rm(Resi, Mecx, ctx_LOCAL(OBJ))
+        jnexx_lb(OO_trm)
+
+        /* reset ctx_LOCAL(OBJ) if so */
+        movxx_mi(Mecx, ctx_LOCAL(OBJ), IB(0))
         jmpxx_lb(OO_trm)
 
     LBL(OO_dff)
@@ -785,7 +792,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* skip trnode elements from the list */
         cmpxx_mi(Mebx, srf_SRF_P(PTR), IB(0))
-        jeqxx_lb(OO_skp)
+        jeqxx_lb(OO_end)
 
 #endif /* RT_FEAT_TRANSFORM_ARRAY */
 
@@ -994,12 +1001,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_C_TMP)         /* save current clip mask */
         movxx_ld(Rebx, Mesi, elm_SIMD)
         movpx_ld(Xmm7, Mebx, srf_C_TMP)         /* load default clip mask */
-        jmpxx_lb(CC_skp)                        /* accum enter */
+        jmpxx_lb(CC_end)                        /* accum enter */
 
     LBL(CC_acl)
 
         annpx_ld(Xmm7, Mecx, ctx_C_TMP)         /* apply accum clip mask */
-        jmpxx_lb(CC_skp)                        /* accum leave */
+        jmpxx_lb(CC_end)                        /* accum leave */
 
     LBL(CC_acc)
 
@@ -1033,6 +1040,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use context's normal fields (NRM)
          * as temporary storage for clipping */
 
+        /* check if clipper is trnode's
+         * last element for transform caching */
+        cmpxx_rr(Redi, Redx)
+        jnexx_lb(CC_trm)
+
+        /* reset Redx if so */
+        movxx_ri(Redx, IB(0))
         jmpxx_lb(CC_trm)
 
     LBL(CC_arr)
@@ -1066,7 +1080,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* enable transform caching from trnode,
          * init Redx as last element */
         movxx_ld(Redx, Medi, elm_DATA)
-        jmpxx_lb(CC_skp)
+        jmpxx_lb(CC_end)
 
     LBL(CC_dff)
 
@@ -1143,7 +1157,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* enable transform caching from trnode,
          * init Redx as last element */
         movxx_ld(Redx, Medi, elm_DATA)
-        jmpxx_lb(CC_skp)
+        jmpxx_lb(CC_end)
 
     LBL(CC_srf)
 
@@ -1166,16 +1180,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         andpx_rr(Xmm7, Xmm4)
 
     LBL(CC_end)
-
-        /* check if clipper is trnode's
-         * last element for transform caching */
-        cmpxx_rr(Redi, Redx)
-        jnexx_lb(CC_skp)
-
-        /* reset Redx if so */
-        movxx_ri(Redx, IB(0))
-
-    LBL(CC_skp)
 
         movxx_ld(Redi, Medi, elm_NEXT)
         jmpxx_lb(CC_cyc)
@@ -2093,7 +2097,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(AR_skp, NONE, Xmm7)
-        jmpxx_lb(OO_skp)
+        jmpxx_lb(OO_end)
 
     LBL(AR_skp)
 
@@ -2103,6 +2107,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         shrxx_ri(Reax, IB(2))
         shlxx_ri(Reax, IB(2))
         movxx_rr(Resi, Reax)
+
+        /* check if surface is trnode's
+         * last element for transform caching */
+        cmpxx_rm(Resi, Mecx, ctx_LOCAL(OBJ))
+        jnexx_lb(OO_end)
+
+        /* reset ctx_LOCAL(OBJ) if so */
+        movxx_mi(Mecx, ctx_LOCAL(OBJ), IB(0))
         jmpxx_lb(OO_end)
 
 #endif /* RT_FEAT_BOUNDINGV_ARRAY */
@@ -3310,16 +3322,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
 
     LBL(OO_end)
-
-        /* check if surface is trnode's
-         * last element for transform caching */
-        cmpxx_rm(Resi, Mecx, ctx_LOCAL(OBJ))
-        jnexx_lb(OO_skp)
-
-        /* reset ctx_LOCAL(OBJ) if so */
-        movxx_mi(Mecx, ctx_LOCAL(OBJ), IB(0))
-
-    LBL(OO_skp)
 
         movxx_ld(Resi, Mesi, elm_NEXT)
         jmpxx_lb(OO_cyc)

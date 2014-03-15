@@ -233,7 +233,7 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     }
     else
     {
-        RT_LOGI("empty object:  ", (rt_word)obj);
+        RT_LOGI("obj: %08X, ", (rt_word)obj);
         RT_LOGI("    ");
         RT_LOGI("%s", markers[RT_MIN(i, RT_ARR_SIZE(markers) - 1)]);
     }
