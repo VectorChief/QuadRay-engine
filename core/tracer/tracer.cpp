@@ -785,7 +785,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* skip trnode elements from the list */
         cmpxx_mi(Mebx, srf_SRF_P(PTR), IB(0))
-        jeqxx_lb(OO_end)
+        jeqxx_lb(OO_skp)
 
 #endif /* RT_FEAT_TRANSFORM_ARRAY */
 
@@ -994,12 +994,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_C_TMP)         /* save current clip mask */
         movxx_ld(Rebx, Mesi, elm_SIMD)
         movpx_ld(Xmm7, Mebx, srf_C_TMP)         /* load default clip mask */
-        jmpxx_lb(CC_end)                        /* accum enter */
+        jmpxx_lb(CC_skp)                        /* accum enter */
 
     LBL(CC_acl)
 
         annpx_ld(Xmm7, Mecx, ctx_C_TMP)         /* apply accum clip mask */
-        jmpxx_lb(CC_end)                        /* accum leave */
+        jmpxx_lb(CC_skp)                        /* accum leave */
 
     LBL(CC_acc)
 
@@ -1033,13 +1033,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use context's normal fields (NRM)
          * as temporary storage for clipping */
 
-        /* check if clipper is trnode's
-         * last element for transform caching */
-        cmpxx_rr(Redi, Redx)
-        jnexx_lb(CC_trm)
-
-        /* reset Redx if so */
-        movxx_ri(Redx, IB(0))
         jmpxx_lb(CC_trm)
 
     LBL(CC_arr)
@@ -1073,7 +1066,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* enable transform caching from trnode,
          * init Redx as last element */
         movxx_ld(Redx, Medi, elm_DATA)
-        jmpxx_lb(CC_end)
+        jmpxx_lb(CC_skp)
 
     LBL(CC_dff)
 
@@ -1150,7 +1143,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* enable transform caching from trnode,
          * init Redx as last element */
         movxx_ld(Redx, Medi, elm_DATA)
-        jmpxx_lb(CC_end)
+        jmpxx_lb(CC_skp)
 
     LBL(CC_srf)
 
@@ -1173,6 +1166,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         andpx_rr(Xmm7, Xmm4)
 
     LBL(CC_end)
+
+        /* check if clipper is trnode's
+         * last element for transform caching */
+        cmpxx_rr(Redi, Redx)
+        jnexx_lb(CC_skp)
+
+        /* reset Redx if so */
+        movxx_ri(Redx, IB(0))
+
+    LBL(CC_skp)
 
         movxx_ld(Redi, Medi, elm_NEXT)
         jmpxx_lb(CC_cyc)
@@ -2090,7 +2093,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(AR_skp, NONE, Xmm7)
-        jmpxx_lb(OO_end)
+        jmpxx_lb(OO_skp)
 
     LBL(AR_skp)
 
