@@ -167,11 +167,11 @@ rt_OBJECT ob_column02[] =
 
 rt_RELATION rl_column02[] =
 {
-    {  -1,  RT_REL_BOUND_ARRAY,   2   },
     {  -1,  RT_REL_BOUND_ARRAY,  -1   },
     {  -1,  RT_REL_MINUS_OUTER,   2   },
     {   0,  RT_REL_MINUS_ACCUM,  -1   },
     {   2,  RT_REL_MINUS_OUTER,   0   },
+    {  -1,  RT_REL_BOUND_ARRAY,   2   },
 };
 
 rt_OBJECT ob_base01[] =
