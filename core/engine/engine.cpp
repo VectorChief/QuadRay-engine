@@ -233,6 +233,7 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     }
     else
     {
+        RT_LOGI("empty object:  ", (rt_word)obj);
         RT_LOGI("    ");
         RT_LOGI("%s", markers[RT_MIN(i, RT_ARR_SIZE(markers) - 1)]);
     }
@@ -1253,7 +1254,7 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
 
             if (srf->trnode != RT_NULL && srf->trnode != srf)
             {
-                rt_cell acc  = 0;
+                rt_cell acc = 0;
                 rt_ELEM *nxt;
 
                 rt_Array *arr = (rt_Array *)srf->trnode;
@@ -1280,7 +1281,7 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
 
                     /* didn't find trnode within current accum segment,
                      * leaving cycle, new trnode element will be inserted */
-                    if (acc == 0 
+                    if (acc == 0
                     &&  nxt->data == RT_ACCUM_LEAVE)
                     {
                         nxt = RT_NULL;
