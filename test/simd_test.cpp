@@ -16,7 +16,6 @@
 /******************************************************************************/
 
 #define RUN_LEVEL           13
-#define VERBOSE             RT_FALSE
 #define CYC_SIZE            1000000
 
 #define ARR_SIZE            S*3 /* hardcoded in asm sections, S = SIMD width */
@@ -39,8 +38,8 @@
 /***************************   VARS, FUNCS, TYPES   ***************************/
 /******************************************************************************/
 
-static rt_bool v_mode = VERBOSE;
 static rt_cell t_diff = 2;
+static rt_bool v_mode = RT_FALSE;
 
 /*
  * Extended SIMD info structure for asm enter/leave
@@ -1651,11 +1650,6 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 
     for (k = 1; k < argc; k++)
     {
-        if (strcmp(argv[k], "-v") == 0 && v_mode == RT_FALSE)
-        {
-            v_mode = RT_TRUE;
-            RT_LOGI("Verbose mode enabled\n");
-        }
         if (strcmp(argv[k], "-d") == 0 && ++k < argc)
         {
             t_diff = argv[k][0] - '0';
@@ -1668,6 +1662,11 @@ rt_cell main(rt_cell argc, rt_char *argv[])
                 RT_LOGI("Diff threshold value out of range\n");
                 return 0;
             }
+        }
+        if (strcmp(argv[k], "-v") == 0 && !v_mode)
+        {
+            v_mode = RT_TRUE;
+            RT_LOGI("Verbose mode enabled\n");
         }
     }
 

@@ -14,25 +14,28 @@
 /******************************************************************************/
 
 #define RUN_LEVEL           13
-#define VERBOSE             RT_FALSE
 #define CYC_SIZE            3
 
 #define RT_X_RES            800
 #define RT_Y_RES            480
 
-#define CHN(px, sh)         ((px) >> (sh) & 0xFF)    
-#define IEQ(i1, i2)         (RT_ABS((i1) - (i2)) <= t_diff)
-#define PEQ(p1, p2)         (IEQ(CHN(p1, 24), CHN(p2, 24)) &&               \
-                             IEQ(CHN(p1, 16), CHN(p2, 16)) &&               \
-                             IEQ(CHN(p1,  8), CHN(p2,  8)) &&               \
-                             IEQ(CHN(p1,  0), CHN(p2,  0)))
+#define CHN(px, sh)         ((px) & (0xFF << (sh)))    
+#define PEQ(p1, p2)         (RT_ABS(CHN(p1,24)-CHN(p2,24))<=(t_diff<<24) && \
+                             RT_ABS(CHN(p1,16)-CHN(p2,16))<=(t_diff<<16) && \
+                             RT_ABS(CHN(p1, 8)-CHN(p2, 8))<=(t_diff<< 8) && \
+                             RT_ABS(CHN(p1, 0)-CHN(p2, 0))<=(t_diff<< 0))
+#define PDF(p1, p2)         (RT_ABS(CHN(p1,24)-CHN(p2,24)) +                \
+                             RT_ABS(CHN(p1,16)-CHN(p2,16)) +                \
+                             RT_ABS(CHN(p1, 8)-CHN(p2, 8)) +                \
+                             RT_ABS(CHN(p1, 0)-CHN(p2, 0)))
 
 /******************************************************************************/
 /***************************   VARS, FUNCS, TYPES   ***************************/
 /******************************************************************************/
 
-static rt_bool v_mode = VERBOSE;
 static rt_cell t_diff = 2;
+static rt_bool v_mode = RT_FALSE;
+static rt_bool i_mode = RT_FALSE;
 
 static rt_cell x_res = RT_X_RES;
 static rt_cell y_res = RT_Y_RES;
@@ -47,9 +50,9 @@ rt_void frame_cpy(rt_word *fd, rt_word *fs)
 {
     rt_cell i;
 
-    for (i = 0; i < y_res * x_row; i++)
+    for (i = 0; i < y_res * x_row; i++, fd++, fs++)
     {
-       *fd++ = *fs++;
+       *fd = *fs;
     }
 }
 
@@ -82,6 +85,17 @@ rt_cell frame_cmp(rt_word *f1, rt_word *f2)
     }
 
     return ret;
+}
+
+static
+rt_void frame_dff(rt_word *fd, rt_word *fs)
+{
+    rt_cell i;
+
+    for (i = 0; i < y_res * x_row; i++, fd++, fs++)
+    {
+       *fd = PDF(*fd, *fs);
+    }
 }
 
 /******************************************************************************/
@@ -439,11 +453,6 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 
     for (k = 1; k < argc; k++)
     {
-        if (strcmp(argv[k], "-v") == 0 && v_mode == RT_FALSE)
-        {
-            v_mode = RT_TRUE;
-            RT_LOGI("Verbose mode enabled\n");
-        }
         if (strcmp(argv[k], "-d") == 0 && ++k < argc)
         {
             t_diff = argv[k][0] - '0';
@@ -456,6 +465,16 @@ rt_cell main(rt_cell argc, rt_char *argv[])
                 RT_LOGI("Diff threshold value out of range\n");
                 return 0;
             }
+        }
+        if (strcmp(argv[k], "-v") == 0 && !v_mode)
+        {
+            v_mode = RT_TRUE;
+            RT_LOGI("Verbose mode enabled\n");
+        }
+        if (strcmp(argv[k], "-i") == 0 && !i_mode)
+        {
+            i_mode = RT_TRUE;
+            RT_LOGI("Imaging mode enabled\n");
         }
     }
 
@@ -485,6 +504,10 @@ rt_cell main(rt_cell argc, rt_char *argv[])
             tN = time2 - time1;
             RT_LOGI("Time N = %d\n", (rt_cell)tN);
 
+            if (i_mode)
+            {
+                scene->save_frame((i+1) * 10 + 0);
+            }
             frame_cpy(frame, scene->get_frame());
             delete scene;
 
@@ -504,7 +527,17 @@ rt_cell main(rt_cell argc, rt_char *argv[])
             tF = time2 - time1;
             RT_LOGI("Time F = %d\n", (rt_cell)tF);
 
+            if (i_mode)
+            {
+                scene->save_frame((i+1) * 10 + 1);
+            }
             frame_cmp(frame, scene->get_frame());
+
+            frame_dff(scene->get_frame(), frame);
+            if (i_mode)
+            {
+                scene->save_frame((i+1) * 10 + 2);
+            }
             delete scene;
         }
         catch (rt_Exception e)
