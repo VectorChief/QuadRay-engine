@@ -628,115 +628,140 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         elm->simd = srf->s_srf;
         elm->temp = srf;
 
-        rt_ELEM *lst[2], *nxt;
-        rt_Array *arr[2];
+        /* reset surface's trnode/bvnode sequence */
+        rt_ELEM *top = RT_NULL;
+        rt_ELEM *trn = RT_NULL;
 
-        lst[0] = RT_NULL;
-        arr[0] = srf->trnode != RT_NULL && srf->trnode != srf ?
-                 (rt_Array *)srf->trnode : RT_NULL;
+        /* build surface's trnode/bvnode sequence,
+         * trnodes hierarchy is flat as objects with
+         * non-trivial transform are their own trnodes,
+         * while bvnodes can have arbitrary depth
+         * above and below the trnode (if present) */
+        rt_ELEM *tmp;
+        rt_Object *par;
 
-        lst[1] = RT_NULL;
-        arr[1] = srf->bvnode != RT_NULL && !RT_IS_CAMERA(obj) ?
-                 (rt_Array *)srf->bvnode : RT_NULL;
-
-        rt_cell i, k = 0, n = (arr[0] != RT_NULL) + (arr[1] != RT_NULL);
-
-        if (n != 0)
+        /* phase 1, bvnodes (if any) below trnode (if any),
+         * if the same array serves as both trnode and bvnode,
+         * bvnode is considered above, thus trnode is inserted first */
+        for (par = srf->bvnode; par != RT_NULL &&
+             par->trnode == srf->trnode && par->trnode != par;
+             par = par->bvnode)
         {
-            /* search matching existing trnode/bvnode for insertion */
-            for (nxt = *ptr; nxt != RT_NULL; nxt = nxt->next)
-            {
-                for (i = 0; i < 2; i++)
-                {
-                    if (arr[i] == nxt->temp && (nxt->data & 0x3) == i)
-                    {
-#if RT_DEBUG == 1
-                        if (arr[i] == RT_NULL
-                        ||  lst[i] != RT_NULL)
-                        {
-                            throw rt_Exception("inconsistency in surface list");
-                        }
-#endif /* RT_DEBUG */
-                        lst[i] = nxt;
-                        ptr = &nxt->next;
-                        k++;
-                        if (k == n)
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
+            tmp = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+            tmp->data = 1; /* node's type (bv) */
+            tmp->simd = ((rt_Array *)par)->s_srf;
+            tmp->temp = par;
+            tmp->next = top;
+            top = tmp;
+        }
+        /* phase 2, there can only be one trnode (if any),
+         * even though there might be other trnodes
+         * above and below in the objects hierarchy
+         * they themselves don't form the hierarchy
+         * as any trnode is always its own trnode */
+        if (srf->trnode != RT_NULL && srf->trnode != srf)
+        {
+            tmp = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+            tmp->data = 0; /* node's type (tr) */
+            tmp->simd = ((rt_Array *)srf->trnode)->s_srf;
+            tmp->temp = srf->trnode;
+            tmp->next = top;
+            top = tmp;
+
+            tmp = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+            tmp->data = 0; /* node's type (tr) */
+            tmp->simd = ((rt_Array *)srf->trnode)->s_srf;
+            tmp->temp = srf->trnode;
+            tmp->next = RT_NULL;
+            trn = tmp;
+        }
+        /* phase 3, bvnodes (if any) above trnode (if any) */
+        for (; par != RT_NULL; par = par->bvnode)
+        {
+            tmp = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+            tmp->data = 1; /* node's type (bv) */
+            tmp->simd = ((rt_Array *)par)->s_srf;
+            tmp->temp = par;
+            tmp->next = top;
+            top = tmp;
         }
 
-        k = -1;
+        /* search matching existing trnode/bvnode for insertion,
+         * run through the list hierarchy to find the inner-most node
+         * starting from the top of the trnode/bvnode sequence */
+        rt_ELEM *nxt, *lst = trn, *end = RT_NULL;
 
-        if (n == 2)
+#if RT_OPTS_VARRAY != 0
+        if ((scene->opts & RT_OPTS_VARRAY) != 0)
         {
-            /* determine trnode/bvnode order on the branch */
-            if (arr[0] == arr[1])
+            lst = top;
+        }
+#endif /* RT_OPTS_VARRAY */
+
+#if RT_OPTS_TILING != 0
+        if ((scene->opts & RT_OPTS_TILING) != 0
+        &&  RT_IS_CAMERA(obj))
+        {
+            lst = trn;
+        }
+#endif /* RT_OPTS_TILING */
+
+        for (nxt = *ptr; nxt != end && lst != RT_NULL;)
+        {
+            /* check if matching array node */
+            if (nxt->temp == lst->temp
+            && (nxt->data & 3) == lst->data)
             {
-                k = 0;
+                /* set insertion point to existing node's sublist */
+                ptr = &nxt->next;
+                end = (rt_ELEM *)(nxt->data & ~3);
+                /* search next inner node in existing node's sublist */
+                nxt = nxt->next;
+                lst = lst->next;
             }
             else
+            /* check if non-matching array node */
+            if (nxt->data != 0)
             {
-                for (i = 0; i < 2; i++)
-                {
-                    rt_Array *par = RT_NULL;
-                    for (par = (rt_Array *)arr[i]->parent; par != RT_NULL;
-                         par = (rt_Array *)par->parent)
-                    {
-                        if (par == arr[1 - i])
-                        {
-                            k = i;
-                            break;
-                        }
-                    }
-                    if (k == i)
-                    {
-                        break;
-                    }
-                }
+                /* skip non-matching array node by jumping
+                 * to its last element (always surface),
+                 * not advancing before nxt != end check */
+                nxt = (rt_ELEM *)(nxt->data & ~3);
+            }
+            /* surface node */
+            else
+            {
+                /* advance to the next element */
+                nxt = nxt->next;
             }
         }
-        else
-        if (arr[0] != RT_NULL)
-        {
-            k = 0;
-        }
-        else
-        if (arr[1] != RT_NULL)
-        {
-            k = 1;
-        }
+        /* search above is desgined in such a way, that contents
+         * of one array node can now be split across the boundary
+         * of another array node by inserting two different node
+         * elements of the same type belonging to the same array,
+         * one into another array node's sublist and one outside,
+         * this allows for greater flexibility in trnode/bvnode
+         * relationship, something not allowed in previous versions */
 
-        if (n != 0 && k == -1)
+        /* allocate new node elements from outer-most to inner-most
+         * if they are not already in the list */
+        for (; lst != RT_NULL; lst = lst->next)
         {
-            throw rt_Exception("trnode and bvnode are not on the same branch");
-        }
-        if (n == 2 && lst[k] != RT_NULL && lst[1 - k] == RT_NULL)
-        {
-            throw rt_Exception("inconsistency between trnode and bvnode");
+            /* alloc new trnode/bvnode element as none has been found */
+            nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
+            nxt->data = (rt_cell)elm | lst->data; /* node's type */
+            nxt->simd = lst->simd;
+            nxt->temp = lst->temp;
+            /* insert element according to found position */
+            nxt->next = *ptr;
+           *ptr = nxt;
+            /* set insertion point to new node's sublist */
+            ptr = &nxt->next;
         }
 
         /* insert element according to found position */
         elm->next = *ptr;
        *ptr = elm;
-
-        for (i = 0; i < n; i++, k = 1 - k)
-        {
-            if (arr[k] != RT_NULL && lst[k] == RT_NULL)
-            {
-                /* alloc new trnode/bvnode element as none has been found */
-                nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_ALIGN);
-                nxt->data = (rt_cell)elm | k; /* last element plus flag */
-                nxt->simd = arr[k]->s_srf;
-                nxt->temp = arr[k];
-                /* insert element according to found position */
-                nxt->next = *ptr;
-               *ptr = nxt;
-            }
-        }
     }
     else
     if (RT_IS_LIGHT(obj))
