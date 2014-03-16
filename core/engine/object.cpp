@@ -559,8 +559,7 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     /* check bbox geometry limits */
     if (verts_num > RT_VERTS_LIMIT
-    ||  edges_num > RT_EDGES_LIMIT
-    ||  faces_num > RT_FACES_LIMIT)
+    ||  edges_num > RT_EDGES_LIMIT)
     {
         throw rt_Exception("bbox geometry limits exceeded in Surface");
     }
@@ -742,12 +741,6 @@ rt_EDGE pl_edges[] =
     {0x3, 0x0},
 };
 
-static
-rt_FACE pl_faces[] = 
-{
-    {0x0, 0x1, 0x2, 0x3},
-};
-
 rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
                    rt_OBJECT *obj, rt_cell ssize) :
 
@@ -765,9 +758,6 @@ rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
 
         edges_num = 0;
         edges = RT_NULL;
-
-        faces_num = 0;
-        faces = RT_NULL;
     }
     else
     {
@@ -777,10 +767,6 @@ rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
         edges_num = RT_ARR_SIZE(pl_edges);
         edges = (rt_EDGE *)rg->alloc(edges_num * sizeof(rt_EDGE), RT_ALIGN);
         memcpy(edges, pl_edges, edges_num * sizeof(rt_EDGE));
-
-        faces_num = RT_ARR_SIZE(pl_faces);
-        faces = (rt_FACE *)rg->alloc(faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(faces, pl_faces, faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_PLANE */
@@ -900,17 +886,6 @@ rt_EDGE qd_edges[] =
     {0x1, 0x5},
     {0x2, 0x6},
     {0x3, 0x7},
-};
-
-static
-rt_FACE qd_faces[] = 
-{
-    {0x0, 0x1, 0x2, 0x3},
-    {0x4, 0x5, 0x6, 0x7},
-    {0x0, 0x4, 0x5, 0x1},
-    {0x1, 0x5, 0x6, 0x2},
-    {0x2, 0x6, 0x7, 0x3},
-    {0x3, 0x7, 0x4, 0x0},
 };
 
 rt_Quadric::rt_Quadric(rt_Registry *rg, rt_Object *parent,
@@ -1060,9 +1035,6 @@ rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
 
         edges_num = 0;
         edges = RT_NULL;
-
-        faces_num = 0;
-        faces = RT_NULL;
     }
     else
     {
@@ -1072,10 +1044,6 @@ rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
         edges_num = RT_ARR_SIZE(qd_edges);
         edges = (rt_EDGE *)rg->alloc(edges_num * sizeof(rt_EDGE), RT_ALIGN);
         memcpy(edges, qd_edges, edges_num * sizeof(rt_EDGE));
-
-        faces_num = RT_ARR_SIZE(qd_faces);
-        faces = (rt_FACE *)rg->alloc(faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(faces, qd_faces, faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_CYLINDER */
@@ -1136,9 +1104,6 @@ rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
 
         edges_num = 0;
         edges = RT_NULL;
-
-        faces_num = 0;
-        faces = RT_NULL;
     }
     else
     {
@@ -1148,10 +1113,6 @@ rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
         edges_num = RT_ARR_SIZE(qd_edges);
         edges = (rt_EDGE *)rg->alloc(edges_num * sizeof(rt_EDGE), RT_ALIGN);
         memcpy(edges, qd_edges, edges_num * sizeof(rt_EDGE));
-
-        faces_num = RT_ARR_SIZE(qd_faces);
-        faces = (rt_FACE *)rg->alloc(faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(faces, qd_faces, faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_SPHERE */
@@ -1233,9 +1194,6 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
 
         edges_num = 0;
         edges = RT_NULL;
-
-        faces_num = 0;
-        faces = RT_NULL;
     }
     else
     {
@@ -1245,10 +1203,6 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
         edges_num = RT_ARR_SIZE(qd_edges);
         edges = (rt_EDGE *)rg->alloc(edges_num * sizeof(rt_EDGE), RT_ALIGN);
         memcpy(edges, qd_edges, edges_num * sizeof(rt_EDGE));
-
-        faces_num = RT_ARR_SIZE(qd_faces);
-        faces = (rt_FACE *)rg->alloc(faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(faces, qd_faces, faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_CONE */
@@ -1311,9 +1265,6 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
 
         edges_num = 0;
         edges = RT_NULL;
-
-        faces_num = 0;
-        faces = RT_NULL;
     }
     else
     {
@@ -1323,10 +1274,6 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
         edges_num = RT_ARR_SIZE(qd_edges);
         edges = (rt_EDGE *)rg->alloc(edges_num * sizeof(rt_EDGE), RT_ALIGN);
         memcpy(edges, qd_edges, edges_num * sizeof(rt_EDGE));
-
-        faces_num = RT_ARR_SIZE(qd_faces);
-        faces = (rt_FACE *)rg->alloc(faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(faces, qd_faces, faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_PARABOLOID */
@@ -1396,9 +1343,6 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
 
         edges_num = 0;
         edges = RT_NULL;
-
-        faces_num = 0;
-        faces = RT_NULL;
     }
     else
     {
@@ -1408,10 +1352,6 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
         edges_num = RT_ARR_SIZE(qd_edges);
         edges = (rt_EDGE *)rg->alloc(edges_num * sizeof(rt_EDGE), RT_ALIGN);
         memcpy(edges, qd_edges, edges_num * sizeof(rt_EDGE));
-
-        faces_num = RT_ARR_SIZE(qd_faces);
-        faces = (rt_FACE *)rg->alloc(faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(faces, qd_faces, faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_HYPERBOLOID */
