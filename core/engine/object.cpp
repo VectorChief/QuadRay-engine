@@ -190,17 +190,45 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
  */
 rt_void rt_Object::update_bvnode(rt_Array *bvnode, rt_bool mode)
 {
-    if (bvnode == this)
+    /* bvnode cannot be its own bvnode,
+     * there is no bvnode for boundless surfaces */
+    if (bvnode == this
+    || (RT_IS_SURFACE(this) && ((rt_Surface *)this)->verts_num == 0))
     {
         return;
     }
-    if (mode == RT_TRUE  && this->bvnode == RT_NULL)
+
+    /* enable bvnode */
+    if (mode == RT_TRUE)
     {
-        this->bvnode = bvnode;
+        if (this->bvnode == RT_NULL)
+        {
+            this->bvnode = bvnode;
+        }
+        /* allow re-bounding objects to inner bvnodes */
+        else
+        {
+            rt_Object *par;
+
+            /* check if previously set bvnode is new bvnode's parent */
+            for (par = bvnode->parent; par != RT_NULL; par = par->parent)
+            {
+                if (this->bvnode == par)
+                {
+                    this->bvnode = bvnode;
+                    break;
+                }
+            }
+        }
     }
-    if (mode == RT_FALSE && this->bvnode == bvnode)
+    else
+    /* disable bvnode */
+    if (mode == RT_FALSE)
     {
-        this->bvnode = RT_NULL;
+        if (this->bvnode == bvnode)
+        {
+            this->bvnode = RT_NULL;
+        }
     }
 }
 
