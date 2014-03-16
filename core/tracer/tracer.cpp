@@ -2083,6 +2083,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         shrxx_ri(Reax, IB(2))
         shlxx_ri(Reax, IB(2))
         movxx_rr(Resi, Reax)
+
+        /* check if surface is trnode's
+         * last element for transform caching */
+        cmpxx_rm(Resi, Mecx, ctx_LOCAL(OBJ))
+        jnexx_lb(OO_end)
+
+        /* reset ctx_LOCAL(OBJ) if so */
+        movxx_mi(Mecx, ctx_LOCAL(OBJ), IB(0))
         jmpxx_lb(OO_end)
 
 #endif /* RT_FEAT_BOUNDINGV_ARRAY */
