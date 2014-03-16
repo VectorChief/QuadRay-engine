@@ -1158,7 +1158,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
             elm->data = rel;
             elm->simd = RT_NULL; /* accum marker */
             elm->temp = RT_NULL;
-            /* insert element as list head */
+            /* insert element as list's head */
             elm->next = *ptr;
            *ptr = elm;
         }
@@ -1243,7 +1243,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
 
                 if (trn == RT_NULL)
                 {
-                    /* insert element as list head */
+                    /* insert element as list's head */
                     elm->next = *ptr;
                    *ptr = elm;
 
@@ -1254,7 +1254,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
                     elm->data = (rt_cell)*ptr; /* trnode's last element */
                     elm->simd = arr->s_srf;
                     elm->temp = arr;
-                    /* insert element as list head */
+                    /* insert element as list's head */
                     elm->next = *ptr;
                    *ptr = elm;
                 }
@@ -1267,7 +1267,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
             }
             else
             {
-                /* insert element as list head */
+                /* insert element as list's head */
                 elm->next = *ptr;
                *ptr = elm;
             }
