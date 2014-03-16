@@ -137,7 +137,7 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * correct trnode as parameter to update */
     for (trnode = parent; trnode != RT_NULL; trnode = trnode->parent)
     {
-        if (trnode->obj_has_trm)
+        if (trnode->trnode == trnode)
         {
             break;
         }
