@@ -22,7 +22,6 @@
 
 #define RT_VERTS_LIMIT          8  /* for bbox */
 #define RT_EDGES_LIMIT          12 /* for bbox */
-#define RT_FACES_LIMIT          6  /* for bbox */
 
 #define RT_TILE_W               8
 #define RT_TILE_H               8

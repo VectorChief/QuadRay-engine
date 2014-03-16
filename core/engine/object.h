@@ -62,11 +62,6 @@ struct rt_EDGE
     rt_cell index[2];
 };
 
-struct rt_FACE
-{
-    rt_cell index[4];
-};
-
 /* Classes */
 
 class rt_Registry;
@@ -388,8 +383,6 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
     rt_cell             verts_num;
     rt_EDGE            *edges;
     rt_cell             edges_num;
-    rt_FACE            *faces;
-    rt_cell             faces_num;
 
     private:
 
