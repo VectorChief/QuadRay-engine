@@ -770,7 +770,7 @@ rt_void rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         elm->data = (rt_cell)scene->slist; /* all srf are potential shadows */
         elm->simd = lgt->s_lgt;
         elm->temp = lgt;
-        /* insert element as list head */
+        /* insert element as list's head */
         elm->next = *ptr;
        *ptr = elm;
     }
@@ -949,6 +949,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
             elm->data = i << 16 | j;
             elm->simd = srf->s_srf;
             elm->temp = srf;
+            /* insert element as list's tail */
            *ptr = elm;
             ptr = &elm->next;
         }
@@ -1573,7 +1574,7 @@ rt_void rt_Scene::render(rt_long time)
             elm->data = nxt->data;
             elm->simd = nxt->simd;
             elm->temp = nxt->temp;
-            /* insert element as list head */
+            /* insert element as list's head */
             elm->next = *ptr;
            *ptr = elm;
 
@@ -1622,7 +1623,7 @@ rt_void rt_Scene::render(rt_long time)
                     }
                     else
                     {
-                        /* insert element as list head */
+                        /* insert element as list's head */
                         tls->next = tiles[tline + j];
                         tiles[tline + j] = tls;
 
@@ -1633,7 +1634,7 @@ rt_void rt_Scene::render(rt_long time)
                         trn->data = (rt_cell)tls; /* trnode's last element */
                         trn->simd = arr->s_srf;
                         trn->temp = arr;
-                        /* insert element as list head */
+                        /* insert element as list's head */
                         trn->next = tiles[tline + j];
                         tiles[tline + j] = trn;
                     }
@@ -1652,7 +1653,7 @@ rt_void rt_Scene::render(rt_long time)
 
                     tline = i * tiles_in_row;
 
-                    /* insert element as list head */
+                    /* insert element as list's head */
                     tls->next = tiles[tline + j];
                     tiles[tline + j] = tls;
                 }
