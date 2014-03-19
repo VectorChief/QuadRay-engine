@@ -204,9 +204,13 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     RT_LOGI("%s", mgn);
 
     rt_cell d = elm != RT_NULL ? elm->data : 0;
-    rt_cell i = RT_MAX(0, d + 2), n = RT_GET_FLG(d);
+    rt_cell i = RT_MAX(0, d + 2), t = RT_GET_FLG(d);
     rt_real r = 0.0f;
 
+    if (elm != RT_NULL && elm->temp != RT_NULL)
+    {
+        r = ((rt_BOUND *)elm->temp)->rad;
+    }
     if (obj != RT_NULL)
     {
         if (RT_IS_ARRAY(obj))
@@ -215,8 +219,7 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
             RT_LOGI("    ");
             RT_LOGI("tag: AR, trm: %d, data = %08X %s ",
                 obj->obj_has_trm,
-                ((rt_BOUND *)RT_GET_PTR(d)->temp)->obj, nodes[n]);
-            r = n == 0 ? ((rt_Array *)obj)->aux->rad : obj->box->rad;
+                ((rt_BOUND *)RT_GET_PTR(d)->temp)->obj, nodes[t]);
         }
         else
         {
@@ -225,7 +228,6 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
             RT_LOGI("tag: %s, trm: %d, %s       ",
                 tags[obj->tag], obj->obj_has_trm,
                 sides[RT_MIN(i, RT_ARR_SIZE(sides) - 1)]);
-            r = obj->box->rad;
         }
         RT_LOGI("    ");
         RT_LOGI("pos,rad: {%f, %f, %f}, %f",
@@ -673,7 +675,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     elm->temp = srf->box;
 
     /* search matching existing trnode/bvnode for insertion,
-     * run through the list hierachy to find the inner-most node,
+     * run through the list hierarchy to find the inner-most node,
      * node's "simd" field holds pointer to node's sublist
      * along with node's type in the lower 4 bits (trnode/bvnode) */
     rt_ELEM *nxt, *lst = srf->trn;
@@ -1174,17 +1176,20 @@ rt_void rt_SceneThread::snode(rt_Surface *srf)
      * as any trnode is always its own trnode */
     if (srf->trnode != RT_NULL && srf->trnode != srf)
     {
+        rt_Array *arr = (rt_Array *)srf->trnode;
+        rt_BOUND *aux = arr == par ? arr->inbox : arr->trbox;
+
         elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
         elm->data = 0;
         elm->simd = (rt_pntr)0; /* node's type (tr) */
-        elm->temp = ((rt_Array *)srf->trnode)->aux;
+        elm->temp = aux;
         elm->next = srf->top;
         srf->top = elm;
 
         elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
         elm->data = 0;
         elm->simd = (rt_pntr)0; /* node's type (tr) */
-        elm->temp = ((rt_Array *)srf->trnode)->aux;
+        elm->temp = aux;
         elm->next = RT_NULL;
         srf->trn = elm;
     }
@@ -1258,6 +1263,7 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
                 rt_ELEM *nxt;
 
                 rt_Array *arr = (rt_Array *)srf->trnode;
+                rt_BOUND *aux = arr->trbox; /* bound is not used in clippers */
 
                 /* search matching existing trnode for insertion
                  * either within current accum segment
@@ -1268,7 +1274,7 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
                      * hasn't been inserted yet (current accum segment)
                      * or outside of any accum segment */
                     if (acc == 0
-                    &&  nxt->temp == arr->aux)
+                    &&  nxt->temp == aux)
                     {
                         break;
                     }
@@ -1314,7 +1320,7 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
                     nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                     nxt->data = (rt_cell)elm; /* trnode's last elem */
                     nxt->simd = arr->s_srf;
-                    nxt->temp = arr->aux;
+                    nxt->temp = aux;
                     /* insert element as list's head */
                     nxt->next = *ptr;
                    *ptr = nxt;
@@ -2240,8 +2246,9 @@ rt_void rt_Scene::render(rt_long time)
                     trn = tiles[tline + j];
 
                     rt_Array *arr = (rt_Array *)srf->trnode;
+                    rt_BOUND *aux = (rt_BOUND *)srf->trn->temp;
 
-                    if (trn != RT_NULL && trn->temp == arr->aux)
+                    if (trn != RT_NULL && trn->temp == aux)
                     {
                         /* insert element under existing trnode */
                         tls->next = trn->next;
@@ -2257,7 +2264,7 @@ rt_void rt_Scene::render(rt_long time)
                         trn = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                         trn->data = (rt_cell)tls; /* trnode's last elem */
                         trn->simd = arr->s_srf;
-                        trn->temp = arr->aux;
+                        trn->temp = aux;
                         /* insert element as list's head */
                         trn->next = tiles[tline + j];
                         tiles[tline + j] = trn;

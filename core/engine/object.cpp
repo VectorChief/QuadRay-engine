@@ -34,8 +34,8 @@
  * - update surface's bounding and clipping boxes, bounding volume (sphere),
  *   taking into account surfaces from custom clippers list updated in 1st phase
  * 2.5 phase (sequential) - hierarchical update of arrays' bounds from surfaces
- * - update array's bounding box and volume (sphere) from surfaces' bounding
- *   boxes (trnode part: aux) and sub-arrays' bounding boxes (bvnode part: box)
+ * - update array's bounding box and volume structures (bvbox, trbox, inbox)
+ *   from surfaces' bounding boxes and sub-arrays' bounding boxes
  *
  * In order to avoid cross-dependencies on the engine, object file contains
  * the definition of Registry interface inherited by the engine's Scene class,
@@ -834,9 +834,10 @@ rt_void rt_Node::update_bbgeom(rt_BOUND *box)
 
     do /* use "do {break} while(0)" instead of "goto label" */
     {
-        /* bvnode's bbox is always in world space,
+        /* bvbox is always in world space,
          * thus skip transform (in else branch) even if trnode is present */
-        if (trnode != RT_NULL && !(RT_IS_ARRAY(this) && this->box == box))
+        if (trnode != RT_NULL && !(RT_IS_ARRAY(this)
+        && ((rt_Array *)this)->bvbox == box))
         {
             rt_mat4 *pmtx = &trnode->mtx;
 
@@ -1085,51 +1086,90 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     /* reset array's changed status */
     arr_changed = 0;
 
-    /* init "aux" bound structure used for trnode if present */
-    aux = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
-
-    memset(aux, 0, sizeof(rt_BOUND));
-    aux->obj = this;
-    aux->tag = this->tag;
-    aux->pinv = &this->inv;
-    aux->pmtx = &this->mtx;
-    aux->pos = this->mtx[3];
-    aux->map = this->map;
-    aux->sgn = this->sgn;
-    aux->opts = &rg->opts;
+    /* init "bvbox" bound structure used for
+     * bvnode if present and bvbox's surface set
+     * doesn't match inbox */
+    bvbox = box;
 
     if (RT_TRUE)
     {
-        aux->verts_num = 8;
-        aux->verts = (rt_VERT *)
-                     rg->alloc(aux->verts_num * sizeof(rt_VERT), RT_ALIGN);
+        bvbox->verts_num = 8;
+        bvbox->verts = (rt_VERT *)
+                     rg->alloc(bvbox->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        aux->edges_num = RT_ARR_SIZE(bx_edges);
-        aux->edges = (rt_EDGE *)
-                     rg->alloc(aux->edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(aux->edges, bx_edges, aux->edges_num * sizeof(rt_EDGE));
+        bvbox->edges_num = RT_ARR_SIZE(bx_edges);
+        bvbox->edges = (rt_EDGE *)
+                     rg->alloc(bvbox->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(bvbox->edges, bx_edges, bvbox->edges_num * sizeof(rt_EDGE));
 
-        aux->faces_num = RT_ARR_SIZE(bx_faces);
-        aux->faces = (rt_FACE *)
-                     rg->alloc(aux->faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(aux->faces, bx_faces, aux->faces_num * sizeof(rt_FACE));
+        bvbox->faces_num = RT_ARR_SIZE(bx_faces);
+        bvbox->faces = (rt_FACE *)
+                     rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
 
+    /* init "trbox" bound structure used for
+     * trnode if present and trbox's surface set
+     * isn't part of bvbox */
+    trbox = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
+
+    memset(trbox, 0, sizeof(rt_BOUND));
+    trbox->obj = this;
+    trbox->tag = this->tag;
+    trbox->pinv = &this->inv;
+    trbox->pmtx = &this->mtx;
+    trbox->pos = this->mtx[3];
+    trbox->map = this->map;
+    trbox->sgn = this->sgn;
+    trbox->opts = &rg->opts;
+
     if (RT_TRUE)
     {
-        box->verts_num = 8;
-        box->verts = (rt_VERT *)
-                     rg->alloc(box->verts_num * sizeof(rt_VERT), RT_ALIGN);
+        trbox->verts_num = 8;
+        trbox->verts = (rt_VERT *)
+                     rg->alloc(trbox->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        box->edges_num = RT_ARR_SIZE(bx_edges);
-        box->edges = (rt_EDGE *)
-                     rg->alloc(box->edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(box->edges, bx_edges, box->edges_num * sizeof(rt_EDGE));
+        trbox->edges_num = RT_ARR_SIZE(bx_edges);
+        trbox->edges = (rt_EDGE *)
+                     rg->alloc(trbox->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(trbox->edges, bx_edges, trbox->edges_num * sizeof(rt_EDGE));
 
-        box->faces_num = RT_ARR_SIZE(bx_faces);
-        box->faces = (rt_FACE *)
-                     rg->alloc(box->faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(box->faces, bx_faces, box->faces_num * sizeof(rt_FACE));
+        trbox->faces_num = RT_ARR_SIZE(bx_faces);
+        trbox->faces = (rt_FACE *)
+                     rg->alloc(trbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(trbox->faces, bx_faces, trbox->faces_num * sizeof(rt_FACE));
+    }
+
+    /* init "inbox" bound structure used for
+     * trnode part inside bvnode if both are present, also for
+     * bvnode if inbox's surface set matches bvbox */
+    inbox = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
+
+    memset(inbox, 0, sizeof(rt_BOUND));
+    inbox->obj = this;
+    inbox->tag = this->tag;
+    inbox->pinv = &this->inv;
+    inbox->pmtx = &this->mtx;
+    inbox->pos = this->mtx[3];
+    inbox->map = this->map;
+    inbox->sgn = this->sgn;
+    inbox->opts = &rg->opts;
+
+    if (RT_TRUE)
+    {
+        inbox->verts_num = 8;
+        inbox->verts = (rt_VERT *)
+                     rg->alloc(inbox->verts_num * sizeof(rt_VERT), RT_ALIGN);
+
+        inbox->edges_num = RT_ARR_SIZE(bx_edges);
+        inbox->edges = (rt_EDGE *)
+                     rg->alloc(inbox->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(inbox->edges, bx_edges, inbox->edges_num * sizeof(rt_EDGE));
+
+        inbox->faces_num = RT_ARR_SIZE(bx_faces);
+        inbox->faces = (rt_FACE *)
+                     rg->alloc(inbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(inbox->faces, bx_faces, inbox->faces_num * sizeof(rt_FACE));
     }
 
     /* process array's objects */
@@ -1498,8 +1538,11 @@ rt_void rt_Array::update_matrix(rt_mat4 mtx)
 
     rt_Node::update_matrix(mtx);
 
-    /* set "aux" bound's trnode for rtgeom */
-    aux->trnode = trnode != RT_NULL ? ((rt_Array *)trnode)->aux : RT_NULL;
+    /* set "trbox" bound's trnode for rtgeom */
+    trbox->trnode = trnode != RT_NULL ? ((rt_Array *)trnode)->trbox : RT_NULL;
+
+    /* set "inbox" bound's trnode for rtgeom */
+    inbox->trnode = trnode != RT_NULL ? ((rt_Array *)trnode)->inbox : RT_NULL;
 
     /* set matrix pointer for sub-objects
      * to array's transform matrix */
@@ -1616,16 +1659,26 @@ rt_void rt_Array::update_bounds()
         return;
     }
 
-    RT_VEC3_SET_VAL1(aux->bmin, +RT_INF);
-    RT_VEC3_SET_VAL1(aux->bmax, -RT_INF);
-    aux->rad = 0.0f;
+    /* reset all boxes for array */
+    box = bvbox;
 
-    RT_VEC3_SET_VAL1(box->bmin, +RT_INF);
-    RT_VEC3_SET_VAL1(box->bmax, -RT_INF);
-    box->rad = 0.0f;
+    RT_VEC3_SET_VAL1(bvbox->bmin, +RT_INF);
+    RT_VEC3_SET_VAL1(bvbox->bmax, -RT_INF);
+    bvbox->rad = 0.0f;
+
+    RT_VEC3_SET_VAL1(trbox->bmin, +RT_INF);
+    RT_VEC3_SET_VAL1(trbox->bmax, -RT_INF);
+    trbox->rad = 0.0f;
+
+    RT_VEC3_SET_VAL1(inbox->bmin, +RT_INF);
+    RT_VEC3_SET_VAL1(inbox->bmax, -RT_INF);
+    inbox->rad = 0.0f;
 
     rt_cell i, j, k;
+    rt_BOUND *src_box, *dst_box;
 
+    /* run through array's sub-objects,
+     * including sub-arrays (recursive) */
     for (i = 0; i < obj_num; i++)
     {
         rt_Node *nd = RT_NULL;
@@ -1647,26 +1700,31 @@ rt_void rt_Array::update_bounds()
             continue;
         }
 
-        if (nd->box->rad == 0.0f)
+        /* contribute bounds to trnode's trbox or bvnode's inbox */
+        src_box = dst_box = RT_NULL;
+        arr = nd->trnode != nd ?
+              (rt_Array *)nd->trnode : RT_NULL;
+
+        if (arr != RT_NULL)
         {
-            continue;
+            src_box = RT_IS_SURFACE(nd) ? nd->box : ((rt_Array *)nd)->inbox;
+            dst_box = nd->bvnode != RT_NULL && nd->bvnode->trnode == arr ?
+                      ((rt_Array *)nd->bvnode)->inbox : arr->trbox;
         }
-
-        arr = (rt_Array *)(nd->trnode != nd ? nd->trnode : RT_NULL);
-
-        if (arr != RT_NULL && RT_IS_SURFACE(nd))
+        if (src_box != RT_NULL && src_box->rad != 0.0f && dst_box != RT_NULL)
         {
-            if (nd->box->rad != RT_INF)
+            if (src_box->rad != RT_INF)
             {
+                /* contribute minmax data directly (fast) */
                 for (k = 0; k < 3; k++)
                 {
-                    if (arr->aux->bmin[k] > nd->box->bmin[k])
+                    if (dst_box->bmin[k] > src_box->bmin[k])
                     {
-                        arr->aux->bmin[k] = nd->box->bmin[k];
+                        dst_box->bmin[k] = src_box->bmin[k];
                     }
-                    if (arr->aux->bmax[k] < nd->box->bmax[k])
+                    if (dst_box->bmax[k] < src_box->bmax[k])
                     {
-                        arr->aux->bmax[k] = nd->box->bmax[k];
+                        dst_box->bmax[k] = src_box->bmax[k];
                     }
                 }
             }
@@ -1674,45 +1732,62 @@ rt_void rt_Array::update_bounds()
              * "empty" (rad == 0.0f),
              * "finite" (0.0f < rad < RT_INF),
              * "infinite" (rad == RT_INF) */
-            if (arr->aux->rad < nd->box->rad)
+            if (dst_box->rad < src_box->rad)
             {
-                arr->aux->rad = nd->box->rad;
+                dst_box->rad = src_box->rad;
             }
         }
 
-        arr = (rt_Array *)(nd->bvnode);
+        /* contribute bounds to bvnode's bvbox */
+        src_box = dst_box = RT_NULL;
+        arr = (rt_Array *)nd->bvnode;
 
         if (arr != RT_NULL)
         {
-            if (nd->box->rad != RT_INF)
+            src_box = nd->box;
+            dst_box = arr->bvbox;
+
+            if (nd->trnode != nd && nd->trnode != RT_NULL
+            &&  nd->trnode == arr->trnode && (RT_IS_SURFACE(nd)
+            ||  RT_IS_ARRAY(nd) && nd->box == ((rt_Array *)nd)->inbox))
             {
-                if (nd->trnode == RT_NULL || RT_IS_ARRAY(nd))
+                src_box = RT_NULL;
+            }
+        }
+        if (src_box != RT_NULL && src_box->rad != 0.0f && dst_box != RT_NULL)
+        {
+            if (src_box->rad != RT_INF)
+            {
+                if (nd->trnode == RT_NULL || RT_IS_ARRAY(nd)
+                &&  nd->box == ((rt_Array *)nd)->bvbox)
                 {
+                    /* contribute minmax data directly (fast) */
                     for (k = 0; k < 3; k++)
                     {
-                        if (arr->box->bmin[k] > nd->box->bmin[k])
+                        if (dst_box->bmin[k] > src_box->bmin[k])
                         {
-                            arr->box->bmin[k] = nd->box->bmin[k];
+                            dst_box->bmin[k] = src_box->bmin[k];
                         }
-                        if (arr->box->bmax[k] < nd->box->bmax[k])
+                        if (dst_box->bmax[k] < src_box->bmax[k])
                         {
-                            arr->box->bmax[k] = nd->box->bmax[k];
+                            dst_box->bmax[k] = src_box->bmax[k];
                         }
                     }
                 }
                 else
                 {
-                    for (j = 0; j < nd->box->verts_num; j++)
+                    /* contribute transformed vertex data (8x slower) */
+                    for (j = 0; j < src_box->verts_num; j++)
                     {
                         for (k = 0; k < 3; k++)
                         {
-                            if (arr->box->bmin[k] > nd->box->verts[j].pos[k])
+                            if (dst_box->bmin[k] > src_box->verts[j].pos[k])
                             {
-                                arr->box->bmin[k] = nd->box->verts[j].pos[k];
+                                dst_box->bmin[k] = src_box->verts[j].pos[k];
                             }
-                            if (arr->box->bmax[k] < nd->box->verts[j].pos[k])
+                            if (dst_box->bmax[k] < src_box->verts[j].pos[k])
                             {
-                                arr->box->bmax[k] = nd->box->verts[j].pos[k];
+                                dst_box->bmax[k] = src_box->verts[j].pos[k];
                             }
                         }
                     }
@@ -1722,23 +1797,69 @@ rt_void rt_Array::update_bounds()
              * "empty" (rad == 0.0f),
              * "finite" (0.0f < rad < RT_INF),
              * "infinite" (rad == RT_INF) */
-            if (arr->box->rad < nd->box->rad)
+            if (dst_box->rad < src_box->rad)
             {
-                arr->box->rad = nd->box->rad;
+                dst_box->rad = src_box->rad;
             }
         }
     }
 
-    /* update bounds geometry */
-    if (aux->rad != 0.0f && aux->rad != RT_INF)
+    /* update inbox geometry */
+    if (inbox->rad != 0.0f && inbox->rad != RT_INF)
     {
-        update_bbgeom(aux);
+        update_bbgeom(inbox);
+
+        box = inbox;
+
+        /* if inbox and bvbox are both not empty
+         * contribute inbox's contents to bvbox
+         * after update_bbgeom for inbox */
+        if (bvbox->rad != 0.0f && bvbox->rad != RT_INF)
+        {
+            src_box = inbox;
+            dst_box = bvbox;
+
+            /* contribute transformed vertex data (8x slower) */
+            for (j = 0; j < src_box->verts_num; j++)
+            {
+                for (k = 0; k < 3; k++)
+                {
+                    if (dst_box->bmin[k] > src_box->verts[j].pos[k])
+                    {
+                        dst_box->bmin[k] = src_box->verts[j].pos[k];
+                    }
+                    if (dst_box->bmax[k] < src_box->verts[j].pos[k])
+                    {
+                        dst_box->bmax[k] = src_box->verts[j].pos[k];
+                    }
+                }
+            }
+            /* use rad temporarily as a tag for
+             * "empty" (rad == 0.0f),
+             * "finite" (0.0f < rad < RT_INF),
+             * "infinite" (rad == RT_INF) */
+            if (dst_box->rad < src_box->rad)
+            {
+                dst_box->rad = src_box->rad;
+            }
+        }
     }
-    if (box->rad != 0.0f && box->rad != RT_INF)
+
+    /* update trbox geometry */
+    if (trbox->rad != 0.0f && trbox->rad != RT_INF)
     {
-        update_bbgeom(box);
+        update_bbgeom(trbox);
+    }
+    /* update bvbox geometry */
+    if (bvbox->rad != 0.0f && bvbox->rad != RT_INF)
+    {
+        update_bbgeom(bvbox);
+
+        box = bvbox;
     }
     else
+    /* return if box is empty */
+    if (box == bvbox)
     {
         return;
     }

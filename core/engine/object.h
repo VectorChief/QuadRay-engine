@@ -444,8 +444,19 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
     rt_cell             arr_changed;
 
     /* bounding box and volume,
-     * used for trnode if present */
-    rt_BOUND           *aux;
+     * used for bvnode if present
+     * and srf set doesn't match inbox */
+    rt_BOUND           *bvbox;
+
+    /* bounding box and volume,
+     * used for trnode if present
+     * and srf set isn't part of bvbox */
+    rt_BOUND           *trbox;
+
+    /* bounding box and volume,
+     * used for trnode part inside bvnode, also
+     * used for bvnode if srf set matches bvbox */
+    rt_BOUND           *inbox;
 
     /* surface SIMD struct,
      * used for bvnode if present */
