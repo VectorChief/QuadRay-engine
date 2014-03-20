@@ -1810,7 +1810,9 @@ rt_void rt_Array::update_bounds()
 
         if (arr != RT_NULL)
         {
-            src_box = RT_IS_ARRAY(nd) ? ((rt_Array *)nd)->inbox : src_box;
+            src_box = RT_IS_ARRAY(nd) ? nd->trnode != nd ||
+                      ((rt_Array *)nd)->trbox->rad != 0.0f ?
+                      ((rt_Array *)nd)->inbox : RT_NULL : src_box;
         }
 
         if (src_box != RT_NULL && src_box->rad != 0.0f && dst_box != RT_NULL
@@ -1845,34 +1847,19 @@ rt_void rt_Array::update_bounds()
         }
     }
 
-    /* update bvbox geometry */
-    if (bvbox->rad != 0.0f && bvbox->rad != RT_INF)
-    {
-        update_bbgeom(bvbox);
-
-        RT_SIMD_SET(s_bvb->pos_x, bvbox->mid[RT_X]);
-        RT_SIMD_SET(s_bvb->pos_y, bvbox->mid[RT_Y]);
-        RT_SIMD_SET(s_bvb->pos_z, bvbox->mid[RT_Z]);
-
-        rt_SIMD_SPHERE *s_xsp = (rt_SIMD_SPHERE *)s_bvb;
-
-        RT_SIMD_SET(s_xsp->rad_2, bvbox->rad * bvbox->rad);
-    }
-
     /* update inbox geometry */
     if (inbox->rad != 0.0f && inbox->rad != RT_INF)
     {
         update_bbgeom(inbox);
 
-        RT_SIMD_SET(s_inb->pos_x, inbox->mid[RT_X]);
-        RT_SIMD_SET(s_inb->pos_y, inbox->mid[RT_Y]);
-        RT_SIMD_SET(s_inb->pos_z, inbox->mid[RT_Z]);
-
         rt_SIMD_SPHERE *s_xsp = (rt_SIMD_SPHERE *)s_inb;
 
+        RT_SIMD_SET(s_xsp->pos_x, inbox->mid[RT_X]);
+        RT_SIMD_SET(s_xsp->pos_y, inbox->mid[RT_Y]);
+        RT_SIMD_SET(s_xsp->pos_z, inbox->mid[RT_Z]);
         RT_SIMD_SET(s_xsp->rad_2, inbox->rad * inbox->rad);
 
-        if (trnode == this)
+        if (trnode == this && trbox->rad != 0.0f)
         {
             src_box = inbox;
             dst_box = trbox;
@@ -1901,6 +1888,52 @@ rt_void rt_Array::update_bounds()
                 dst_box->rad = src_box->rad;
             }
         }
+        else
+        if (trnode == this && trbox->rad == 0.0f)
+        {
+            src_box = inbox;
+            dst_box = bvbox;
+
+            if (src_box->rad != RT_INF)
+            {
+                /* contribute transformed vertex data (8x slower) */
+                for (j = 0; j < src_box->verts_num; j++)
+                {
+                    for (k = 0; k < 3; k++)
+                    {
+                        if (dst_box->bmin[k] > src_box->verts[j].pos[k])
+                        {
+                            dst_box->bmin[k] = src_box->verts[j].pos[k];
+                        }
+                        if (dst_box->bmax[k] < src_box->verts[j].pos[k])
+                        {
+                            dst_box->bmax[k] = src_box->verts[j].pos[k];
+                        }
+                    }
+                }
+            }
+            /* use rad temporarily as a tag for
+             * "empty" (rad == 0.0f),
+             * "finite" (0.0f < rad < RT_INF),
+             * "infinite" (rad == RT_INF) */
+            if (dst_box->rad < src_box->rad)
+            {
+                dst_box->rad = src_box->rad;
+            }
+        }
+    }
+
+    /* update bvbox geometry */
+    if (bvbox->rad != 0.0f && bvbox->rad != RT_INF)
+    {
+        update_bbgeom(bvbox);
+
+        rt_SIMD_SPHERE *s_xsp = (rt_SIMD_SPHERE *)s_bvb;
+
+        RT_SIMD_SET(s_xsp->pos_x, bvbox->mid[RT_X]);
+        RT_SIMD_SET(s_xsp->pos_y, bvbox->mid[RT_Y]);
+        RT_SIMD_SET(s_xsp->pos_z, bvbox->mid[RT_Z]);
+        RT_SIMD_SET(s_xsp->rad_2, bvbox->rad * bvbox->rad);
     }
 
     /* update trbox geometry */
@@ -1953,10 +1986,11 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
                     obj->obj.pmat_inner ? obj->obj.pmat_inner :
                                           srf->side_inner.pmat);
 
+    /* init surface's bvbox structure */
+    bvbox->rad = RT_INF;
+
     /* init surface's shape structure */
     shape = (rt_SHAPE *)bvbox;
-
-    shape->rad = RT_INF;
     shape->ptr = &s_srf->msc_p[2];
 
 /*  rt_SIMD_SURFACE */

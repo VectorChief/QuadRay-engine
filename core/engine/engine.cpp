@@ -1125,7 +1125,7 @@ rt_ELEM* rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
             rt_cell k = RT_GET_FLG(*ptr);
             nxt->data = (rt_cell)elm | k; /* node's type */
             nxt->next = RT_GET_PTR(*ptr);
-            nxt->simd = nxt->temp == arr->trbox ? arr->s_srf :
+            nxt->simd = k == 0 ? arr->s_srf :
                         nxt->temp == arr->bvbox ? arr->s_bvb :
                         nxt->temp == arr->inbox ? arr->s_inb : RT_NULL;
             nxt = elm;
@@ -1159,9 +1159,11 @@ rt_void rt_SceneThread::snode(rt_Surface *srf)
 
     /* phase 1, bvnodes (if any) below trnode (if any),
      * if the same array serves as both trnode and bvnode,
-     * trnode is considered above, thus bvnode is inserted first */
-    for (par = srf->bvnode; par != RT_NULL &&
-         par->trnode == srf->trnode && par->trnode != RT_NULL;
+     * trnode is considered above only if bvnode is split,
+     * thus bvnode is inserted first in this case */
+    for (par = srf->bvnode; srf->trnode != RT_NULL && par != RT_NULL &&
+         par->trnode == srf->trnode && (par->trnode != par ||
+         ((rt_Array *)par)->trbox->rad != 0.0f);
          par = par->bvnode)
     {
         rt_Array *arr = (rt_Array *)par;
@@ -1186,14 +1188,14 @@ rt_void rt_SceneThread::snode(rt_Surface *srf)
         elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
         elm->data = 0;
         elm->simd = (rt_pntr)0; /* node's type (tr) */
-        elm->temp = arr->trbox;
+        elm->temp = arr->trbox->rad != 0.0f ? arr->trbox : arr->inbox;
         elm->next = srf->top;
         srf->top = elm;
 
         elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
         elm->data = 0;
         elm->simd = (rt_pntr)0; /* node's type (tr) */
-        elm->temp = arr->trbox;
+        elm->temp = srf->top->temp;
         elm->next = RT_NULL;
         srf->trn = elm;
     }
@@ -1269,6 +1271,7 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
                 rt_ELEM *nxt;
 
                 rt_Array *arr = (rt_Array *)srf->trnode;
+                rt_BOUND *trb = (rt_BOUND *)srf->trn->temp;
 
                 /* search matching existing trnode for insertion
                  * either within current accum segment
@@ -1279,7 +1282,7 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
                      * hasn't been inserted yet (current accum segment)
                      * or outside of any accum segment */
                     if (acc == 0
-                    &&  nxt->temp == arr->trbox)
+                    &&  nxt->temp == trb)
                     {
                         break;
                     }
@@ -1325,7 +1328,7 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
                     nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                     nxt->data = (rt_cell)elm; /* trnode's last elem */
                     nxt->simd = arr->s_srf;
-                    nxt->temp = arr->trbox;
+                    nxt->temp = trb;
                     /* insert element as list's head */
                     nxt->next = *ptr;
                    *ptr = nxt;
@@ -2251,9 +2254,9 @@ rt_void rt_Scene::render(rt_long time)
                     trn = tiles[tline + j];
 
                     rt_Array *arr = (rt_Array *)srf->trnode;
-                    rt_BOUND *aux = (rt_BOUND *)srf->trn->temp;
+                    rt_BOUND *trb = (rt_BOUND *)srf->trn->temp;
 
-                    if (trn != RT_NULL && trn->temp == aux)
+                    if (trn != RT_NULL && trn->temp == trb)
                     {
                         /* insert element under existing trnode */
                         tls->next = trn->next;
@@ -2269,7 +2272,7 @@ rt_void rt_Scene::render(rt_long time)
                         trn = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                         trn->data = (rt_cell)tls; /* trnode's last elem */
                         trn->simd = arr->s_srf;
-                        trn->temp = aux;
+                        trn->temp = trb;
                         /* insert element as list's head */
                         trn->next = tiles[tline + j];
                         tiles[tline + j] = trn;
