@@ -82,7 +82,7 @@ rt_void print_cam(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
             obj->trm->rot[RT_X], obj->trm->rot[RT_Y], obj->trm->rot[RT_Z]);
         RT_LOGI("    ");
         RT_LOGI("pos,rad: {%f, %f, %f}, %f",
-            obj->pos[RT_X], obj->pos[RT_Y], obj->pos[RT_Z], obj->box->rad);
+            obj->pos[RT_X], obj->pos[RT_Y], obj->pos[RT_Z], obj->bvbox->rad);
     }
     else
     {
@@ -123,7 +123,7 @@ rt_void print_lgt(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
         RT_LOGI("                                    ");
         RT_LOGI("    ");
         RT_LOGI("pos,rad: {%f, %f, %f}, %f",
-            obj->pos[RT_X], obj->pos[RT_Y], obj->pos[RT_Z], obj->box->rad);
+            obj->pos[RT_X], obj->pos[RT_Y], obj->pos[RT_Z], obj->bvbox->rad);
     }
     else
     {
@@ -657,7 +657,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
         elm->data = (rt_cell)scene->slist; /* all srf are potential shadows */
         elm->simd = lgt->s_lgt;
-        elm->temp = lgt->box;
+        elm->temp = lgt->bvbox;
         /* insert element as list's head */
         elm->next = *ptr;
        *ptr = elm;
@@ -672,7 +672,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
     elm->data = 0;
     elm->simd = srf->s_srf;
-    elm->temp = srf->box;
+    elm->temp = srf->bvbox;
 
     /* search matching existing trnode/bvnode for insertion,
      * run through the list hierarchy to find the inner-most node,
@@ -783,7 +783,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     for (nxt = elm->next; nxt != RT_NULL; )
     {
         /* compute the order value between "elm" and "nxt" elements */
-        rt_cell op = bbox_sort(obj->box,
+        rt_cell op = bbox_sort(obj->bvbox,
                               (rt_BOUND *)elm->temp,
                               (rt_BOUND *)nxt->temp);
         switch (op)
@@ -804,7 +804,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 }
                 else
                 {
-                    prv->data = bbox_sort(obj->box,
+                    prv->data = bbox_sort(obj->bvbox,
                                          (rt_BOUND *)prv->temp,
                                          (rt_BOUND *)nxt->temp);
                 }
@@ -849,7 +849,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     {
         rt_bool gr = RT_FALSE;
         /* compute the order value between "elm" and "nxt" elements */
-        rt_cell op = bbox_sort(obj->box,
+        rt_cell op = bbox_sort(obj->bvbox,
                               (rt_BOUND *)elm->temp,
                               (rt_BOUND *)nxt->temp);
         switch (op)
@@ -909,7 +909,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                         /* compute new order value */
                         else
                         {
-                            op = bbox_sort(obj->box,
+                            op = bbox_sort(obj->bvbox,
                                           (rt_BOUND *)cur->temp,
                                           (rt_BOUND *)jel->temp);
                         }
@@ -975,7 +975,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                         if (iel->data == 0)
                         {
                             cur = iel->next;
-                            iel->data = bbox_sort(obj->box,
+                            iel->data = bbox_sort(obj->bvbox,
                                                  (rt_BOUND *)iel->temp,
                                                  (rt_BOUND *)cur->temp);
                         }
@@ -991,7 +991,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 if (ipt->data == 0)
                 {
                     cur = ipt->next;
-                    ipt->data = bbox_sort(obj->box,
+                    ipt->data = bbox_sort(obj->bvbox,
                                          (rt_BOUND *)ipt->temp,
                                          (rt_BOUND *)cur->temp);
                 }
@@ -1013,7 +1013,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 }
                 else
                 {
-                    prv->data = bbox_sort(obj->box,
+                    prv->data = bbox_sort(obj->bvbox,
                                          (rt_BOUND *)prv->temp,
                                          (rt_BOUND *)cur->temp);
                 }
@@ -1051,7 +1051,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 if (tlp->data == 0)
                 {
                     cur = tlp->next;
-                    tlp->data = bbox_sort(obj->box,
+                    tlp->data = bbox_sort(obj->bvbox,
                                          (rt_BOUND *)tlp->temp,
                                          (rt_BOUND *)cur->temp);
                 }
@@ -1074,7 +1074,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     cur = tlp->next;
     if (tlp->data == 0 && cur != RT_NULL)
     {
-        tlp->data = bbox_sort(obj->box,
+        tlp->data = bbox_sort(obj->bvbox,
                              (rt_BOUND *)tlp->temp,
                              (rt_BOUND *)cur->temp);
     }
@@ -1118,13 +1118,16 @@ rt_ELEM* rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
          * previously kept in its "simd" field's lower 4 bits */
         if (RT_IS_ARRAY(nd))
         {
+            rt_Array *arr = (rt_Array *)nd;
             ptr = RT_GET_ADR(nxt->simd);
             elm = filter(obj, ptr);
             elm->next = nxt->next;
             rt_cell k = RT_GET_FLG(*ptr);
             nxt->data = (rt_cell)elm | k; /* node's type */
             nxt->next = RT_GET_PTR(*ptr);
-            nxt->simd = k == 0 ? nd->s_srf : ((rt_Array *)nd)->s_box;
+            nxt->simd = nxt->temp == arr->trbox ? arr->s_srf :
+                        nxt->temp == arr->bvbox ? arr->s_bvb :
+                        nxt->temp == arr->inbox ? arr->s_inb : RT_NULL;
             nxt = elm;
         }
     }
@@ -1156,15 +1159,17 @@ rt_void rt_SceneThread::snode(rt_Surface *srf)
 
     /* phase 1, bvnodes (if any) below trnode (if any),
      * if the same array serves as both trnode and bvnode,
-     * bvnode is considered above, thus trnode is inserted first */
+     * trnode is considered above, thus bvnode is inserted first */
     for (par = srf->bvnode; par != RT_NULL &&
-         par->trnode == srf->trnode && par->trnode != par;
+         par->trnode == srf->trnode && par->trnode != RT_NULL;
          par = par->bvnode)
     {
+        rt_Array *arr = (rt_Array *)par;
+
         elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
         elm->data = 0;
         elm->simd = (rt_pntr)1; /* node's type (bv) */
-        elm->temp = par->box;
+        elm->temp = arr->inbox;
         elm->next = srf->top;
         srf->top = elm;
     }
@@ -1177,19 +1182,18 @@ rt_void rt_SceneThread::snode(rt_Surface *srf)
     if (srf->trnode != RT_NULL && srf->trnode != srf)
     {
         rt_Array *arr = (rt_Array *)srf->trnode;
-        rt_BOUND *aux = arr == par ? arr->inbox : arr->trbox;
 
         elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
         elm->data = 0;
         elm->simd = (rt_pntr)0; /* node's type (tr) */
-        elm->temp = aux;
+        elm->temp = arr->trbox;
         elm->next = srf->top;
         srf->top = elm;
 
         elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
         elm->data = 0;
         elm->simd = (rt_pntr)0; /* node's type (tr) */
-        elm->temp = aux;
+        elm->temp = arr->trbox;
         elm->next = RT_NULL;
         srf->trn = elm;
     }
@@ -1197,10 +1201,12 @@ rt_void rt_SceneThread::snode(rt_Surface *srf)
     /* phase 3, bvnodes (if any) above trnode (if any) */
     for (; par != RT_NULL; par = par->bvnode)
     {
+        rt_Array *arr = (rt_Array *)par;
+
         elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
         elm->data = 0;
         elm->simd = (rt_pntr)1; /* node's type (bv) */
-        elm->temp = par->box;
+        elm->temp = arr->bvbox;
         elm->next = srf->top;
         srf->top = elm;
     }
@@ -1255,7 +1261,7 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
             elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
             elm->data = rel;
             elm->simd = srf->s_srf;
-            elm->temp = srf->box;
+            elm->temp = srf->bvbox;
 
             if (srf->trnode != RT_NULL && srf->trnode != srf)
             {
@@ -1263,7 +1269,6 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
                 rt_ELEM *nxt;
 
                 rt_Array *arr = (rt_Array *)srf->trnode;
-                rt_BOUND *aux = arr->trbox; /* bound is not used in clippers */
 
                 /* search matching existing trnode for insertion
                  * either within current accum segment
@@ -1274,7 +1279,7 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
                      * hasn't been inserted yet (current accum segment)
                      * or outside of any accum segment */
                     if (acc == 0
-                    &&  nxt->temp == aux)
+                    &&  nxt->temp == arr->trbox)
                     {
                         break;
                     }
@@ -1320,7 +1325,7 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
                     nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
                     nxt->data = (rt_cell)elm; /* trnode's last elem */
                     nxt->simd = arr->s_srf;
-                    nxt->temp = aux;
+                    nxt->temp = arr->trbox;
                     /* insert element as list's head */
                     nxt->next = *ptr;
                    *ptr = nxt;
@@ -1370,8 +1375,8 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
     rt_real tag[2], zed[2];
 
     /* verts_num may grow, use srf->verts_num if original is needed */
-    rt_cell verts_num = srf->shp->verts_num;
-    rt_VERT *vrt = srf->shp->verts;
+    rt_cell verts_num = srf->bvbox->verts_num;
+    rt_VERT *vrt = srf->bvbox->verts;
 
     /* project bbox onto the tilebuffer */
     if (verts_num != 0)
@@ -1384,9 +1389,9 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
 
         /* process bbox vertices */
         memset(verts, 0, sizeof(rt_VERT) *
-                         (2 * verts_num + srf->shp->edges_num));
+                         (2 * verts_num + srf->bvbox->edges_num));
 
-        for (k = 0; k < srf->shp->verts_num; k++)
+        for (k = 0; k < srf->bvbox->verts_num; k++)
         {
             RT_VEC3_SUB(vec, vrt[k].pos, scene->org);
 
@@ -1429,11 +1434,11 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
         }
 
         /* process bbox edges */
-        for (k = 0; k < srf->shp->edges_num; k++)
+        for (k = 0; k < srf->bvbox->edges_num; k++)
         {
             for (i = 0; i < 2; i++)
             {
-                ndx[i] = srf->shp->edges[k].index[i];
+                ndx[i] = srf->bvbox->edges[k].index[i];
                 zed[i] = verts[ndx[i]].pos[RT_Z];
                 tag[i] = verts[ndx[i]].pos[RT_W];
             }
@@ -1481,7 +1486,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
         }
 
         /* tile all newly generated vertex pairs */
-        for (i = srf->shp->verts_num; i < verts_num - 1; i++)
+        for (i = srf->bvbox->verts_num; i < verts_num - 1; i++)
         {
             for (j = i + 1; j < verts_num; j++)
             {
@@ -1510,7 +1515,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
             elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
             elm->data = i << 16 | j;
             elm->simd = srf->s_srf;
-            elm->temp = srf->box;
+            elm->temp = srf->bvbox;
             /* insert element as list's tail */
            *ptr = elm;
             ptr = &elm->next;
@@ -1576,7 +1581,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 #if RT_OPTS_2SIDED != 0
         if ((scene->opts & RT_OPTS_2SIDED) != 0 && srf != RT_NULL)
         {
-            rt_cell c = bbox_side(ref->box, srf->shp);
+            rt_cell c = bbox_side(ref->bvbox, srf->shape);
 
             if (c & 2)
             {
@@ -1697,7 +1702,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 #if RT_OPTS_2SIDED != 0
         if ((scene->opts & RT_OPTS_2SIDED) != 0 && srf != RT_NULL)
         {
-            rt_cell c = bbox_side(lgt->box, srf->shp);
+            rt_cell c = bbox_side(lgt->bvbox, srf->shape);
 
             if (c & 2)
             {
@@ -1752,7 +1757,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 
         for (shw = scene->srf_head; shw != RT_NULL; shw = shw->next)
         {
-            if (bbox_shad(lgt->box, shw->box, srf->box) == 0)
+            if (bbox_shad(lgt->bvbox, shw->bvbox, srf->bvbox) == 0)
             {
                 continue;
             }
@@ -1760,7 +1765,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 #if RT_OPTS_2SIDED != 0
             if ((scene->opts & RT_OPTS_2SIDED) != 0)
             {
-                rt_cell c = bbox_side(shw->box, srf->shp);
+                rt_cell c = bbox_side(shw->bvbox, srf->shape);
 
                 if (c & 2 && pso != RT_NULL)
                 {

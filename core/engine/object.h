@@ -210,7 +210,7 @@ class rt_Object
 
     /* bounding box and volume,
      * used for bvnode if present */
-    rt_BOUND           *box;
+    rt_BOUND           *bvbox;
 
     /* object's transform and tag */
     rt_TRANSFORM3D     *trm;
@@ -444,23 +444,20 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
     rt_cell             arr_changed;
 
     /* bounding box and volume,
-     * used for bvnode if present
-     * and srf set doesn't match inbox */
-    rt_BOUND           *bvbox;
-
-    /* bounding box and volume,
-     * used for trnode if present
-     * and srf set isn't part of bvbox */
+     * used for trnode if present */
     rt_BOUND           *trbox;
 
     /* bounding box and volume,
-     * used for trnode part inside bvnode, also
-     * used for bvnode if srf set matches bvbox */
+     * used for bvnode part inside trnode */
     rt_BOUND           *inbox;
 
     /* surface SIMD struct,
-     * used for bvnode if present */
-    rt_SIMD_SURFACE    *s_box;
+     * used for bvbox part of bvnode */
+    rt_SIMD_SURFACE    *s_bvb;
+
+    /* surface SIMD struct,
+     * used for inbox part of bvnode */
+    rt_SIMD_SURFACE    *s_inb;
 
 /*  methods */
 
@@ -529,7 +526,7 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
 
     /* surface shape extension to
      * bounding box and volume */
-    rt_SHAPE           *shp;
+    rt_SHAPE           *shape;
 
 /*  methods */
 

@@ -34,7 +34,7 @@
  * - update surface's bounding and clipping boxes, bounding volume (sphere),
  *   taking into account surfaces from custom clippers list updated in 1st phase
  * 2.5 phase (sequential) - hierarchical update of arrays' bounds from surfaces
- * - update array's bounding box and volume structures (bvbox, trbox, inbox)
+ * - update array's bounding box and volume structures (trbox, bvbox, inbox)
  *   from surfaces' bounding boxes and sub-arrays' bounding boxes
  *
  * In order to avoid cross-dependencies on the engine, object file contains
@@ -85,19 +85,19 @@ rt_Object::rt_Object(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj)
     this->trnode = RT_NULL;
     this->bvnode = RT_NULL;
 
-    /* init "box" bound structure used for bvnode if present */
-    box = (rt_BOUND *)rg->alloc(RT_IS_SURFACE(this) ?
+    /* init "bvbox" bound structure used for bvnode if present */
+    bvbox = (rt_BOUND *)rg->alloc(RT_IS_SURFACE(this) ?
                         sizeof(rt_SHAPE) : sizeof(rt_BOUND), RT_QUAD_ALIGN);
 
-    memset(box, 0, sizeof(rt_BOUND));
-    box->obj = this;
-    box->tag = this->tag;
-    box->pinv = &this->inv;
-    box->pmtx = &this->mtx;
-    box->pos = this->mtx[3];
-    box->map = this->map;
-    box->sgn = this->sgn;
-    box->opts = &rg->opts;
+    memset(bvbox, 0, sizeof(rt_BOUND));
+    bvbox->obj = this;
+    bvbox->tag = this->tag;
+    bvbox->pinv = &this->inv;
+    bvbox->pmtx = &this->mtx;
+    bvbox->pos = this->mtx[3];
+    bvbox->map = this->map;
+    bvbox->sgn = this->sgn;
+    bvbox->opts = &rg->opts;
 
     obj->time = -1;
 }
@@ -117,7 +117,7 @@ rt_void rt_Object::update_bvnode(rt_Object *bvnode, rt_bool mode)
 {
     /* bvnode cannot be its own bvnode,
      * there is no bvnode for boundless surfaces */
-    if (bvnode == this || box->verts_num == 0)
+    if (bvnode == this || bvbox->verts_num == 0)
     {
         return;
     }
@@ -314,8 +314,8 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
         trnode = this;
     }
 
-    /* set "box" bound's trnode for rtgeom */
-    box->trnode = trnode != RT_NULL ? trnode->box : RT_NULL;
+    /* set "bvbox" bound's trnode for rtgeom */
+    bvbox->trnode = trnode != RT_NULL ? trnode->bvbox : RT_NULL;
 
     /* axis mapping for trivial transform */
     map[RT_I] = RT_X;
@@ -1086,11 +1086,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     /* reset array's changed status */
     arr_changed = 0;
 
-    /* init "bvbox" bound structure used for
-     * bvnode if present and bvbox's surface set
-     * doesn't match inbox */
-    bvbox = box;
-
+    /* init "bvbox" bound structure used for bvnode if present */
     if (RT_TRUE)
     {
         bvbox->verts_num = 8;
@@ -1108,9 +1104,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
         memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
 
-    /* init "trbox" bound structure used for
-     * trnode if present and trbox's surface set
-     * isn't part of bvbox */
+    /* init "trbox" bound structure used for trnode if present */
     trbox = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
 
     memset(trbox, 0, sizeof(rt_BOUND));
@@ -1140,9 +1134,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
         memcpy(trbox->faces, bx_faces, trbox->faces_num * sizeof(rt_FACE));
     }
 
-    /* init "inbox" bound structure used for
-     * trnode part inside bvnode if both are present, also for
-     * bvnode if inbox's surface set matches bvbox */
+    /* init "inbox" bound structure used for bvnode part inside trnode */
     inbox = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
 
     memset(inbox, 0, sizeof(rt_BOUND));
@@ -1311,7 +1303,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
                     elm->simd = RT_NULL;
                 }
                 elm->data = rel[i].rel;
-                elm->temp = obj_arr_r[rel[i].obj2]->box;
+                elm->temp = obj_arr_r[rel[i].obj2]->bvbox;
                 elm->next = RT_NULL;
                 obj_arr_r = obj_arr; /* reset right sub-array after use */
                 obj_num_r = obj_num;
@@ -1444,32 +1436,61 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
 
 /*  rt_SIMD_SURFACE */
 
-    s_box = (rt_SIMD_SURFACE *)
+    s_bvb = (rt_SIMD_SURFACE *)
             rg->alloc(RT_MAX(ssize, sizeof(rt_SIMD_SPHERE)), RT_SIMD_ALIGN);
 
-    s_box->mat_p[0] = RT_NULL; /* outer material */
-    s_box->mat_p[1] = RT_NULL; /* outer material props */
-    s_box->mat_p[2] = RT_NULL; /* inner material */
-    s_box->mat_p[3] = RT_NULL; /* inner material props */
+    s_bvb->mat_p[0] = RT_NULL; /* outer material */
+    s_bvb->mat_p[1] = RT_NULL; /* outer material props */
+    s_bvb->mat_p[2] = RT_NULL; /* inner material */
+    s_bvb->mat_p[3] = RT_NULL; /* inner material props */
 
-    s_box->srf_p[0] = RT_NULL; /* surf ptr, filled in update0 */
-    s_box->srf_p[1] = RT_NULL; /* reserved */
-    s_box->srf_p[2] = RT_NULL; /* clip ptr, filled in update0 */
-    s_box->srf_p[3] = (rt_pntr)tag; /* tag */
+    s_bvb->srf_p[0] = RT_NULL; /* surf ptr, filled in update0 */
+    s_bvb->srf_p[1] = RT_NULL; /* reserved */
+    s_bvb->srf_p[2] = RT_NULL; /* clip ptr, filled in update0 */
+    s_bvb->srf_p[3] = (rt_pntr)tag; /* tag */
 
-    s_box->msc_p[0] = RT_NULL; /* screen tiles */
-    s_box->msc_p[1] = RT_NULL; /* reserved */
-    s_box->msc_p[2] = RT_NULL; /* custom clippers */
-    s_box->msc_p[3] = RT_NULL; /* trnode's simd ptr */
+    s_bvb->msc_p[0] = RT_NULL; /* screen tiles */
+    s_bvb->msc_p[1] = RT_NULL; /* reserved */
+    s_bvb->msc_p[2] = RT_NULL; /* custom clippers */
+    s_bvb->msc_p[3] = RT_NULL; /* trnode's simd ptr */
 
-    s_box->lst_p[0] = RT_NULL; /* outer lights/shadows */
-    s_box->lst_p[1] = RT_NULL; /* outer surfaces for rfl/rfr */
-    s_box->lst_p[2] = RT_NULL; /* inner lights/shadows */
-    s_box->lst_p[3] = RT_NULL; /* inner surfaces for rfl/rfr */
+    s_bvb->lst_p[0] = RT_NULL; /* outer lights/shadows */
+    s_bvb->lst_p[1] = RT_NULL; /* outer surfaces for rfl/rfr */
+    s_bvb->lst_p[2] = RT_NULL; /* inner lights/shadows */
+    s_bvb->lst_p[3] = RT_NULL; /* inner surfaces for rfl/rfr */
 
-    RT_SIMD_SET(s_box->sbase, 0x00000000);
-    RT_SIMD_SET(s_box->smask, 0x80000000);
-    RT_SIMD_SET(s_box->c_tmp, 0xFFFFFFFF);
+    RT_SIMD_SET(s_bvb->sbase, 0x00000000);
+    RT_SIMD_SET(s_bvb->smask, 0x80000000);
+    RT_SIMD_SET(s_bvb->c_tmp, 0xFFFFFFFF);
+
+/*  rt_SIMD_SURFACE */
+
+    s_inb = (rt_SIMD_SURFACE *)
+            rg->alloc(RT_MAX(ssize, sizeof(rt_SIMD_SPHERE)), RT_SIMD_ALIGN);
+
+    s_inb->mat_p[0] = RT_NULL; /* outer material */
+    s_inb->mat_p[1] = RT_NULL; /* outer material props */
+    s_inb->mat_p[2] = RT_NULL; /* inner material */
+    s_inb->mat_p[3] = RT_NULL; /* inner material props */
+
+    s_inb->srf_p[0] = RT_NULL; /* surf ptr, filled in update0 */
+    s_inb->srf_p[1] = RT_NULL; /* reserved */
+    s_inb->srf_p[2] = RT_NULL; /* clip ptr, filled in update0 */
+    s_inb->srf_p[3] = (rt_pntr)tag; /* tag */
+
+    s_inb->msc_p[0] = RT_NULL; /* screen tiles */
+    s_inb->msc_p[1] = RT_NULL; /* reserved */
+    s_inb->msc_p[2] = RT_NULL; /* custom clippers */
+    s_inb->msc_p[3] = RT_NULL; /* trnode's simd ptr */
+
+    s_inb->lst_p[0] = RT_NULL; /* outer lights/shadows */
+    s_inb->lst_p[1] = RT_NULL; /* outer surfaces for rfl/rfr */
+    s_inb->lst_p[2] = RT_NULL; /* inner lights/shadows */
+    s_inb->lst_p[3] = RT_NULL; /* inner surfaces for rfl/rfr */
+
+    RT_SIMD_SET(s_inb->sbase, 0x00000000);
+    RT_SIMD_SET(s_inb->smask, 0x80000000);
+    RT_SIMD_SET(s_inb->c_tmp, 0xFFFFFFFF);
 }
 
 /*
@@ -1638,15 +1659,25 @@ rt_void rt_Array::update_fields()
     s_srf->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
     s_srf->a_sgn[RT_L] = 0;
 
-    s_box->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
-    s_box->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
-    s_box->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
-    s_box->a_map[RT_L] = obj_has_trm;
+    s_bvb->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
+    s_bvb->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
+    s_bvb->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
+    s_bvb->a_map[RT_L] = obj_has_trm;
 
-    s_box->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_box->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_box->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_box->a_sgn[RT_L] = 0;
+    s_bvb->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_bvb->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_bvb->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_bvb->a_sgn[RT_L] = 0;
+
+    s_inb->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
+    s_inb->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
+    s_inb->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
+    s_inb->a_map[RT_L] = obj_has_trm;
+
+    s_inb->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_inb->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_inb->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_inb->a_sgn[RT_L] = 0;
 }
 
 /*
@@ -1660,8 +1691,6 @@ rt_void rt_Array::update_bounds()
     }
 
     /* reset all boxes for array */
-    box = bvbox;
-
     RT_VEC3_SET_VAL1(bvbox->bmin, +RT_INF);
     RT_VEC3_SET_VAL1(bvbox->bmax, -RT_INF);
     bvbox->rad = 0.0f;
@@ -1707,10 +1736,11 @@ rt_void rt_Array::update_bounds()
 
         if (arr != RT_NULL)
         {
-            src_box = RT_IS_SURFACE(nd) ? nd->box : ((rt_Array *)nd)->inbox;
+            src_box = RT_IS_SURFACE(nd) ? nd->bvbox : ((rt_Array *)nd)->inbox;
             dst_box = nd->bvnode != RT_NULL && nd->bvnode->trnode == arr ?
                       ((rt_Array *)nd->bvnode)->inbox : arr->trbox;
         }
+
         if (src_box != RT_NULL && src_box->rad != 0.0f && dst_box != RT_NULL)
         {
             if (src_box->rad != RT_INF)
@@ -1744,51 +1774,62 @@ rt_void rt_Array::update_bounds()
 
         if (arr != RT_NULL)
         {
-            src_box = nd->box;
+            src_box = RT_IS_SURFACE(nd) && nd->trnode == arr->trnode && 
+                      nd->trnode != nd && nd->trnode != RT_NULL ?
+                      RT_NULL : nd->bvbox;
             dst_box = arr->bvbox;
-
-            if (nd->trnode != nd && nd->trnode != RT_NULL
-            &&  nd->trnode == arr->trnode && (RT_IS_SURFACE(nd)
-            ||  RT_IS_ARRAY(nd) && nd->box == ((rt_Array *)nd)->inbox))
-            {
-                src_box = RT_NULL;
-            }
         }
-        if (src_box != RT_NULL && src_box->rad != 0.0f && dst_box != RT_NULL)
+
+        if (src_box != RT_NULL && src_box->rad != 0.0f && dst_box != RT_NULL
+        && (nd->trnode == RT_NULL || RT_IS_ARRAY(nd)))
         {
             if (src_box->rad != RT_INF)
             {
-                if (nd->trnode == RT_NULL || RT_IS_ARRAY(nd)
-                &&  nd->box == ((rt_Array *)nd)->bvbox)
+                /* contribute minmax data directly (fast) */
+                for (k = 0; k < 3; k++)
                 {
-                    /* contribute minmax data directly (fast) */
-                    for (k = 0; k < 3; k++)
+                    if (dst_box->bmin[k] > src_box->bmin[k])
                     {
-                        if (dst_box->bmin[k] > src_box->bmin[k])
-                        {
-                            dst_box->bmin[k] = src_box->bmin[k];
-                        }
-                        if (dst_box->bmax[k] < src_box->bmax[k])
-                        {
-                            dst_box->bmax[k] = src_box->bmax[k];
-                        }
+                        dst_box->bmin[k] = src_box->bmin[k];
+                    }
+                    if (dst_box->bmax[k] < src_box->bmax[k])
+                    {
+                        dst_box->bmax[k] = src_box->bmax[k];
                     }
                 }
-                else
+            }
+            /* use rad temporarily as a tag for
+             * "empty" (rad == 0.0f),
+             * "finite" (0.0f < rad < RT_INF),
+             * "infinite" (rad == RT_INF) */
+            if (dst_box->rad < src_box->rad)
+            {
+                dst_box->rad = src_box->rad;
+            }
+        }
+
+        if (arr != RT_NULL)
+        {
+            src_box = RT_IS_ARRAY(nd) ? ((rt_Array *)nd)->inbox : src_box;
+        }
+
+        if (src_box != RT_NULL && src_box->rad != 0.0f && dst_box != RT_NULL
+        &&  nd->trnode != RT_NULL && nd->trnode != arr->trnode)
+        {
+            if (src_box->rad != RT_INF)
+            {
+                /* contribute transformed vertex data (8x slower) */
+                for (j = 0; j < src_box->verts_num; j++)
                 {
-                    /* contribute transformed vertex data (8x slower) */
-                    for (j = 0; j < src_box->verts_num; j++)
+                    for (k = 0; k < 3; k++)
                     {
-                        for (k = 0; k < 3; k++)
+                        if (dst_box->bmin[k] > src_box->verts[j].pos[k])
                         {
-                            if (dst_box->bmin[k] > src_box->verts[j].pos[k])
-                            {
-                                dst_box->bmin[k] = src_box->verts[j].pos[k];
-                            }
-                            if (dst_box->bmax[k] < src_box->verts[j].pos[k])
-                            {
-                                dst_box->bmax[k] = src_box->verts[j].pos[k];
-                            }
+                            dst_box->bmin[k] = src_box->verts[j].pos[k];
+                        }
+                        if (dst_box->bmax[k] < src_box->verts[j].pos[k])
+                        {
+                            dst_box->bmax[k] = src_box->verts[j].pos[k];
                         }
                     }
                 }
@@ -1804,33 +1845,50 @@ rt_void rt_Array::update_bounds()
         }
     }
 
+    /* update bvbox geometry */
+    if (bvbox->rad != 0.0f && bvbox->rad != RT_INF)
+    {
+        update_bbgeom(bvbox);
+
+        RT_SIMD_SET(s_bvb->pos_x, bvbox->mid[RT_X]);
+        RT_SIMD_SET(s_bvb->pos_y, bvbox->mid[RT_Y]);
+        RT_SIMD_SET(s_bvb->pos_z, bvbox->mid[RT_Z]);
+
+        rt_SIMD_SPHERE *s_xsp = (rt_SIMD_SPHERE *)s_bvb;
+
+        RT_SIMD_SET(s_xsp->rad_2, bvbox->rad * bvbox->rad);
+    }
+
     /* update inbox geometry */
     if (inbox->rad != 0.0f && inbox->rad != RT_INF)
     {
         update_bbgeom(inbox);
 
-        box = inbox;
+        RT_SIMD_SET(s_inb->pos_x, inbox->mid[RT_X]);
+        RT_SIMD_SET(s_inb->pos_y, inbox->mid[RT_Y]);
+        RT_SIMD_SET(s_inb->pos_z, inbox->mid[RT_Z]);
 
-        /* if inbox and bvbox are both not empty
-         * contribute inbox's contents to bvbox
-         * after update_bbgeom for inbox */
-        if (bvbox->rad != 0.0f && bvbox->rad != RT_INF)
+        rt_SIMD_SPHERE *s_xsp = (rt_SIMD_SPHERE *)s_inb;
+
+        RT_SIMD_SET(s_xsp->rad_2, inbox->rad * inbox->rad);
+
+        if (trnode == this)
         {
             src_box = inbox;
-            dst_box = bvbox;
+            dst_box = trbox;
 
-            /* contribute transformed vertex data (8x slower) */
-            for (j = 0; j < src_box->verts_num; j++)
+            if (src_box->rad != RT_INF)
             {
+                /* contribute minmax data directly (fast) */
                 for (k = 0; k < 3; k++)
                 {
-                    if (dst_box->bmin[k] > src_box->verts[j].pos[k])
+                    if (dst_box->bmin[k] > src_box->bmin[k])
                     {
-                        dst_box->bmin[k] = src_box->verts[j].pos[k];
+                        dst_box->bmin[k] = src_box->bmin[k];
                     }
-                    if (dst_box->bmax[k] < src_box->verts[j].pos[k])
+                    if (dst_box->bmax[k] < src_box->bmax[k])
                     {
-                        dst_box->bmax[k] = src_box->verts[j].pos[k];
+                        dst_box->bmax[k] = src_box->bmax[k];
                     }
                 }
             }
@@ -1850,29 +1908,6 @@ rt_void rt_Array::update_bounds()
     {
         update_bbgeom(trbox);
     }
-    /* update bvbox geometry */
-    if (bvbox->rad != 0.0f && bvbox->rad != RT_INF)
-    {
-        update_bbgeom(bvbox);
-
-        box = bvbox;
-    }
-    else
-    /* return if box is empty */
-    if (box == bvbox)
-    {
-        return;
-    }
-
-    RT_SIMD_SET(s_box->pos_x, box->mid[RT_X]);
-    RT_SIMD_SET(s_box->pos_y, box->mid[RT_Y]);
-    RT_SIMD_SET(s_box->pos_z, box->mid[RT_Z]);
-
-/*  rt_SIMD_SPHERE */
-
-    rt_SIMD_SPHERE *s_xsp = (rt_SIMD_SPHERE *)s_box;
-
-    RT_SIMD_SET(s_xsp->rad_2, box->rad * box->rad);
 }
 
 /*
@@ -1919,10 +1954,10 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
                                           srf->side_inner.pmat);
 
     /* init surface's shape structure */
-    shp = (rt_SHAPE *)box;
+    shape = (rt_SHAPE *)bvbox;
 
-    shp->rad = RT_INF;
-    shp->ptr = &s_srf->msc_p[2];
+    shape->rad = RT_INF;
+    shape->ptr = &s_srf->msc_p[2];
 
 /*  rt_SIMD_SURFACE */
 
@@ -1986,7 +2021,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
                     elm->simd = RT_NULL;
                 }
                 elm->data = rel;
-                elm->temp = arr->obj_arr[i]->box;
+                elm->temp = arr->obj_arr[i]->bvbox;
                 elm->next = RT_NULL;
 
                 add_relation(elm);
@@ -2001,7 +2036,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
             elm = (rt_ELEM *)rg->alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
             elm->data = rel;
             elm->simd = srf->s_srf;
-            elm->temp = srf->box;
+            elm->temp = srf->bvbox;
             /* insert element as list's head */
             elm->next = *ptr;
            *ptr = elm;
@@ -2242,9 +2277,9 @@ rt_void rt_Surface::update_minmax()
     {
         /* calculate bbox and cbox based on 
          * original axis clippers and surface shape */
-        recalc_minmax(RT_NULL,   RT_NULL,
-                      shp->bmin, shp->bmax,
-                      shp->cmin, shp->cmax);
+        recalc_minmax(RT_NULL,     RT_NULL,
+                      shape->bmin, shape->bmax,
+                      shape->cmin, shape->cmax);
         return;
     }
 
@@ -2282,14 +2317,14 @@ rt_void rt_Surface::update_minmax()
 
     /* first calculate only bbox based on 
      * original axis clippers and surface shape */
-    recalc_minmax(RT_NULL,   RT_NULL,
-                  shp->bmin, shp->bmax,
-                  RT_NULL,   RT_NULL);
+    recalc_minmax(RT_NULL,     RT_NULL,
+                  shape->bmin, shape->bmax,
+                  RT_NULL,     RT_NULL);
 
     /* prepare cbox as temporary storage
      * for bbox adjustments by custom clippers */
-    RT_VEC3_SET_VAL1(shp->cmin, -RT_INF);
-    RT_VEC3_SET_VAL1(shp->cmax, +RT_INF);
+    RT_VEC3_SET_VAL1(shape->cmin, -RT_INF);
+    RT_VEC3_SET_VAL1(shape->cmax, +RT_INF);
 
     /* reinit custom clippers list */
     elm = (rt_ELEM *)s_srf->msc_p[2];
@@ -2321,16 +2356,16 @@ rt_void rt_Surface::update_minmax()
 
         /* accumulate bbox adjustments
          * from individual outer clippers into cbox */
-        srf->recalc_minmax(shp->bmin, shp->bmax,
-                           RT_NULL,   RT_NULL,
-                           shp->cmin, shp->cmax);
+        srf->recalc_minmax(shape->bmin, shape->bmax,
+                           RT_NULL,     RT_NULL,
+                           shape->cmin, shape->cmax);
     }
 
     /* apply bbox adjustments accumulated in cbox,
      * calculate final bbox and cbox for the surface */
-    recalc_minmax(shp->cmin, shp->cmax,
-                  shp->bmin, shp->bmax,
-                  shp->cmin, shp->cmax);
+    recalc_minmax(shape->cmin, shape->cmax,
+                  shape->bmin, shape->bmax,
+                  shape->cmin, shape->cmax);
 }
 
 /*
@@ -2356,30 +2391,30 @@ rt_void rt_Surface::update_bounds()
         ((rt_Array *)par)->arr_changed |= srf_changed;
     }
 
-    /* update bounds geometry */
-    if (box->verts_num != 0)
+    /* update bvbox geometry */
+    if (bvbox->verts_num != 0)
     {
-        update_bbgeom(box);
+        update_bbgeom(bvbox);
     }
 
-    s_srf->min_t[RT_X] = shp->cmin[RT_X] == -RT_INF ? 0 : 1;
-    s_srf->min_t[RT_Y] = shp->cmin[RT_Y] == -RT_INF ? 0 : 1;
-    s_srf->min_t[RT_Z] = shp->cmin[RT_Z] == -RT_INF ? 0 : 1;
+    s_srf->min_t[RT_X] = shape->cmin[RT_X] == -RT_INF ? 0 : 1;
+    s_srf->min_t[RT_Y] = shape->cmin[RT_Y] == -RT_INF ? 0 : 1;
+    s_srf->min_t[RT_Z] = shape->cmin[RT_Z] == -RT_INF ? 0 : 1;
 
-    s_srf->max_t[RT_X] = shp->cmax[RT_X] == +RT_INF ? 0 : 1;
-    s_srf->max_t[RT_Y] = shp->cmax[RT_Y] == +RT_INF ? 0 : 1;
-    s_srf->max_t[RT_Z] = shp->cmax[RT_Z] == +RT_INF ? 0 : 1;
+    s_srf->max_t[RT_X] = shape->cmax[RT_X] == +RT_INF ? 0 : 1;
+    s_srf->max_t[RT_Y] = shape->cmax[RT_Y] == +RT_INF ? 0 : 1;
+    s_srf->max_t[RT_Z] = shape->cmax[RT_Z] == +RT_INF ? 0 : 1;
 
     rt_vec4  zro = {0.0f, 0.0f, 0.0f, 0.0f};
     rt_real *pps = trnode == this ? zro : pos;
 
-    RT_SIMD_SET(s_srf->min_x, shp->bmin[RT_X] - pps[RT_X]);
-    RT_SIMD_SET(s_srf->min_y, shp->bmin[RT_Y] - pps[RT_Y]);
-    RT_SIMD_SET(s_srf->min_z, shp->bmin[RT_Z] - pps[RT_Z]);
+    RT_SIMD_SET(s_srf->min_x, shape->bmin[RT_X] - pps[RT_X]);
+    RT_SIMD_SET(s_srf->min_y, shape->bmin[RT_Y] - pps[RT_Y]);
+    RT_SIMD_SET(s_srf->min_z, shape->bmin[RT_Z] - pps[RT_Z]);
 
-    RT_SIMD_SET(s_srf->max_x, shp->bmax[RT_X] - pps[RT_X]);
-    RT_SIMD_SET(s_srf->max_y, shp->bmax[RT_Y] - pps[RT_Y]);
-    RT_SIMD_SET(s_srf->max_z, shp->bmax[RT_Z] - pps[RT_Z]);
+    RT_SIMD_SET(s_srf->max_x, shape->bmax[RT_X] - pps[RT_X]);
+    RT_SIMD_SET(s_srf->max_y, shape->bmax[RT_Y] - pps[RT_Y]);
+    RT_SIMD_SET(s_srf->max_z, shape->bmax[RT_Z] - pps[RT_Z]);
 }
 
 /*
@@ -2410,30 +2445,30 @@ rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
     ||  srf->max[RT_I] == +RT_INF
     ||  srf->max[RT_J] == +RT_INF)
     {
-        shp->verts_num = 0;
-        shp->verts = RT_NULL;
+        bvbox->verts_num = 0;
+        bvbox->verts = RT_NULL;
 
-        shp->edges_num = 0;
-        shp->edges = RT_NULL;
+        bvbox->edges_num = 0;
+        bvbox->edges = RT_NULL;
 
-        shp->faces_num = 0;
-        shp->faces = RT_NULL;
+        bvbox->faces_num = 0;
+        bvbox->faces = RT_NULL;
     }
     else
     {
-        shp->verts_num = 4;
-        shp->verts = (rt_VERT *)
-                     rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
+        bvbox->verts_num = 4;
+        bvbox->verts = (rt_VERT *)
+                     rg->alloc(bvbox->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        shp->edges_num = 4;
-        shp->edges = (rt_EDGE *)
-                     rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(shp->edges, bx_edges, shp->edges_num * sizeof(rt_EDGE));
+        bvbox->edges_num = 4;
+        bvbox->edges = (rt_EDGE *)
+                     rg->alloc(bvbox->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(bvbox->edges, bx_edges, bvbox->edges_num * sizeof(rt_EDGE));
 
-        shp->faces_num = 1;
-        shp->faces = (rt_FACE *)
-                     rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(shp->faces, bx_faces, shp->faces_num * sizeof(rt_FACE));
+        bvbox->faces_num = 1;
+        bvbox->faces = (rt_FACE *)
+                     rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_PLANE */
@@ -2455,16 +2490,16 @@ rt_void rt_Plane::update_fields()
 
     rt_Surface::update_fields();
 
-    RT_VEC3_SET_VAL1(shp->sci, 0.0f);
-    shp->sci[RT_W] = 0.0f;
+    RT_VEC3_SET_VAL1(shape->sci, 0.0f);
+    shape->sci[RT_W] = 0.0f;
 
-    RT_VEC3_SET_VAL1(shp->scj, 0.0f);
-    shp->scj[RT_W] = 0.0f;
+    RT_VEC3_SET_VAL1(shape->scj, 0.0f);
+    shape->scj[RT_W] = 0.0f;
 
-    RT_VEC3_SET_VAL1(shp->sck, 0.0f);
-    shp->sck[RT_W] = 0.0f;
+    RT_VEC3_SET_VAL1(shape->sck, 0.0f);
+    shape->sck[RT_W] = 0.0f;
 
-    shp->sck[mp_k] = (rt_real)sgn[RT_K];
+    shape->sck[mp_k] = (rt_real)sgn[RT_K];
 }
 
 /*
@@ -2530,14 +2565,14 @@ rt_void rt_Quadric::update_fields()
 
     rt_Surface::update_fields();
 
-    RT_VEC3_SET_VAL1(shp->sci, 1.0f);
-    shp->sci[RT_W] = 0.0f;
+    RT_VEC3_SET_VAL1(shape->sci, 1.0f);
+    shape->sci[RT_W] = 0.0f;
 
-    RT_VEC3_SET_VAL1(shp->scj, 0.0f);
-    shp->scj[RT_W] = 0.0f;
+    RT_VEC3_SET_VAL1(shape->scj, 0.0f);
+    shape->scj[RT_W] = 0.0f;
 
-    RT_VEC3_SET_VAL1(shp->sck, 0.0f);
-    shp->sck[RT_W] = 0.0f;
+    RT_VEC3_SET_VAL1(shape->sck, 0.0f);
+    shape->sck[RT_W] = 0.0f;
 }
 
 /*
@@ -2575,30 +2610,30 @@ rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
     if (srf->min[RT_K] == -RT_INF
     ||  srf->max[RT_K] == +RT_INF)
     {
-        shp->verts_num = 0;
-        shp->verts = RT_NULL;
+        bvbox->verts_num = 0;
+        bvbox->verts = RT_NULL;
 
-        shp->edges_num = 0;
-        shp->edges = RT_NULL;
+        bvbox->edges_num = 0;
+        bvbox->edges = RT_NULL;
 
-        shp->faces_num = 0;
-        shp->faces = RT_NULL;
+        bvbox->faces_num = 0;
+        bvbox->faces = RT_NULL;
     }
     else
     {
-        shp->verts_num = 8;
-        shp->verts = (rt_VERT *)
-                     rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
+        bvbox->verts_num = 8;
+        bvbox->verts = (rt_VERT *)
+                     rg->alloc(bvbox->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        shp->edges_num = RT_ARR_SIZE(bx_edges);
-        shp->edges = (rt_EDGE *)
-                     rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(shp->edges, bx_edges, shp->edges_num * sizeof(rt_EDGE));
+        bvbox->edges_num = RT_ARR_SIZE(bx_edges);
+        bvbox->edges = (rt_EDGE *)
+                     rg->alloc(bvbox->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(bvbox->edges, bx_edges, bvbox->edges_num * sizeof(rt_EDGE));
 
-        shp->faces_num = RT_ARR_SIZE(bx_faces);
-        shp->faces = (rt_FACE *)
-                     rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(shp->faces, bx_faces, shp->faces_num * sizeof(rt_FACE));
+        bvbox->faces_num = RT_ARR_SIZE(bx_faces);
+        bvbox->faces = (rt_FACE *)
+                     rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_CYLINDER */
@@ -2623,8 +2658,8 @@ rt_void rt_Cylinder::update_fields()
 
     rt_Quadric::update_fields();
 
-    shp->sci[mp_k] = 0.0f;
-    shp->sci[RT_W] = xcl->rad * xcl->rad;
+    shape->sci[mp_k] = 0.0f;
+    shape->sci[RT_W] = xcl->rad * xcl->rad;
 }
 
 /*
@@ -2683,19 +2718,19 @@ rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
 
     if (RT_TRUE)
     {
-        shp->verts_num = 8;
-        shp->verts = (rt_VERT *)
-                     rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
+        bvbox->verts_num = 8;
+        bvbox->verts = (rt_VERT *)
+                     rg->alloc(bvbox->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        shp->edges_num = RT_ARR_SIZE(bx_edges);
-        shp->edges = (rt_EDGE *)
-                     rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(shp->edges, bx_edges, shp->edges_num * sizeof(rt_EDGE));
+        bvbox->edges_num = RT_ARR_SIZE(bx_edges);
+        bvbox->edges = (rt_EDGE *)
+                     rg->alloc(bvbox->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(bvbox->edges, bx_edges, bvbox->edges_num * sizeof(rt_EDGE));
 
-        shp->faces_num = RT_ARR_SIZE(bx_faces);
-        shp->faces = (rt_FACE *)
-                     rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(shp->faces, bx_faces, shp->faces_num * sizeof(rt_FACE));
+        bvbox->faces_num = RT_ARR_SIZE(bx_faces);
+        bvbox->faces = (rt_FACE *)
+                     rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_SPHERE */
@@ -2720,7 +2755,7 @@ rt_void rt_Sphere::update_fields()
 
     rt_Quadric::update_fields();
 
-    shp->sci[RT_W] = xsp->rad * xsp->rad;
+    shape->sci[RT_W] = xsp->rad * xsp->rad;
 }
 
 /*
@@ -2802,30 +2837,30 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
     if (srf->min[RT_K] == -RT_INF
     ||  srf->max[RT_K] == +RT_INF)
     {
-        shp->verts_num = 0;
-        shp->verts = RT_NULL;
+        bvbox->verts_num = 0;
+        bvbox->verts = RT_NULL;
 
-        shp->edges_num = 0;
-        shp->edges = RT_NULL;
+        bvbox->edges_num = 0;
+        bvbox->edges = RT_NULL;
 
-        shp->faces_num = 0;
-        shp->faces = RT_NULL;
+        bvbox->faces_num = 0;
+        bvbox->faces = RT_NULL;
     }
     else
     {
-        shp->verts_num = 8;
-        shp->verts = (rt_VERT *)
-                     rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
+        bvbox->verts_num = 8;
+        bvbox->verts = (rt_VERT *)
+                     rg->alloc(bvbox->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        shp->edges_num = RT_ARR_SIZE(bx_edges);
-        shp->edges = (rt_EDGE *)
-                     rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(shp->edges, bx_edges, shp->edges_num * sizeof(rt_EDGE));
+        bvbox->edges_num = RT_ARR_SIZE(bx_edges);
+        bvbox->edges = (rt_EDGE *)
+                     rg->alloc(bvbox->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(bvbox->edges, bx_edges, bvbox->edges_num * sizeof(rt_EDGE));
 
-        shp->faces_num = RT_ARR_SIZE(bx_faces);
-        shp->faces = (rt_FACE *)
-                     rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(shp->faces, bx_faces, shp->faces_num * sizeof(rt_FACE));
+        bvbox->faces_num = RT_ARR_SIZE(bx_faces);
+        bvbox->faces = (rt_FACE *)
+                     rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_CONE */
@@ -2850,7 +2885,7 @@ rt_void rt_Cone::update_fields()
 
     rt_Quadric::update_fields();
 
-    shp->sci[mp_k] = -(xcn->rat * xcn->rat);
+    shape->sci[mp_k] = -(xcn->rat * xcn->rat);
 }
 
 /*
@@ -2911,30 +2946,30 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
     if (srf->min[RT_K] == -RT_INF && xpb->par < 0.0f
     ||  srf->max[RT_K] == +RT_INF && xpb->par > 0.0f)
     {
-        shp->verts_num = 0;
-        shp->verts = RT_NULL;
+        bvbox->verts_num = 0;
+        bvbox->verts = RT_NULL;
 
-        shp->edges_num = 0;
-        shp->edges = RT_NULL;
+        bvbox->edges_num = 0;
+        bvbox->edges = RT_NULL;
 
-        shp->faces_num = 0;
-        shp->faces = RT_NULL;
+        bvbox->faces_num = 0;
+        bvbox->faces = RT_NULL;
     }
     else
     {
-        shp->verts_num = 8;
-        shp->verts = (rt_VERT *)
-                     rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
+        bvbox->verts_num = 8;
+        bvbox->verts = (rt_VERT *)
+                     rg->alloc(bvbox->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        shp->edges_num = RT_ARR_SIZE(bx_edges);
-        shp->edges = (rt_EDGE *)
-                     rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(shp->edges, bx_edges, shp->edges_num * sizeof(rt_EDGE));
+        bvbox->edges_num = RT_ARR_SIZE(bx_edges);
+        bvbox->edges = (rt_EDGE *)
+                     rg->alloc(bvbox->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(bvbox->edges, bx_edges, bvbox->edges_num * sizeof(rt_EDGE));
 
-        shp->faces_num = RT_ARR_SIZE(bx_faces);
-        shp->faces = (rt_FACE *)
-                     rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(shp->faces, bx_faces, shp->faces_num * sizeof(rt_FACE));
+        bvbox->faces_num = RT_ARR_SIZE(bx_faces);
+        bvbox->faces = (rt_FACE *)
+                     rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_PARABOLOID */
@@ -2961,8 +2996,8 @@ rt_void rt_Paraboloid::update_fields()
 
     rt_Quadric::update_fields();
 
-    shp->sci[mp_k] = 0.0f;
-    shp->scj[mp_k] = xpb->par * (rt_real)sgn[RT_K];
+    shape->sci[mp_k] = 0.0f;
+    shape->scj[mp_k] = xpb->par * (rt_real)sgn[RT_K];
 }
 
 /*
@@ -3030,30 +3065,30 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
     if (srf->min[RT_K] == -RT_INF
     ||  srf->max[RT_K] == +RT_INF)
     {
-        shp->verts_num = 0;
-        shp->verts = RT_NULL;
+        bvbox->verts_num = 0;
+        bvbox->verts = RT_NULL;
 
-        shp->edges_num = 0;
-        shp->edges = RT_NULL;
+        bvbox->edges_num = 0;
+        bvbox->edges = RT_NULL;
 
-        shp->faces_num = 0;
-        shp->faces = RT_NULL;
+        bvbox->faces_num = 0;
+        bvbox->faces = RT_NULL;
     }
     else
     {
-        shp->verts_num = 8;
-        shp->verts = (rt_VERT *)
-                     rg->alloc(shp->verts_num * sizeof(rt_VERT), RT_ALIGN);
+        bvbox->verts_num = 8;
+        bvbox->verts = (rt_VERT *)
+                     rg->alloc(bvbox->verts_num * sizeof(rt_VERT), RT_ALIGN);
 
-        shp->edges_num = RT_ARR_SIZE(bx_edges);
-        shp->edges = (rt_EDGE *)
-                     rg->alloc(shp->edges_num * sizeof(rt_EDGE), RT_ALIGN);
-        memcpy(shp->edges, bx_edges, shp->edges_num * sizeof(rt_EDGE));
+        bvbox->edges_num = RT_ARR_SIZE(bx_edges);
+        bvbox->edges = (rt_EDGE *)
+                     rg->alloc(bvbox->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(bvbox->edges, bx_edges, bvbox->edges_num * sizeof(rt_EDGE));
 
-        shp->faces_num = RT_ARR_SIZE(bx_faces);
-        shp->faces = (rt_FACE *)
-                     rg->alloc(shp->faces_num * sizeof(rt_FACE), RT_ALIGN);
-        memcpy(shp->faces, bx_faces, shp->faces_num * sizeof(rt_FACE));
+        bvbox->faces_num = RT_ARR_SIZE(bx_faces);
+        bvbox->faces = (rt_FACE *)
+                     rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
 
 /*  rt_SIMD_HYPERBOLOID */
@@ -3081,8 +3116,8 @@ rt_void rt_Hyperboloid::update_fields()
 
     rt_Quadric::update_fields();
 
-    shp->sci[mp_k] = -(xhb->rat * xhb->rat);
-    shp->sci[RT_W] = xhb->hyp;
+    shape->sci[mp_k] = -(xhb->rat * xhb->rat);
+    shape->sci[RT_W] = xhb->hyp;
 }
 
 /*
