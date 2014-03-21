@@ -209,7 +209,9 @@ class rt_Object
     rt_Registry        *rg;
 
     /* bounding box and volume,
-     * used for bvnode if present */
+     * used in arrays for outer part
+     * of split bvnode if present,
+     * used as generic boundary in other objects */
     rt_BOUND           *bvbox;
 
     /* object's transform and tag */
@@ -444,11 +446,15 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
     rt_cell             arr_changed;
 
     /* bounding box and volume,
-     * used for trnode if present */
+     * used for trnode if present
+     * and has contents outside bvnode,
+     * in which case bvnode is split */
     rt_BOUND           *trbox;
 
     /* bounding box and volume,
-     * used for bvnode part inside trnode */
+     * used for inner part of split bvnode
+     * or trnode if doesn't have contents
+     * outside bvnode */
     rt_BOUND           *inbox;
 
     /* surface SIMD struct,

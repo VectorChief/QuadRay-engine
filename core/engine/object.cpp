@@ -34,7 +34,7 @@
  * - update surface's bounding and clipping boxes, bounding volume (sphere),
  *   taking into account surfaces from custom clippers list updated in 1st phase
  * 2.5 phase (sequential) - hierarchical update of arrays' bounds from surfaces
- * - update array's bounding box and volume structures (trbox, bvbox, inbox)
+ * - update array's bounding box and volume structures (bvbox, trbox, inbox)
  *   from surfaces' bounding boxes and sub-arrays' bounding boxes
  *
  * In order to avoid cross-dependencies on the engine, object file contains
@@ -85,7 +85,8 @@ rt_Object::rt_Object(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj)
     this->trnode = RT_NULL;
     this->bvnode = RT_NULL;
 
-    /* init "bvbox" bound structure used for bvnode if present */
+    /* init bvbox used in arrays for outer part of split bvnode if present,
+     * used as generic boundary in other objects */
     bvbox = (rt_BOUND *)rg->alloc(RT_IS_SURFACE(this) ?
                         sizeof(rt_SHAPE) : sizeof(rt_BOUND), RT_QUAD_ALIGN);
 
@@ -314,7 +315,7 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
         trnode = this;
     }
 
-    /* set "bvbox" bound's trnode for rtgeom */
+    /* set bvbox's trnode for rtgeom */
     bvbox->trnode = trnode != RT_NULL ? trnode->bvbox : RT_NULL;
 
     /* axis mapping for trivial transform */
@@ -1086,7 +1087,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     /* reset array's changed status */
     arr_changed = 0;
 
-    /* init "bvbox" bound structure used for bvnode if present */
+    /* init bvbox used for outer part of split bvnode if present */
     if (RT_TRUE)
     {
         bvbox->verts_num = 8;
@@ -1104,7 +1105,8 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
         memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
 
-    /* init "trbox" bound structure used for trnode if present */
+    /* init trbox used for trnode if present and has contents outside bvnode,
+     * in which case bvnode is split */
     trbox = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
 
     memset(trbox, 0, sizeof(rt_BOUND));
@@ -1134,7 +1136,8 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
         memcpy(trbox->faces, bx_faces, trbox->faces_num * sizeof(rt_FACE));
     }
 
-    /* init "inbox" bound structure used for bvnode part inside trnode */
+    /* init inbox used for inner part of split bvnode if present,
+     * or trnode if doesn't have contents outside bvnode */
     inbox = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
 
     memset(inbox, 0, sizeof(rt_BOUND));
@@ -1559,10 +1562,15 @@ rt_void rt_Array::update_matrix(rt_mat4 mtx)
 
     rt_Node::update_matrix(mtx);
 
-    /* set "trbox" bound's trnode for rtgeom */
+    /* reset bvbox's trnode for rtgeom
+     * as array's bvbox is always in world space,
+     * note that bvbox's pos is still relative to trnode if present */
+    bvbox->trnode = RT_NULL;
+
+    /* set trbox's trnode for rtgeom */
     trbox->trnode = trnode != RT_NULL ? ((rt_Array *)trnode)->trbox : RT_NULL;
 
-    /* set "inbox" bound's trnode for rtgeom */
+    /* set inbox's trnode for rtgeom */
     inbox->trnode = trnode != RT_NULL ? ((rt_Array *)trnode)->inbox : RT_NULL;
 
     /* set matrix pointer for sub-objects
@@ -1847,7 +1855,7 @@ rt_void rt_Array::update_bounds()
         }
     }
 
-    /* update inbox geometry */
+    /* update inbox's geometry */
     if (inbox->rad != 0.0f && inbox->rad != RT_INF)
     {
         update_bbgeom(inbox);
@@ -1859,6 +1867,7 @@ rt_void rt_Array::update_bounds()
         RT_SIMD_SET(s_xsp->pos_z, inbox->mid[RT_Z]);
         RT_SIMD_SET(s_xsp->rad_2, inbox->rad * inbox->rad);
 
+        /* contribute trnode array's inbox to trbox if trbox has contents */
         if (trnode == this && trbox->rad != 0.0f)
         {
             src_box = inbox;
@@ -1889,6 +1898,7 @@ rt_void rt_Array::update_bounds()
             }
         }
         else
+        /* contribute trnode array's inbox to bvbox if trbox is empty */
         if (trnode == this && trbox->rad == 0.0f)
         {
             src_box = inbox;
@@ -1923,7 +1933,7 @@ rt_void rt_Array::update_bounds()
         }
     }
 
-    /* update bvbox geometry */
+    /* update bvbox's geometry */
     if (bvbox->rad != 0.0f && bvbox->rad != RT_INF)
     {
         update_bbgeom(bvbox);
@@ -1936,7 +1946,7 @@ rt_void rt_Array::update_bounds()
         RT_SIMD_SET(s_xsp->rad_2, bvbox->rad * bvbox->rad);
     }
 
-    /* update trbox geometry */
+    /* update trbox's geometry */
     if (trbox->rad != 0.0f && trbox->rad != RT_INF)
     {
         update_bbgeom(trbox);
@@ -1986,10 +1996,10 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
                     obj->obj.pmat_inner ? obj->obj.pmat_inner :
                                           srf->side_inner.pmat);
 
-    /* init surface's bvbox structure */
+    /* init surface's bvbox used for tiling, rtgeom and array's bounds */
     bvbox->rad = RT_INF;
 
-    /* init surface's shape structure */
+    /* init surface's shape used for rtgeom */
     shape = (rt_SHAPE *)bvbox;
     shape->ptr = &s_srf->msc_p[2];
 
@@ -2425,7 +2435,7 @@ rt_void rt_Surface::update_bounds()
         ((rt_Array *)par)->arr_changed |= srf_changed;
     }
 
-    /* update bvbox geometry */
+    /* update bvbox's geometry */
     if (bvbox->verts_num != 0)
     {
         update_bbgeom(bvbox);
@@ -2474,6 +2484,7 @@ rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
 {
     xpl = (rt_PLANE *)obj->obj.pobj;
 
+    /* init surface's bvbox used for tiling, rtgeom and array's bounds */
     if (srf->min[RT_I] == -RT_INF
     ||  srf->min[RT_J] == -RT_INF
     ||  srf->max[RT_I] == +RT_INF
@@ -2641,6 +2652,7 @@ rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
 {
     xcl = (rt_CYLINDER *)obj->obj.pobj;
 
+    /* init surface's bvbox used for tiling, rtgeom and array's bounds */
     if (srf->min[RT_K] == -RT_INF
     ||  srf->max[RT_K] == +RT_INF)
     {
@@ -2750,6 +2762,7 @@ rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
 {
     xsp = (rt_SPHERE *)obj->obj.pobj;
 
+    /* init surface's bvbox used for tiling, rtgeom and array's bounds */
     if (RT_TRUE)
     {
         bvbox->verts_num = 8;
@@ -2868,6 +2881,7 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
 {
     xcn = (rt_CONE *)obj->obj.pobj;
 
+    /* init surface's bvbox used for tiling, rtgeom and array's bounds */
     if (srf->min[RT_K] == -RT_INF
     ||  srf->max[RT_K] == +RT_INF)
     {
@@ -2977,6 +2991,7 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
 {
     xpb = (rt_PARABOLOID *)obj->obj.pobj;
 
+    /* init surface's bvbox used for tiling, rtgeom and array's bounds */
     if (srf->min[RT_K] == -RT_INF && xpb->par < 0.0f
     ||  srf->max[RT_K] == +RT_INF && xpb->par > 0.0f)
     {
@@ -3096,6 +3111,7 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
 {
     xhb = (rt_HYPERBOLOID *)obj->obj.pobj;
 
+    /* init surface's bvbox used for tiling, rtgeom and array's bounds */
     if (srf->min[RT_K] == -RT_INF
     ||  srf->max[RT_K] == +RT_INF)
     {
