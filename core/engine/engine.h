@@ -169,11 +169,12 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_SceneThread    **tharr;
     rt_pntr             tdata;
 
-    /* global surface list and
-     * global light/shadow list
-     * for rendering backend */
+    /* global surface list */
     rt_ELEM            *slist;
+    /* global light/shadow list */
     rt_ELEM            *llist;
+    /* camera's surface list */
+    rt_ELEM            *clist;
 
     /* rays positioning variables */
     rt_vec4             pos;

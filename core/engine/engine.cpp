@@ -67,6 +67,21 @@
         RT_LOGI("\n");                                                      \
         RT_LOGI("\n")
 
+#define RT_PRINT_GLB()                                                      \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("******************* GLOBAL ******************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("*********************************************");           \
+        RT_LOGI("\n");                                                      \
+        RT_LOGI("\n")
+
 /*
  * Print camera properties.
  */
@@ -228,6 +243,7 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
             RT_LOGI("tag: %s, trm: %d, %s       ",
                 tags[obj->tag], obj->obj_has_trm,
                 sides[RT_MIN(i, RT_ARR_SIZE(sides) - 1)]);
+            r = obj->bvbox->rad;
         }
         RT_LOGI("    ");
         RT_LOGI("pos,rad: {%f, %f, %f}, %f",
@@ -649,7 +665,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
 {
     rt_ELEM *elm = RT_NULL;
 
-    if (srf == RT_NULL && RT_IS_LIGHT(obj))
+    if (srf == RT_NULL && obj != RT_NULL && RT_IS_LIGHT(obj))
     {
         rt_Light *lgt = (rt_Light *)obj;
 
@@ -674,10 +690,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     elm->simd = srf->s_srf;
     elm->temp = srf->bvbox;
 
-    /* search matching existing trnode/bvnode for insertion,
-     * run through the list hierarchy to find the inner-most node,
-     * node's "simd" field holds pointer to node's sublist
-     * along with node's type in the lower 4 bits (trnode/bvnode) */
+    /* prepare surface's trnode/bvnode sequence for searching */
     rt_ELEM *nxt, *lst = srf->trn;
 
 #if RT_OPTS_VARRAY != 0
@@ -689,12 +702,16 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
 
 #if RT_OPTS_TILING != 0
     if ((scene->opts & RT_OPTS_TILING) != 0
-    &&  RT_IS_CAMERA(obj))
+    &&  obj != RT_NULL && RT_IS_CAMERA(obj))
     {
         lst = srf->trn;
     }
 #endif /* RT_OPTS_TILING */
 
+    /* search matching existing trnode/bvnode for insertion,
+     * run through the list hierarchy to find the inner-most node,
+     * node's "simd" field holds pointer to node's sublist
+     * along with node's type in the lower 4 bits (trnode/bvnode) */
     for (nxt = RT_GET_PTR(*ptr); nxt != RT_NULL && lst != RT_NULL;)
     {
         if (nxt->temp == lst->temp)
@@ -718,10 +735,11 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
      * this allows for greater flexibility in trnode/bvnode
      * relationship, something not allowed in previous versions */
 
-    /* allocate new node elements from outer-most to inner-most
-     * if they are not already in the list */
+    /* insertion point for outer-most new element */
     rt_ELEM **org = RT_NULL;
 
+    /* allocate new node elements from outer-most to inner-most
+     * if they are not already in the list */
     for (; lst != RT_NULL; lst = lst->next)
     {
         /* alloc new trnode/bvnode element as none has been found */
@@ -764,7 +782,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
      * the boundaries of the array node sublists as they are
      * determined by the search/insert algorithm above */
 #if RT_OPTS_INSERT == 1
-    if ((scene->opts & RT_OPTS_INSERT) == 0)
+    if ((scene->opts & RT_OPTS_INSERT) == 0
+    ||  obj == RT_NULL)
 #endif /* RT_OPTS_INSERT */
     {
         return elm;
@@ -1143,7 +1162,7 @@ rt_ELEM* rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
 rt_void rt_SceneThread::snode(rt_Surface *srf)
 {
     /* as temporary memory pool is released after every frame,
-     * always rebuild the list even if the surface hasn't changed */
+     * always rebuild the list even if the scene hasn't changed */
 
     /* reset surface's trnode/bvnode sequence */
     srf->top = RT_NULL;
@@ -1222,7 +1241,7 @@ rt_void rt_SceneThread::snode(rt_Surface *srf)
 rt_void rt_SceneThread::sclip(rt_Surface *srf)
 {
     /* as temporary memory pool is released after every frame,
-     * always rebuild the list even if the surface hasn't changed */
+     * always rebuild the list even if the scene hasn't changed */
 
     /* init surface's relations template */
     rt_ELEM *lst = srf->rel;
@@ -1357,7 +1376,7 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
 rt_void rt_SceneThread::stile(rt_Surface *srf)
 {
     /* as temporary memory pool is released after every frame,
-     * always rebuild the list even if the surface hasn't changed */
+     * always rebuild the list even if the scene hasn't changed */
 
     srf->s_srf->msc_p[0] = RT_NULL;
 
@@ -1530,18 +1549,18 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
 
 /*
  * Build surface lists for a given object "obj".
- * Surfaces have separate surface lists for each side.
+ * Surface objects have separate surface lists for each side.
  */
 rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 {
     /* as temporary memory pool is released after every frame,
-     * always rebuild the list even if the object hasn't changed */
+     * always rebuild the list even if the scene hasn't changed */
 
     rt_Surface *srf = RT_NULL;
     rt_ELEM **pto = RT_NULL;
     rt_ELEM **pti = RT_NULL;
 
-    if (RT_IS_SURFACE(obj))
+    if (obj != RT_NULL && RT_IS_SURFACE(obj))
     {
         srf = (rt_Surface *)obj;
 
@@ -1656,18 +1675,18 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 
 /*
  * Build light/shadow lists for a given object "obj".
- * Surfaces have separate light/shadow lists for each side.
+ * Surface objects have separate light/shadow lists for each side.
  */
 rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 {
     /* as temporary memory pool is released after every frame,
-     * always rebuild the list even if the object hasn't changed */
+     * always rebuild the list even if the scene hasn't changed */
 
     rt_Surface *srf = RT_NULL;
     rt_ELEM **pto = RT_NULL;
     rt_ELEM **pti = RT_NULL;
 
-    if (RT_IS_SURFACE(obj))
+    if (obj != RT_NULL && RT_IS_SURFACE(obj))
     {
         srf = (rt_Surface *)obj;
 
@@ -2147,11 +2166,6 @@ rt_void rt_Scene::render(rt_long time)
     RT_VEC3_MUL_VAL1(htl, hor, h);
     RT_VEC3_MUL_VAL1(vtl, ver, v);
 
-    if (g_print)
-    {
-        RT_PRINT_CAM(cam);
-    }
-
     /* 2nd phase of multi-threaded update */
 #if RT_OPTS_THREAD != 0
     if ((opts & RT_OPTS_THREAD) != 0 && !g_print)
@@ -2167,17 +2181,23 @@ rt_void rt_Scene::render(rt_long time)
     /* phase 2.5, hierarchical update of arrays' bounds from surfaces */
     root->update_bounds();
 
-    /* rebuild camera's surface list */
-    slist = tharr[0]->ssort(cam);
+    /* rebuild global surface list */
+    slist = tharr[0]->ssort(RT_NULL);
 
-    /* rebuild camera's light/shadow list,
+    /* rebuild global light/shadow list,
      * slist is needed inside */
-    llist = tharr[0]->lsort(cam);
+    llist = tharr[0]->lsort(RT_NULL);
+
+    /* rebuild camera's surface list */
+    clist = tharr[0]->ssort(cam);
 
     if (g_print)
     {
-        RT_PRINT_LGT_LST(llist);
+        RT_PRINT_GLB();
         RT_PRINT_SRF_LST(slist);
+        RT_PRINT_LGT_LST(llist);
+        RT_PRINT_CAM(cam);
+        RT_PRINT_SRF_LST(clist);
     }
 
     /* 3rd phase of multi-threaded update */
@@ -2201,12 +2221,12 @@ rt_void rt_Scene::render(rt_long time)
     {
         memset(tiles, 0, sizeof(rt_ELEM *) * tiles_in_row * tiles_in_col);
 
-        rt_ELEM *elm, *nxt, *stail = RT_NULL, **ptr = &stail;
+        rt_ELEM *elm, *nxt, *ctail = RT_NULL, **ptr = &ctail;
 
-        /* build exact copy of reversed slist (should be cheap),
+        /* build exact copy of reversed clist (should be cheap),
          * trnode elements become tailing rather than heading,
          * elements grouping for cached transform is retained */
-        for (nxt = slist; nxt != RT_NULL; nxt = nxt->next)
+        for (nxt = clist; nxt != RT_NULL; nxt = nxt->next)
         {
             /* alloc new element as nxt copy */
             elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
@@ -2218,13 +2238,13 @@ rt_void rt_Scene::render(rt_long time)
            *ptr = elm;
         }
 
-        /* traverse reversed slist to keep original slist order
+        /* traverse reversed clist to keep original clist order
          * and optimize trnode handling for each tile */
-        for (elm = stail; elm != RT_NULL; elm = elm->next)
+        for (elm = ctail; elm != RT_NULL; elm = elm->next)
         {
             rt_Node *nd = (rt_Node *)((rt_BOUND *)elm->temp)->obj;
 
-            /* skip trnode elements from reversed slist
+            /* skip trnode elements from reversed clist
              * as they are handled separately for each tile */
             if (RT_IS_ARRAY(nd))
             {
@@ -2250,7 +2270,7 @@ rt_void rt_Scene::render(rt_long time)
 
                     /* check matching existing trnode for insertion,
                      * only tile list's head needs to be checked as elements
-                     * grouping for cached transform is retained from slist */
+                     * grouping for cached transform is retained from clist */
                     trn = tiles[tline + j];
 
                     rt_Array *arr = (rt_Array *)srf->trnode;
@@ -2317,7 +2337,7 @@ rt_void rt_Scene::render(rt_long time)
 
             for (j = 0; j < tiles_in_row; j++)
             {
-                tiles[tline + j] = slist;
+                tiles[tline + j] = clist;
             }
         }
     }
@@ -2587,7 +2607,7 @@ rt_void rt_Scene::render_slice(rt_cell index, rt_cell phase)
 
     s_inf->ctx = s_ctx;
     s_inf->cam = s_cam;
-    s_inf->lst = slist;
+    s_inf->lst = clist;
 
     s_inf->index = index;
     s_inf->thnum = thnum;
