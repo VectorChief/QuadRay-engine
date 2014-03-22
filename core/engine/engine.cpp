@@ -781,7 +781,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
      * as single whole elements, thus sorting never violates
      * the boundaries of the array node sublists as they are
      * determined by the search/insert algorithm above */
-#if RT_OPTS_INSERT == 1
+#if RT_OPTS_INSERT != 0
     if ((scene->opts & RT_OPTS_INSERT) == 0
     ||  obj == RT_NULL)
 #endif /* RT_OPTS_INSERT */
@@ -1791,17 +1791,17 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 
                 if (c & 2 && pso != RT_NULL)
                 {
-                    insert(lgt, pso, shw);
+                    insert(RT_NULL, pso, shw);
                 }
                 if (c & 1 && psi != RT_NULL)
                 {
-                    insert(lgt, psi, shw);
+                    insert(RT_NULL, psi, shw);
                 }
             }
             else
 #endif /* RT_OPTS_2SIDED */
             {
-                insert(lgt, psr, shw);
+                insert(RT_NULL, psr, shw);
             }
         }
 

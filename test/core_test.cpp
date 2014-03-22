@@ -33,7 +33,7 @@
 /***************************   VARS, FUNCS, TYPES   ***************************/
 /******************************************************************************/
 
-static rt_cell t_diff = 2;
+static rt_cell t_diff = 3;
 static rt_bool v_mode = RT_FALSE;
 static rt_bool i_mode = RT_FALSE;
 
