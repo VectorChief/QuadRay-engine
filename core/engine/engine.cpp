@@ -2424,7 +2424,7 @@ rt_void rt_Scene::render(rt_long time)
         g_print = RT_FALSE;
     }
 
-    /* release memory from temporary per-frame allocs */
+    /* release memory for temporary per-frame allocs */
     for (i = 0; i < thnum; i++)
     {
         tharr[i]->release(tharr[i]->mpool);
@@ -2723,18 +2723,27 @@ rt_void rt_Scene::save_frame(rt_cell index)
 {
     rt_char name[] = "scrXXX.bmp";
 
+    /* prepare filename string */
     name[5] = '0' + (index % 10);
     index /= 10;
     name[4] = '0' + (index % 10);
     index /= 10;
     name[3] = '0' + (index % 10);
 
+    /* prepare frame image */
     rt_TEX tex;
     tex.ptex = get_frame();
     tex.x_dim = +x_res;
     tex.y_dim = -y_res;
 
+    /* reserve memory for temporary fullpath string */
+    mpool = reserve(1024, 0);
+
+    /* save frame image */
     save_image(this, name, &tex);
+
+    /* release memory for temporary fullpath string */
+    release(mpool);
 }
 
 /*
