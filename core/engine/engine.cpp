@@ -2736,14 +2736,8 @@ rt_void rt_Scene::save_frame(rt_cell index)
     tex.x_dim = +x_res;
     tex.y_dim = -y_res;
 
-    /* reserve memory for temporary fullpath string */
-    mpool = reserve(1024, 0);
-
     /* save frame image */
     save_image(this, name, &tex);
-
-    /* release memory for temporary fullpath string */
-    release(mpool);
 }
 
 /*
