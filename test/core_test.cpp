@@ -98,6 +98,17 @@ rt_void frame_dff(rt_word *fd, rt_word *fs)
     }
 }
 
+static
+rt_void frame_max(rt_word *fd)
+{
+    rt_cell i;
+
+    for (i = 0; i < y_res * x_row; i++, fd++)
+    {
+       *fd = *fd & 0x00FFFFFF ? 0x00FFFFFF : 0x00000000;
+    }
+}
+
 /******************************************************************************/
 /******************************   RUN LEVEL  1   ******************************/
 /******************************************************************************/
@@ -509,6 +520,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
                 scene->save_frame((i+1) * 10 + 0);
             }
             frame_cpy(frame, scene->get_frame());
+
             delete scene;
 
             /* --------------------------------- */
@@ -533,11 +545,20 @@ rt_cell main(rt_cell argc, rt_char *argv[])
             }
             frame_cmp(frame, scene->get_frame());
 
+            /* --------------------------------- */
+
             frame_dff(scene->get_frame(), frame);
             if (i_mode)
             {
                 scene->save_frame((i+1) * 10 + 2);
             }
+
+            frame_max(scene->get_frame());
+            if (i_mode)
+            {
+                scene->save_frame((i+1) * 10 + 3);
+            }
+
             delete scene;
         }
         catch (rt_Exception e)
