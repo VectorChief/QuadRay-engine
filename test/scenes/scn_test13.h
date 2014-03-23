@@ -367,6 +367,15 @@ rt_OBJECT ob_camera01[] =
 /**********************************   TREE   **********************************/
 /******************************************************************************/
 
+/*
+ * As the rendering backend doesn't attempt to sort overlapping surfaces
+ * to produce the correct result, the cubes are placed slightly above the floor
+ * to avoid undefined behaviour resulting from an arbitrary surface order,
+ * when optimizations are disabled. When the cubes are strictly on the floor,
+ * the bounding box sorting optimization handles the case properly, while
+ * unoptimized code doesn't resulting in the test failure.
+ */
+
 rt_OBJECT ob_tree[] =
 {
     {
@@ -381,7 +390,7 @@ rt_OBJECT ob_tree[] =
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,       17.0    },
-/* pos */   {  -10.7,       -4.7,        1.0    },
+/* pos */   {  -10.7,       -4.7,        1.0001 },
         },
         RT_OBJ_ARRAY(&ob_cube01)
     },
@@ -389,7 +398,7 @@ rt_OBJECT ob_tree[] =
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,      -43.0    },
-/* pos */   {  -10.7,        0.5,        1.0    },
+/* pos */   {  -10.7,        0.5,        1.0001 },
         },
         RT_OBJ_ARRAY(&ob_cube02)
     },
@@ -397,7 +406,7 @@ rt_OBJECT ob_tree[] =
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,       -7.0    },
-/* pos */   {  -10.7,        5.5,        1.0    },
+/* pos */   {  -10.7,        5.5,        1.0001 },
         },
         RT_OBJ_ARRAY(&ob_cube03)
     },
