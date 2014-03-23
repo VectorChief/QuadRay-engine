@@ -2066,7 +2066,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame ptr must be SIMD-aligned or NULL */
     rootobj.trm.scl[RT_K] = 1.0f;
     rootobj.obj = scn->root;
 
-    if (scn->root.tag != RT_TAG_ARRAY)
+    if (!RT_IS_ARRAY(&scn->root))
     {
         throw rt_Exception("scene's root is not an array");
     }

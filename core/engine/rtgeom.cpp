@@ -564,7 +564,7 @@ rt_cell surf_hole(rt_SHAPE *srf, rt_BOUND *ref)
 {
     rt_cell c = 0;
 
-    if (srf->tag == RT_TAG_PLANE)
+    if (RT_IS_PLANE(srf))
     {
         return c;
     }
@@ -855,7 +855,7 @@ rt_cell surf_side(rt_SHAPE *srf, rt_vec4 pos)
 
     /* surface's axis maping (trivial transform)
      * is contained in "sci", "scj", "sck" fields */
-    if (srf->tag == RT_TAG_PLANE)
+    if (RT_IS_PLANE(srf))
     {
         d = RT_VEC3_DOT(loc, srf->sck);
     }
@@ -898,7 +898,7 @@ rt_cell cbox_side(rt_SHAPE *srf, rt_vec4 pos)
         return c;
     }
 
-    k = srf->tag == RT_TAG_PLANE ? 1 : 0;
+    k = RT_IS_PLANE(srf) ? 1 : 0;
 
     /* if "srf" is PLANE,
      * only one side can be seen */
@@ -1478,7 +1478,7 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
 
     rt_cell i, j, k, m, n, p, c = 0;
 
-    p = srf->tag == RT_TAG_PLANE ? 1 : 0;
+    p = RT_IS_PLANE(srf) ? 1 : 0;
     k = surf_hole(srf, obj);
     m = cbox_conc(srf);
 

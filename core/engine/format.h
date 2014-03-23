@@ -30,9 +30,11 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
-/* Object tags,
+/*
+ * Object tags,
  * some values are hardcoded in rendering backend,
- * change with care! */
+ * change with care!
+ */
 
 /* generic array tag,
  * used for textures as well as for surfaces */
@@ -67,6 +69,9 @@
 
 #define RT_IS_SURFACE(o)                                                    \
         ((o)->tag  > RT_TAG_ARRAY && (o)->tag < RT_TAG_SURFACE_MAX)
+
+#define RT_IS_PLANE(o)                                                      \
+        ((o)->tag == RT_TAG_PLANE)
 
 /******************************************************************************/
 /********************************   RELATION   ********************************/

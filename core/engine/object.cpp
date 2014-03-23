@@ -880,7 +880,7 @@ rt_void rt_Node::update_bbgeom(rt_BOUND *box)
             box->faces[0x0].i = 3;
             box->faces[0x0].j = 3;
 
-            if (tag == RT_TAG_PLANE)
+            if (RT_IS_PLANE(this))
             {
                 break;
             }
@@ -975,7 +975,7 @@ rt_void rt_Node::update_bbgeom(rt_BOUND *box)
             box->faces[0x0].i = mp_i;
             box->faces[0x0].j = mp_j;
 
-            if (tag == RT_TAG_PLANE)
+            if (RT_IS_PLANE(this))
             {
                 break;
             }
@@ -2342,8 +2342,8 @@ rt_void rt_Surface::update_minmax()
         }
 
         if (obj == RT_NULL || skip == 1
-        ||  obj->tag == RT_TAG_ARRAY
-        ||  obj->tag == RT_TAG_PLANE
+        ||  RT_IS_ARRAY(obj)
+        ||  RT_IS_PLANE(obj)
         ||  obj->trnode != trnode
         ||  elm->data != RT_REL_MINUS_OUTER)
         {
@@ -2388,8 +2388,8 @@ rt_void rt_Surface::update_minmax()
         }
 
         if (obj == RT_NULL || skip == 1
-        ||  obj->tag == RT_TAG_ARRAY
-        ||  obj->tag == RT_TAG_PLANE
+        ||  RT_IS_ARRAY(obj)
+        ||  RT_IS_PLANE(obj)
         ||  obj->trnode != trnode
         ||  elm->data != RT_REL_MINUS_OUTER)
         {
