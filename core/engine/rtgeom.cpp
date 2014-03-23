@@ -560,7 +560,7 @@ rt_cell edge_to_edge(rt_vec4 p0,
  *  3 - yes, both
  */
 static
-rt_cell surf_hole(rt_SHAPE *srf, rt_SHAPE *ref)
+rt_cell surf_hole(rt_SHAPE *srf, rt_BOUND *ref)
 {
     rt_cell c = 0;
 
@@ -622,7 +622,7 @@ rt_cell surf_hole(rt_SHAPE *srf, rt_SHAPE *ref)
  *  2 - yes, outer
  */
 static
-rt_cell surf_clip(rt_SHAPE *srf, rt_SHAPE *clp)
+rt_cell surf_clip(rt_SHAPE *srf, rt_BOUND *clp)
 {
     rt_cell c = 0;
 
@@ -1479,6 +1479,8 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
     rt_cell i, j, k, m, n, p, c = 0;
 
     p = srf->tag == RT_TAG_PLANE ? 1 : 0;
+    k = surf_hole(srf, obj);
+    m = cbox_conc(srf);
 
     /* check if "obj" is SURFACE */
     if (RT_IS_SURFACE(obj))
@@ -1503,10 +1505,6 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
         /* check "srf" and "ref" clip relationship */
         i = surf_clip(ref, srf);
         j = surf_clip(srf, ref);
-
-        k = surf_hole(srf, ref);
-
-        m = cbox_conc(srf);
         n = cbox_conc(ref);
 
         if (i == 2 && j == 2
