@@ -1598,26 +1598,71 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
     rt_ELEM *lst = RT_NULL;
     rt_ELEM **ptr = &lst;
 
-    for (ref = scene->srf_head; ref != RT_NULL; ref = ref->next)
+    if (obj == RT_NULL)
     {
-#if RT_OPTS_2SIDED != 0
-        if ((scene->opts & RT_OPTS_2SIDED) != 0 && srf != RT_NULL)
-        {
-            rt_cell c = bbox_side(ref->bvbox, srf->shape);
-
-            if (c & 2)
-            {
-                insert(obj, pto, ref);
-            }
-            if (c & 1)
-            {
-                insert(obj, pti, ref);
-            }
-        }
-        else
-#endif /* RT_OPTS_2SIDED */
+        /* linear traversal across surfaces */
+        for (ref = scene->srf_head; ref != RT_NULL; ref = ref->next)
         {
             insert(obj, ptr, ref);
+        }
+    }
+    else
+    {
+        rt_cell c;
+        rt_ELEM *elm, *end = RT_NULL;
+
+        /* hierarchical traversal across nodes */
+        for (elm = scene->slist; elm != RT_NULL; elm = elm->next)
+        {
+            rt_BOUND *box = (rt_BOUND *)elm->temp;
+
+#if RT_OPTS_2SIDED != 0
+            if ((scene->opts & RT_OPTS_2SIDED) != 0
+            &&  srf != RT_NULL)
+            {
+                /* if array's bbox is only seen from one side of the surface
+                 * so are all of array's contents, thus skip bbox_side call */
+                if (end == RT_NULL)
+                {
+                    c = bbox_side(box, srf->shape);
+                }
+
+                /* set array's last element (always surface)
+                 * for skipping through the bbox_side call above */
+                if (RT_IS_ARRAY(box))
+                {
+                    if (end == RT_NULL && c < 3)
+                    {
+                        end = RT_GET_PTR(elm->data);
+                    }
+
+                    continue;
+                }
+                else
+                /* enable bbox_side call again
+                 * when last array's surface is processed */
+                if (elm == end)
+                {
+                    end = RT_NULL;
+                }
+
+                /* insert surfaces according to
+                 * side value computed above */
+                if (c & 2)
+                {
+                    insert(obj, pto, (rt_Surface *)box->obj);
+                }
+                if (c & 1)
+                {
+                    insert(obj, pti, (rt_Surface *)box->obj);
+                }
+            }
+            else
+#endif /* RT_OPTS_2SIDED */
+            if (RT_IS_SURFACE(box))
+            {
+                insert(obj, ptr, (rt_Surface *)box->obj);
+            }
         }
     }
 
@@ -2188,7 +2233,8 @@ rt_void rt_Scene::render(rt_long time)
      * slist is needed inside */
     llist = tharr[0]->lsort(RT_NULL);
 
-    /* rebuild camera's surface list */
+    /* rebuild camera's surface list,
+     * slist is needed inside */
     clist = tharr[0]->ssort(cam);
 
     if (g_print)
