@@ -1620,17 +1620,19 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
             if ((scene->opts & RT_OPTS_2SIDED) != 0
             &&  srf != RT_NULL)
             {
-                /* if array's bbox is only seen from one side of the surface
-                 * so are all of array's contents, thus skip bbox_side call */
+                /* only call bbox_side if all arrays above in the hierarchy
+                 * are seen from both sides of the surface */
                 if (end == RT_NULL)
                 {
                     c = bbox_side(box, srf->shape);
                 }
 
-                /* set array's last element (always surface)
-                 * for skipping through the bbox_side call above */
+                /* if array's bbox is only seen from one side of the surface
+                 * so are all of array's contents, thus skip bbox_side call */
                 if (RT_IS_ARRAY(box))
                 {
+                    /* set array's last element (always surface)
+                     * for skipping through the bbox_side call above */
                     if (end == RT_NULL && c < 3)
                     {
                         end = RT_GET_PTR(elm->data);
@@ -1639,7 +1641,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                     continue;
                 }
                 else
-                /* enable bbox_side call again
+                /* enable bbox_side call again,
                  * when last array's surface is processed */
                 if (elm == end)
                 {
@@ -1760,6 +1762,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
     rt_ELEM *lst = RT_NULL;
     rt_ELEM **ptr = &lst;
 
+    /* linear traversal across light sources */
     for (lgt = scene->lgt_head; lgt != RT_NULL; lgt = lgt->next)
     {
         rt_ELEM **psr = RT_NULL;
@@ -1822,31 +1825,82 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 
         rt_Surface *shw = RT_NULL;
 
-        for (shw = scene->srf_head; shw != RT_NULL; shw = shw->next)
+        rt_cell c;
+        rt_ELEM *elm, *end = RT_NULL;
+
+        /* hierarchical traversal across nodes */
+        for (elm = scene->slist; elm != RT_NULL; elm = elm->next)
         {
-            if (bbox_shad(lgt->bvbox, shw->bvbox, srf->bvbox) == 0)
+            rt_BOUND *box = (rt_BOUND *)elm->temp;
+
+            if (bbox_shad(lgt->bvbox, box, srf->bvbox) == 0)
             {
+                /* if array's bbox doesn't cast shadow on surface's bbox
+                 * neither do all of array's contents, thus skip the array */
+                if (RT_IS_ARRAY(box))
+                {
+                    /* set array's last element (always surface)
+                     * for skipping through the bbox_shad call above */
+                    elm = RT_GET_PTR(elm->data);
+                }
+
+                /* enable bbox_side call below,
+                 * when last array's surface is processed */
+                if (elm == end)
+                {
+                    end = RT_NULL;
+                }
+
                 continue;
             }
 
 #if RT_OPTS_2SIDED != 0
             if ((scene->opts & RT_OPTS_2SIDED) != 0)
             {
-                rt_cell c = bbox_side(shw->bvbox, srf->shape);
+                /* only call bbox_side if all arrays above in the hierarchy
+                 * are seen from both sides of the surface */
+                if (end == RT_NULL)
+                {
+                    c = bbox_side(box, srf->shape);
+                }
 
+                /* if array's bbox is only seen from one side of the surface
+                 * so are all of array's contents, thus skip bbox_side call */
+                if (RT_IS_ARRAY(box))
+                {
+                    /* set array's last element (always surface)
+                     * for skipping through the bbox_side call above */
+                    if (end == RT_NULL && c < 3)
+                    {
+                        end = RT_GET_PTR(elm->data);
+                    }
+
+                    continue;
+                }
+                else
+                /* enable bbox_side call again,
+                 * when last array's surface is processed */
+                if (elm == end)
+                {
+                    end = RT_NULL;
+                }
+
+                /* insert surfaces according to
+                 * side value computed above */
                 if (c & 2 && pso != RT_NULL)
                 {
-                    insert(RT_NULL, pso, shw);
+                    insert(RT_NULL, pso, (rt_Surface *)box->obj);
                 }
                 if (c & 1 && psi != RT_NULL)
                 {
-                    insert(RT_NULL, psi, shw);
+                    insert(RT_NULL, psi, (rt_Surface *)box->obj);
                 }
             }
             else
 #endif /* RT_OPTS_2SIDED */
+            if (RT_IS_SURFACE(box))
             {
-                insert(RT_NULL, psr, shw);
+                insert(RT_NULL, psr, (rt_Surface *)box->obj);
             }
         }
 
