@@ -7,6 +7,7 @@
 #include <malloc.h>
 #include <string.h>
 
+#include "rtimag.h"
 #include "engine.h"
 
 /******************************************************************************/
@@ -455,11 +456,25 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 
     if (argc >= 2)
     {
-        RT_LOGI("argc = %d\n", argc);
-        for (k = 0; k < argc; k++)
+        RT_LOGI("---------------------------------------------------------\n");
+        RT_LOGI("Usage options are given below:\n");
+        RT_LOGI(" -t tx1 tx2 txn, convert textures, where tx* is fullpath\n");
+        RT_LOGI(" -d n, override diff threshold, where n is new diff 0..9\n");
+        RT_LOGI(" -v, enable verbose mode\n");
+        RT_LOGI(" -i, enable imaging mode\n");
+        RT_LOGI("options -d, -v, -i can be used together, -t is standalone\n");
+        RT_LOGI("---------------------------------------------------------\n");
+    }
+
+    if (argc >= 3 && strcmp(argv[1], "-t") == 0)
+    {
+        RT_LOGI("Converting textures\n");
+        for (k = 2; k < argc; k++)
         {
-            RT_LOGI("argv[%d] = %s\n", k, argv[k]);
+            convert_image(argv[k]);
         }
+        RT_LOGI("\nDone!\n");
+        return 0;
     }
 
     for (k = 1; k < argc; k++)

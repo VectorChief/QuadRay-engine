@@ -44,9 +44,6 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
     tx->x_dim = 0;
     tx->y_dim = 0;
 
-    /* reserve memory for temporary fullpath string */
-    rt_pntr mpool = hp->reserve(1024, 0);
-
     rt_pstr path = RT_PATH_TEXTURES;
     rt_cell len = strlen(path);
     rt_char *fullpath = (rt_char *)hp->alloc(len + strlen(name) + 1, 0);
@@ -56,8 +53,9 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 
     f = new rt_File(fullpath, "rb");
 
-    /* release memory for temporary fullpath string */
-    hp->release(mpool);
+    /* release memory for temporary fullpath string,
+     * would also release all allocs made after fullpath */
+    hp->release(fullpath);
 
     do /* use "do {break} while(0)" instead of "goto label" */
     {
@@ -159,9 +157,6 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
     rt_word *p = RT_NULL;
     rt_cell i, n;
 
-    /* reserve memory for temporary fullpath string */
-    rt_pntr mpool = hp->reserve(1024, 0);
-
     rt_pstr path = RT_PATH_DUMP;
     rt_cell len = strlen(path);
     rt_char *fullpath = (rt_char *)hp->alloc(len + strlen(name) + 1, 0);
@@ -171,8 +166,9 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 
     f = new rt_File(fullpath, "wb");
 
-    /* release memory for temporary fullpath string */
-    hp->release(mpool);
+    /* release memory for temporary fullpath string,
+     * would also release all allocs made after fullpath */
+    hp->release(fullpath);
 
     do /* use "do {break} while(0)" instead of "goto label" */
     {

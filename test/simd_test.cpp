@@ -1641,11 +1641,12 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 
     if (argc >= 2)
     {
-        RT_LOGI("argc = %d\n", argc);
-        for (k = 0; k < argc; k++)
-        {
-            RT_LOGI("argv[%d] = %s\n", k, argv[k]);
-        }
+        RT_LOGI("---------------------------------------------------------\n");
+        RT_LOGI("Usage options are given below:\n");
+        RT_LOGI(" -d n, override diff threshold, where n is new diff 0..9\n");
+        RT_LOGI(" -v, enable verbose mode\n");
+        RT_LOGI("options -d, -v can be used together\n");
+        RT_LOGI("---------------------------------------------------------\n");
     }
 
     for (k = 1; k < argc; k++)

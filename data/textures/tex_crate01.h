@@ -8,7 +8,7 @@
 #define RT_TEX_CRATE01_H
 
 /*
- * Texture data below was converted with "./RooT.x86 -t <fullpath>" option.
+ * Texture data below was converted with: "./test/core_test.x86 -t <fullpath>".
  * Original texture source:
  * http://free-texture-site.blogspot.ru/2010/10/free-wooden-crate-texture.html
  */
