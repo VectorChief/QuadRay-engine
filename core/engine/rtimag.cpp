@@ -32,17 +32,9 @@
  */
 rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 {
-    rt_word boffset, bzero;
-    rt_cell bwidth, bheight;
-    rt_half bdepth, bplanes, bsig;
-
     rt_File *f = RT_NULL;
     rt_word *p = RT_NULL;
     rt_cell i, n;
-
-    tx->ptex = RT_NULL;
-    tx->x_dim = 0;
-    tx->y_dim = 0;
 
     rt_pstr path = RT_PATH_TEXTURES;
     rt_cell len = strlen(path);
@@ -56,6 +48,14 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
     /* release memory for temporary fullpath string,
      * would also release all allocs made after fullpath */
     hp->release(fullpath);
+
+    rt_word boffset, bzero;
+    rt_cell bwidth, bheight;
+    rt_half bdepth, bplanes, bsig;
+
+    tx->ptex = RT_NULL;
+    tx->x_dim = 0;
+    tx->y_dim = 0;
 
     do /* use "do {break} while(0)" instead of "goto label" */
     {
@@ -135,11 +135,15 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
     }
     while (0);
 
-    if (f != RT_NULL)
+    if (tx->ptex != RT_NULL)
     {
-        delete f;
+        /* release memory for texture data as loading failed,
+         * would also release all allocs made after tx->ptex */
+        hp->release(tx->ptex);
+        tx->ptex = RT_NULL;
     }
 
+    delete f;
     throw rt_Exception("failed to load image");
 }
 
@@ -148,11 +152,6 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
  */
 rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 {
-    rt_word boffset = 54, binfo = 40, bmeter = 4000, bzero = 0;
-    rt_cell bwidth = RT_ABS(tx->x_dim), bheight = RT_ABS(tx->y_dim);
-    rt_word bsize = boffset + bwidth * bheight * 3;
-    rt_half bdepth = 24, bplanes = 1, bsig = 0x4D42;
-
     rt_File *f = RT_NULL;
     rt_word *p = RT_NULL;
     rt_cell i, n;
@@ -169,6 +168,11 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
     /* release memory for temporary fullpath string,
      * would also release all allocs made after fullpath */
     hp->release(fullpath);
+
+    rt_word boffset = 54, binfo = 40, bmeter = 4000, bzero = 0;
+    rt_cell bwidth = RT_ABS(tx->x_dim), bheight = RT_ABS(tx->y_dim);
+    rt_word bsize = boffset + bwidth * bheight * 3;
+    rt_half bdepth = 24, bplanes = 1, bsig = 0x4D42;
 
     do /* use "do {break} while(0)" instead of "goto label" */
     {
@@ -260,150 +264,96 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
     }
     while (0);
 
-    if (f != RT_NULL)
-    {
-        delete f;
-    }
-
+    delete f;
     throw rt_Exception("failed to save image");
 }
 
 /*
  * Convert image from file to C static array initializer format.
- * Parameter fullpath must be editable char array.
  */
-rt_void convert_image(rt_char *fullpath)
+rt_void convert_image(rt_Heap *hp, rt_pstr name)
 {
-    rt_word boffset;
-    rt_cell bwidth, bheight;
-    rt_half bdepth;
-
     rt_File *f = RT_NULL;
-    rt_File *o = RT_NULL;
-    rt_char dig[] = "0123456789ABCDEF";
-    rt_char s[10];
-    rt_word p;
-    rt_cell i, n, k, len = strlen(fullpath);
+    rt_word *p = RT_NULL;
+    rt_cell i, n, k;
 
-    if (strcmp(&fullpath[len - 4], ".bmp"))
-    {
-        RT_LOGI("?");
-        return;
-    }
+    rt_pstr path = RT_PATH_TEXTURES;
+    rt_cell len = strlen(path), dot = len;
+    rt_char *fullpath = (rt_char *)hp->alloc(len + strlen(name) + 3, 0);
+
+    strcpy(fullpath, path);
+    strcpy(fullpath + len, name);
+
+    while (fullpath[dot] != 0 && fullpath[dot] != '.') dot++;
+
+    fullpath[dot + 0] = '.';
+    fullpath[dot + 1] = 'h';
+    fullpath[dot + 2] =  0;
+
+    rt_TEX tex, *tx = &tex;
 
     do /* use "do {break} while(0)" instead of "goto label" */
     {
-        f = new rt_File(fullpath, "rb");
+        try
+        {
+            load_image(hp, name, tx);
+        }
+        catch (rt_Exception e)
+        {
+            break;
+        }
 
+        f = new rt_File(fullpath, "w+");
+
+        if (f == RT_NULL)
+        {
+            break;
+        }
         if (f->error() != 0)
         {
             break;
         }
-        if (f->seek(10, SEEK_SET) != 0)
-        {
-            break;
-        }
-        if (f->load(&boffset, sizeof(boffset), 1) != 1)
-        {
-            break;
-        }
-        if (f->seek(18, SEEK_SET) != 0)
-        {
-            break;
-        }
-        if (f->load(&bwidth, sizeof(bwidth), 1) != 1)
-        {
-            break;
-        }
-        if (f->seek(22, SEEK_SET) != 0)
-        {
-            break;
-        }
-        if (f->load(&bheight, sizeof(bheight), 1) != 1)
-        {
-            break;
-        }
-        if (f->seek(28, SEEK_SET) != 0)
-        {
-            break;
-        }
-        if (f->load(&bdepth, sizeof(bdepth), 1) != 1)
-        {
-            break;
-        }
-        if (bdepth != 24)
-        {
-            break;
-        }
 
-        fullpath[len - 3] = 'h';
-        fullpath[len - 2] =  0;
-        fullpath[len - 1] =  0;
+        fullpath[dot] = 0;
 
-        o = new rt_File(fullpath, "w+");
+        f->fprint("rt_word dt_%s[%d][%d] =\n", &fullpath[len],
+                                               tx->y_dim, tx->x_dim);
+        f->fprint("{");
 
-        if (o->error() != 0)
+        n = tx->x_dim * tx->y_dim;
+
+        for (i = 0, p = (rt_word *)tx->ptex; i < n; i++, p++)
         {
-            break;
-        }
-
-        fullpath[len - 4] = 0;
-        for (len = len - 4; len > 0 && fullpath[len - 1] != '\\'
-                                    && fullpath[len - 1] != '/'; len--);
-
-        o->fprint("rt_word dt_%s[%d][%d] =\n", &fullpath[len],
-                                               bheight, bwidth);
-        o->fprint("{");
-
-        n = bwidth * bheight;
-
-        f->seek(boffset, SEEK_SET);
-
-        for (i = 0, p = 0; i < n; i++)
-        {
-            if (f->load(&p, 3, 1) != 1)
-            {
-                break;
-            }
-
             if (i % 6 == 0)
             {
-                o->fprint("\n   ");
+                f->fprint("\n   ");
             }
 
-            for (k = 0; k < 8; k++)
-            {
-                s[k] = dig[p >> (28 - k * 4) & 0xF];
-            }
-            s[k] = 0;
-
-            o->fprint(" 0x%s,", s);
+            f->fprint(" 0x%08X,", *p);
         }
 
-        o->fprint("\n};\n");
+        f->fprint("\n};\n");
 
         if (i < n)
         {
             break;
         }
 
-        delete f;
-        delete o;
+        /* release memory for temporary fullpath string,
+         * would also release all allocs made after fullpath */
+        hp->release(fullpath);
 
+        delete f;
         RT_LOGI(".");
         return;
     }
     while (0);
 
-    if (f != RT_NULL)
-    {
-        delete f;
-    }
-    if (o != RT_NULL)
-    {
-        delete o;
-    }
+    /* release memory for temporary fullpath string,
+     * would also release all allocs made after fullpath */
+    hp->release(fullpath);
 
+    delete f;
     RT_LOGI("x");
 }
 

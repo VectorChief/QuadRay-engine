@@ -458,7 +458,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
     {
         RT_LOGI("---------------------------------------------------------\n");
         RT_LOGI("Usage options are given below:\n");
-        RT_LOGI(" -t tx1 tx2 txn, convert textures, where tx* is fullpath\n");
+        RT_LOGI(" -t tex1 tex2 texn, convert images in data/textures/tex*\n");
         RT_LOGI(" -d n, override diff threshold, where n is new diff 0..9\n");
         RT_LOGI(" -v, enable verbose mode\n");
         RT_LOGI(" -i, enable imaging mode\n");
@@ -468,12 +468,14 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 
     if (argc >= 3 && strcmp(argv[1], "-t") == 0)
     {
-        RT_LOGI("Converting textures\n");
+        RT_LOGI("Converting textures:\n[");
+        rt_Heap *hp = new rt_Heap(malloc, free);
         for (k = 2; k < argc; k++)
         {
-            convert_image(argv[k]);
+            convert_image(hp, argv[k]);
         }
-        RT_LOGI("\nDone!\n");
+        delete hp;
+        RT_LOGI("]\nDone!\n");
         return 0;
     }
 

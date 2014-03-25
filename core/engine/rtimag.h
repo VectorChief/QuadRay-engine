@@ -38,9 +38,8 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx);
 
 /*
  * Convert image from file to C static array initializer format.
- * Parameter fullpath must be editable char array.
  */
-rt_void convert_image(rt_char *fullpath);
+rt_void convert_image(rt_Heap *hp, rt_pstr name);
 
 #endif /* RT_RTIMAG_H */
 
