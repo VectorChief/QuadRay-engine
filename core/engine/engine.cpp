@@ -690,7 +690,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     elm->simd = srf->s_srf;
     elm->temp = srf->bvbox;
 
-    /* prepare surface's trnode/bvnode sequence for searching */
+    /* prepare surface's trnode/bvnode list for searching */
     rt_ELEM *nxt, *lst = srf->trn;
 
 #if RT_OPTS_VARRAY != 0
@@ -730,7 +730,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     /* search above is desgined in such a way, that contents
      * of one array node can now be split across the boundary
      * of another array node by inserting two different node
-     * elements of the same type belonging to the same array node,
+     * elements of the same type belonging to the same array,
      * one into another array node's sublist and one outside,
      * this allows for greater flexibility in trnode/bvnode
      * relationship, something not allowed in previous versions */
@@ -1155,20 +1155,20 @@ rt_ELEM* rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
 }
 
 /*
- * Build trnode/bvnode sequence for a given surface "srf"
+ * Build trnode/bvnode list for a given surface "srf"
  * after all transform flags have been set in update_fields,
- * so that trnode elements are handled properly.
+ * thus trnode elements are handled properly.
  */
 rt_void rt_SceneThread::snode(rt_Surface *srf)
 {
     /* as temporary memory pool is released after every frame,
      * always rebuild the list even if the scene hasn't changed */
 
-    /* reset surface's trnode/bvnode sequence */
+    /* reset surface's trnode/bvnode list */
     srf->top = RT_NULL;
     srf->trn = RT_NULL;
 
-    /* build surface's trnode/bvnode sequence,
+    /* build surface's trnode/bvnode list,
      * trnodes hierarchy is flat as objects with
      * non-trivial transform are their own trnodes,
      * while bvnodes can have arbitrary depth
@@ -1236,7 +1236,7 @@ rt_void rt_SceneThread::snode(rt_Surface *srf)
 /*
  * Build custom clippers list from "srf" relations template
  * after all transform flags have been set in update_fields,
- * so that trnode elements are handled properly.
+ * thus trnode elements are handled properly.
  */
 rt_void rt_SceneThread::sclip(rt_Surface *srf)
 {
@@ -1548,7 +1548,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
 }
 
 /*
- * Build surface lists for a given object "obj".
+ * Build surface list for a given object "obj".
  * Surface objects have separate surface lists for each side.
  */
 rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
@@ -1594,12 +1594,13 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
         }
     }
 
-    rt_Surface *ref = RT_NULL;
     rt_ELEM *lst = RT_NULL;
     rt_ELEM **ptr = &lst;
 
     if (obj == RT_NULL)
     {
+        rt_Surface *ref;
+
         /* linear traversal across surfaces */
         for (ref = scene->srf_head; ref != RT_NULL; ref = ref->next)
         {
@@ -1609,7 +1610,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
     else
     {
         rt_cell c;
-        rt_ELEM *elm, *end = RT_NULL;
+        rt_ELEM *elm, *end = RT_NULL, *arr = RT_NULL;
 
         /* hierarchical traversal across nodes */
         for (elm = scene->slist; elm != RT_NULL; elm = elm->next)
@@ -1621,8 +1622,9 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
             &&  srf != RT_NULL)
             {
                 /* only call bbox_side if all arrays above in the hierarchy
-                 * are seen from both sides of the surface */
-                if (end == RT_NULL)
+                 * are seen from both sides of the surface, don't call
+                 * bbox_side again if two array elements share the same bbox */
+                if (end == RT_NULL && (arr == RT_NULL || arr->temp != box))
                 {
                     c = bbox_side(box, srf->shape);
                 }
@@ -1638,6 +1640,8 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                         end = RT_GET_PTR(elm->data);
                     }
 
+                    arr = elm;
+
                     continue;
                 }
                 else
@@ -1647,6 +1651,8 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                 {
                     end = RT_NULL;
                 }
+
+                arr = RT_NULL;
 
                 /* insert surfaces according to
                  * side value computed above */
@@ -1721,7 +1727,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 }
 
 /*
- * Build light/shadow lists for a given object "obj".
+ * Build light/shadow list for a given object "obj".
  * Surface objects have separate light/shadow lists for each side.
  */
 rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
@@ -1758,16 +1764,16 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
         }
     }
 
-    rt_Light *lgt = RT_NULL;
     rt_ELEM *lst = RT_NULL;
     rt_ELEM **ptr = &lst;
+    rt_Light *lgt;
 
     /* linear traversal across light sources */
     for (lgt = scene->lgt_head; lgt != RT_NULL; lgt = lgt->next)
     {
-        rt_ELEM **psr = RT_NULL;
         rt_ELEM **pso = RT_NULL;
         rt_ELEM **psi = RT_NULL;
+        rt_ELEM **psr = RT_NULL;
 
 #if RT_OPTS_2SIDED != 0
         if ((scene->opts & RT_OPTS_2SIDED) != 0 && srf != RT_NULL)
@@ -1823,17 +1829,19 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
            *psr = RT_NULL;
         }
 
-        rt_Surface *shw = RT_NULL;
-
         rt_cell c;
-        rt_ELEM *elm, *end = RT_NULL;
+        rt_ELEM *elm, *end = RT_NULL, *arr = RT_NULL;
 
         /* hierarchical traversal across nodes */
         for (elm = scene->slist; elm != RT_NULL; elm = elm->next)
         {
             rt_BOUND *box = (rt_BOUND *)elm->temp;
 
-            if (bbox_shad(lgt->bvbox, box, srf->bvbox) == 0)
+            /* only call bbox_shad if all arrays above in the hierarchy
+             * cast shadow on the surface, don't call
+             * bbox_shad again if two array elements share the same bbox */
+            if ((arr == RT_NULL || arr->temp != box) &&
+                bbox_shad(lgt->bvbox, box, srf->bvbox) == 0)
             {
                 /* if array's bbox doesn't cast shadow on surface's bbox
                  * neither do all of array's contents, thus skip the array */
@@ -1851,6 +1859,8 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
                     end = RT_NULL;
                 }
 
+                arr = RT_NULL;
+
                 continue;
             }
 
@@ -1858,8 +1868,9 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             if ((scene->opts & RT_OPTS_2SIDED) != 0)
             {
                 /* only call bbox_side if all arrays above in the hierarchy
-                 * are seen from both sides of the surface */
-                if (end == RT_NULL)
+                 * are seen from both sides of the surface, don't call
+                 * bbox_side again if two array elements share the same bbox */
+                if (end == RT_NULL && (arr == RT_NULL || arr->temp != box))
                 {
                     c = bbox_side(box, srf->shape);
                 }
@@ -1875,6 +1886,8 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
                         end = RT_GET_PTR(elm->data);
                     }
 
+                    arr = elm;
+
                     continue;
                 }
                 else
@@ -1884,6 +1897,8 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
                 {
                     end = RT_NULL;
                 }
+
+                arr = RT_NULL;
 
                 /* insert surfaces according to
                  * side value computed above */
