@@ -18,13 +18,13 @@
  * object.cpp: Implementation of the objects hierarchy.
  *
  * Main companion file of the engine responsible for instantiating and managing
- * the objects hierarchy. It contains the definition of Object class (the root
- * of the hierarchy) and its derivative classes along with the set of algorithms
+ * the objects hierarchy. It contains a definition of Object class (the root
+ * of the hierarchy) and its derivative classes along with a set of algorithms
  * needed to construct and update per-object fields and cross-object relations.
  *
  * Object handles the following parts of the update initiated by the engine:
  * 0.5 phase (sequential) - hierarchical update of arrays' transform matrices
- * - update object's transform in scene data via animator, time, flags
+ * - update object's transform (via animator in the scene), time, flags
  * - compute array's transform matrix from the root down to the leaf objects
  * 1st phase (multi-threaded) - update surfaces' transform matrices, data fields
  * - compute array's inverse transform matrix needed in backend (tracer.cpp)
@@ -38,8 +38,8 @@
  *   from surfaces' bounding boxes and sub-arrays' bounding boxes
  *
  * In order to avoid cross-dependencies on the engine, object file contains
- * the definition of Registry interface inherited by the engine's Scene class,
- * instance of which is then passed to object's constructors and serves as
+ * a definition of Registry interface inherited by the engine's Scene class,
+ * instance of which is then passed to objects' constructors and serves as
  * both objects registry and memory heap (system.cpp).
  *
  * Registry's heap allocations are not allowed in multi-threaded phases

@@ -18,8 +18,8 @@
  * engine.cpp: Implementation of the scene manager.
  *
  * Main file of the engine responsible for instantiating and managing the scene.
- * It contains the definition of SceneThread and Scene classes along with
- * the set of algorithms needed to process objects in the scene in order
+ * It contains a definition of SceneThread and Scene classes along with
+ * a set of algorithms needed to process objects in the scene in order
  * to prepare data structures used by the rendering backend (tracer.cpp).
  *
  * Processing of objects consists of two major parts: update and render,
@@ -709,8 +709,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
 #endif /* RT_OPTS_TILING */
 
     /* search matching existing trnode/bvnode for insertion,
-     * run through the list hierarchy to find the inner-most node,
-     * node's "simd" field holds pointer to node's sublist
+     * run through the list hierarchy to find the inner-most node element,
+     * element's "simd" field holds pointer to node's sublist
      * along with node's type in the lower 4 bits (trnode/bvnode) */
     for (nxt = RT_GET_PTR(*ptr); nxt != RT_NULL && lst != RT_NULL;)
     {
@@ -730,7 +730,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     /* search above is desgined in such a way, that contents
      * of one array node can now be split across the boundary
      * of another array node by inserting two different node
-     * elements of the same type belonging to the same array,
+     * elements of the same type belonging to the same array node,
      * one into another array node's sublist and one outside,
      * this allows for greater flexibility in trnode/bvnode
      * relationship, something not allowed in previous versions */
@@ -764,22 +764,22 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     /* prepare outer-most new element for sorting
      * in order to figure out its optimal position in the list
      * and thus reduce potential overdraw in the rendering backend,
-     * as array's bounding volume is final at this point
-     * it is correct to pass it through the sorting routine below
-     * before other elements are added into its node's sublist */
+     * as array node's bounding box and volume are final at this point
+     * it is correct to pass its element through the sorting routine below
+     * before other elements are added into array node's sublist */
     if (org != RT_NULL)
     {
         ptr = org;
         elm = RT_GET_PTR(*ptr);
     }
 
-    /* sort nodes in the list "ptr" with the new element "elm"
-     * based on the bounding volume order as seen from "obj",
+    /* sort node elements in the list "ptr" with the new element "elm"
+     * based on the bounding box and volume order as seen from "obj",
      * sorting is always applied to a single flat list
-     * whether it's a top-level list or array node's sublist
+     * whether it's a top-level list or array node's sublist,
      * treating both surface and array nodes in that list
      * as single whole elements, thus sorting never violates
-     * the boundaries of the array node sublists as they are
+     * the boundaries of array nodes' sublists as they are
      * determined by the search/insert algorithm above */
 #if RT_OPTS_INSERT != 0
     if ((scene->opts & RT_OPTS_INSERT) == 0
@@ -2390,7 +2390,7 @@ rt_void rt_Scene::render(rt_long time)
 
                         /* alloc new trnode element as none has been found */
                         trn = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
-                        trn->data = (rt_cell)tls; /* trnode's last elem */
+                        trn->data = (rt_cell)tls; /* trnode's last element */
                         trn->simd = arr->s_srf;
                         trn->temp = trb;
                         /* insert element as list's head */
