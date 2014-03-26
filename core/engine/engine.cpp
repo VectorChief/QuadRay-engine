@@ -1610,7 +1610,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
     else
     {
         rt_cell c;
-        rt_ELEM *elm, *end = RT_NULL, *arr = RT_NULL;
+        rt_ELEM *elm, *end = RT_NULL, *prv = RT_NULL;
 
         /* hierarchical traversal across nodes */
         for (elm = scene->slist; elm != RT_NULL; elm = elm->next)
@@ -1624,7 +1624,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                 /* only call bbox_side if all arrays above in the hierarchy
                  * are seen from both sides of the surface, don't call
                  * bbox_side again if two array elements share the same bbox */
-                if (end == RT_NULL && (arr == RT_NULL || arr->temp != box))
+                if (end == RT_NULL && (prv == RT_NULL || prv->temp != box))
                 {
                     c = bbox_side(box, srf->shape);
                 }
@@ -1640,7 +1640,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                         end = RT_GET_PTR(elm->data);
                     }
 
-                    arr = elm;
+                    prv = elm;
 
                     continue;
                 }
@@ -1652,7 +1652,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                     end = RT_NULL;
                 }
 
-                arr = RT_NULL;
+                prv = RT_NULL;
 
                 /* insert surfaces according to
                  * side value computed above */
@@ -1830,7 +1830,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
         }
 
         rt_cell c;
-        rt_ELEM *elm, *end = RT_NULL, *arr = RT_NULL;
+        rt_ELEM *elm, *end = RT_NULL, *prv = RT_NULL;
 
         /* hierarchical traversal across nodes */
         for (elm = scene->slist; elm != RT_NULL; elm = elm->next)
@@ -1840,7 +1840,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             /* only call bbox_shad if all arrays above in the hierarchy
              * cast shadow on the surface, don't call
              * bbox_shad again if two array elements share the same bbox */
-            if ((arr == RT_NULL || arr->temp != box) &&
+            if ((prv == RT_NULL || prv->temp != box) &&
                 bbox_shad(lgt->bvbox, box, srf->bvbox) == 0)
             {
                 /* if array's bbox doesn't cast shadow on surface's bbox
@@ -1859,7 +1859,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
                     end = RT_NULL;
                 }
 
-                arr = RT_NULL;
+                prv = RT_NULL;
 
                 continue;
             }
@@ -1870,7 +1870,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
                 /* only call bbox_side if all arrays above in the hierarchy
                  * are seen from both sides of the surface, don't call
                  * bbox_side again if two array elements share the same bbox */
-                if (end == RT_NULL && (arr == RT_NULL || arr->temp != box))
+                if (end == RT_NULL && (prv == RT_NULL || prv->temp != box))
                 {
                     c = bbox_side(box, srf->shape);
                 }
@@ -1886,7 +1886,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
                         end = RT_GET_PTR(elm->data);
                     }
 
-                    arr = elm;
+                    prv = elm;
 
                     continue;
                 }
@@ -1898,7 +1898,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
                     end = RT_NULL;
                 }
 
-                arr = RT_NULL;
+                prv = RT_NULL;
 
                 /* insert surfaces according to
                  * side value computed above */
