@@ -60,8 +60,8 @@ class rt_SceneThread : public rt_Heap
     rt_Scene           *scene;
     rt_cell             index;
 
-    /* surface's projected bbox
-     * x-coord boundaries in the tilebuffer */
+    /* x-coord boundaries for surface's
+     * projected bbox in the tilebuffer */
     rt_cell            *txmin;
     rt_cell            *txmax;
     /* temporary bbox verts buffer */

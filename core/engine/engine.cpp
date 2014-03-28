@@ -214,7 +214,7 @@ rt_pstr markers[] =
  * Print surface/array properties.
  */
 static
-rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
+rt_void print_obj(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
 {
     RT_LOGI("%s", mgn);
 
@@ -272,7 +272,7 @@ rt_void print_srf(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
         RT_LOGI("*********************************************");           \
         RT_LOGI("\n");                                                      \
         RT_LOGI("\n");                                                      \
-        print_srf("    ", RT_NULL, srf);                                    \
+        print_obj("    ", RT_NULL, srf);                                    \
         RT_LOGI("\n")
 
 /*
@@ -292,7 +292,7 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
         }
         else
         {
-            print_srf(mgn, elm, obj);
+            print_obj(mgn, elm, obj);
         }
     }
 }
