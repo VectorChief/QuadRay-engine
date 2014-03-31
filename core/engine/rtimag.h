@@ -4,8 +4,8 @@
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
 
-#ifndef RT_RTLOAD_H
-#define RT_RTLOAD_H
+#ifndef RT_RTIMAG_H
+#define RT_RTIMAG_H
 
 #include "rtbase.h"
 #include "format.h"
@@ -24,7 +24,7 @@ rt_void convert_texture(rt_char *fullpath);
  */
 rt_void load_texture(rt_Registry *rg, rt_pstr name, rt_TEX *tx);
 
-#endif /* RT_RTLOAD_H */
+#endif /* RT_RTIMAG_H */
 
 /******************************************************************************/
 /******************************************************************************/
