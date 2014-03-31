@@ -8,7 +8,7 @@
 
 #include "object.h"
 #include "rtgeom.h"
-#include "rtload.h"
+#include "rtimag.h"
 #include "system.h"
 
 /******************************************************************************/
