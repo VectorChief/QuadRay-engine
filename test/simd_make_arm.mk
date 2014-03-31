@@ -1,6 +1,5 @@
 INC_PATH =                          \
-        -I../core/config            \
-        -I../core/tracer
+        -I../core/config
 
 SRC_LIST =                          \
         simd_test.cpp

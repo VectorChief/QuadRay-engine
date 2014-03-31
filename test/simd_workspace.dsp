@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "../core/config/" /I "../core/tracer/" /D "RT_X86" /D RT_DEBUG=0 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /Zm500 /c
+# ADD CPP /nologo /W3 /GX /O2 /I "../core/config/" /D "RT_X86" /D RT_DEBUG=0 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /Zm500 /c
 # ADD BASE RSC /l 0x419 /d "NDEBUG"
 # ADD RSC /l 0x419 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -66,7 +66,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "../core/config/" /I "../core/tracer/" /D "RT_X86" /D RT_DEBUG=1 /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /Zm500 /c
+# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "../core/config/" /D "RT_X86" /D RT_DEBUG=1 /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /Zm500 /c
 # ADD BASE RSC /l 0x419 /d "_DEBUG"
 # ADD RSC /l 0x419 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -99,19 +99,19 @@ SOURCE=..\core\config\rtarch.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\core\tracer\rtarch_arm.h
+SOURCE=..\core\config\rtarch_arm.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\core\tracer\rtarch_arm_mpe.h
+SOURCE=..\core\config\rtarch_arm_mpe.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\core\tracer\rtarch_x86.h
+SOURCE=..\core\config\rtarch_x86.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\core\tracer\rtarch_x86_sse.h
+SOURCE=..\core\config\rtarch_x86_sse.h
 # End Source File
 # Begin Source File
 
