@@ -4,7 +4,7 @@
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
 
-#include "rtload.h"
+#include "rtimag.h"
 #include "engine.h"
 #include "scn_demo01.h"
 
