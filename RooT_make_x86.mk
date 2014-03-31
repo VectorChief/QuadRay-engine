@@ -16,7 +16,7 @@ SRC_LIST =                          \
         core/engine/engine.cpp      \
         core/engine/object.cpp      \
         core/engine/rtgeom.cpp      \
-        core/engine/rtload.cpp      \
+        core/engine/rtimag.cpp      \
         core/system/system.cpp      \
         core/tracer/tracer.cpp      \
         RooT_linux.cpp
