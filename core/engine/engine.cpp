@@ -501,7 +501,7 @@ rt_void rt_SceneThread::tiling(rt_vec4 p1, rt_vec4 p2)
         yy = dy;
     }
 
-#if RT_TILING_EXT == 1
+#if RT_OPTS_TILING_EXT1 != 0
 
     px  = RT_TILE_THRESHOLD / RT_SQRT(xx * xx + yy * yy);
     xx *= px;
@@ -524,7 +524,7 @@ rt_void rt_SceneThread::tiling(rt_vec4 p1, rt_vec4 p2)
 
     n = 3;
 
-#else /* RT_TILING_EXT */
+#else /* RT_OPTS_TILING_EXT1 */
 
     n1[0][RT_X] = p1[RT_X];
     n1[0][RT_Y] = p1[RT_Y];
@@ -533,7 +533,7 @@ rt_void rt_SceneThread::tiling(rt_vec4 p1, rt_vec4 p2)
 
     n = 1;
 
-#endif /* RT_TILING_EXT */
+#endif /* RT_OPTS_TILING_EXT1 */
 
     /* set inclusive bounds */
 
@@ -699,7 +699,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
     rt_ELEM *lst = RT_NULL;
     rt_ELEM *elm = RT_NULL;
     rt_cell i, j;
-#if RT_TILING_OPT == 1
+#if RT_OPTS_TILING != 0
     rt_cell k;
 
     rt_vec4 vec;
@@ -842,7 +842,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
         }
     }
     else
-#endif /* RT_TILING_OPT */
+#endif /* RT_OPTS_TILING */
     {
         /* mark all tiles in the entire tilbuffer */
         for (i = 0; i < scene->tiles_in_col; i++)
@@ -896,7 +896,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
         pto = (rt_ELEM **)&srf->s_srf->lst_p[1];
         pti = (rt_ELEM **)&srf->s_srf->lst_p[3];
 
-#if RT_RENDER_OPT == 1
+#if RT_OPTS_RENDER != 0
         if (((rt_word)srf->s_srf->mat_p[1] & RT_PROP_REFLECT)
         ||  ((rt_word)srf->s_srf->mat_p[3] & RT_PROP_REFLECT)
         ||  ((rt_word)srf->s_srf->mat_p[1] & RT_PROP_OPAQUE) == 0
@@ -908,7 +908,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
             /* RT_LOGI("Building slist for surface\n"); */
         }
         else
-#endif /* RT_RENDER_OPT */
+#endif /* RT_OPTS_RENDER */
         {
            *pto = scene->slist; /* all srf are potential rfl/rfr */
            *pti = scene->slist; /* all srf are potential rfl/rfr */
@@ -923,7 +923,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 
     for (ref = scene->srf_head; ref != RT_NULL; ref = ref->next)
     {
-#if RT_2SIDED_OPT == 1
+#if RT_OPTS_2SIDED != 0
         if (srf != RT_NULL)
         {
             rt_cell c = 0;
@@ -940,7 +940,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
             }
         }
         else
-#endif /* RT_2SIDED_OPT */
+#endif /* RT_OPTS_2SIDED */
         {
             insert(obj, ptr, ref);
         }
@@ -948,7 +948,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 
     if (srf != RT_NULL)
     {
-#if RT_2SIDED_OPT == 1
+#if RT_OPTS_2SIDED != 0
         if (g_print && *pto != RT_NULL)
         {
             RT_PRINT_LST_OUTER(*pto);
@@ -957,14 +957,14 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
         {
             RT_PRINT_LST_INNER(*pti);
         }
-#endif /* RT_2SIDED_OPT */
+#endif /* RT_OPTS_2SIDED */
         if (g_print && *ptr != RT_NULL)
         {
             RT_PRINT_LST(*ptr);
         }
     }
 
-#if RT_2SIDED_OPT == 0
+#if RT_OPTS_2SIDED == 0
     if (srf != RT_NULL)
     {
        *pto = lst;
@@ -972,7 +972,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 
         return RT_NULL;
     }
-#endif /* RT_2SIDED_OPT */
+#endif /* RT_OPTS_2SIDED */
 
     return lst;
 }
@@ -994,7 +994,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
         pto = (rt_ELEM **)&srf->s_srf->lst_p[0];
         pti = (rt_ELEM **)&srf->s_srf->lst_p[2];
 
-#if RT_SHADOW_OPT == 1
+#if RT_OPTS_SHADOW != 0
         if (RT_TRUE)
         {
            *pto = RT_NULL;
@@ -1003,7 +1003,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             /* RT_LOGI("Building llist for surface\n"); */
         }
         else
-#endif /* RT_SHADOW_OPT */
+#endif /* RT_OPTS_SHADOW */
         {
            *pto = scene->llist; /* all lgt are potential sources */
            *pti = scene->llist; /* all lgt are potential sources */
@@ -1019,7 +1019,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
     for (lgt = scene->lgt_head; lgt != RT_NULL; lgt = lgt->next)
     {
         rt_ELEM **psr = RT_NULL;
-#if RT_2SIDED_OPT == 1
+#if RT_OPTS_2SIDED != 0
         rt_ELEM **pso = RT_NULL;
         rt_ELEM **psi = RT_NULL;
 
@@ -1055,7 +1055,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             }
         }
         else
-#endif /* RT_2SIDED_OPT */
+#endif /* RT_OPTS_2SIDED */
         {
             insert(lgt, ptr, RT_NULL);
 
@@ -1067,15 +1067,15 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             }
         }
 
-#if RT_SHADOW_OPT == 1
+#if RT_OPTS_SHADOW != 0
         if (srf == RT_NULL)
         {
             continue;
         }
 
-#if RT_2SIDED_OPT == 0
+#if RT_OPTS_2SIDED == 0
        *psr = RT_NULL;
-#endif /* RT_2SIDED_OPT */
+#endif /* RT_OPTS_2SIDED */
 
         rt_Surface *shw = RT_NULL;
 
@@ -1086,7 +1086,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
                 continue;
             }
 
-#if RT_2SIDED_OPT == 1
+#if RT_OPTS_2SIDED != 0
             rt_cell c = 0;
 
             c = bbox_side(srf, shw);
@@ -1099,14 +1099,14 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
             {
                 insert(lgt, psi, shw);
             }
-#else /* RT_2SIDED_OPT */
+#else /* RT_OPTS_2SIDED */
 
             insert(lgt, psr, shw);
 
-#endif /* RT_2SIDED_OPT */
+#endif /* RT_OPTS_2SIDED */
         }
 
-#if RT_2SIDED_OPT == 1
+#if RT_OPTS_2SIDED != 0
         if (g_print && pso != RT_NULL && *pso != RT_NULL)
         {
             RT_PRINT_SHW_OUTER(*pso);
@@ -1115,17 +1115,17 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
         {
             RT_PRINT_SHW_INNER(*psi);
         }
-#else /* RT_2SIDED_OPT */
+#else /* RT_OPTS_2SIDED */
         if (g_print && *psr != RT_NULL)
         {
             RT_PRINT_SHW(*psr);
         }
-#endif /* RT_2SIDED_OPT */
+#endif /* RT_OPTS_2SIDED */
 
-#endif /* RT_SHADOW_OPT */
+#endif /* RT_OPTS_SHADOW */
     }
 
-#if RT_2SIDED_OPT == 0
+#if RT_OPTS_2SIDED == 0
     if (srf != RT_NULL)
     {
        *pto = lst;
@@ -1133,7 +1133,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 
         return RT_NULL;
     }
-#endif /* RT_2SIDED_OPT */
+#endif /* RT_OPTS_2SIDED */
 
     return lst;
 }
@@ -1420,6 +1420,17 @@ rt_void rt_Scene::render(rt_long time)
 
     /* multi-threaded update */
 
+#if RT_OPTS_THREAD != 0
+    if (!g_print)
+    {
+        this->f_update(tdata, thnum);
+    }
+    else
+#endif /* RT_OPTS_THREAD */
+    {
+        update_scene(this, thnum);
+    }
+
     if (g_print)
     {
         RT_PRINT_CAM(cam);
@@ -1427,18 +1438,12 @@ rt_void rt_Scene::render(rt_long time)
         RT_PRINT_LGT_LIST(llist);
 
         RT_PRINT_SRF_LIST(slist);
-
-        update_scene(this, thnum);
-    }
-    else
-    {
-        this->f_update(tdata, thnum);
     }
 
     rt_cell tline;
     rt_cell j;
 
-#if RT_TILING_OPT == 1
+#if RT_OPTS_TILING != 0
 
     memset(tiles, 0, sizeof(rt_ELEM *) * tiles_in_row * tiles_in_col);
 
@@ -1549,7 +1554,7 @@ rt_void rt_Scene::render(rt_long time)
         RT_PRINT_TLS(tiles[tline + j], i, j);
     }
 
-#else /* RT_TILING_OPT */
+#else /* RT_OPTS_TILING */
 
     for (i = 0; i < tiles_in_col; i++)
     {
@@ -1561,7 +1566,7 @@ rt_void rt_Scene::render(rt_long time)
         }
     }
 
-#endif /* RT_TILING_OPT */
+#endif /* RT_OPTS_TILING */
 
     /* aim rays at pixel centers */
 
@@ -1594,7 +1599,16 @@ rt_void rt_Scene::render(rt_long time)
 
     /* multi-threaded render */
 
-    this->f_render(tdata, thnum);
+#if RT_OPTS_THREAD != 0
+    if (RT_TRUE)
+    {
+        this->f_render(tdata, thnum);
+    }
+    else
+#endif /* RT_OPTS_THREAD */
+    {
+        render_scene(this, thnum);
+    }
 
     /* print state end */
 
