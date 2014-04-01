@@ -106,6 +106,22 @@ SOURCE=..\core\config\rtarch.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\core\config\rtarch_arm.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\core\config\rtarch_arm_mpe.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\core\config\rtarch_x86.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\core\config\rtarch_x86_sse.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\core\config\rtbase.h
 # End Source File
 # Begin Source File
@@ -168,22 +184,6 @@ SOURCE=..\core\system\system.h
 # Begin Group "tracer"
 
 # PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=..\core\tracer\rtarch_arm.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\core\tracer\rtarch_arm_mpe.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\core\tracer\rtarch_x86.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\core\tracer\rtarch_x86_sse.h
-# End Source File
 # Begin Source File
 
 SOURCE=..\core\tracer\tracer.cpp
