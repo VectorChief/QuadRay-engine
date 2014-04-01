@@ -4,6 +4,9 @@
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
 
+#if RT_EMBED_FILEIO == 0
+#include <stdio.h>
+#endif /* RT_EMBED_FILEIO */
 #include <string.h>
 
 #include "rtimag.h"
@@ -32,6 +35,7 @@
  */
 rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 {
+#if RT_EMBED_FILEIO == 0
     rt_File *f = RT_NULL;
     rt_word *p = RT_NULL;
     rt_cell i, n;
@@ -145,6 +149,7 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 
     delete f;
     throw rt_Exception("failed to load image");
+#endif /* RT_EMBED_FILEIO */
 }
 
 /*
@@ -152,6 +157,7 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
  */
 rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 {
+#if RT_EMBED_FILEIO == 0
     rt_File *f = RT_NULL;
     rt_word *p = RT_NULL;
     rt_cell i, n;
@@ -266,6 +272,7 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 
     delete f;
     throw rt_Exception("failed to save image");
+#endif /* RT_EMBED_FILEIO */
 }
 
 /*
@@ -273,6 +280,7 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
  */
 rt_void convert_image(rt_Heap *hp, rt_pstr name)
 {
+#if RT_EMBED_FILEIO == 0
     rt_File *f = RT_NULL;
     rt_word *p = RT_NULL;
     rt_cell i, n, k;
@@ -355,6 +363,7 @@ rt_void convert_image(rt_Heap *hp, rt_pstr name)
 
     delete f;
     RT_LOGI("x");
+#endif /* RT_EMBED_FILEIO */
 }
 
 /******************************************************************************/
