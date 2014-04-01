@@ -6,7 +6,7 @@
 
 #include <string.h>
 
-#include "rtload.h"
+#include "rtimag.h"
 #include "system.h"
 
 /******************************************************************************/
