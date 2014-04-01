@@ -20,6 +20,13 @@
 #define RT_EMBED_TEX        1
 #endif /* RT_EMBED_FILEIO */
 
+/* Optimization flags,
+ * define particular flag as 0
+ * to turn respective optimization off
+ * at compile time */
+
+#define RT_OPTS_THREAD      (1 << 0)
+
 #endif /* RT_RTCONF_H */
 
 /******************************************************************************/

@@ -612,19 +612,24 @@ rt_void rt_Scene::render(rt_long time)
 
     /* multi-threaded update */
 
-    if (g_print)
+#if RT_OPTS_THREAD != 0
+    if (!g_print)
+    {
+        this->f_update(tdata, thnum);
+    }
+    else
+#endif /* RT_OPTS_THREAD */
     {
         update_scene(this, thnum);
+    }
 
+    if (g_print)
+    {
         PRINT_CAM(cam);
 
         PRINT_LGT_LIST(llist);
 
         PRINT_SRF_LIST(slist);
-    }
-    else
-    {
-        this->f_update(tdata, thnum);
     }
 
     /* prepare for rendering */
@@ -687,7 +692,16 @@ rt_void rt_Scene::render(rt_long time)
 
     /* multi-threaded render */
 
-    this->f_render(tdata, thnum);
+#if RT_OPTS_THREAD != 0
+    if (RT_TRUE)
+    {
+        this->f_render(tdata, thnum);
+    }
+    else
+#endif /* RT_OPTS_THREAD */
+    {
+        render_scene(this, thnum);
+    }
 
     /* print state end */
 
