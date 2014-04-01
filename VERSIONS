@@ -1,3 +1,24 @@
+v0.5.9: Performance optimizations, hierarchical lists sorting
+  - add command line options to core and simd test frameworks
+  - add legends with description to all source and header files
+  - add bounding box sorting routine to rtgeom, add macros for VEC3
+  - make surface lists hierarchical, enable sorting to reduce overdraw
+  - redesign rtgeom API to work with nodes, drop dependency on object
+  - validate configuration values in the engine, fix stride
+  - adjust backend structs to support wider SIMD (8 and 16 tested)
+  - add image saving to rtimag, rename and rework functions
+  - internal engine's state logging (F1) and antialiasing (F2)
+  - cycling through camera list (F3) and screenshots (F4)
+  - move camera with W, S, A, D and rotate with arrow keys
+  - separate bounding boxes for trnode and bvnode of the same array
+  - support bvnodes hierarchy of arbitrary depth, allow re-bounding
+  - redesign update logic in the engine for fine-grained control
+  - split surface's matrix update into multi-threaded phase
+  - add imaging mode to core test, adjust scn_test12 for better coverage
+  - fix trnode/bvnode handling in rendering backend, enable bvnodes for shadows
+  - move texture conversion to core test, fix undefined behaviour in scn_test13
+  - enable hierarchical traversal for surface and shadow lists
+
 v0.5.8: Performance optimizations, additional core and simd tests
   - add exception handling for worker threads, check out of memory
   - refine exception handling, memory estimates per-frame
