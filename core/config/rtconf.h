@@ -32,14 +32,23 @@
 #define RT_CLIP_THRESHOLD       0.01f
 #define RT_CULL_THRESHOLD       0.0001f
 
-#define RT_TILING_OPT           1
-#define RT_TILING_EXT           0
-#define RT_TARRAY_OPT           1
-#define RT_SHADOW_OPT           1
-#define RT_SHADOW_EXT           1
-#define RT_RENDER_OPT           1
-#define RT_2SIDED_OPT           1
-#define RT_VARRAY_OPT           1
+/* Optimization flags,
+ * define particular flag as 0
+ * to turn respective optimization off
+ * at compile time */
+
+#define RT_OPTS_THREAD          (1 << 0)
+#define RT_OPTS_TILING          (1 << 1)
+#define RT_OPTS_TILING_EXT1     (1 << 2)
+#define RT_OPTS_FSCALE          (1 << 3)
+#define RT_OPTS_TARRAY          (1 << 4)
+#define RT_OPTS_SHADOW          (1 << 5)
+#define RT_OPTS_SHADOW_EXT1     (1 << 6)
+#define RT_OPTS_RENDER          (1 << 7)
+#define RT_OPTS_2SIDED          (1 << 8)
+#define RT_OPTS_ADJUST          (1 << 9)
+#define RT_OPTS_UPDATE          (1 << 10)
+#define RT_OPTS_VARRAY          (1 << 11)
 
 #endif /* RT_RTCONF_H */
 
