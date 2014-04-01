@@ -92,6 +92,13 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * non-trivial rotation */
     obj_has_trm |= (c == 3) ? 0 : RT_UPDATE_FLAG_ROT;
 
+#if RT_OPTS_FSCALE == 0
+    if (obj_has_trm)
+    {
+        obj_has_trm = RT_UPDATE_FLAG_SCL | RT_UPDATE_FLAG_ROT;
+    }
+#endif /* RT_OPTS_FSCALE */
+
     /* determine if object's full matrix has
      * non-trivial transform */
     mtx_has_trm = obj_has_trm |
@@ -153,9 +160,9 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * for non-surface / non-array objects
      * or all objects if transform caching is disabled */
     if (trnode != RT_NULL && trnode != this
-#if RT_TARRAY_OPT == 1
+#if RT_OPTS_TARRAY != 0
     && tag > RT_TAG_SURFACE_MAX
-#endif /* RT_TARRAY_OPT */
+#endif /* RT_OPTS_TARRAY */
        )
     {
         rt_mat4 tmp_mtx;
@@ -475,7 +482,7 @@ rt_void rt_Node::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     RT_SIMD_SET(s_srf->pos_y, pos[RT_Y]);
     RT_SIMD_SET(s_srf->pos_z, pos[RT_Z]);
 
-    if (obj_has_trm)
+    if (trnode == this)
     {
         matrix_inverse(this->inv, this->mtx);
 
