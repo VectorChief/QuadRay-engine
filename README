@@ -8,9 +8,7 @@ The rendering core of the engine is written on a unified SIMD assembler,
 allowing single assembler code to be compatible with different processor
 architectures, thus reducing the need to maintain multiple parallel versions.
 
-Zip archives for point releases (in Files/Downloads) are normally not updated,
-although minor improvements and bug fixes are backported to the corresponding
-branches and tags (in Code/Source). If there is a need to explore or work on
-the earlier versions of the engine, select the appropriate branch and take
-the snapshot of the repository (click Snapshot/Zip). Zip archive with the most
-recent changes for that branch will be generated and downloaded on the fly.
+Minor improvements and bug-fixes are normally backported to older versions
+of the engine sitting on the corresponding branches in the repository.
+Once enough changes have been accumulated, zip archives for point releases
+(in the downloads section if present) are updated along with the tags.
