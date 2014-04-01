@@ -446,7 +446,7 @@ rt_void rt_SceneThread::tiling(rt_vec4 p1, rt_vec4 p2)
         yy = dy;
     }
 
-#if RT_TILING_EXT
+#if RT_OPTS_TILING_EXT1 != 0
 
     px  = RT_TILE_THRESHOLD / RT_SQRT(xx * xx + yy * yy);
     xx *= px;
@@ -469,7 +469,7 @@ rt_void rt_SceneThread::tiling(rt_vec4 p1, rt_vec4 p2)
 
     n = 3;
 
-#else /* RT_TILING_EXT */
+#else /* RT_OPTS_TILING_EXT1 */
 
     n1[0][RT_X] = p1[RT_X];
     n1[0][RT_Y] = p1[RT_Y];
@@ -478,7 +478,7 @@ rt_void rt_SceneThread::tiling(rt_vec4 p1, rt_vec4 p2)
 
     n = 1;
 
-#endif /* RT_TILING_EXT */
+#endif /* RT_OPTS_TILING_EXT1 */
 
     /* set inclusive bounds */
 
@@ -599,7 +599,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
     rt_ELEM *lst = RT_NULL;
     rt_ELEM *elm = RT_NULL;
     rt_cell i, j;
-#if RT_TILING_OPT
+#if RT_OPTS_TILING != 0
     rt_cell k;
 
     rt_vec4 vec;
@@ -742,7 +742,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
         }
     }
     else
-#endif /* RT_TILING_OPT */
+#endif /* RT_OPTS_TILING */
     {
         /* mark all tiles in the entire tilbuffer */
         for (i = 0; i < scene->tiles_in_col; i++)
@@ -1100,25 +1100,30 @@ rt_void rt_Scene::render(rt_long time)
 
     /* multi-threaded update */
 
-    if (g_print)
+#if RT_OPTS_THREAD != 0
+    if (!g_print)
+    {
+        this->f_update(tdata, thnum);
+    }
+    else
+#endif /* RT_OPTS_THREAD */
     {
         update_scene(this, thnum);
+    }
 
+    if (g_print)
+    {
         RT_PRINT_CAM(cam);
 
         RT_PRINT_LGT_LIST(llist);
 
         RT_PRINT_SRF_LIST(slist);
     }
-    else
-    {
-        this->f_update(tdata, thnum);
-    }
 
     rt_cell tline;
     rt_cell j;
 
-#if RT_TILING_OPT
+#if RT_OPTS_TILING != 0
 
     memset(tiles, 0, sizeof(rt_ELEM *) * tiles_in_row * tiles_in_col);
 
@@ -1160,7 +1165,7 @@ rt_void rt_Scene::render(rt_long time)
         RT_PRINT_TLS(tiles[tline + j], i, j);
     }
 
-#else /* RT_TILING_OPT */
+#else /* RT_OPTS_TILING */
 
     for (i = 0; i < tiles_in_col; i++)
     {
@@ -1172,7 +1177,7 @@ rt_void rt_Scene::render(rt_long time)
         }
     }
 
-#endif /* RT_TILING_OPT */
+#endif /* RT_OPTS_TILING */
 
     /* aim rays at pixel centers */
 
@@ -1205,7 +1210,16 @@ rt_void rt_Scene::render(rt_long time)
 
     /* multi-threaded render */
 
-    this->f_render(tdata, thnum);
+#if RT_OPTS_THREAD != 0
+    if (RT_TRUE)
+    {
+        this->f_render(tdata, thnum);
+    }
+    else
+#endif /* RT_OPTS_THREAD */
+    {
+        render_scene(this, thnum);
+    }
 
     /* print state end */
 
