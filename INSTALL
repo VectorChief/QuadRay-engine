@@ -1,13 +1,13 @@
 ================================================================================
 
-To build QuadRay engine demo on Linux open terminal application,
-make sure libxext-dev is installed:
-    sudo apt-get install libxext-dev
+To build QuadRay engine demo on Linux open terminal window,
+make sure g++, make, libxext-dev are installed:
+    sudo apt-get install g++ make libxext-dev
 run for x86 architecture:
     make -f RooT_make_x86.mk
 run for ARM architecture:
     make -f RooT_make_arm.mk
-Maemo/scratchbox cross-compilation environment and N900 is used for ARM.
+Maemo/scratchbox cross-compilation environment and N900 was used for ARM.
     http://wiki.maemo.org/Documentation/Maemo_5_Final_SDK_Installation
 
 ================================================================================
@@ -19,13 +19,13 @@ convert workspace files, then exit and open newly created solution file.
 
 ================================================================================
 
-To build SIMD test framework on Linux open terminal application,
+To build SIMD test framework on Linux open terminal window,
 go to the "test" subfolder and
 run for x86 architecture:
     make -f simd_make_x86.mk
 run for ARM architecture:
     make -f simd_make_arm.mk
-Maemo/scratchbox cross-compilation environment and N900 is used for ARM.
+Maemo/scratchbox cross-compilation environment and N900 was used for ARM.
     http://wiki.maemo.org/Documentation/Maemo_5_Final_SDK_Installation
 
 ================================================================================
@@ -38,13 +38,13 @@ convert workspace files, then exit and open newly created solution file.
 
 ================================================================================
 
-To build core test framework on Linux open terminal application,
+To build core test framework on Linux open terminal window,
 go to the "test" subfolder and
 run for x86 architecture:
     make -f core_make_x86.mk
 run for ARM architecture:
     make -f core_make_arm.mk
-Maemo/scratchbox cross-compilation environment and N900 is used for ARM.
+Maemo/scratchbox cross-compilation environment and N900 was used for ARM.
     http://wiki.maemo.org/Documentation/Maemo_5_Final_SDK_Installation
 
 ================================================================================
