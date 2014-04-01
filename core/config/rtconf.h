@@ -30,9 +30,16 @@
 #define RT_LINE_THRESHOLD       0.01f
 #define RT_CLIP_THRESHOLD       0.01f
 
-#define RT_TILING_EXT           0
-#define RT_TILING_OPT           1
-#define RT_TARRAY_OPT           1
+/* Optimization flags,
+ * define particular flag as 0
+ * to turn respective optimization off
+ * at compile time */
+
+#define RT_OPTS_THREAD          (1 << 0)
+#define RT_OPTS_TILING          (1 << 1)
+#define RT_OPTS_TILING_EXT1     (1 << 2)
+#define RT_OPTS_FSCALE          (1 << 3)
+#define RT_OPTS_TARRAY          (1 << 4)
 
 #endif /* RT_RTCONF_H */
 
