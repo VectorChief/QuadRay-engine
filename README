@@ -11,4 +11,4 @@ architectures, thus reducing the need to maintain multiple parallel versions.
 Minor improvements and bug-fixes are normally backported to older versions
 of the engine sitting on the corresponding branches in the repository.
 Once enough changes have been accumulated, zip archives for point releases
-(in the downloads section if present) are updated along with the tags.
+(in Files/Downloads section if present) are updated along with the tags.
