@@ -656,14 +656,16 @@ rt_void rt_SceneThread::tiling(rt_vec2 p1, rt_vec2 p2)
 }
 
 /*
- * Insert new element derived from "srf" to a list "ptr"
- * for a given object "obj". If "srf" is NULL and "obj" is LIGHT,
+ * Insert new element derived from "tem" to a list "ptr"
+ * for a given object "obj". If "tem" is NULL and "obj" is LIGHT,
  * insert new element derived from "obj" to a list "ptr".
  * Return outer-most new element (not always list's head).
  */
-rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
+rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
 {
     rt_ELEM *elm = RT_NULL;
+    rt_Surface *srf = tem != RT_NULL ?
+                        (rt_Surface *)((rt_BOUND *)tem->temp)->obj : RT_NULL;
 
     if (srf == RT_NULL && obj != RT_NULL && RT_IS_LIGHT(obj))
     {
@@ -1605,7 +1607,14 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
         /* linear traversal across surfaces */
         for (ref = scene->srf_head; ref != RT_NULL; ref = ref->next)
         {
-            insert(obj, ptr, ref);
+            rt_ELEM tem;
+
+            tem.data = 0;
+            tem.simd = ref->s_srf;
+            tem.temp = ref->bvbox;
+            tem.next = RT_NULL;
+
+            insert(obj, ptr, &tem);
         }
     }
     else
@@ -1659,18 +1668,18 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                  * side value computed above */
                 if (c & 2)
                 {
-                    insert(obj, pto, (rt_Surface *)box->obj);
+                    insert(obj, pto, elm);
                 }
                 if (c & 1)
                 {
-                    insert(obj, pti, (rt_Surface *)box->obj);
+                    insert(obj, pti, elm);
                 }
             }
             else
 #endif /* RT_OPTS_2SIDED */
             if (RT_IS_SURFACE(box))
             {
-                insert(obj, ptr, (rt_Surface *)box->obj);
+                insert(obj, ptr, elm);
             }
         }
     }
@@ -1688,7 +1697,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
         {
             filter(obj, pti);
         }
-        if (*ptr != RT_NULL)
+        if (*ptr != RT_NULL && obj != RT_NULL) /* don't filter hlist */
         {
             filter(obj, ptr);
         }
@@ -1905,18 +1914,18 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
                  * side value computed above */
                 if (c & 2 && pso != RT_NULL)
                 {
-                    insert(RT_NULL, pso, (rt_Surface *)box->obj);
+                    insert(RT_NULL, pso, elm);
                 }
                 if (c & 1 && psi != RT_NULL)
                 {
-                    insert(RT_NULL, psi, (rt_Surface *)box->obj);
+                    insert(RT_NULL, psi, elm);
                 }
             }
             else
 #endif /* RT_OPTS_2SIDED */
             if (RT_IS_SURFACE(box))
             {
-                insert(RT_NULL, psr, (rt_Surface *)box->obj);
+                insert(RT_NULL, psr, elm);
             }
         }
 
@@ -2296,14 +2305,18 @@ rt_void rt_Scene::render(rt_long time)
     /* phase 2.5, hierarchical update of arrays' bounds from surfaces */
     root->update_bounds();
 
-    /* rebuild global surface list */
+    /* rebuild global hierarchical list */
+    hlist = tharr[0]->ssort(RT_NULL);
+
+    /* rebuild global surface/node list */
     slist = tharr[0]->ssort(RT_NULL);
+    tharr[0]->filter(RT_NULL, &slist);
 
     /* rebuild global light/shadow list,
      * slist is needed inside */
     llist = tharr[0]->lsort(RT_NULL);
 
-    /* rebuild camera's surface list,
+    /* rebuild camera's surface/node list,
      * slist is needed inside */
     clist = tharr[0]->ssort(cam);
 

@@ -85,10 +85,11 @@ class rt_SceneThread : public rt_Heap
 
     rt_void     tiling(rt_vec2 p1, rt_vec2 p2);
 
-    rt_ELEM*    insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf);
-    rt_ELEM*    filter(rt_Object *obj, rt_ELEM **ptr);
+    rt_ELEM*    insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem);
 
     public:
+
+    rt_ELEM*    filter(rt_Object *obj, rt_ELEM **ptr);
 
     rt_SceneThread(rt_Scene *scene, rt_cell index);
 
@@ -169,11 +170,13 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_SceneThread    **tharr;
     rt_pntr             tdata;
 
-    /* global surface list */
+    /* global hierarchical list */
+    rt_ELEM            *hlist;
+    /* global surface/node list */
     rt_ELEM            *slist;
     /* global light/shadow list */
     rt_ELEM            *llist;
-    /* camera's surface list */
+    /* camera's surface/node list */
     rt_ELEM            *clist;
 
     /* rays positioning variables */
