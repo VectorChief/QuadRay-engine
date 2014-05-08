@@ -1290,7 +1290,7 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
                 rt_ELEM *nxt;
 
                 rt_Array *arr = (rt_Array *)srf->trnode;
-                rt_BOUND *trb = (rt_BOUND *)srf->trn->temp;
+                rt_BOUND *trb = arr->trbox; /* not used for clippers */
 
                 /* search matching existing trnode for insertion
                  * either within current accum segment
@@ -1604,6 +1604,10 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
         /* linear traversal across surfaces */
         for (ref = scene->srf_head; ref != RT_NULL; ref = ref->next)
         {
+            /* rebuild surface's node list (per-surface)
+             * based on transform flags and arrays' bounds */
+            snode(ref);
+
             insert(obj, ptr, ref);
         }
     }
@@ -2566,10 +2570,6 @@ rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
              * from parent array's transform matrix
              * updated in sequential phase 0.5 */
             srf->update_fields();
-
-            /* rebuild surface's node list (per-surface)
-             * based on transform flags updated above */
-            tharr[index]->snode(srf);
         }
     }
     else
