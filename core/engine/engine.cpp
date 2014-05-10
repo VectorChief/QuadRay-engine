@@ -663,11 +663,9 @@ rt_void rt_SceneThread::tiling(rt_vec2 p1, rt_vec2 p2)
  */
 rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
 {
-    rt_ELEM *elm = RT_NULL;
-    rt_Surface *srf = tem != RT_NULL ?
-                        (rt_Surface *)((rt_BOUND *)tem->temp)->obj : RT_NULL;
+    rt_ELEM *elm = RT_NULL, *nxt;
 
-    if (srf == RT_NULL && obj != RT_NULL && RT_IS_LIGHT(obj))
+    if (tem == RT_NULL && obj != RT_NULL && RT_IS_LIGHT(obj))
     {
         rt_Light *lgt = (rt_Light *)obj;
 
@@ -681,99 +679,92 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
        *ptr = elm;
     }
 
-    if (srf == RT_NULL)
+    if (tem == RT_NULL)
     {
         return elm;
     }
 
-    /* alloc new element for srf */
-    elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
-    elm->data = 0;
-    elm->simd = srf->s_srf;
-    elm->temp = srf->bvbox;
+    /* only node elements are allowed in surface lists */
+    rt_Node *nd = (rt_Node *)((rt_BOUND *)tem->temp)->obj;
 
-    /* prepare surface's trnode/bvnode list for searching */
-    rt_ELEM *nxt, *lst = srf->trn;
+    /* alloc new element from template "tem" */
+    elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+    elm->data = 0;                          /* only copy array node's type */
+    elm->simd = RT_IS_SURFACE(nd) ? nd->s_srf : (rt_pntr)RT_GET_FLG(tem->simd);
+    elm->temp = tem->temp;
+
+    /* check if building hlist/slist (pass across surfaces in ssort) */
+    if (tem->simd == RT_NULL)
+    {
+        rt_Surface *srf = (rt_Surface *)nd;
+
+        /* prepare surface's trnode/bvnode list for searching */
+        rt_ELEM *lst = srf->trn, *prv = RT_NULL;
 
 #if RT_OPTS_VARRAY != 0
-    if ((scene->opts & RT_OPTS_VARRAY) != 0)
-    {
-        lst = srf->top;
-    }
+        if ((scene->opts & RT_OPTS_VARRAY) != 0)
+        {
+            lst = srf->top;
+        }
 #endif /* RT_OPTS_VARRAY */
 
-#if RT_OPTS_TILING != 0
-    if ((scene->opts & RT_OPTS_TILING) != 0
-    &&  obj != RT_NULL && RT_IS_CAMERA(obj))
-    {
-        lst = srf->trn;
-    }
-#endif /* RT_OPTS_TILING */
-
-    /* search matching existing trnode/bvnode for insertion,
-     * run through the list hierarchy to find the inner-most node element,
-     * element's "simd" field holds pointer to node's sublist
-     * along with node's type in the lower 4 bits (trnode/bvnode) */
-    for (nxt = RT_GET_PTR(*ptr); nxt != RT_NULL && lst != RT_NULL;)
-    {
-        if (nxt->temp == lst->temp)
+        /* search matching existing trnode/bvnode for insertion,
+         * run through the list hierarchy to find the inner-most node element,
+         * element's "simd" field holds pointer to node's sublist
+         * along with node's type in the lower 4 bits (trnode/bvnode) */
+        for (nxt = RT_GET_PTR(*ptr); nxt != RT_NULL && lst != RT_NULL;)
         {
-            /* set insertion point to existing node's sublist */
+            if (nxt->temp == lst->temp)
+            {
+                prv = nxt;
+                /* set insertion point to existing node's sublist */
+                ptr = RT_GET_ADR(nxt->simd);
+                /* search next inner node in existing node's sublist */
+                nxt = RT_GET_PTR(*ptr);
+                lst = lst->next;
+            }
+            else
+            {
+                nxt = nxt->next;
+            }
+        }
+        /* search above is desgined in such a way, that contents
+         * of one array node can now be split across the boundary
+         * of another array node by inserting two different node
+         * elements of the same type belonging to the same array,
+         * one into another array node's sublist and one outside,
+         * this allows for greater flexibility in trnode/bvnode
+         * relationship, something not allowed in previous versions */
+
+        /* allocate new node elements from outer-most to inner-most
+         * if they are not already in the list */
+        for (; lst != RT_NULL; lst = lst->next)
+        {
+            /* alloc new trnode/bvnode element as none has been found */
+            nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
+            nxt->data = (rt_cell)prv; /* link up */
+            nxt->simd = lst->simd; /* node's type */
+            nxt->temp = lst->temp;
+            /* insert element according to found position */
+            nxt->next = RT_GET_PTR(*ptr);
+            RT_SET_PTR(*ptr, rt_ELEM *, nxt);
+            /* set insertion point to new node's sublist */
             ptr = RT_GET_ADR(nxt->simd);
-            /* search next inner node in existing node's sublist */
-            nxt = RT_GET_PTR(*ptr);
-            lst = lst->next;
+            prv = nxt;
         }
-        else
-        {
-            nxt = nxt->next;
-        }
-    }
-    /* search above is desgined in such a way, that contents
-     * of one array node can now be split across the boundary
-     * of another array node by inserting two different node
-     * elements of the same type belonging to the same array,
-     * one into another array node's sublist and one outside,
-     * this allows for greater flexibility in trnode/bvnode
-     * relationship, something not allowed in previous versions */
 
-    /* insertion point for outer-most new element */
-    rt_ELEM **org = RT_NULL;
-
-    /* allocate new node elements from outer-most to inner-most
-     * if they are not already in the list */
-    for (; lst != RT_NULL; lst = lst->next)
-    {
-        /* alloc new trnode/bvnode element as none has been found */
-        nxt = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
-        nxt->data = lst->data;
-        nxt->simd = lst->simd; /* node's type */
-        nxt->temp = lst->temp;
-        /* insert element according to found position */
-        nxt->next = RT_GET_PTR(*ptr);
-        RT_SET_PTR(*ptr, rt_ELEM *, nxt);
-        if (org == RT_NULL)
-        {
-            org = ptr;
-        }
-        /* set insertion point to new node's sublist */
-        ptr = RT_GET_ADR(nxt->simd);
+        elm->data = (rt_cell)prv; /* link up */
     }
 
-    /* insert element according to found position */
+    /* insert element as list's head */
     elm->next = RT_GET_PTR(*ptr);
     RT_SET_PTR(*ptr, rt_ELEM *, elm);
-    /* prepare outer-most new element for sorting
+    /* prepare new element for sorting
      * in order to figure out its optimal position in the list
      * and thus reduce potential overdraw in the rendering backend,
      * as array node's bounding box and volume are final at this point
      * it is correct to pass its element through the sorting routine below
      * before other elements are added into array node's sublist */
-    if (org != RT_NULL)
-    {
-        ptr = org;
-        elm = RT_GET_PTR(*ptr);
-    }
 
     /* sort node elements in the list "ptr" with the new element "elm"
      * based on the bounding box and volume order as seen from "obj",
@@ -785,7 +776,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
      * determined by the search/insert algorithm above */
 #if RT_OPTS_INSERT != 0
     if ((scene->opts & RT_OPTS_INSERT) == 0
-    ||  obj == RT_NULL)
+    ||  obj == RT_NULL) /* don't sort hlist/slist */
 #endif /* RT_OPTS_INSERT */
     {
         return elm;
@@ -1141,16 +1132,53 @@ rt_ELEM* rt_SceneThread::filter(rt_Object *obj, rt_ELEM **ptr)
         if (RT_IS_ARRAY(nd))
         {
             rt_Array *arr = (rt_Array *)nd;
-            ptr = RT_GET_ADR(nxt->simd);
-            elm = filter(obj, ptr);
-            elm->next = nxt->next;
-            rt_cell k = RT_GET_FLG(*ptr);
-            nxt->data = (rt_cell)elm | k; /* node's type */
-            nxt->next = RT_GET_PTR(*ptr);
-            nxt->simd = k == 0 ? arr->s_srf :
-                        nxt->temp == arr->bvbox ? arr->s_bvb :
-                        nxt->temp == arr->inbox ? arr->s_inb : RT_NULL;
-            nxt = elm;
+            rt_ELEM **org = RT_GET_ADR(nxt->simd), *prv = elm;
+            elm = filter(obj, org);
+            rt_cell k = RT_GET_FLG(*org);
+            if (elm != RT_NULL)
+            {
+                elm->next = nxt->next;
+                nxt->data = (rt_cell)elm | k; /* node's type */
+                nxt->next = RT_GET_PTR(*org);
+                nxt->simd = k == 0 ? arr->s_srf :
+                            nxt->temp == arr->bvbox ? arr->s_bvb :
+                            nxt->temp == arr->inbox ? arr->s_inb : RT_NULL;
+            }
+            else
+            {
+                if (prv != RT_NULL)
+                {
+                    prv->next = nxt->next;
+                }
+                else
+                {
+                    RT_SET_PTR(*ptr, rt_ELEM *, nxt->next);
+                }
+
+                elm = prv;
+                continue;
+            }
+
+#if RT_OPTS_TILING != 0
+            /* filter out bvnodes for camera if tiling is enabled */
+            if ((scene->opts & RT_OPTS_TILING) != 0
+            &&  obj != RT_NULL && RT_IS_CAMERA(obj) && k == 1)
+            {
+                if (prv != RT_NULL)
+                {
+                    prv->next = nxt->next;
+                }
+                else
+                {
+                    RT_SET_PTR(*ptr, rt_ELEM *, nxt->next);
+                }
+            }
+#endif /* RT_OPTS_TILING */
+
+            if (elm != RT_NULL)
+            {
+                nxt = elm;
+            }
         }
     }
 
@@ -1610,7 +1638,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
             rt_ELEM tem;
 
             tem.data = 0;
-            tem.simd = ref->s_srf;
+            tem.simd = RT_NULL; /* signal insert to build hlist/slist */
             tem.temp = ref->bvbox;
             tem.next = RT_NULL;
 
@@ -1620,10 +1648,11 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
     else
     {
         rt_cell c;
-        rt_ELEM *elm, *end = RT_NULL, *prv = RT_NULL;
+        rt_ELEM *elm, *cur = RT_NULL, *prv = RT_NULL;
+        rt_ELEM *cuo, *cui, *pro = RT_NULL, *pri = RT_NULL;
 
         /* hierarchical traversal across nodes */
-        for (elm = scene->slist; elm != RT_NULL; elm = elm->next)
+        for (elm = scene->hlist; elm != RT_NULL;)
         {
             rt_BOUND *box = (rt_BOUND *)elm->temp;
 
@@ -1634,52 +1663,109 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                 /* only call bbox_side if all arrays above in the hierarchy
                  * are seen from both sides of the surface, don't call
                  * bbox_side again if two array elements share the same bbox */
-                if (end == RT_NULL && (prv == RT_NULL || prv->temp != box))
+                if (cur == RT_NULL && (prv == RT_NULL || prv->temp != box))
                 {
                     c = bbox_side(box, srf->shape);
+                }
+
+                /* insert nodes according to
+                 * side value computed above */
+                if (c & 2)
+                {
+                    cuo = insert(obj, pto, elm);
+                    RT_SET_PTR(cuo->data, rt_cell, pro);
+                }
+                if (c & 1)
+                {
+                    cui = insert(obj, pti, elm);
+                    RT_SET_PTR(cui->data, rt_cell, pri);
                 }
 
                 /* if array's bbox is only seen from one side of the surface
                  * so are all of array's contents, thus skip bbox_side call */
                 if (RT_IS_ARRAY(box))
                 {
-                    /* set array's last element (always surface)
-                     * for skipping through the bbox_side call above */
-                    if (end == RT_NULL && c < 3)
+                    /* set array for skipping bbox_side call above */
+                    if (cur == RT_NULL && c < 3)
                     {
-                        end = RT_GET_PTR(elm->data);
+                        cur = elm;
+                    }
+
+                    if (c & 2)
+                    {
+                        pro = cuo;
+                        pto = RT_GET_ADR(cuo->simd);
+                    }
+                    if (c & 1)
+                    {
+                        pri = cui;
+                        pti = RT_GET_ADR(cui->simd);
                     }
 
                     prv = elm;
-
-                    continue;
+                    elm = RT_GET_PTR(elm->simd);
                 }
                 else
-                /* enable bbox_side call again,
-                 * when last array's surface is processed */
-                if (elm == end)
                 {
-                    end = RT_NULL;
-                }
+                    while (elm != RT_NULL && elm->next == RT_NULL)
+                    {
+                        if (cur == RT_NULL || c & 2)
+                        {
+                            pro = pro != RT_NULL ? RT_GET_PTR(pro->data) :
+                                  RT_NULL;
+                            pto = pro != RT_NULL ? RT_GET_ADR(pro->simd) :
+                                  RT_GET_ADR(srf->s_srf->lst_p[1]);
+                        }
+                        if (cur == RT_NULL || c & 1)
+                        {
+                            pri = pri != RT_NULL ? RT_GET_PTR(pri->data) :
+                                  RT_NULL;
+                            pti = pri != RT_NULL ? RT_GET_ADR(pri->simd) :
+                                  RT_GET_ADR(srf->s_srf->lst_p[3]);
+                        }
 
-                prv = RT_NULL;
+                        elm = RT_GET_PTR(elm->data);
 
-                /* insert surfaces according to
-                 * side value computed above */
-                if (c & 2)
-                {
-                    insert(obj, pto, elm);
-                }
-                if (c & 1)
-                {
-                    insert(obj, pti, elm);
+                        if (elm == cur)
+                        {
+                            cur = RT_NULL;
+                        }
+                    }
+
+                    if (elm != RT_NULL)
+                    {
+                        elm = elm->next;
+                    }
+
+                    prv = RT_NULL;
                 }
             }
             else
 #endif /* RT_OPTS_2SIDED */
-            if (RT_IS_SURFACE(box))
             {
-                insert(obj, ptr, elm);
+                cur = insert(obj, ptr, elm);
+                RT_SET_PTR(cur->data, rt_cell, prv);
+
+                if (RT_IS_ARRAY(box))
+                {
+                    prv = cur;
+                    ptr = RT_GET_ADR(cur->simd);
+                    elm = RT_GET_PTR(elm->simd);
+                }
+                else
+                {
+                    while (elm != RT_NULL && elm->next == RT_NULL)
+                    {
+                        prv = prv != RT_NULL ? RT_GET_PTR(prv->data) : RT_NULL;
+                        ptr = prv != RT_NULL ? RT_GET_ADR(prv->simd) : &lst;
+                        elm = RT_GET_PTR(elm->data);
+                    }
+
+                    if (elm != RT_NULL)
+                    {
+                        elm = elm->next;
+                    }
+                }
             }
         }
     }
@@ -1697,7 +1783,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
         {
             filter(obj, pti);
         }
-        if (*ptr != RT_NULL && obj != RT_NULL) /* don't filter hlist */
+        if (*ptr != RT_NULL && obj != RT_NULL) /* don't filter hlist/slist */
         {
             filter(obj, ptr);
         }
@@ -1839,39 +1925,21 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
            *psr = RT_NULL;
         }
 
-        rt_cell c;
-        rt_ELEM *elm, *end = RT_NULL, *prv = RT_NULL;
+        rt_cell c = 0, s = 0;
+        rt_ELEM *elm, *cur = RT_NULL, *prv = RT_NULL;
+        rt_ELEM *cuo, *cui, *pro = RT_NULL, *pri = RT_NULL;
 
         /* hierarchical traversal across nodes */
-        for (elm = scene->slist; elm != RT_NULL; elm = elm->next)
+        for (elm = scene->hlist; elm != RT_NULL;)
         {
             rt_BOUND *box = (rt_BOUND *)elm->temp;
 
             /* only call bbox_shad if all arrays above in the hierarchy
              * cast shadow on the surface, don't call
              * bbox_shad again if two array elements share the same bbox */
-            if ((prv == RT_NULL || prv->temp != box) &&
-                bbox_shad(lgt->bvbox, box, srf->bvbox) == 0)
+            if (prv == RT_NULL || prv->temp != box)
             {
-                /* if array's bbox doesn't cast shadow on surface's bbox
-                 * neither do all of array's contents, thus skip the array */
-                if (RT_IS_ARRAY(box))
-                {
-                    /* set array's last element (always surface)
-                     * for skipping through the bbox_shad call above */
-                    elm = RT_GET_PTR(elm->data);
-                }
-
-                /* enable bbox_side call below,
-                 * when last array's surface is processed */
-                if (elm == end)
-                {
-                    end = RT_NULL;
-                }
-
-                prv = RT_NULL;
-
-                continue;
+                s = bbox_shad(lgt->bvbox, box, srf->bvbox);
             }
 
 #if RT_OPTS_2SIDED != 0
@@ -1880,52 +1948,114 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
                 /* only call bbox_side if all arrays above in the hierarchy
                  * are seen from both sides of the surface, don't call
                  * bbox_side again if two array elements share the same bbox */
-                if (end == RT_NULL && (prv == RT_NULL || prv->temp != box))
+                if (cur == RT_NULL && (prv == RT_NULL || prv->temp != box) && s)
                 {
                     c = bbox_side(box, srf->shape);
                 }
 
+                /* insert nodes according to
+                 * side value computed above */
+                if (c & 2 && pso != RT_NULL && s)
+                {
+                    cuo = insert(obj, pso, elm);
+                    RT_SET_PTR(cuo->data, rt_cell, pro);
+                }
+                if (c & 1 && psi != RT_NULL && s)
+                {
+                    cui = insert(obj, psi, elm);
+                    RT_SET_PTR(cui->data, rt_cell, pri);
+                }
+
                 /* if array's bbox is only seen from one side of the surface
                  * so are all of array's contents, thus skip bbox_side call */
-                if (RT_IS_ARRAY(box))
+                if (RT_IS_ARRAY(box) && s)
                 {
-                    /* set array's last element (always surface)
-                     * for skipping through the bbox_side call above */
-                    if (end == RT_NULL && c < 3)
+                    /* set array for skipping bbox_side call above */
+                    if (cur == RT_NULL && c < 3)
                     {
-                        end = RT_GET_PTR(elm->data);
+                        cur = elm;
+                    }
+
+                    if (c & 2 && pso != RT_NULL)
+                    {
+                        pro = cuo;
+                        pso = RT_GET_ADR(cuo->simd);
+                    }
+                    if (c & 1 && psi != RT_NULL)
+                    {
+                        pri = cui;
+                        psi = RT_GET_ADR(cui->simd);
                     }
 
                     prv = elm;
-
-                    continue;
+                    elm = RT_GET_PTR(elm->simd);
                 }
                 else
-                /* enable bbox_side call again,
-                 * when last array's surface is processed */
-                if (elm == end)
                 {
-                    end = RT_NULL;
-                }
+                    while (elm != RT_NULL && elm->next == RT_NULL)
+                    {
+                        if ((cur == RT_NULL || c & 2) && pso != RT_NULL)
+                        {
+                            pro = pro != RT_NULL ? RT_GET_PTR(pro->data) :
+                                  RT_NULL;
+                            pso = pro != RT_NULL ? RT_GET_ADR(pro->simd) :
+                                  RT_GET_ADR((*pto)->data);
+                        }
+                        if ((cur == RT_NULL || c & 1) && psi != RT_NULL)
+                        {
+                            pri = pri != RT_NULL ? RT_GET_PTR(pri->data) :
+                                  RT_NULL;
+                            psi = pri != RT_NULL ? RT_GET_ADR(pri->simd) :
+                                  RT_GET_ADR((*pti)->data);
+                        }
 
-                prv = RT_NULL;
+                        elm = RT_GET_PTR(elm->data);
 
-                /* insert surfaces according to
-                 * side value computed above */
-                if (c & 2 && pso != RT_NULL)
-                {
-                    insert(RT_NULL, pso, elm);
-                }
-                if (c & 1 && psi != RT_NULL)
-                {
-                    insert(RT_NULL, psi, elm);
+                        if (elm == cur)
+                        {
+                            cur = RT_NULL;
+                        }
+                    }
+
+                    if (elm != RT_NULL)
+                    {
+                        elm = elm->next;
+                    }
+
+                    prv = RT_NULL;
                 }
             }
             else
 #endif /* RT_OPTS_2SIDED */
-            if (RT_IS_SURFACE(box))
             {
-                insert(RT_NULL, psr, elm);
+                if (s)
+                {
+                    cur = insert(obj, psr, elm);
+                    RT_SET_PTR(cur->data, rt_cell, prv);
+                }
+
+                if (RT_IS_ARRAY(box) && s)
+                {
+                    prv = cur;
+                    psr = RT_GET_ADR(cur->simd);
+                    elm = RT_GET_PTR(elm->simd);
+                }
+                else
+                {
+                    while (elm != RT_NULL && elm->next == RT_NULL)
+                    {
+                        prv = prv != RT_NULL ? RT_GET_PTR(prv->data) :
+                              RT_NULL;
+                        psr = prv != RT_NULL ? RT_GET_ADR(prv->simd) :
+                              RT_GET_ADR((*ptr)->data);
+                        elm = RT_GET_PTR(elm->data);
+                    }
+
+                    if (elm != RT_NULL)
+                    {
+                        elm = elm->next;
+                    }
+                }
             }
         }
 
@@ -1936,15 +2066,15 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
         {
             if (pso != RT_NULL && *pso != RT_NULL)
             {
-                filter(lgt, pso);
+                filter(RT_NULL, pso);
             }
             if (psi != RT_NULL && *psi != RT_NULL)
             {
-                filter(lgt, psi);
+                filter(RT_NULL, psi);
             }
             if (psr != RT_NULL && *psr != RT_NULL)
             {
-                filter(lgt, psr);
+                filter(RT_NULL, psr);
             }
         }
 #endif /* RT_OPTS_INSERT, RT_OPTS_TARRAY, RT_OPTS_VARRAY */
