@@ -659,7 +659,8 @@ rt_void rt_SceneThread::tiling(rt_vec2 p1, rt_vec2 p2)
  * Insert new element derived from "tem" to a list "ptr"
  * for a given object "obj". If "tem" is NULL and "obj" is LIGHT,
  * insert new element derived from "obj" to a list "ptr".
- * Return outer-most new element (not always list's head).
+ * Return outer-most new element (not always list's head)
+ * or NULL if new element is removed (fully obscured by other elements).
  */
 rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
 {
@@ -1647,7 +1648,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
     }
     else
     {
-        rt_cell c;
+        rt_cell c = 0;
         rt_ELEM *elm, *cur = RT_NULL, *prv = RT_NULL;
         rt_ELEM *cuo, *cui, *pro = RT_NULL, *pri = RT_NULL;
 
@@ -1670,20 +1671,29 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 
                 /* insert nodes according to
                  * side value computed above */
+                cuo = RT_NULL;
                 if (c & 2)
                 {
                     cuo = insert(obj, pto, elm);
-                    RT_SET_PTR(cuo->data, rt_cell, pro);
+                    if (cuo != RT_NULL)
+                    {
+                        RT_SET_PTR(cuo->data, rt_cell, pro);
+                    }
                 }
+                cui = RT_NULL;
                 if (c & 1)
                 {
                     cui = insert(obj, pti, elm);
-                    RT_SET_PTR(cui->data, rt_cell, pri);
+                    if (cui != RT_NULL)
+                    {
+                        RT_SET_PTR(cui->data, rt_cell, pri);
+                    }
                 }
 
                 /* if array's bbox is only seen from one side of the surface
                  * so are all of array's contents, thus skip bbox_side call */
-                if (RT_IS_ARRAY(box))
+                if (RT_IS_ARRAY(box) && c != 0
+                && (cuo != RT_NULL || cui != RT_NULL))
                 {
                     /* set array for skipping bbox_side call above */
                     if (cur == RT_NULL && c < 3)
@@ -1691,12 +1701,12 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                         cur = elm;
                     }
 
-                    if (c & 2)
+                    if (cuo != RT_NULL)
                     {
                         pro = cuo;
                         pto = RT_GET_ADR(cuo->simd);
                     }
-                    if (c & 1)
+                    if (cui != RT_NULL)
                     {
                         pri = cui;
                         pti = RT_GET_ADR(cui->simd);
@@ -1744,9 +1754,12 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 #endif /* RT_OPTS_2SIDED */
             {
                 cur = insert(obj, ptr, elm);
-                RT_SET_PTR(cur->data, rt_cell, prv);
+                if (cur != RT_NULL)
+                {
+                    RT_SET_PTR(cur->data, rt_cell, prv);
+                }
 
-                if (RT_IS_ARRAY(box))
+                if (RT_IS_ARRAY(box) && cur != RT_NULL)
                 {
                     prv = cur;
                     ptr = RT_GET_ADR(cur->simd);
@@ -1955,20 +1968,29 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 
                 /* insert nodes according to
                  * side value computed above */
+                cuo = RT_NULL;
                 if (c & 2 && pso != RT_NULL && s)
                 {
                     cuo = insert(obj, pso, elm);
-                    RT_SET_PTR(cuo->data, rt_cell, pro);
+                    if (cuo != RT_NULL)
+                    {
+                        RT_SET_PTR(cuo->data, rt_cell, pro);
+                    }
                 }
+                cui = RT_NULL;
                 if (c & 1 && psi != RT_NULL && s)
                 {
                     cui = insert(obj, psi, elm);
-                    RT_SET_PTR(cui->data, rt_cell, pri);
+                    if (cui != RT_NULL)
+                    {
+                        RT_SET_PTR(cui->data, rt_cell, pri);
+                    }
                 }
 
                 /* if array's bbox is only seen from one side of the surface
                  * so are all of array's contents, thus skip bbox_side call */
-                if (RT_IS_ARRAY(box) && s)
+                if (RT_IS_ARRAY(box) && c != 0 && s
+                && (cuo != RT_NULL || cui != RT_NULL))
                 {
                     /* set array for skipping bbox_side call above */
                     if (cur == RT_NULL && c < 3)
@@ -1976,12 +1998,12 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
                         cur = elm;
                     }
 
-                    if (c & 2 && pso != RT_NULL)
+                    if (cuo != RT_NULL)
                     {
                         pro = cuo;
                         pso = RT_GET_ADR(cuo->simd);
                     }
-                    if (c & 1 && psi != RT_NULL)
+                    if (cui != RT_NULL)
                     {
                         pri = cui;
                         psi = RT_GET_ADR(cui->simd);
@@ -2031,10 +2053,13 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
                 if (s)
                 {
                     cur = insert(obj, psr, elm);
-                    RT_SET_PTR(cur->data, rt_cell, prv);
+                    if (cur != RT_NULL)
+                    {
+                        RT_SET_PTR(cur->data, rt_cell, prv);
+                    }
                 }
 
-                if (RT_IS_ARRAY(box) && s)
+                if (RT_IS_ARRAY(box) && cur != RT_NULL && s)
                 {
                     prv = cur;
                     psr = RT_GET_ADR(cur->simd);
