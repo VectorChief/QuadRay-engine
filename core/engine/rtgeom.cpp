@@ -1115,6 +1115,8 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
  *  2 - unsortable
  *  3 - don't swap
  *  4 - do swap, not part of the stored order value in the engine
+ * 11 - remove nd2 (fully obscured with nd1)
+ * 12 - remove nd1 (fully obscured with nd2)
  */
 rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 {

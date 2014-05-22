@@ -784,7 +784,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
     }
 
     /* "state" helps to avoid stored order value re-computation
-     * when the whole sublist is being moved (one element at a time),
+     * when the whole sublist is being moved without interruption,
      * the term sublist used here and below refers to a continuous portion
      * of a single flat list as opposed to the same term used above
      * to separate different layers of the list hierarchy */
@@ -817,7 +817,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
                 }
                 else
                 {
-                    RT_SET_FLG(prv->data, rt_cell, bbox_sort(obj->bvbox,
+                    RT_SET_FLG(prv->data, rt_cell,
+                                         3 & bbox_sort(obj->bvbox,
                                          (rt_BOUND *)prv->temp,
                                          (rt_BOUND *)nxt->temp));
                 }
@@ -838,6 +839,38 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
             nxt = elm->next;
             break;
 
+            case 11: /* remove "nxt" fully obscured with "elm" */
+            elm->next = nxt->next;
+            /* reset "state" as "nxt" is removed */
+            state = 0;
+            nxt = nxt->next;
+            break;
+
+            case 12: /* remove "elm" fully obscured with "nxt" */
+            if (prv != RT_NULL)
+            {
+                if (state != 0)
+                {
+                    RT_SET_FLG(prv->data, rt_cell, state);
+                }
+                else
+                {
+                    RT_SET_FLG(prv->data, rt_cell,
+                                         3 & bbox_sort(obj->bvbox,
+                                         (rt_BOUND *)prv->temp,
+                                         (rt_BOUND *)nxt->temp));
+                }
+                prv->next = nxt;
+            }
+            else
+            {
+                RT_SET_PTR(*ptr, rt_ELEM *, nxt);
+            }
+            state = 0;
+            /* stop sorting as "elm" is removed */
+            elm = nxt = RT_NULL;
+            break;
+
             /* stop phase 1 if the "op" is
              * either "don't swap" or "unsortable" */
             default:
@@ -847,6 +880,11 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
             nxt = RT_NULL;
             break;
         }
+    }
+    /* check if "elm" was removed in phase 1 */
+    if (elm == RT_NULL)
+    {
+        return elm;
     }
 
     rt_ELEM *end, *tlp, *cur, *ipt, *jpt;
@@ -859,7 +897,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
     /* phase 3, move the elements from behind "elm" strict-order-chain
      * right in front of the "elm" as computed order value dictates,
      * order value re-computation is avoided via "state" variables */
-    for (tlp = end, nxt = end->next; nxt != RT_NULL; )
+    for (tlp = cur = end, nxt = end->next; nxt != RT_NULL; )
     {
         rt_bool gr = RT_FALSE;
         /* compute the order value between "elm" and "nxt" elements */
@@ -871,9 +909,41 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
             /* move "nxt" in front of the "elm"
              * if the "op" is "do swap" */
             case 4:
+            case 12: /* ignore "elm" removal as it shouldn't happen */
             /* as the swap operation is performed below
              * the stored order value becomes "don't swap" */
             op = 3;
+            /* repair "cur" stored order value
+             * to see if "tlp" needs to catch up with "nxt" */
+            if (RT_GET_FLG(cur->data) == 0 && cur != tlp)
+            {
+                RT_SET_FLG(cur->data, rt_cell,
+                                     3 & bbox_sort(obj->bvbox,
+                                     (rt_BOUND *)cur->temp,
+                                     (rt_BOUND *)nxt->temp));
+            }
+            /* if "cur" stored order value to "nxt"
+             * is "neutral", then strict-order-chain
+             * from "tlp->next" up to "nxt" is broken,
+             * thus "tlp" catches up with "nxt" */
+            if (RT_GET_FLG(cur->data) == 1 && cur != tlp)
+            {
+                /* repair "tlp" stored order value
+                 * before it catches up with "nxt" */
+                if (RT_GET_FLG(tlp->data) == 0)
+                {
+                    ipt = tlp->next;
+                    RT_SET_FLG(tlp->data, rt_cell,
+                                         3 & bbox_sort(obj->bvbox,
+                                         (rt_BOUND *)tlp->temp,
+                                         (rt_BOUND *)ipt->temp));
+                }
+                /* reset "state" as "tlp" moves forward, thus
+                 * breaking the sublist moving to the front of the "elm" */
+                state = 0;
+                /* move "tlp" to "cur" right before "nxt" */
+                tlp = cur;
+            }
             /* check if there is a tail from "end->next"
              * up to "tlp" to comb out thoroughly before
              * moving "nxt" (along with its strict-order-chain
@@ -923,7 +993,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
                         /* compute new order value */
                         else
                         {
-                            op = bbox_sort(obj->bvbox,
+                            op = 3 & bbox_sort(obj->bvbox,
                                           (rt_BOUND *)cur->temp,
                                           (rt_BOUND *)jel->temp);
                         }
@@ -989,7 +1059,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
                         if (RT_GET_FLG(iel->data) == 0)
                         {
                             cur = iel->next;
-                            RT_SET_FLG(iel->data, rt_cell, bbox_sort(obj->bvbox,
+                            RT_SET_FLG(iel->data, rt_cell,
+                                                 3 & bbox_sort(obj->bvbox,
                                                  (rt_BOUND *)iel->temp,
                                                  (rt_BOUND *)cur->temp));
                         }
@@ -1005,7 +1076,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
                 if (RT_GET_FLG(ipt->data) == 0)
                 {
                     cur = ipt->next;
-                    RT_SET_FLG(ipt->data, rt_cell, bbox_sort(obj->bvbox,
+                    RT_SET_FLG(ipt->data, rt_cell,
+                                         3 & bbox_sort(obj->bvbox,
                                          (rt_BOUND *)ipt->temp,
                                          (rt_BOUND *)cur->temp));
                 }
@@ -1027,7 +1099,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
                 }
                 else
                 {
-                    RT_SET_FLG(prv->data, rt_cell, bbox_sort(obj->bvbox,
+                    RT_SET_FLG(prv->data, rt_cell,
+                                         3 & bbox_sort(obj->bvbox,
                                          (rt_BOUND *)prv->temp,
                                          (rt_BOUND *)cur->temp));
                 }
@@ -1040,32 +1113,58 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
             cur = nxt->next;
             RT_SET_FLG(tlp->data, rt_cell, 0);
             tlp->next = cur;
-            /* "state" keeps previously computed order value between "nxt"
-             * and "nxt->next", thus the order value can be restored to
-             * "prv" data field without re-computation if the whole
-             * sublist is being moved from "nxt" to the front of the "elm" */
+            /* "state" keeps previously computed order value between "prv"
+             * and "tlp->next", thus the order value can be restored to
+             * "prv" data field without re-computation if the whole sublist
+             * is being moved in front of the "elm" without interruption */
             state = RT_GET_FLG(nxt->data);
             RT_SET_FLG(nxt->data, rt_cell, op);
             nxt->next = elm;
             prv = nxt;
             nxt = cur;
+            /* make sure "cur" is right before "nxt" between the cases */
+            cur = tlp;
+            break;
+
+            case 11: /* remove "nxt" fully obscured with "elm" */
+            RT_SET_FLG(cur->data, rt_cell, 0);
+            /* "cur" is always right before "nxt" between the cases */
+            cur->next = nxt->next;
+            /* reset "state" as the sublist moving to the front
+             * of the "elm" is broken if "tlp->next" is removed */
+            if (cur == tlp)
+            {
+                state = 0;
+            }
+            nxt = nxt->next;
             break;
 
             /* move "nxt" forward if the "op" is
              * "don't swap", "neutral" or "unsortable" */
             default:
-            /* if "nxt" stored order value (to "nxt->next")
+            /* repair "cur" stored order value
+             * before it catches up with "nxt" */
+            if (RT_GET_FLG(cur->data) == 0 && cur != tlp)
+            {
+                RT_SET_FLG(cur->data, rt_cell,
+                                     3 & bbox_sort(obj->bvbox,
+                                     (rt_BOUND *)cur->temp,
+                                     (rt_BOUND *)nxt->temp));
+            }
+            /* if "nxt" or "cur" stored order value
              * is "neutral", then strict-order-chain
              * from "tlp->next" up to "nxt" is being broken
              * as "nxt" moves, thus "tlp" catches up with "nxt" */
-            if (RT_GET_FLG(nxt->data) != 3 && RT_GET_FLG(nxt->data) != 2)
+            if (RT_GET_FLG(nxt->data) == 1
+            || (RT_GET_FLG(cur->data) == 1 && cur != tlp))
             {
                 /* repair "tlp" stored order value
                  * before it catches up with "nxt" */
                 if (RT_GET_FLG(tlp->data) == 0)
                 {
                     cur = tlp->next;
-                    RT_SET_FLG(tlp->data, rt_cell, bbox_sort(obj->bvbox,
+                    RT_SET_FLG(tlp->data, rt_cell,
+                                         3 & bbox_sort(obj->bvbox,
                                          (rt_BOUND *)tlp->temp,
                                          (rt_BOUND *)cur->temp));
                 }
@@ -1075,6 +1174,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
                 /* move "tlp" to "nxt" before it advances */
                 tlp = nxt;
             }
+            /* make sure "cur" is right before "nxt" between the cases */
+            cur = nxt;
             /* when "nxt" runs away from "tlp" it grows a
              * strict-order-chain from "tlp->next" up to "nxt",
              * which then serves as a comb for the tail area
@@ -1088,7 +1189,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
     cur = tlp->next;
     if (RT_GET_FLG(tlp->data) == 0 && cur != RT_NULL)
     {
-        RT_SET_FLG(tlp->data, rt_cell, bbox_sort(obj->bvbox,
+        RT_SET_FLG(tlp->data, rt_cell,
+                             3 & bbox_sort(obj->bvbox,
                              (rt_BOUND *)tlp->temp,
                              (rt_BOUND *)cur->temp));
     }
