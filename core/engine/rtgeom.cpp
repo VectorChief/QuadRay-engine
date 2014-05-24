@@ -1181,171 +1181,254 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     }
 
     /* check the order for bounding boxes */
-    rt_cell i, j, k, n, p, c = 0;
+    rt_cell i, j, k, l, m, n, p, c = 0;
+    rt_real *pps;
 
-    /* run through "nd2" faces and "nd1" verts */
-    for (j = 0; j < nd2->faces_num; j++)
+    for (l = 0, m = 1, pps = obj->pos; l < m; l++)
     {
-        rt_FACE *fc = &nd2->faces[j];
-
-        for (i = 0, n = 0; i < nd1->verts_num; i++, n += p)
+        /* run through "nd2" faces and "nd1" verts */
+        for (j = 0; j < nd2->faces_num; j++)
         {
-            p = 0;
-            k = vert_to_face(obj->pos, nd1->verts[i].pos,
-                             nd2->verts[fc->index[0]].pos,
-                             nd2->verts[fc->index[1]].pos,
-                             nd2->verts[fc->index[2]].pos,
-                             fc->k, fc->i, fc->j);
-            if (k == 3)
+            rt_FACE *fc = &nd2->faces[j];
+
+            for (i = 0, n = 0; i < nd1->verts_num; i++, n += p)
             {
-                p =  1;
-            }
-            if (k == 4)
-            {
-                k =  2;
-            }
-            k ^= 0;
-            if (k == 1 || k == 2)
-            {
-                p =  1;
-                if (c == 0)
+                p = 0;
+                k = vert_to_face(pps, nd1->verts[i].pos,
+                                 nd2->verts[fc->index[0]].pos,
+                                 nd2->verts[fc->index[1]].pos,
+                                 nd2->verts[fc->index[2]].pos,
+                                 fc->k, fc->i, fc->j);
+                if (k == 3)
                 {
-                    c =  k;
+                    p =  1;
                 }
-                else
-                if (c != k)
+                if (k == 4)
                 {
-                    return 2;
+                    k =  2;
                 }
-            }
-            if (fc->k < 3)
-            {
-                continue;
-            }
-            k = vert_to_face(obj->pos, nd1->verts[i].pos,
-                             nd2->verts[fc->index[2]].pos,
-                             nd2->verts[fc->index[3]].pos,
-                             nd2->verts[fc->index[0]].pos,
-                             fc->k, fc->i, fc->j);
-            if (k == 3)
-            {
-                p =  1;
-            }
-            if (k == 4)
-            {
-                k =  2;
-            }
-            k ^= 0;
-            if (k == 1 || k == 2)
-            {
-                p =  1;
-                if (c == 0)
+                k ^= 0;
+                if (k == 1 || k == 2)
                 {
-                    c =  k;
+                    p =  1;
+                    if (c == 0)
+                    {
+                        c =  k;
+                    }
+                    else
+                    if (c != k)
+                    {
+                        if (l == 0)
+                        {
+                            return 2;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
                 }
-                else
-                if (c != k)
+                if (fc->k < 3)
                 {
-                    return 2;
+                    continue;
+                }
+                k = vert_to_face(pps, nd1->verts[i].pos,
+                                 nd2->verts[fc->index[2]].pos,
+                                 nd2->verts[fc->index[3]].pos,
+                                 nd2->verts[fc->index[0]].pos,
+                                 fc->k, fc->i, fc->j);
+                if (k == 3)
+                {
+                    p =  1;
+                }
+                if (k == 4)
+                {
+                    k =  2;
+                }
+                k ^= 0;
+                if (k == 1 || k == 2)
+                {
+                    p =  1;
+                    if (c == 0)
+                    {
+                        c =  k;
+                    }
+                    else
+                    if (c != k)
+                    {
+                        if (l == 0)
+                        {
+                            return 2;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
                 }
             }
         }
-    }
 
 #if RT_OPTS_REMOVE != 0
 
-    if (RT_IS_PLANE(nd2) && *((rt_SHAPE *)nd2)->ptr == RT_NULL
-    && !RT_IS_SURFACE(obj))
-    {
-        if (c == 2 && n == nd1->verts_num)
+        if (RT_IS_PLANE(nd2) && *((rt_SHAPE *)nd2)->ptr == RT_NULL
+        &&  c == 2 && n == nd1->verts_num && obj != nd2
+        && (*obj->opts & RT_OPTS_REMOVE) != 0)
         {
-            return 12;
+            if (RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj))
+            {
+                if (obj->verts_num == 0)
+                {
+                    break;
+                }
+                if (l == 0)
+                {
+                    m = obj->verts_num + 1;
+                }
+                if (l < obj->verts_num)
+                {
+                    pps = obj->verts[l].pos;
+                }
+                else
+                {
+                    return 12;
+                }
+            }
+            else /* RT_IS_CAMERA(obj) || RT_IS_LIGHT(obj) */
+            {
+                return 12;
+            }
         }
-    }
+        else
+        {
+            break;
+        }
 
 #endif /* RT_OPTS_REMOVE */
+    }
 
-    /* run through "nd1" faces and "nd2" verts */
-    for (j = 0; j < nd1->faces_num; j++)
+    for (l = 0, m = 1, pps = obj->pos; l < m; l++)
     {
-        rt_FACE *fc = &nd1->faces[j];
-
-        for (i = 0, n = 0; i < nd2->verts_num; i++, n += p)
+        /* run through "nd1" faces and "nd2" verts */
+        for (j = 0; j < nd1->faces_num; j++)
         {
-            p = 0;
-            k = vert_to_face(obj->pos, nd2->verts[i].pos,
-                             nd1->verts[fc->index[0]].pos,
-                             nd1->verts[fc->index[1]].pos,
-                             nd1->verts[fc->index[2]].pos,
-                             fc->k, fc->i, fc->j);
-            if (k == 3)
+            rt_FACE *fc = &nd1->faces[j];
+
+            for (i = 0, n = 0; i < nd2->verts_num; i++, n += p)
             {
-                p =  1;
-            }
-            if (k == 4)
-            {
-                k =  2;
-            }
-            k ^= 3;
-            if (k == 1 || k == 2)
-            {
-                p =  1;
-                if (c == 0)
+                p = 0;
+                k = vert_to_face(pps, nd2->verts[i].pos,
+                                 nd1->verts[fc->index[0]].pos,
+                                 nd1->verts[fc->index[1]].pos,
+                                 nd1->verts[fc->index[2]].pos,
+                                 fc->k, fc->i, fc->j);
+                if (k == 3)
                 {
-                    c =  k;
+                    p =  1;
                 }
-                else
-                if (c != k)
+                if (k == 4)
                 {
-                    return 2;
+                    k =  2;
                 }
-            }
-            if (fc->k < 3)
-            {
-                continue;
-            }
-            k = vert_to_face(obj->pos, nd2->verts[i].pos,
-                             nd1->verts[fc->index[2]].pos,
-                             nd1->verts[fc->index[3]].pos,
-                             nd1->verts[fc->index[0]].pos,
-                             fc->k, fc->i, fc->j);
-            if (k == 3)
-            {
-                p =  1;
-            }
-            if (k == 4)
-            {
-                k =  2;
-            }
-            k ^= 3;
-            if (k == 1 || k == 2)
-            {
-                p =  1;
-                if (c == 0)
+                k ^= 3;
+                if (k == 1 || k == 2)
                 {
-                    c =  k;
+                    p =  1;
+                    if (c == 0)
+                    {
+                        c =  k;
+                    }
+                    else
+                    if (c != k)
+                    {
+                        if (l == 0)
+                        {
+                            return 2;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
                 }
-                else
-                if (c != k)
+                if (fc->k < 3)
                 {
-                    return 2;
+                    continue;
+                }
+                k = vert_to_face(pps, nd2->verts[i].pos,
+                                 nd1->verts[fc->index[2]].pos,
+                                 nd1->verts[fc->index[3]].pos,
+                                 nd1->verts[fc->index[0]].pos,
+                                 fc->k, fc->i, fc->j);
+                if (k == 3)
+                {
+                    p =  1;
+                }
+                if (k == 4)
+                {
+                    k =  2;
+                }
+                k ^= 3;
+                if (k == 1 || k == 2)
+                {
+                    p =  1;
+                    if (c == 0)
+                    {
+                        c =  k;
+                    }
+                    else
+                    if (c != k)
+                    {
+                        if (l == 0)
+                        {
+                            return 2;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
                 }
             }
         }
-    }
 
 #if RT_OPTS_REMOVE != 0
 
-    if (RT_IS_PLANE(nd1) && *((rt_SHAPE *)nd1)->ptr == RT_NULL
-    && !RT_IS_SURFACE(obj))
-    {
-        if (c == 1 && n == nd2->verts_num)
+        if (RT_IS_PLANE(nd1) && *((rt_SHAPE *)nd1)->ptr == RT_NULL
+        &&  c == 1 && n == nd2->verts_num && obj != nd1
+        && (*obj->opts & RT_OPTS_REMOVE) != 0)
         {
-            return 11;
+            if (RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj))
+            {
+                if (obj->verts_num == 0)
+                {
+                    break;
+                }
+                if (l == 0)
+                {
+                    m = obj->verts_num + 1;
+                }
+                if (l < obj->verts_num)
+                {
+                    pps = obj->verts[l].pos;
+                }
+                else
+                {
+                    return 11;
+                }
+            }
+            else /* RT_IS_CAMERA(obj) || RT_IS_LIGHT(obj) */
+            {
+                return 11;
+            }
         }
-    }
+        else
+        {
+            break;
+        }
 
 #endif /* RT_OPTS_REMOVE */
+    }
 
     /* run through "nd2" edges and "nd1" edges */
     for (j = 0; j < nd2->edges_num; j++)
