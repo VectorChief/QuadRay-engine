@@ -1157,6 +1157,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     RT_VEC3_SUB(dff_vec, nd1->mid, nd2->mid);
     rt_real dff_len = RT_VEC3_LEN(dff_vec);
 
+    /* NOTE: aggressive early-out prevents hidden-surfaces-removal below */
     if (nd1->rad + nd2->rad < dff_len)
     {
         /* check the order for bounding spheres */
@@ -1184,16 +1185,50 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     rt_cell i, j, k, l, m, n, p, c = 0;
     rt_real *pps;
 
+    /* run through "nd1" edges and "nd2" edges */
+    for (i = 0; i < nd1->edges_num; i++)
+    {
+        rt_EDGE *ei = &nd1->edges[i];
+
+        for (j = 0; j < nd2->edges_num; j++)
+        {
+            rt_EDGE *ej = &nd2->edges[j];
+
+            k = edge_to_edge(obj->pos,
+                             nd1->verts[ei->index[0]].pos,
+                             nd1->verts[ei->index[1]].pos, ei->k,
+                             nd2->verts[ej->index[0]].pos,
+                             nd2->verts[ej->index[1]].pos, ej->k);
+            if (k == 4)
+            {
+                k =  2;
+            }
+            if (k == 1 || k == 2)
+            {
+                if (c == 0)
+                {
+                    c =  k;
+                }
+                else
+                if (c != k)
+                {
+                    return 2;
+                }
+            }
+        }
+    }
+
     for (l = 0, m = 1, pps = obj->pos; l < m; l++)
     {
-        /* run through "nd2" faces and "nd1" verts */
-        for (j = 0; j < nd2->faces_num; j++)
+        /* run through "nd1" verts and "nd2" faces */
+        for (i = 0, n = 0; i < nd1->verts_num; i++, n += p)
         {
-            rt_FACE *fc = &nd2->faces[j];
+            p = 0;
 
-            for (i = 0, n = 0; i < nd1->verts_num; i++, n += p)
+            for (j = 0; j < nd2->faces_num; j++)
             {
-                p = 0;
+                rt_FACE *fc = &nd2->faces[j];
+
                 k = vert_to_face(pps, nd1->verts[i].pos,
                                  nd2->verts[fc->index[0]].pos,
                                  nd2->verts[fc->index[1]].pos,
@@ -1224,6 +1259,9 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                         }
                         else
                         {
+                            p = 0;
+                            l = m;
+                            i = nd1->verts_num;
                             break;
                         }
                     }
@@ -1262,6 +1300,9 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                         }
                         else
                         {
+                            p = 0;
+                            l = m;
+                            i = nd1->verts_num;
                             break;
                         }
                     }
@@ -1271,6 +1312,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
 #if RT_OPTS_REMOVE != 0
 
+        /* NOTE: margins in vert_to_face above must be excluded for removal */
         if (RT_IS_PLANE(nd2) && *((rt_SHAPE *)nd2)->ptr == RT_NULL
         &&  c == 2 && n == nd1->verts_num && obj != nd2
         && (*obj->opts & RT_OPTS_REMOVE) != 0)
@@ -1309,14 +1351,15 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
     for (l = 0, m = 1, pps = obj->pos; l < m; l++)
     {
-        /* run through "nd1" faces and "nd2" verts */
-        for (j = 0; j < nd1->faces_num; j++)
+        /* run through "nd2" verts and "nd1" faces */
+        for (i = 0, n = 0; i < nd2->verts_num; i++, n += p)
         {
-            rt_FACE *fc = &nd1->faces[j];
+            p = 0;
 
-            for (i = 0, n = 0; i < nd2->verts_num; i++, n += p)
+            for (j = 0; j < nd1->faces_num; j++)
             {
-                p = 0;
+                rt_FACE *fc = &nd1->faces[j];
+
                 k = vert_to_face(pps, nd2->verts[i].pos,
                                  nd1->verts[fc->index[0]].pos,
                                  nd1->verts[fc->index[1]].pos,
@@ -1347,6 +1390,9 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                         }
                         else
                         {
+                            p = 0;
+                            l = m;
+                            i = nd2->verts_num;
                             break;
                         }
                     }
@@ -1385,6 +1431,9 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                         }
                         else
                         {
+                            p = 0;
+                            l = m;
+                            i = nd2->verts_num;
                             break;
                         }
                     }
@@ -1394,6 +1443,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
 #if RT_OPTS_REMOVE != 0
 
+        /* NOTE: margins in vert_to_face above must be excluded for removal */
         if (RT_IS_PLANE(nd1) && *((rt_SHAPE *)nd1)->ptr == RT_NULL
         &&  c == 1 && n == nd2->verts_num && obj != nd1
         && (*obj->opts & RT_OPTS_REMOVE) != 0)
@@ -1428,39 +1478,6 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         }
 
 #endif /* RT_OPTS_REMOVE */
-    }
-
-    /* run through "nd2" edges and "nd1" edges */
-    for (j = 0; j < nd2->edges_num; j++)
-    {
-        rt_EDGE *ej = &nd2->edges[j];
-
-        for (i = 0; i < nd1->edges_num; i++)
-        {
-            rt_EDGE *ei = &nd1->edges[i];
-
-            k = edge_to_edge(obj->pos,
-                             nd1->verts[ei->index[0]].pos,
-                             nd1->verts[ei->index[1]].pos, ei->k,
-                             nd2->verts[ej->index[0]].pos,
-                             nd2->verts[ej->index[1]].pos, ej->k);
-            if (k == 4)
-            {
-                k =  2;
-            }
-            if (k == 1 || k == 2)
-            {
-                if (c == 0)
-                {
-                    c =  k;
-                }
-                else
-                if (c != k)
-                {
-                    return 2;
-                }
-            }
-        }
     }
 
     return c == 0 ? 1 : c + 2;
