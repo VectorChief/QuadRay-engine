@@ -255,9 +255,11 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
  * so that local I, J axes (face's base) and local K axis (face's normal) are
  * mapped to the world X, Y, Z axes, in which case face is a quad as opposed
  * to a triangular face, when at least one of the axes indices equals 3.
- * False-positives are allowed due to computational inaccuracy.
+ * False-positives are allowed due to computational inaccuracy, "th" controls
+ * whether uv-margins are included "+1" or excluded "-1" to/from intersecion
+ * or disabled if "0".
  *
- * Based on the original idea by Tomas Möller (tompa[AT]clarus[DOT]se)
+ * Based on the original idea by Tomas Moller (tompa[AT]clarus[DOT]se)
  * and Ben Trumbore (wbt[AT]graphics[DOT]cornell[DOT]edu)
  * presented in the article "Fast, Minimum Storage Ray/Triangle Intersection"
  * available at http://www.graphics.cornell.edu/pubs/1997/MT97.html
@@ -271,7 +273,7 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
  *  4 - intersect o=q-p, to handle bbox stacking
  */
 static
-rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
+rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1, rt_cell th,
                      rt_vec4 q0, rt_vec4 q1, rt_vec4 q2,
                      rt_cell qk, rt_cell qi, rt_cell qj)
 {
@@ -299,8 +301,8 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
         u = (p1[qi] - p0[qi]) * t;
 
         /* if hit outside with margin, return miss */
-        if (u < (RT_MIN(q0[qi], q1[qi]) - p0[qi] - RT_CULL_THRESHOLD) * d
-        ||  u > (RT_MAX(q0[qi], q1[qi]) - p0[qi] + RT_CULL_THRESHOLD) * d)
+        if (u < (RT_MIN(q0[qi], q1[qi]) - p0[qi] - th * RT_CULL_THRESHOLD) * d
+        ||  u > (RT_MAX(q0[qi], q1[qi]) - p0[qi] + th * RT_CULL_THRESHOLD) * d)
         {
             return 0;
         }
@@ -309,8 +311,8 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
         v = (p1[qj] - p0[qj]) * t;
 
         /* if hit outside with margin, return miss */
-        if (v < (RT_MIN(q0[qj], q2[qj]) - p0[qj] - RT_CULL_THRESHOLD) * d
-        ||  v > (RT_MAX(q0[qj], q2[qj]) - p0[qj] + RT_CULL_THRESHOLD) * d)
+        if (v < (RT_MIN(q0[qj], q2[qj]) - p0[qj] - th * RT_CULL_THRESHOLD) * d
+        ||  v > (RT_MAX(q0[qj], q2[qj]) - p0[qj] + th * RT_CULL_THRESHOLD) * d)
         {
             return 0;
         }
@@ -348,8 +350,8 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
         u = RT_VEC3_DOT(qr, mx) * s;
 
         /* if hit outside with margin, return miss */
-        if (u < (0.0f - RT_CULL_THRESHOLD) * d
-        ||  u > (1.0f + RT_CULL_THRESHOLD) * d)
+        if (u < (0.0f - th * RT_CULL_THRESHOLD) * d
+        ||  u > (1.0f + th * RT_CULL_THRESHOLD) * d)
         {
             return 0;
         }
@@ -362,8 +364,8 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
         v = RT_VEC3_DOT(pr, nx) * s;
 
         /* if hit outside with margin, return miss */
-        if (v < (0.0f - RT_CULL_THRESHOLD) * d
-        ||  v > (1.0f + RT_CULL_THRESHOLD) * d - u)
+        if (v < (0.0f - th * RT_CULL_THRESHOLD) * d
+        ||  v > (1.0f + th * RT_CULL_THRESHOLD) * d - u)
         {
             return 0;
         }
@@ -386,7 +388,9 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
  * Determine if edge "p1-p2" and edge "q1-q2" intersect as seen from vert "p0".
  * Parameters "pk, qk" specify axis mapping indices for axis-aligned edges,
  * so that local K axis (edge's direction) is mapped to the world X, Y, Z axes.
- * False-positives are allowed due to computational inaccuracy.
+ * False-positives are allowed due to computational inaccuracy, "th" controls
+ * whether uv-margins are included "+1" or excluded "-1" to/from intersecion
+ * or disabled if "0".
  *
  * In order to figure out "u" and "v" intersection parameters along
  * the 1st and the 2nd edges respectively the same ray/triangle intersection
@@ -402,7 +406,7 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1,
  *  4 - intersect o=q-p, to handle bbox stacking
  */
 static
-rt_cell edge_to_edge(rt_vec4 p0,
+rt_cell edge_to_edge(rt_vec4 p0, rt_cell th,
                      rt_vec4 p1, rt_vec4 p2, rt_cell pk,
                      rt_vec4 q1, rt_vec4 q2, rt_cell qk)
 {
@@ -447,8 +451,8 @@ rt_cell edge_to_edge(rt_vec4 p0,
         u = (q1[pk] - p0[pk]) * d;
 
         /* if hit outside with margin, return miss */
-        if (u < (RT_MIN(p1[pk], p2[pk]) - p0[pk] - RT_CULL_THRESHOLD) * t
-        ||  u > (RT_MAX(p1[pk], p2[pk]) - p0[pk] + RT_CULL_THRESHOLD) * t)
+        if (u < (RT_MIN(p1[pk], p2[pk]) - p0[pk] - th * RT_CULL_THRESHOLD) * t
+        ||  u > (RT_MAX(p1[pk], p2[pk]) - p0[pk] + th * RT_CULL_THRESHOLD) * t)
         {
             return 0;
         }
@@ -462,8 +466,8 @@ rt_cell edge_to_edge(rt_vec4 p0,
         v = (p1[qk] - p0[qk]) * t;
 
         /* if hit outside with margin, return miss */
-        if (v < (RT_MIN(q1[qk], q2[qk]) - p0[qk] - RT_CULL_THRESHOLD) * d
-        ||  v > (RT_MAX(q1[qk], q2[qk]) - p0[qk] + RT_CULL_THRESHOLD) * d)
+        if (v < (RT_MIN(q1[qk], q2[qk]) - p0[qk] - th * RT_CULL_THRESHOLD) * d
+        ||  v > (RT_MAX(q1[qk], q2[qk]) - p0[qk] + th * RT_CULL_THRESHOLD) * d)
         {
             return 0;
         }
@@ -506,8 +510,8 @@ rt_cell edge_to_edge(rt_vec4 p0,
         u = RT_VEC3_DOT(eq, nx) * s;
 
         /* if hit outside with margin, return miss */
-        if (u < (0.0f - RT_CULL_THRESHOLD) * t
-        ||  u > (1.0f + RT_CULL_THRESHOLD) * t)
+        if (u < (0.0f - th * RT_CULL_THRESHOLD) * t
+        ||  u > (1.0f + th * RT_CULL_THRESHOLD) * t)
         {
             return 0;
         }
@@ -528,8 +532,8 @@ rt_cell edge_to_edge(rt_vec4 p0,
         v = RT_VEC3_DOT(ep, nx) * s;
 
         /* if hit outside with margin, return miss */
-        if (v < (0.0f - RT_CULL_THRESHOLD) * d
-        ||  v > (1.0f + RT_CULL_THRESHOLD) * d)
+        if (v < (0.0f - th * RT_CULL_THRESHOLD) * d
+        ||  v > (1.0f + th * RT_CULL_THRESHOLD) * d)
         {
             return 0;
         }
@@ -1019,14 +1023,14 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     /* check if bounding boxes cast shadow */
     rt_cell i, j;
 
-    /* run through "nd2" faces and "nd1" verts */
-    for (j = 0; j < nd2->faces_num; j++)
+    /* run through "nd1" verts and "nd2" faces */
+    for (i = 0; i < nd1->verts_num; i++)
     {
-        rt_FACE *fc = &nd2->faces[j];
-
-        for (i = 0; i < nd1->verts_num; i++)
+        for (j = 0; j < nd2->faces_num; j++)
         {
-            k = vert_to_face(obj->pos, nd1->verts[i].pos,
+            rt_FACE *fc = &nd2->faces[j];
+
+            k = vert_to_face(obj->pos, nd1->verts[i].pos, +1,
                              nd2->verts[fc->index[0]].pos,
                              nd2->verts[fc->index[1]].pos,
                              nd2->verts[fc->index[2]].pos,
@@ -1039,7 +1043,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 continue;
             }
-            k = vert_to_face(obj->pos, nd1->verts[i].pos,
+            k = vert_to_face(obj->pos, nd1->verts[i].pos, +1,
                              nd2->verts[fc->index[2]].pos,
                              nd2->verts[fc->index[3]].pos,
                              nd2->verts[fc->index[0]].pos,
@@ -1051,14 +1055,14 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         }
     }
 
-    /* run through "nd1" faces and "nd2" verts */
-    for (j = 0; j < nd1->faces_num; j++)
+    /* run through "nd2" verts and "nd1" faces */
+    for (i = 0; i < nd2->verts_num; i++)
     {
-        rt_FACE *fc = &nd1->faces[j];
-
-        for (i = 0; i < nd2->verts_num; i++)
+        for (j = 0; j < nd1->faces_num; j++)
         {
-            k = vert_to_face(obj->pos, nd2->verts[i].pos,
+            rt_FACE *fc = &nd1->faces[j];
+
+            k = vert_to_face(obj->pos, nd2->verts[i].pos, +1,
                              nd1->verts[fc->index[0]].pos,
                              nd1->verts[fc->index[1]].pos,
                              nd1->verts[fc->index[2]].pos,
@@ -1071,7 +1075,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 continue;
             }
-            k = vert_to_face(obj->pos, nd2->verts[i].pos,
+            k = vert_to_face(obj->pos, nd2->verts[i].pos, +1,
                              nd1->verts[fc->index[2]].pos,
                              nd1->verts[fc->index[3]].pos,
                              nd1->verts[fc->index[0]].pos,
@@ -1083,16 +1087,16 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         }
     }
 
-    /* run through "nd2" edges and "nd1" edges */
-    for (j = 0; j < nd2->edges_num; j++)
+    /* run through "nd1" edges and "nd2" edges */
+    for (i = 0; i < nd1->edges_num; i++)
     {
-        rt_EDGE *ej = &nd2->edges[j];
+        rt_EDGE *ei = &nd1->edges[i];
 
-        for (i = 0; i < nd1->edges_num; i++)
+        for (j = 0; j < nd2->edges_num; j++)
         {
-            rt_EDGE *ei = &nd1->edges[i];
+            rt_EDGE *ej = &nd2->edges[j];
 
-            k = edge_to_edge(obj->pos,
+            k = edge_to_edge(obj->pos, +1,
                              nd1->verts[ei->index[0]].pos,
                              nd1->verts[ei->index[1]].pos, ei->k,
                              nd2->verts[ej->index[0]].pos,
@@ -1185,39 +1189,6 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     rt_cell i, j, k, l, m, n, p, c = 0;
     rt_real *pps;
 
-    /* run through "nd1" edges and "nd2" edges */
-    for (i = 0; i < nd1->edges_num; i++)
-    {
-        rt_EDGE *ei = &nd1->edges[i];
-
-        for (j = 0; j < nd2->edges_num; j++)
-        {
-            rt_EDGE *ej = &nd2->edges[j];
-
-            k = edge_to_edge(obj->pos,
-                             nd1->verts[ei->index[0]].pos,
-                             nd1->verts[ei->index[1]].pos, ei->k,
-                             nd2->verts[ej->index[0]].pos,
-                             nd2->verts[ej->index[1]].pos, ej->k);
-            if (k == 4)
-            {
-                k =  2;
-            }
-            if (k == 1 || k == 2)
-            {
-                if (c == 0)
-                {
-                    c =  k;
-                }
-                else
-                if (c != k)
-                {
-                    return 2;
-                }
-            }
-        }
-    }
-
     for (l = 0, m = 1, pps = obj->pos; l < m; l++)
     {
         /* run through "nd1" verts and "nd2" faces */
@@ -1229,7 +1200,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 rt_FACE *fc = &nd2->faces[j];
 
-                k = vert_to_face(pps, nd1->verts[i].pos,
+                k = vert_to_face(pps, nd1->verts[i].pos, -1,
                                  nd2->verts[fc->index[0]].pos,
                                  nd2->verts[fc->index[1]].pos,
                                  nd2->verts[fc->index[2]].pos,
@@ -1270,7 +1241,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                 {
                     continue;
                 }
-                k = vert_to_face(pps, nd1->verts[i].pos,
+                k = vert_to_face(pps, nd1->verts[i].pos, -1,
                                  nd2->verts[fc->index[2]].pos,
                                  nd2->verts[fc->index[3]].pos,
                                  nd2->verts[fc->index[0]].pos,
@@ -1360,7 +1331,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 rt_FACE *fc = &nd1->faces[j];
 
-                k = vert_to_face(pps, nd2->verts[i].pos,
+                k = vert_to_face(pps, nd2->verts[i].pos, -1,
                                  nd1->verts[fc->index[0]].pos,
                                  nd1->verts[fc->index[1]].pos,
                                  nd1->verts[fc->index[2]].pos,
@@ -1401,7 +1372,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                 {
                     continue;
                 }
-                k = vert_to_face(pps, nd2->verts[i].pos,
+                k = vert_to_face(pps, nd2->verts[i].pos, -1,
                                  nd1->verts[fc->index[2]].pos,
                                  nd1->verts[fc->index[3]].pos,
                                  nd1->verts[fc->index[0]].pos,
@@ -1480,6 +1451,39 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 #endif /* RT_OPTS_REMOVE */
     }
 
+    /* run through "nd1" edges and "nd2" edges */
+    for (i = 0; i < nd1->edges_num; i++)
+    {
+        rt_EDGE *ei = &nd1->edges[i];
+
+        for (j = 0; j < nd2->edges_num; j++)
+        {
+            rt_EDGE *ej = &nd2->edges[j];
+
+            k = edge_to_edge(obj->pos, -1,
+                             nd1->verts[ei->index[0]].pos,
+                             nd1->verts[ei->index[1]].pos, ei->k,
+                             nd2->verts[ej->index[0]].pos,
+                             nd2->verts[ej->index[1]].pos, ej->k);
+            if (k == 4)
+            {
+                k =  2;
+            }
+            if (k == 1 || k == 2)
+            {
+                if (c == 0)
+                {
+                    c =  k;
+                }
+                else
+                if (c != k)
+                {
+                    return 2;
+                }
+            }
+        }
+    }
+
     return c == 0 ? 1 : c + 2;
 }
 
@@ -1536,17 +1540,17 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
     /* check if edges of one bbox intersect faces of another */
     rt_cell i, j;
 
-    /* run through "nd2" faces and "nd1" edges */
-    for (j = 0; j < nd2->faces_num; j++)
+    /* run through "nd1" edges and "nd2" faces */
+    for (i = 0; i < nd1->edges_num; i++)
     {
-        rt_FACE *fc = &nd2->faces[j];
+        rt_EDGE *ei = &nd1->edges[i];
 
-        for (i = 0; i < nd1->edges_num; i++)
+        for (j = 0; j < nd2->faces_num; j++)
         {
-            rt_EDGE *ei = &nd1->edges[i];
+            rt_FACE *fc = &nd2->faces[j];
 
             k = vert_to_face(nd1->verts[ei->index[0]].pos,
-                             nd1->verts[ei->index[1]].pos,
+                             nd1->verts[ei->index[1]].pos, +1,
                              nd2->verts[fc->index[0]].pos,
                              nd2->verts[fc->index[1]].pos,
                              nd2->verts[fc->index[2]].pos,
@@ -1560,7 +1564,7 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
                 continue;
             }
             k = vert_to_face(nd1->verts[ei->index[0]].pos,
-                             nd1->verts[ei->index[1]].pos,
+                             nd1->verts[ei->index[1]].pos, +1,
                              nd2->verts[fc->index[2]].pos,
                              nd2->verts[fc->index[3]].pos,
                              nd2->verts[fc->index[0]].pos,
@@ -1572,17 +1576,17 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
         }
     }
 
-    /* run through "nd1" faces and "nd2" edges */
-    for (j = 0; j < nd1->faces_num; j++)
+    /* run through "nd2" edges and "nd1" faces */
+    for (i = 0; i < nd2->edges_num; i++)
     {
-        rt_FACE *fc = &nd1->faces[j];
+        rt_EDGE *ei = &nd2->edges[i];
 
-        for (i = 0; i < nd2->edges_num; i++)
+        for (j = 0; j < nd1->faces_num; j++)
         {
-            rt_EDGE *ei = &nd2->edges[i];
+            rt_FACE *fc = &nd1->faces[j];
 
             k = vert_to_face(nd2->verts[ei->index[0]].pos,
-                             nd2->verts[ei->index[1]].pos,
+                             nd2->verts[ei->index[1]].pos, +1,
                              nd1->verts[fc->index[0]].pos,
                              nd1->verts[fc->index[1]].pos,
                              nd1->verts[fc->index[2]].pos,
@@ -1596,7 +1600,7 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
                 continue;
             }
             k = vert_to_face(nd2->verts[ei->index[0]].pos,
-                             nd2->verts[ei->index[1]].pos,
+                             nd2->verts[ei->index[1]].pos, +1,
                              nd1->verts[fc->index[2]].pos,
                              nd1->verts[fc->index[3]].pos,
                              nd1->verts[fc->index[0]].pos,
