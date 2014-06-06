@@ -789,7 +789,7 @@ rt_cell surf_cbox(rt_SHAPE *srf, rt_vec4 pos)
 }
 
 /*
- * Determine if "pos" is inside "srf" bbox minus margin.
+ * Determine if "pos" is inside "box" bbox minus margin.
  *
  * Return values:
  *  0 - no
@@ -797,33 +797,33 @@ rt_cell surf_cbox(rt_SHAPE *srf, rt_vec4 pos)
  *  2 - yes, on the border with margin
  */
 static
-rt_cell surf_bbox(rt_BOUND *srf, rt_vec4 pos)
+rt_cell surf_bbox(rt_BOUND *box, rt_vec4 pos)
 {
     rt_cell c = 0;
 
-    /* transform "pos" to "srf" trnode's sub-world space,
+    /* transform "pos" to "box" trnode's sub-world space,
      * where bbox is defined */
     rt_vec4  loc;
-    rt_real *pps = surf_tran(srf, pos, loc);
+    rt_real *pps = surf_tran(box, pos, loc);
 
     /* margin is applied to "pps"
      * for consistency with surf_cbox */
-    if (pps[RT_X] - RT_CULL_THRESHOLD >  srf->bmin[RT_X]
-    &&  pps[RT_Y] - RT_CULL_THRESHOLD >  srf->bmin[RT_Y]
-    &&  pps[RT_Z] - RT_CULL_THRESHOLD >  srf->bmin[RT_Z]
-    &&  pps[RT_X] + RT_CULL_THRESHOLD <  srf->bmax[RT_X]
-    &&  pps[RT_Y] + RT_CULL_THRESHOLD <  srf->bmax[RT_Y]
-    &&  pps[RT_Z] + RT_CULL_THRESHOLD <  srf->bmax[RT_Z])
+    if (pps[RT_X] - RT_CULL_THRESHOLD >  box->bmin[RT_X]
+    &&  pps[RT_Y] - RT_CULL_THRESHOLD >  box->bmin[RT_Y]
+    &&  pps[RT_Z] - RT_CULL_THRESHOLD >  box->bmin[RT_Z]
+    &&  pps[RT_X] + RT_CULL_THRESHOLD <  box->bmax[RT_X]
+    &&  pps[RT_Y] + RT_CULL_THRESHOLD <  box->bmax[RT_Y]
+    &&  pps[RT_Z] + RT_CULL_THRESHOLD <  box->bmax[RT_Z])
     {
         c = 1;
     }
     else
-    if (pps[RT_X] + RT_CULL_THRESHOLD >= srf->bmin[RT_X]
-    &&  pps[RT_Y] + RT_CULL_THRESHOLD >= srf->bmin[RT_Y]
-    &&  pps[RT_Z] + RT_CULL_THRESHOLD >= srf->bmin[RT_Z]
-    &&  pps[RT_X] - RT_CULL_THRESHOLD <= srf->bmax[RT_X]
-    &&  pps[RT_Y] - RT_CULL_THRESHOLD <= srf->bmax[RT_Y]
-    &&  pps[RT_Z] - RT_CULL_THRESHOLD <= srf->bmax[RT_Z])
+    if (pps[RT_X] + RT_CULL_THRESHOLD >= box->bmin[RT_X]
+    &&  pps[RT_Y] + RT_CULL_THRESHOLD >= box->bmin[RT_Y]
+    &&  pps[RT_Z] + RT_CULL_THRESHOLD >= box->bmin[RT_Z]
+    &&  pps[RT_X] - RT_CULL_THRESHOLD <= box->bmax[RT_X]
+    &&  pps[RT_Y] - RT_CULL_THRESHOLD <= box->bmax[RT_Y]
+    &&  pps[RT_Z] - RT_CULL_THRESHOLD <= box->bmax[RT_Z])
     {
         c = 2;
     }
@@ -1003,8 +1003,8 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     /* check if nodes don't have bounding boxes
      * or shadow bbox optimization is disabled in runtime */
 #if RT_OPTS_SHADOW_EXT1 != 0
-    if (nd1->verts_num == 0 || nd2->verts_num == 0
-    || (*obj->opts & RT_OPTS_SHADOW_EXT1) == 0)
+    if ((*obj->opts & RT_OPTS_SHADOW_EXT1) == 0
+    ||  nd1->verts_num == 0 || nd2->verts_num == 0)
 #endif /* RT_OPTS_SHADOW_EXT1 */
     {
         return 1;
@@ -1121,7 +1121,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 static
 rt_cell proj_conc(rt_BOUND *obj, rt_real *pos)
 {
-    if (RT_IS_PLANE(obj) && obj->flg == 0x01
+    if (RT_IS_PLANE(obj) && obj->flg != 0
     ||  RT_IS_ARRAY(obj) && obj->flg == 0x3F)
     {
         return 0;
@@ -1197,18 +1197,18 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     /* check if nodes don't have bounding boxes
      * or bbox sorting optimization is disabled in runtime */
 #if RT_OPTS_INSERT_EXT1 != 0
-    if (nd1->verts_num == 0 || nd2->verts_num == 0
-    || (*obj->opts & RT_OPTS_INSERT_EXT1) == 0)
+    if ((*obj->opts & RT_OPTS_INSERT_EXT1) == 0
+    ||  nd1->verts_num == 0 || nd2->verts_num == 0)
 #endif /* RT_OPTS_INSERT_EXT1 */
     {
         return 2;
     }
 
     /* check the order for bounding boxes */
-    rt_cell i, j, k, l, m, n, p, c = 0;
+    rt_cell i, j, k, q, m, n, p, c = 0;
     rt_real *pps;
 
-    for (l = 0, m = 1, pps = obj->pos; l < m; l++)
+    for (q = 0, m = 1, pps = obj->pos; q < m; q++)
     {
         /* run through "nd1" verts and "nd2" faces */
         for (i = 0, n = 0; i < nd1->verts_num; i++, n += p)
@@ -1243,14 +1243,14 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                     else
                     if (c != k)
                     {
-                        if (l == 0)
+                        if (q == 0)
                         {
                             return 2;
                         }
                         else
                         {
                             p = 0;
-                            l = m;
+                            q = m;
                             i = nd1->verts_num;
                             break;
                         }
@@ -1284,14 +1284,14 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                     else
                     if (c != k)
                     {
-                        if (l == 0)
+                        if (q == 0)
                         {
                             return 2;
                         }
                         else
                         {
                             p = 0;
-                            l = m;
+                            q = m;
                             i = nd1->verts_num;
                             break;
                         }
@@ -1313,13 +1313,13 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                 {
                     break;
                 }
-                if (l == 0)
+                if (q == 0)
                 {
                     m = obj->verts_num + 1;
                 }
-                if (l < obj->verts_num)
+                if (q < obj->verts_num)
                 {
-                    pps = obj->verts[l].pos;
+                    pps = obj->verts[q].pos;
                 }
                 else
                 {
@@ -1339,7 +1339,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 #endif /* RT_OPTS_REMOVE */
     }
 
-    for (l = 0, m = 1, pps = obj->pos; l < m; l++)
+    for (q = 0, m = 1, pps = obj->pos; q < m; q++)
     {
         /* run through "nd2" verts and "nd1" faces */
         for (i = 0, n = 0; i < nd2->verts_num; i++, n += p)
@@ -1374,14 +1374,14 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                     else
                     if (c != k)
                     {
-                        if (l == 0)
+                        if (q == 0)
                         {
                             return 2;
                         }
                         else
                         {
                             p = 0;
-                            l = m;
+                            q = m;
                             i = nd2->verts_num;
                             break;
                         }
@@ -1415,14 +1415,14 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                     else
                     if (c != k)
                     {
-                        if (l == 0)
+                        if (q == 0)
                         {
                             return 2;
                         }
                         else
                         {
                             p = 0;
-                            l = m;
+                            q = m;
                             i = nd2->verts_num;
                             break;
                         }
@@ -1444,13 +1444,13 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                 {
                     break;
                 }
-                if (l == 0)
+                if (q == 0)
                 {
                     m = obj->verts_num + 1;
                 }
-                if (l < obj->verts_num)
+                if (q < obj->verts_num)
                 {
-                    pps = obj->verts[l].pos;
+                    pps = obj->verts[q].pos;
                 }
                 else
                 {

@@ -250,7 +250,7 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
 
     if (mtx_has_trm
 #if RT_OPTS_FSCALE != 0
-    && (rg->opts & RT_OPTS_FSCALE) == 0
+    &&  (rg->opts & RT_OPTS_FSCALE) == 0
 #endif /* RT_OPTS_FSCALE */
        )
     {
@@ -304,7 +304,7 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
      * or all objects if transform caching is disabled */
     if (trnode != RT_NULL && trnode != this
 #if RT_OPTS_TARRAY != 0
-    && ((rg->opts & RT_OPTS_TARRAY) == 0 || tag > RT_TAG_SURFACE_MAX)
+    &&  ((rg->opts & RT_OPTS_TARRAY) == 0 || tag > RT_TAG_SURFACE_MAX)
 #endif /* RT_OPTS_TARRAY */
        )
     {
@@ -1563,8 +1563,8 @@ rt_void rt_Array::update_status(rt_long time, rt_cell flags,
      * when called for the first time or
      * requested explicitly via time == -1 */
 #if RT_OPTS_UPDATE != 0
-    if (obj->time == -1 && parent == RT_NULL
-    || (rg->opts & RT_OPTS_UPDATE) == 0)
+    if ((rg->opts & RT_OPTS_UPDATE) == 0
+    ||  obj->time == -1 && parent == RT_NULL)
 #endif /* RT_OPTS_UPDATE */
     {
         flags |= RT_UPDATE_FLAG_OBJ;
@@ -1782,7 +1782,7 @@ rt_void rt_Array::update_bounds()
                 /* contribute minmax data directly (fast) */
 #if RT_OPTS_REMOVE != 0
                 if ((rg->opts & RT_OPTS_REMOVE) != 0
-                && RT_IS_PLANE(src_box) && src_box->flg != 0)
+                &&  RT_IS_PLANE(src_box) && src_box->flg != 0)
                 {
                     rt_cell b = 0, c = 0, m = 3;
 
@@ -1911,7 +1911,7 @@ rt_void rt_Array::update_bounds()
                 /* contribute minmax data directly (fast) */
 #if RT_OPTS_REMOVE != 0
                 if ((rg->opts & RT_OPTS_REMOVE) != 0
-                && RT_IS_PLANE(src_box) && src_box->flg != 0)
+                &&  RT_IS_PLANE(src_box) && src_box->flg != 0)
                 {
                     rt_cell b = 0, c = 0, m = 3;
 
@@ -2519,8 +2519,8 @@ rt_void rt_Surface::update_minmax()
     /* no custom clippers or
      * surface itself has non-trivial transform */
 #if RT_OPTS_ADJUST != 0
-    if (elm == RT_NULL || trnode == this
-    || (rg->opts & RT_OPTS_ADJUST) == 0)
+    if ((rg->opts & RT_OPTS_ADJUST) == 0
+    ||  elm == RT_NULL || trnode == this)
 #endif /* RT_OPTS_ADJUST */
     {
         /* calculate bbox and cbox based on 
