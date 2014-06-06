@@ -1059,6 +1059,32 @@ rt_void rt_Node::update_bbgeom(rt_BOUND *box)
     }
 
     box->rad = RT_SQRT(box->rad);
+
+#if RT_OPTS_REMOVE != 0
+    if ((rg->opts & RT_OPTS_REMOVE) != 0)
+    {
+        if (RT_IS_PLANE(box) && *((rt_SHAPE *)box)->ptr == RT_NULL)
+        {
+            /* plane's bbox only has one face (0th index) */
+            box->flg = 1 << 0;
+        }
+        else
+        if (RT_IS_ARRAY(box) && box->flg != 0)
+        {
+            rt_word flg = box->flg;
+            box->flg = 0;
+
+            /* convert array's flags
+             * from axial minmax data to face index */
+            box->flg |= ((flg & (2 << mp_k)) != 0) << 0;
+            box->flg |= ((flg & (2 << mp_j)) != 0) << 1;
+            box->flg |= ((flg & (1 << mp_i)) != 0) << 2;
+            box->flg |= ((flg & (1 << mp_j)) != 0) << 3;
+            box->flg |= ((flg & (2 << mp_i)) != 0) << 4;
+            box->flg |= ((flg & (1 << mp_k)) != 0) << 5;
+        }
+    }
+#endif /* RT_OPTS_REMOVE */
 }
 
 /*
@@ -1754,15 +1780,104 @@ rt_void rt_Array::update_bounds()
             if (src_box->rad != RT_INF)
             {
                 /* contribute minmax data directly (fast) */
-                for (k = 0; k < 3; k++)
+#if RT_OPTS_REMOVE != 0
+                if ((rg->opts & RT_OPTS_REMOVE) != 0
+                && RT_IS_PLANE(src_box) && src_box->flg != 0)
                 {
-                    if (dst_box->bmin[k] > src_box->bmin[k])
+                    rt_cell b = 0, c = 0, m = 3;
+
+                    for (k = 0; k < 3; k++)
                     {
-                        dst_box->bmin[k] = src_box->bmin[k];
+                        if (src_box->map[RT_K] == k)
+                        {
+                            m = k;
+                        }
+
+                        if (dst_box->bmin[k] > src_box->bmin[k])
+                        {
+                            dst_box->bmin[k] = src_box->bmin[k];
+                            dst_box->flg &= 2 << (k * 2);
+                            if (k == m)
+                            {
+                                c |= 1;
+                            }
+                        }
+                        else
+                        if (dst_box->bmin[k] < src_box->bmin[k])
+                        {
+                            if (k != m)
+                            {
+                                b = 1;
+                            }
+                        }
+                        else
+                        {
+                            if (k == m)
+                            {
+                                c |= 1;
+                            }
+                        }
+                        if (dst_box->bmax[k] < src_box->bmax[k])
+                        {
+                            dst_box->bmax[k] = src_box->bmax[k];
+                            dst_box->flg &= 1 << (k * 2);
+                            if (k == m)
+                            {
+                                c |= 2;
+                            }
+                        }
+                        else
+                        if (dst_box->bmax[k] > src_box->bmax[k])
+                        {
+                            if (k != m)
+                            {
+                                b = 1;
+                            }
+                        }
+                        else
+                        {
+                            if (k == m)
+                            {
+                                c |= 2;
+                            }
+                        }
                     }
-                    if (dst_box->bmax[k] < src_box->bmax[k])
+
+                    if (b == 0 && m < 3)
                     {
-                        dst_box->bmax[k] = src_box->bmax[k];
+                        dst_box->flg |= c << (m * 2);
+                    }
+                }
+                else
+                if ((rg->opts & RT_OPTS_REMOVE) != 0)
+                {
+                    for (k = 0; k < 3; k++)
+                    {
+                        if (dst_box->bmin[k] > src_box->bmin[k])
+                        {
+                            dst_box->bmin[k] = src_box->bmin[k];
+                            dst_box->flg &= 2 << (k * 2);
+                        }
+                        if (dst_box->bmax[k] < src_box->bmax[k])
+                        {
+                            dst_box->bmax[k] = src_box->bmax[k];
+                            dst_box->flg &= 1 << (k * 2);
+                        }
+                    }
+                }
+                else
+#endif /* RT_OPTS_REMOVE */
+                {
+                    for (k = 0; k < 3; k++)
+                    {
+                        if (dst_box->bmin[k] > src_box->bmin[k])
+                        {
+                            dst_box->bmin[k] = src_box->bmin[k];
+                        }
+                        if (dst_box->bmax[k] < src_box->bmax[k])
+                        {
+                            dst_box->bmax[k] = src_box->bmax[k];
+                        }
                     }
                 }
             }
@@ -1794,15 +1909,104 @@ rt_void rt_Array::update_bounds()
             if (src_box->rad != RT_INF)
             {
                 /* contribute minmax data directly (fast) */
-                for (k = 0; k < 3; k++)
+#if RT_OPTS_REMOVE != 0
+                if ((rg->opts & RT_OPTS_REMOVE) != 0
+                && RT_IS_PLANE(src_box) && src_box->flg != 0)
                 {
-                    if (dst_box->bmin[k] > src_box->bmin[k])
+                    rt_cell b = 0, c = 0, m = 3;
+
+                    for (k = 0; k < 3; k++)
                     {
-                        dst_box->bmin[k] = src_box->bmin[k];
+                        if (src_box->map[RT_K] == k)
+                        {
+                            m = k;
+                        }
+
+                        if (dst_box->bmin[k] > src_box->bmin[k])
+                        {
+                            dst_box->bmin[k] = src_box->bmin[k];
+                            dst_box->flg &= 2 << (k * 2);
+                            if (k == m)
+                            {
+                                c |= 1;
+                            }
+                        }
+                        else
+                        if (dst_box->bmin[k] < src_box->bmin[k])
+                        {
+                            if (k != m)
+                            {
+                                b = 1;
+                            }
+                        }
+                        else
+                        {
+                            if (k == m)
+                            {
+                                c |= 1;
+                            }
+                        }
+                        if (dst_box->bmax[k] < src_box->bmax[k])
+                        {
+                            dst_box->bmax[k] = src_box->bmax[k];
+                            dst_box->flg &= 1 << (k * 2);
+                            if (k == m)
+                            {
+                                c |= 2;
+                            }
+                        }
+                        else
+                        if (dst_box->bmax[k] > src_box->bmax[k])
+                        {
+                            if (k != m)
+                            {
+                                b = 1;
+                            }
+                        }
+                        else
+                        {
+                            if (k == m)
+                            {
+                                c |= 2;
+                            }
+                        }
                     }
-                    if (dst_box->bmax[k] < src_box->bmax[k])
+
+                    if (b == 0 && m < 3)
                     {
-                        dst_box->bmax[k] = src_box->bmax[k];
+                        dst_box->flg |= c << (m * 2);
+                    }
+                }
+                else
+                if ((rg->opts & RT_OPTS_REMOVE) != 0)
+                {
+                    for (k = 0; k < 3; k++)
+                    {
+                        if (dst_box->bmin[k] > src_box->bmin[k])
+                        {
+                            dst_box->bmin[k] = src_box->bmin[k];
+                            dst_box->flg &= 2 << (k * 2);
+                        }
+                        if (dst_box->bmax[k] < src_box->bmax[k])
+                        {
+                            dst_box->bmax[k] = src_box->bmax[k];
+                            dst_box->flg &= 1 << (k * 2);
+                        }
+                    }
+                }
+                else
+#endif /* RT_OPTS_REMOVE */
+                {
+                    for (k = 0; k < 3; k++)
+                    {
+                        if (dst_box->bmin[k] > src_box->bmin[k])
+                        {
+                            dst_box->bmin[k] = src_box->bmin[k];
+                        }
+                        if (dst_box->bmax[k] < src_box->bmax[k])
+                        {
+                            dst_box->bmax[k] = src_box->bmax[k];
+                        }
                     }
                 }
             }

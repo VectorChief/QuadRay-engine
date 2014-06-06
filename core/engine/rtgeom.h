@@ -282,6 +282,8 @@ struct rt_BOUND
     rt_vec4             mid;
     /* bounding volume radius */
     rt_real             rad;
+    /* flags set for fully covered faces */
+    rt_word             flg;
 };
 
 /*

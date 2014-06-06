@@ -1112,6 +1112,25 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 }
 
 /*
+ * Determine whether "obj" projection is convex or concave as seen from "pos".
+ *
+ * Return values:
+ *  0 - convex
+ *  1 - concave
+ */
+static
+rt_cell proj_conc(rt_BOUND *obj, rt_real *pos)
+{
+    if (RT_IS_PLANE(obj) && obj->flg == 0x01
+    ||  RT_IS_ARRAY(obj) && obj->flg == 0x3F)
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
+/*
  * Determine the order of "nd1" and "nd2" bboxes as seen from "obj".
  *
  * Return values:
@@ -1284,9 +1303,9 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 #if RT_OPTS_REMOVE != 0
 
         /* NOTE: margins in vert_to_face above must be excluded for removal */
-        if (RT_IS_PLANE(nd2) && *((rt_SHAPE *)nd2)->ptr == RT_NULL
+        if ((*obj->opts & RT_OPTS_REMOVE) != 0
         &&  c == 2 && n == nd1->verts_num && obj != nd2
-        && (*obj->opts & RT_OPTS_REMOVE) != 0)
+        &&  proj_conc(nd2, pps) == 0)
         {
             if (RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj))
             {
@@ -1415,9 +1434,9 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 #if RT_OPTS_REMOVE != 0
 
         /* NOTE: margins in vert_to_face above must be excluded for removal */
-        if (RT_IS_PLANE(nd1) && *((rt_SHAPE *)nd1)->ptr == RT_NULL
+        if ((*obj->opts & RT_OPTS_REMOVE) != 0
         &&  c == 1 && n == nd2->verts_num && obj != nd1
-        && (*obj->opts & RT_OPTS_REMOVE) != 0)
+        &&  proj_conc(nd1, pps) == 0)
         {
             if (RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj))
             {
