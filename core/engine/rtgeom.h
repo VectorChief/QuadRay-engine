@@ -282,8 +282,13 @@ struct rt_BOUND
     rt_vec4             mid;
     /* bounding volume radius */
     rt_real             rad;
-    /* flags set for fully covered faces */
-    rt_word             flg;
+
+    /* flags set for fully covered (by plane) bbox faces */
+
+    /* in minmax data format: (1 - min, 2 - max) << (axis_index * 2) */
+    rt_cell             flm;
+    /* in face index format as defined in bx_faces: 1 << face_index */
+    rt_cell             flf;
 };
 
 /*

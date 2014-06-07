@@ -248,7 +248,7 @@ rt_void print_obj(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
         RT_LOGI("    ");
         RT_LOGI("flg,pos,rad: %02X, {%f, %f, %f}, %f",
             elm != RT_NULL && elm->temp != RT_NULL ?
-            ((rt_BOUND *)elm->temp)->flg : 0,
+            ((rt_BOUND *)elm->temp)->flm : 0,
             obj->pos[RT_X], obj->pos[RT_Y], obj->pos[RT_Z], r);
     }
     else

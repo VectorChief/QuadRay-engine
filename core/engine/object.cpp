@@ -1065,23 +1065,25 @@ rt_void rt_Node::update_bbgeom(rt_BOUND *box)
     {
         if (RT_IS_PLANE(box) && *((rt_SHAPE *)box)->ptr == RT_NULL)
         {
-            /* plane's bbox only has one face (0th index) */
-            box->flg = 1 << 0;
+            /* plane's bbox only face in minmax data format:
+             * (1 - min, 2 - max) << (axis_index * 2) */
+            box->flm = 3 << (mp_k * 2);
+
+            /* plane's bbox only face in face index format:
+             * 1 << face_index (0th index in terms of bx_faces) */
+            box->flf = 1 << 0;
         }
         else
-        if (RT_IS_ARRAY(box) && box->flg != 0)
+        if (RT_IS_ARRAY(box) && box->flm != 0)
         {
-            rt_word flg = box->flg;
-            box->flg = 0;
-
-            /* convert array's flags
-             * from axial minmax data to face index */
-            box->flg |= ((flg & (2 << mp_k)) != 0) << 0;
-            box->flg |= ((flg & (2 << mp_j)) != 0) << 1;
-            box->flg |= ((flg & (1 << mp_i)) != 0) << 2;
-            box->flg |= ((flg & (1 << mp_j)) != 0) << 3;
-            box->flg |= ((flg & (2 << mp_i)) != 0) << 4;
-            box->flg |= ((flg & (1 << mp_k)) != 0) << 5;
+            /* convert array's bbox flags
+             * from minmax data format to face index format */
+            box->flf |= ((box->flm & (2 << mp_k)) != 0) << 0;
+            box->flf |= ((box->flm & (2 << mp_j)) != 0) << 1;
+            box->flf |= ((box->flm & (1 << mp_i)) != 0) << 2;
+            box->flf |= ((box->flm & (1 << mp_j)) != 0) << 3;
+            box->flf |= ((box->flm & (2 << mp_i)) != 0) << 4;
+            box->flf |= ((box->flm & (1 << mp_k)) != 0) << 5;
         }
     }
 #endif /* RT_OPTS_REMOVE */
@@ -1728,14 +1730,20 @@ rt_void rt_Array::update_bounds()
     RT_VEC3_SET_VAL1(bvbox->bmin, +RT_INF);
     RT_VEC3_SET_VAL1(bvbox->bmax, -RT_INF);
     bvbox->rad = 0.0f;
+    bvbox->flm = 0;
+    bvbox->flf = 0;
 
     RT_VEC3_SET_VAL1(trbox->bmin, +RT_INF);
     RT_VEC3_SET_VAL1(trbox->bmax, -RT_INF);
     trbox->rad = 0.0f;
+    trbox->flm = 0;
+    trbox->flf = 0;
 
     RT_VEC3_SET_VAL1(inbox->bmin, +RT_INF);
     RT_VEC3_SET_VAL1(inbox->bmax, -RT_INF);
     inbox->rad = 0.0f;
+    inbox->flm = 0;
+    inbox->flf = 0;
 
     rt_cell i, j, k;
     rt_BOUND *src_box, *dst_box;
@@ -1782,7 +1790,7 @@ rt_void rt_Array::update_bounds()
                 /* contribute minmax data directly (fast) */
 #if RT_OPTS_REMOVE != 0
                 if ((rg->opts & RT_OPTS_REMOVE) != 0
-                &&  RT_IS_PLANE(src_box) && src_box->flg != 0)
+                &&  RT_IS_PLANE(src_box) && src_box->flm != 0)
                 {
                     rt_cell b = 0, c = 0, m = 3;
 
@@ -1796,7 +1804,7 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmin[k] > src_box->bmin[k])
                         {
                             dst_box->bmin[k] = src_box->bmin[k];
-                            dst_box->flg &= 2 << (k * 2);
+                            dst_box->flm &= 2 << (k * 2);
                             if (k == m)
                             {
                                 c |= 1;
@@ -1820,7 +1828,7 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmax[k] < src_box->bmax[k])
                         {
                             dst_box->bmax[k] = src_box->bmax[k];
-                            dst_box->flg &= 1 << (k * 2);
+                            dst_box->flm &= 1 << (k * 2);
                             if (k == m)
                             {
                                 c |= 2;
@@ -1845,7 +1853,7 @@ rt_void rt_Array::update_bounds()
 
                     if (b == 0 && m < 3)
                     {
-                        dst_box->flg |= c << (m * 2);
+                        dst_box->flm |= c << (m * 2);
                     }
                 }
                 else
@@ -1856,12 +1864,12 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmin[k] > src_box->bmin[k])
                         {
                             dst_box->bmin[k] = src_box->bmin[k];
-                            dst_box->flg &= 2 << (k * 2);
+                            dst_box->flm &= 2 << (k * 2);
                         }
                         if (dst_box->bmax[k] < src_box->bmax[k])
                         {
                             dst_box->bmax[k] = src_box->bmax[k];
-                            dst_box->flg &= 1 << (k * 2);
+                            dst_box->flm &= 1 << (k * 2);
                         }
                     }
                 }
@@ -1911,7 +1919,7 @@ rt_void rt_Array::update_bounds()
                 /* contribute minmax data directly (fast) */
 #if RT_OPTS_REMOVE != 0
                 if ((rg->opts & RT_OPTS_REMOVE) != 0
-                &&  RT_IS_PLANE(src_box) && src_box->flg != 0)
+                &&  RT_IS_PLANE(src_box) && src_box->flm != 0)
                 {
                     rt_cell b = 0, c = 0, m = 3;
 
@@ -1925,7 +1933,7 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmin[k] > src_box->bmin[k])
                         {
                             dst_box->bmin[k] = src_box->bmin[k];
-                            dst_box->flg &= 2 << (k * 2);
+                            dst_box->flm &= 2 << (k * 2);
                             if (k == m)
                             {
                                 c |= 1;
@@ -1949,7 +1957,7 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmax[k] < src_box->bmax[k])
                         {
                             dst_box->bmax[k] = src_box->bmax[k];
-                            dst_box->flg &= 1 << (k * 2);
+                            dst_box->flm &= 1 << (k * 2);
                             if (k == m)
                             {
                                 c |= 2;
@@ -1974,7 +1982,7 @@ rt_void rt_Array::update_bounds()
 
                     if (b == 0 && m < 3)
                     {
-                        dst_box->flg |= c << (m * 2);
+                        dst_box->flm |= c << (m * 2);
                     }
                 }
                 else
@@ -1985,12 +1993,12 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmin[k] > src_box->bmin[k])
                         {
                             dst_box->bmin[k] = src_box->bmin[k];
-                            dst_box->flg &= 2 << (k * 2);
+                            dst_box->flm &= 2 << (k * 2);
                         }
                         if (dst_box->bmax[k] < src_box->bmax[k])
                         {
                             dst_box->bmax[k] = src_box->bmax[k];
-                            dst_box->flg &= 1 << (k * 2);
+                            dst_box->flm &= 1 << (k * 2);
                         }
                     }
                 }

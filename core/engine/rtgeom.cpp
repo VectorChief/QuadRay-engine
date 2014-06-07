@@ -717,24 +717,24 @@ rt_cell cbox_conc(rt_SHAPE *srf)
 }
 
 /*
- * Transform "pos" into "srf" trnode's sub-world space
+ * Transform "pos" into "obj" trnode's sub-world space
  * using "loc" as temporary storage for return value.
  *
  * Return values:
  *  new pos
  */
 static
-rt_real *surf_tran(rt_BOUND *srf, rt_vec4 pos, rt_vec4 loc)
+rt_real *surf_tran(rt_BOUND *obj, rt_vec4 pos, rt_vec4 loc)
 {
     rt_vec4  dff;
     rt_real *pps = pos;
 
-    if (srf->trnode != RT_NULL)
+    if (obj->trnode != RT_NULL)
     {
-        RT_VEC3_SUB(dff, pps, srf->trnode->pos);
+        RT_VEC3_SUB(dff, pps, obj->trnode->pos);
         dff[RT_W] = 0.0f;
 
-        matrix_mul_vector(loc, *srf->trnode->pinv, dff);
+        matrix_mul_vector(loc, *obj->trnode->pinv, dff);
 
         pps = loc;
     }
@@ -1121,8 +1121,57 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 static
 rt_cell proj_conc(rt_BOUND *obj, rt_real *pos)
 {
-    if (RT_IS_PLANE(obj) && obj->flg != 0
-    ||  RT_IS_ARRAY(obj) && obj->flg == 0x3F)
+    if (obj->flm == 0)
+    {
+        return 1;
+    }
+
+    /* if all bbox faces are fully covered (by plane),
+     * then bbox projection is always convex */
+    if (RT_IS_PLANE(obj)
+    ||  RT_IS_ARRAY(obj) && obj->flm == 0x3F)
+    {
+        return 0;
+    }
+
+    rt_cell i;
+
+    /* if only one bbox face is fully covered (by plane),
+     * then its projection is always convex, other faces are ignored */
+    for (i = 0; i < 6; i++)
+    {
+        if (obj->flm == (1 << i))
+        {
+            return 0;
+        }
+    }
+
+    /* transform "pos" to "obj" trnode's sub-world space,
+     * where bbox is defined */
+    rt_vec4  loc;
+    rt_real *pps = surf_tran(obj, pos, loc);
+
+    rt_cell map = 0;
+
+    /* determine which bbox faces are visible from "pps",
+     * store result in minmax data format:
+     * (1 - min, 2 - max) << (axis_index * 2) */
+    for (i = 0; i < 3; i++)
+    {
+        if (pps[i] < obj->bmin[i])
+        {
+            map |= 1 << (i * 2);
+        }
+        else
+        if (pps[i] > obj->bmax[i])
+        {
+            map |= 2 << (i * 2);
+        }
+    }
+
+    /* determine if visible bbox faces are fully covered (by plane),
+     * thus making their projection convex, other faces are ignored */
+    if (map != 0 && map == (map & obj->flm))
     {
         return 0;
     }
@@ -1256,6 +1305,12 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                         }
                     }
                 }
+                /* igmore "nd2" face if not fully covered (by plane),
+                 * when attempting to remove "nd1" */
+                if (nd2->flf != 0 && (nd2->flf & (1 << j)) == 0)
+                {
+                    p = 0;
+                }
                 if (fc->k < 3)
                 {
                     continue;
@@ -1296,6 +1351,12 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                             break;
                         }
                     }
+                }
+                /* igmore "nd2" face if not fully covered (by plane),
+                 * when attempting to remove "nd1" */
+                if (nd2->flf != 0 && (nd2->flf & (1 << j)) == 0)
+                {
+                    p = 0;
                 }
             }
         }
@@ -1387,6 +1448,12 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                         }
                     }
                 }
+                /* igmore "nd1" face if not fully covered (by plane),
+                 * when attempting to remove "nd2" */
+                if (nd1->flf != 0 && (nd1->flf & (1 << j)) == 0)
+                {
+                    p = 0;
+                }
                 if (fc->k < 3)
                 {
                     continue;
@@ -1427,6 +1494,12 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                             break;
                         }
                     }
+                }
+                /* igmore "nd1" face if not fully covered (by plane),
+                 * when attempting to remove "nd2" */
+                if (nd1->flf != 0 && (nd1->flf & (1 << j)) == 0)
+                {
+                    p = 0;
                 }
             }
         }
