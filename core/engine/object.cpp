@@ -2109,9 +2109,9 @@ rt_void rt_Array::update_bounds()
                 dst_box->rad = src_box->rad;
             }
         }
-        else
-        /* contribute trnode array's inbox to bvbox if trbox is empty */
-        if (trnode == this && trbox->rad == 0.0f)
+        /* always contribute trnode array's inbox to bvbox
+         * as inbox propagation upwards stops here */
+        if (trnode == this)
         {
             src_box = inbox;
             dst_box = bvbox;
