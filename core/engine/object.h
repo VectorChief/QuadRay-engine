@@ -453,9 +453,13 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
 
     /* bounding box and volume,
      * used for inner part of split bvnode
-     * or trnode if doesn't have contents
+     * or trnode if it doesn't have contents
      * outside bvnode */
     rt_BOUND           *inbox;
+
+    /* flag set for trnode array
+     * if its bvbox has no contents outside inbox */
+    rt_cell             flg;
 
     /* surface SIMD struct,
      * used for bvbox part of bvnode */
