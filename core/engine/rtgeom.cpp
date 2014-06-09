@@ -1233,18 +1233,40 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     RT_VEC3_SUB(dff_vec, nd1->mid, nd2->mid);
     rt_real dff_len = RT_VEC3_LEN(dff_vec);
 
-    /* NOTE: aggressive early-out prevents hidden-surfaces-removal below */
+    rt_cell r = 0, s = 0;
+
     if (nd1->rad + nd2->rad < dff_len)
     {
         /* check the order for bounding spheres */
         if (nd1_len < nd2_len)
         {
-            return 3;
+            r = 3;
         }
         else
         {
-            return 4;
+            r = 4;
         }
+    }
+
+#if RT_OPTS_REMOVE != 0
+    if ((*obj->opts & RT_OPTS_REMOVE) != 0
+    &&  r == 3 && obj != nd1
+    &&  proj_conc(nd1, pps) == 0)
+    {
+        s = 1;
+    }
+    else
+    if ((*obj->opts & RT_OPTS_REMOVE) != 0
+    &&  r == 4 && obj != nd2
+    &&  proj_conc(nd2, pps) == 0)
+    {
+        s = 2;
+    }
+    else
+#endif /* RT_OPTS_REMOVE */
+    if (r != 0)
+    {
+        return r;
     }
 
     /* check if nodes don't have bounding boxes
@@ -1254,15 +1276,15 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     ||  nd1->verts_num == 0 || nd2->verts_num == 0)
 #endif /* RT_OPTS_INSERT_EXT1 */
     {
-        return 2;
+        return r != 0 ? r : 2;
     }
 
     /* check the order for bounding boxes */
-    rt_cell i, j, k, q, m, n, p, c = 0;
+    rt_cell i, j, k, q, m, n, p, c = s;
 
     pps = RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj) ? obj->mid : obj->pos;
 
-    for (q = 0, m = 1; q < m; q++)
+    for (q = 0, m = 1; q < m && s != 1; q++)
     {
         /* run through "nd1" verts and "nd2" faces */
         for (i = 0, n = 0; i < nd1->verts_num; i++, n += p)
@@ -1370,8 +1392,8 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
         /* NOTE: margins in vert_to_face above must be excluded for removal */
         if ((*obj->opts & RT_OPTS_REMOVE) != 0
-        &&  c == 2 && n == nd1->verts_num && obj != nd2
-        &&  proj_conc(nd2, pps) == 0)
+        &&  c == 2 && n == nd1->verts_num && (s == 2 && q == 0
+        ||  obj != nd2 && proj_conc(nd2, pps) == 0))
         {
             if (RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj))
             {
@@ -1407,7 +1429,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
     pps = RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj) ? obj->mid : obj->pos;
 
-    for (q = 0, m = 1; q < m; q++)
+    for (q = 0, m = 1; q < m && s != 2; q++)
     {
         /* run through "nd2" verts and "nd1" faces */
         for (i = 0, n = 0; i < nd2->verts_num; i++, n += p)
@@ -1515,8 +1537,8 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
         /* NOTE: margins in vert_to_face above must be excluded for removal */
         if ((*obj->opts & RT_OPTS_REMOVE) != 0
-        &&  c == 1 && n == nd2->verts_num && obj != nd1
-        &&  proj_conc(nd1, pps) == 0)
+        &&  c == 1 && n == nd2->verts_num && (s == 1 && q == 0
+        ||  obj != nd1 && proj_conc(nd1, pps) == 0))
         {
             if (RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj))
             {
@@ -1552,34 +1574,37 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
     pps = RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj) ? obj->mid : obj->pos;
 
-    /* run through "nd1" edges and "nd2" edges */
-    for (i = 0; i < nd1->edges_num; i++)
+    if (s == 0)
     {
-        rt_EDGE *ei = &nd1->edges[i];
-
-        for (j = 0; j < nd2->edges_num; j++)
+        /* run through "nd1" edges and "nd2" edges */
+        for (i = 0; i < nd1->edges_num; i++)
         {
-            rt_EDGE *ej = &nd2->edges[j];
+            rt_EDGE *ei = &nd1->edges[i];
 
-            k = edge_to_edge(pps, -1,
-                             nd1->verts[ei->index[0]].pos,
-                             nd1->verts[ei->index[1]].pos, ei->k,
-                             nd2->verts[ej->index[0]].pos,
-                             nd2->verts[ej->index[1]].pos, ej->k);
-            if (k == 4)
+            for (j = 0; j < nd2->edges_num; j++)
             {
-                k =  2;
-            }
-            if (k == 1 || k == 2)
-            {
-                if (c == 0)
+                rt_EDGE *ej = &nd2->edges[j];
+
+                k = edge_to_edge(pps, -1,
+                                 nd1->verts[ei->index[0]].pos,
+                                 nd1->verts[ei->index[1]].pos, ei->k,
+                                 nd2->verts[ej->index[0]].pos,
+                                 nd2->verts[ej->index[1]].pos, ej->k);
+                if (k == 4)
                 {
-                    c =  k;
+                    k =  2;
                 }
-                else
-                if (c != k)
+                if (k == 1 || k == 2)
                 {
-                    return 2;
+                    if (c == 0)
+                    {
+                        c =  k;
+                    }
+                    else
+                    if (c != k)
+                    {
+                        return 2;
+                    }
                 }
             }
         }
