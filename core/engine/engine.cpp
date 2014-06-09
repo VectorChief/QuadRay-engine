@@ -1227,7 +1227,7 @@ rt_void rt_SceneThread::snode(rt_Surface *srf)
         elm = (rt_ELEM *)alloc(sizeof(rt_ELEM), RT_QUAD_ALIGN);
         elm->data = 0;
         elm->simd = (rt_pntr)1; /* node's type (bv) */
-        elm->temp = arr->bvbox;
+        elm->temp = arr->flg == 0 ? arr->bvbox : arr->inbox;
         elm->next = srf->top;
         srf->top = elm;
     }

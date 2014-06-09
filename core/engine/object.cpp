@@ -1711,6 +1711,8 @@ rt_void rt_Array::update_bounds()
     RT_VEC3_SET_VAL1(inbox->bmax, -RT_INF);
     inbox->rad = 0.0f;
 
+    flg = 0;
+
     rt_cell i, j, k;
     rt_BOUND *src_box, *dst_box;
 
@@ -1897,9 +1899,16 @@ rt_void rt_Array::update_bounds()
                 dst_box->rad = src_box->rad;
             }
         }
-        /* always contribute trnode array's inbox to bvbox
+        /* set flag for trnode array
+         * if its bvbox has no contents outside inbox */
+        if (trnode == this && bvbox->rad == 0.0f)
+        {
+            flg = 1;
+        }
+        /* contribute trnode array's inbox to bvbox if array has bvnode
          * as inbox propagation upwards stops here */
-        if (trnode == this)
+        if (trnode == this && (bvnode != RT_NULL
+        ||  bvbox->rad != 0.0f && trbox->rad == 0.0f))
         {
             src_box = inbox;
             dst_box = bvbox;
