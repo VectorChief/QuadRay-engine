@@ -956,13 +956,15 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         return 1;
     }
 
+    rt_real *pps = obj->pos;
+
     /* check if cones from bounding spheres don't intersect */
     rt_vec4 nd1_vec;
-    RT_VEC3_SUB(nd1_vec, nd1->mid, obj->pos);
+    RT_VEC3_SUB(nd1_vec, nd1->mid, pps);
     rt_real nd1_len = RT_VEC3_LEN(nd1_vec);
 
     rt_vec4 nd2_vec;
-    RT_VEC3_SUB(nd2_vec, nd2->mid, obj->pos);
+    RT_VEC3_SUB(nd2_vec, nd2->mid, pps);
     rt_real nd2_len = RT_VEC3_LEN(nd2_vec);
 
     rt_real dff_ang = RT_VEC3_DOT(nd1_vec, nd2_vec);
@@ -1009,7 +1011,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     /* check if "obj" pos is inside "nd1" bbox */
     rt_cell k;
 
-    k = surf_bbox(nd1, obj->pos);
+    k = surf_bbox(nd1, pps);
 
     if (k != 0)
     {
@@ -1026,7 +1028,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
         for (i = 0; i < nd1->verts_num; i++)
         {
-            k = vert_to_face(obj->pos, nd1->verts[i].pos,
+            k = vert_to_face(pps, nd1->verts[i].pos,
                              nd2->verts[fc->index[0]].pos,
                              nd2->verts[fc->index[1]].pos,
                              nd2->verts[fc->index[2]].pos,
@@ -1039,7 +1041,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 continue;
             }
-            k = vert_to_face(obj->pos, nd1->verts[i].pos,
+            k = vert_to_face(pps, nd1->verts[i].pos,
                              nd2->verts[fc->index[2]].pos,
                              nd2->verts[fc->index[3]].pos,
                              nd2->verts[fc->index[0]].pos,
@@ -1058,7 +1060,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
         for (i = 0; i < nd2->verts_num; i++)
         {
-            k = vert_to_face(obj->pos, nd2->verts[i].pos,
+            k = vert_to_face(pps, nd2->verts[i].pos,
                              nd1->verts[fc->index[0]].pos,
                              nd1->verts[fc->index[1]].pos,
                              nd1->verts[fc->index[2]].pos,
@@ -1071,7 +1073,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 continue;
             }
-            k = vert_to_face(obj->pos, nd2->verts[i].pos,
+            k = vert_to_face(pps, nd2->verts[i].pos,
                              nd1->verts[fc->index[2]].pos,
                              nd1->verts[fc->index[3]].pos,
                              nd1->verts[fc->index[0]].pos,
@@ -1092,7 +1094,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         {
             rt_EDGE *ei = &nd1->edges[i];
 
-            k = edge_to_edge(obj->pos,
+            k = edge_to_edge(pps,
                              nd1->verts[ei->index[0]].pos,
                              nd1->verts[ei->index[1]].pos, ei->k,
                              nd2->verts[ej->index[0]].pos,
@@ -1124,13 +1126,15 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         return 2;
     }
 
+    rt_real *pps = RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj) ? obj->mid : obj->pos;
+
     /* check if cones from bounding spheres don't intersect */
     rt_vec4 nd1_vec;
-    RT_VEC3_SUB(nd1_vec, nd1->mid, obj->pos);
+    RT_VEC3_SUB(nd1_vec, nd1->mid, pps);
     rt_real nd1_len = RT_VEC3_LEN(nd1_vec);
 
     rt_vec4 nd2_vec;
-    RT_VEC3_SUB(nd2_vec, nd2->mid, obj->pos);
+    RT_VEC3_SUB(nd2_vec, nd2->mid, pps);
     rt_real nd2_len = RT_VEC3_LEN(nd2_vec);
 
     rt_real dff_ang = RT_VEC3_DOT(nd1_vec, nd2_vec);
@@ -1188,7 +1192,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
         for (i = 0; i < nd1->verts_num; i++)
         {
-            k = vert_to_face(obj->pos, nd1->verts[i].pos,
+            k = vert_to_face(pps, nd1->verts[i].pos,
                              nd2->verts[fc->index[0]].pos,
                              nd2->verts[fc->index[1]].pos,
                              nd2->verts[fc->index[2]].pos,
@@ -1213,7 +1217,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 continue;
             }
-            k = vert_to_face(obj->pos, nd1->verts[i].pos,
+            k = vert_to_face(pps, nd1->verts[i].pos,
                              nd2->verts[fc->index[2]].pos,
                              nd2->verts[fc->index[3]].pos,
                              nd2->verts[fc->index[0]].pos,
@@ -1244,7 +1248,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
         for (i = 0; i < nd2->verts_num; i++)
         {
-            k = vert_to_face(obj->pos, nd2->verts[i].pos,
+            k = vert_to_face(pps, nd2->verts[i].pos,
                              nd1->verts[fc->index[0]].pos,
                              nd1->verts[fc->index[1]].pos,
                              nd1->verts[fc->index[2]].pos,
@@ -1270,7 +1274,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 continue;
             }
-            k = vert_to_face(obj->pos, nd2->verts[i].pos,
+            k = vert_to_face(pps, nd2->verts[i].pos,
                              nd1->verts[fc->index[2]].pos,
                              nd1->verts[fc->index[3]].pos,
                              nd1->verts[fc->index[0]].pos,
@@ -1304,7 +1308,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         {
             rt_EDGE *ei = &nd1->edges[i];
 
-            k = edge_to_edge(obj->pos,
+            k = edge_to_edge(pps,
                              nd1->verts[ei->index[0]].pos,
                              nd1->verts[ei->index[1]].pos, ei->k,
                              nd2->verts[ej->index[0]].pos,
