@@ -1283,7 +1283,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 rt_FACE *fc = &nd2->faces[j];
 
-                k = vert_to_face(pps, nd1->verts[i].pos, -1,
+                k = vert_to_face(pps, nd1->verts[i].pos, +1,
                                  nd2->verts[fc->index[0]].pos,
                                  nd2->verts[fc->index[1]].pos,
                                  nd2->verts[fc->index[2]].pos,
@@ -1330,7 +1330,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                 {
                     continue;
                 }
-                k = vert_to_face(pps, nd1->verts[i].pos, -1,
+                k = vert_to_face(pps, nd1->verts[i].pos, +1,
                                  nd2->verts[fc->index[2]].pos,
                                  nd2->verts[fc->index[3]].pos,
                                  nd2->verts[fc->index[0]].pos,
@@ -1378,7 +1378,12 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
 #if RT_OPTS_REMOVE != 0
 
-        /* NOTE: margins in vert_to_face above must be excluded for removal */
+        /* NOTE: vert_to_face with margins above (th: +1)
+         * represents aggressive removal on the edges,
+         * pass (th: 0, -1) for lesser aggression level */
+        /* NOTE: vert_to_face's return value (k == 3)
+         * represents aggressive removal on the surface,
+         * ignore (k == 3) for lesser aggression level */
         if ((*obj->opts & RT_OPTS_REMOVE) != 0
         &&  c == 2 && n == nd1->verts_num && (s == 2 && q == 0
         ||  obj != nd2 && proj_conc(nd2, pps) == 0))
@@ -1428,7 +1433,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 rt_FACE *fc = &nd1->faces[j];
 
-                k = vert_to_face(pps, nd2->verts[i].pos, -1,
+                k = vert_to_face(pps, nd2->verts[i].pos, +1,
                                  nd1->verts[fc->index[0]].pos,
                                  nd1->verts[fc->index[1]].pos,
                                  nd1->verts[fc->index[2]].pos,
@@ -1475,7 +1480,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                 {
                     continue;
                 }
-                k = vert_to_face(pps, nd2->verts[i].pos, -1,
+                k = vert_to_face(pps, nd2->verts[i].pos, +1,
                                  nd1->verts[fc->index[2]].pos,
                                  nd1->verts[fc->index[3]].pos,
                                  nd1->verts[fc->index[0]].pos,
@@ -1523,7 +1528,12 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
 #if RT_OPTS_REMOVE != 0
 
-        /* NOTE: margins in vert_to_face above must be excluded for removal */
+        /* NOTE: vert_to_face with margins above (th: +1)
+         * represents aggressive removal on the edges,
+         * pass (th: 0, -1) for lesser aggression level */
+        /* NOTE: vert_to_face's return value (k == 3)
+         * represents aggressive removal on the surface,
+         * ignore (k == 3) for lesser aggression level */
         if ((*obj->opts & RT_OPTS_REMOVE) != 0
         &&  c == 1 && n == nd2->verts_num && (s == 1 && q == 0
         ||  obj != nd1 && proj_conc(nd1, pps) == 0))
@@ -1573,7 +1583,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 rt_EDGE *ej = &nd2->edges[j];
 
-                k = edge_to_edge(pps, -1,
+                k = edge_to_edge(pps, +1,
                                  nd1->verts[ei->index[0]].pos,
                                  nd1->verts[ei->index[1]].pos, ei->k,
                                  nd2->verts[ej->index[0]].pos,

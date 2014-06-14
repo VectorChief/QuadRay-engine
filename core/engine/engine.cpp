@@ -1752,14 +1752,23 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
     }
     else
     {
-        rt_cell c = 0;
+        rt_cell c = 0, r = 0;
         rt_ELEM *elm, *cur = RT_NULL, *prv = RT_NULL;
         rt_ELEM *cuo, *cui, *pro = RT_NULL, *pri = RT_NULL;
+        rt_BOUND *abx = RT_NULL;
 
         /* hierarchical traversal across nodes */
         for (elm = scene->hlist; elm != RT_NULL;)
         {
             rt_BOUND *box = (rt_BOUND *)elm->temp;
+
+#if RT_OPTS_REMOVE != 0
+            if ((scene->opts & RT_OPTS_REMOVE) != 0
+            &&  RT_IS_CAMERA(obj) && abx != RT_NULL)
+            {
+                r = bbox_sort(obj->bvbox, box, abx);
+            }
+#endif /* RT_OPTS_REMOVE */
 
 #if RT_OPTS_2SIDED != 0
             if ((scene->opts & RT_OPTS_2SIDED) != 0
@@ -1776,7 +1785,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                 /* insert nodes according to
                  * side value computed above */
                 cuo = RT_NULL;
-                if (c & 2)
+                if (c & 2 && r != 12)
                 {
                     cuo = insert(obj, pto, elm);
                     if (cuo != RT_NULL)
@@ -1785,7 +1794,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                     }
                 }
                 cui = RT_NULL;
-                if (c & 1)
+                if (c & 1 && r != 12)
                 {
                     cui = insert(obj, pti, elm);
                     if (cui != RT_NULL)
@@ -1796,13 +1805,16 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 
                 /* if array's bbox is only seen from one side of the surface
                  * so are all of array's contents, thus skip bbox_side call */
-                if (RT_IS_ARRAY(box) && c != 0
-                && (cuo != RT_NULL || cui != RT_NULL))
+                if (RT_IS_ARRAY(box) && (cuo != RT_NULL || cui != RT_NULL))
                 {
                     /* set array for skipping bbox_side call above */
                     if (cur == RT_NULL && c < 3)
                     {
                         cur = elm;
+                    }
+                    if (box->fln > 1) /* insert handles box->fln == 1 case */
+                    {
+                        abx = box;
                     }
 
                     if (cuo != RT_NULL)
@@ -1844,10 +1856,23 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                         {
                             cur = RT_NULL;
                         }
+                        if (abx != RT_NULL)
+                        {
+                            abx = (rt_BOUND *)-1;
+                        }
                     }
 
                     if (elm != RT_NULL)
                     {
+                        if (abx == (rt_BOUND *)-1)
+                        {
+                            abx = RT_GET_PTR(elm->data) != RT_NULL ?
+                                  (rt_BOUND *)RT_GET_PTR(elm->data)->temp :
+                                  RT_NULL;
+                            abx = abx != RT_NULL && abx->fln > 1 ?
+                                  abx : RT_NULL;
+                            r = 0;
+                        }
                         elm = elm->next;
                     }
 
@@ -1857,7 +1882,11 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
             else
 #endif /* RT_OPTS_2SIDED */
             {
-                cur = insert(obj, ptr, elm);
+                cur = RT_NULL;
+                if (r != 12)
+                {
+                    cur = insert(obj, ptr, elm);
+                }
                 if (cur != RT_NULL)
                 {
                     RT_SET_PTR(cur->data, rt_cell, prv);
@@ -1865,6 +1894,10 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 
                 if (RT_IS_ARRAY(box) && cur != RT_NULL)
                 {
+                    if (box->fln > 1) /* insert handles box->fln == 1 case */
+                    {
+                        abx = box;
+                    }
                     prv = cur;
                     ptr = RT_GET_ADR(cur->simd);
                     elm = RT_GET_PTR(elm->simd);
@@ -1876,10 +1909,23 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                         prv = prv != RT_NULL ? RT_GET_PTR(prv->data) : RT_NULL;
                         ptr = prv != RT_NULL ? RT_GET_ADR(prv->simd) : &lst;
                         elm = RT_GET_PTR(elm->data);
+                        if (abx != RT_NULL)
+                        {
+                            abx = (rt_BOUND *)-1;
+                        }
                     }
 
                     if (elm != RT_NULL)
                     {
+                        if (abx == (rt_BOUND *)-1)
+                        {
+                            abx = RT_GET_PTR(elm->data) != RT_NULL ?
+                                  (rt_BOUND *)RT_GET_PTR(elm->data)->temp :
+                                  RT_NULL;
+                            abx = abx != RT_NULL && abx->fln > 1 ?
+                                  abx : RT_NULL;
+                            r = 0;
+                        }
                         elm = elm->next;
                     }
                 }
