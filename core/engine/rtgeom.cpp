@@ -1123,29 +1123,17 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 static
 rt_cell proj_conc(rt_BOUND *obj, rt_real *pos)
 {
-    if (obj->flm == 0)
+    if (obj->fln == 0)
     {
         return 1;
     }
 
-    /* if all bbox faces are fully covered (by plane),
-     * then bbox projection is always convex */
+    /* if all or just one bbox's faces are fully covered (by plane),
+     * then bbox's projection is always convex */
     if (RT_IS_PLANE(obj)
-    ||  RT_IS_ARRAY(obj) && obj->flm == 0x3F)
+    ||  RT_IS_ARRAY(obj) && (obj->fln == 1 || obj->fln == 6))
     {
         return 0;
-    }
-
-    rt_cell i;
-
-    /* if only one bbox face is fully covered (by plane),
-     * then its projection is always convex, other faces are ignored */
-    for (i = 0; i < 6; i++)
-    {
-        if (obj->flm == (1 << i))
-        {
-            return 0;
-        }
     }
 
     /* transform "pos" to "obj" trnode's sub-world space,
@@ -1153,9 +1141,9 @@ rt_cell proj_conc(rt_BOUND *obj, rt_real *pos)
     rt_vec4  loc;
     rt_real *pps = surf_tran(obj, pos, loc);
 
-    rt_cell map = 0;
+    rt_cell i, map = 0;
 
-    /* determine which bbox faces are visible from "pps",
+    /* determine which bbox's faces are visible from "pps",
      * store result in minmax data format:
      * (1 - min, 2 - max) << (axis_index * 2) */
     for (i = 0; i < 3; i++)
@@ -1171,7 +1159,7 @@ rt_cell proj_conc(rt_BOUND *obj, rt_real *pos)
         }
     }
 
-    /* determine if visible bbox faces are fully covered (by plane),
+    /* determine if visible bbox's faces are fully covered (by plane),
      * thus making their projection convex, other faces are ignored */
     if (map != 0 && map == (map & obj->flm))
     {

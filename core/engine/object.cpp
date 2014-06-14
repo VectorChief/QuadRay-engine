@@ -1073,25 +1073,33 @@ rt_void rt_Node::update_bbgeom(rt_BOUND *box)
     {
         if (RT_IS_PLANE(box) && *((rt_SHAPE *)box)->ptr == RT_NULL)
         {
-            /* plane's bbox only face in minmax data format:
+            /* plane bbox's only face */
+            box->fln = 1;
+
+            /* plane bbox's only face in minmax data format:
              * (1 - min, 2 - max) << (axis_index * 2) */
             box->flm = 3 << (mp_k * 2);
 
-            /* plane's bbox only face in face index format:
+            /* plane bbox's only face in face index format:
              * 1 << face_index (0th index in terms of bx_faces) */
             box->flf = 1 << 0;
         }
         else
         if (RT_IS_ARRAY(box) && box->flm != 0)
         {
-            /* convert array's bbox flags
+            rt_cell c = 0;
+
+            /* convert array bbox's flags
              * from minmax data format to face index format */
-            box->flf |= ((box->flm & (2 << mp_k)) != 0) << 0;
-            box->flf |= ((box->flm & (2 << mp_j)) != 0) << 1;
-            box->flf |= ((box->flm & (1 << mp_i)) != 0) << 2;
-            box->flf |= ((box->flm & (1 << mp_j)) != 0) << 3;
-            box->flf |= ((box->flm & (2 << mp_i)) != 0) << 4;
-            box->flf |= ((box->flm & (1 << mp_k)) != 0) << 5;
+            box->flf |= (c += (box->flm & (2 << mp_k)) != 0) << 0;
+            box->flf |= (c += (box->flm & (2 << mp_j)) != 0) << 1;
+            box->flf |= (c += (box->flm & (1 << mp_i)) != 0) << 2;
+            box->flf |= (c += (box->flm & (1 << mp_j)) != 0) << 3;
+            box->flf |= (c += (box->flm & (2 << mp_i)) != 0) << 4;
+            box->flf |= (c += (box->flm & (1 << mp_k)) != 0) << 5;
+
+            /* number of array bbox's fully covered (by plane) faces */
+            box->fln = c;
         }
     }
 #endif /* RT_OPTS_REMOVE */
@@ -1738,18 +1746,21 @@ rt_void rt_Array::update_bounds()
     RT_VEC3_SET_VAL1(bvbox->bmin, +RT_INF);
     RT_VEC3_SET_VAL1(bvbox->bmax, -RT_INF);
     bvbox->rad = 0.0f;
+    bvbox->fln = 0;
     bvbox->flm = 0;
     bvbox->flf = 0;
 
     RT_VEC3_SET_VAL1(trbox->bmin, +RT_INF);
     RT_VEC3_SET_VAL1(trbox->bmax, -RT_INF);
     trbox->rad = 0.0f;
+    trbox->fln = 0;
     trbox->flm = 0;
     trbox->flf = 0;
 
     RT_VEC3_SET_VAL1(inbox->bmin, +RT_INF);
     RT_VEC3_SET_VAL1(inbox->bmax, -RT_INF);
     inbox->rad = 0.0f;
+    inbox->fln = 0;
     inbox->flm = 0;
     inbox->flf = 0;
 
