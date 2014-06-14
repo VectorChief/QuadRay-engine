@@ -426,6 +426,10 @@ rt_void rt_Camera::update_fields()
      * from immediate parent array */
     update_matrix(*pmtx);
 
+    bvbox->mid[RT_X] = pos[RT_X];
+    bvbox->mid[RT_Y] = pos[RT_Y];
+    bvbox->mid[RT_Z] = pos[RT_Z];
+
     rt_Object::update_fields();
 
     hor_sin = RT_SINA(trm->rot[RT_Z]);
@@ -591,6 +595,10 @@ rt_void rt_Light::update_fields()
     /* pass matrix pointer
      * from immediate parent array */
     update_matrix(*pmtx);
+
+    bvbox->mid[RT_X] = pos[RT_X];
+    bvbox->mid[RT_Y] = pos[RT_Y];
+    bvbox->mid[RT_Z] = pos[RT_Z];
 
     rt_Object::update_fields();
 

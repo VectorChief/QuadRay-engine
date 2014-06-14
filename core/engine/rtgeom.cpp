@@ -960,7 +960,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         return 1;
     }
 
-    rt_real *pps = obj->pos;
+    rt_real *pps = obj->mid;
 
     /* check if cones from bounding spheres don't intersect */
     rt_vec4 nd1_vec;
@@ -1200,7 +1200,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         return 2;
     }
 
-    rt_real *pps = RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj) ? obj->mid : obj->pos;
+    rt_real *pps = obj->mid;
 
     /* check if cones from bounding spheres don't intersect */
     rt_vec4 nd1_vec;
@@ -1282,7 +1282,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     /* check the order for bounding boxes */
     rt_cell i, j, k, q, m, n, p, c = s;
 
-    pps = RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj) ? obj->mid : obj->pos;
+    pps = obj->mid;
 
     for (q = 0, m = 1; q < m && s != 1; q++)
     {
@@ -1427,7 +1427,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 #endif /* RT_OPTS_REMOVE */
     }
 
-    pps = RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj) ? obj->mid : obj->pos;
+    pps = obj->mid;
 
     for (q = 0, m = 1; q < m && s != 2; q++)
     {
@@ -1572,7 +1572,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 #endif /* RT_OPTS_REMOVE */
     }
 
-    pps = RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj) ? obj->mid : obj->pos;
+    pps = obj->mid;
 
     if (s == 0)
     {
