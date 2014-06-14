@@ -1763,8 +1763,26 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
             rt_BOUND *box = (rt_BOUND *)elm->temp;
 
 #if RT_OPTS_REMOVE != 0
+            /* disable array's contents removal by its bbox
+             * when building for surface on the same branch */
             if ((scene->opts & RT_OPTS_REMOVE) != 0
-            &&  RT_IS_CAMERA(obj) && abx != RT_NULL)
+            &&  abx != RT_NULL && RT_IS_SURFACE(obj))
+            {
+                rt_ELEM *par = ((rt_Surface *)obj)->top;
+
+                for (; par != RT_NULL; par = par->next)
+                {
+                    if (abx == par->temp)
+                    {
+                        abx = RT_NULL;
+                        break;
+                    }
+                }
+            }
+
+            /* enable array's contents removal by its bbox */
+            if ((scene->opts & RT_OPTS_REMOVE) != 0
+            &&  abx != RT_NULL)
             {
                 r = bbox_sort(obj->bvbox, box, abx);
             }
@@ -1812,9 +1830,13 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                     {
                         cur = elm;
                     }
-                    if (box->fln > 1) /* insert handles box->fln == 1 case */
+                    if (box->fln > 1) /* insert handles "box->fln == 1" case */
                     {
                         abx = box;
+                    }
+                    else /* if sub-array isn't removed, "abx" isn't effective */
+                    {
+                        abx = RT_NULL;
                     }
 
                     if (cuo != RT_NULL)
@@ -1833,6 +1855,13 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                 }
                 else
                 {
+                    /* if anything except bbox's faces isn't removed,
+                     * "abx" isn't effective */
+                    if (abx != RT_NULL && !RT_IS_PLANE(box) && r != 12)
+                    {
+                        abx = RT_NULL;
+                    }
+
                     while (elm != RT_NULL && elm->next == RT_NULL)
                     {
                         if (cur == RT_NULL || c & 2)
@@ -1856,23 +1885,12 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                         {
                             cur = RT_NULL;
                         }
-                        if (abx != RT_NULL)
-                        {
-                            abx = (rt_BOUND *)-1;
-                        }
+
+                        abx = RT_NULL;
                     }
 
                     if (elm != RT_NULL)
                     {
-                        if (abx == (rt_BOUND *)-1)
-                        {
-                            abx = RT_GET_PTR(elm->data) != RT_NULL ?
-                                  (rt_BOUND *)RT_GET_PTR(elm->data)->temp :
-                                  RT_NULL;
-                            abx = abx != RT_NULL && abx->fln > 1 ?
-                                  abx : RT_NULL;
-                            r = 0;
-                        }
                         elm = elm->next;
                     }
 
@@ -1894,42 +1912,44 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 
                 if (RT_IS_ARRAY(box) && cur != RT_NULL)
                 {
-                    if (box->fln > 1) /* insert handles box->fln == 1 case */
+                    if (box->fln > 1) /* insert handles "box->fln == 1" case */
                     {
                         abx = box;
                     }
+                    else /* if sub-array isn't removed, "abx" isn't effective */
+                    {
+                        abx = RT_NULL;
+                    }
+
                     prv = cur;
                     ptr = RT_GET_ADR(cur->simd);
                     elm = RT_GET_PTR(elm->simd);
                 }
                 else
                 {
+                    /* if anything except bbox's faces isn't removed,
+                     * "abx" isn't effective */
+                    if (abx != RT_NULL && !RT_IS_PLANE(box) && r != 12)
+                    {
+                        abx = RT_NULL;
+                    }
+
                     while (elm != RT_NULL && elm->next == RT_NULL)
                     {
                         prv = prv != RT_NULL ? RT_GET_PTR(prv->data) : RT_NULL;
                         ptr = prv != RT_NULL ? RT_GET_ADR(prv->simd) : &lst;
                         elm = RT_GET_PTR(elm->data);
-                        if (abx != RT_NULL)
-                        {
-                            abx = (rt_BOUND *)-1;
-                        }
+                        abx = RT_NULL;
                     }
 
                     if (elm != RT_NULL)
                     {
-                        if (abx == (rt_BOUND *)-1)
-                        {
-                            abx = RT_GET_PTR(elm->data) != RT_NULL ?
-                                  (rt_BOUND *)RT_GET_PTR(elm->data)->temp :
-                                  RT_NULL;
-                            abx = abx != RT_NULL && abx->fln > 1 ?
-                                  abx : RT_NULL;
-                            r = 0;
-                        }
                         elm = elm->next;
                     }
                 }
             }
+
+            r = 0;
         }
     }
 
