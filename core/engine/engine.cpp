@@ -1768,11 +1768,11 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
             if ((scene->opts & RT_OPTS_REMOVE) != 0
             &&  abx != RT_NULL && RT_IS_SURFACE(obj))
             {
-                rt_ELEM *par = ((rt_Surface *)obj)->top;
+                rt_ELEM *top = ((rt_Surface *)obj)->top;
 
-                for (; par != RT_NULL; par = par->next)
+                for (; top != RT_NULL; top = top->next)
                 {
-                    if (abx == par->temp)
+                    if (abx == top->temp)
                     {
                         abx = RT_NULL;
                         break;
@@ -1780,9 +1780,11 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                 }
             }
 
+            r = 0;
+
             /* enable array's contents removal by its bbox */
             if ((scene->opts & RT_OPTS_REMOVE) != 0
-            &&  abx != RT_NULL)
+            &&  abx != RT_NULL && abx != box)
             {
                 r = bbox_sort(obj->bvbox, box, abx);
             }
@@ -1948,8 +1950,6 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                     }
                 }
             }
-
-            r = 0;
         }
     }
 

@@ -426,9 +426,7 @@ rt_void rt_Camera::update_fields()
      * from immediate parent array */
     update_matrix(*pmtx);
 
-    bvbox->mid[RT_X] = pos[RT_X];
-    bvbox->mid[RT_Y] = pos[RT_Y];
-    bvbox->mid[RT_Z] = pos[RT_Z];
+    RT_VEC3_SET(bvbox->mid, pos);
 
     rt_Object::update_fields();
 
@@ -596,9 +594,7 @@ rt_void rt_Light::update_fields()
      * from immediate parent array */
     update_matrix(*pmtx);
 
-    bvbox->mid[RT_X] = pos[RT_X];
-    bvbox->mid[RT_Y] = pos[RT_Y];
-    bvbox->mid[RT_Z] = pos[RT_Z];
+    RT_VEC3_SET(bvbox->mid, pos);
 
     rt_Object::update_fields();
 
