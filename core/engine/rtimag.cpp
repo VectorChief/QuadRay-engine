@@ -283,7 +283,7 @@ rt_void convert_image(rt_Heap *hp, rt_pstr name)
 #if RT_EMBED_FILEIO == 0
     rt_File *f = RT_NULL;
     rt_word *p = RT_NULL;
-    rt_cell i, n, k;
+    rt_cell i, n;
 
     rt_pstr path = RT_PATH_TEXTURES;
     rt_cell len = strlen(path), dot = len;

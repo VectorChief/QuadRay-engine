@@ -15,10 +15,10 @@
 /******************************************************************************/
 
 /*
- * object.cpp: Implementation of the objects hierarchy.
+ * object.cpp: Implementation of the object hierarchy.
  *
  * Main companion file of the engine responsible for instantiating and managing
- * the objects hierarchy. It contains a definition of Object class (the root
+ * the object hierarchy. It contains a definition of Object class (the root
  * of the hierarchy) and its derivative classes along with a set of algorithms
  * needed to construct and update per-object fields and cross-object relations.
  *
@@ -1177,7 +1177,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     }
 
     /* init inbox used for inner part of split bvnode if present,
-     * or trnode if doesn't have contents outside bvnode */
+     * or trnode if it doesn't have contents outside bvnode */
     inbox = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
 
     memset(inbox, 0, sizeof(rt_BOUND));
@@ -1634,7 +1634,7 @@ rt_void rt_Array::update_matrix(rt_mat4 mtx)
             for (i = 0; i < 3; i++)
             {
                 j = map[i];
-                axm[i][j] = sgn[i];
+                axm[i][j] = (rt_real)sgn[i];
             }
         }
 

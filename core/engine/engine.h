@@ -132,8 +132,8 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_OBJECT           rootobj;
 
     /* framebuffer's dimensions and pointer */
-    rt_word             x_res;
-    rt_word             y_res;
+    rt_cell             x_res;
+    rt_cell             y_res;
     rt_cell             x_row;
     rt_word            *frame;
 
@@ -195,7 +195,7 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     /* accumulated ambient color */
     rt_vec4             amb;
 
-    /* root of the objects hierarchy */
+    /* root of the object hierarchy */
     rt_Array           *root;
     /* current camera */
     rt_Camera          *cam;
@@ -204,8 +204,8 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
 
     public:
 
-    rt_Scene(rt_SCENE *scn, /* frame must be SIMD-aligned */
-             rt_word x_res, rt_word y_res, rt_cell x_row, rt_word *frame,
+    rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned */
+             rt_cell x_res, rt_cell y_res, rt_cell x_row, rt_word *frame,
              rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
              rt_FUNC_INIT f_init = RT_NULL, rt_FUNC_TERM f_term = RT_NULL,
              rt_FUNC_UPDATE f_update = RT_NULL,
