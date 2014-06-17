@@ -30,7 +30,7 @@ rt_PLANE pl_floor01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_tile01,
+/* mat */   &mt_plain01_tile01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -38,7 +38,7 @@ rt_PLANE pl_floor01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray01,
+/* mat */   &mt_plain01_gray01,
         },
     },
 };
@@ -86,7 +86,7 @@ rt_CYLINDER cl_tube01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray01,
+/* mat */   &mt_plain01_gray01,
         },
     },
 /* rad */   0.5,
@@ -111,7 +111,7 @@ rt_SPHERE sp_ball03 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray01,
+/* mat */   &mt_plain01_gray01,
         },
     },
 /* rad */   0.5,
@@ -273,7 +273,7 @@ rt_SPHERE sp_ball01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray01,
+/* mat */   &mt_plain01_gray01,
         },
     },
 /* rad */   1.5,
@@ -290,7 +290,7 @@ rt_PARABOLOID pb_para01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray01,
+/* mat */   &mt_plain01_gray01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -298,7 +298,7 @@ rt_PARABOLOID pb_para01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray01,
+/* mat */   &mt_plain01_gray01,
         },
     },
 /* par */   0.3,
@@ -315,7 +315,7 @@ rt_CYLINDER cl_tube02 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray01,
+/* mat */   &mt_plain01_gray01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -323,7 +323,7 @@ rt_CYLINDER cl_tube02 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray01,
+/* mat */   &mt_plain01_gray01,
         },
     },
 /* rad */   3.0,
@@ -373,7 +373,7 @@ rt_CONE cn_cone01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray01,
+/* mat */   &mt_plain01_gray01,
         },
     },
 /* rat */   1.0,
@@ -395,7 +395,7 @@ rt_OBJECT ob_ball01[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   +1.0,        0.0,        1.0    },
         },
-        RT_OBJ_SPHERE_MAT(&sp_ball02, &mt_gray01, &mt_gray01)
+        RT_OBJ_SPHERE_MAT(&sp_ball02, &mt_plain01_gray01, &mt_plain01_gray01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */

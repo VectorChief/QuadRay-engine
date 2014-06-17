@@ -30,7 +30,7 @@ rt_PLANE pl_frame01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_tile01,
+/* mat */   &mt_plain01_tile01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -38,7 +38,7 @@ rt_PLANE pl_frame01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray02,
+/* mat */   &mt_plain01_gray02,
         },
     },
 };

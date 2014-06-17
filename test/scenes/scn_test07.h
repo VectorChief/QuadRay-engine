@@ -38,7 +38,7 @@ rt_PLANE pl_frame01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray02,
+/* mat */   &mt_plain01_gray02,
         },
     },
 };
@@ -62,7 +62,7 @@ rt_CYLINDER cl_tube01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray02,
+/* mat */   &mt_plain01_gray02,
         },
     },
 /* rad */   1.5,

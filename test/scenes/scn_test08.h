@@ -30,7 +30,7 @@ rt_SPHERE sp_frame01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_red01,
+/* mat */   &mt_plain01_red01,
         },
         {
 /* INNER        RT_U,       RT_V    */
