@@ -457,10 +457,6 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
      * outside bvnode */
     rt_BOUND           *inbox;
 
-    /* flag set for trnode array
-     * if its bvbox has no contents outside inbox */
-    rt_cell             flg;
-
     /* surface SIMD struct,
      * used for bvbox part of bvnode */
     rt_SIMD_SURFACE    *s_bvb;
