@@ -38,7 +38,7 @@ rt_HYPERBOLOID hb_frame01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray02,
+/* mat */   &mt_plain01_gray02,
         },
     },
 /* rat */   2.5,

@@ -38,7 +38,7 @@ rt_PLANE pl_floor01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray02,
+/* mat */   &mt_plain01_gray02,
         },
     },
 };
@@ -54,7 +54,7 @@ rt_PLANE pl_ceiling01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_white01,
+/* mat */   &mt_plain01_white01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -62,7 +62,7 @@ rt_PLANE pl_ceiling01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray02,
+/* mat */   &mt_plain01_gray02,
         },
     },
 };
@@ -78,7 +78,7 @@ rt_PLANE pl_wall01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_white01,
+/* mat */   &mt_plain01_white01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -86,7 +86,7 @@ rt_PLANE pl_wall01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray02,
+/* mat */   &mt_plain01_gray02,
         },
     },
 };
@@ -102,7 +102,7 @@ rt_PLANE pl_wall02 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_white01,
+/* mat */   &mt_plain01_white01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -110,7 +110,7 @@ rt_PLANE pl_wall02 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray02,
+/* mat */   &mt_plain01_gray02,
         },
     },
 };
@@ -190,7 +190,7 @@ rt_PLANE pl_cube02side01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray02,
+/* mat */   &mt_plain01_gray02,
         },
     },
 };

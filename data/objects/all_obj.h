@@ -60,7 +60,7 @@ rt_PLANE pl_cube01side01 =
 /* rot */              0.0           ,
 /* pos */   {   -1.0,       -1.0    },
 
-/* mat */   &mt_crate01,
+/* mat */   &mt_plain01_crate01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -68,7 +68,7 @@ rt_PLANE pl_cube01side01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray01,
+/* mat */   &mt_plain01_gray01,
         },
     },
 };
@@ -140,7 +140,7 @@ rt_SPHERE sp_ball01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_white01,
+/* mat */   &mt_plain01_white01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -148,7 +148,7 @@ rt_SPHERE sp_ball01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_gray01,
+/* mat */   &mt_plain01_gray01,
         },
     },
 /* rad */   1.5,
