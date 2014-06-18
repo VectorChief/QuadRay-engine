@@ -714,7 +714,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
         /* search matching existing trnode/bvnode for insertion,
          * run through the list hierarchy to find the inner-most node element,
          * element's "simd" field holds pointer to node's sub-list
-         * along with node's type in the lower 4 bits (trnode/bvnode) */
+         * along with node's type in the lower 4 bits (tr/bv) */
         for (nxt = RT_GET_PTR(*ptr); nxt != RT_NULL && lst != RT_NULL;)
         {
             if (nxt->temp == lst->temp)

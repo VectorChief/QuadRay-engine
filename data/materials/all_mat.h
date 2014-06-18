@@ -38,8 +38,9 @@
  *   texture sets across all materials.
  *
  * - Complex materials can be placed in separate files mat_*.h, where * is
- *   material's name (for example mat_crate01.h), material names in this
- *   case follow the same rules as described above (for example mt_crate01)
+ *   material's name (for example mat_plain01_crate01.h), material names
+ *   in this case follow the same rules as described above
+ *   (for example mt_plain01_crate01)
  */
 
 /******************************************************************************/
