@@ -1327,7 +1327,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
                 /* use original marker value as elements are inserted
                  * into the list's tail here and the original relations
                  * template from scene data is inverted twice, first
-                 * in surface's add_relation and second in engine's sclip,
+                 * in surface's "add_relation" and second in engine's "sclip",
                  * thus accum markers will end up in correct order */
                 elm->data = RT_ACCUM_ENTER;
                 elm->temp = RT_NULL; /* accum marker */
@@ -1373,7 +1373,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
                 /* use original marker value as elements are inserted
                  * into the list's tail here and the original relations
                  * template from scene data is inverted twice, first
-                 * in surface's add_relation and second in engine's sclip,
+                 * in surface's "add_relation" and second in engine's "sclip",
                  * thus accum markers will end up in correct order */
                 elm->data = RT_ACCUM_LEAVE;
                 elm->temp = RT_NULL; /* accum marker */
@@ -1575,7 +1575,7 @@ rt_void rt_Array::update_status(rt_long time, rt_cell flags,
 {
     /* trigger update of the whole hierarchy
      * when called for the first time or
-     * requested explicitly via time == -1 */
+     * requested explicitly via "time == -1" */
 #if RT_OPTS_UPDATE != 0
     if ((rg->opts & RT_OPTS_UPDATE) == 0
     ||  obj->time == -1 && parent == RT_NULL)
@@ -2251,7 +2251,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
     rt_ELEM **ptr = RT_GET_ADR(rel);
 
     /* build surface's relations template from given template "lst",
-     * as surface's relations template is inverted in engine's sclip
+     * as surface's relations template is inverted in engine's "sclip"
      * and elements are inserted into the list's head here,
      * the original relations template from scene data is inverted twice,
      * thus accum enter/leave markers will end up in correct order */

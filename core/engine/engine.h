@@ -204,7 +204,7 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
 
     public:
 
-    rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned */
+    rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
              rt_cell x_res, rt_cell y_res, rt_cell x_row, rt_word *frame,
              rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
              rt_FUNC_INIT f_init = RT_NULL, rt_FUNC_TERM f_term = RT_NULL,

@@ -1003,7 +1003,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
                         }
                         else
                         /* remember "cur's" computed order value to the first
-                         * comb element in the "state", if "cur" != "tlp" */
+                         * comb element in the "state", if "cur != tlp" */
                         if (tlp->next == jel)
                         {
                             state = op;
@@ -1384,7 +1384,7 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
    *ptr = RT_NULL;
 
     /* build custom clippers list from given template "lst",
-     * as given template "lst" is inverted in surface's add_relation
+     * as given template "lst" is inverted in surface's "add_relation"
      * and elements are inserted into the list's head here,
      * the original relations template from scene data is inverted twice,
      * thus accum enter/leave markers will end up in correct order */
@@ -1430,7 +1430,7 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
                  * or outside of any accum segment */
                 for (nxt = *ptr; nxt != RT_NULL; nxt = nxt->next)
                 {
-                    /* (acc == 0) either accum-enter-marker
+                    /* "acc == 0" either accum-enter-marker
                      * hasn't been inserted yet (current accum segment)
                      * or outside of any accum segment */
                     if (acc == 0
@@ -2385,7 +2385,7 @@ rt_void render_scene(rt_void *tdata, rt_cell thnum, rt_cell phase)
  * Instantiate scene.
  * Can only be called from single (main) thread.
  */
-rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" ptr must be SIMD-aligned or NULL */
+rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
                    rt_cell x_res, rt_cell y_res, rt_cell x_row, rt_word *frame,
                    rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
                    rt_FUNC_INIT f_init, rt_FUNC_TERM f_term,
@@ -2472,7 +2472,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" ptr must be SIMD-aligned or NULL */
         throw rt_Exception("scene's root is not an array");
     }
 
-    root = new rt_Array(this, RT_NULL, &rootobj); /* also init *_num fields */
+    root = new rt_Array(this, RT_NULL, &rootobj); /* also init "*_num" fields */
 
     if (cam_head == RT_NULL)
     {

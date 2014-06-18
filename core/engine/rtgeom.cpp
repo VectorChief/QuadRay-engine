@@ -259,7 +259,7 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
  * The "mid" field shows if "mid" matches object's "pos" or bbox's "mid"
  */
 /******************************************************************************/
-/*      object's tag      **    box    **    pos    **    trn    **    mid    */
+/*          obj           **    box    **    pos    **    trn    **    mid    */
 /******************************************************************************/
 /*                        **           **           **           **           */
 /*         camera         **   bvbox   **    abs    **  forbid   **    pos    */
@@ -761,7 +761,7 @@ rt_cell clip_conc(rt_SHAPE *srf)
  *  new pos
  */
 static
-rt_real *surf_tran(rt_BOUND *obj, rt_vec4 pos, rt_vec4 loc)
+rt_real *node_tran(rt_BOUND *obj, rt_vec4 pos, rt_vec4 loc)
 {
     rt_vec4  dff;
     rt_real *pps = pos;
@@ -795,7 +795,7 @@ rt_cell surf_cbox(rt_SHAPE *srf, rt_vec4 pos)
     /* transform "pos" to "srf's" trnode sub-world space,
      * where cbox is defined */
     rt_vec4  loc;
-    rt_real *pps = surf_tran(srf, pos, loc);
+    rt_real *pps = node_tran(srf, pos, loc);
 
     /* margin is applied to "pps"
      * as cmin/cmax might be infinite */
@@ -834,14 +834,14 @@ rt_cell surf_cbox(rt_SHAPE *srf, rt_vec4 pos)
  *  2 - yes, on the border with margin
  */
 static
-rt_cell surf_bbox(rt_BOUND *obj, rt_vec4 pos)
+rt_cell node_bbox(rt_BOUND *obj, rt_vec4 pos)
 {
     rt_cell c = 0;
 
     /* transform "pos" to "obj's" trnode sub-world space,
      * where bbox is defined */
     rt_vec4  loc;
-    rt_real *pps = surf_tran(obj, pos, loc);
+    rt_real *pps = node_tran(obj, pos, loc);
 
     /* margin is applied to "pps"
      * for consistency with "surf_cbox" */
@@ -884,7 +884,7 @@ rt_cell surf_side(rt_SHAPE *srf, rt_vec4 pos)
 {
     /* transform "pos" to "srf's" trnode sub-world space */
     rt_vec4  loc;
-    rt_real *pps = surf_tran(srf, pos, loc);
+    rt_real *pps = node_tran(srf, pos, loc);
 
     /* translate "pos" to "srf's" local space */
     if (srf->trnode != srf)
@@ -925,7 +925,7 @@ rt_cell surf_side(rt_SHAPE *srf, rt_vec4 pos)
  *  3 - both, also if on the surface with margin
  */
 static
-rt_cell cbox_side(rt_SHAPE *srf, rt_vec4 pos)
+rt_cell clip_side(rt_SHAPE *srf, rt_vec4 pos)
 {
     rt_cell k, c = 0;
 
@@ -1053,7 +1053,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     /* check if "obj's" bbox "mid" is inside "nd1's" bbox */
     rt_cell k;
 
-    k = surf_bbox(nd1, pps);
+    k = node_bbox(nd1, pps);
 
     if (k != 0)
     {
@@ -1178,7 +1178,7 @@ rt_cell proj_conc(rt_BOUND *obj, rt_real *pos)
     /* transform "pos" to "obj's" trnode sub-world space,
      * where bbox is defined */
     rt_vec4  loc;
-    rt_real *pps = surf_tran(obj, pos, loc);
+    rt_real *pps = node_tran(obj, pos, loc);
 
     rt_cell i, map = 0;
 
@@ -1684,17 +1684,17 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
         return 2;
     }
 
-    /* check if one bbox's mid is inside another */
+    /* check if one bbox's "mid" is inside another */
     rt_cell k;
 
-    k = surf_bbox(nd1, nd2->mid);
+    k = node_bbox(nd1, nd2->mid);
 
     if (k != 0)
     {
         return 1;
     }
 
-    k = surf_bbox(nd2, nd1->mid);
+    k = node_bbox(nd2, nd1->mid);
 
     if (k != 0)
     {
@@ -1794,7 +1794,7 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
     /* check if "obj" is LIGHT or CAMERA */
     if (RT_IS_LIGHT(obj) || RT_IS_CAMERA(obj))
     {
-        return cbox_side(srf, obj->mid);
+        return clip_side(srf, obj->mid);
     }
 
     rt_cell i, j, k, m, n, p, c = 0;
