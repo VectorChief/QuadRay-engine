@@ -15,10 +15,10 @@
 /******************************************************************************/
 
 /*
- * object.cpp: Implementation of the objects hierarchy.
+ * object.cpp: Implementation of the object hierarchy.
  *
  * Main companion file of the engine responsible for instantiating and managing
- * the objects hierarchy. It contains a definition of Object class (the root
+ * the object hierarchy. It contains a definition of Object class (the root
  * of the hierarchy) and its derivative classes along with a set of algorithms
  * needed to construct and update per-object fields and cross-object relations.
  *
@@ -426,6 +426,8 @@ rt_void rt_Camera::update_fields()
      * from immediate parent array */
     update_matrix(*pmtx);
 
+    RT_VEC3_SET(bvbox->mid, pos);
+
     rt_Object::update_fields();
 
     hor_sin = RT_SINA(trm->rot[RT_Z]);
@@ -591,6 +593,8 @@ rt_void rt_Light::update_fields()
     /* pass matrix pointer
      * from immediate parent array */
     update_matrix(*pmtx);
+
+    RT_VEC3_SET(bvbox->mid, pos);
 
     rt_Object::update_fields();
 
@@ -1137,7 +1141,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     }
 
     /* init inbox used for inner part of split bvnode if present,
-     * or trnode if doesn't have contents outside bvnode */
+     * or trnode if it doesn't have contents outside bvnode */
     inbox = (rt_BOUND *)rg->alloc(sizeof(rt_BOUND), RT_QUAD_ALIGN);
 
     memset(inbox, 0, sizeof(rt_BOUND));
@@ -1287,7 +1291,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
                 /* use original marker value as elements are inserted
                  * into the list's tail here and the original relations
                  * template from scene data is inverted twice, first
-                 * in surface's add_relation and second in engine's sclip,
+                 * in surface's "add_relation" and second in engine's "sclip",
                  * thus accum markers will end up in correct order */
                 elm->data = RT_ACCUM_ENTER;
                 elm->temp = RT_NULL; /* accum marker */
@@ -1333,7 +1337,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
                 /* use original marker value as elements are inserted
                  * into the list's tail here and the original relations
                  * template from scene data is inverted twice, first
-                 * in surface's add_relation and second in engine's sclip,
+                 * in surface's "add_relation" and second in engine's "sclip",
                  * thus accum markers will end up in correct order */
                 elm->data = RT_ACCUM_LEAVE;
                 elm->temp = RT_NULL; /* accum marker */
@@ -1535,7 +1539,7 @@ rt_void rt_Array::update_status(rt_long time, rt_cell flags,
 {
     /* trigger update of the whole hierarchy
      * when called for the first time or
-     * requested explicitly via time == -1 */
+     * requested explicitly via "time == -1" */
 #if RT_OPTS_UPDATE != 0
     if (obj->time == -1 && parent == RT_NULL
     || (rg->opts & RT_OPTS_UPDATE) == 0)
@@ -1594,7 +1598,7 @@ rt_void rt_Array::update_matrix(rt_mat4 mtx)
             for (i = 0; i < 3; i++)
             {
                 j = map[i];
-                axm[i][j] = sgn[i];
+                axm[i][j] = (rt_real)sgn[i];
             }
         }
 
@@ -2024,7 +2028,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
     rt_ELEM **ptr = RT_GET_ADR(rel);
 
     /* build surface's relations template from given template "lst",
-     * as surface's relations template is inverted in engine's sclip
+     * as surface's relations template is inverted in engine's "sclip"
      * and elements are inserted into the list's head here,
      * the original relations template from scene data is inverted twice,
      * thus accum enter/leave markers will end up in correct order */

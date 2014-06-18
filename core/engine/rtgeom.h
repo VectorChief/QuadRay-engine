@@ -305,7 +305,8 @@ struct rt_SHAPE : public rt_BOUND
 };
 
 /*
- * Determine if "nd1" bbox casts shadow on "nd2" bbox as seen from "obj".
+ * Determine if "nd1's" bbox casts shadow on "nd2's" bbox
+ * as seen from "obj's" bbox "mid" (light's "pos").
  *
  * Return values:
  *  0 - no
@@ -314,18 +315,20 @@ struct rt_SHAPE : public rt_BOUND
 rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2);
 
 /*
- * Determine the order of "nd1" and "nd2" bboxes as seen from "obj".
+ * Determine the order of "nd1's" and "nd2's" bboxes
+ * as seen from "obj's" bbox "mid".
  *
  * Return values:
  *  1 - neutral
  *  2 - unsortable
  *  3 - don't swap
- *  4 - do swap, not part of the stored order value in the engine
+ *  4 - do swap, not part of the stored-order-value in the engine
  */
 rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2);
 
 /*
- * Determine which side of clipped "srf" is seen from "obj".
+ * Determine which side of clipped "srf" is seen
+ * from "obj's" entire bbox ("pos" in case of light or camera).
  *
  * Return values:
  *  0 - none, if both surfaces are the same plane

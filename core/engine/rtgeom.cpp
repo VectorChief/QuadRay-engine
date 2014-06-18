@@ -250,6 +250,43 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
 /******************************************************************************/
 
 /*
+ * Object's bbox table for {pos, trnode, mid} relations.
+ * The "pos" field shows if "pos" is either "absolute" in world space
+ *   or "relative" to trnode sub-world space
+ *   if object's trnode is present.
+ * The "trn" field shows if bbox's trnode is allowed or forbidden
+ *   if object's trnode is present.
+ * The "mid" field shows if "mid" matches object's "pos" or bbox's "mid"
+ */
+/******************************************************************************/
+/*          obj           **    box    **    pos    **    trn    **    mid    */
+/******************************************************************************/
+/*                        **           **           **           **           */
+/*         camera         **   bvbox   **    abs    **  forbid   **    pos    */
+/*                        **           **           **           **           */
+/******************************************************************************/
+/*                        **           **           **           **           */
+/*         light          **   bvbox   **    abs    **  forbid   **    pos    */
+/*                        **           **           **           **           */
+/******************************************************************************/
+/*                        **           **           **           **           */
+/*        surface         **   bvbox   **    rel    **   allow   **    mid    */
+/*                        **           **           **           **           */
+/******************************************************************************/
+/*                        **           **           **           **           */
+/*         array          **   bvbox   **    rel    **  forbid   **    mid    */
+/*                        **           **           **           **           */
+/******************************************************************************/
+/*                        **           **           **           **           */
+/*         array          **   inbox   **    rel    **   allow   **    mid    */
+/*                        **           **           **           **           */
+/******************************************************************************/
+/*                        **           **           **           **           */
+/*         array          **   trbox   **    rel    **   allow   **    mid    */
+/*                        **           **           **           **           */
+/******************************************************************************/
+
+/*
  * Determine if vert "p1" and face "q0-q1-q2" intersect as seen from vert "p0".
  * Parameters "qk, qi, qj" specify axis mapping indices for axis-aligned face,
  * so that local I, J axes (face's base) and local K axis (face's normal) are
@@ -257,7 +294,7 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
  * to a triangular face, when at least one of the axes indices equals 3.
  * False-positives are allowed due to computational inaccuracy.
  *
- * Based on the original idea by Tomas Möller (tompa[AT]clarus[DOT]se)
+ * Based on the original idea by Tomas Moller (tompa[AT]clarus[DOT]se)
  * and Ben Trumbore (wbt[AT]graphics[DOT]cornell[DOT]edu)
  * presented in the article "Fast, Minimum Storage Ray/Triangle Intersection"
  * available at http://www.graphics.cornell.edu/pubs/1997/MT97.html
@@ -413,8 +450,8 @@ rt_cell edge_to_edge(rt_vec4 p0,
      * for respective local K axes */
     if (pk < 3 && qk < 3)
     {
-        /* vert_to_face handles
-         * this case for bbox_shad */
+        /* "vert_to_face" handles
+         * this case for "bbox_shad" */
         if (pk == qk)
         {
             return 0;
@@ -551,7 +588,7 @@ rt_cell edge_to_edge(rt_vec4 p0,
  * Determine if there are holes in "srf" not related to "ref"
  * or inside custom clippers accum segments.
  * Holes are either minmax clippers or custom clippers
- * potentially allowing to see "srf" inner side from outside.
+ * potentially allowing to see "srf's" inner side from outside.
  *
  * Return values:
  *  0 - no
@@ -614,7 +651,7 @@ rt_cell surf_hole(rt_SHAPE *srf, rt_BOUND *ref)
 
 /*
  * Determine whether surface "clp" outside of any accum segment
- * clips surface "srf" and which "clp" side "srf" is clipped by.
+ * clips surface "srf" and which "clp's" side "srf" is clipped by.
  *
  * Return values:
  *  0 - no, might be inside accum segment
@@ -692,7 +729,7 @@ rt_cell surf_conc(rt_SHAPE *srf)
  *  1 - concave
  */
 static
-rt_cell cbox_conc(rt_SHAPE *srf)
+rt_cell clip_conc(rt_SHAPE *srf)
 {
     rt_cell c = 0;
 
@@ -713,24 +750,24 @@ rt_cell cbox_conc(rt_SHAPE *srf)
 }
 
 /*
- * Transform "pos" into "srf" trnode's sub-world space
+ * Transform "pos" into "obj's" trnode sub-world space
  * using "loc" as temporary storage for return value.
  *
  * Return values:
  *  new pos
  */
 static
-rt_real *surf_tran(rt_BOUND *srf, rt_vec4 pos, rt_vec4 loc)
+rt_real *node_tran(rt_BOUND *obj, rt_vec4 pos, rt_vec4 loc)
 {
     rt_vec4  dff;
     rt_real *pps = pos;
 
-    if (srf->trnode != RT_NULL)
+    if (obj->trnode != RT_NULL)
     {
-        RT_VEC3_SUB(dff, pps, srf->trnode->pos);
+        RT_VEC3_SUB(dff, pps, obj->trnode->pos);
         dff[RT_W] = 0.0f;
 
-        matrix_mul_vector(loc, *srf->trnode->pinv, dff);
+        matrix_mul_vector(loc, *obj->trnode->pinv, dff);
 
         pps = loc;
     }
@@ -739,7 +776,7 @@ rt_real *surf_tran(rt_BOUND *srf, rt_vec4 pos, rt_vec4 loc)
 }
 
 /*
- * Determine if "pos" is outside "srf" cbox plus margin.
+ * Determine if "pos" is outside "srf's" cbox plus margin.
  *
  * Return values:
  *  0 - no
@@ -751,10 +788,10 @@ rt_cell surf_cbox(rt_SHAPE *srf, rt_vec4 pos)
 {
     rt_cell c = 0;
 
-    /* transform "pos" to "srf" trnode's sub-world space,
+    /* transform "pos" to "srf's" trnode sub-world space,
      * where cbox is defined */
     rt_vec4  loc;
-    rt_real *pps = surf_tran(srf, pos, loc);
+    rt_real *pps = node_tran(srf, pos, loc);
 
     /* margin is applied to "pps"
      * as cmin/cmax might be infinite */
@@ -785,7 +822,7 @@ rt_cell surf_cbox(rt_SHAPE *srf, rt_vec4 pos)
 }
 
 /*
- * Determine if "pos" is inside "srf" bbox minus margin.
+ * Determine if "pos" is inside "obj's" bbox minus margin.
  *
  * Return values:
  *  0 - no
@@ -793,33 +830,33 @@ rt_cell surf_cbox(rt_SHAPE *srf, rt_vec4 pos)
  *  2 - yes, on the border with margin
  */
 static
-rt_cell surf_bbox(rt_BOUND *srf, rt_vec4 pos)
+rt_cell node_bbox(rt_BOUND *obj, rt_vec4 pos)
 {
     rt_cell c = 0;
 
-    /* transform "pos" to "srf" trnode's sub-world space,
+    /* transform "pos" to "obj's" trnode sub-world space,
      * where bbox is defined */
     rt_vec4  loc;
-    rt_real *pps = surf_tran(srf, pos, loc);
+    rt_real *pps = node_tran(obj, pos, loc);
 
     /* margin is applied to "pps"
-     * for consistency with surf_cbox */
-    if (pps[RT_X] - RT_CULL_THRESHOLD >  srf->bmin[RT_X]
-    &&  pps[RT_Y] - RT_CULL_THRESHOLD >  srf->bmin[RT_Y]
-    &&  pps[RT_Z] - RT_CULL_THRESHOLD >  srf->bmin[RT_Z]
-    &&  pps[RT_X] + RT_CULL_THRESHOLD <  srf->bmax[RT_X]
-    &&  pps[RT_Y] + RT_CULL_THRESHOLD <  srf->bmax[RT_Y]
-    &&  pps[RT_Z] + RT_CULL_THRESHOLD <  srf->bmax[RT_Z])
+     * for consistency with "surf_cbox" */
+    if (pps[RT_X] - RT_CULL_THRESHOLD >  obj->bmin[RT_X]
+    &&  pps[RT_Y] - RT_CULL_THRESHOLD >  obj->bmin[RT_Y]
+    &&  pps[RT_Z] - RT_CULL_THRESHOLD >  obj->bmin[RT_Z]
+    &&  pps[RT_X] + RT_CULL_THRESHOLD <  obj->bmax[RT_X]
+    &&  pps[RT_Y] + RT_CULL_THRESHOLD <  obj->bmax[RT_Y]
+    &&  pps[RT_Z] + RT_CULL_THRESHOLD <  obj->bmax[RT_Z])
     {
         c = 1;
     }
     else
-    if (pps[RT_X] + RT_CULL_THRESHOLD >= srf->bmin[RT_X]
-    &&  pps[RT_Y] + RT_CULL_THRESHOLD >= srf->bmin[RT_Y]
-    &&  pps[RT_Z] + RT_CULL_THRESHOLD >= srf->bmin[RT_Z]
-    &&  pps[RT_X] - RT_CULL_THRESHOLD <= srf->bmax[RT_X]
-    &&  pps[RT_Y] - RT_CULL_THRESHOLD <= srf->bmax[RT_Y]
-    &&  pps[RT_Z] - RT_CULL_THRESHOLD <= srf->bmax[RT_Z])
+    if (pps[RT_X] + RT_CULL_THRESHOLD >= obj->bmin[RT_X]
+    &&  pps[RT_Y] + RT_CULL_THRESHOLD >= obj->bmin[RT_Y]
+    &&  pps[RT_Z] + RT_CULL_THRESHOLD >= obj->bmin[RT_Z]
+    &&  pps[RT_X] - RT_CULL_THRESHOLD <= obj->bmax[RT_X]
+    &&  pps[RT_Y] - RT_CULL_THRESHOLD <= obj->bmax[RT_Y]
+    &&  pps[RT_Z] - RT_CULL_THRESHOLD <= obj->bmax[RT_Z])
     {
         c = 2;
     }
@@ -841,11 +878,11 @@ rt_cell surf_bbox(rt_BOUND *srf, rt_vec4 pos)
 static
 rt_cell surf_side(rt_SHAPE *srf, rt_vec4 pos)
 {
-    /* transform "pos" to "srf" trnode's sub-world space */
+    /* transform "pos" to "srf's" trnode sub-world space */
     rt_vec4  loc;
-    rt_real *pps = surf_tran(srf, pos, loc);
+    rt_real *pps = node_tran(srf, pos, loc);
 
-    /* translate "pos" to "srf" local space */
+    /* translate "pos" to "srf's" local space */
     if (srf->trnode != srf)
     {
         RT_VEC3_SUB(loc, pps, srf->pos);
@@ -884,7 +921,7 @@ rt_cell surf_side(rt_SHAPE *srf, rt_vec4 pos)
  *  3 - both, also if on the surface with margin
  */
 static
-rt_cell cbox_side(rt_SHAPE *srf, rt_vec4 pos)
+rt_cell clip_side(rt_SHAPE *srf, rt_vec4 pos)
 {
     rt_cell k, c = 0;
 
@@ -931,7 +968,7 @@ rt_cell cbox_side(rt_SHAPE *srf, rt_vec4 pos)
 
     k = surf_cbox(srf, pos);
 
-    /* check if "pos" is outside of "srf" cbox */
+    /* check if "pos" is outside of "srf's" cbox */
     if (k != 0)
     {
         c = 3;
@@ -942,7 +979,8 @@ rt_cell cbox_side(rt_SHAPE *srf, rt_vec4 pos)
 }
 
 /*
- * Determine if "nd1" bbox casts shadow on "nd2" bbox as seen from "obj".
+ * Determine if "nd1's" bbox casts shadow on "nd2's" bbox
+ * as seen from "obj's" bbox "mid" (light's "pos").
  *
  * Return values:
  *  0 - no
@@ -956,7 +994,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         return 1;
     }
 
-    rt_real *pps = obj->pos;
+    rt_real *pps = obj->mid;
 
     /* check if cones from bounding spheres don't intersect */
     rt_vec4 nd1_vec;
@@ -1008,10 +1046,10 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         return 1;
     }
 
-    /* check if "obj" pos is inside "nd1" bbox */
+    /* check if "obj's" bbox "mid" is inside "nd1's" bbox */
     rt_cell k;
 
-    k = surf_bbox(nd1, pps);
+    k = node_bbox(nd1, pps);
 
     if (k != 0)
     {
@@ -1021,7 +1059,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     /* check if bounding boxes cast shadow */
     rt_cell i, j;
 
-    /* run through "nd2" faces and "nd1" verts */
+    /* run through "nd2's" faces and "nd1's" verts */
     for (j = 0; j < nd2->faces_num; j++)
     {
         rt_FACE *fc = &nd2->faces[j];
@@ -1053,7 +1091,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         }
     }
 
-    /* run through "nd1" faces and "nd2" verts */
+    /* run through "nd1's" faces and "nd2's" verts */
     for (j = 0; j < nd1->faces_num; j++)
     {
         rt_FACE *fc = &nd1->faces[j];
@@ -1085,7 +1123,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         }
     }
 
-    /* run through "nd2" edges and "nd1" edges */
+    /* run through "nd2's" edges and "nd1's" edges */
     for (j = 0; j < nd2->edges_num; j++)
     {
         rt_EDGE *ej = &nd2->edges[j];
@@ -1110,13 +1148,14 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 }
 
 /*
- * Determine the order of "nd1" and "nd2" bboxes as seen from "obj".
+ * Determine the order of "nd1's" and "nd2's" bboxes
+ * as seen from "obj's" bbox "mid".
  *
  * Return values:
  *  1 - neutral
  *  2 - unsortable
  *  3 - don't swap
- *  4 - do swap, not part of the stored order value in the engine
+ *  4 - do swap, not part of the stored-order-value in the engine
  */
 rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 {
@@ -1126,7 +1165,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         return 2;
     }
 
-    rt_real *pps = RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj) ? obj->mid : obj->pos;
+    rt_real *pps = obj->mid;
 
     /* check if cones from bounding spheres don't intersect */
     rt_vec4 nd1_vec;
@@ -1185,7 +1224,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     /* check the order for bounding boxes */
     rt_cell i, j, k, c = 0;
 
-    /* run through "nd2" faces and "nd1" verts */
+    /* run through "nd2's" faces and "nd1's" verts */
     for (j = 0; j < nd2->faces_num; j++)
     {
         rt_FACE *fc = &nd2->faces[j];
@@ -1201,6 +1240,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 k =  2;
             }
+            k ^= 0;
             if (k == 1 || k == 2)
             {
                 if (c == 0)
@@ -1226,6 +1266,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 k =  2;
             }
+            k ^= 0;
             if (k == 1 || k == 2)
             {
                 if (c == 0)
@@ -1241,7 +1282,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         }
     }
 
-    /* run through "nd1" faces and "nd2" verts */
+    /* run through "nd1's" faces and "nd2's" verts */
     for (j = 0; j < nd1->faces_num; j++)
     {
         rt_FACE *fc = &nd1->faces[j];
@@ -1299,7 +1340,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         }
     }
 
-    /* run through "nd2" edges and "nd1" edges */
+    /* run through "nd2's" edges and "nd1's" edges */
     for (j = 0; j < nd2->edges_num; j++)
     {
         rt_EDGE *ej = &nd2->edges[j];
@@ -1336,7 +1377,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 }
 
 /*
- * Determine if "nd1" and "nd2" bboxes intersect.
+ * Determine if "nd1's" and "nd2's" bboxes intersect.
  *
  * Return values:
  *  0 - no
@@ -1368,17 +1409,17 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
         return 2;
     }
 
-    /* check if one bbox's mid is inside another */
+    /* check if one bbox's "mid" is inside another */
     rt_cell k;
 
-    k = surf_bbox(nd1, nd2->mid);
+    k = node_bbox(nd1, nd2->mid);
 
     if (k != 0)
     {
         return 1;
     }
 
-    k = surf_bbox(nd2, nd1->mid);
+    k = node_bbox(nd2, nd1->mid);
 
     if (k != 0)
     {
@@ -1388,7 +1429,7 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
     /* check if edges of one bbox intersect faces of another */
     rt_cell i, j;
 
-    /* run through "nd2" faces and "nd1" edges */
+    /* run through "nd2's" faces and "nd1's" edges */
     for (j = 0; j < nd2->faces_num; j++)
     {
         rt_FACE *fc = &nd2->faces[j];
@@ -1424,7 +1465,7 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
         }
     }
 
-    /* run through "nd1" faces and "nd2" edges */
+    /* run through "nd1's" faces and "nd2's" edges */
     for (j = 0; j < nd1->faces_num; j++)
     {
         rt_FACE *fc = &nd1->faces[j];
@@ -1464,7 +1505,8 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
 }
 
 /*
- * Determine which side of clipped "srf" is seen from "obj".
+ * Determine which side of clipped "srf" is seen
+ * from "obj's" entire bbox ("pos" in case of light or camera).
  *
  * Return values:
  *  0 - none, if both surfaces are the same plane
@@ -1477,14 +1519,14 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
     /* check if "obj" is LIGHT or CAMERA */
     if (RT_IS_LIGHT(obj) || RT_IS_CAMERA(obj))
     {
-        return cbox_side(srf, obj->pos);
+        return clip_side(srf, obj->mid);
     }
 
     rt_cell i, j, k, m, n, p, c = 0;
 
     p = RT_IS_PLANE(srf) ? 1 : 0;
     k = surf_hole(srf, obj);
-    m = cbox_conc(srf);
+    m = clip_conc(srf);
 
     /* check if "obj" is SURFACE */
     if (RT_IS_SURFACE(obj))
@@ -1496,7 +1538,7 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
         {
             if (p == 0)
             {
-                m = cbox_conc(srf);
+                m = clip_conc(srf);
                 c |= 1;
                 if (m == 1)
                 {
@@ -1506,10 +1548,10 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
             return c;
         }
 
-        /* check "srf" and "ref" clip relationship */
+        /* check "srf's" and "ref's" clip relationship */
         i = surf_clip(ref, srf);
         j = surf_clip(srf, ref);
-        n = cbox_conc(ref);
+        n = clip_conc(ref);
 
         if (i == 2 && j == 2
         ||  i == 2 && j == 0)
@@ -1565,7 +1607,7 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
         }
     }
 
-    /* check if all "obj" verts are on the same side */
+    /* check if all "obj's" verts are on the same side */
     if (p == 1)
     {
         if (obj->verts_num == 0)
@@ -1592,7 +1634,7 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
         return c;
     }
 
-    /* check if all "obj" verts are inside "srf" */
+    /* check if all "obj's" verts are inside "srf" */
     if (n == 1 && m == 0)
     {
         c |= 1;
@@ -1620,7 +1662,7 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
         return c;
     }
 
-    /* check if all "obj" verts are inside "srf" cbox */
+    /* check if all "obj's" verts are inside "srf's" cbox */
     if (k == 1)
     {
         c |= 2;

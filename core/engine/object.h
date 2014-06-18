@@ -22,7 +22,7 @@
 /******************************************************************************/
 
 /*
- * object.h: Interface for the objects hierarchy.
+ * object.h: Interface for the object hierarchy.
  *
  * More detailed description of this subsystem is given in object.cpp.
  * Recommended naming scheme for C++ types and definitions is given in rtbase.h.
