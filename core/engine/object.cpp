@@ -60,7 +60,7 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     /* determine object's own transform for transform caching,
      * which allows to apply single matrix transform
      * in rendering backend for array of objects
-     * with trivial transform in relation to array node */
+     * with trivial transform relative to array node */
     rt_cell i, c;
 
     /* reset object's own transform flags */
@@ -93,7 +93,7 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     obj_has_trm |= (c == 3) ? 0 : RT_UPDATE_FLAG_ROT;
 
 #if RT_OPTS_FSCALE == 0
-    if (obj_has_trm)
+    if (obj_has_trm != 0)
     {
         obj_has_trm = RT_UPDATE_FLAG_SCL | RT_UPDATE_FLAG_ROT;
     }
@@ -101,9 +101,8 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
 
     /* determine if object's full matrix has
      * non-trivial transform */
-    mtx_has_trm = obj_has_trm |
-                        (flags & RT_UPDATE_FLAG_SCL) |
-                        (flags & RT_UPDATE_FLAG_ROT);
+    mtx_has_trm = (flags & RT_UPDATE_FLAG_SCL) |
+                  (flags & RT_UPDATE_FLAG_ROT);
 
     /* search for object's trnode
      * (node up in the hierarchy with non-trivial transform,
@@ -122,8 +121,8 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * object's transform matrix has only its own transform,
      * except the case of scaling with trivial rotation,
      * when trnode's axis mapping is passed to sub-objects */
-    if (trnode != RT_NULL && trnode == parent && obj_has_trm == 0
-    &&  mtx_has_trm & RT_UPDATE_FLAG_ROT)
+    if (trnode != RT_NULL && obj_has_trm == 0
+    && (trnode == parent && (mtx_has_trm & RT_UPDATE_FLAG_ROT) != 0))
     {
         matrix_from_transform(this->mtx, trm);
     }
@@ -132,7 +131,8 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * before and after trnode with object's own matrix
      * to obtain object's full transform matrix
      * (no caching for this obj, it is its own trnode) */
-    if (trnode != RT_NULL && trnode != parent && obj_has_trm)
+    if (trnode != RT_NULL && obj_has_trm != 0
+    && (trnode != parent || (mtx_has_trm & RT_UPDATE_FLAG_ROT) == 0))
     {
         rt_mat4 obj_mtx, tmp_mtx;
         matrix_from_transform(obj_mtx, trm);
@@ -151,15 +151,19 @@ rt_void rt_Object::update(rt_long time, rt_mat4 mtx, rt_cell flags)
     /* if object itself has non-trivial transform, it is its own trnode,
      * not considering the case when object's transform is compensated
      * by parents' transforms resulting in object being axis-aligned */
-    if (obj_has_trm)
+    if (obj_has_trm != 0)
     {
+        /* determine if object's full matrix has
+         * non-trivial transform */
+        mtx_has_trm = obj_has_trm;
+
         trnode = this;
     }
-
+    else
     /* always compute full transform matrix
      * for non-surface / non-array objects
      * or all objects if transform caching is disabled */
-    if (trnode != RT_NULL && trnode != this
+    if (trnode != RT_NULL
 #if RT_OPTS_TARRAY != 0
     && tag > RT_TAG_SURFACE_MAX
 #endif /* RT_OPTS_TARRAY */
@@ -444,7 +448,7 @@ rt_void rt_Node::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * to objects which have scaling with trivial rotation
      * in their full transform matrix */
     if (trnode != this
-    ||  mtx_has_trm == RT_UPDATE_FLAG_SCL)
+    || (mtx_has_trm & RT_UPDATE_FLAG_ROT) == 0)
     {
         for (i = 0; i < 3; i++)
         {
@@ -467,7 +471,7 @@ rt_void rt_Node::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * separate axis mapping from transform matrix,
      * which would only have scalers on main diagonal */
     if (trnode == this
-    &&  mtx_has_trm == RT_UPDATE_FLAG_SCL)
+    && (mtx_has_trm & RT_UPDATE_FLAG_ROT) == 0)
     {
         for (i = 0; i < 3; i++)
         {
@@ -613,7 +617,7 @@ rt_void rt_Array::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * separate axis mapping from transform matrix,
      * axis mapping is then passed to sub-objects */
     if (trnode == this
-    &&  mtx_has_trm == RT_UPDATE_FLAG_SCL)
+    && (mtx_has_trm & RT_UPDATE_FLAG_ROT) == 0)
     {
         memset(tmp_mtx, 0, sizeof(rt_mat4));
         tmp_mtx[3][3] = 1.0f;
@@ -957,7 +961,7 @@ rt_void rt_Surface::update(rt_long time, rt_mat4 mtx, rt_cell flags)
      * except the case of scaling with trivial rotation,
      * when axis mapping is separated from transform matrix */
     if (trnode == this
-    &&  mtx_has_trm & RT_UPDATE_FLAG_ROT)
+    && (mtx_has_trm & RT_UPDATE_FLAG_ROT) != 0)
     {
         map[RT_I] = RT_X;
         sgn[RT_I] = 1;
