@@ -1707,10 +1707,10 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 
 #if RT_OPTS_RENDER != 0
         if ((scene->opts & RT_OPTS_RENDER) != 0
-        &&  (((rt_word)srf->s_srf->mat_p[1] & RT_PROP_REFLECT) != 0
-        ||   ((rt_word)srf->s_srf->mat_p[3] & RT_PROP_REFLECT) != 0
-        ||   ((rt_word)srf->s_srf->mat_p[1] & RT_PROP_OPAQUE) == 0
-        ||   ((rt_word)srf->s_srf->mat_p[3] & RT_PROP_OPAQUE) == 0))
+        && (((rt_word)srf->s_srf->mat_p[1] & RT_PROP_REFLECT) != 0
+        ||  ((rt_word)srf->s_srf->mat_p[3] & RT_PROP_REFLECT) != 0
+        ||  ((rt_word)srf->s_srf->mat_p[1] & RT_PROP_OPAQUE) == 0
+        ||  ((rt_word)srf->s_srf->mat_p[3] & RT_PROP_OPAQUE) == 0))
         {
            *pto = RT_NULL;
            *pti = RT_NULL;

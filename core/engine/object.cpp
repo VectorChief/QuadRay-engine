@@ -216,7 +216,7 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
     /* determine object's own transform for transform caching,
      * which allows to apply single matrix transform
      * in rendering backend for array of objects
-     * with trivial transform in relation to array node */
+     * with trivial transform relative to array node */
     rt_cell i, c;
 
     /* reset object's own transform flags */
@@ -248,25 +248,21 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
      * non-trivial rotation */
     mtx_has_trm |= (c == 3) ? 0 : RT_UPDATE_FLAG_ROT;
 
-    if (mtx_has_trm
+    if (mtx_has_trm != 0
 #if RT_OPTS_FSCALE != 0
-    &&  (rg->opts & RT_OPTS_FSCALE) == 0
+    && (rg->opts & RT_OPTS_FSCALE) == 0
 #endif /* RT_OPTS_FSCALE */
        )
     {
         mtx_has_trm = RT_UPDATE_FLAG_SCL | RT_UPDATE_FLAG_ROT;
     }
 
-    /* determine if object's full matrix has
-     * non-trivial transform */
-    obj_has_trm |= mtx_has_trm;
-
     /* if object has its parent as trnode,
      * object's transform matrix has only its own transform,
      * except the case of scaling with trivial rotation,
      * when trnode's axis mapping is passed to sub-objects */
-    if (trnode != RT_NULL && trnode == parent && mtx_has_trm == 0
-    &&  obj_has_trm & RT_UPDATE_FLAG_ROT)
+    if (trnode != RT_NULL && mtx_has_trm == 0
+    && (trnode == parent && (obj_has_trm & RT_UPDATE_FLAG_ROT) != 0))
     {
         matrix_from_transform(this->mtx, trm);
     }
@@ -275,36 +271,41 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
      * before and after trnode with object's own matrix
      * to obtain object's full transform matrix
      * (no caching for this obj, it is its own trnode) */
-    if (trnode != RT_NULL && trnode != parent && mtx_has_trm)
+    if (trnode != RT_NULL && mtx_has_trm != 0
+    && (trnode != parent || (obj_has_trm & RT_UPDATE_FLAG_ROT) == 0))
     {
-        rt_mat4 obj_mtx, tmp_mtx;
-        matrix_from_transform(obj_mtx, trm);
+        rt_mat4 trm_mtx, tmp_mtx;
+        matrix_from_transform(trm_mtx, trm);
         matrix_mul_matrix(tmp_mtx, trnode->mtx, mtx);
-        matrix_mul_matrix(this->mtx, tmp_mtx, obj_mtx);
+        matrix_mul_matrix(this->mtx, tmp_mtx, trm_mtx);
     }
     else
     /* compute object's transform matrix as matrix from the hierarchy
      * (either from trnode or from root) multiplied by its own matrix */
     {
-        rt_mat4 obj_mtx;
-        matrix_from_transform(obj_mtx, trm);
-        matrix_mul_matrix(this->mtx, mtx, obj_mtx);
+        rt_mat4 trm_mtx;
+        matrix_from_transform(trm_mtx, trm);
+        matrix_mul_matrix(this->mtx, mtx, trm_mtx);
     }
 
     /* if object itself has non-trivial transform, it is its own trnode,
      * not considering the case when object's transform is compensated
      * by parents' transforms resulting in object being axis-aligned */
-    if (mtx_has_trm)
+    if (mtx_has_trm != 0)
     {
+        /* determine if object's full matrix has
+         * non-trivial transform */
+        obj_has_trm |= mtx_has_trm;
+
         trnode = this;
     }
-
+    else
     /* always compute full transform matrix
      * for non-surface / non-array objects
      * or all objects if transform caching is disabled */
-    if (trnode != RT_NULL && trnode != this
+    if (trnode != RT_NULL
 #if RT_OPTS_TARRAY != 0
-    &&  ((rg->opts & RT_OPTS_TARRAY) == 0 || tag > RT_TAG_SURFACE_MAX)
+    && ((rg->opts & RT_OPTS_TARRAY) == 0 || tag > RT_TAG_SURFACE_MAX)
 #endif /* RT_OPTS_TARRAY */
        )
     {
@@ -730,7 +731,7 @@ rt_void rt_Node::update_matrix(rt_mat4 mtx)
      * to objects which have scaling with trivial rotation
      * in their full transform matrix */
     if (trnode != this
-    ||  obj_has_trm == RT_UPDATE_FLAG_SCL)
+    || (obj_has_trm & RT_UPDATE_FLAG_ROT) == 0)
     {
         for (i = 0; i < 3; i++)
         {
@@ -759,7 +760,7 @@ rt_void rt_Node::update_matrix(rt_mat4 mtx)
      * separate axis mapping from transform matrix,
      * which would then only have scalers on main diagonal */
     if (trnode == this
-    &&  obj_has_trm == RT_UPDATE_FLAG_SCL)
+    && (obj_has_trm & RT_UPDATE_FLAG_ROT) == 0)
     {
         for (i = 0; i < 3; i++)
         {
@@ -1622,7 +1623,7 @@ rt_void rt_Array::update_matrix(rt_mat4 mtx)
      * separate axis mapping from transform matrix,
      * axis mapping matrix is then passed to sub-objects */
     if (trnode == this
-    &&  obj_has_trm == RT_UPDATE_FLAG_SCL)
+    && (obj_has_trm & RT_UPDATE_FLAG_ROT) == 0)
     {
         if (obj_changed)
         {
