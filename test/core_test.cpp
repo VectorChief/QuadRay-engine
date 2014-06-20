@@ -35,6 +35,7 @@
 /******************************************************************************/
 
 static rt_cell t_diff = 3;
+static rt_bool p_mode = RT_FALSE;
 static rt_bool v_mode = RT_FALSE;
 static rt_bool i_mode = RT_FALSE;
 
@@ -61,24 +62,44 @@ rt_void frame_cpy(rt_word *fd, rt_word *fs)
 static
 rt_cell frame_cmp(rt_word *f1, rt_word *f2)
 {
-    rt_cell i, ret = 0;
+    rt_cell i, j, ret = 0;
 
-    /* print first or all pixels above diff threshold */
-    for (i = 0; i < y_res * x_row; i++)
+    /* print first or all (verbose) pixel spots above diff threshold,
+     * ignore isolated pixels if pixhunt mode is disabled (default) */
+    for (j = 0; j < y_res; j++)
     {
-        if (PEQ(f1[i], f2[i]))
+        for (i = 0; i < x_res; i++)
         {
-            continue;
-        }
+            if (PEQ(f1[j*x_row + i], f2[j*x_row + i]))
+            {
+                continue;
+            }
+            else
+            if (!p_mode
+            &&  j > 0 && j < y_res - 1
+            &&  i > 0 && i < x_res - 1 
+            &&  PEQ(f1[(j-1)*x_row + (i-1)], f2[(j-1)*x_row + (i-1)])
+            &&  PEQ(f1[(j-1)*x_row + (i-0)], f2[(j-1)*x_row + (i-0)])
+            &&  PEQ(f1[(j-1)*x_row + (i+1)], f2[(j-1)*x_row + (i+1)])
+            &&  PEQ(f1[(j-0)*x_row + (i-1)], f2[(j-0)*x_row + (i-1)])
+            &&  PEQ(f1[(j+0)*x_row + (i+1)], f2[(j+0)*x_row + (i+1)])
+            &&  PEQ(f1[(j+1)*x_row + (i-1)], f2[(j+1)*x_row + (i-1)])
+            &&  PEQ(f1[(j+1)*x_row + (i+0)], f2[(j+1)*x_row + (i+0)])
+            &&  PEQ(f1[(j+1)*x_row + (i+1)], f2[(j+1)*x_row + (i+1)]))
+            {
+                continue;
+            }
 
-        ret = 1;
+            ret = 1;
 
-        RT_LOGI("Frames differ (%06X %06X) at x = %d, y = %d\n",
-                    f1[i], f2[i], i % x_row, i / x_row);
+            RT_LOGI("Frames differ (%06X %06X) at x = %d, y = %d\n",
+                        f1[j*x_row + i], f2[j*x_row + i], i, j);
 
-        if (!v_mode)
-        {
-            break;
+            if (!v_mode)
+            {
+                j = y_res - 1;
+                break;
+            }
         }
     }
 
@@ -490,9 +511,10 @@ rt_cell main(rt_cell argc, rt_char *argv[])
         RT_LOGI("Usage options are given below:\n");
         RT_LOGI(" -t tex1 tex2 texn, convert images in data/textures/tex*\n");
         RT_LOGI(" -d n, override diff threshold, where n is new diff 0..9\n");
-        RT_LOGI(" -v, enable verbose mode\n");
-        RT_LOGI(" -i, enable imaging mode\n");
-        RT_LOGI("options -d, -v, -i can be used together, -t is standalone\n");
+        RT_LOGI(" -p, enable pixhunt mode, print isolated pixels (> diff)\n");
+        RT_LOGI(" -v, enable verbose mode, print all pixel spots (> diff)\n");
+        RT_LOGI(" -i, enable imaging mode, save images before-after-diffs\n");
+        RT_LOGI("options -d, -p, -v, -i can be combined, -t is standalone\n");
         RT_LOGI("---------------------------------------------------------\n");
     }
 
@@ -523,6 +545,11 @@ rt_cell main(rt_cell argc, rt_char *argv[])
                 RT_LOGI("Diff threshold value out of range\n");
                 return 0;
             }
+        }
+        if (strcmp(argv[k], "-p") == 0 && !p_mode)
+        {
+            p_mode = RT_TRUE;
+            RT_LOGI("Pixhunt mode enabled\n");
         }
         if (strcmp(argv[k], "-v") == 0 && !v_mode)
         {
