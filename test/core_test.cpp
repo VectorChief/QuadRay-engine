@@ -51,6 +51,7 @@ rt_void frame_cpy(rt_word *fd, rt_word *fs)
 {
     rt_cell i;
 
+    /* copy frame */
     for (i = 0; i < y_res * x_row; i++, fd++, fs++)
     {
        *fd = *fs;
@@ -62,6 +63,7 @@ rt_cell frame_cmp(rt_word *f1, rt_word *f2)
 {
     rt_cell i, ret = 0;
 
+    /* print first or all pixels above diff threshold */
     for (i = 0; i < y_res * x_row; i++)
     {
         if (PEQ(f1[i], f2[i]))
@@ -93,9 +95,11 @@ rt_void frame_dff(rt_word *fd, rt_word *fs)
 {
     rt_cell i;
 
+    /* save diff, max all pixels above diff threshold */
     for (i = 0; i < y_res * x_row; i++, fd++, fs++)
     {
        *fd = PDF(*fd, *fs);
+       *fd = PEQ(*fd, 0x0) ? *fd : 0x00FFFFFF;
     }
 }
 
@@ -104,6 +108,7 @@ rt_void frame_max(rt_word *fd)
 {
     rt_cell i;
 
+    /* max all pixels with non-zero diff */
     for (i = 0; i < y_res * x_row; i++, fd++)
     {
        *fd = *fd & 0x00FFFFFF ? 0x00FFFFFF : 0x00000000;
