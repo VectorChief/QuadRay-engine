@@ -166,6 +166,17 @@ rt_OBJECT ob_cargo01[] =
     },
 };
 
+rt_RELATION rl_cargo01[] =
+{
+    {  -1,  RT_REL_BOUND_ARRAY,  -1   },
+    {  -1,  RT_REL_UNTIE_INDEX,   2   },
+};
+
+rt_RELATION rl_frame[] =
+{
+    {  -1,  RT_REL_BOUND_ARRAY,  -1   },
+};
+
 rt_OBJECT ob_frame01[] =
 {
     {
@@ -174,7 +185,7 @@ rt_OBJECT ob_frame01[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   +2.5,       -2.5,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_cargo01)
+        RT_OBJ_ARRAY_REL(&ob_cargo01, &rl_cargo01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -182,7 +193,7 @@ rt_OBJECT ob_frame01[] =
 /* rot */   {    0.0,        0.0,       90.0    },
 /* pos */   {   +2.5,       +2.5,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_cargo01)
+        RT_OBJ_ARRAY_REL(&ob_cargo01, &rl_cargo01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -190,7 +201,7 @@ rt_OBJECT ob_frame01[] =
 /* rot */   {    0.0,        0.0,      180.0    },
 /* pos */   {   -2.5,       +2.5,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_cargo01)
+        RT_OBJ_ARRAY_REL(&ob_cargo01, &rl_cargo01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -198,7 +209,7 @@ rt_OBJECT ob_frame01[] =
 /* rot */   {    0.0,        0.0,      270.0    },
 /* pos */   {   -2.5,       -2.5,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_cargo01)
+        RT_OBJ_ARRAY_REL(&ob_cargo01, &rl_cargo01)
     },
 };
 
@@ -210,7 +221,7 @@ rt_OBJECT ob_frame02[] =
 /* rot */   {    0.0,        0.0,       90.0    },
 /* pos */   {    0.0,        0.0,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_cargo01)
+        RT_OBJ_ARRAY_REL(&ob_cargo01, &rl_cargo01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -218,7 +229,7 @@ rt_OBJECT ob_frame02[] =
 /* rot */   {    0.0,        0.0,      -30.0    },
 /* pos */   {    0.0,        0.0,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_cargo01)
+        RT_OBJ_ARRAY_REL(&ob_cargo01, &rl_cargo01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -226,7 +237,7 @@ rt_OBJECT ob_frame02[] =
 /* rot */   {    0.0,        0.0,     -150.0    },
 /* pos */   {    0.0,        0.0,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_cargo01)
+        RT_OBJ_ARRAY_REL(&ob_cargo01, &rl_cargo01)
     },
 };
 
@@ -238,7 +249,7 @@ rt_OBJECT ob_frame03[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   +2.5,       -2.5,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_cargo01)
+        RT_OBJ_ARRAY_REL(&ob_cargo01, &rl_cargo01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -246,7 +257,7 @@ rt_OBJECT ob_frame03[] =
 /* rot */   {    0.0,        0.0,       90.0    },
 /* pos */   {   +2.5,       +2.5,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_cargo01)
+        RT_OBJ_ARRAY_REL(&ob_cargo01, &rl_cargo01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -254,7 +265,7 @@ rt_OBJECT ob_frame03[] =
 /* rot */   {    0.0,        0.0,      180.0    },
 /* pos */   {   -2.5,       +2.5,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_cargo01)
+        RT_OBJ_ARRAY_REL(&ob_cargo01, &rl_cargo01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -262,7 +273,7 @@ rt_OBJECT ob_frame03[] =
 /* rot */   {    0.0,        0.0,      270.0    },
 /* pos */   {   -2.5,       -2.5,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_cargo01)
+        RT_OBJ_ARRAY_REL(&ob_cargo01, &rl_cargo01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -306,7 +317,7 @@ rt_OBJECT ob_frame04[] =
 /* rot */   {    0.0,        0.0,       90.0    },
 /* pos */   {    0.0,        0.0,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_cargo01)
+        RT_OBJ_ARRAY_REL(&ob_cargo01, &rl_cargo01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -314,7 +325,7 @@ rt_OBJECT ob_frame04[] =
 /* rot */   {    0.0,        0.0,      -30.0    },
 /* pos */   {    0.0,        0.0,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_cargo01)
+        RT_OBJ_ARRAY_REL(&ob_cargo01, &rl_cargo01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -322,7 +333,7 @@ rt_OBJECT ob_frame04[] =
 /* rot */   {    0.0,        0.0,     -150.0    },
 /* pos */   {    0.0,        0.0,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_cargo01)
+        RT_OBJ_ARRAY_REL(&ob_cargo01, &rl_cargo01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -358,7 +369,7 @@ rt_OBJECT ob_megaframe01[] =
 /* rot */   {    0.0,        0.0,       45.0    },
 /* pos */   {   -3.0,        0.0,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_frame01),
+        RT_OBJ_ARRAY_REL(&ob_frame01, &rl_frame),
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -366,7 +377,7 @@ rt_OBJECT ob_megaframe01[] =
 /* rot */   {    0.0,        0.0,       60.0    },
 /* pos */   {   +3.0,        0.0,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_frame02),
+        RT_OBJ_ARRAY_REL(&ob_frame02, &rl_frame),
     },
 };
 
@@ -378,7 +389,7 @@ rt_OBJECT ob_megaframe02[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   -3.0,        0.0,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_frame03),
+        RT_OBJ_ARRAY_REL(&ob_frame03, &rl_frame),
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -386,7 +397,7 @@ rt_OBJECT ob_megaframe02[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   +3.0,        0.0,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_frame04),
+        RT_OBJ_ARRAY_REL(&ob_frame04, &rl_frame),
     },
 };
 
@@ -398,7 +409,7 @@ rt_OBJECT ob_hyperframe01[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {    0.0,        0.0,        1.0    },
         },
-        RT_OBJ_ARRAY(&ob_megaframe01),
+        RT_OBJ_ARRAY_REL(&ob_megaframe01, &rl_frame),
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -406,7 +417,7 @@ rt_OBJECT ob_hyperframe01[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {    0.0,        0.0,        4.0    },
         },
-        RT_OBJ_ARRAY(&ob_megaframe02),
+        RT_OBJ_ARRAY_REL(&ob_megaframe02, &rl_frame),
     },
 };
 
@@ -502,7 +513,7 @@ rt_OBJECT ob_tree[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {    0.0,        0.0,        0.0    },
         },
-        RT_OBJ_ARRAY(&ob_hyperframe01),
+        RT_OBJ_ARRAY_REL(&ob_hyperframe01, &rl_frame),
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
