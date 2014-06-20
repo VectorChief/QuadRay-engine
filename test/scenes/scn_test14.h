@@ -58,7 +58,7 @@ rt_CYLINDER cl_tube01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_metal01_cyan01,
+/* mat */   &mt_plain02_red01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -83,7 +83,7 @@ rt_CYLINDER cl_tube02 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_metal01_cyan01,
+/* mat */   &mt_plain02_red01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -100,7 +100,7 @@ rt_CYLINDER cl_tube02 =
 rt_SPHERE sp_ball01 =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
-/* min */   {  -RT_INF,    -RT_INF,    -RT_INF  },
+/* min */   {  -RT_INF,    -RT_INF,      0.0    },
 /* max */   {  +RT_INF,    +RT_INF,    +RT_INF  },
         {
 /* OUTER        RT_U,       RT_V    */
@@ -108,7 +108,7 @@ rt_SPHERE sp_ball01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_metal01_cyan01,
+/* mat */   &mt_plain02_red01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -346,7 +346,7 @@ rt_OBJECT ob_frame04[] =
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {    0.0,        0.0,        0.0    },
+/* rot */   {    0.0,      180.0,        0.0    },
 /* pos */   {    0.0,        0.0,        0.0    },
         },
         RT_OBJ_SPHERE(&sp_ball01),
@@ -503,7 +503,7 @@ rt_OBJECT ob_tree[] =
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {    0.0,        0.0,        4.0    },
+/* pos */   {    0.0,        0.0,        7.0    },
         },
         RT_OBJ_ARRAY(&ob_light01),
     },
