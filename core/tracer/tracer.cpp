@@ -798,7 +798,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_MASK(LT_amb, NONE, Xmm7)
         andpx_rr(Xmm0, Xmm7)                    /* r_dot &= lmask */
 
-        xorpx_rr(Xmm7, Xmm7)                    /* reset shadow mask */
+        xorpx_rr(Xmm6, Xmm6)                    /* init shadow mask */
+        ceqps_rr(Xmm7, Xmm6)                    /* with inverted lmask */
 
 #if RT_SHADOWS
 
@@ -821,7 +822,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_T_BUF(0))      /* tmp_v -> T_BUF */
 
         xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
-        movpx_st(Xmm0, Mecx, ctx_C_BUF(0))      /* tmp_v -> C_BUF */
+        movpx_st(Xmm7, Mecx, ctx_C_BUF(0))      /* lmask -> C_BUF */
         movpx_st(Xmm0, Mecx, ctx_COL_R(0))      /* tmp_v -> COL_R */
         movpx_st(Xmm0, Mecx, ctx_COL_G(0))      /* tmp_v -> COL_G */
         movpx_st(Xmm0, Mecx, ctx_COL_B(0))      /* tmp_v -> COL_B */
