@@ -15,7 +15,7 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
-#define RUN_LEVEL           13
+#define RUN_LEVEL           14
 #define CYC_SIZE            1000000
 
 #define ARR_SIZE            S*3 /* hardcoded in asm sections, S = SIMD width */
@@ -180,7 +180,7 @@ rt_void s_test01(rt_SIMD_INFOX *info)
 
 rt_void p_test01(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_real *fco1 = info->fco1;
@@ -188,7 +188,7 @@ rt_void p_test01(rt_SIMD_INFOX *info)
     rt_real *fso1 = info->fso1;
     rt_real *fso2 = info->fso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
@@ -280,7 +280,7 @@ rt_void s_test02(rt_SIMD_INFOX *info)
 
 rt_void p_test02(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_real *fco1 = info->fco1;
@@ -288,7 +288,7 @@ rt_void p_test02(rt_SIMD_INFOX *info)
     rt_real *fso1 = info->fso1;
     rt_real *fso2 = info->fso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
@@ -381,7 +381,7 @@ rt_void s_test03(rt_SIMD_INFOX *info)
 
 rt_void p_test03(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_cell *ico1 = info->ico1;
@@ -389,7 +389,7 @@ rt_void p_test03(rt_SIMD_INFOX *info)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
@@ -481,7 +481,7 @@ rt_void s_test04(rt_SIMD_INFOX *info)
 
 rt_void p_test04(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_cell *ico1 = info->ico1;
@@ -489,7 +489,7 @@ rt_void p_test04(rt_SIMD_INFOX *info)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
@@ -581,7 +581,7 @@ rt_void s_test05(rt_SIMD_INFOX *info)
 
 rt_void p_test05(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_cell *ico1 = info->ico1;
@@ -589,7 +589,7 @@ rt_void p_test05(rt_SIMD_INFOX *info)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
@@ -681,7 +681,7 @@ rt_void s_test06(rt_SIMD_INFOX *info)
 
 rt_void p_test06(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_cell *iar0 = info->iar0;
@@ -690,7 +690,7 @@ rt_void p_test06(rt_SIMD_INFOX *info)
     rt_cell *iso1 = info->iso1;
     rt_real *fso2 = info->fso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
@@ -773,7 +773,7 @@ rt_void s_test07(rt_SIMD_INFOX *info)
 
 rt_void p_test07(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_real *fco1 = info->fco1;
@@ -781,7 +781,7 @@ rt_void p_test07(rt_SIMD_INFOX *info)
     rt_real *fso1 = info->fso1;
     rt_real *fso2 = info->fso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
@@ -879,7 +879,7 @@ rt_void s_test08(rt_SIMD_INFOX *info)
 
 rt_void p_test08(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_cell *iar0 = info->iar0;
     rt_cell *ico1 = info->ico1;
@@ -887,7 +887,7 @@ rt_void p_test08(rt_SIMD_INFOX *info)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
@@ -1002,7 +1002,7 @@ rt_void s_test09(rt_SIMD_INFOX *info)
 
 rt_void p_test09(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_cell *iar0 = info->iar0;
     rt_cell *ico1 = info->ico1;
@@ -1010,7 +1010,7 @@ rt_void p_test09(rt_SIMD_INFOX *info)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
@@ -1103,7 +1103,7 @@ rt_void s_test10(rt_SIMD_INFOX *info)
 
 rt_void p_test10(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_real *fco1 = info->fco1;
@@ -1111,7 +1111,7 @@ rt_void p_test10(rt_SIMD_INFOX *info)
     rt_real *fso1 = info->fso1;
     rt_real *fso2 = info->fso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
@@ -1209,7 +1209,7 @@ rt_void s_test11(rt_SIMD_INFOX *info)
 
 rt_void p_test11(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_cell *iar0 = info->iar0;
     rt_cell *ico1 = info->ico1;
@@ -1217,7 +1217,7 @@ rt_void p_test11(rt_SIMD_INFOX *info)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
@@ -1317,7 +1317,7 @@ rt_void s_test12(rt_SIMD_INFOX *info)
 
 rt_void p_test12(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_cell *iar0 = info->iar0;
     rt_cell *ico1 = info->ico1;
@@ -1325,7 +1325,7 @@ rt_void p_test12(rt_SIMD_INFOX *info)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
@@ -1409,7 +1409,7 @@ rt_void s_test13(rt_SIMD_INFOX *info)
 
 rt_void p_test13(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_real *fco1 = info->fco1;
@@ -1417,7 +1417,7 @@ rt_void p_test13(rt_SIMD_INFOX *info)
     rt_real *fso1 = info->fso1;
     rt_real *fso2 = info->fso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
@@ -1437,6 +1437,192 @@ rt_void p_test13(rt_SIMD_INFOX *info)
 }
 
 #endif /* RUN_LEVEL 13 */
+
+/******************************************************************************/
+/******************************   RUN LEVEL 14   ******************************/
+/******************************************************************************/
+
+#if RUN_LEVEL >= 14
+
+rt_void c_test14(rt_SIMD_INFOX *info)
+{
+    rt_cell i, j, k, n = info->size;
+    rt_real *far0 = info->far0;
+    rt_cell *ico1 = info->ico1;
+    rt_cell *ico2 = info->ico2;
+
+    i = info->cyc;
+    while (i-->0)
+    {
+        j = n / S;
+        while (j-->0)
+        {
+            rt_cell e = 0;
+
+            k = S;
+            while (k-->0)
+            {
+                e += (far0[j*S + k] == far0[((j+1)*S + k) % n]) ? 1 : 0;
+            }
+
+            k = S;
+            while (k-->0)
+            {
+                ico1[j*S + k] = (e == 0) ? 0x00000000 : 0xFFFFFFFF;
+                ico2[j*S + k] = (e == 0) ? 0xFFFFFFFF : 0x00000000;
+            }
+        }
+    }
+}
+
+rt_void s_test14(rt_SIMD_INFOX *info)
+{
+    rt_cell i;
+
+    i = info->cyc;
+    while (i-->0)
+    {
+        ASM_ENTER(info)
+
+        movxx_ld(Recx, Mebp, inf_FAR0)
+        movxx_ld(Redx, Mebp, inf_ISO1)
+        movxx_ld(Rebx, Mebp, inf_ISO2)
+
+        /* 0th section */
+        movpx_ld(Xmm0, Mecx, AJ0)
+        movpx_ld(Xmm1, Mecx, AJ1)
+
+        movpx_rr(Xmm2, Xmm0)
+        ceqps_rr(Xmm2, Xmm1)
+        CHECK_MASK(eq0_out, NONE, Xmm2)
+
+        xorpx_rr(Xmm2, Xmm2)
+        ceqps_rr(Xmm2, Xmm2)
+
+    LBL(eq0_out)
+
+        movpx_st(Xmm2, Medx, AJ0)
+
+        movpx_rr(Xmm3, Xmm0)
+        cneps_rr(Xmm3, Xmm1)
+        CHECK_MASK(ne0_out, FULL, Xmm3)
+
+        xorpx_rr(Xmm3, Xmm3)
+
+    LBL(ne0_out)
+
+        movpx_st(Xmm3, Mebx, AJ0)
+
+        /* 1st section */
+        movpx_ld(Xmm0, Mecx, AJ1)
+        movpx_ld(Xmm1, Mecx, AJ2)
+
+        movpx_rr(Xmm2, Xmm0)
+        ceqps_rr(Xmm2, Xmm1)
+        CHECK_MASK(eq1_out, NONE, Xmm2)
+
+        xorpx_rr(Xmm2, Xmm2)
+        ceqps_rr(Xmm2, Xmm2)
+
+    LBL(eq1_out)
+
+        movpx_st(Xmm2, Medx, AJ1)
+
+        movpx_rr(Xmm3, Xmm0)
+        cneps_rr(Xmm3, Xmm1)
+        CHECK_MASK(ne1_out, FULL, Xmm3)
+
+        xorpx_rr(Xmm3, Xmm3)
+
+    LBL(ne1_out)
+
+        movpx_st(Xmm3, Mebx, AJ1)
+
+        /* 2nd section */
+        movpx_ld(Xmm0, Mecx, AJ2)
+        movpx_ld(Xmm1, Mecx, AJ0)
+
+        movpx_rr(Xmm2, Xmm0)
+        ceqps_rr(Xmm2, Xmm1)
+        CHECK_MASK(eq2_out, NONE, Xmm2)
+
+        xorpx_rr(Xmm2, Xmm2)
+        ceqps_rr(Xmm2, Xmm2)
+
+    LBL(eq2_out)
+
+        movpx_st(Xmm2, Medx, AJ2)
+
+        movpx_rr(Xmm3, Xmm0)
+        cneps_rr(Xmm3, Xmm1)
+        CHECK_MASK(ne2_out, FULL, Xmm3)
+
+        xorpx_rr(Xmm3, Xmm3)
+
+    LBL(ne2_out)
+
+        movpx_st(Xmm3, Mebx, AJ2)
+
+        ASM_LEAVE(info)
+    }
+}
+
+rt_void p_test14(rt_SIMD_INFOX *info)
+{
+    rt_cell j, k, n = info->size;
+
+    rt_real *far0 = info->far0;
+    rt_cell *ico1 = info->ico1;
+    rt_cell *ico2 = info->ico2;
+    rt_cell *iso1 = info->iso1;
+    rt_cell *iso2 = info->iso2;
+
+    j = n / S;
+    while (j-->0)
+    {
+        rt_cell e = 0;
+
+        k = S;
+        while (k-->0)
+        {
+            e += IEQ(ico1[j*S + k], iso1[j*S + k]) ? 1 : 0;
+            e += IEQ(ico2[j*S + k], iso2[j*S + k]) ? 1 : 0;
+        }
+
+        if (e == 2*S && !v_mode)
+        {
+            continue;
+        }
+
+        k = S;
+        while (k-->0)
+        {
+            RT_LOGI("farr[%d] = %e, farr[%d] = %e\n",
+                    j*S + k, far0[j*S + k],
+                    ((j+1)*S + k) % n, far0[((j+1)*S + k) % n]);
+        }
+
+        k = S;
+        while (k-->0)
+        {
+            RT_LOGI("C (farr[%d] == farr[%d]) = %X, "
+                      "(farr[%d] != farr[%d]) = %X\n",
+                    j*S + k, ((j+1)*S + k) % n, ico1[j*S + k],
+                    j*S + k, ((j+1)*S + k) % n, ico2[j*S + k]);
+        }
+
+        k = S;
+        while (k-->0)
+        {
+            RT_LOGI("S (farr[%d] == farr[%d]) = %X, "
+                      "(farr[%d] != farr[%d]) = %X\n",
+                    j*S + k, ((j+1)*S + k) % n, iso1[j*S + k],
+                    j*S + k, ((j+1)*S + k) % n, iso2[j*S + k]);
+        }
+    }
+}
+
+#endif /* RUN_LEVEL 14 */
 
 /******************************************************************************/
 /*********************************   TABLES   *********************************/
@@ -1497,6 +1683,10 @@ testXX c_test[RUN_LEVEL] =
 #if RUN_LEVEL >= 13
     c_test13,
 #endif /* RUN_LEVEL 13 */
+
+#if RUN_LEVEL >= 14
+    c_test14,
+#endif /* RUN_LEVEL 14 */
 };
 
 testXX s_test[RUN_LEVEL] =
@@ -1552,6 +1742,10 @@ testXX s_test[RUN_LEVEL] =
 #if RUN_LEVEL >= 13
     s_test13,
 #endif /* RUN_LEVEL 13 */
+
+#if RUN_LEVEL >= 14
+    s_test14,
+#endif /* RUN_LEVEL 14 */
 };
 
 testXX p_test[RUN_LEVEL] =
@@ -1607,6 +1801,10 @@ testXX p_test[RUN_LEVEL] =
 #if RUN_LEVEL >= 13
     p_test13,
 #endif /* RUN_LEVEL 13 */
+
+#if RUN_LEVEL >= 14
+    p_test14,
+#endif /* RUN_LEVEL 14 */
 };
 
 /******************************************************************************/
@@ -1645,7 +1843,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
         RT_LOGI("Usage options are given below:\n");
         RT_LOGI(" -d n, override diff threshold, where n is new diff 0..9\n");
         RT_LOGI(" -v, enable verbose mode\n");
-        RT_LOGI("options -d, -v can be used together\n");
+        RT_LOGI("options -d, -v can be combined\n");
         RT_LOGI("---------------------------------------------------------\n");
     }
 
