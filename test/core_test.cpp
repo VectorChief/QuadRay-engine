@@ -116,10 +116,15 @@ rt_void frame_dff(rt_word *fd, rt_word *fs)
 {
     rt_cell i;
 
-    /* save diff, max all pixels above diff threshold */
+    /* save diff, max all pixels above diff threshold
+     * if pixhunt mode is enabled */
     for (i = 0; i < y_res * x_row; i++, fd++, fs++)
     {
        *fd = PDF(*fd, *fs);
+        if (!p_mode)
+        {
+            continue;
+        }
        *fd = PEQ(*fd, 0x0) ? *fd : 0x00FFFFFF;
     }
 }
