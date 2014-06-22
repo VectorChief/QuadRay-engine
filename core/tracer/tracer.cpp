@@ -63,7 +63,7 @@
 #define RT_FEAT_ANTIALIASING        1
 #define RT_FEAT_TRANSFORM           1
 #define RT_FEAT_TRANSFORM_ARRAY     1
-#define RT_FEAT_BOUNDINGV_ARRAY     1
+#define RT_FEAT_BOUND_VOL_ARRAY     1
 
 /*
  * Byte-offsets within SIMD-field
@@ -648,7 +648,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_TRANSFORM_ARRAY */
 
-#if RT_FEAT_BOUNDINGV_ARRAY
+#if RT_FEAT_BOUND_VOL_ARRAY
 
         /* only arrays are allowed to have
          * non-zero lower two bits in DATA field
@@ -658,7 +658,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_ri(Reax, IB(1))
         jeqxx_lb(AR_ptr)
 
-#endif /* RT_FEAT_BOUNDINGV_ARRAY */
+#endif /* RT_FEAT_BOUND_VOL_ARRAY */
 
         /* compute negated diff
          * to compensate for minus in solvers */
@@ -2046,7 +2046,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /**********************************   ARRAY   *********************************/
 /******************************************************************************/
 
-#if RT_FEAT_BOUNDINGV_ARRAY
+#if RT_FEAT_BOUND_VOL_ARRAY
 
     LBL(AR_ptr)
 
@@ -2118,7 +2118,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_mi(Mecx, ctx_LOCAL(OBJ), IB(0))
         jmpxx_lb(OO_end)
 
-#endif /* RT_FEAT_BOUNDINGV_ARRAY */
+#endif /* RT_FEAT_BOUND_VOL_ARRAY */
 
 /******************************************************************************/
 /**********************************   PLANE   *********************************/
