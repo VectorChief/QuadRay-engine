@@ -180,7 +180,7 @@ rt_void s_test01(rt_SIMD_INFOX *info)
 
 rt_void p_test01(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_real *fco1 = info->fco1;
@@ -188,7 +188,7 @@ rt_void p_test01(rt_SIMD_INFOX *info)
     rt_real *fso1 = info->fso1;
     rt_real *fso2 = info->fso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
@@ -280,7 +280,7 @@ rt_void s_test02(rt_SIMD_INFOX *info)
 
 rt_void p_test02(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_real *fco1 = info->fco1;
@@ -288,7 +288,7 @@ rt_void p_test02(rt_SIMD_INFOX *info)
     rt_real *fso1 = info->fso1;
     rt_real *fso2 = info->fso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
@@ -381,7 +381,7 @@ rt_void s_test03(rt_SIMD_INFOX *info)
 
 rt_void p_test03(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_cell *ico1 = info->ico1;
@@ -389,7 +389,7 @@ rt_void p_test03(rt_SIMD_INFOX *info)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
@@ -481,7 +481,7 @@ rt_void s_test04(rt_SIMD_INFOX *info)
 
 rt_void p_test04(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_cell *ico1 = info->ico1;
@@ -489,7 +489,7 @@ rt_void p_test04(rt_SIMD_INFOX *info)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
@@ -581,7 +581,7 @@ rt_void s_test05(rt_SIMD_INFOX *info)
 
 rt_void p_test05(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_cell *ico1 = info->ico1;
@@ -589,7 +589,7 @@ rt_void p_test05(rt_SIMD_INFOX *info)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
@@ -681,7 +681,7 @@ rt_void s_test06(rt_SIMD_INFOX *info)
 
 rt_void p_test06(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_cell *iar0 = info->iar0;
@@ -690,7 +690,7 @@ rt_void p_test06(rt_SIMD_INFOX *info)
     rt_cell *iso1 = info->iso1;
     rt_real *fso2 = info->fso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
@@ -773,7 +773,7 @@ rt_void s_test07(rt_SIMD_INFOX *info)
 
 rt_void p_test07(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_real *fco1 = info->fco1;
@@ -781,7 +781,7 @@ rt_void p_test07(rt_SIMD_INFOX *info)
     rt_real *fso1 = info->fso1;
     rt_real *fso2 = info->fso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
@@ -879,7 +879,7 @@ rt_void s_test08(rt_SIMD_INFOX *info)
 
 rt_void p_test08(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_cell *iar0 = info->iar0;
     rt_cell *ico1 = info->ico1;
@@ -887,7 +887,7 @@ rt_void p_test08(rt_SIMD_INFOX *info)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
@@ -1002,7 +1002,7 @@ rt_void s_test09(rt_SIMD_INFOX *info)
 
 rt_void p_test09(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_cell *iar0 = info->iar0;
     rt_cell *ico1 = info->ico1;
@@ -1010,7 +1010,7 @@ rt_void p_test09(rt_SIMD_INFOX *info)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
@@ -1103,7 +1103,7 @@ rt_void s_test10(rt_SIMD_INFOX *info)
 
 rt_void p_test10(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_real *fco1 = info->fco1;
@@ -1111,7 +1111,7 @@ rt_void p_test10(rt_SIMD_INFOX *info)
     rt_real *fso1 = info->fso1;
     rt_real *fso2 = info->fso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
@@ -1209,7 +1209,7 @@ rt_void s_test11(rt_SIMD_INFOX *info)
 
 rt_void p_test11(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_cell *iar0 = info->iar0;
     rt_cell *ico1 = info->ico1;
@@ -1217,7 +1217,7 @@ rt_void p_test11(rt_SIMD_INFOX *info)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
@@ -1317,7 +1317,7 @@ rt_void s_test12(rt_SIMD_INFOX *info)
 
 rt_void p_test12(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_cell *iar0 = info->iar0;
     rt_cell *ico1 = info->ico1;
@@ -1325,7 +1325,7 @@ rt_void p_test12(rt_SIMD_INFOX *info)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
@@ -1409,7 +1409,7 @@ rt_void s_test13(rt_SIMD_INFOX *info)
 
 rt_void p_test13(rt_SIMD_INFOX *info)
 {
-    rt_cell j, n;
+    rt_cell j, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_real *fco1 = info->fco1;
@@ -1417,7 +1417,7 @@ rt_void p_test13(rt_SIMD_INFOX *info)
     rt_real *fso1 = info->fso1;
     rt_real *fso2 = info->fso2;
 
-    j = n = info->size;
+    j = n;
     while (j-->0)
     {
         if (FEQ(fco1[j], fso1[j]) && FEQ(fco2[j], fso2[j]) && !v_mode)
@@ -1569,7 +1569,7 @@ rt_void s_test14(rt_SIMD_INFOX *info)
 
 rt_void p_test14(rt_SIMD_INFOX *info)
 {
-    rt_cell j, k, n;
+    rt_cell j, k, n = info->size;
 
     rt_real *far0 = info->far0;
     rt_cell *ico1 = info->ico1;
@@ -1577,7 +1577,7 @@ rt_void p_test14(rt_SIMD_INFOX *info)
     rt_cell *iso1 = info->iso1;
     rt_cell *iso2 = info->iso2;
 
-    j = n = info->size / S;
+    j = n / S;
     while (j-->0)
     {
         rt_cell e = 0;
