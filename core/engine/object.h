@@ -172,12 +172,13 @@ class rt_Object
     rt_real            *pos;
     rt_cell             tag;
 
-    /* non-zero if object itself has
+    /* non-zero if object itself or
+     * some of its parents has
      * non-trivial transform
      * (scaling, rotation or both) */
     rt_cell             obj_has_trm;
 
-    /* non-zero if object's full matrix has
+    /* non-zero if object's own matrix has
      * non-trivial transform
      * (scaling, rotation or both) */
     rt_cell             mtx_has_trm;
