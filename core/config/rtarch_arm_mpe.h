@@ -235,7 +235,7 @@
 #define rceps_rr(RG, RM)                                                    \
         EMITW(0xF3BB0540 | MTM(REG(RG), 0x00,    REG(RM)))
 
-#define rcsps_rr(RG, RM) /* destroys value in RM */                         \
+#define rcsps_rr(RG, RM) /* destroys RM */                                  \
         EMITW(0xF2000F50 | MTM(REG(RM), REG(RM), REG(RG)))                  \
         EMITW(0xF3000D50 | MTM(REG(RG), REG(RG), REG(RM)))
 
@@ -247,7 +247,7 @@
 #define rseps_rr(RG, RM)                                                    \
         EMITW(0xF3BB05C0 | MTM(REG(RG), 0x00,    REG(RM)))
 
-#define rssps_rr(RG, RM) /* destroys value in RM */                         \
+#define rssps_rr(RG, RM) /* destroys RM */                                  \
         EMITW(0xF3000D50 | MTM(REG(RM), REG(RM), REG(RG)))                  \
         EMITW(0xF2200F50 | MTM(REG(RM), REG(RM), REG(RG)))                  \
         EMITW(0xF3000D50 | MTM(REG(RG), REG(RG), REG(RM)))
@@ -454,7 +454,7 @@
         EMITW(0xF3B20200 | MTM(Tmm1+0,  0x00,    Tmm1))                     \
         EMITW(0xEE100B10 | MTM(REG(RG), Tmm1+0,  0x00))
 
-#define CHECK_MASK(lb, mask, RG) /* destroys value in Reax */               \
+#define CHECK_MASK(lb, mask, RG) /* destroys Reax */                        \
         movms_rr(Reax, W(RG))                                               \
         addxx_ri(Reax, IB(RT_SIMD_MASK_##mask))                             \
         cmpxx_ri(Reax, IB(0))                                               \
@@ -473,13 +473,13 @@
 #define fpscr_st(RG) /* not portable, do not use outside */                 \
         EMITW(0xEEF10A10 | MRM(REG(RG), 0x00,    0x00))
 
-#define FCTRL_ENTER(mode) /* destroys value in Reax */                      \
+#define FCTRL_ENTER(mode) /* destroys Reax */                               \
         fpscr_st(Reax)                                                      \
         movxx_st(Reax, Mebp, inf_FCTRL)                                     \
         orrxx_ri(Reax, IW(RT_SIMD_MODE_##mode << 22))                       \
         fpscr_ld(Reax)
 
-#define FCTRL_LEAVE(mode) /* destroys value in Reax */                      \
+#define FCTRL_LEAVE(mode) /* destroys Reax */                               \
         movxx_ld(Reax, Mebp, inf_FCTRL)                                     \
         fpscr_ld(Reax)
 

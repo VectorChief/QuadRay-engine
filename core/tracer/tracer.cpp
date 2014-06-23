@@ -131,7 +131,7 @@
  * Highlight frame tiles occupied by surfaces
  * of different types with different colors.
  */
-#define SHOW_TILES(lb, cl)                                                  \
+#define SHOW_TILES(lb, cl) /* destroys Reax, Xmm0 */                        \
         movxx_ri(Reax, IW(cl))                                              \
         movxx_st(Reax, Mecx, ctx_C_BUF(0x00))                               \
         movxx_st(Reax, Mecx, ctx_C_BUF(0x04))                               \
@@ -146,16 +146,16 @@
  * Perform axis mapping when
  * transform is a multiple of 90 degree rotation.
  */
-#define INDEX_AXIS(nx)                                                      \
+#define INDEX_AXIS(nx) /* destroys Reax, Xmm0 */                            \
         movxx_ld(Reax, Mebx, srf_A_SGN(nx * 4))                             \
         movpx_ld(Xmm0, Iebx, srf_SBASE)                                     \
         movxx_ld(Reax, Mebx, srf_A_MAP(nx * 4))
 
-#define MOVXR_LD(RG, RM, DP)                                                \
+#define MOVXR_LD(RG, RM, DP) /* reads Xmm0 */                               \
         movpx_ld(W(RG), W(RM), W(DP))                                       \
         xorpx_rr(W(RG), Xmm0)
 
-#define MOVXR_ST(RG, RM, DP)                                                \
+#define MOVXR_ST(RG, RM, DP) /* reads Xmm0 */                               \
         xorpx_rr(W(RG), Xmm0)                                               \
         movpx_st(W(RG), W(RM), W(DP))
 
@@ -163,7 +163,7 @@
         xorpx_rr(W(RG), W(RG))                                              \
         movpx_st(W(RG), W(RM), W(DP))
 
-#define INDEX_TMAP(nx)                                                      \
+#define INDEX_TMAP(nx) /* destroys Reax */                                  \
         movxx_ld(Reax, Medx, mat_T_MAP(nx * 4))
 
 /*
@@ -180,7 +180,7 @@
  * Apply custom clipping (by surface) to ray's hit point
  * based on the side of the clipping surface.
  */
-#define APPLY_CLIP(lb, RG, RM)                                              \
+#define APPLY_CLIP(lb, RG, RM) /* destroys Reax */                          \
         movxx_ri(Reax, IB(1))                                               \
         subxx_ld(Reax, Medi, elm_DATA)                                      \
         shlxx_ri(Reax, IB(3))                                               \
@@ -212,7 +212,7 @@
  * Check if flag "fl" is set in the context's field "pl",
  * jump to "lb" otherwise.
  */
-#define CHECK_FLAG(lb, pl, fl)                                              \
+#define CHECK_FLAG(lb, pl, fl) /* destroys Reax */                          \
         movxx_ld(Reax, Mecx, ctx_##pl(FLG))                                 \
         andxx_ri(Reax, IB(fl))                                              \
         cmpxx_ri(Reax, IB(0))                                               \
@@ -226,7 +226,7 @@
  * jump to "lo" if ray cannot possibly hit the same surface from side "sd"
  * under given circumstances (even though it would due to hit inaccuracy).
  */
-#define CHECK_SIDE(lb, lo, sd)                                              \
+#define CHECK_SIDE(lb, lo, sd) /* destroys Reax */                          \
         cmpxx_rm(Rebx, Mecx, ctx_PARAM(OBJ))                                \
         jnexx_lb(lb)                                                        \
         movxx_ld(Reax, Mecx, ctx_PARAM(FLG))                                \
@@ -244,7 +244,7 @@
  * check if all rays within SIMD are already in the shadow,
  * if so skip the rest of the shadow list.
  */
-#define CHECK_SHAD(lb)                                                      \
+#define CHECK_SHAD(lb) /* destroys Reax, Xmm7 */                            \
         CHECK_FLAG(lb, PARAM, RT_FLAG_SHAD)                                 \
         CHECK_PROP(lb##_lgt, RT_PROP_LIGHT)                                 \
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))                                      \
@@ -265,7 +265,7 @@
  * based on the currently set SIDE flag, also load SIDE flag
  * as sign into Xmm7 for normals.
  */
-#define FETCH_PROP()                                                        \
+#define FETCH_PROP() /* destroys Reax, Xmm7 */                              \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
         mulxn_ri(Reax, IB(RT_SIMD_WIDTH * 4))                               \
@@ -280,7 +280,7 @@
  * fetched from material is set in the context,
  * jump to "lb" otherwise.
  */
-#define CHECK_PROP(lb, pr)                                                  \
+#define CHECK_PROP(lb, pr) /* destroys Reax */                              \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         andxx_ri(Reax, IH(pr))                                              \
         cmpxx_ri(Reax, IB(0))                                               \
@@ -290,7 +290,7 @@
  * Fetch pointer into given register "RG" from surface's field "pl"
  * based on the currently set SIDE flag.
  */
-#define FETCH_XPTR(RG, pl)                                                  \
+#define FETCH_XPTR(RG, pl) /* destroys Reax */                              \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
         shlxx_ri(Reax, IB(3))                                               \
@@ -300,7 +300,7 @@
  * Fetch pointer into given register "RG" from surface's field "pl"
  * based on the currently set inverted SIDE flag.
  */
-#define FETCH_IPTR(RG, pl)                                                  \
+#define FETCH_IPTR(RG, pl) /* destroys Reax */                              \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         notxx_rr(Reax)                                                      \
         andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
@@ -313,14 +313,14 @@
  * from the temporary SIMD-field in the context
  * based on the current SIMD-mask.
  */
-#define STORE_FRAG(lb, pn, pl)                                              \
+#define STORE_FRAG(lb, pn, pl) /* destroys Reax */                          \
         cmpxx_mi(Mecx, ctx_TMASK(0x##pn), IB(0))                            \
         jeqxx_lb(lb##pn)                                                    \
         movxx_ld(Reax, Mecx, ctx_C_PTR(0x##pn))                             \
         movxx_st(Reax, Mecx, ctx_##pl(0x##pn))                              \
     LBL(lb##pn)
 
-#define STORE_SIMD(lb, pl)                                                  \
+#define STORE_SIMD(lb, pl) /* destroys Reax */                              \
         STORE_FRAG(lb, 00, pl)                                              \
         STORE_FRAG(lb, 04, pl)                                              \
         STORE_FRAG(lb, 08, pl)                                              \
@@ -334,7 +334,7 @@
  * the current depth values. Also perform
  * pointer dereferencing for color fetching.
  */
-#define PAINT_FRAG(lb, pn)                                                  \
+#define PAINT_FRAG(lb, pn) /* destroys Reax */                              \
         cmpxx_mi(Mecx, ctx_TMASK(0x##pn), IB(0))                            \
         jeqxx_lb(lb##pn)                                                    \
         movxx_ld(Reax, Mecx, ctx_T_VAL(0x##pn))                             \
@@ -344,14 +344,14 @@
         movxx_st(Reax, Mecx, ctx_C_BUF(0x##pn))                             \
     LBL(lb##pn)
 
-#define PAINT_COLX(cl, pl)                                                  \
+#define PAINT_COLX(cl, pl) /* destroys Xmm0 */                              \
         movpx_ld(Xmm0, Mecx, ctx_C_BUF(0))                                  \
         shrpx_ri(Xmm0, IB(0x##cl))                                          \
         andpx_rr(Xmm0, Xmm7)                                                \
         cvtpn_rr(Xmm0, Xmm0)                                                \
         movpx_st(Xmm0, Mecx, ctx_##pl)
 
-#define PAINT_SIMD(lb)                                                      \
+#define PAINT_SIMD(lb) /* destroys Reax, Xmm0, Xmm7 */                      \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 04)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
@@ -366,7 +366,7 @@
  * the fully computed color SIMD-field from the context
  * into the framebuffer.
  */
-#define FRAME_COLX(cl, pl)                                                  \
+#define FRAME_COLX(cl, pl) /* destroys Xmm0, Xmm1 */                        \
         movpx_ld(Xmm1, Mecx, ctx_##pl(0))                                   \
         minps_rr(Xmm1, Xmm2)                                                \
         cvtps_rr(Xmm1, Xmm1)                                                \
@@ -374,7 +374,7 @@
         shlpx_ri(Xmm1, IB(0x##cl))                                          \
         addpx_rr(Xmm0, Xmm1)
 
-#define FRAME_SIMD()                                                        \
+#define FRAME_SIMD() /* destroys Xmm0, Xmm1, Xmm2, Xmm7, reads Reax */      \
         xorpx_rr(Xmm0, Xmm0)                                                \
         movpx_ld(Xmm2, Medx, cam_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, cam_CMASK)                                     \
@@ -391,8 +391,8 @@
  * to jump back after processing is finished. Parameters are
  * passed via context's local FLG field.
  */
-#define SUBROUTINE(lb, to)                                                  \
-        adrxx_lb(lb)                                                        \
+#define SUBROUTINE(lb, to) /* destroys Reax */                              \
+        adrxx_lb(lb)     /* load lb to Reax */                              \
         movxx_st(Reax, Mecx, ctx_LOCAL(PTR))                                \
         jmpxx_lb(to)                                                        \
     LBL(lb)
@@ -1409,7 +1409,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
         movxx_st(Redi, Mecx, ctx_PARAM(LST))    /* save light/shadow list */
         movxx_st(Rebx, Mecx, ctx_PARAM(OBJ))    /* originating surface */
-        adrxx_lb(LT_ret)
+        adrxx_lb(LT_ret)                        /* load LT_ret to Reax */
         movxx_st(Reax, Mecx, ctx_PARAM(PTR))    /* return ptr */
 
         movpx_ld(Xmm0, Medx, lgt_T_MAX)         /* tmp_v <- T_MAX */
@@ -1562,22 +1562,22 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_PW_ptr)
 
-        adrxx_lb(LT_pw4)
+        adrxx_lb(LT_pw4)                        /* load LT_pw4 to Reax */
         movxx_st(Reax, Mebp, inf_POW_E4)
 
-        adrxx_lb(LT_pw3)
+        adrxx_lb(LT_pw3)                        /* load LT_pw3 to Reax */
         movxx_st(Reax, Mebp, inf_POW_E3)
 
-        adrxx_lb(LT_pw2)
+        adrxx_lb(LT_pw2)                        /* load LT_pw2 to Reax */
         movxx_st(Reax, Mebp, inf_POW_E2)
 
-        adrxx_lb(LT_pw1)
+        adrxx_lb(LT_pw1)                        /* load LT_pw1 to Reax */
         movxx_st(Reax, Mebp, inf_POW_E1)
 
-        adrxx_lb(LT_pw0)
+        adrxx_lb(LT_pw0)                        /* load LT_pw0 to Reax */
         movxx_st(Reax, Mebp, inf_POW_E0)
 
-        adrxx_lb(LT_pwn)
+        adrxx_lb(LT_pwn)                        /* load LT_pwn to Reax */
         movxx_st(Reax, Mebp, inf_POW_EN)
 
         jmpxx_lb(fetch_end)
@@ -1800,7 +1800,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
         movxx_st(Redx, Mecx, ctx_PARAM(LST))    /* save material */
         movxx_st(Rebx, Mecx, ctx_PARAM(OBJ))    /* originating surface */
-        adrxx_lb(RF_ret)
+        adrxx_lb(RF_ret)                        /* load RF_ret to Reax */
         movxx_st(Reax, Mecx, ctx_PARAM(PTR))    /* return pointer */
 
         movxx_ld(Redx, Mebp, inf_CAM)
@@ -1969,7 +1969,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
         movxx_st(Redx, Mecx, ctx_PARAM(LST))    /* save material */
         movxx_st(Rebx, Mecx, ctx_PARAM(OBJ))    /* originating surface */
-        adrxx_lb(TR_ret)
+        adrxx_lb(TR_ret)                        /* load TR_ret to Reax */
         movxx_st(Reax, Mecx, ctx_PARAM(PTR))    /* return pointer */
 
         movxx_ld(Redx, Mebp, inf_CAM)
@@ -2127,7 +2127,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_PL_ptr)
 
-        adrxx_lb(PL_ptr)
+        adrxx_lb(PL_ptr)                        /* load PL_ptr to Reax */
         movxx_st(Reax, Mebp, inf_PTR_PL)
         jmpxx_lb(fetch_CL_ptr)
 
@@ -2256,7 +2256,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_PL_clp)
 
-        adrxx_lb(PL_clp)
+        adrxx_lb(PL_clp)                        /* load PL_clp to Reax */
         movxx_st(Reax, Mebp, inf_CLP_PL)
         jmpxx_lb(fetch_CL_clp)
 
@@ -2280,7 +2280,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_CL_ptr)
 
-        adrxx_lb(CL_ptr)
+        adrxx_lb(CL_ptr)                        /* load CL_ptr to Reax */
         movxx_st(Reax, Mebp, inf_PTR_CL)
         jmpxx_lb(fetch_SP_ptr)
 
@@ -2433,7 +2433,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_CL_clp)
 
-        adrxx_lb(CL_clp)
+        adrxx_lb(CL_clp)                        /* load CL_clp to Reax */
         movxx_st(Reax, Mebp, inf_CLP_CL)
         jmpxx_lb(fetch_SP_clp)
 
@@ -2466,7 +2466,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_SP_ptr)
 
-        adrxx_lb(SP_ptr)
+        adrxx_lb(SP_ptr)                        /* load SP_ptr to Reax */
         movxx_st(Reax, Mebp, inf_PTR_SP)
         jmpxx_lb(fetch_CN_ptr)
 
@@ -2638,7 +2638,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_SP_clp)
 
-        adrxx_lb(SP_clp)
+        adrxx_lb(SP_clp)                        /* load SP_clp to Reax */
         movxx_st(Reax, Mebp, inf_CLP_SP)
         jmpxx_lb(fetch_CN_clp)
 
@@ -2679,7 +2679,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_CN_ptr)
 
-        adrxx_lb(CN_ptr)
+        adrxx_lb(CN_ptr)                        /* load CN_ptr to Reax */
         movxx_st(Reax, Mebp, inf_PTR_CN)
         jmpxx_lb(fetch_PB_ptr)
 
@@ -2855,7 +2855,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_CN_clp)
 
-        adrxx_lb(CN_clp)
+        adrxx_lb(CN_clp)                        /* load CN_clp to Reax */
         movxx_st(Reax, Mebp, inf_CLP_CN)
         jmpxx_lb(fetch_PB_clp)
 
@@ -2894,7 +2894,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_PB_ptr)
 
-        adrxx_lb(PB_ptr)
+        adrxx_lb(PB_ptr)                        /* load PB_ptr to Reax */
         movxx_st(Reax, Mebp, inf_PTR_PB)
         jmpxx_lb(fetch_HB_ptr)
 
@@ -3066,7 +3066,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_PB_clp)
 
-        adrxx_lb(PB_clp)
+        adrxx_lb(PB_clp)                        /* load PB_clp to Reax */
         movxx_st(Reax, Mebp, inf_CLP_PB)
         jmpxx_lb(fetch_HB_clp)
 
@@ -3104,7 +3104,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_HB_ptr)
 
-        adrxx_lb(HB_ptr)
+        adrxx_lb(HB_ptr)                        /* load HB_ptr to Reax */
         movxx_st(Reax, Mebp, inf_PTR_HB)
         jmpxx_lb(fetch_clp)
 
@@ -3285,7 +3285,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_HB_clp)
 
-        adrxx_lb(HB_clp)
+        adrxx_lb(HB_clp)                        /* load HB_clp to Reax */
         movxx_st(Reax, Mebp, inf_CLP_HB)
         jmpxx_lb(fetch_pow)
 
@@ -3338,7 +3338,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(XX_set)
 
-        adrxx_lb(XX_end)
+        adrxx_lb(XX_end)                        /* load XX_end to Reax */
         movxx_st(Reax, Mecx, ctx_PARAM(PTR))
         jmpxx_lb(XX_ret)
 
