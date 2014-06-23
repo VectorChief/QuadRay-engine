@@ -851,25 +851,25 @@ rt_void rt_Node::update_bbgeom(rt_BOUND *box)
             vt0[mp_i] = box->bmax[mp_i];
             vt0[mp_j] = box->bmax[mp_j];
             vt0[mp_k] = box->bmax[mp_k];
-            vt0[mp_l] = 1.0f; /* takes pos in mtx into account */
+            vt0[mp_l] = 1.0f; /* takes "pos" in "mtx" into account */
 
             rt_vec4 vt1;
             vt1[mp_i] = box->bmin[mp_i];
             vt1[mp_j] = box->bmax[mp_j];
             vt1[mp_k] = box->bmax[mp_k];
-            vt1[mp_l] = 1.0f; /* takes pos in mtx into account */
+            vt1[mp_l] = 1.0f; /* takes "pos" in "mtx" into account */
 
             rt_vec4 vt2;
             vt2[mp_i] = box->bmin[mp_i];
             vt2[mp_j] = box->bmin[mp_j];
             vt2[mp_k] = box->bmax[mp_k];
-            vt2[mp_l] = 1.0f; /* takes pos in mtx into account */
+            vt2[mp_l] = 1.0f; /* takes "pos" in "mtx" into account */
 
             rt_vec4 vt3;
             vt3[mp_i] = box->bmax[mp_i];
             vt3[mp_j] = box->bmin[mp_j];
             vt3[mp_k] = box->bmax[mp_k];
-            vt3[mp_l] = 1.0f; /* takes pos in mtx into account */
+            vt3[mp_l] = 1.0f; /* takes "pos" in "mtx" into account */
 
             matrix_mul_vector(box->verts[0x0].pos, *pmtx, vt0);
             matrix_mul_vector(box->verts[0x1].pos, *pmtx, vt1);
@@ -894,25 +894,25 @@ rt_void rt_Node::update_bbgeom(rt_BOUND *box)
             vt4[mp_i] = box->bmax[mp_i];
             vt4[mp_j] = box->bmax[mp_j];
             vt4[mp_k] = box->bmin[mp_k];
-            vt4[mp_l] = 1.0f; /* takes pos in mtx into account */
+            vt4[mp_l] = 1.0f; /* takes "pos" in "mtx" into account */
 
             rt_vec4 vt5;
             vt5[mp_i] = box->bmin[mp_i];
             vt5[mp_j] = box->bmax[mp_j];
             vt5[mp_k] = box->bmin[mp_k];
-            vt5[mp_l] = 1.0f; /* takes pos in mtx into account */
+            vt5[mp_l] = 1.0f; /* takes "pos" in "mtx" into account */
 
             rt_vec4 vt6;
             vt6[mp_i] = box->bmin[mp_i];
             vt6[mp_j] = box->bmin[mp_j];
             vt6[mp_k] = box->bmin[mp_k];
-            vt6[mp_l] = 1.0f; /* takes pos in mtx into account */
+            vt6[mp_l] = 1.0f; /* takes "pos" in "mtx" into account */
 
             rt_vec4 vt7;
             vt7[mp_i] = box->bmax[mp_i];
             vt7[mp_j] = box->bmin[mp_j];
             vt7[mp_k] = box->bmin[mp_k];
-            vt7[mp_l] = 1.0f; /* takes pos in mtx into account */
+            vt7[mp_l] = 1.0f; /* takes "pos" in "mtx" into account */
 
             matrix_mul_vector(box->verts[0x4].pos, *pmtx, vt4);
             matrix_mul_vector(box->verts[0x5].pos, *pmtx, vt5);
@@ -1042,7 +1042,7 @@ rt_void rt_Node::update_bbgeom(rt_BOUND *box)
     box->rad = 0.0f;
 
     /* this function isn't called
-     * if box->verts_num == 0 */
+     * if "box->verts_num == 0" */
     rt_cell i;
     rt_real f = 1.0f / (rt_real)box->verts_num;
 

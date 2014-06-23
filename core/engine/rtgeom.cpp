@@ -310,9 +310,9 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
  *  4 - intersect o=q-p, to handle bbox stacking
  */
 static
-rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1, rt_cell th,
-                     rt_vec4 q0, rt_vec4 q1, rt_vec4 q2,
-                     rt_cell qk, rt_cell qi, rt_cell qj)
+rt_cell vert_face(rt_vec4 p0, rt_vec4 p1, rt_cell th,
+                  rt_vec4 q0, rt_vec4 q1, rt_vec4 q2,
+                  rt_cell qk, rt_cell qi, rt_cell qj)
 {
     rt_real d, s, t, u, v;
 
@@ -445,9 +445,9 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1, rt_cell th,
  *  4 - intersect o=q-p, to handle bbox stacking
  */
 static
-rt_cell edge_to_edge(rt_vec4 p0, rt_cell th,
-                     rt_vec4 p1, rt_vec4 p2, rt_cell pk,
-                     rt_vec4 q1, rt_vec4 q2, rt_cell qk)
+rt_cell edge_edge(rt_vec4 p0, rt_cell th,
+                  rt_vec4 p1, rt_vec4 p2, rt_cell pk,
+                  rt_vec4 q1, rt_vec4 q2, rt_cell qk)
 {
     rt_real d, s, t, u, v;
 
@@ -456,7 +456,7 @@ rt_cell edge_to_edge(rt_vec4 p0, rt_cell th,
      * for respective local K axes */
     if (pk < 3 && qk < 3)
     {
-        /* "vert_to_face" handles
+        /* "vert_face" handles
          * this case for "bbox_shad" */
         if (pk == qk)
         {
@@ -1072,11 +1072,11 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         {
             rt_FACE *fc = &nd2->faces[j];
 
-            k = vert_to_face(pps, nd1->verts[i].pos, +1,
-                             nd2->verts[fc->index[0]].pos,
-                             nd2->verts[fc->index[1]].pos,
-                             nd2->verts[fc->index[3]].pos,
-                             fc->k, fc->i, fc->j);
+            k = vert_face(pps, nd1->verts[i].pos, +1,
+                          nd2->verts[fc->index[0]].pos,
+                          nd2->verts[fc->index[1]].pos,
+                          nd2->verts[fc->index[3]].pos,
+                          fc->k, fc->i, fc->j);
             if (k == 1)
             {
                 return 1;
@@ -1091,11 +1091,11 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         {
             rt_FACE *fc = &nd1->faces[j];
 
-            k = vert_to_face(pps, nd2->verts[i].pos, +1,
-                             nd1->verts[fc->index[0]].pos,
-                             nd1->verts[fc->index[1]].pos,
-                             nd1->verts[fc->index[3]].pos,
-                             fc->k, fc->i, fc->j);
+            k = vert_face(pps, nd2->verts[i].pos, +1,
+                          nd1->verts[fc->index[0]].pos,
+                          nd1->verts[fc->index[1]].pos,
+                          nd1->verts[fc->index[3]].pos,
+                          fc->k, fc->i, fc->j);
             if (k == 2 || k == 4)
             {
                 return 1;
@@ -1112,11 +1112,11 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         {
             rt_EDGE *ej = &nd2->edges[j];
 
-            k = edge_to_edge(pps, +1,
-                             nd1->verts[ei->index[0]].pos,
-                             nd1->verts[ei->index[1]].pos, ei->k,
-                             nd2->verts[ej->index[0]].pos,
-                             nd2->verts[ej->index[1]].pos, ej->k);
+            k = edge_edge(pps, +1,
+                          nd1->verts[ei->index[0]].pos,
+                          nd1->verts[ei->index[1]].pos, ei->k,
+                          nd2->verts[ej->index[0]].pos,
+                          nd2->verts[ej->index[1]].pos, ej->k);
             if (k == 1)
             {
                 return 1;
@@ -1299,11 +1299,11 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 rt_FACE *fc = &nd2->faces[j];
 
-                k = vert_to_face(pps, nd1->verts[i].pos, +1,
-                                 nd2->verts[fc->index[0]].pos,
-                                 nd2->verts[fc->index[1]].pos,
-                                 nd2->verts[fc->index[3]].pos,
-                                 fc->k, fc->i, fc->j);
+                k = vert_face(pps, nd1->verts[i].pos, +1,
+                              nd2->verts[fc->index[0]].pos,
+                              nd2->verts[fc->index[1]].pos,
+                              nd2->verts[fc->index[3]].pos,
+                              fc->k, fc->i, fc->j);
                 if (k == 3)
                 {
                     p =  1;
@@ -1347,10 +1347,10 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
 #if RT_OPTS_REMOVE != 0
 
-        /* NOTE: "vert_to_face" with margins above (th: +1)
+        /* NOTE: "vert_face" with margins above (th: +1)
          * represents aggressive removal on the edges,
          * pass (th: 0, -1) for lesser aggression level */
-        /* NOTE: "vert_to_face's" return value (k == 3)
+        /* NOTE: "vert_face's" return value (k == 3)
          * represents aggressive removal on the surface,
          * ignore (k == 3) for lesser aggression level */
         if ((*obj->opts & RT_OPTS_REMOVE) != 0
@@ -1402,11 +1402,11 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 rt_FACE *fc = &nd1->faces[j];
 
-                k = vert_to_face(pps, nd2->verts[i].pos, +1,
-                                 nd1->verts[fc->index[0]].pos,
-                                 nd1->verts[fc->index[1]].pos,
-                                 nd1->verts[fc->index[3]].pos,
-                                 fc->k, fc->i, fc->j);
+                k = vert_face(pps, nd2->verts[i].pos, +1,
+                              nd1->verts[fc->index[0]].pos,
+                              nd1->verts[fc->index[1]].pos,
+                              nd1->verts[fc->index[3]].pos,
+                              fc->k, fc->i, fc->j);
                 if (k == 3)
                 {
                     p =  1;
@@ -1450,10 +1450,10 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
 #if RT_OPTS_REMOVE != 0
 
-        /* NOTE: "vert_to_face" with margins above (th: +1)
+        /* NOTE: "vert_face" with margins above (th: +1)
          * represents aggressive removal on the edges,
          * pass (th: 0, -1) for lesser aggression level */
-        /* NOTE: "vert_to_face's" return value (k == 3)
+        /* NOTE: "vert_face's" return value (k == 3)
          * represents aggressive removal on the surface,
          * ignore (k == 3) for lesser aggression level */
         if ((*obj->opts & RT_OPTS_REMOVE) != 0
@@ -1505,11 +1505,11 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 rt_EDGE *ej = &nd2->edges[j];
 
-                k = edge_to_edge(pps, +1,
-                                 nd1->verts[ei->index[0]].pos,
-                                 nd1->verts[ei->index[1]].pos, ei->k,
-                                 nd2->verts[ej->index[0]].pos,
-                                 nd2->verts[ej->index[1]].pos, ej->k);
+                k = edge_edge(pps, +1,
+                              nd1->verts[ei->index[0]].pos,
+                              nd1->verts[ei->index[1]].pos, ei->k,
+                              nd2->verts[ej->index[0]].pos,
+                              nd2->verts[ej->index[1]].pos, ej->k);
                 if (k == 4)
                 {
                     k =  2;
@@ -1595,12 +1595,12 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
         {
             rt_FACE *fc = &nd2->faces[j];
 
-            k = vert_to_face(nd1->verts[ei->index[0]].pos,
-                             nd1->verts[ei->index[1]].pos, +1,
-                             nd2->verts[fc->index[0]].pos,
-                             nd2->verts[fc->index[1]].pos,
-                             nd2->verts[fc->index[3]].pos,
-                             fc->k, fc->i, fc->j);
+            k = vert_face(nd1->verts[ei->index[0]].pos,
+                          nd1->verts[ei->index[1]].pos, +1,
+                          nd2->verts[fc->index[0]].pos,
+                          nd2->verts[fc->index[1]].pos,
+                          nd2->verts[fc->index[3]].pos,
+                          fc->k, fc->i, fc->j);
             if (k == 2)
             {
                 return 2;
@@ -1617,12 +1617,12 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
         {
             rt_FACE *fc = &nd1->faces[j];
 
-            k = vert_to_face(nd2->verts[ei->index[0]].pos,
-                             nd2->verts[ei->index[1]].pos, +1,
-                             nd1->verts[fc->index[0]].pos,
-                             nd1->verts[fc->index[1]].pos,
-                             nd1->verts[fc->index[3]].pos,
-                             fc->k, fc->i, fc->j);
+            k = vert_face(nd2->verts[ei->index[0]].pos,
+                          nd2->verts[ei->index[1]].pos, +1,
+                          nd1->verts[fc->index[0]].pos,
+                          nd1->verts[fc->index[1]].pos,
+                          nd1->verts[fc->index[3]].pos,
+                          fc->k, fc->i, fc->j);
             if (k == 2)
             {
                 return 2;
