@@ -1344,19 +1344,19 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movxx_ld(Redx, Mebp, inf_CAM)
 
-        movpx_ld(Xmm0, Mecx, ctx_TEX_R)
-        mulps_ld(Xmm0, Medx, cam_COL_R)
-        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        movpx_ld(Xmm1, Mecx, ctx_TEX_R)
+        mulps_ld(Xmm1, Medx, cam_COL_R)
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_amR, COL_R)
 
-        movpx_ld(Xmm0, Mecx, ctx_TEX_G)
-        mulps_ld(Xmm0, Medx, cam_COL_G)
-        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        movpx_ld(Xmm2, Mecx, ctx_TEX_G)
+        mulps_ld(Xmm2, Medx, cam_COL_G)
+        movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_amG, COL_G)
 
-        movpx_ld(Xmm0, Mecx, ctx_TEX_B)
-        mulps_ld(Xmm0, Medx, cam_COL_B)
-        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        movpx_ld(Xmm3, Mecx, ctx_TEX_B)
+        mulps_ld(Xmm3, Medx, cam_COL_B)
+        movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_amB, COL_B)
 
         FETCH_XPTR(Redi, LST_P(LGT))
@@ -1389,14 +1389,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         xorpx_rr(Xmm7, Xmm7)                    /* tmp_v <-     0 */
         cltps_rr(Xmm7, Xmm0)                    /* tmp_v <! r_dot */
-        andpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* lmask &= TMASK */
+        andpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* dmask &= TMASK */
         CHECK_MASK(LT_amb, NONE, Xmm7)
-        andpx_rr(Xmm0, Xmm7)                    /* r_dot &= lmask */
-
-        xorpx_rr(Xmm6, Xmm6)                    /* init shadow mask */
-        ceqps_rr(Xmm7, Xmm6)                    /* with inverted lmask */
 
 #if RT_FEAT_SHADOWS
+
+        xorpx_rr(Xmm6, Xmm6)                    /* init shadow mask (hmask) */
+        ceqps_rr(Xmm7, Xmm6)                    /* with inverted dmask */
 
         movpx_st(Xmm0, Mecx, ctx_C_PTR(0))      /* save dot product */
 
@@ -1417,7 +1416,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_T_BUF(0))      /* tmp_v -> T_BUF */
 
         xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
-        movpx_st(Xmm7, Mecx, ctx_C_BUF(0))      /* lmask -> C_BUF */
+        movpx_st(Xmm7, Mecx, ctx_C_BUF(0))      /* hmask -> C_BUF */
         movpx_st(Xmm0, Mecx, ctx_COL_R(0))      /* tmp_v -> COL_R */
         movpx_st(Xmm0, Mecx, ctx_COL_G(0))      /* tmp_v -> COL_G */
         movpx_st(Xmm0, Mecx, ctx_COL_B(0))      /* tmp_v -> COL_B */
@@ -1433,18 +1432,23 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ld(Redi, Mecx, ctx_PARAM(LST))    /* restore light/shadow list */
         movxx_ld(Rebx, Mecx, ctx_PARAM(OBJ))    /* restore surface */
 
-        movpx_ld(Xmm7, Mecx, ctx_C_BUF(0))      /* load shadow mask */
+        movpx_ld(Xmm7, Mecx, ctx_C_BUF(0))      /* load shadow mask (hmask) */
 
         addxx_mi(Mebp, inf_DEPTH, IB(1))
         subxx_ri(Recx, IH(RT_STACK_STEP))
 
 /************************************ LEAVE ***********************************/
 
+        CHECK_MASK(LT_amb, FULL, Xmm7)
+
         movpx_ld(Xmm0, Mecx, ctx_C_PTR(0))      /* restore dot product */
+
+        xorpx_rr(Xmm6, Xmm6)                    
+        ceqps_rr(Xmm7, Xmm6)                    /* invert shadow mask (hmask) */
 
 #endif /* RT_FEAT_SHADOWS */
 
-        CHECK_MASK(LT_amb, FULL, Xmm7)
+        andpx_rr(Xmm0, Xmm7)                    /* r_dot &= hmask */
 
         /* compute diffuse */
         movpx_ld(Xmm1, Mecx, ctx_NEW_X)
@@ -1542,7 +1546,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
         cltps_rr(Xmm2, Xmm1)                    /* tmp_v <! r_dot */
-        andpx_rr(Xmm1, Xmm2)                    /* r_dot &= lmask */
+        andpx_rr(Xmm1, Xmm2)                    /* r_dot &= dmask */
+        andpx_rr(Xmm1, Xmm7)                    /* r_dot &= hmask */
 
         movpx_ld(Xmm4, Mecx, ctx_C_PTR(0))
         rsqps_rr(Xmm5, Xmm6)
@@ -1634,31 +1639,29 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_SPECULAR */
 
-        annpx_rr(Xmm7, Xmm0)
-
-        /* apply lighting to metal color,
+        /* apply lighting to "metal" color,
          * only affects diffuse-specular blending */
         movxx_ld(Redx, Medi, elm_SIMD)
 
-        movpx_ld(Xmm0, Mecx, ctx_TEX_R)
-        mulps_ld(Xmm0, Medx, lgt_COL_R)
-        mulps_rr(Xmm0, Xmm7)
-        addps_ld(Xmm0, Mecx, ctx_COL_R(0))
-        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        movpx_ld(Xmm1, Mecx, ctx_TEX_R)
+        mulps_ld(Xmm1, Medx, lgt_COL_R)
+        mulps_rr(Xmm1, Xmm0)
+        addps_ld(Xmm1, Mecx, ctx_COL_R(0))
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_mcR, COL_R)
 
-        movpx_ld(Xmm0, Mecx, ctx_TEX_G)
-        mulps_ld(Xmm0, Medx, lgt_COL_G)
-        mulps_rr(Xmm0, Xmm7)
-        addps_ld(Xmm0, Mecx, ctx_COL_G(0))
-        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        movpx_ld(Xmm2, Mecx, ctx_TEX_G)
+        mulps_ld(Xmm2, Medx, lgt_COL_G)
+        mulps_rr(Xmm2, Xmm0)
+        addps_ld(Xmm2, Mecx, ctx_COL_G(0))
+        movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_mcG, COL_G)
 
-        movpx_ld(Xmm0, Mecx, ctx_TEX_B)
-        mulps_ld(Xmm0, Medx, lgt_COL_B)
-        mulps_rr(Xmm0, Xmm7)
-        addps_ld(Xmm0, Mecx, ctx_COL_B(0))
-        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        movpx_ld(Xmm3, Mecx, ctx_TEX_B)
+        mulps_ld(Xmm3, Medx, lgt_COL_B)
+        mulps_rr(Xmm3, Xmm0)
+        addps_ld(Xmm3, Mecx, ctx_COL_B(0))
+        movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_mcB, COL_B)
 
         jmpxx_lb(LT_amb)
@@ -1667,45 +1670,43 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(LT_mtl)
 
-        movpx_rr(Xmm6, Xmm7)
-        annpx_rr(Xmm7, Xmm0)
-        annpx_rr(Xmm6, Xmm1)
+        movpx_rr(Xmm7, Xmm1)
 
         movxx_ld(Redx, Mebp, inf_CAM)
-        mulps_ld(Xmm6, Medx, cam_CLAMP)
+        mulps_ld(Xmm7, Medx, cam_CLAMP)
 
-        /* apply lighting to plain color,
+        /* apply lighting to "plain" color,
          * only affects diffuse-specular blending */
         movxx_ld(Redx, Medi, elm_SIMD)
 
-        movpx_ld(Xmm0, Mecx, ctx_TEX_R)
-        movpx_ld(Xmm1, Medx, lgt_COL_R)
-        mulps_rr(Xmm0, Xmm7)
-        mulps_rr(Xmm0, Xmm1)
-        mulps_rr(Xmm1, Xmm6)
-        addps_rr(Xmm0, Xmm1)
-        addps_ld(Xmm0, Mecx, ctx_COL_R(0))
-        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        movpx_ld(Xmm1, Mecx, ctx_TEX_R)
+        movpx_ld(Xmm4, Medx, lgt_COL_R)
+        mulps_rr(Xmm1, Xmm0)
+        mulps_rr(Xmm1, Xmm4)
+        mulps_rr(Xmm4, Xmm7)
+        addps_rr(Xmm1, Xmm4)
+        addps_ld(Xmm1, Mecx, ctx_COL_R(0))
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_pcR, COL_R)
 
-        movpx_ld(Xmm0, Mecx, ctx_TEX_G)
-        movpx_ld(Xmm1, Medx, lgt_COL_G)
-        mulps_rr(Xmm0, Xmm7)
-        mulps_rr(Xmm0, Xmm1)
-        mulps_rr(Xmm1, Xmm6)
-        addps_rr(Xmm0, Xmm1)
-        addps_ld(Xmm0, Mecx, ctx_COL_G(0))
-        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        movpx_ld(Xmm2, Mecx, ctx_TEX_G)
+        movpx_ld(Xmm5, Medx, lgt_COL_G)
+        mulps_rr(Xmm2, Xmm0)
+        mulps_rr(Xmm2, Xmm5)
+        mulps_rr(Xmm5, Xmm7)
+        addps_rr(Xmm2, Xmm5)
+        addps_ld(Xmm2, Mecx, ctx_COL_G(0))
+        movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_pcG, COL_G)
 
-        movpx_ld(Xmm0, Mecx, ctx_TEX_B)
-        movpx_ld(Xmm1, Medx, lgt_COL_B)
-        mulps_rr(Xmm0, Xmm7)
-        mulps_rr(Xmm0, Xmm1)
-        mulps_rr(Xmm1, Xmm6)
-        addps_rr(Xmm0, Xmm1)
-        addps_ld(Xmm0, Mecx, ctx_COL_B(0))
-        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        movpx_ld(Xmm3, Mecx, ctx_TEX_B)
+        movpx_ld(Xmm6, Medx, lgt_COL_B)
+        mulps_rr(Xmm3, Xmm0)
+        mulps_rr(Xmm3, Xmm6)
+        mulps_rr(Xmm6, Xmm7)
+        addps_rr(Xmm3, Xmm6)
+        addps_ld(Xmm3, Mecx, ctx_COL_B(0))
+        movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_pcB, COL_B)
 
 #endif /* RT_FEAT_SPECULAR */
@@ -1719,16 +1720,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(LT_set)
 
-        movpx_ld(Xmm0, Mecx, ctx_TEX_R)
-        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        movpx_ld(Xmm1, Mecx, ctx_TEX_R)
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_txR, COL_R)
 
-        movpx_ld(Xmm0, Mecx, ctx_TEX_G)
-        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        movpx_ld(Xmm2, Mecx, ctx_TEX_G)
+        movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_txG, COL_G)
 
-        movpx_ld(Xmm0, Mecx, ctx_TEX_B)
-        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))
+        movpx_ld(Xmm3, Mecx, ctx_TEX_B)
+        movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_txB, COL_B)
 
     LBL(LT_end)
