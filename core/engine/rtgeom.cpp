@@ -288,10 +288,10 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
 
 /*
  * Determine if vert "p1" and face "q0-q1-q2" intersect as seen from vert "p0".
- * Parameters "qk, qi, qj" specify axis mapping indices for axis-aligned face,
+ * Parameters "qk, qi, qj" specify axis mapping indices for axis-aligned quad,
  * so that local I, J axes (face's base) and local K axis (face's normal) are
- * mapped to the world X, Y, Z axes, in which case face is a quad as opposed
- * to a triangular face, when at least one of the axes indices equals 3.
+ * mapped to the world X, Y, Z axes. If at least one of the indices equals 3,
+ * non-axis-aligned quad is defined by its "q0-q1" and "q0-q2" edges.
  * False-positives are allowed due to computational inaccuracy, "th" controls
  * whether uv-margins are included "+1" or excluded "-1" to/from intersecion
  * or disabled if "0".
@@ -354,7 +354,7 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1, rt_cell th,
             return 0;
         }
     }
-    /* otherwise face is an arbitrary triangle */
+    /* otherwise face is a non-axis-aligned quad */
     else
     {
         rt_vec4 e1, e2, pr, qr, mx, nx;
@@ -402,7 +402,7 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1, rt_cell th,
 
         /* if hit outside with margin, return miss */
         if (v < (0.0f - th * RT_CULL_THRESHOLD) * d
-        ||  v > (1.0f + th * RT_CULL_THRESHOLD) * d - u)
+        ||  v > (1.0f + th * RT_CULL_THRESHOLD) * d)
         {
             return 0;
         }
@@ -425,6 +425,8 @@ rt_cell vert_to_face(rt_vec4 p0, rt_vec4 p1, rt_cell th,
  * Determine if edge "p1-p2" and edge "q1-q2" intersect as seen from vert "p0".
  * Parameters "pk, qk" specify axis mapping indices for axis-aligned edges,
  * so that local K axis (edge's direction) is mapped to the world X, Y, Z axes.
+ * If at least one of the indices equals 3, non-axis-aligned edges are defined
+ * by their "p1-p2" and "q1-q2" directions.
  * False-positives are allowed due to computational inaccuracy, "th" controls
  * whether uv-margins are included "+1" or excluded "-1" to/from intersecion
  * or disabled if "0".
@@ -1073,20 +1075,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             k = vert_to_face(pps, nd1->verts[i].pos, +1,
                              nd2->verts[fc->index[0]].pos,
                              nd2->verts[fc->index[1]].pos,
-                             nd2->verts[fc->index[2]].pos,
-                             fc->k, fc->i, fc->j);
-            if (k == 1)
-            {
-                return 1;
-            }
-            if (fc->k < 3)
-            {
-                continue;
-            }
-            k = vert_to_face(pps, nd1->verts[i].pos, +1,
-                             nd2->verts[fc->index[2]].pos,
                              nd2->verts[fc->index[3]].pos,
-                             nd2->verts[fc->index[0]].pos,
                              fc->k, fc->i, fc->j);
             if (k == 1)
             {
@@ -1105,20 +1094,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             k = vert_to_face(pps, nd2->verts[i].pos, +1,
                              nd1->verts[fc->index[0]].pos,
                              nd1->verts[fc->index[1]].pos,
-                             nd1->verts[fc->index[2]].pos,
-                             fc->k, fc->i, fc->j);
-            if (k == 2 || k == 4)
-            {
-                return 1;
-            }
-            if (fc->k < 3)
-            {
-                continue;
-            }
-            k = vert_to_face(pps, nd2->verts[i].pos, +1,
-                             nd1->verts[fc->index[2]].pos,
                              nd1->verts[fc->index[3]].pos,
-                             nd1->verts[fc->index[0]].pos,
                              fc->k, fc->i, fc->j);
             if (k == 2 || k == 4)
             {
@@ -1326,54 +1302,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                 k = vert_to_face(pps, nd1->verts[i].pos, +1,
                                  nd2->verts[fc->index[0]].pos,
                                  nd2->verts[fc->index[1]].pos,
-                                 nd2->verts[fc->index[2]].pos,
-                                 fc->k, fc->i, fc->j);
-                if (k == 3)
-                {
-                    p =  1;
-                }
-                if (k == 4)
-                {
-                    k =  2;
-                }
-                k ^= 0;
-                if (k == 1 || k == 2)
-                {
-                    p =  1;
-                    if (c == 0)
-                    {
-                        c =  k;
-                    }
-                    else
-                    if (c != k)
-                    {
-                        if (q == 0)
-                        {
-                            return 2;
-                        }
-                        else
-                        {
-                            p = 0;
-                            q = m;
-                            i = nd1->verts_num;
-                            break;
-                        }
-                    }
-                }
-                /* igmore "nd2's" face if not fully covered (by plane),
-                 * when attempting to remove "nd1" */
-                if (nd2->flf != 0 && (nd2->flf & (1 << j)) == 0)
-                {
-                    p = 0;
-                }
-                if (fc->k < 3)
-                {
-                    continue;
-                }
-                k = vert_to_face(pps, nd1->verts[i].pos, +1,
-                                 nd2->verts[fc->index[2]].pos,
                                  nd2->verts[fc->index[3]].pos,
-                                 nd2->verts[fc->index[0]].pos,
                                  fc->k, fc->i, fc->j);
                 if (k == 3)
                 {
@@ -1476,54 +1405,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                 k = vert_to_face(pps, nd2->verts[i].pos, +1,
                                  nd1->verts[fc->index[0]].pos,
                                  nd1->verts[fc->index[1]].pos,
-                                 nd1->verts[fc->index[2]].pos,
-                                 fc->k, fc->i, fc->j);
-                if (k == 3)
-                {
-                    p =  1;
-                }
-                if (k == 4)
-                {
-                    k =  2;
-                }
-                k ^= 3;
-                if (k == 1 || k == 2)
-                {
-                    p =  1;
-                    if (c == 0)
-                    {
-                        c =  k;
-                    }
-                    else
-                    if (c != k)
-                    {
-                        if (q == 0)
-                        {
-                            return 2;
-                        }
-                        else
-                        {
-                            p = 0;
-                            q = m;
-                            i = nd2->verts_num;
-                            break;
-                        }
-                    }
-                }
-                /* igmore "nd1's" face if not fully covered (by plane),
-                 * when attempting to remove "nd2" */
-                if (nd1->flf != 0 && (nd1->flf & (1 << j)) == 0)
-                {
-                    p = 0;
-                }
-                if (fc->k < 3)
-                {
-                    continue;
-                }
-                k = vert_to_face(pps, nd2->verts[i].pos, +1,
-                                 nd1->verts[fc->index[2]].pos,
                                  nd1->verts[fc->index[3]].pos,
-                                 nd1->verts[fc->index[0]].pos,
                                  fc->k, fc->i, fc->j);
                 if (k == 3)
                 {
@@ -1717,21 +1599,7 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
                              nd1->verts[ei->index[1]].pos, +1,
                              nd2->verts[fc->index[0]].pos,
                              nd2->verts[fc->index[1]].pos,
-                             nd2->verts[fc->index[2]].pos,
-                             fc->k, fc->i, fc->j);
-            if (k == 2)
-            {
-                return 2;
-            }
-            if (fc->k < 3)
-            {
-                continue;
-            }
-            k = vert_to_face(nd1->verts[ei->index[0]].pos,
-                             nd1->verts[ei->index[1]].pos, +1,
-                             nd2->verts[fc->index[2]].pos,
                              nd2->verts[fc->index[3]].pos,
-                             nd2->verts[fc->index[0]].pos,
                              fc->k, fc->i, fc->j);
             if (k == 2)
             {
@@ -1753,21 +1621,7 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
                              nd2->verts[ei->index[1]].pos, +1,
                              nd1->verts[fc->index[0]].pos,
                              nd1->verts[fc->index[1]].pos,
-                             nd1->verts[fc->index[2]].pos,
-                             fc->k, fc->i, fc->j);
-            if (k == 2)
-            {
-                return 2;
-            }
-            if (fc->k < 3)
-            {
-                continue;
-            }
-            k = vert_to_face(nd2->verts[ei->index[0]].pos,
-                             nd2->verts[ei->index[1]].pos, +1,
-                             nd1->verts[fc->index[2]].pos,
                              nd1->verts[fc->index[3]].pos,
-                             nd1->verts[fc->index[0]].pos,
                              fc->k, fc->i, fc->j);
             if (k == 2)
             {
