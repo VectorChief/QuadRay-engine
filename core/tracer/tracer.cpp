@@ -54,6 +54,7 @@
 #define RT_FEAT_TEXTURING           1
 #define RT_FEAT_NORMALS             1
 #define RT_FEAT_LIGHTS              1
+#define RT_FEAT_LIGHTS_COLORED      1
 #define RT_FEAT_LIGHTS_AMBIENT      1
 #define RT_FEAT_LIGHTS_SHADOWS      1
 #define RT_FEAT_LIGHTS_DIFFUSE      1
@@ -1348,6 +1349,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movxx_ld(Redx, Mebp, inf_CAM)
 
+#if RT_FEAT_LIGHTS_COLORED
+
         /* ambient R */
         movpx_ld(Xmm1, Mecx, ctx_TEX_R)
         mulps_ld(Xmm1, Medx, cam_COL_R)
@@ -1365,6 +1368,30 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm3, Medx, cam_COL_B)
         movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_amB, COL_B)
+
+#else /* RT_FEAT_LIGHTS_COLORED */
+
+        movpx_ld(Xmm0, Medx, cam_L_AMB)
+
+        /* ambient R */
+        movpx_ld(Xmm1, Mecx, ctx_TEX_R)
+        mulps_rr(Xmm1, Xmm0)
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_amR, COL_R)
+
+        /* ambient G */
+        movpx_ld(Xmm2, Mecx, ctx_TEX_G)
+        mulps_rr(Xmm2, Xmm0)
+        movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_amG, COL_G)
+
+        /* ambient B */
+        movpx_ld(Xmm3, Mecx, ctx_TEX_B)
+        mulps_rr(Xmm3, Xmm0)
+        movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_amB, COL_B)
+
+#endif /* RT_FEAT_LIGHTS_COLORED */
 
 #endif /* RT_FEAT_LIGHTS_AMBIENT */
 
@@ -1481,6 +1508,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         CHECK_PROP(LT_dfs, RT_PROP_DIFFUSE)
 
+        /* compute diffuse */
         andpx_rr(Xmm0, Xmm7)                    /* r_dot &= hmask */
 
 #if RT_FEAT_LIGHTS_ATTENUATION
@@ -1673,6 +1701,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * only affects diffuse-specular blending */
         movxx_ld(Redx, Medi, elm_SIMD)
 
+#if RT_FEAT_LIGHTS_COLORED
+
         /* diffuse + specular R */
         movpx_ld(Xmm1, Mecx, ctx_TEX_R)
         mulps_ld(Xmm1, Medx, lgt_COL_R)
@@ -1697,6 +1727,33 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_mcB, COL_B)
 
+#else /* RT_FEAT_LIGHTS_COLORED */
+
+        mulps_ld(Xmm0, Medx, lgt_L_SRC)
+
+        /* diffuse + specular R */
+        movpx_ld(Xmm1, Mecx, ctx_TEX_R)
+        mulps_rr(Xmm1, Xmm0)
+        addps_ld(Xmm1, Mecx, ctx_COL_R(0))
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_mcR, COL_R)
+
+        /* diffuse + specular G */
+        movpx_ld(Xmm2, Mecx, ctx_TEX_G)
+        mulps_rr(Xmm2, Xmm0)
+        addps_ld(Xmm2, Mecx, ctx_COL_G(0))
+        movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_mcG, COL_G)
+
+        /* diffuse + specular B */
+        movpx_ld(Xmm3, Mecx, ctx_TEX_B)
+        mulps_rr(Xmm3, Xmm0)
+        addps_ld(Xmm3, Mecx, ctx_COL_B(0))
+        movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_mcB, COL_B)
+
+#endif /* RT_FEAT_LIGHTS_COLORED */
+
         jmpxx_lb(LT_amb)
 
 #if RT_FEAT_LIGHTS_SPECULAR
@@ -1711,6 +1768,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* apply lighting to "plain" color,
          * only affects diffuse-specular blending */
         movxx_ld(Redx, Medi, elm_SIMD)
+
+#if RT_FEAT_LIGHTS_COLORED
 
         /* diffuse + specular R */
         movpx_ld(Xmm1, Mecx, ctx_TEX_R)
@@ -1744,6 +1803,38 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm3, Mecx, ctx_COL_B(0))
         movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_pcB, COL_B)
+
+#else /* RT_FEAT_LIGHTS_COLORED */
+
+        movpx_ld(Xmm1, Medx, lgt_L_SRC)
+        mulps_rr(Xmm0, Xmm1)
+        mulps_rr(Xmm7, Xmm1)
+
+        /* diffuse + specular R */
+        movpx_ld(Xmm1, Mecx, ctx_TEX_R)
+        mulps_rr(Xmm1, Xmm0)
+        addps_rr(Xmm1, Xmm7)
+        addps_ld(Xmm1, Mecx, ctx_COL_R(0))
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_pcR, COL_R)
+
+        /* diffuse + specular G */
+        movpx_ld(Xmm2, Mecx, ctx_TEX_G)
+        mulps_rr(Xmm2, Xmm0)
+        addps_rr(Xmm2, Xmm7)
+        addps_ld(Xmm2, Mecx, ctx_COL_G(0))
+        movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_pcG, COL_G)
+
+        /* diffuse + specular B */
+        movpx_ld(Xmm3, Mecx, ctx_TEX_B)
+        mulps_rr(Xmm3, Xmm0)
+        addps_rr(Xmm3, Xmm7)
+        addps_ld(Xmm3, Mecx, ctx_COL_B(0))
+        movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
+        STORE_SIMD(LT_pcB, COL_B)
+
+#endif /* RT_FEAT_LIGHTS_COLORED */
 
 #endif /* RT_FEAT_LIGHTS_SPECULAR */
 
