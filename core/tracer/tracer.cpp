@@ -53,10 +53,12 @@
 #define RT_FEAT_CLIPPING_ACCUM      1
 #define RT_FEAT_TEXTURING           1
 #define RT_FEAT_NORMALS             1
-#define RT_FEAT_LIGHTING            1
-#define RT_FEAT_ATTENUATION         1
-#define RT_FEAT_SPECULAR            1
-#define RT_FEAT_SHADOWS             1
+#define RT_FEAT_LIGHTS              1
+#define RT_FEAT_LIGHTS_AMBIENT      1
+#define RT_FEAT_LIGHTS_SHADOWS      1
+#define RT_FEAT_LIGHTS_DIFFUSE      1
+#define RT_FEAT_LIGHTS_ATTENUATION  1
+#define RT_FEAT_LIGHTS_SPECULAR     1
 #define RT_FEAT_REFLECTIONS         1
 #define RT_FEAT_TRANSPARENCY        1
 #define RT_FEAT_REFRACTIONS         1
@@ -813,11 +815,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_pow)
 
-#if RT_FEAT_SPECULAR
+#if RT_FEAT_LIGHTS && RT_FEAT_LIGHTS_SPECULAR
 
         jmpxx_lb(fetch_PW_ptr)
 
-#endif /* RT_FEAT_SPECULAR */
+#endif /* RT_FEAT_LIGHTS, RT_FEAT_LIGHTS_SPECULAR */
 
         jmpxx_lb(fetch_end)
 
@@ -1331,7 +1333,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         PAINT_SIMD(MT_rtx)
 
 /******************************************************************************/
-/********************************   LIGHTING   ********************************/
+/*********************************   LIGHTS   *********************************/
 /******************************************************************************/
 
         CHECK_PROP(LT_lgt, RT_PROP_LIGHT)
@@ -1340,7 +1342,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(LT_lgt)
 
-#if RT_FEAT_LIGHTING
+#if RT_FEAT_LIGHTS
+
+#if RT_FEAT_LIGHTS_AMBIENT
 
         movxx_ld(Redx, Mebp, inf_CAM)
 
@@ -1361,6 +1365,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm3, Medx, cam_COL_B)
         movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_amB, COL_B)
+
+#endif /* RT_FEAT_LIGHTS_AMBIENT */
+
+#if RT_FEAT_LIGHTS_DIFFUSE || RT_FEAT_LIGHTS_SPECULAR
 
         FETCH_XPTR(Redi, LST_P(LGT))
 
@@ -1395,7 +1403,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         andpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* dmask &= TMASK */
         CHECK_MASK(LT_amb, NONE, Xmm7)
 
-#if RT_FEAT_SHADOWS
+#if RT_FEAT_LIGHTS_SHADOWS
 
         xorpx_rr(Xmm6, Xmm6)                    /* init shadow mask (hmask) */
         ceqps_rr(Xmm7, Xmm6)                    /* with inverted dmask */
@@ -1449,11 +1457,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm6, Xmm6)                    
         ceqps_rr(Xmm7, Xmm6)                    /* invert shadow mask (hmask) */
 
-#endif /* RT_FEAT_SHADOWS */
+#endif /* RT_FEAT_LIGHTS_SHADOWS */
 
-        andpx_rr(Xmm0, Xmm7)                    /* r_dot &= hmask */
-
-        /* compute diffuse */
+        /* compute common */
         movpx_ld(Xmm1, Mecx, ctx_NEW_X)
         movpx_rr(Xmm4, Xmm1)
         mulps_rr(Xmm4, Xmm4)
@@ -1471,15 +1477,22 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_st(Xmm4, Mecx, ctx_C_PTR(0))
 
-#if RT_FEAT_ATTENUATION
+#if RT_FEAT_LIGHTS_DIFFUSE
 
+        CHECK_PROP(LT_dfs, RT_PROP_DIFFUSE)
+
+        andpx_rr(Xmm0, Xmm7)                    /* r_dot &= hmask */
+
+#if RT_FEAT_LIGHTS_ATTENUATION
+
+        /* prepare attenuation */
         movpx_rr(Xmm6, Xmm4)                    /* Xmm6  <-   r^2 */
 
-#endif /* RT_FEAT_ATTENUATION */
+#endif /* RT_FEAT_LIGHTS_ATTENUATION */
 
         rsqps_rr(Xmm5, Xmm4)                    /* Xmm5  <-   1/r */
 
-#if RT_FEAT_ATTENUATION
+#if RT_FEAT_LIGHTS_ATTENUATION
 
         /* compute attenuation */
         movpx_rr(Xmm4, Xmm5)                    /* Xmm4  <-   1/r */
@@ -1493,28 +1506,41 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm6, Xmm4)
         rsqps_rr(Xmm4, Xmm6)                    /* Xmm4  <-   1/a */
 
-#endif /* RT_FEAT_ATTENUATION */
+#endif /* RT_FEAT_LIGHTS_ATTENUATION */
 
         movpx_rr(Xmm6, Xmm0)
 
-#if RT_FEAT_ATTENUATION
+#if RT_FEAT_LIGHTS_ATTENUATION
 
+        /* apply attenuation */
         mulps_rr(Xmm0, Xmm4)                    /* r_dot *=   1/a */
 
-#endif /* RT_FEAT_ATTENUATION */
+#endif /* RT_FEAT_LIGHTS_ATTENUATION */
 
         mulps_rr(Xmm0, Xmm5)                    /* r_dot *=   1/r */
 
         FETCH_XPTR(Redx, MAT_P(PTR))
 
         mulps_ld(Xmm0, Medx, mat_L_DFF)
+        jmpxx_lb(LT_dfn)
+
+    LBL(LT_dfs)
+
+#endif /* RT_FEAT_LIGHTS_DIFFUSE */
+
+        movpx_rr(Xmm6, Xmm0)
+        xorpx_rr(Xmm0, Xmm0)
+
+        FETCH_XPTR(Redx, MAT_P(PTR))
+
+    LBL(LT_dfn)
+
+#if RT_FEAT_LIGHTS_SPECULAR
+
+        CHECK_PROP(LT_spc, RT_PROP_SPECULAR)
 
         movpx_rr(Xmm4, Xmm6)
         movpx_rr(Xmm5, Xmm6)
-
-#if RT_FEAT_SPECULAR
-
-        CHECK_PROP(LT_spc, RT_PROP_SPECULAR)
 
         /* compute specular */
         mulps_ld(Xmm4, Mecx, ctx_NRM_X)
@@ -1549,8 +1575,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
         cltps_rr(Xmm2, Xmm1)                    /* tmp_v <! r_dot */
+        andpx_rr(Xmm2, Xmm7)                    /* dmask &= hmask */
         andpx_rr(Xmm1, Xmm2)                    /* r_dot &= dmask */
-        andpx_rr(Xmm1, Xmm7)                    /* r_dot &= hmask */
+        CHECK_MASK(LT_spc, NONE, Xmm2)
 
         movpx_ld(Xmm4, Mecx, ctx_C_PTR(0))
         rsqps_rr(Xmm5, Xmm6)
@@ -1640,7 +1667,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(LT_spc)
 
-#endif /* RT_FEAT_SPECULAR */
+#endif /* RT_FEAT_LIGHTS_SPECULAR */
 
         /* apply lighting to "metal" color,
          * only affects diffuse-specular blending */
@@ -1672,7 +1699,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         jmpxx_lb(LT_amb)
 
-#if RT_FEAT_SPECULAR
+#if RT_FEAT_LIGHTS_SPECULAR
 
     LBL(LT_mtl)
 
@@ -1718,14 +1745,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_pcB, COL_B)
 
-#endif /* RT_FEAT_SPECULAR */
+#endif /* RT_FEAT_LIGHTS_SPECULAR */
 
     LBL(LT_amb)
 
         movxx_ld(Redi, Medi, elm_NEXT)
         jmpxx_lb(LT_cyc)
 
-#endif /* RT_FEAT_LIGHTING */
+#endif /* RT_FEAT_LIGHTS_DIFFUSE, RT_FEAT_LIGHTS_SPECULAR */
+
+        jmpxx_lb(LT_end)
+
+#endif /* RT_FEAT_LIGHTS */
 
     LBL(LT_set)
 
@@ -2217,11 +2248,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
 
-#if RT_FEAT_SHADOWS
+#if RT_FEAT_LIGHTS_SHADOWS
 
         CHECK_SHAD(PL_shd)
 
-#endif /* RT_FEAT_SHADOWS */
+#endif /* RT_FEAT_LIGHTS_SHADOWS */
 
 #if RT_FEAT_TEXTURING
 
@@ -2408,11 +2439,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
 
-#if RT_FEAT_SHADOWS
+#if RT_FEAT_LIGHTS_SHADOWS
 
         CHECK_SHAD(CL_shd)
 
-#endif /* RT_FEAT_SHADOWS */
+#endif /* RT_FEAT_LIGHTS_SHADOWS */
 
 #if RT_FEAT_NORMALS
 
@@ -2608,11 +2639,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
 
-#if RT_FEAT_SHADOWS
+#if RT_FEAT_LIGHTS_SHADOWS
 
         CHECK_SHAD(SP_shd)
 
-#endif /* RT_FEAT_SHADOWS */
+#endif /* RT_FEAT_LIGHTS_SHADOWS */
 
 #if RT_FEAT_NORMALS
 
@@ -2819,11 +2850,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
 
-#if RT_FEAT_SHADOWS
+#if RT_FEAT_LIGHTS_SHADOWS
 
         CHECK_SHAD(CN_shd)
 
-#endif /* RT_FEAT_SHADOWS */
+#endif /* RT_FEAT_LIGHTS_SHADOWS */
 
 #if RT_FEAT_NORMALS
 
@@ -3029,11 +3060,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
 
-#if RT_FEAT_SHADOWS
+#if RT_FEAT_LIGHTS_SHADOWS
 
         CHECK_SHAD(PB_shd)
 
-#endif /* RT_FEAT_SHADOWS */
+#endif /* RT_FEAT_LIGHTS_SHADOWS */
 
 #if RT_FEAT_NORMALS
 
@@ -3246,11 +3277,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
 
-#if RT_FEAT_SHADOWS
+#if RT_FEAT_LIGHTS_SHADOWS
 
         CHECK_SHAD(HB_shd)
 
-#endif /* RT_FEAT_SHADOWS */
+#endif /* RT_FEAT_LIGHTS_SHADOWS */
 
 #if RT_FEAT_NORMALS
 
