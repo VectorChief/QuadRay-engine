@@ -36,15 +36,16 @@
  * as they are packed together into the same context field.
  * Current CHECK_PROP macro (in tracer.cpp) accepts values upto 16-bit.
  */
-#define RT_PROP_TEXTURE     0x00000010
-#define RT_PROP_REFLECT     0x00000020
-#define RT_PROP_REFRACT     0x00000040
-#define RT_PROP_SPECULAR    0x00000080
+#define RT_PROP_LIGHT       0x00000010
+#define RT_PROP_METAL       0x00000020
 #define RT_PROP_NORMAL      0x00000100
 #define RT_PROP_OPAQUE      0x00000200
 #define RT_PROP_TRANSP      0x00000400
-#define RT_PROP_LIGHT       0x00001000
-#define RT_PROP_METAL       0x00002000
+#define RT_PROP_TEXTURE     0x00000800
+#define RT_PROP_REFLECT     0x00001000
+#define RT_PROP_REFRACT     0x00002000
+#define RT_PROP_DIFFUSE     0x00004000
+#define RT_PROP_SPECULAR    0x00008000
 
 /*
  * Clip accumulator markers,
@@ -294,21 +295,21 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
  */
 struct rt_SIMD_CONTEXT
 {
-    /* origin */
-
-    rt_real org_x[S];
-#define ctx_ORG_X           DP(Q*0x000)
-
-    rt_real org_y[S];
-#define ctx_ORG_Y           DP(Q*0x010)
-
-    rt_real org_z[S];
-#define ctx_ORG_Z           DP(Q*0x020)
-
     /* depth min */
 
     rt_real t_min[S];
-#define ctx_T_MIN           DP(Q*0x030)
+#define ctx_T_MIN           DP(Q*0x000)
+
+    /* origin */
+
+    rt_real org_x[S];
+#define ctx_ORG_X           DP(Q*0x010)
+
+    rt_real org_y[S];
+#define ctx_ORG_Y           DP(Q*0x020)
+
+    rt_real org_z[S];
+#define ctx_ORG_Z           DP(Q*0x030)
 
     /* ray */
 
@@ -365,24 +366,24 @@ struct rt_SIMD_CONTEXT
     rt_real tex_v[S];
 #define ctx_TEX_V           DP(Q*0x110)
 
-    /* texture color */
-
-    rt_real tex_r[S];
-#define ctx_TEX_R           DP(Q*0x120)
-
-    rt_real tex_g[S];
-#define ctx_TEX_G           DP(Q*0x130)
-
-    rt_real tex_b[S];
-#define ctx_TEX_B           DP(Q*0x140)
-
     /* color buffer */
 
     rt_cell c_ptr[S];
-#define ctx_C_PTR(nx)       DP(Q*0x150 + nx)
+#define ctx_C_PTR(nx)       DP(Q*0x120 + nx)
 
     rt_cell c_buf[S];
-#define ctx_C_BUF(nx)       DP(Q*0x160 + nx)
+#define ctx_C_BUF(nx)       DP(Q*0x130 + nx)
+
+    /* texture color */
+
+    rt_real tex_r[S];
+#define ctx_TEX_R           DP(Q*0x140)
+
+    rt_real tex_g[S];
+#define ctx_TEX_G           DP(Q*0x150)
+
+    rt_real tex_b[S];
+#define ctx_TEX_B           DP(Q*0x160)
 
     /* result color */
 
@@ -416,17 +417,17 @@ struct rt_SIMD_CONTEXT
 #define ctx_XMASK           DP(Q*0x1F0)
 
 
+    rt_cell c_tmp[S];
+#define ctx_C_TMP           DP(Q*0x200)
+
     rt_cell xtmp1[S];
-#define ctx_XTMP1           DP(Q*0x200)
+#define ctx_XTMP1           DP(Q*0x210)
 
     rt_cell xtmp2[S];
-#define ctx_XTMP2           DP(Q*0x210)
+#define ctx_XTMP2           DP(Q*0x220)
 
     rt_cell xtmp3[S];
-#define ctx_XTMP3           DP(Q*0x220)
-
-    rt_cell c_tmp[S];
-#define ctx_C_TMP           DP(Q*0x230)
+#define ctx_XTMP3           DP(Q*0x230)
 
     /* normal */
 
@@ -455,22 +456,23 @@ struct rt_SIMD_CONTEXT
     rt_word pad01[S*6];
 #define ctx_PAD01           DP(Q*0x2A0)
 
-    /* hit, overlapping next context,
+    /* overlapping next context,
+     * new depth min */
+
+    rt_real t_new[S];
+#define ctx_T_NEW           DP(Q*0x300)
+
+    /* hit,
      * new origin */
 
     rt_real hit_x[S];
-#define ctx_HIT_X           DP(Q*0x300)
+#define ctx_HIT_X           DP(Q*0x310)
 
     rt_real hit_y[S];
-#define ctx_HIT_Y           DP(Q*0x310)
+#define ctx_HIT_Y           DP(Q*0x320)
 
     rt_real hit_z[S];
-#define ctx_HIT_Z           DP(Q*0x320)
-
-    /* new depth min */
-
-    rt_real t_new[S];
-#define ctx_T_NEW           DP(Q*0x330)
+#define ctx_HIT_Z           DP(Q*0x330)
 
     /* new ray */
 
@@ -510,21 +512,21 @@ struct rt_SIMD_CONTEXT
  */
 struct rt_SIMD_CAMERA
 {
-    /* ray initial direction */
-
-    rt_real dir_x[S];
-#define cam_DIR_X           DP(Q*0x000)
-
-    rt_real dir_y[S];
-#define cam_DIR_Y           DP(Q*0x010)
-
-    rt_real dir_z[S];
-#define cam_DIR_Z           DP(Q*0x020)
-
     /* depth max value */
 
     rt_real t_max[S];
-#define cam_T_MAX           DP(Q*0x030)
+#define cam_T_MAX           DP(Q*0x000)
+
+    /* ray initial direction */
+
+    rt_real dir_x[S];
+#define cam_DIR_X           DP(Q*0x010)
+
+    rt_real dir_y[S];
+#define cam_DIR_Y           DP(Q*0x020)
+
+    rt_real dir_z[S];
+#define cam_DIR_Z           DP(Q*0x030)
 
     /* ray update horizontal */
 
@@ -548,24 +550,27 @@ struct rt_SIMD_CAMERA
     rt_real ver_z[S];
 #define cam_VER_Z           DP(Q*0x090)
 
+    /* ambient color and intensity */
+
+    rt_real col_r[S];
+#define cam_COL_R           DP(Q*0x0A0)
+
+    rt_real col_g[S];
+#define cam_COL_G           DP(Q*0x0B0)
+
+    rt_real col_b[S];
+#define cam_COL_B           DP(Q*0x0C0)
+
+    rt_real l_amb[S];
+#define cam_L_AMB           DP(Q*0x0D0)
+
     /* color masks */
 
     rt_real clamp[S];
-#define cam_CLAMP           DP(Q*0x0A0)
+#define cam_CLAMP           DP(Q*0x0E0)
 
     rt_cell cmask[S];
-#define cam_CMASK           DP(Q*0x0B0)
-
-    /* ambient color */
-
-    rt_real col_r[S];
-#define cam_COL_R           DP(Q*0x0C0)
-
-    rt_real col_g[S];
-#define cam_COL_G           DP(Q*0x0D0)
-
-    rt_real col_b[S];
-#define cam_COL_B           DP(Q*0x0E0)
+#define cam_CMASK           DP(Q*0x0F0)
 
 };
 
@@ -579,23 +584,23 @@ struct rt_SIMD_CAMERA
  */
 struct rt_SIMD_LIGHT
 {
-    /* light position */
-
-    rt_real pos_x[S];
-#define lgt_POS_X           DP(Q*0x000)
-
-    rt_real pos_y[S];
-#define lgt_POS_Y           DP(Q*0x010)
-
-    rt_real pos_z[S];
-#define lgt_POS_Z           DP(Q*0x020)
-
     /* depth max value */
 
     rt_real t_max[S];
-#define lgt_T_MAX           DP(Q*0x030)
+#define lgt_T_MAX           DP(Q*0x000)
 
-    /* light color */
+    /* light position */
+
+    rt_real pos_x[S];
+#define lgt_POS_X           DP(Q*0x010)
+
+    rt_real pos_y[S];
+#define lgt_POS_Y           DP(Q*0x020)
+
+    rt_real pos_z[S];
+#define lgt_POS_Z           DP(Q*0x030)
+
+    /* light color and intensity */
 
     rt_real col_r[S];
 #define lgt_COL_R           DP(Q*0x040)
@@ -606,19 +611,22 @@ struct rt_SIMD_LIGHT
     rt_real col_b[S];
 #define lgt_COL_B           DP(Q*0x060)
 
+    rt_real l_src[S];
+#define lgt_L_SRC           DP(Q*0x070)
+
     /* light attenuation */
 
     rt_real a_qdr[S];
-#define lgt_A_QDR           DP(Q*0x070)
+#define lgt_A_QDR           DP(Q*0x080)
 
     rt_real a_lnr[S];
-#define lgt_A_LNR           DP(Q*0x080)
+#define lgt_A_LNR           DP(Q*0x090)
 
     rt_real a_cnt[S];
-#define lgt_A_CNT           DP(Q*0x090)
+#define lgt_A_CNT           DP(Q*0x0A0)
 
     rt_real a_rng[S];
-#define lgt_A_RNG           DP(Q*0x0A0)
+#define lgt_A_RNG           DP(Q*0x0B0)
 
 };
 
@@ -632,21 +640,21 @@ struct rt_SIMD_LIGHT
  */
 struct rt_SIMD_SURFACE
 {
-    /* surface position */
-
-    rt_real pos_x[S];
-#define srf_POS_X           DP(Q*0x000)
-
-    rt_real pos_y[S];
-#define srf_POS_Y           DP(Q*0x010)
-
-    rt_real pos_z[S];
-#define srf_POS_Z           DP(Q*0x020)
-
     /* constant for clipping */
 
     rt_cell c_tmp[S];
-#define srf_C_TMP           DP(Q*0x030)
+#define srf_C_TMP           DP(Q*0x000)
+
+    /* surface position */
+
+    rt_real pos_x[S];
+#define srf_POS_X           DP(Q*0x010)
+
+    rt_real pos_y[S];
+#define srf_POS_Y           DP(Q*0x020)
+
+    rt_real pos_z[S];
+#define srf_POS_Z           DP(Q*0x030)
 
     /* axis min clippers */
 

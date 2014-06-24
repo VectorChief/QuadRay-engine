@@ -829,17 +829,17 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* depth testing */
         movpx_ld(Xmm0, Mecx, ctx_T_BUF(0))      /* t_buf <- T_BUF */
-        cgtps_rr(Xmm0, Xmm4)                    /* t_buf >! t_rt1 */
+        cgtps_rr(Xmm0, Xmm4)                    /* t_buf >! t_val */
         andpx_rr(Xmm7, Xmm0)                    /* tmask &= gmask */
 
         /* near plane clipping */
         movpx_ld(Xmm0, Mecx, ctx_T_MIN)         /* t_min <- T_MIN */
-        cltps_rr(Xmm0, Xmm4)                    /* t_min <! t_rt1 */
+        cltps_rr(Xmm0, Xmm4)                    /* t_min <! t_val */
         andpx_rr(Xmm7, Xmm0)                    /* tmask &= lmask */
 
         /* "x" section */
         movpx_ld(Xmm4, Mecx, ctx_RAY_X)         /* ray_x <- RAY_X */
-        mulps_ld(Xmm4, Mecx, ctx_T_VAL(0))      /* ray_x *= t_rt1 */
+        mulps_ld(Xmm4, Mecx, ctx_T_VAL(0))      /* ray_x *= t_val */
         addps_ld(Xmm4, Mecx, ctx_ORG_X)         /* hit_x += ORG_X */
         movpx_st(Xmm4, Mecx, ctx_HIT_X)         /* hit_x -> HIT_X */
         subps_ld(Xmm4, Mebx, srf_POS_X)         /* loc_x -= POS_X */
@@ -853,7 +853,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jeqxx_lb(CX_trm)
 
         movpx_ld(Xmm4, Mecx, ctx_RAY_I)         /* ray_i <- RAY_I */
-        mulps_ld(Xmm4, Mecx, ctx_T_VAL(0))      /* ray_i *= t_rt1 */
+        mulps_ld(Xmm4, Mecx, ctx_T_VAL(0))      /* ray_i *= t_val */
         subps_ld(Xmm4, Mecx, ctx_DFF_I)         /* ray_i -= DFF_I */
         movpx_st(Xmm4, Mecx, ctx_NEW_I)         /* loc_i -> NEW_I */
         /* use next context's RAY fields (NEW)
@@ -885,7 +885,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "y" section */
         movpx_ld(Xmm5, Mecx, ctx_RAY_Y)         /* ray_y <- RAY_Y */
-        mulps_ld(Xmm5, Mecx, ctx_T_VAL(0))      /* ray_y *= t_rt1 */
+        mulps_ld(Xmm5, Mecx, ctx_T_VAL(0))      /* ray_y *= t_val */
         addps_ld(Xmm5, Mecx, ctx_ORG_Y)         /* hit_y += ORG_Y */
         movpx_st(Xmm5, Mecx, ctx_HIT_Y)         /* hit_y -> HIT_Y */
         subps_ld(Xmm5, Mebx, srf_POS_Y)         /* loc_y -= POS_Y */
@@ -899,7 +899,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jeqxx_lb(CY_trm)
 
         movpx_ld(Xmm5, Mecx, ctx_RAY_J)         /* ray_j <- RAY_J */
-        mulps_ld(Xmm5, Mecx, ctx_T_VAL(0))      /* ray_j *= t_rt1 */
+        mulps_ld(Xmm5, Mecx, ctx_T_VAL(0))      /* ray_j *= t_val */
         subps_ld(Xmm5, Mecx, ctx_DFF_J)         /* ray_j -= DFF_J */
         movpx_st(Xmm5, Mecx, ctx_NEW_J)         /* loc_j -> NEW_J */
         /* use next context's RAY fields (NEW)
@@ -931,7 +931,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "z" section */
         movpx_ld(Xmm6, Mecx, ctx_RAY_Z)         /* ray_z <- RAY_Z */
-        mulps_ld(Xmm6, Mecx, ctx_T_VAL(0))      /* ray_z *= t_rt1 */
+        mulps_ld(Xmm6, Mecx, ctx_T_VAL(0))      /* ray_z *= t_val */
         addps_ld(Xmm6, Mecx, ctx_ORG_Z)         /* hit_z += ORG_Z */
         movpx_st(Xmm6, Mecx, ctx_HIT_Z)         /* hit_z -> HIT_Z */
         subps_ld(Xmm6, Mebx, srf_POS_Z)         /* loc_z -= POS_Z */
@@ -945,7 +945,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jeqxx_lb(CZ_trm)
 
         movpx_ld(Xmm6, Mecx, ctx_RAY_K)         /* ray_k <- RAY_K */
-        mulps_ld(Xmm6, Mecx, ctx_T_VAL(0))      /* ray_k *= t_rt1 */
+        mulps_ld(Xmm6, Mecx, ctx_T_VAL(0))      /* ray_k *= t_val */
         subps_ld(Xmm6, Mecx, ctx_DFF_K)         /* ray_k -= DFF_K */
         movpx_st(Xmm6, Mecx, ctx_NEW_K)         /* loc_k -> NEW_K */
         /* use next context's RAY fields (NEW)
@@ -1344,16 +1344,19 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movxx_ld(Redx, Mebp, inf_CAM)
 
+        /* ambient R */
         movpx_ld(Xmm1, Mecx, ctx_TEX_R)
         mulps_ld(Xmm1, Medx, cam_COL_R)
         movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_amR, COL_R)
 
+        /* ambient G */
         movpx_ld(Xmm2, Mecx, ctx_TEX_G)
         mulps_ld(Xmm2, Medx, cam_COL_G)
         movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_amG, COL_G)
 
+        /* ambient B */
         movpx_ld(Xmm3, Mecx, ctx_TEX_B)
         mulps_ld(Xmm3, Medx, cam_COL_B)
         movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
@@ -1643,6 +1646,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * only affects diffuse-specular blending */
         movxx_ld(Redx, Medi, elm_SIMD)
 
+        /* diffuse + specular R */
         movpx_ld(Xmm1, Mecx, ctx_TEX_R)
         mulps_ld(Xmm1, Medx, lgt_COL_R)
         mulps_rr(Xmm1, Xmm0)
@@ -1650,6 +1654,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_mcR, COL_R)
 
+        /* diffuse + specular G */
         movpx_ld(Xmm2, Mecx, ctx_TEX_G)
         mulps_ld(Xmm2, Medx, lgt_COL_G)
         mulps_rr(Xmm2, Xmm0)
@@ -1657,6 +1662,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_mcG, COL_G)
 
+        /* diffuse + specular B */
         movpx_ld(Xmm3, Mecx, ctx_TEX_B)
         mulps_ld(Xmm3, Medx, lgt_COL_B)
         mulps_rr(Xmm3, Xmm0)
@@ -1679,6 +1685,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * only affects diffuse-specular blending */
         movxx_ld(Redx, Medi, elm_SIMD)
 
+        /* diffuse + specular R */
         movpx_ld(Xmm1, Mecx, ctx_TEX_R)
         movpx_ld(Xmm4, Medx, lgt_COL_R)
         mulps_rr(Xmm1, Xmm0)
@@ -1689,6 +1696,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_pcR, COL_R)
 
+        /* diffuse + specular G */
         movpx_ld(Xmm2, Mecx, ctx_TEX_G)
         movpx_ld(Xmm5, Medx, lgt_COL_G)
         mulps_rr(Xmm2, Xmm0)
@@ -1699,6 +1707,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_pcG, COL_G)
 
+        /* diffuse + specular B */
         movpx_ld(Xmm3, Mecx, ctx_TEX_B)
         movpx_ld(Xmm6, Medx, lgt_COL_B)
         mulps_rr(Xmm3, Xmm0)
@@ -1720,14 +1729,17 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(LT_set)
 
+        /* texture R */
         movpx_ld(Xmm1, Mecx, ctx_TEX_R)
         movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_txR, COL_R)
 
+        /* texture G */
         movpx_ld(Xmm2, Mecx, ctx_TEX_G)
         movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_txG, COL_G)
 
+        /* texture B */
         movpx_ld(Xmm3, Mecx, ctx_TEX_B)
         movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
         STORE_SIMD(LT_txB, COL_B)
@@ -1844,18 +1856,21 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm0, Medx, mat_C_ONE)
         subps_ld(Xmm0, Medx, mat_C_RFL)
 
+        /* reflection R */
         movpx_ld(Xmm4, Mecx, ctx_COL_R(0))
         mulps_rr(Xmm4, Xmm0)
         addps_rr(Xmm1, Xmm4)
         movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
         STORE_SIMD(RF_clR, COL_R)
 
+        /* reflection G */
         movpx_ld(Xmm5, Mecx, ctx_COL_G(0))
         mulps_rr(Xmm5, Xmm0)
         addps_rr(Xmm2, Xmm5)
         movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
         STORE_SIMD(RF_clG, COL_G)
 
+        /* reflection B */
         movpx_ld(Xmm6, Mecx, ctx_COL_B(0))
         mulps_rr(Xmm6, Xmm0)
         addps_rr(Xmm3, Xmm6)
@@ -2013,18 +2028,21 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm0, Medx, mat_C_ONE)
         subps_ld(Xmm0, Medx, mat_C_TRN)
 
+        /* transparent R */
         movpx_ld(Xmm4, Mecx, ctx_COL_R(0))
         mulps_rr(Xmm4, Xmm0)
         addps_rr(Xmm1, Xmm4)
         movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
         STORE_SIMD(TR_clR, COL_R)
 
+        /* transparent G */
         movpx_ld(Xmm5, Mecx, ctx_COL_G(0))
         mulps_rr(Xmm5, Xmm0)
         addps_rr(Xmm2, Xmm5)
         movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
         STORE_SIMD(TR_clG, COL_G)
 
+        /* transparent B */
         movpx_ld(Xmm6, Mecx, ctx_COL_B(0))
         mulps_rr(Xmm6, Xmm0)
         addps_rr(Xmm3, Xmm6)
