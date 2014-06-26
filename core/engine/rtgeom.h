@@ -316,8 +316,8 @@ struct rt_SHAPE : public rt_BOUND
  * as seen from "obj's" bbox "mid" (light's "pos").
  *
  * Return values:
- *  0 - no
- *  1 - yes
+ *   0 - no
+ *   1 - yes
  */
 rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2);
 
@@ -326,12 +326,12 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2);
  * as seen from "obj's" bbox "mid".
  *
  * Return values:
- *  1 - neutral
- *  2 - unsortable
- *  3 - don't swap
- *  4 - do swap, not part of the stored-order-value in the engine
- * 11 - remove nd2 (fully obscured with nd1)
- * 12 - remove nd1 (fully obscured with nd2)
+ *   1 - neutral
+ *   2 - unsortable
+ *   3 - don't swap
+ *   4 - do swap, not part of the stored-order-value in the engine
+ *  11 - remove nd2 (fully obscured with nd1)
+ *  12 - remove nd1 (fully obscured with nd2)
  */
 rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2);
 
@@ -340,10 +340,10 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2);
  * from "obj's" entire bbox ("pos" in case of light or camera).
  *
  * Return values:
- *  0 - none, if both surfaces are the same plane
- *  1 - inner
- *  2 - outer
- *  3 - both, also if on the surface with margin
+ *   0 - none, if both surfaces are the same plane
+ *   1 - inner
+ *   2 - outer
+ *   3 - both, also if on the surface with margin
  */
 rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf);
 

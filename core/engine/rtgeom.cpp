@@ -303,11 +303,11 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
  * converted to division-less version with margins by VectorChief.
  *
  * Return values:
- *  0 - don't intersect
- *  1 - intersect o-p-q
- *  2 - intersect o-q-p
- *  3 - intersect o-p=q, to handle bbox stacking
- *  4 - intersect o=q-p, to handle bbox stacking
+ *   0 - don't intersect
+ *   1 - intersect o-p-q
+ *   2 - intersect o-q-p
+ *   3 - intersect o-p=q, to handle bbox stacking
+ *   4 - intersect o=q-p, to handle bbox stacking
  */
 static
 rt_cell vert_face(rt_vec4 p0, rt_vec4 p1, rt_cell th,
@@ -438,11 +438,11 @@ rt_cell vert_face(rt_vec4 p0, rt_vec4 p1, rt_cell th,
  * while the face is "p1-p0-p2", so that the common terms are reused.
  *
  * Return values:
- *  0 - don't intersect
- *  1 - intersect o-p-q
- *  2 - intersect o-q-p
- *  3 - intersect o-p=q, to handle bbox stacking
- *  4 - intersect o=q-p, to handle bbox stacking
+ *   0 - don't intersect
+ *   1 - intersect o-p-q
+ *   2 - intersect o-q-p
+ *   3 - intersect o-p=q, to handle bbox stacking
+ *   4 - intersect o=q-p, to handle bbox stacking
  */
 static
 rt_cell edge_edge(rt_vec4 p0, rt_cell th,
@@ -597,10 +597,10 @@ rt_cell edge_edge(rt_vec4 p0, rt_cell th,
  * potentially allowing to see "srf's" inner side from outside.
  *
  * Return values:
- *  0 - no
- *  1 - yes, minmax only
- *  2 - yes, custom only
- *  3 - yes, both
+ *   0 - no
+ *   1 - yes, minmax only
+ *   2 - yes, custom only
+ *   3 - yes, both
  */
 static
 rt_cell surf_hole(rt_SHAPE *srf, rt_BOUND *ref)
@@ -660,9 +660,9 @@ rt_cell surf_hole(rt_SHAPE *srf, rt_BOUND *ref)
  * clips surface "srf" and which "clp's" side "srf" is clipped by.
  *
  * Return values:
- *  0 - no, might be inside accum segment
- *  1 - yes, inner
- *  2 - yes, outer
+ *   0 - no, might be inside accum segment
+ *   1 - yes, inner
+ *   2 - yes, outer
  */
 static
 rt_cell surf_clip(rt_SHAPE *srf, rt_BOUND *clp)
@@ -710,8 +710,8 @@ rt_cell surf_clip(rt_SHAPE *srf, rt_BOUND *clp)
  * Determine whether non-clipped "srf" is convex or concave.
  *
  * Return values:
- *  0 - convex
- *  1 - concave
+ *   0 - convex
+ *   1 - concave
  */
 static
 rt_cell surf_conc(rt_SHAPE *srf)
@@ -731,8 +731,8 @@ rt_cell surf_conc(rt_SHAPE *srf)
  * Determine whether clipped "srf" is convex or concave.
  *
  * Return values:
- *  0 - convex
- *  1 - concave
+ *   0 - convex
+ *   1 - concave
  */
 static
 rt_cell clip_conc(rt_SHAPE *srf)
@@ -760,7 +760,7 @@ rt_cell clip_conc(rt_SHAPE *srf)
  * using "loc" as temporary storage for return value.
  *
  * Return values:
- *  new pos
+ *   new pos
  */
 static
 rt_real *node_tran(rt_BOUND *obj, rt_vec4 pos, rt_vec4 loc)
@@ -785,9 +785,9 @@ rt_real *node_tran(rt_BOUND *obj, rt_vec4 pos, rt_vec4 loc)
  * Determine if "pos" is outside "srf's" cbox plus margin.
  *
  * Return values:
- *  0 - no
- *  1 - yes
- *  2 - yes, on the border with margin
+ *   0 - no
+ *   1 - yes
+ *   2 - yes, on the border with margin
  */
 static
 rt_cell surf_cbox(rt_SHAPE *srf, rt_vec4 pos)
@@ -831,9 +831,9 @@ rt_cell surf_cbox(rt_SHAPE *srf, rt_vec4 pos)
  * Determine if "pos" is inside "obj's" bbox minus margin.
  *
  * Return values:
- *  0 - no
- *  1 - yes
- *  2 - yes, on the border with margin
+ *   0 - no
+ *   1 - yes
+ *   2 - yes, on the border with margin
  */
 static
 rt_cell node_bbox(rt_BOUND *obj, rt_vec4 pos)
@@ -877,9 +877,9 @@ rt_cell node_bbox(rt_BOUND *obj, rt_vec4 pos)
  * Determine which side of non-clipped "srf" is seen from "pos".
  *
  * Return values:
- *  0 - none, on the surface with margin
- *  1 - inner
- *  2 - outer
+ *   0 - none, on the surface with margin
+ *   1 - inner
+ *   2 - outer
  */
 static
 rt_cell surf_side(rt_SHAPE *srf, rt_vec4 pos)
@@ -922,9 +922,9 @@ rt_cell surf_side(rt_SHAPE *srf, rt_vec4 pos)
  * Determine which side of clipped "srf" is seen from "pos".
  *
  * Return values:
- *  1 - inner
- *  2 - outer
- *  3 - both, also if on the surface with margin
+ *   1 - inner
+ *   2 - outer
+ *   3 - both, also if on the surface with margin
  */
 static
 rt_cell clip_side(rt_SHAPE *srf, rt_vec4 pos)
@@ -989,8 +989,8 @@ rt_cell clip_side(rt_SHAPE *srf, rt_vec4 pos)
  * as seen from "obj's" bbox "mid" (light's "pos").
  *
  * Return values:
- *  0 - no
- *  1 - yes
+ *   0 - no
+ *   1 - yes
  */
 rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 {
@@ -1132,8 +1132,8 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
  * as seen from "pos". Only fully covered (by plane) bbox's faces are counted.
  *
  * Return values:
- *  0 - convex
- *  1 - concave
+ *   0 - convex
+ *   1 - concave
  */
 static
 rt_cell proj_conc(rt_BOUND *obj, rt_real *pos)
@@ -1189,12 +1189,12 @@ rt_cell proj_conc(rt_BOUND *obj, rt_real *pos)
  * as seen from "obj's" bbox "mid".
  *
  * Return values:
- *  1 - neutral
- *  2 - unsortable
- *  3 - don't swap
- *  4 - do swap, not part of the stored-order-value in the engine
- * 11 - remove nd2 (fully obscured with nd1)
- * 12 - remove nd1 (fully obscured with nd2)
+ *   1 - neutral
+ *   2 - unsortable
+ *   3 - don't swap
+ *   4 - do swap, not part of the stored-order-value in the engine
+ *  11 - remove nd2 (fully obscured with nd1)
+ *  12 - remove nd1 (fully obscured with nd2)
  */
 rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 {
@@ -1537,9 +1537,9 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
  * Determine if "nd1's" and "nd2's" bboxes intersect.
  *
  * Return values:
- *  0 - no
- *  1 - yes, quick - might be fully inside
- *  2 - yes, thorough - borders intersect
+ *   0 - no
+ *   1 - yes, quick - might be fully inside
+ *   2 - yes, thorough - borders intersect
  */
 static
 rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
@@ -1638,10 +1638,10 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
  * from "obj's" entire bbox ("pos" in case of light or camera).
  *
  * Return values:
- *  0 - none, if both surfaces are the same plane
- *  1 - inner
- *  2 - outer
- *  3 - both, also if on the surface with margin
+ *   0 - none, if both surfaces are the same plane
+ *   1 - inner
+ *   2 - outer
+ *   3 - both, also if on the surface with margin
  */
 rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
 {

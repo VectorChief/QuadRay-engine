@@ -799,8 +799,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
     {
         /* compute the order value between "elm" and "nxt" elements */
         rt_cell op = bbox_sort(obj->bvbox,
-                              (rt_BOUND *)elm->temp,
-                              (rt_BOUND *)nxt->temp);
+                     (rt_BOUND *)elm->temp,
+                     (rt_BOUND *)nxt->temp);
         switch (op)
         {
             /* move "elm" forward if the "op" is
@@ -820,9 +820,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
                 else
                 {
                     RT_SET_FLG(prv->data, rt_cell,
-                                         3 & bbox_sort(obj->bvbox,
-                                         (rt_BOUND *)prv->temp,
-                                         (rt_BOUND *)nxt->temp));
+                         3 & bbox_sort(obj->bvbox,
+                         (rt_BOUND *)prv->temp,
+                         (rt_BOUND *)nxt->temp));
                 }
                 prv->next = nxt;
             }
@@ -858,9 +858,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
                 else
                 {
                     RT_SET_FLG(prv->data, rt_cell,
-                                         3 & bbox_sort(obj->bvbox,
-                                         (rt_BOUND *)prv->temp,
-                                         (rt_BOUND *)nxt->temp));
+                         3 & bbox_sort(obj->bvbox,
+                         (rt_BOUND *)prv->temp,
+                         (rt_BOUND *)nxt->temp));
                 }
                 prv->next = nxt;
             }
@@ -904,8 +904,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
         rt_bool gr = RT_FALSE;
         /* compute the order value between "elm" and "nxt" elements */
         rt_cell op = bbox_sort(obj->bvbox,
-                              (rt_BOUND *)elm->temp,
-                              (rt_BOUND *)nxt->temp);
+                     (rt_BOUND *)elm->temp,
+                     (rt_BOUND *)nxt->temp);
         switch (op)
         {
             /* move "nxt" in front of the "elm"
@@ -921,9 +921,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
             if (RT_GET_FLG(cur->data) == 0 && cur != tlp)
             {
                 RT_SET_FLG(cur->data, rt_cell,
-                                     3 & bbox_sort(obj->bvbox,
-                                     (rt_BOUND *)cur->temp,
-                                     (rt_BOUND *)nxt->temp));
+                     3 & bbox_sort(obj->bvbox,
+                     (rt_BOUND *)cur->temp,
+                     (rt_BOUND *)nxt->temp));
             }
             /* if "cur's" stored-order-value to "nxt"
              * is "neutral", then strict-order-chain
@@ -937,9 +937,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
                 {
                     ipt = tlp->next;
                     RT_SET_FLG(tlp->data, rt_cell,
-                                         3 & bbox_sort(obj->bvbox,
-                                         (rt_BOUND *)tlp->temp,
-                                         (rt_BOUND *)ipt->temp));
+                         3 & bbox_sort(obj->bvbox,
+                         (rt_BOUND *)tlp->temp,
+                         (rt_BOUND *)ipt->temp));
                 }
                 /* reset "state" as "tlp" moves forward, thus
                  * breaking the sub-list moving to the front of the "elm" */
@@ -992,8 +992,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
                         else
                         {
                             op = 3 & bbox_sort(obj->bvbox,
-                                          (rt_BOUND *)cur->temp,
-                                          (rt_BOUND *)jel->temp);
+                                 (rt_BOUND *)cur->temp,
+                                 (rt_BOUND *)jel->temp);
                         }
                         /* repair "tlp's" stored-order-value to the first
                          * comb element, "cur" serves as "tlp" */
@@ -1058,9 +1058,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
                         {
                             cur = iel->next;
                             RT_SET_FLG(iel->data, rt_cell,
-                                                 3 & bbox_sort(obj->bvbox,
-                                                 (rt_BOUND *)iel->temp,
-                                                 (rt_BOUND *)cur->temp));
+                                 3 & bbox_sort(obj->bvbox,
+                                 (rt_BOUND *)iel->temp,
+                                 (rt_BOUND *)cur->temp));
                         }
                         /* reset local "state" as tail's sub-list
                          * (joining the comb) is being broken */
@@ -1075,9 +1075,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
                 {
                     cur = ipt->next;
                     RT_SET_FLG(ipt->data, rt_cell,
-                                         3 & bbox_sort(obj->bvbox,
-                                         (rt_BOUND *)ipt->temp,
-                                         (rt_BOUND *)cur->temp));
+                         3 & bbox_sort(obj->bvbox,
+                         (rt_BOUND *)ipt->temp,
+                         (rt_BOUND *)cur->temp));
                 }
             }
             /* reset "state" if the comb has grown with tail elements, thus
@@ -1098,9 +1098,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
                 else
                 {
                     RT_SET_FLG(prv->data, rt_cell,
-                                         3 & bbox_sort(obj->bvbox,
-                                         (rt_BOUND *)prv->temp,
-                                         (rt_BOUND *)cur->temp));
+                         3 & bbox_sort(obj->bvbox,
+                         (rt_BOUND *)prv->temp,
+                         (rt_BOUND *)cur->temp));
                 }
                 prv->next = cur;
             }
@@ -1145,9 +1145,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
             if (RT_GET_FLG(cur->data) == 0 && cur != tlp)
             {
                 RT_SET_FLG(cur->data, rt_cell,
-                                     3 & bbox_sort(obj->bvbox,
-                                     (rt_BOUND *)cur->temp,
-                                     (rt_BOUND *)nxt->temp));
+                     3 & bbox_sort(obj->bvbox,
+                     (rt_BOUND *)cur->temp,
+                     (rt_BOUND *)nxt->temp));
             }
             /* if "nxt's" or "cur's" stored-order-value
              * is "neutral", then strict-order-chain
@@ -1162,9 +1162,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
                 {
                     cur = tlp->next;
                     RT_SET_FLG(tlp->data, rt_cell,
-                                         3 & bbox_sort(obj->bvbox,
-                                         (rt_BOUND *)tlp->temp,
-                                         (rt_BOUND *)cur->temp));
+                         3 & bbox_sort(obj->bvbox,
+                         (rt_BOUND *)tlp->temp,
+                         (rt_BOUND *)cur->temp));
                 }
                 /* reset "state" as "tlp" moves forward, thus
                  * breaking the sub-list moving to the front of the "elm" */
@@ -1188,9 +1188,9 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
     if (RT_GET_FLG(tlp->data) == 0 && cur != RT_NULL)
     {
         RT_SET_FLG(tlp->data, rt_cell,
-                             3 & bbox_sort(obj->bvbox,
-                             (rt_BOUND *)tlp->temp,
-                             (rt_BOUND *)cur->temp));
+             3 & bbox_sort(obj->bvbox,
+             (rt_BOUND *)tlp->temp,
+             (rt_BOUND *)cur->temp));
     }
 
     /* return newly inserted element */
