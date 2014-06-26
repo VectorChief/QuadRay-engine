@@ -662,7 +662,7 @@ rt_void rt_SceneThread::tiling(rt_vec2 p1, rt_vec2 p2)
  * for a given object "obj". If "tem" is NULL and "obj" is LIGHT,
  * insert new element derived from "obj" to a list "ptr".
  * Return outer-most new element (not always list's head)
- * or NULL if new element is removed (fully obscured with other elements).
+ * or NULL if new element is removed (fully obscured by other elements).
  */
 rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
 {
@@ -798,18 +798,18 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
     for (nxt = elm->next; nxt != RT_NULL; )
     {
         /* compute the order value between "elm" and "nxt" elements */
-        rt_cell op = bbox_sort(obj->bvbox,
+        rt_cell op = 7 & bbox_sort(obj->bvbox,
                      (rt_BOUND *)elm->temp,
                      (rt_BOUND *)nxt->temp);
         switch (op)
         {
             /* move "elm" forward if the "op" is
              * either "do swap" or "neutral" */
-            case 4:
+            case 2:
             /* as the swap operation is performed below
-             * the stored-order-value becomes "don't swap" */
-            op = 3;
-            case 1:
+             * the stored-order-value becomes "no swap" */
+            op = 1;
+            case 3:
             elm->next = nxt->next;
             if (prv != RT_NULL)
             {
@@ -841,14 +841,14 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
             nxt = elm->next;
             break;
 
-            case 11: /* remove "nxt" fully obscured with "elm" */
+            case 4|1: /* remove "nxt" fully obscured by "elm" */
             elm->next = nxt->next;
             /* reset "state" as "nxt" is removed */
             state = 0;
             nxt = nxt->next;
             break;
 
-            case 12: /* remove "elm" fully obscured with "nxt" */
+            case 4|2: /* remove "elm" fully obscured by "nxt" */
             if (prv != RT_NULL)
             {
                 if (state != 0)
@@ -873,8 +873,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
             elm = nxt = RT_NULL;
             break;
 
-            /* stop phase 1 if the "op" is
-             * either "don't swap" or "unsortable" */
+            /* stop phase 1 if the "op" is "no swap" */
             default:
             RT_SET_FLG(elm->data, rt_cell, op);
             /* reset "state" as the "elm" has found its place */
@@ -892,9 +891,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
     rt_ELEM *end, *tlp, *cur, *ipt, *jpt;
 
     /* phase 2, find the "end" of the strict-order-chain from "elm",
-     * order values "don't swap" and "unsortable" are considered strict */
-    for (end = elm; RT_GET_FLG(end->data) == 3 || RT_GET_FLG(end->data) == 2;
-         end = end->next);
+     * order value "no swap" is considered strict */
+    for (end = elm; RT_GET_FLG(end->data) == 1; end = end->next);
 
     /* phase 3, move the elements from behind "elm's" strict-order-chain
      * right in front of the "elm" as computed order value dictates,
@@ -903,19 +901,19 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
     {
         rt_bool gr = RT_FALSE;
         /* compute the order value between "elm" and "nxt" elements */
-        rt_cell op = bbox_sort(obj->bvbox,
+        rt_cell op = 7 & bbox_sort(obj->bvbox,
                      (rt_BOUND *)elm->temp,
                      (rt_BOUND *)nxt->temp);
         switch (op)
         {
             /* move "nxt" in front of the "elm"
              * if the "op" is "do swap" */
-            case 4:
-            case 12:
-            /* ignore "elm's" removal as it shouldn't happen */
+            case 2:
+            /* ignore "elm's" removal as it mustn't happen here */
+            case 4|2:
             /* as the swap operation is performed below
-             * the stored-order-value becomes "don't swap" */
-            op = 3;
+             * the stored-order-value becomes "no swap" */
+            op = 1;
             /* repair "cur's" stored-order-value
              * to see if "tlp" needs to catch up with "nxt" */
             if (RT_GET_FLG(cur->data) == 0 && cur != tlp)
@@ -929,7 +927,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
              * is "neutral", then strict-order-chain
              * from "tlp->next" up to "nxt" is broken,
              * thus "tlp" catches up with "nxt" */
-            if (RT_GET_FLG(cur->data) == 1 && cur != tlp)
+            if (RT_GET_FLG(cur->data) == 3 && cur != tlp)
             {
                 /* repair "tlp's" stored-order-value
                  * before it catches up with "nxt" */
@@ -1011,7 +1009,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
                         /* check if order is strict, then stop
                          * and mark "cur" as moving with "nxt",
                          * "cur" will then be added to the comb */
-                        if (op == 3 || op == 2)
+                        if (op == 1)
                         {
                             mv = RT_TRUE;
                             break;
@@ -1124,7 +1122,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
             cur = tlp;
             break;
 
-            case 11: /* remove "nxt" fully obscured with "elm" */
+            case 4|1: /* remove "nxt" fully obscured by "elm" */
             RT_SET_FLG(cur->data, rt_cell, 0);
             /* "cur" is always right before "nxt" between the cases */
             cur->next = nxt->next;
@@ -1138,7 +1136,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
             break;
 
             /* move "nxt" forward if the "op" is
-             * "don't swap", "neutral" or "unsortable" */
+             * either "no swap" or "neutral" */
             default:
             /* repair "cur's" stored-order-value
              * before it catches up with "nxt" */
@@ -1153,8 +1151,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
              * is "neutral", then strict-order-chain
              * from "tlp->next" up to "nxt" is being broken
              * as "nxt" moves, thus "tlp" catches up with "nxt" */
-            if (RT_GET_FLG(nxt->data) == 1
-            || (RT_GET_FLG(cur->data) == 1 && cur != tlp))
+            if (RT_GET_FLG(nxt->data) == 3
+            || (RT_GET_FLG(cur->data) == 3 && cur != tlp))
             {
                 /* repair "tlp's" stored-order-value
                  * before it catches up with "nxt" */

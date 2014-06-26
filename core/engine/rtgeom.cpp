@@ -1189,19 +1189,20 @@ rt_cell proj_conc(rt_BOUND *obj, rt_real *pos)
  * as seen from "obj's" bbox "mid".
  *
  * Return values:
- *   1 - neutral
- *   2 - unsortable
- *   3 - don't swap
- *   4 - do swap, not part of the stored-order-value in the engine
- *  11 - remove nd2 (fully obscured with nd1)
- *  12 - remove nd1 (fully obscured with nd2)
+ *   1 - no swap
+ *   2 - do swap
+ *   3 - neutral
+ * 4|1 - no swap, remove (nd1 fully obscures nd2)
+ * 4|2 - do swap, remove (nd2 fully obscures nd1)
+ * 8|1 - no swap, unsortable
+ * 8|2 - do swap, unsortable
  */
 rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 {
     /* check if nodes differ and have bounds */
     if (nd1->rad == RT_INF || nd2->rad == RT_INF || nd1 == nd2)
     {
-        return 2;
+        return 8|1; /* TODO: attempt to sort usortable */
     }
 
     rt_real *pps = obj->mid;
@@ -1229,7 +1230,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
     if (nd1_ang + nd2_ang < dff_ang)
     {
-        return 1;
+        return 3;
     }
 
     /* check if bounding spheres themselves don't intersect */
@@ -1237,38 +1238,40 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     RT_VEC3_SUB(dff_vec, nd1->mid, nd2->mid);
     rt_real dff_len = RT_VEC3_LEN(dff_vec);
 
-    rt_cell r = 0, s = 0;
+    rt_cell r = 0, s = 0, u = 0;
 
-    if (nd1->rad + nd2->rad < dff_len)
+    if (nd1->rad + nd2->rad > dff_len)
     {
-        /* check the order for bounding spheres */
-        if (nd1_len < nd2_len)
-        {
-            r = 3;
-        }
-        else
-        {
-            r = 4;
-        }
+        u = 8;
+    }
+
+    /* check the order for bounding spheres */
+    if (nd1_len < nd2_len)
+    {
+        r = 1;
+    }
+    else
+    {
+        r = 2;
     }
 
 #if RT_OPTS_REMOVE != 0
     if ((*obj->opts & RT_OPTS_REMOVE) != 0
-    &&  r == 3 && obj != nd1
+    &&  r == 1 && obj != nd1
     &&  proj_conc(nd1, pps) == 0)
     {
         s = 1;
     }
     else
     if ((*obj->opts & RT_OPTS_REMOVE) != 0
-    &&  r == 4 && obj != nd2
+    &&  r == 2 && obj != nd2
     &&  proj_conc(nd2, pps) == 0)
     {
         s = 2;
     }
     else
 #endif /* RT_OPTS_REMOVE */
-    if (r != 0)
+    if (u == 0)
     {
         return r;
     }
@@ -1280,7 +1283,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     ||  nd1->verts_num == 0 || nd2->verts_num == 0)
 #endif /* RT_OPTS_INSERT_EXT1 */
     {
-        return r != 0 ? r : 2;
+        return u|r;
     }
 
     /* check the order for bounding boxes */
@@ -1325,7 +1328,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                     {
                         if (q == 0)
                         {
-                            return 2;
+                            return 8|1; /* TODO: attempt to sort usortable */
                         }
                         else
                         {
@@ -1373,12 +1376,12 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                 }
                 else
                 {
-                    return 12;
+                    return 4|2;
                 }
             }
             else /* RT_IS_CAMERA(obj) || RT_IS_LIGHT(obj) */
             {
-                return 12;
+                return 4|2;
             }
         }
         else
@@ -1428,7 +1431,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                     {
                         if (q == 0)
                         {
-                            return 2;
+                            return 8|1; /* TODO: attempt to sort usortable */
                         }
                         else
                         {
@@ -1476,12 +1479,12 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                 }
                 else
                 {
-                    return 11;
+                    return 4|1;
                 }
             }
             else /* RT_IS_CAMERA(obj) || RT_IS_LIGHT(obj) */
             {
-                return 11;
+                return 4|1;
             }
         }
         else
@@ -1523,14 +1526,14 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                     else
                     if (c != k)
                     {
-                        return 2;
+                        return 8|1; /* TODO: attempt to sort usortable */
                     }
                 }
             }
         }
     }
 
-    return c == 0 ? 1 : c + 2;
+    return c == 0 ? 3 : c;
 }
 
 /*

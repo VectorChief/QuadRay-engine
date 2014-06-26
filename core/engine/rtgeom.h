@@ -326,12 +326,13 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2);
  * as seen from "obj's" bbox "mid".
  *
  * Return values:
- *   1 - neutral
- *   2 - unsortable
- *   3 - don't swap
- *   4 - do swap, not part of the stored-order-value in the engine
- *  11 - remove nd2 (fully obscured with nd1)
- *  12 - remove nd1 (fully obscured with nd2)
+ *   1 - no swap
+ *   2 - do swap
+ *   3 - neutral
+ * 4|1 - no swap, remove (nd1 fully obscures nd2)
+ * 4|2 - do swap, remove (nd2 fully obscures nd1)
+ * 8|1 - no swap, unsortable
+ * 8|2 - do swap, unsortable
  */
 rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2);
 
