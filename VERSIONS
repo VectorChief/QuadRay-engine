@@ -1,8 +1,8 @@
 v0.0.2: SIMD test framework, run level 5
-  - SIMD tests for mul, div, cmp instructions pass successfully
+  - SIMD tests for mul, div, cmp instructions
 
 v0.0.1: SIMD test framework, run level 1
-  - SIMD tests for add, sub instructions pass successfully
+  - SIMD tests for add, sub instructions
 
 v0.0.0: Empty project
-  - initial file set and directory structure is in place
+  - initial file set and directory structure
