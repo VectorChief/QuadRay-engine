@@ -169,11 +169,11 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_SceneThread    **tharr;
     rt_pntr             tdata;
 
-    /* global surface list */
+    /* global surface/node list */
     rt_ELEM            *slist;
     /* global light/shadow list */
     rt_ELEM            *llist;
-    /* camera's surface list */
+    /* camera's surface/node list */
     rt_ELEM            *clist;
 
     /* rays positioning variables */

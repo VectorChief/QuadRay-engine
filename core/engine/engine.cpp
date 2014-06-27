@@ -783,14 +783,14 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
      * determined by the search/insert algorithm above */
 #if RT_OPTS_INSERT != 0
     if ((scene->opts & RT_OPTS_INSERT) == 0
-    ||  obj == RT_NULL)
+    ||  obj == RT_NULL) /* don't sort "slist" */
 #endif /* RT_OPTS_INSERT */
     {
         return elm;
     }
 
     /* "state" helps avoiding stored-order-value re-computation
-     * when the whole sub-list is being moved (one element at a time),
+     * when the whole sub-list is being moved without interruption,
      * the term sub-list used here and below refers to a continuous portion
      * of a single flat list as opposed to the same term used above
      * to separate different layers of the list hierarchy */
@@ -803,17 +803,17 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     {
         /* compute the order value between "elm" and "nxt" elements */
         rt_cell op = bbox_sort(obj->bvbox,
-                              (rt_BOUND *)elm->temp,
-                              (rt_BOUND *)nxt->temp);
+                     (rt_BOUND *)elm->temp,
+                     (rt_BOUND *)nxt->temp);
         switch (op)
         {
             /* move "elm" forward if the "op" is
              * either "do swap" or "neutral" */
-            case 4:
+            case 2:
             /* as the swap operation is performed below
-             * the stored-order-value becomes "don't swap" */
-            op = 3;
-            case 1:
+             * the stored-order-value becomes "no swap" */
+            op = 1;
+            case 3:
             elm->next = nxt->next;
             if (prv != RT_NULL)
             {
@@ -824,8 +824,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 else
                 {
                     prv->data = bbox_sort(obj->bvbox,
-                                         (rt_BOUND *)prv->temp,
-                                         (rt_BOUND *)nxt->temp);
+                                (rt_BOUND *)prv->temp,
+                                (rt_BOUND *)nxt->temp);
                 }
                 prv->next = nxt;
             }
@@ -835,7 +835,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
             }
             /* if current "elm's" position is transitory, "state" keeps
              * previously computed order value between "prv" and "nxt",
-             * thus the order value can be restored to "prv" data field
+             * thus the order value can be restored to "prv's" data field
              * without re-computation as the "elm" advances further */
             state = nxt->data;
             nxt->data = op;
@@ -844,8 +844,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
             nxt = elm->next;
             break;
 
-            /* stop phase 1 if the "op" is
-             * either "don't swap" or "unsortable" */
+            /* stop phase 1 if the "op" is "no swap" */
             default:
             elm->data = op;
             /* reset "state" as the "elm" has found its place */
@@ -858,8 +857,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     rt_ELEM *end, *tlp, *cur, *ipt, *jpt;
 
     /* phase 2, find the "end" of the strict-order-chain from "elm",
-     * order values "don't swap" and "unsortable" are considered strict */
-    for (end = elm; end->data == 3 || end->data == 2; end = end->next);
+     * order value "no swap" is considered strict */
+    for (end = elm; end->data == 1; end = end->next);
 
     /* phase 3, move the elements from behind "elm's" strict-order-chain
      * right in front of the "elm" as computed order value dictates,
@@ -869,16 +868,16 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         rt_bool gr = RT_FALSE;
         /* compute the order value between "elm" and "nxt" elements */
         rt_cell op = bbox_sort(obj->bvbox,
-                              (rt_BOUND *)elm->temp,
-                              (rt_BOUND *)nxt->temp);
+                     (rt_BOUND *)elm->temp,
+                     (rt_BOUND *)nxt->temp);
         switch (op)
         {
             /* move "nxt" in front of the "elm"
              * if the "op" is "do swap" */
-            case 4:
+            case 2:
             /* as the swap operation is performed below
-             * the stored-order-value becomes "don't swap" */
-            op = 3;
+             * the stored-order-value becomes "no swap" */
+            op = 1;
             /* check if there is a tail from "end->next"
              * up to "tlp" to comb out thoroughly before
              * moving "nxt" (along with its strict-order-chain
@@ -910,7 +909,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                     {
                         rt_cell op = 0;
                         rt_ELEM *jel = jpt->next;
-                        /* if "tlp" stored-order-value to the first
+                        /* if "tlp's" stored-order-value to the first
                          * comb element is not reset, use it as "op",
                          * "cur" serves as "tlp" */
                         if (cur->next == jel && cur->data != 0)
@@ -929,8 +928,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                         else
                         {
                             op = bbox_sort(obj->bvbox,
-                                          (rt_BOUND *)cur->temp,
-                                          (rt_BOUND *)jel->temp);
+                                 (rt_BOUND *)cur->temp,
+                                 (rt_BOUND *)jel->temp);
                         }
                         /* repair "tlp's" stored-order-value to the first
                          * comb element, "cur" serves as "tlp" */
@@ -948,7 +947,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                         /* check if order is strict, then stop
                          * and mark "cur" as moving with "nxt",
                          * "cur" will then be added to the comb */
-                        if (op == 3 || op == 2)
+                        if (op == 1)
                         {
                             mv = RT_TRUE;
                             break;
@@ -995,8 +994,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                         {
                             cur = iel->next;
                             iel->data = bbox_sort(obj->bvbox,
-                                                 (rt_BOUND *)iel->temp,
-                                                 (rt_BOUND *)cur->temp);
+                                        (rt_BOUND *)iel->temp,
+                                        (rt_BOUND *)cur->temp);
                         }
                         /* reset local "state" as tail's sub-list
                          * (joining the comb) is being broken */
@@ -1011,8 +1010,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 {
                     cur = ipt->next;
                     ipt->data = bbox_sort(obj->bvbox,
-                                         (rt_BOUND *)ipt->temp,
-                                         (rt_BOUND *)cur->temp);
+                                (rt_BOUND *)ipt->temp,
+                                (rt_BOUND *)cur->temp);
                 }
             }
             /* reset "state" if the comb has grown with tail elements, thus
@@ -1033,8 +1032,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 else
                 {
                     prv->data = bbox_sort(obj->bvbox,
-                                         (rt_BOUND *)prv->temp,
-                                         (rt_BOUND *)cur->temp);
+                                (rt_BOUND *)prv->temp,
+                                (rt_BOUND *)cur->temp);
                 }
                 prv->next = cur;
             }
@@ -1045,10 +1044,10 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
             cur = nxt->next;
             tlp->data = 0;
             tlp->next = cur;
-            /* "state" keeps previously computed order value between "nxt"
-             * and "nxt->next", thus the order value can be restored to
-             * "prv's" data field without re-computation if the whole
-             * sub-list is being moved from "nxt" to the front of the "elm" */
+            /* "state" keeps previously computed order value between "prv"
+             * and "tlp->next", thus the order value can be restored to
+             * "prv's" data field without re-computation if the whole sub-list
+             * is being moved in front of the "elm" without interruption */
             state = nxt->data;
             nxt->data = op;
             nxt->next = elm;
@@ -1057,13 +1056,13 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
             break;
 
             /* move "nxt" forward if the "op" is
-             * "don't swap", "neutral" or "unsortable" */
+             * either "no swap" or "neutral" */
             default:
             /* if "nxt's" stored-order-value (to "nxt->next")
              * is "neutral", then strict-order-chain
              * from "tlp->next" up to "nxt" is being broken
              * as "nxt" moves, thus "tlp" catches up with "nxt" */
-            if (nxt->data != 3 && nxt->data != 2)
+            if (nxt->data == 3)
             {
                 /* repair "tlp's" stored-order-value
                  * before it catches up with "nxt" */
@@ -1071,8 +1070,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
                 {
                     cur = tlp->next;
                     tlp->data = bbox_sort(obj->bvbox,
-                                         (rt_BOUND *)tlp->temp,
-                                         (rt_BOUND *)cur->temp);
+                                (rt_BOUND *)tlp->temp,
+                                (rt_BOUND *)cur->temp);
                 }
                 /* reset "state" as "tlp" moves forward, thus
                  * breaking the sub-list moving to the front of the "elm" */
@@ -1094,8 +1093,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     if (tlp->data == 0 && cur != RT_NULL)
     {
         tlp->data = bbox_sort(obj->bvbox,
-                             (rt_BOUND *)tlp->temp,
-                             (rt_BOUND *)cur->temp);
+                    (rt_BOUND *)tlp->temp,
+                    (rt_BOUND *)cur->temp);
     }
 
     /* return newly inserted element */
@@ -1931,15 +1930,15 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
         {
             if (pso != RT_NULL && *pso != RT_NULL)
             {
-                filter(lgt, pso);
+                filter(RT_NULL, pso);
             }
             if (psi != RT_NULL && *psi != RT_NULL)
             {
-                filter(lgt, psi);
+                filter(RT_NULL, psi);
             }
             if (psr != RT_NULL && *psr != RT_NULL)
             {
-                filter(lgt, psr);
+                filter(RT_NULL, psr);
             }
         }
 #endif /* RT_OPTS_INSERT, RT_OPTS_TARRAY, RT_OPTS_VARRAY */
@@ -2301,14 +2300,14 @@ rt_void rt_Scene::render(rt_long time)
     /* phase 2.5, hierarchical update of arrays' bounds from surfaces */
     root->update_bounds();
 
-    /* rebuild global surface list */
+    /* rebuild global surface/node list */
     slist = tharr[0]->ssort(RT_NULL);
 
     /* rebuild global light/shadow list,
      * "slist" is needed inside */
     llist = tharr[0]->lsort(RT_NULL);
 
-    /* rebuild camera's surface list,
+    /* rebuild camera's surface/node list,
      * "slist" is needed inside */
     clist = tharr[0]->ssort(cam);
 
@@ -2770,7 +2769,7 @@ rt_void rt_Scene::set_opts(rt_cell opts)
     this->opts = opts;
 
     /* trigger update of the whole hierarchy,
-     * safe to reset time as "rootobj" never has animator,
+     * safe to reset time as "rootobj" never has an animator,
      * "rootobj's" time is restored within the update */
     rootobj.time = -1;
 }
