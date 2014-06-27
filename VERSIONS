@@ -1,15 +1,15 @@
-v0.5.5: Performance optimizations, multi-threading and other refinements
+v0.5.5: Performance optimizations, multi-phase threading and other refinements
   - add support for multi-phase (with sync points) threaded update and render
   - split part of hierarchical update into a separate multi-threaded phase
   - refine bounding and clipping boxes based on custom clippers
-  - only update moving parts of the objects hierarchy and the surface data
+  - only update changing parts of the object hierarchy and surface data
   - move inverse matrix calculation from hierarchical to multi-threaded phase
 
 v0.5.4: Performance optimizations, custom per-side lists
   - add generic surface coeffs to object classes
-  - add clipped surface side visibility routines for given point
+  - add clipped surface side visibility functions for given point
   - build separate light lists for each side of the surface
-  - add clipped surface side visibility routines for given bbox
+  - add clipped surface side visibility functions for given bbox
   - build separate shadow lists for each side of the surface
   - build separate surface lists for each side of the surface
 
@@ -20,7 +20,7 @@ v0.5.3: Performance optimizations, custom shadow lists
 
 v0.5.2: Performance optimizations, transform caching and scaling fastpath
   - add transform caching (trnodes) to object classes
-  - insert trnodes into clippers, surface and tile lists
+  - insert trnodes into clipper, surface and tile lists
   - implement transform caching in rendering backend, optimize for clippers
   - refactor transform code in rendering backend for scaling fastpath
   - split axis mapping from scale-only transform matrix
@@ -132,20 +132,20 @@ v0.0.5: Unified SIMD assembler, API freeze for the engine
   - added framework for internal constants (used by reciprocals)
 
 v0.0.4: SIMD test framework, macro assembler overhaul
-  - macro expansion reworked for better compatibility
+  - macro expansion reworked for better compiler compatibility
   - immediate/displacement parameters handling redesigned
   - added reciprocal support for SSE, MPE support refined
 
 v0.0.3: SIMD test framework, run level 9
-  - tests for integer mul, div, jmp  pass successfully
-  - SIMD tests for integer add, shl, shr instructions pass successfully
-  - SIMD tests for cvt, sqr, rsq instructions pass successfully
+  - tests for integer mul, div, jmp instructions
+  - SIMD tests for integer add, shl, shr instructions
+  - SIMD tests for cvt, sqr, rsq instructions
 
 v0.0.2: SIMD test framework, run level 5
-  - SIMD tests for mul, div, cmp instructions pass successfully
+  - SIMD tests for mul, div, cmp instructions
 
 v0.0.1: SIMD test framework, run level 1
-  - SIMD tests for add, sub instructions pass successfully
+  - SIMD tests for add, sub instructions
 
 v0.0.0: Empty project
-  - initial file set and directory structure is in place
+  - initial file set and directory structure
