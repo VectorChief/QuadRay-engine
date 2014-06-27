@@ -2472,12 +2472,14 @@ rt_void rt_Scene::render(rt_long time)
 
     /* accumulate ambient from camera and all light sources */
     RT_VEC3_MUL_VAL1(amb, cam->cam->col.hdr, cam->cam->lum[0]);
+    amb[RT_A] = cam->cam->lum[0];
 
     rt_Light *lgt = RT_NULL;
 
     for (lgt = lgt_head; lgt != RT_NULL; lgt = lgt->next)
     {
         RT_VEC3_MAD_VAL1(amb, lgt->lgt->col.hdr, lgt->lgt->lum[0]);
+        amb[RT_A] += lgt->lgt->lum[0];
     }
 
     /* multi-threaded render */
@@ -2707,6 +2709,7 @@ rt_void rt_Scene::render_slice(rt_cell index, rt_cell phase)
     RT_SIMD_SET(s_cam->col_r, amb[RT_R]);
     RT_SIMD_SET(s_cam->col_g, amb[RT_G]);
     RT_SIMD_SET(s_cam->col_b, amb[RT_B]);
+    RT_SIMD_SET(s_cam->l_amb, amb[RT_A]);
 
 /*  rt_SIMD_CONTEXT */
 

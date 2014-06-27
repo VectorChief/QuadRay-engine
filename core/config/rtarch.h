@@ -227,7 +227,7 @@ struct rt_SIMD_INFO
  * available at http://www.musicdsp.org/showone.php?id=206
  * converted to S-way SIMD version by VectorChief.
  */
-#define cbeps_rr(RG, R1, R2, RM) /* destroys value in R1, R2 (temp regs) */ \
+#define cbeps_rr(RG, R1, R2, RM) /* destroys R1, R2 (temp regs) */          \
         /* cube root estimate, the exponent is divided by three             \
          * in such a way that remainder bits get shoved into                \
          * the top of the normalized mantissa */                            \
@@ -250,7 +250,7 @@ struct rt_SIMD_INFO
         annpx_rr(W(R2), W(RM))   /* original sign */                        \
         orrpx_rr(W(RG), W(R2))   /* new exponent & mantissa, old sign */
 
-#define cbsps_rr(RG, R1, R2, RM) /* destroys value in R1, R2 (temp regs) */ \
+#define cbsps_rr(RG, R1, R2, RM) /* destroys R1, R2 (temp regs) */          \
         movpx_rr(W(R1), W(RG))                                              \
         mulps_rr(W(R1), W(RG))                                              \
         movpx_rr(W(R2), W(R1))                                              \
@@ -261,7 +261,7 @@ struct rt_SIMD_INFO
         mulps_rr(W(R2), W(R1))                                              \
         subps_rr(W(RG), W(R2))
 
-#define cbrps_rr(RG, R1, R2, RM) /* destroys value in R1, R2 (temp regs) */ \
+#define cbrps_rr(RG, R1, R2, RM) /* destroys R1, R2 (temp regs) */          \
         cbeps_rr(W(RG), W(R1), W(R2), W(RM))                                \
         cbsps_rr(W(RG), W(R1), W(R2), W(RM))                                \
         cbsps_rr(W(RG), W(R1), W(R2), W(RM))                                \
@@ -269,13 +269,13 @@ struct rt_SIMD_INFO
 
 /* rcp */
 
-#define rcpps_rr(RG, RM) /* destroys value in RM */                         \
+#define rcpps_rr(RG, RM) /* destroys RM */                                  \
         rceps_rr(W(RG), W(RM))                                              \
         rcsps_rr(W(RG), W(RM)) /* <- not reusable without extra temp reg */
 
 /* rsq */
 
-#define rsqps_rr(RG, RM) /* destroys value in RM */                         \
+#define rsqps_rr(RG, RM) /* destroys RM */                                  \
         rseps_rr(W(RG), W(RM))                                              \
         rssps_rr(W(RG), W(RM)) /* <- not reusable without extra temp reg */
 
