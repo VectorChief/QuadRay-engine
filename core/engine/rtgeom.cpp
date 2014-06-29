@@ -1202,7 +1202,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     /* check if nodes differ and have bounds */
     if (nd1->rad == RT_INF || nd2->rad == RT_INF || nd1 == nd2)
     {
-        return 8|1; /* TODO: attempt to sort usortable */
+        return 8|1; /* TODO: attempt to sort boundless nodes */
     }
 
     rt_real *pps = obj->mid;
@@ -1238,42 +1238,21 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     RT_VEC3_SUB(dff_vec, nd1->mid, nd2->mid);
     rt_real dff_len = RT_VEC3_LEN(dff_vec);
 
-    rt_cell r = 0, s = 0, u = 0;
+    rt_cell u = 8, r = 0, s = 0;
 
-    if (nd1->rad + nd2->rad > dff_len)
+    if (nd1->rad + nd2->rad < dff_len)
     {
-        u = 8;
+        u = 0;
     }
 
     /* check the order for bounding spheres */
     if (nd1_len < nd2_len)
     {
-        r = 1;
-    }
-    else
-    {
-        r = 2;
-    }
-
-#if RT_OPTS_REMOVE != 0
-    if ((*obj->opts & RT_OPTS_REMOVE) != 0
-    &&  r == 1 && obj != nd1
-    &&  proj_conc(nd1, pps) == 0)
-    {
         s = 1;
     }
     else
-    if ((*obj->opts & RT_OPTS_REMOVE) != 0
-    &&  r == 2 && obj != nd2
-    &&  proj_conc(nd2, pps) == 0)
     {
         s = 2;
-    }
-    else
-#endif /* RT_OPTS_REMOVE */
-    if (u == 0)
-    {
-        return r;
     }
 
     /* check if nodes don't have bounding boxes
@@ -1283,15 +1262,31 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     ||  nd1->verts_num == 0 || nd2->verts_num == 0)
 #endif /* RT_OPTS_INSERT_EXT1 */
     {
-        return u|r;
+        return u|s;
     }
 
+    /* check if nodes are capable of removing each other,
+     * if hidden surfaces removal optimization is enabled */
+#if RT_OPTS_REMOVE != 0
+    if ((*obj->opts & RT_OPTS_REMOVE) != 0)
+    {
+        if (obj != nd1 && proj_conc(nd1, pps) == 0)
+        {
+            r |= 1;
+        }
+        if (obj != nd2 && proj_conc(nd2, pps) == 0)
+        {
+            r |= 2;
+        }
+    }
+#endif /* RT_OPTS_REMOVE */
+
     /* check the order for bounding boxes */
-    rt_cell i, j, k, q, m, n, p, c = s;
+    rt_cell i, j, k, q, m, n, p, t, f = 0, c = 0;
 
     pps = obj->mid;
 
-    for (q = 0, m = 1; q < m && s != 1; q++)
+    for (q = 0, m = 1; q < m && (f == 0 || r & 2); q++)
     {
         /* run through "nd1's" verts and "nd2's" faces */
         for (i = 0, n = 0; i < nd1->verts_num; i++, n += p)
@@ -1300,6 +1295,8 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
             for (j = 0; j < nd2->faces_num; j++)
             {
+                t = 0;
+
                 rt_FACE *fc = &nd2->faces[j];
 
                 k = vert_face(pps, nd1->verts[i].pos, +1,
@@ -1307,44 +1304,42 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                               nd2->verts[fc->index[1]].pos,
                               nd2->verts[fc->index[3]].pos,
                               fc->k, fc->i, fc->j);
-                if (k == 3)
+                /* ignore "nd2's" face if not fully covered (by plane),
+                 * when attempting to remove "nd1" */
+                if ((nd2->flf & (1 << j)) != 0
+                && (k == 3 || k == 2 || (k == 4 && q != 0)))
                 {
-                    p =  1;
+                    t = 1;
                 }
                 if (k == 4)
                 {
-                    k =  2;
+                    k = 2;
                 }
                 k ^= 0;
                 if (k == 1 || k == 2)
                 {
-                    p =  1;
                     if (c == 0)
                     {
-                        c =  k;
+                        c = k;
                     }
                     else
                     if (c != k)
                     {
-                        if (q == 0)
+                        f = 8;
+                        if ((r & 2) == 0)
                         {
-                            return 8|1; /* TODO: attempt to sort usortable */
-                        }
-                        else
-                        {
-                            p = 0;
-                            q = m;
                             i = nd1->verts_num;
                             break;
                         }
                     }
+                    /* early out, if spheres don't intersect */
+                    if (u == 0 && r == 0)
+                    {
+                        return c; /* "c == s && c == k" here */
+                    }
                 }
-                /* igmore "nd2's" face if not fully covered (by plane),
-                 * when attempting to remove "nd1" */
-                if (nd2->flf != 0 && (nd2->flf & (1 << j)) == 0)
-                {
-                    p = 0;
-                }
+
+                p |= t;
             }
         }
 
@@ -1356,9 +1351,8 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         /* NOTE: "vert_face's" return value (k == 3)
          * represents aggressive removal on the surface,
          * ignore (k == 3) for lesser aggression level */
-        if ((*obj->opts & RT_OPTS_REMOVE) != 0
-        &&  c == 2 && n == nd1->verts_num && (s == 2 && q == 0
-        ||  obj != nd2 && proj_conc(nd2, pps) == 0))
+        if (r & 2 && c == 2 && n == nd1->verts_num
+        && (q == 0 || proj_conc(nd2, pps) == 0))
         {
             if (RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj))
             {
@@ -1394,7 +1388,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
     pps = obj->mid;
 
-    for (q = 0, m = 1; q < m && s != 2; q++)
+    for (q = 0, m = 1; q < m && (f == 0 || r & 1); q++)
     {
         /* run through "nd2's" verts and "nd1's" faces */
         for (i = 0, n = 0; i < nd2->verts_num; i++, n += p)
@@ -1403,6 +1397,8 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
             for (j = 0; j < nd1->faces_num; j++)
             {
+                t = 0;
+
                 rt_FACE *fc = &nd1->faces[j];
 
                 k = vert_face(pps, nd2->verts[i].pos, +1,
@@ -1410,44 +1406,42 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                               nd1->verts[fc->index[1]].pos,
                               nd1->verts[fc->index[3]].pos,
                               fc->k, fc->i, fc->j);
-                if (k == 3)
+                /* ignore "nd1's" face if not fully covered (by plane),
+                 * when attempting to remove "nd2" */
+                if ((nd1->flf & (1 << j)) != 0
+                && (k == 3 || k == 2 || (k == 4 && q != 0)))
                 {
-                    p =  1;
+                    t = 1;
                 }
                 if (k == 4)
                 {
-                    k =  2;
+                    k = 2;
                 }
                 k ^= 3;
                 if (k == 1 || k == 2)
                 {
-                    p =  1;
                     if (c == 0)
                     {
-                        c =  k;
+                        c = k;
                     }
                     else
                     if (c != k)
                     {
-                        if (q == 0)
+                        f = 8;
+                        if ((r & 1) == 0)
                         {
-                            return 8|1; /* TODO: attempt to sort usortable */
-                        }
-                        else
-                        {
-                            p = 0;
-                            q = m;
                             i = nd2->verts_num;
                             break;
                         }
                     }
+                    /* early out, if spheres don't intersect */
+                    if (u == 0 && r == 0)
+                    {
+                        return c; /* "c == s && c == k" here */
+                    }
                 }
-                /* igmore "nd1's" face if not fully covered (by plane),
-                 * when attempting to remove "nd2" */
-                if (nd1->flf != 0 && (nd1->flf & (1 << j)) == 0)
-                {
-                    p = 0;
-                }
+
+                p |= t;
             }
         }
 
@@ -1459,9 +1453,8 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         /* NOTE: "vert_face's" return value (k == 3)
          * represents aggressive removal on the surface,
          * ignore (k == 3) for lesser aggression level */
-        if ((*obj->opts & RT_OPTS_REMOVE) != 0
-        &&  c == 1 && n == nd2->verts_num && (s == 1 && q == 0
-        ||  obj != nd1 && proj_conc(nd1, pps) == 0))
+        if (r & 1 && c == 1 && n == nd2->verts_num
+        && (q == 0 || proj_conc(nd1, pps) == 0))
         {
             if (RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj))
             {
@@ -1497,7 +1490,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
     pps = obj->mid;
 
-    if (s == 0)
+    if (f == 0)
     {
         /* run through "nd1's" edges and "nd2's" edges */
         for (i = 0; i < nd1->edges_num; i++)
@@ -1515,22 +1508,36 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                               nd2->verts[ej->index[1]].pos, ej->k);
                 if (k == 4)
                 {
-                    k =  2;
+                    k = 2;
                 }
                 if (k == 1 || k == 2)
                 {
                     if (c == 0)
                     {
-                        c =  k;
+                        c = k;
                     }
                     else
                     if (c != k)
                     {
-                        return 8|1; /* TODO: attempt to sort usortable */
+                        f = 8;
+                        i = nd1->edges_num;
+                        break;
+                    }
+                    /* early out, if spheres don't intersect */
+                    if (u == 0)
+                    {
+                        return c; /* "c == s && c == k" here */
                     }
                 }
             }
         }
+    }
+
+    /* rough approximation of the order
+     * for intersecting bboxes */
+    if (f != 0)
+    {
+        return f|s; /* TODO: consider special cases */
     }
 
     return c == 0 ? 3 : c;
