@@ -1141,7 +1141,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     /* check if nodes differ and have bounds */
     if (nd1->rad == RT_INF || nd2->rad == RT_INF || nd1 == nd2)
     {
-        return 1; /* TODO: attempt to sort usortable */
+        return 1; /* TODO: attempt to sort boundless nodes */
     }
 
     rt_real *pps = obj->mid;
@@ -1177,26 +1177,21 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     RT_VEC3_SUB(dff_vec, nd1->mid, nd2->mid);
     rt_real dff_len = RT_VEC3_LEN(dff_vec);
 
-    rt_cell r = 0, u = 0;
+    rt_cell u = 1, s = 0;
 
-    if (nd1->rad + nd2->rad > dff_len)
+    if (nd1->rad + nd2->rad < dff_len)
     {
-        u = 8;
+        u = 0;
     }
 
     /* check the order for bounding spheres */
     if (nd1_len < nd2_len)
     {
-        r = 1;
+        s = 1;
     }
     else
     {
-        r = 2;
-    }
-
-    if (u == 0)
-    {
-        return r;
+        s = 2;
     }
 
     /* check if nodes don't have bounding boxes
@@ -1206,14 +1201,14 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     ||  nd1->verts_num == 0 || nd2->verts_num == 0)
 #endif /* RT_OPTS_INSERT_EXT1 */
     {
-        return r;
+        return s;
     }
 
     /* check the order for bounding boxes */
-    rt_cell i, j, k, c = 0;
+    rt_cell i, j, k, f = 0, c = 0;
 
     /* run through "nd1's" verts and "nd2's" faces */
-    for (i = 0; i < nd1->verts_num; i++)
+    for (i = 0; i < nd1->verts_num && f == 0; i++)
     {
         for (j = 0; j < nd2->faces_num; j++)
         {
@@ -1226,26 +1221,32 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                           fc->k, fc->i, fc->j);
             if (k == 4)
             {
-                k =  2;
+                k = 2;
             }
             k ^= 0;
             if (k == 1 || k == 2)
             {
                 if (c == 0)
                 {
-                    c =  k;
+                    c = k;
                 }
                 else
                 if (c != k)
                 {
-                    return 1; /* TODO: attempt to sort usortable */
+                    f = 1;
+                    break;
+                }
+                /* early out, if spheres don't intersect */
+                if (u == 0)
+                {
+                    return c; /* "c == s && c == k" here */ 
                 }
             }
         }
     }
 
     /* run through "nd2's" verts and "nd1's" faces */
-    for (i = 0; i < nd2->verts_num; i++)
+    for (i = 0; i < nd2->verts_num && f == 0; i++)
     {
         for (j = 0; j < nd1->faces_num; j++)
         {
@@ -1258,26 +1259,32 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                           fc->k, fc->i, fc->j);
             if (k == 4)
             {
-                k =  2;
+                k = 2;
             }
             k ^= 3;
             if (k == 1 || k == 2)
             {
                 if (c == 0)
                 {
-                    c =  k;
+                    c = k;
                 }
                 else
                 if (c != k)
                 {
-                    return 1; /* TODO: attempt to sort usortable */
+                    f = 1;
+                    break;
+                }
+                /* early out, if spheres don't intersect */
+                if (u == 0)
+                {
+                    return c; /* "c == s && c == k" here */ 
                 }
             }
         }
     }
 
     /* run through "nd1's" edges and "nd2's" edges */
-    for (i = 0; i < nd1->edges_num; i++)
+    for (i = 0; i < nd1->edges_num && f == 0; i++)
     {
         rt_EDGE *ei = &nd1->edges[i];
 
@@ -1292,21 +1299,34 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                           nd2->verts[ej->index[1]].pos, ej->k);
             if (k == 4)
             {
-                k =  2;
+                k = 2;
             }
             if (k == 1 || k == 2)
             {
                 if (c == 0)
                 {
-                    c =  k;
+                    c = k;
                 }
                 else
                 if (c != k)
                 {
-                    return 1; /* TODO: attempt to sort usortable */
+                    f = 1;
+                    break;
+                }
+                /* early out, if spheres don't intersect */
+                if (u == 0)
+                {
+                    return c; /* "c == s && c == k" here */ 
                 }
             }
         }
+    }
+
+    /* rough approximation of the order
+     * for intersecting bboxes */
+    if (f != 0)
+    {
+        return s; /* TODO: consider special cases */
     }
 
     return c == 0 ? 3 : c;
