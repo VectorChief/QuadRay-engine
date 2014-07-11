@@ -216,8 +216,8 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     virtual
    ~rt_Scene();
 
-    rt_void     update(rt_long time, rt_cell action);
-    rt_void     render(rt_long time);
+    rt_void     update(rt_time time, rt_cell action);
+    rt_void     render(rt_time time);
 
     rt_void     update_slice(rt_cell index, rt_cell phase);
     rt_void     render_slice(rt_cell index, rt_cell phase);

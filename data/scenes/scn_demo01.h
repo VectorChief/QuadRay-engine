@@ -510,7 +510,7 @@ rt_OBJECT ob_camera01[] =
     },
 };
 
-rt_void an_camera01(rt_long time, rt_long last_time,
+rt_void an_camera01(rt_time time, rt_time last_time,
                     rt_TRANSFORM3D *trm, rt_pntr pobj)
 {
     rt_real t = (time - last_time) / 50.0f;
@@ -547,7 +547,7 @@ rt_OBJECT ob_light01[] =
     },
 };
 
-rt_void an_light01(rt_long time, rt_long last_time,
+rt_void an_light01(rt_time time, rt_time last_time,
                    rt_TRANSFORM3D *trm, rt_pntr pobj)
 {
     rt_real t = (time - last_time) / 50.0f;

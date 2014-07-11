@@ -263,7 +263,7 @@ struct rt_OBJ
     rt_MATERIAL        *pmat_inner; /* srf material override */
 };
 
-typedef rt_void (*rt_FUNC_ANIM3D)(rt_long time, rt_long last_time,
+typedef rt_void (*rt_FUNC_ANIM3D)(rt_time time, rt_time last_time,
                                   rt_TRANSFORM3D *trm, rt_pntr pobj);
 
 struct rt_OBJECT
@@ -271,7 +271,7 @@ struct rt_OBJECT
     rt_TRANSFORM3D      trm;
     rt_OBJ              obj;
     rt_FUNC_ANIM3D      f_anim;
-    rt_long             time;
+    rt_time             time;
 };
 
 static /* needed for strict typization */

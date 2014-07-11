@@ -160,7 +160,7 @@ rt_void rt_Object::update_bvnode(rt_Object *bvnode, rt_bool mode)
 /*
  * Update object's status with given "time", "flags" and "trnode".
  */
-rt_void rt_Object::update_status(rt_long time, rt_cell flags,
+rt_void rt_Object::update_status(rt_time time, rt_cell flags,
                                  rt_Object *trnode)
 {
     /* animator is called only once for object
@@ -340,7 +340,7 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
 /*
  * Update object with given "time", "flags", "trnode" and matrix "mtx".
  */
-rt_void rt_Object::update_object(rt_long time, rt_cell flags,
+rt_void rt_Object::update_object(rt_time time, rt_cell flags,
                                  rt_Object *trnode, rt_mat4 mtx)
 {
     update_status(time, flags, trnode);
@@ -403,7 +403,7 @@ rt_Camera::rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 /*
  * Update object with given "time", "flags", "trnode" and matrix "mtx".
  */
-rt_void rt_Camera::update_object(rt_long time, rt_cell flags,
+rt_void rt_Camera::update_object(rt_time time, rt_cell flags,
                                  rt_Object *trnode, rt_mat4 mtx)
 {
     update_status(time, flags | cam_changed, trnode);
@@ -441,7 +441,7 @@ rt_void rt_Camera::update_fields()
 /*
  * Update camera with given "time" and "action".
  */
-rt_void rt_Camera::update_action(rt_long time, rt_cell action)
+rt_void rt_Camera::update_action(rt_time time, rt_cell action)
 {
     rt_real t = (time - obj->time) / 50.0f;
 
@@ -572,7 +572,7 @@ rt_Light::rt_Light(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 /*
  * Update object with given "time", "flags", "trnode" and matrix "mtx".
  */
-rt_void rt_Light::update_object(rt_long time, rt_cell flags,
+rt_void rt_Light::update_object(rt_time time, rt_cell flags,
                                 rt_Object *trnode, rt_mat4 mtx)
 {
     update_status(time, flags, trnode);
@@ -704,7 +704,7 @@ rt_void rt_Node::update_bvnode(rt_Object *bvnode, rt_bool mode)
 /*
  * Update object's status with given "time", "flags" and "trnode".
  */
-rt_void rt_Node::update_status(rt_long time, rt_cell flags,
+rt_void rt_Node::update_status(rt_time time, rt_cell flags,
                                rt_Object *trnode)
 {
     rt_Object::update_status(time, flags, trnode);
@@ -776,7 +776,7 @@ rt_void rt_Node::update_matrix(rt_mat4 mtx)
 /*
  * Update object with given "time", "flags", "trnode" and matrix "mtx".
  */
-rt_void rt_Node::update_object(rt_long time, rt_cell flags,
+rt_void rt_Node::update_object(rt_time time, rt_cell flags,
                                rt_Object *trnode, rt_mat4 mtx)
 {
     update_status(time, flags, trnode);
@@ -1572,7 +1572,7 @@ rt_void rt_Array::update_bvnode(rt_Object *bvnode, rt_bool mode)
 /*
  * Update object's status with given "time", "flags" and "trnode".
  */
-rt_void rt_Array::update_status(rt_long time, rt_cell flags,
+rt_void rt_Array::update_status(rt_time time, rt_cell flags,
                                 rt_Object *trnode)
 {
     /* trigger update of the whole hierarchy
@@ -1666,7 +1666,7 @@ rt_void rt_Array::update_matrix(rt_mat4 mtx)
 /*
  * Update object with given "time", "flags", "trnode" and matrix "mtx".
  */
-rt_void rt_Array::update_object(rt_long time, rt_cell flags,
+rt_void rt_Array::update_object(rt_time time, rt_cell flags,
                                 rt_Object *trnode, rt_mat4 mtx)
 {
     update_status(time, flags, trnode);
@@ -2322,7 +2322,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
 /*
  * Update object with given "time", "flags", "trnode" and matrix "mtx".
  */
-rt_void rt_Surface::update_object(rt_long time, rt_cell flags,
+rt_void rt_Surface::update_object(rt_time time, rt_cell flags,
                                   rt_Object *trnode, rt_mat4 mtx)
 {
     update_status(time, flags, trnode);

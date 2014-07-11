@@ -2544,7 +2544,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
 /*
  * Update current camera with given "action" for a given "time".
  */
-rt_void rt_Scene::update(rt_long time, rt_cell action)
+rt_void rt_Scene::update(rt_time time, rt_cell action)
 {
     cam->update_action(time, action);
 }
@@ -2552,7 +2552,7 @@ rt_void rt_Scene::update(rt_long time, rt_cell action)
 /*
  * Update backend data structures and render frame for a given "time".
  */
-rt_void rt_Scene::render(rt_long time)
+rt_void rt_Scene::render(rt_time time)
 {
     rt_cell i;
 

@@ -504,7 +504,7 @@ testXX o_test[RUN_LEVEL] =
 /**********************************   MAIN   **********************************/
 /******************************************************************************/
 
-rt_long get_time();
+rt_time get_time();
 
 rt_cell main(rt_cell argc, rt_char *argv[])
 {
@@ -568,10 +568,10 @@ rt_cell main(rt_cell argc, rt_char *argv[])
         }
     }
 
-    rt_long time1 = 0;
-    rt_long time2 = 0;
-    rt_long tN = 0;
-    rt_long tF = 0;
+    rt_time time1 = 0;
+    rt_time time2 = 0;
+    rt_time tN = 0;
+    rt_time tF = 0;
 
     rt_cell i, j;
 
@@ -666,24 +666,24 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 
 #include <windows.h>
 
-rt_long get_time()
+rt_time get_time()
 {
     LARGE_INTEGER fr;
     QueryPerformanceFrequency(&fr);
     LARGE_INTEGER tm;
     QueryPerformanceCounter(&tm);
-    return (rt_long)(tm.QuadPart * 1000 / fr.QuadPart);
+    return (rt_time)(tm.QuadPart * 1000 / fr.QuadPart);
 }
 
 #elif defined (RT_LINUX) /* Linux, GCC -------------------------------------- */
 
 #include <sys/time.h>
 
-rt_long get_time()
+rt_time get_time()
 {
     timeval tm;
     gettimeofday(&tm, NULL);
-    return (rt_long)(tm.tv_sec * 1000 + tm.tv_usec / 1000);
+    return (rt_time)(tm.tv_sec * 1000 + tm.tv_usec / 1000);
 }
 
 #endif /* ------------- OS specific ----------------------------------------- */

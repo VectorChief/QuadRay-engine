@@ -417,9 +417,9 @@ rt_cell main_init()
 static struct timeval tm;
 
 /* time counter variables */
-static rt_long init_time = 0;
-static rt_long last_time = 0;
-static rt_long cur_time = 0;
+static rt_time init_time = 0;
+static rt_time last_time = 0;
+static rt_time cur_time = 0;
 
 /* frame counter variables */
 static rt_real fps = 0.0f;
@@ -450,7 +450,7 @@ rt_cell main_step()
     }
 
     gettimeofday(&tm, NULL);
-    cur_time = (rt_long)(tm.tv_sec * 1000 + tm.tv_usec / 1000);
+    cur_time = (rt_time)(tm.tv_sec * 1000 + tm.tv_usec / 1000);
 
     if (init_time == 0)
     {
