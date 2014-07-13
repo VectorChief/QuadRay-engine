@@ -30,10 +30,11 @@
  * processor architectures, while maintaining strictly defined common API,
  * thus application logic can be written and maintained in one place (here).
  *
- * At present, Intel SSE (1 and 2) and ARM MPE (aka NEON) are supported
- * in 32-bit mode, with the possibility to extend support to 64-bit mode
- * along with more available registers, wider SIMD and other architectures,
- * though a significant redesign of some portions of the code might be needed.
+ * At present, Intel SSE2 (32-bit x86 ISA) and ARM NEON (32-bit ARMv7 ISA)
+ * are two primary targets, although wider SIMD, 64-bit addressing along with
+ * more available registers, and other architectures can be supported by design.
+ * Preliminary naming scheme for potential future targets as well as extended
+ * core and SIMD register files can be found in core/config/rtarch.h file.
  */
 
 /******************************************************************************/
