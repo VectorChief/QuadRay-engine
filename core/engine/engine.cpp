@@ -62,7 +62,7 @@
 
 #define RT_PRINT_TIME(time)                                                 \
         RT_LOGI("---------------------------------------------");           \
-        RT_LOGI("---------- update time -- %08u ----------", time);         \
+        RT_LOGI("---------- update time -- %08"RT_PR64"d ----------", time);\
         RT_LOGI("---------------------------------------------");           \
         RT_LOGI("\n");                                                      \
         RT_LOGI("\n")

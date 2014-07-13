@@ -50,26 +50,63 @@
 /*
  * Generic types
  */
-typedef float               rt_real;
 
-typedef float               rt_vec2[2];
-typedef float               rt_mat2[2][2];
+/* fixed-size floating point types */
+typedef float               rt_fp32;
+typedef double              rt_fp64;
 
-typedef float               rt_vec3[3];
-typedef float               rt_mat3[3][3];
+/* adjustable floating point types */
+typedef rt_fp32             rt_real;
 
-typedef float               rt_vec4[4];
-typedef float               rt_mat4[4][4];
+typedef rt_fp32             rt_vec2[2];
+typedef rt_fp32             rt_mat2[2][2];
 
-typedef int                 rt_bool;
+typedef rt_fp32             rt_vec3[3];
+typedef rt_fp32             rt_mat3[3][3];
 
-typedef char                rt_char;
-typedef int                 rt_cell;
-typedef long                rt_long; /* time */
+typedef rt_fp32             rt_vec4[4];
+typedef rt_fp32             rt_mat4[4][4];
 
-typedef unsigned char       rt_byte;
-typedef unsigned short      rt_half;
-typedef unsigned int        rt_word;
+/* fixed-size integer types */
+typedef char                rt_si08;
+typedef unsigned char       rt_ui08;
+
+typedef short               rt_si16;
+typedef unsigned short      rt_ui16;
+
+typedef int                 rt_si32;
+typedef unsigned int        rt_ui32;
+
+#if   defined (RT_WIN32) /* Win32, MSVC -------- for older versions --------- */
+
+typedef __int64             rt_si64;
+typedef unsigned __int64    rt_ui64;
+
+#define RT_PR64 /*printf*/  "I64"
+
+#elif defined (RT_LINUX) /* Linux, GCC --------- for newer versions --------- */
+
+typedef long long           rt_si64;
+typedef unsigned long long  rt_ui64;
+
+#define RT_PR64 /*printf*/  "ll"
+
+#endif /* ------------- OS specific ----------------------------------------- */
+
+/* adjustable integer types */
+typedef rt_si08             rt_bool;
+typedef rt_si64             rt_size;
+typedef rt_si64             rt_time;
+
+typedef rt_si08             rt_char;
+typedef rt_si16             rt_shrt;
+typedef rt_si32             rt_cell;
+typedef rt_si64             rt_long;
+
+typedef rt_ui08             rt_byte;
+typedef rt_ui16             rt_half;
+typedef rt_ui32             rt_word;
+typedef rt_ui64             rt_full;
 
 typedef void                rt_void;
 typedef void               *rt_pntr;

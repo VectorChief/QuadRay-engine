@@ -450,7 +450,7 @@ rt_cell main_step()
     }
 
     gettimeofday(&tm, NULL);
-    cur_time = tm.tv_sec * 1000 + tm.tv_usec / 1000;
+    cur_time = (rt_long)(tm.tv_sec * 1000 + tm.tv_usec / 1000);
 
     if (init_time == 0)
     {
