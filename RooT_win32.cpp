@@ -358,9 +358,9 @@ static LARGE_INTEGER tm;
 static LARGE_INTEGER fr;
 
 /* time counter variables */
-static rt_long init_time = 0;
-static rt_long last_time = 0;
-static rt_long cur_time = 0;
+static rt_time init_time = 0;
+static rt_time last_time = 0;
+static rt_time cur_time = 0;
 
 /* frame counter variables */
 static rt_real fps = 0.0f;
@@ -391,7 +391,7 @@ rt_cell main_step()
     }
 
     QueryPerformanceCounter(&tm);
-    cur_time = (rt_long)(tm.QuadPart * 1000 / fr.QuadPart);
+    cur_time = (rt_time)(tm.QuadPart * 1000 / fr.QuadPart);
 
     if (init_time == 0)
     {
