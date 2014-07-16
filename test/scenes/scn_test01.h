@@ -47,14 +47,14 @@ rt_HYPERBOLOID hb_frame01 =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
 /* min */   {  -RT_INF,    -RT_INF,     -1.5    },
-/* max */   {  +RT_INF,    +RT_INF,     +1.5    },
+/* max */   {  +RT_INF,    +RT_INF,     +0.0    },
         {
 /* OUTER        RT_U,       RT_V    */
 /* scl */   {    1.0,        1.0    },
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_metal02_pink01,
+/* mat */   &mt_metal01_cyan01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -66,7 +66,7 @@ rt_HYPERBOLOID hb_frame01 =
         },
     },
 /* rat */   2.5,
-/* hyp */   0.5,
+/* hyp */  -0.5,
 };
 
 rt_SPHERE sp_ball01 =
@@ -91,7 +91,7 @@ rt_SPHERE sp_ball01 =
 /* mat */   &mt_plain01_gray02,
         },
     },
-/* rad */   1.0,
+/* rad */   3.0,
 };
 
 /******************************************************************************/
@@ -152,7 +152,7 @@ rt_OBJECT ob_tree[] =
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {    0.0,        0.0,        2.0    },
+/* pos */   {    0.0,        0.0,        3.0    },
         },
         RT_OBJ_HYPERBOLOID(&hb_frame01)
     },
@@ -160,7 +160,7 @@ rt_OBJECT ob_tree[] =
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {    0.0,       -2.8,        3.0    },
+/* pos */   {    0.0,        0.0,        3.0    },
         },
         RT_OBJ_SPHERE(&sp_ball01)
     },
@@ -185,7 +185,7 @@ rt_OBJECT ob_tree[] =
 rt_RELATION  rl_tree[] =
 {
     {   2,  RT_REL_MINUS_OUTER,   1   },
-    {   1,  RT_REL_MINUS_INNER,   2   },
+    {   1,  RT_REL_MINUS_OUTER,   2   },
 };
 
 /******************************************************************************/
