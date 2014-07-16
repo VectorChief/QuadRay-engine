@@ -592,7 +592,7 @@ rt_cell edge_edge(rt_vec4 p0, rt_cell th,
 
 /*
  * Determine if there are holes in "srf" not related to "ref"
- * or inside custom clippers accum segments.
+ * or inside accum segments of custom clippers list.
  * Holes are either minmax clippers or custom clippers
  * potentially allowing to see "srf's" inner side from outside.
  *
@@ -728,34 +728,6 @@ rt_cell surf_conc(rt_SHAPE *srf)
 }
 
 /*
- * Determine whether clipped "srf" is convex or concave.
- *
- * Return values:
- *   0 - convex
- *   1 - concave
- */
-static
-rt_cell clip_conc(rt_SHAPE *srf)
-{
-    rt_cell c = 0;
-
-    rt_vec4  zro = {0.0f, 0.0f, 0.0f, 0.0f};
-    rt_real *pps = srf->trnode == srf ? zro : srf->pos;
-
-    if ((srf->tag == RT_TAG_CONE
-    ||   srf->tag == RT_TAG_HYPERBOLOID)
-    &&  (srf->sci[RT_W] <= 0.0f
-    &&   srf->bmin[srf->map[RT_K]] < pps[srf->map[RT_K]]
-    &&   srf->bmax[srf->map[RT_K]] > pps[srf->map[RT_K]]
-    ||   srf->sci[RT_W] > 0.0f))
-    {
-        c = 1;
-    }
-
-    return c;
-}
-
-/*
  * Transform "pos" into "obj's" trnode sub-world space
  * using "loc" as temporary storage for return value.
  *
@@ -771,7 +743,7 @@ rt_real *node_tran(rt_BOUND *obj, rt_vec4 pos, rt_vec4 loc)
     if (obj->trnode != RT_NULL)
     {
         RT_VEC3_SUB(dff, pps, obj->trnode->pos);
-        dff[RT_W] = 0.0f;
+        dff[RT_W] = 0.0f; /* inverse matrix is 3x3 only */
 
         matrix_mul_vector(loc, *obj->trnode->pinv, dff);
 
@@ -997,7 +969,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     /* check if nodes differ and have bounds */
     if (nd1->rad == RT_INF || nd2->rad == RT_INF || nd1 == nd2)
     {
-        return 1;
+        return 1; /* TODO: attempt to check shadow for boundless nodes */
     }
 
     rt_real *pps = obj->mid;
@@ -1346,7 +1318,7 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
     /* check if nodes differ and have bounds */
     if (nd1->rad == RT_INF || nd2->rad == RT_INF || nd1 == nd2)
     {
-        return 2;
+        return 2; /* TODO: attempt to check intersection for boundless nodes */
     }
 
     /* check if bounding spheres don't intersect */
@@ -1454,7 +1426,7 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
 
     p = RT_IS_PLANE(srf) ? 1 : 0;
     k = surf_hole(srf, obj);
-    m = clip_conc(srf);
+    m = surf_conc(srf);
 
     /* check if "obj" is SURFACE */
     if (RT_IS_SURFACE(obj))
@@ -1466,7 +1438,6 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
         {
             if (p == 0)
             {
-                m = clip_conc(srf);
                 c |= 1;
                 if (m == 1)
                 {
@@ -1479,7 +1450,7 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
         /* check "srf's" and "ref's" clip relationship */
         i = surf_clip(ref, srf);
         j = surf_clip(srf, ref);
-        n = clip_conc(ref);
+        n = surf_conc(ref);
 
         if (i == 2 && j == 2
         ||  i == 2 && j == 0)
@@ -1503,7 +1474,7 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
         if (i == 1 && j == 2)
         {
             c |= 2;
-            if (n == 1 && p == 0 || k != 0)
+            if (p == 0 && (n == 1 || k != 0))
             {
                 c |= 1;
             }
@@ -1521,7 +1492,7 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
         if (i == 1 && j == 0)
         {
             c |= 2;
-            if (k != 0)
+            if (p == 0 && k != 0)
             {
                 c |= 1;
             }
