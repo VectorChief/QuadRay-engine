@@ -12,13 +12,13 @@ v0.5.2: Performance optimizations, transform caching and scaling fastpath
 v0.5.1: Performance optimizations, tiled rendering
   - adjust bounding and clipping boxes according to surface shape
   - add bounding box geometry, update vertices according to transform
-  - add bounding box projection functions for tiled rendering
-  - add tilebuffer support to backend structures, scene management
+  - add bounding box projection routines for tiled rendering
+  - add tilebuffer support to backend structures, scene manager
   - implement tilebuffer in rendering backend, add support for tiles highlight
   - clean up state logging macros, refine per-frame allocs estimates
 
 v0.5.0: Performance optimizations, multi-threading support
-  - add multi-threading framework to scene management, rendering backend
+  - add multi-threading framework to scene manager, rendering backend
   - add multi-threading implementation for Linux, Win32 platforms
   - fix crashes in fullscreen mode for Linux platform, clean up FPS logging
   - add support for temporary per-frame heap allocs
@@ -41,7 +41,7 @@ v0.4.0: Geometry transform, free-angle rotation and axis scaling
   - add transform to scene data, adjust formatting
 
 v0.3.6: Lighting & effects, full screen anti-aliasing
-  - add anti-aliasing mode to backend structures, scene management
+  - add anti-aliasing mode to backend structures, scene manager
   - implement anti-aliasing in rendering backend
   - add anti-aliasing selection to demo app, refactor key handling
   - fix ray vertical positioning for non-aa mode
@@ -62,13 +62,13 @@ v0.3.3: Lighting & effects, compute refractions
   - add refractions to scene data
 
 v0.3.2: Lighting & effects, compute reflections
-  - add surface lists to scene management
+  - add surface lists to scene manager
   - add reflection properties to backend structures, object classes
   - implement reflections in rendering backend
   - add reflections to scene data
 
 v0.3.1: Lighting & effects, hard shadows
-  - add shadows to scene management
+  - add shadows to scene manager
   - implement shadows in rendering backend
 
 v0.3.0: Lighting & effects, compute diffuse
@@ -103,13 +103,15 @@ v0.1.1: Plane solver, axis clipping
 
 v0.1.0: Plane solver, first rays out!
   - reorganize directory structure for the engine
-  - add backend structures, object classes, scene management
+  - add backend structures, object classes, scene manager
   - add first scene data, main app window and scene rendering
 
 v0.0.5: Unified SIMD assembler, API freeze for the engine
   - instructions naming scheme finalized
   - change ARM instructions to set flags
   - added framework for internal constants (used by reciprocals)
+  - fix div in ARM to use signed integers
+  - increase div, sqr precision for MPE
 
 v0.0.4: SIMD test framework, macro assembler overhaul
   - macro expansion reworked for better compiler compatibility
