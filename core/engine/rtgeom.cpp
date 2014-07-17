@@ -1165,9 +1165,9 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
     {
         if (p == 0)
         {
-            m = cbox_conc(srf);
+            n = cbox_conc(ref);
             c |= 1;
-            if (m == 1)
+            if (n == 1)
             {
                 c |= 2;
             }
@@ -1181,9 +1181,7 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
     j = surf_clip(srf, ref);
 
     k = surf_hole(srf, ref);
-
-    m = cbox_conc(srf);
-    n = cbox_conc(ref);
+    m = surf_conc(srf);
 
     if (i == 2 && j == 2
     ||  i == 2 && j == 0)
@@ -1206,8 +1204,9 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
     }
     if (i == 1 && j == 2)
     {
+        n = surf_conc(ref);
         c |= 2;
-        if (n == 1 && p == 0 || k != 0)
+        if (p == 0 && (n == 1 || k != 0))
         {
             c |= 1;
         }
@@ -1225,7 +1224,7 @@ rt_cell bbox_side(rt_Surface *srf, rt_Surface *ref)
     if (i == 1 && j == 0)
     {
         c |= 2;
-        if (k != 0)
+        if (p == 0 && k != 0)
         {
             c |= 1;
         }
