@@ -182,6 +182,8 @@
         EMITW(0xF3BB0540 | MTM(Tmm1,    0x00,    REG(RM)))                  \
         EMITW(0xF2000F50 | MTM(Tmm2,    Tmm1,    REG(RM)))                  \
         EMITW(0xF3000D50 | MTM(Tmm1,    Tmm1,    Tmm2))                     \
+        EMITW(0xF2000F50 | MTM(Tmm2,    Tmm1,    REG(RM)))                  \
+        EMITW(0xF3000D50 | MTM(Tmm1,    Tmm1,    Tmm2))                     \
         EMITW(0xF3000D50 | MTM(REG(RG), REG(RG), Tmm1))
 
 #define divps_ld(RG, RM, DP)                                                \
@@ -190,6 +192,8 @@
                            TYP(DP))                                         \
         EMITW(0xF4200AAF | MTM(Tmm3,    TPxx,    0x00))                     \
         EMITW(0xF3BB0540 | MTM(Tmm1,    0x00,    Tmm3))                     \
+        EMITW(0xF2000F50 | MTM(Tmm2,    Tmm1,    Tmm3))                     \
+        EMITW(0xF3000D50 | MTM(Tmm1,    Tmm1,    Tmm2))                     \
         EMITW(0xF2000F50 | MTM(Tmm2,    Tmm1,    Tmm3))                     \
         EMITW(0xF3000D50 | MTM(Tmm1,    Tmm1,    Tmm2))                     \
         EMITW(0xF3000D50 | MTM(REG(RG), REG(RG), Tmm1))
@@ -201,6 +205,9 @@
         EMITW(0xF3000D50 | MTM(Tmm2,    Tmm1,    Tmm1))                     \
         EMITW(0xF2200F50 | MTM(Tmm2,    Tmm2,    REG(RM)))                  \
         EMITW(0xF3000D50 | MTM(Tmm1,    Tmm1,    Tmm2))                     \
+        EMITW(0xF3000D50 | MTM(Tmm2,    Tmm1,    Tmm1))                     \
+        EMITW(0xF2200F50 | MTM(Tmm2,    Tmm2,    REG(RM)))                  \
+        EMITW(0xF3000D50 | MTM(Tmm1,    Tmm1,    Tmm2))                     \
         EMITW(0xF3000D50 | MTM(REG(RG), REG(RM), Tmm1))
 
 #define sqrps_ld(RG, RM, DP)                                                \
@@ -209,6 +216,9 @@
                            TYP(DP))                                         \
         EMITW(0xF4200AAF | MTM(Tmm3,    TPxx,    0x00))                     \
         EMITW(0xF3BB05C0 | MTM(Tmm1,    0x00,    Tmm3))                     \
+        EMITW(0xF3000D50 | MTM(Tmm2,    Tmm1,    Tmm1))                     \
+        EMITW(0xF2200F50 | MTM(Tmm2,    Tmm2,    Tmm3))                     \
+        EMITW(0xF3000D50 | MTM(Tmm1,    Tmm1,    Tmm2))                     \
         EMITW(0xF3000D50 | MTM(Tmm2,    Tmm1,    Tmm1))                     \
         EMITW(0xF2200F50 | MTM(Tmm2,    Tmm2,    Tmm3))                     \
         EMITW(0xF3000D50 | MTM(Tmm1,    Tmm1,    Tmm2))                     \
