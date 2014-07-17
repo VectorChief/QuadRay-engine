@@ -41,7 +41,7 @@ run for x86 architecture:
 run for ARM architecture (inside scratchbox, see below):
     make -f simd_make_arm.mk
     copy simd_test.arm over to N900 and run there
-ARM builds are done in Maemo/scratchbox cross-compilation environment for N900.
+ARM builds are done in Maemo/scratchbox cross-compilation environment for N900:
     http://wiki.maemo.org/Documentation/Maemo_5_Final_SDK_Installation
 Only DEB-based distributions (Mint, Ubuntu, Debian) are supported for now,
 users of RPM-based distros need to figure out build-deps on their own.
@@ -69,7 +69,7 @@ run for x86 architecture:
 run for ARM architecture (inside scratchbox, see below):
     make -f core_make_arm.mk
     copy core_test.arm over to N900 and run there
-ARM builds are done in Maemo/scratchbox cross-compilation environment for N900.
+ARM builds are done in Maemo/scratchbox cross-compilation environment for N900:
     http://wiki.maemo.org/Documentation/Maemo_5_Final_SDK_Installation
 Only DEB-based distributions (Mint, Ubuntu, Debian) are supported for now,
 users of RPM-based distros need to figure out build-deps on their own.
