@@ -728,6 +728,34 @@ rt_cell surf_conc(rt_SHAPE *srf)
 }
 
 /*
+ * Determine whether clipped "srf" is convex or concave.
+ *
+ * Return values:
+ *   0 - convex
+ *   1 - concave
+ */
+static
+rt_cell clip_conc(rt_SHAPE *srf)
+{
+    rt_cell c = 0;
+
+    rt_vec4  zro = {0.0f, 0.0f, 0.0f, 0.0f};
+    rt_real *pps = srf->trnode == srf ? zro : srf->pos;
+
+    if ((srf->tag == RT_TAG_CONE
+    ||   srf->tag == RT_TAG_HYPERBOLOID)
+    &&  (srf->sci[RT_W] <= 0.0f
+    &&   srf->bmin[srf->map[RT_K]] < pps[srf->map[RT_K]]
+    &&   srf->bmax[srf->map[RT_K]] > pps[srf->map[RT_K]]
+    ||   srf->sci[RT_W] > 0.0f))
+    {
+        c = 1;
+    }
+
+    return c;
+}
+
+/*
  * Transform "pos" into "obj's" trnode sub-world space
  * using "loc" as temporary storage for return value.
  *
@@ -1438,8 +1466,9 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
         {
             if (p == 0)
             {
+                n = clip_conc(ref);
                 c |= 1;
-                if (m == 1)
+                if (n == 1)
                 {
                     c |= 2;
                 }
@@ -1450,7 +1479,6 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
         /* check "srf's" and "ref's" clip relationship */
         i = surf_clip(ref, srf);
         j = surf_clip(srf, ref);
-        n = surf_conc(ref);
 
         if (i == 2 && j == 2
         ||  i == 2 && j == 0)
@@ -1473,6 +1501,7 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
         }
         if (i == 1 && j == 2)
         {
+            n = surf_conc(ref);
             c |= 2;
             if (p == 0 && (n == 1 || k != 0))
             {
