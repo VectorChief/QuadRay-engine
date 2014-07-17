@@ -27,7 +27,7 @@ LIB_LIST =                          \
         -lpthread
 
 RooT:
-	g++ -O3 -g -DRT_PATH="./" \
+	g++ -O3 -g -m32 -DRT_PATH="./" \
         -DRT_LINUX -DRT_X86 -DRT_DEBUG=0 -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x86
