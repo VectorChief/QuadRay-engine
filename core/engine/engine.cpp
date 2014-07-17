@@ -1344,7 +1344,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* frame ptr must be SIMD-aligned or NULL */
                                 RT_SIMD_ALIGN);
     }
     else
-    if ((rt_word)frame & (RT_SIMD_ALIGN - 1) != 0)
+    if (((rt_word)frame & (RT_SIMD_ALIGN - 1)) != 0)
     {
         throw rt_Exception("frame pointer is not simd-aligned in scene");
     }
