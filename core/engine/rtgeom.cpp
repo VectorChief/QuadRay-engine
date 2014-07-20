@@ -1001,6 +1001,27 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     }
 
     rt_real *pps = obj->mid;
+    rt_cell i, j, k;
+
+    /* check if "nd1" and "nd2" is SURFACE
+     * and clip relations for shadow optimization is enabled in runtime */
+#if RT_OPTS_SHADOW_EXT2 != 0
+    if ((*obj->opts & RT_OPTS_SHADOW_EXT2) != 0
+    &&  RT_IS_SURFACE(nd1) && RT_IS_SURFACE(nd2))
+    {
+        rt_SHAPE *srf = (rt_SHAPE *)nd1;
+        rt_SHAPE *ref = (rt_SHAPE *)nd2;
+
+        /* check "srf's" and "ref's" clip relationship */
+        i = surf_clip(ref, srf);
+        j = surf_clip(srf, ref);
+
+        if (i != 0 || j != 0)
+        {
+            return 1;
+        }
+    }
+#endif /* RT_OPTS_SHADOW_EXT2 */
 
     /* check if cones from bounding spheres don't intersect */
     rt_vec4 nd1_vec;
@@ -1033,17 +1054,15 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     RT_VEC3_SUB(dff_vec, nd1->mid, nd2->mid);
     rt_real dff_len = RT_VEC3_LEN(dff_vec);
 
-    if (nd1->rad + nd2->rad < dff_len)
+    /* check if shadow bounding sphere is fully behind */
+    if (nd1->rad + nd2->rad < dff_len
+    &&  nd1_len > nd2_len)
     {
-        /* check if shadow bounding sphere is fully behind */
-        if (nd1_len > nd2_len)
-        {
-            return 0;
-        }
+        return 0;
     }
 
     /* check if nodes don't have bounding boxes
-     * or shadow bbox optimization is disabled in runtime */
+     * or bbox relations for shadow optimization is disabled in runtime */
 #if RT_OPTS_SHADOW_EXT1 != 0
     if ((*obj->opts & RT_OPTS_SHADOW_EXT1) == 0
     ||  nd1->verts_num == 0 || nd2->verts_num == 0)
@@ -1053,17 +1072,13 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     }
 
     /* check if "obj's" bbox "mid" is inside "nd1's" bbox */
-    rt_cell k;
-
     k = node_bbox(nd1, pps);
-
     if (k != 0)
     {
         return 1;
     }
 
     /* check if bounding boxes cast shadow */
-    rt_cell i, j;
 
     /* run through "nd1's" verts and "nd2's" faces */
     for (i = 0; i < nd1->verts_num; i++)
@@ -1206,6 +1221,247 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     }
 
     rt_real *pps = obj->mid;
+    rt_cell i, j, k = 0, m, n, p, q, r = 0, s, t, u = 8, f = 0, c = 0;
+
+    /* check if "nd1" and "nd2" is SURFACE
+     * and clip relations for sorting optimization is enabled in runtime */
+#if RT_OPTS_INSERT_EXT2 != 0
+    if ((*obj->opts & RT_OPTS_INSERT_EXT2) != 0
+    &&  RT_IS_SURFACE(nd1) && RT_IS_SURFACE(nd2))
+    do /* use "do {break} while(0)" instead of "goto label" */
+    {
+        rt_SHAPE *srf = (rt_SHAPE *)nd1;
+        rt_SHAPE *ref = (rt_SHAPE *)nd2;
+
+        /* check "srf's" and "ref's" clip relationship */
+        i = surf_clip(ref, srf);
+        j = surf_clip(srf, ref);
+
+        if (i == 0 && j == 0)
+        {
+            break;
+        }
+
+        /* TODO: consider merging "p, q" into "m, n" as a third "planar" state
+         * between "convex" and "concave", adjust code below to reflect that */
+        p = RT_IS_PLANE(srf) ? 1 : 0;
+        q = RT_IS_PLANE(ref) ? 1 : 0;
+
+        m = surf_conc(srf);
+        n = surf_conc(ref);
+
+        s = surf_side(srf, pps);
+        t = surf_side(ref, pps);
+
+        /* TODO: accept additional "side" parameter for SURFACE "obj",
+         * consider "obj == nd1", "obj == nd2" cases on per-side basis */
+        if (obj == nd1)
+        {
+            s = 0;
+        }
+        if (obj == nd2)
+        {
+            t = 0;
+        }
+
+        if (s == 0 || t == 0)
+        {
+            break;
+        }
+
+        if (i == 2 && j == 2)
+        {
+            if (s == 2 && t == 1)
+            {
+                return 1;
+            }
+            if (s == 1 && t == 2)
+            {
+                return 2;
+            }
+            if (s == 1 && t == 1)
+            {
+                if (m == 0 && n == 0)
+                {
+                    return 3;
+                }
+                if (m == 0)
+                {
+                    return 2;
+                }
+                if (n == 0)
+                {
+                    return 1;
+                }
+            }
+            if (s == 2 && t == 2)
+            {
+                if (p == 1 && q == 1)
+                {
+                    return 3;
+                }
+                if (q == 1)
+                {
+                    return 2;
+                }
+                if (p == 1)
+                {
+                    return 1;
+                }
+                k = 3;
+                u = 0;
+            }
+            break;
+        }
+        if (i == 1 && j == 1)
+        {
+            if (s == 2 && t == 1)
+            {
+                return 2;
+            }
+            if (s == 1 && t == 2)
+            {
+                return 1;
+            }
+            if (s == 1 && t == 1)
+            {
+                if (m == 0 && n == 0)
+                {
+                    return 3;
+                }
+                if (n == 0)
+                {
+                    return 2;
+                }
+                if (m == 0)
+                {
+                    return 1;
+                }
+            }
+            if (s == 2 && t == 2)
+            {
+                if (p == 1 && q == 1)
+                {
+                    return 3;
+                }
+                if (p == 1)
+                {
+                    return 2;
+                }
+                if (q == 1)
+                {
+                    return 1;
+                }
+            }
+            break;
+        }
+        if (i == 2 && j == 1)
+        {
+            if (s == 2 && t == 2
+            ||  s == 2 && t == 1 && n == 1
+            ||  s == 1 && m == 1 && t == 2 && q == 1)
+            {
+                if (s == 1 || p == 1)
+                {
+                    u = 0;
+                }
+                return u|1;
+            }
+            if (s == 1 && t == 1
+            ||  s == 1 && m == 0 && q == 0
+            ||  s == 2 && t == 1 && p == 0)
+            {
+                return 2;
+            }
+            if (s == 2 && t == 1 && p == 1
+            ||  s == 1 && m == 0 && t == 2 && q == 1)
+            {
+                return 3;
+            }
+            break;
+        }
+        if (i == 1 && j == 2)
+        {
+            if (t == 2 && s == 2
+            ||  t == 2 && s == 1 && m == 1
+            ||  t == 1 && n == 1 && s == 2 && p == 1)
+            {
+                if (t == 1 || q == 1)
+                {
+                    u = 0;
+                }
+                return u|2;
+            }
+            if (t == 1 && s == 1
+            ||  t == 1 && n == 0 && p == 0
+            ||  t == 2 && s == 1 && q == 0)
+            {
+                return 1;
+            }
+            if (t == 2 && s == 1 && q == 1
+            ||  t == 1 && n == 0 && s == 2 && p == 1)
+            {
+                return 3;
+            }
+            break;
+        }
+        if (i == 2 && j == 0)
+        {
+            if (s == 2)
+            {
+                return 1;
+            }
+            if (s == 1 && m == 0
+            ||  s == 1 && t == 1 && q == 0)
+            {
+                return 2;
+            }
+            break;
+        }
+        if (i == 0 && j == 2)
+        {
+            if (t == 2)
+            {
+                return 2;
+            }
+            if (t == 1 && n == 0
+            ||  t == 1 && s == 1 && p == 0)
+            {
+                return 1;
+            }
+            break;
+        }
+        if (i == 1 && j == 0)
+        {
+            if (s == 1
+            ||  s == 2 && p == 0 && q == 1)
+            {
+                return 1;
+            }
+            if (s == 2 && p == 1
+            ||  s == 2 && t == 1 && q == 0)
+            {
+                return 2;
+            }
+            break;
+        }
+        if (i == 0 && j == 1)
+        {
+            if (t == 1
+            ||  t == 2 && q == 0 && p == 1)
+            {
+                return 2;
+            }
+            if (t == 2 && q == 1
+            ||  t == 2 && s == 1 && p == 0)
+            {
+                return 1;
+            }
+            break;
+        }
+    }
+    while (0);
+#endif /* RT_OPTS_INSERT_EXT2 */
 
     /* check if cones from bounding spheres don't intersect */
     rt_vec4 nd1_vec;
@@ -1238,8 +1494,6 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     RT_VEC3_SUB(dff_vec, nd1->mid, nd2->mid);
     rt_real dff_len = RT_VEC3_LEN(dff_vec);
 
-    rt_cell u = 8, r = 0, s = 0;
-
     if (nd1->rad + nd2->rad < dff_len)
     {
         u = 0;
@@ -1255,10 +1509,12 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         s = 2;
     }
 
+    s ^= k;
+
     /* check if nodes don't have bounding boxes
-     * or bbox sorting optimization is disabled in runtime */
+     * or bbox relations for sorting optimization is disabled in runtime */
 #if RT_OPTS_INSERT_EXT1 != 0
-    if ((*obj->opts & RT_OPTS_INSERT_EXT1) == 0
+    if ((*obj->opts & RT_OPTS_INSERT_EXT1) == 0 || k != 0
     ||  nd1->verts_num == 0 || nd2->verts_num == 0)
 #endif /* RT_OPTS_INSERT_EXT1 */
     {
@@ -1282,9 +1538,6 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 #endif /* RT_OPTS_REMOVE */
 
     /* check the order for bounding boxes */
-    rt_cell i, j, k, q, m, n, p, t, f = 0, c = 0;
-
-    pps = obj->mid;
 
     for (q = 0, m = 1; q < m && (f == 0 || r & 2); q++)
     {
@@ -1560,6 +1813,8 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
         return 2; /* TODO: attempt to check intersection for boundless nodes */
     }
 
+    rt_cell i, j, k;
+
     /* check if bounding spheres don't intersect */
     rt_vec4 dff_vec;
     RT_VEC3_SUB(dff_vec, nd1->mid, nd2->mid);
@@ -1570,31 +1825,29 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
         return 0;
     }
 
-    /* check if nodes don't have bounding boxes */
-    if (nd1->verts_num == 0 || nd2->verts_num == 0)
-    {
-        return 2;
-    }
-
-    /* check if one bbox's "mid" is inside another */
-    rt_cell k;
-
-    k = node_bbox(nd1, nd2->mid);
-
-    if (k != 0)
+    /* check if nodes don't have bounding boxes
+     * or bbox relations for per-side optimization is disabled in runtime */
+#if RT_OPTS_2SIDED_EXT1 != 0
+    if ((*nd1->opts & RT_OPTS_2SIDED_EXT1) == 0
+    ||  nd1->verts_num == 0 || nd2->verts_num == 0)
+#endif /* RT_OPTS_2SIDED_EXT1 */
     {
         return 1;
     }
 
+    /* check if one bbox's "mid" is inside another */
+    k = node_bbox(nd1, nd2->mid);
+    if (k != 0)
+    {
+        return 1;
+    }
     k = node_bbox(nd2, nd1->mid);
-
     if (k != 0)
     {
         return 1;
     }
 
     /* check if edges of one bbox intersect faces of another */
-    rt_cell i, j;
 
     /* run through "nd1's" edges and "nd2's" faces */
     for (i = 0; i < nd1->edges_num; i++)
@@ -1663,12 +1916,17 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
 
     rt_cell i, j, k, m, n, p, c = 0;
 
+    /* TODO: consider merging "p" into "m" as a third "planar" state
+     * between "convex" and "concave", adjust code below to reflect that */
     p = RT_IS_PLANE(srf) ? 1 : 0;
     k = surf_hole(srf, obj);
     m = surf_conc(srf);
 
-    /* check if "obj" is SURFACE */
-    if (RT_IS_SURFACE(obj))
+    /* check if "obj" is SURFACE
+     * and clip relations for per-side optimization is enabled in runtime */
+#if RT_OPTS_2SIDED_EXT2 != 0
+    if ((*obj->opts & RT_OPTS_2SIDED_EXT2) != 0
+    &&  RT_IS_SURFACE(obj))
     {
         rt_SHAPE *ref = (rt_SHAPE *)obj;
 
@@ -1745,6 +2003,7 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
             return c;
         }
     }
+#endif /* RT_OPTS_2SIDED_EXT2 */
 
     /* check if all "obj's" verts are on the same side */
     if (p == 1)
@@ -1765,7 +2024,7 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
     }
 
     /* check if bboxes intersect */
-    n = bbox_fuse(srf, obj);
+    n = bbox_fuse(obj, srf);
 
     if (n != 0 && m == 1 || n == 2)
     {

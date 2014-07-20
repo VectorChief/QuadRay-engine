@@ -62,15 +62,19 @@
 #define RT_OPTS_FSCALE          (1 << 3)
 #define RT_OPTS_TARRAY          (1 << 4)
 #define RT_OPTS_VARRAY          (1 << 5)
-#define RT_OPTS_SHADOW          (1 << 6)
-#define RT_OPTS_SHADOW_EXT1     (1 << 7)
+#define RT_OPTS_ADJUST          (1 << 6)
+#define RT_OPTS_UPDATE          (1 << 7)
 #define RT_OPTS_RENDER          (1 << 8)
-#define RT_OPTS_2SIDED          (1 << 9)
-#define RT_OPTS_ADJUST          (1 << 10)
-#define RT_OPTS_UPDATE          (1 << 11)
-#define RT_OPTS_INSERT          (1 << 12)
-#define RT_OPTS_INSERT_EXT1     (1 << 13)
-#define RT_OPTS_REMOVE          (1 << 14)
+#define RT_OPTS_SHADOW          (1 << 9)
+#define RT_OPTS_SHADOW_EXT1     (1 << 10)
+#define RT_OPTS_SHADOW_EXT2     (1 << 11)
+#define RT_OPTS_2SIDED          (1 << 12)
+#define RT_OPTS_2SIDED_EXT1     (1 << 13)
+#define RT_OPTS_2SIDED_EXT2     (1 << 14)
+#define RT_OPTS_INSERT          (1 << 15)
+#define RT_OPTS_INSERT_EXT1     (1 << 16)
+#define RT_OPTS_INSERT_EXT2     (1 << 17)
+#define RT_OPTS_REMOVE          (1 << 18)
 
 #define RT_OPTS_FULL            (                                           \
         RT_OPTS_THREAD          |                                           \
@@ -79,14 +83,18 @@
         RT_OPTS_FSCALE          |                                           \
         RT_OPTS_TARRAY          |                                           \
         RT_OPTS_VARRAY          |                                           \
-        RT_OPTS_SHADOW          |                                           \
-        RT_OPTS_SHADOW_EXT1     |                                           \
-        RT_OPTS_RENDER          |                                           \
-        RT_OPTS_2SIDED          |                                           \
         RT_OPTS_ADJUST          |                                           \
         RT_OPTS_UPDATE          |                                           \
+        RT_OPTS_RENDER          |                                           \
+        RT_OPTS_SHADOW          |                                           \
+        RT_OPTS_SHADOW_EXT1     |                                           \
+        RT_OPTS_SHADOW_EXT2     |                                           \
+        RT_OPTS_2SIDED          |                                           \
+        RT_OPTS_2SIDED_EXT1     |                                           \
+        RT_OPTS_2SIDED_EXT2     |                                           \
         RT_OPTS_INSERT          |                                           \
         RT_OPTS_INSERT_EXT1     |                                           \
+        RT_OPTS_INSERT_EXT2     |                                           \
         RT_OPTS_REMOVE          )
 
 #endif /* RT_RTCONF_H */
