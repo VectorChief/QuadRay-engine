@@ -1221,7 +1221,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     }
 
     rt_real *pps = obj->mid;
-    rt_cell i, j, k = 0, m, n, p, q, r = 0, s, t, u = 8, f = 0, c = 0;
+    rt_cell i, j, k, m, n, p, q, r = 0, s, t, u = 8, f = 0, c = 0;
 
     /* check if "nd1" and "nd2" is SURFACE
      * and clip relations for sorting optimization is enabled in runtime */
@@ -1233,6 +1233,11 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         rt_SHAPE *srf = (rt_SHAPE *)nd1;
         rt_SHAPE *ref = (rt_SHAPE *)nd2;
 
+        /* TODO: consider merging "p, q" into "m, n" as a third "planar" state
+         * between "convex" and "concave", adjust code below to reflect that */
+        p = RT_IS_PLANE(srf) ? 1 : 0;
+        q = RT_IS_PLANE(ref) ? 1 : 0;
+
         /* check "srf's" and "ref's" clip relationship */
         i = surf_clip(ref, srf);
         j = surf_clip(srf, ref);
@@ -1241,11 +1246,6 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         {
             break;
         }
-
-        /* TODO: consider merging "p, q" into "m, n" as a third "planar" state
-         * between "convex" and "concave", adjust code below to reflect that */
-        p = RT_IS_PLANE(srf) ? 1 : 0;
-        q = RT_IS_PLANE(ref) ? 1 : 0;
 
         m = surf_conc(srf);
         n = surf_conc(ref);
@@ -1308,8 +1308,6 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                 {
                     return 1;
                 }
-                k = 3;
-                u = 0;
             }
             break;
         }
@@ -1358,7 +1356,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         if (i == 2 && j == 1)
         {
             if (s == 2 && t == 2
-            ||  s == 2 && t == 1 && n == 1
+            ||  s == 2 && p == 1 && t == 1 && n == 1
             ||  s == 1 && m == 1 && t == 2 && q == 1)
             {
                 if (s == 1 || p == 1)
@@ -1369,11 +1367,11 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             }
             if (s == 1 && t == 1
             ||  s == 1 && m == 0 && q == 0
-            ||  s == 2 && t == 1 && p == 0)
+            ||  s == 2 && p == 0 && t == 1 && n == 0)
             {
                 return 2;
             }
-            if (s == 2 && t == 1 && p == 1
+            if (s == 2 && p == 1 && t == 1
             ||  s == 1 && m == 0 && t == 2 && q == 1)
             {
                 return 3;
@@ -1383,7 +1381,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         if (i == 1 && j == 2)
         {
             if (t == 2 && s == 2
-            ||  t == 2 && s == 1 && m == 1
+            ||  t == 2 && q == 1 && s == 1 && m == 1
             ||  t == 1 && n == 1 && s == 2 && p == 1)
             {
                 if (t == 1 || q == 1)
@@ -1394,11 +1392,11 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             }
             if (t == 1 && s == 1
             ||  t == 1 && n == 0 && p == 0
-            ||  t == 2 && s == 1 && q == 0)
+            ||  t == 2 && q == 0 && s == 1 && m == 0)
             {
                 return 1;
             }
-            if (t == 2 && s == 1 && q == 1
+            if (t == 2 && q == 1 && s == 1
             ||  t == 1 && n == 0 && s == 2 && p == 1)
             {
                 return 3;
@@ -1411,8 +1409,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 return 1;
             }
-            if (s == 1 && m == 0
-            ||  s == 1 && t == 1 && q == 0)
+            if (s == 1 && m == 0)
             {
                 return 2;
             }
@@ -1424,8 +1421,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
             {
                 return 2;
             }
-            if (t == 1 && n == 0
-            ||  t == 1 && s == 1 && p == 0)
+            if (t == 1 && n == 0)
             {
                 return 1;
             }
@@ -1434,12 +1430,12 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         if (i == 1 && j == 0)
         {
             if (s == 1
-            ||  s == 2 && p == 0 && q == 1)
+            ||  s == 2 && p == 0 && q == 1
+            ||  s == 2 && p == 0 && t == 1 && n == 0)
             {
                 return 1;
             }
-            if (s == 2 && p == 1
-            ||  s == 2 && t == 1 && q == 0)
+            if (s == 2 && p == 1)
             {
                 return 2;
             }
@@ -1448,12 +1444,12 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         if (i == 0 && j == 1)
         {
             if (t == 1
-            ||  t == 2 && q == 0 && p == 1)
+            ||  t == 2 && q == 0 && p == 1
+            ||  t == 2 && q == 0 && s == 1 && m == 0)
             {
                 return 2;
             }
-            if (t == 2 && q == 1
-            ||  t == 2 && s == 1 && p == 0)
+            if (t == 2 && q == 1)
             {
                 return 1;
             }
@@ -1509,12 +1505,10 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         s = 2;
     }
 
-    s ^= k;
-
     /* check if nodes don't have bounding boxes
      * or bbox relations for sorting optimization is disabled in runtime */
 #if RT_OPTS_INSERT_EXT1 != 0
-    if ((*obj->opts & RT_OPTS_INSERT_EXT1) == 0 || k != 0
+    if ((*obj->opts & RT_OPTS_INSERT_EXT1) == 0
     ||  nd1->verts_num == 0 || nd2->verts_num == 0)
 #endif /* RT_OPTS_INSERT_EXT1 */
     {
