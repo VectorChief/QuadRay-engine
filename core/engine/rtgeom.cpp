@@ -1177,12 +1177,6 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         p = RT_IS_PLANE(srf) ? 1 : 0;
         q = RT_IS_PLANE(ref) ? 1 : 0;
 
-        /* simplified version without planes */
-        if (p == 1 || q == 1)
-        {
-            break;
-        }
-
         /* check "srf's" and "ref's" clip relationship */
         i = surf_clip(ref, srf);
         j = surf_clip(srf, ref);
@@ -1198,6 +1192,8 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         s = surf_side(srf, pps);
         t = surf_side(ref, pps);
 
+        /* TODO: accept additional "side" parameter for SURFACE "obj",
+         * consider "obj == nd1", "obj == nd2" cases on per-side basis */
         if (obj == nd1)
         {
             s = 0;
@@ -1237,6 +1233,21 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                     return 1;
                 }
             }
+            if (s == 2 && t == 2)
+            {
+                if (p == 1 && q == 1)
+                {
+                    return 3;
+                }
+                if (q == 1)
+                {
+                    return 2;
+                }
+                if (p == 1)
+                {
+                    return 1;
+                }
+            }
             break;
         }
         if (i == 1 && j == 1)
@@ -1264,33 +1275,62 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                     return 1;
                 }
             }
+            if (s == 2 && t == 2)
+            {
+                if (p == 1 && q == 1)
+                {
+                    return 3;
+                }
+                if (p == 1)
+                {
+                    return 2;
+                }
+                if (q == 1)
+                {
+                    return 1;
+                }
+            }
             break;
         }
         if (i == 2 && j == 1)
         {
-            if (s == 2 && t == 2)
+            if (s == 2 && t == 2
+            ||  s == 2 && p == 1 && t == 1 && n == 1
+            ||  s == 1 && m == 1 && t == 2 && q == 1)
             {
                 return 1;
             }
             if (s == 1 && t == 1
-            ||  s == 1 && m == 0
-            ||  t == 1 && n == 0)
+            ||  s == 1 && m == 0 && q == 0
+            ||  s == 2 && p == 0 && t == 1 && n == 0)
             {
                 return 2;
+            }
+            if (s == 2 && p == 1 && t == 1
+            ||  s == 1 && m == 0 && t == 2 && q == 1)
+            {
+                return 3;
             }
             break;
         }
         if (i == 1 && j == 2)
         {
-            if (t == 2 && s == 2)
+            if (t == 2 && s == 2
+            ||  t == 2 && q == 1 && s == 1 && m == 1
+            ||  t == 1 && n == 1 && s == 2 && p == 1)
             {
                 return 2;
             }
             if (t == 1 && s == 1
-            ||  t == 1 && n == 0
-            ||  s == 1 && m == 0)
+            ||  t == 1 && n == 0 && p == 0
+            ||  t == 2 && q == 0 && s == 1 && m == 0)
             {
                 return 1;
+            }
+            if (t == 2 && q == 1 && s == 1
+            ||  t == 1 && n == 0 && s == 2 && p == 1)
+            {
+                return 3;
             }
             break;
         }
@@ -1321,18 +1361,28 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         if (i == 1 && j == 0)
         {
             if (s == 1
-            ||  t == 1 && n == 0)
+            ||  s == 2 && p == 0 && q == 1
+            ||  s == 2 && p == 0 && t == 1 && n == 0)
             {
                 return 1;
+            }
+            if (s == 2 && p == 1)
+            {
+                return 2;
             }
             break;
         }
         if (i == 0 && j == 1)
         {
             if (t == 1
-            ||  s == 1 && m == 0)
+            ||  t == 2 && q == 0 && p == 1
+            ||  t == 2 && q == 0 && s == 1 && m == 0)
             {
                 return 2;
+            }
+            if (t == 2 && q == 1)
+            {
+                return 1;
             }
             break;
         }
