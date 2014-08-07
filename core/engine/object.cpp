@@ -2716,21 +2716,10 @@ rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
     xpl = (rt_PLANE *)obj->obj.pobj;
 
     /* init surface's bvbox used for tiling, rtgeom and array's bounds */
-    if (srf->min[RT_I] == -RT_INF
-    ||  srf->min[RT_J] == -RT_INF
-    ||  srf->max[RT_I] == +RT_INF
-    ||  srf->max[RT_J] == +RT_INF)
-    {
-        bvbox->verts_num = 0;
-        bvbox->verts = RT_NULL;
-
-        bvbox->edges_num = 0;
-        bvbox->edges = RT_NULL;
-
-        bvbox->faces_num = 0;
-        bvbox->faces = RT_NULL;
-    }
-    else
+    if (srf->min[RT_I] != -RT_INF
+    &&  srf->max[RT_I] != +RT_INF
+    &&  srf->min[RT_J] != -RT_INF
+    &&  srf->max[RT_J] != +RT_INF)
     {
         bvbox->verts_num = 4;
         bvbox->verts = (rt_VERT *)
@@ -2884,19 +2873,8 @@ rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
     xcl = (rt_CYLINDER *)obj->obj.pobj;
 
     /* init surface's bvbox used for tiling, rtgeom and array's bounds */
-    if (srf->min[RT_K] == -RT_INF
-    ||  srf->max[RT_K] == +RT_INF)
-    {
-        bvbox->verts_num = 0;
-        bvbox->verts = RT_NULL;
-
-        bvbox->edges_num = 0;
-        bvbox->edges = RT_NULL;
-
-        bvbox->faces_num = 0;
-        bvbox->faces = RT_NULL;
-    }
-    else
+    if (srf->min[RT_K] != -RT_INF
+    &&  srf->max[RT_K] != +RT_INF)
     {
         bvbox->verts_num = 8;
         bvbox->verts = (rt_VERT *)
@@ -3113,19 +3091,8 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
     xcn = (rt_CONE *)obj->obj.pobj;
 
     /* init surface's bvbox used for tiling, rtgeom and array's bounds */
-    if (srf->min[RT_K] == -RT_INF
-    ||  srf->max[RT_K] == +RT_INF)
-    {
-        bvbox->verts_num = 0;
-        bvbox->verts = RT_NULL;
-
-        bvbox->edges_num = 0;
-        bvbox->edges = RT_NULL;
-
-        bvbox->faces_num = 0;
-        bvbox->faces = RT_NULL;
-    }
-    else
+    if (srf->min[RT_K] != -RT_INF
+    &&  srf->max[RT_K] != +RT_INF)
     {
         bvbox->verts_num = 8;
         bvbox->verts = (rt_VERT *)
@@ -3223,19 +3190,8 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
     xpb = (rt_PARABOLOID *)obj->obj.pobj;
 
     /* init surface's bvbox used for tiling, rtgeom and array's bounds */
-    if (srf->min[RT_K] == -RT_INF && xpb->par < 0.0f
-    ||  srf->max[RT_K] == +RT_INF && xpb->par > 0.0f)
-    {
-        bvbox->verts_num = 0;
-        bvbox->verts = RT_NULL;
-
-        bvbox->edges_num = 0;
-        bvbox->edges = RT_NULL;
-
-        bvbox->faces_num = 0;
-        bvbox->faces = RT_NULL;
-    }
-    else
+    if (srf->min[RT_K] != -RT_INF && xpb->par < 0.0f
+    ||  srf->max[RT_K] != +RT_INF && xpb->par > 0.0f)
     {
         bvbox->verts_num = 8;
         bvbox->verts = (rt_VERT *)
@@ -3343,19 +3299,8 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
     xhb = (rt_HYPERBOLOID *)obj->obj.pobj;
 
     /* init surface's bvbox used for tiling, rtgeom and array's bounds */
-    if (srf->min[RT_K] == -RT_INF
-    ||  srf->max[RT_K] == +RT_INF)
-    {
-        bvbox->verts_num = 0;
-        bvbox->verts = RT_NULL;
-
-        bvbox->edges_num = 0;
-        bvbox->edges = RT_NULL;
-
-        bvbox->faces_num = 0;
-        bvbox->faces = RT_NULL;
-    }
-    else
+    if (srf->min[RT_K] != -RT_INF
+    &&  srf->max[RT_K] != +RT_INF)
     {
         bvbox->verts_num = 8;
         bvbox->verts = (rt_VERT *)
