@@ -50,7 +50,7 @@
 #define RT_CLIP_THRESHOLD       0.01f
 #define RT_CULL_THRESHOLD       0.0001f
 
-/* 
+/*
  * Runtime optimization flags,
  * define particular flag as 0
  * to turn respective optimization off at compile time.
