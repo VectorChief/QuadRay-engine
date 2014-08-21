@@ -178,7 +178,7 @@ rt_void print_lgt(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
 static
 rt_pstr tags[RT_TAG_SURFACE_MAX] =
 {
-    "PL", "CL", "SP", "CN", "PB", "HB"
+    "PL", "CL", "SP", "CN", "PB", "HB", "PC", "HC"
 };
 
 static

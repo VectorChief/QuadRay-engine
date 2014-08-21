@@ -18,10 +18,12 @@
  *
  * Definitions provided in this file are used to specify scene data (in a form
  * of C static struct initializers) by storing pointers to previously defined
- * structures and thus building objects hierachy and relations.
+ * structures and thus building object hierarchy and relations.
  *
- * All surfaces are defined in their local IJK space, where K is a rotational
- * symmetry axis (also normal for plane) and IJ is a base orthogonal to K.
+ * All surfaces are defined in their local IJK space, where K is an axis
+ * of rotational or axial symmetry (also normal for plane) and IJ is a base
+ * orthogonal to K. For non-symmetric surfaces, K axis is chosen based on
+ * a difference from what IJ axes have in common in terms of surface properties.
  *
  * Recommended naming scheme for C++ types and definitions is given in rtbase.h.
  */
@@ -47,7 +49,9 @@
 #define RT_TAG_CONE                         3
 #define RT_TAG_PARABOLOID                   4
 #define RT_TAG_HYPERBOLOID                  5
-#define RT_TAG_SURFACE_MAX                  6
+#define RT_TAG_PARACYLINDER                 6
+#define RT_TAG_HYPERCYLINDER                7
+#define RT_TAG_SURFACE_MAX                  8
 
 /* special tags */
 #define RT_TAG_CAMERA                       100
@@ -565,6 +569,71 @@ rt_cell HB_(rt_HYPERBOLOID *pobj)
 #define RT_OBJ_HYPERBOLOID_MAT(pobj, pmat_outer, pmat_inner)                \
 {                                                                           \
     HB_(pobj),                                                              \
+    pobj,                   1,                                              \
+    RT_NULL,                0,                                              \
+    pmat_outer,             pmat_inner                                      \
+}
+
+/******************************************************************************/
+/******************************   PARACYLINDER   ******************************/
+/******************************************************************************/
+
+struct rt_PARACYLINDER
+{
+    rt_SURFACE          srf;
+    rt_real             par;
+};
+
+static /* needed for strict typization */
+rt_cell PC_(rt_PARACYLINDER *pobj)
+{
+    return RT_TAG_PARACYLINDER;
+}
+
+#define RT_OBJ_PARACYLINDER(pobj)                                           \
+{                                                                           \
+    PC_(pobj),                                                              \
+    pobj,                   1,                                              \
+    RT_NULL,                0,                                              \
+    RT_NULL,                RT_NULL                                         \
+}
+
+#define RT_OBJ_PARACYLINDER_MAT(pobj, pmat_outer, pmat_inner)               \
+{                                                                           \
+    PC_(pobj),                                                              \
+    pobj,                   1,                                              \
+    RT_NULL,                0,                                              \
+    pmat_outer,             pmat_inner                                      \
+}
+
+/******************************************************************************/
+/******************************   HYPERCYLINDER   *****************************/
+/******************************************************************************/
+
+struct rt_HYPERCYLINDER
+{
+    rt_SURFACE          srf;
+    rt_real             rat;
+    rt_real             hyp;
+};
+
+static /* needed for strict typization */
+rt_cell HC_(rt_HYPERCYLINDER *pobj)
+{
+    return RT_TAG_HYPERCYLINDER;
+}
+
+#define RT_OBJ_HYPERCYLINDER(pobj)                                          \
+{                                                                           \
+    HC_(pobj),                                                              \
+    pobj,                   1,                                              \
+    RT_NULL,                0,                                              \
+    RT_NULL,                RT_NULL                                         \
+}
+
+#define RT_OBJ_HYPERCYLINDER_MAT(pobj, pmat_outer, pmat_inner)              \
+{                                                                           \
+    HC_(pobj),                                                              \
     pobj,                   1,                                              \
     RT_NULL,                0,                                              \
     pmat_outer,             pmat_inner                                      \

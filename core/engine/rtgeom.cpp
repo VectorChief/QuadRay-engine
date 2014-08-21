@@ -719,7 +719,8 @@ rt_cell surf_conc(rt_SHAPE *srf)
     rt_cell c = 0;
 
     if (srf->tag == RT_TAG_CONE
-    ||  srf->tag == RT_TAG_HYPERBOLOID)
+    ||  srf->tag == RT_TAG_HYPERBOLOID
+    ||  srf->tag == RT_TAG_HYPERCYLINDER)
     {
         c = 1;
     }
@@ -741,12 +742,14 @@ rt_cell clip_conc(rt_SHAPE *srf)
 
     rt_vec4  zro = {0.0f, 0.0f, 0.0f, 0.0f};
     rt_real *pps = srf->trnode == srf ? zro : srf->pos;
+    rt_cell mp_k = srf->map[RT_K];
 
     if ((srf->tag == RT_TAG_CONE
-    ||   srf->tag == RT_TAG_HYPERBOLOID)
+    ||   srf->tag == RT_TAG_HYPERBOLOID
+    ||   srf->tag == RT_TAG_HYPERCYLINDER)
     &&  (srf->sci[RT_W] <= 0.0f
-    &&   srf->bmin[srf->map[RT_K]] < pps[srf->map[RT_K]]
-    &&   srf->bmax[srf->map[RT_K]] > pps[srf->map[RT_K]]
+    &&   srf->bmin[mp_k] < pps[mp_k]
+    &&   srf->bmax[mp_k] > pps[mp_k]
     ||   srf->sci[RT_W] > 0.0f))
     {
         c = 1;

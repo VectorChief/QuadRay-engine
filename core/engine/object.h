@@ -826,6 +826,78 @@ class rt_Hyperboloid : public rt_Quadric
 };
 
 /******************************************************************************/
+/******************************   PARACYLINDER   ******************************/
+/******************************************************************************/
+
+/*
+ * ParaCylinder is a basic 2nd order surface.
+ */
+class rt_ParaCylinder : public rt_Quadric
+{
+/*  fields */
+
+    private:
+
+    rt_PARACYLINDER    *xpc;
+
+/*  methods */
+
+    protected:
+
+    virtual
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
+
+    public:
+
+    rt_ParaCylinder(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
+                    rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+
+    virtual
+   ~rt_ParaCylinder();
+
+    virtual
+    rt_void update_fields();
+};
+
+/******************************************************************************/
+/******************************   HYPERCYLINDER   *****************************/
+/******************************************************************************/
+
+/*
+ * HyperCylinder is a basic 2nd order surface.
+ */
+class rt_HyperCylinder : public rt_Quadric
+{
+/*  fields */
+
+    private:
+
+    rt_HYPERCYLINDER   *xhc;
+
+/*  methods */
+
+    protected:
+
+    virtual
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
+
+    public:
+
+    rt_HyperCylinder(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
+                     rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+
+    virtual
+   ~rt_HyperCylinder();
+
+    virtual
+    rt_void update_fields();
+};
+
+/******************************************************************************/
 /********************************   MATERIAL   ********************************/
 /******************************************************************************/
 

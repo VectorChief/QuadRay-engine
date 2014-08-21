@@ -1259,6 +1259,14 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
             obj_arr[j] = new rt_Hyperboloid(rg, this, &arr[i]);
             break;
 
+            case RT_TAG_PARACYLINDER:
+            obj_arr[j] = new rt_ParaCylinder(rg, this, &arr[i]);
+            break;
+
+            case RT_TAG_HYPERCYLINDER:
+            obj_arr[j] = new rt_HyperCylinder(rg, this, &arr[i]);
+            break;
+
             default:
             j--;
             obj_num--;
@@ -3383,6 +3391,220 @@ rt_void rt_Hyperboloid::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
  * Destroy hyperboloid surface object.
  */
 rt_Hyperboloid::~rt_Hyperboloid()
+{
+
+}
+
+/******************************************************************************/
+/******************************   PARACYLINDER   ******************************/
+/******************************************************************************/
+
+/*
+ * Instantiate paracylinder surface object.
+ */
+rt_ParaCylinder::rt_ParaCylinder(rt_Registry *rg, rt_Object *parent,
+                                 rt_OBJECT *obj, rt_cell ssize) :
+
+    rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_PARACYLINDER)))
+{
+    xpc = (rt_PARACYLINDER *)obj->obj.pobj;
+
+    /* init surface's bvbox used for tiling, rtgeom and array's bounds */
+    if (srf->min[RT_J] != -RT_INF
+    &&  srf->max[RT_J] != +RT_INF
+    && (srf->min[RT_K] != -RT_INF && xpc->par < 0.0f
+    ||  srf->max[RT_K] != +RT_INF && xpc->par > 0.0f))
+    {
+        bvbox->verts_num = 8;
+        bvbox->verts = (rt_VERT *)
+                     rg->alloc(bvbox->verts_num * sizeof(rt_VERT), RT_ALIGN);
+
+        bvbox->edges_num = RT_ARR_SIZE(bx_edges);
+        bvbox->edges = (rt_EDGE *)
+                     rg->alloc(bvbox->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(bvbox->edges, bx_edges, bvbox->edges_num * sizeof(rt_EDGE));
+
+        bvbox->faces_num = RT_ARR_SIZE(bx_faces);
+        bvbox->faces = (rt_FACE *)
+                     rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
+    }
+
+/*  rt_SIMD_PARACYLINDER */
+
+    rt_SIMD_PARACYLINDER *s_xpc = (rt_SIMD_PARACYLINDER *)s_srf;
+
+    rt_real par = xpc->par;
+
+    RT_SIMD_SET(s_xpc->par_2, par / 2.0f);
+    RT_SIMD_SET(s_xpc->i_par, par * par / 4.0f);
+    RT_SIMD_SET(s_xpc->par_k, par);
+    RT_SIMD_SET(s_xpc->one_k, 1.0f);
+}
+
+/*
+ * Update SIMD and other data fields.
+ */
+rt_void rt_ParaCylinder::update_fields()
+{
+    if (obj_changed == 0)
+    {
+        return;
+    }
+
+    rt_Quadric::update_fields();
+
+    shape->sci[mp_j] = 0.0f;
+    shape->sci[mp_k] = 0.0f;
+    shape->scj[mp_k] = xpc->par * (rt_real)sgn[RT_K];
+}
+
+/*
+ * Adjust local space bounding and clipping boxes according to surface shape.
+ */
+rt_void rt_ParaCylinder::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
+                                       rt_vec4 bmin, rt_vec4 bmax, /* bbox */
+                                       rt_vec4 cmin, rt_vec4 cmax) /* cbox */
+{
+    rt_Quadric::adjust_minmax(smin, smax, bmin, bmax, cmin, cmax);
+
+    rt_real par = xpc->par;
+    rt_real top = RT_MAX(par < 0.0f ? -smin[RT_K] : +smax[RT_K], 0.0f);
+    rt_real rad = RT_SQRT(top * RT_FABS(par));
+
+    if (bmin != RT_NULL && bmax != RT_NULL)
+    {
+        bmin[RT_I] = RT_MAX(smin[RT_I], -rad);
+        bmin[RT_J] = smin[RT_J];
+        bmin[RT_K] = smin[RT_K] <= 0.0f &&
+                             par > 0.0f ? 0.0f : smin[RT_K];
+
+        bmax[RT_I] = RT_MIN(smax[RT_I], +rad);
+        bmax[RT_J] = smax[RT_J];
+        bmax[RT_K] = smax[RT_K] >= 0.0f && 
+                             par < 0.0f ? 0.0f : smax[RT_K];
+    }
+
+    if (cmin != RT_NULL && cmax != RT_NULL)
+    {
+        cmin[RT_I] = cmin[RT_I] <= -rad ? -RT_INF : cmin[RT_I];
+        cmin[RT_K] = cmin[RT_K] <= 0.0f &&
+                             par > 0.0f ? -RT_INF : cmin[RT_K];
+
+        cmax[RT_I] = cmax[RT_I] >= +rad ? +RT_INF : cmax[RT_I];
+        cmax[RT_K] = cmax[RT_K] >= 0.0f &&
+                             par < 0.0f ? +RT_INF : cmax[RT_K];
+    }
+}
+
+/*
+ * Destroy paracylinder surface object.
+ */
+rt_ParaCylinder::~rt_ParaCylinder()
+{
+
+}
+
+/******************************************************************************/
+/******************************   HYPERCYLINDER   *****************************/
+/******************************************************************************/
+
+/*
+ * Instantiate hypercylinder surface object.
+ */
+rt_HyperCylinder::rt_HyperCylinder(rt_Registry *rg, rt_Object *parent,
+                                   rt_OBJECT *obj, rt_cell ssize) :
+
+    rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_HYPERCYLINDER)))
+{
+    xhc = (rt_HYPERCYLINDER *)obj->obj.pobj;
+
+    /* init surface's bvbox used for tiling, rtgeom and array's bounds */
+    if (srf->min[RT_J] != -RT_INF
+    &&  srf->max[RT_J] != +RT_INF
+    &&  srf->min[RT_K] != -RT_INF
+    &&  srf->max[RT_K] != +RT_INF)
+    {
+        bvbox->verts_num = 8;
+        bvbox->verts = (rt_VERT *)
+                     rg->alloc(bvbox->verts_num * sizeof(rt_VERT), RT_ALIGN);
+
+        bvbox->edges_num = RT_ARR_SIZE(bx_edges);
+        bvbox->edges = (rt_EDGE *)
+                     rg->alloc(bvbox->edges_num * sizeof(rt_EDGE), RT_ALIGN);
+        memcpy(bvbox->edges, bx_edges, bvbox->edges_num * sizeof(rt_EDGE));
+
+        bvbox->faces_num = RT_ARR_SIZE(bx_faces);
+        bvbox->faces = (rt_FACE *)
+                     rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
+        memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
+    }
+
+/*  rt_SIMD_HYPERCYLINDER */
+
+    rt_SIMD_HYPERCYLINDER *s_xhc = (rt_SIMD_HYPERCYLINDER *)s_srf;
+
+    rt_real rat = xhc->rat;
+    rt_real hyp = xhc->hyp;
+
+    RT_SIMD_SET(s_xhc->rat_2, rat * rat);
+    RT_SIMD_SET(s_xhc->i_rat, (1.0f + rat * rat) * rat * rat);
+    RT_SIMD_SET(s_xhc->hyp_k, hyp);
+    RT_SIMD_SET(s_xhc->one_k, 1.0f);
+}
+
+/*
+ * Update SIMD and other data fields.
+ */
+rt_void rt_HyperCylinder::update_fields()
+{
+    if (obj_changed == 0)
+    {
+        return;
+    }
+
+    rt_Quadric::update_fields();
+
+    shape->sci[mp_j] = 0.0f;
+    shape->sci[mp_k] = -(xhc->rat * xhc->rat);
+    shape->sci[RT_W] = xhc->hyp;
+}
+
+/*
+ * Adjust local space bounding and clipping boxes according to surface shape.
+ */
+rt_void rt_HyperCylinder::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
+                                        rt_vec4 bmin, rt_vec4 bmax, /* bbox */
+                                        rt_vec4 cmin, rt_vec4 cmax) /* cbox */
+{
+    rt_Quadric::adjust_minmax(smin, smax, bmin, bmax, cmin, cmax);
+
+    rt_real top = RT_MAX(RT_FABS(smin[RT_K]), RT_FABS(smax[RT_K]));
+    rt_real rad = RT_SQRT(top * top * xhc->rat * xhc->rat + xhc->hyp);
+
+    if (bmin != RT_NULL && bmax != RT_NULL)
+    {
+        bmin[RT_I] = RT_MAX(smin[RT_I], -rad);
+        bmin[RT_J] = smin[RT_J];
+        bmin[RT_K] = smin[RT_K];
+
+        bmax[RT_I] = RT_MIN(smax[RT_I], +rad);
+        bmax[RT_J] = smax[RT_J];
+        bmax[RT_K] = smax[RT_K];
+    }
+
+    if (cmin != RT_NULL && cmax != RT_NULL)
+    {
+        cmin[RT_I] = cmin[RT_I] <= -rad ? -RT_INF : cmin[RT_I];
+
+        cmax[RT_I] = cmax[RT_I] >= +rad ? +RT_INF : cmax[RT_I];
+    }
+}
+
+/*
+ * Destroy hypercylinder surface object.
+ */
+rt_HyperCylinder::~rt_HyperCylinder()
 {
 
 }
