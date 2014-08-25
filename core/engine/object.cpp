@@ -2790,6 +2790,17 @@ rt_void rt_Plane::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 {
     rt_Surface::adjust_minmax(smin, smax, bmin, bmax, cmin, cmax);
 
+    rt_bool cb = RT_FALSE; /* distinguish self-adjust from clip-adjust */
+
+    if (cmin != RT_NULL && cmax != RT_NULL)
+    {
+        cmin[RT_K] = -RT_INF;
+
+        cmax[RT_K] = +RT_INF;
+
+        cb = RT_TRUE; /* self-adjust if cbox is passed */
+    }
+
     if (bmin != RT_NULL && bmax != RT_NULL)
     {
         bmin[RT_I] = smin[RT_I];
@@ -2799,13 +2810,6 @@ rt_void rt_Plane::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
         bmax[RT_I] = smax[RT_I];
         bmax[RT_J] = smax[RT_J];
         bmax[RT_K] = 0.0f;
-    }
-
-    if (cmin != RT_NULL && cmax != RT_NULL)
-    {
-        cmin[RT_K] = -RT_INF;
-
-        cmax[RT_K] = +RT_INF;
     }
 }
 
@@ -2942,6 +2946,19 @@ rt_void rt_Cylinder::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 
     rt_real rad = RT_FABS(xcl->rad);
 
+    rt_bool cb = RT_FALSE; /* distinguish self-adjust from clip-adjust */
+
+    if (cmin != RT_NULL && cmax != RT_NULL)
+    {
+        cmin[RT_I] = cmin[RT_I] <= -rad ? -RT_INF : cmin[RT_I];
+        cmin[RT_J] = cmin[RT_J] <= -rad ? -RT_INF : cmin[RT_J];
+
+        cmax[RT_I] = cmax[RT_I] >= +rad ? +RT_INF : cmax[RT_I];
+        cmax[RT_J] = cmax[RT_J] >= +rad ? +RT_INF : cmax[RT_J];
+
+        cb = RT_TRUE; /* self-adjust if cbox is passed */
+    }
+
     if (bmin != RT_NULL && bmax != RT_NULL)
     {
         bmin[RT_I] = RT_MAX(smin[RT_I], -rad);
@@ -2951,15 +2968,6 @@ rt_void rt_Cylinder::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
         bmax[RT_I] = RT_MIN(smax[RT_I], +rad);
         bmax[RT_J] = RT_MIN(smax[RT_J], +rad);
         bmax[RT_K] = smax[RT_K];
-    }
-
-    if (cmin != RT_NULL && cmax != RT_NULL)
-    {
-        cmin[RT_I] = cmin[RT_I] <= -rad ? -RT_INF : cmin[RT_I];
-        cmin[RT_J] = cmin[RT_J] <= -rad ? -RT_INF : cmin[RT_J];
-
-        cmax[RT_I] = cmax[RT_I] >= +rad ? +RT_INF : cmax[RT_I];
-        cmax[RT_J] = cmax[RT_J] >= +rad ? +RT_INF : cmax[RT_J];
     }
 }
 
@@ -3059,16 +3067,7 @@ rt_void rt_Sphere::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
         }
     }
 
-    if (bmin != RT_NULL && bmax != RT_NULL)
-    {
-        bmin[RT_I] = RT_MAX(smin[RT_I], -rad[RT_I]);
-        bmin[RT_J] = RT_MAX(smin[RT_J], -rad[RT_J]);
-        bmin[RT_K] = RT_MAX(smin[RT_K], -rad[RT_K]);
-
-        bmax[RT_I] = RT_MIN(smax[RT_I], +rad[RT_I]);
-        bmax[RT_J] = RT_MIN(smax[RT_J], +rad[RT_J]);
-        bmax[RT_K] = RT_MIN(smax[RT_K], +rad[RT_K]);
-    }
+    rt_bool cb = RT_FALSE; /* distinguish self-adjust from clip-adjust */
 
     if (cmin != RT_NULL && cmax != RT_NULL)
     {
@@ -3079,6 +3078,19 @@ rt_void rt_Sphere::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
         cmax[RT_I] = cmax[RT_I] >= +rad[RT_I] ? +RT_INF : cmax[RT_I];
         cmax[RT_J] = cmax[RT_J] >= +rad[RT_J] ? +RT_INF : cmax[RT_J];
         cmax[RT_K] = cmax[RT_K] >= +rad[RT_K] ? +RT_INF : cmax[RT_K];
+
+        cb = RT_TRUE; /* self-adjust if cbox is passed */
+    }
+
+    if (bmin != RT_NULL && bmax != RT_NULL)
+    {
+        bmin[RT_I] = RT_MAX(smin[RT_I], -rad[RT_I]);
+        bmin[RT_J] = RT_MAX(smin[RT_J], -rad[RT_J]);
+        bmin[RT_K] = RT_MAX(smin[RT_K], -rad[RT_K]);
+
+        bmax[RT_I] = RT_MIN(smax[RT_I], +rad[RT_I]);
+        bmax[RT_J] = RT_MIN(smax[RT_J], +rad[RT_J]);
+        bmax[RT_K] = RT_MIN(smax[RT_K], +rad[RT_K]);
     }
 }
 
@@ -3105,7 +3117,11 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
     xcn = (rt_CONE *)obj->obj.pobj;
 
     /* init surface's bvbox used for tiling, rtgeom and array's bounds */
-    if (srf->min[RT_K] != -RT_INF
+    if (srf->min[RT_I] != -RT_INF
+    &&  srf->max[RT_I] != +RT_INF
+    &&  srf->min[RT_J] != -RT_INF
+    &&  srf->max[RT_J] != +RT_INF
+    ||  srf->min[RT_K] != -RT_INF
     &&  srf->max[RT_K] != +RT_INF)
     {
         bvbox->verts_num = 8;
@@ -3157,27 +3173,39 @@ rt_void rt_Cone::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 {
     rt_Quadric::adjust_minmax(smin, smax, bmin, bmax, cmin, cmax);
 
+    rt_real rat = RT_FABS(xcn->rat);
     rt_real top = RT_MAX(RT_FABS(smin[RT_K]), RT_FABS(smax[RT_K]));
-    rt_real rad = top * RT_FABS(xcn->rat);
+    rt_real rad = top != RT_INF ? top * rat : RT_INF;
 
-    if (bmin != RT_NULL && bmax != RT_NULL)
-    {
-        bmin[RT_I] = RT_MAX(smin[RT_I], -rad);
-        bmin[RT_J] = RT_MAX(smin[RT_J], -rad);
-        bmin[RT_K] = smin[RT_K];
+    rt_real mxi = RT_MAX(RT_FABS(smin[RT_I]), RT_FABS(smax[RT_I]));
+    rt_real mxj = RT_MAX(RT_FABS(smin[RT_J]), RT_FABS(smax[RT_J]));
+            top = RT_MIN(mxi != RT_INF && mxj != RT_INF ?
+                  RT_SQRT(mxi * mxi + mxj * mxj) / rat : top, top);
 
-        bmax[RT_I] = RT_MIN(smax[RT_I], +rad);
-        bmax[RT_J] = RT_MIN(smax[RT_J], +rad);
-        bmax[RT_K] = smax[RT_K];
-    }
+    rt_bool cb = RT_FALSE; /* distinguish self-adjust from clip-adjust */
 
     if (cmin != RT_NULL && cmax != RT_NULL)
     {
         cmin[RT_I] = cmin[RT_I] <= -rad ? -RT_INF : cmin[RT_I];
         cmin[RT_J] = cmin[RT_J] <= -rad ? -RT_INF : cmin[RT_J];
+        cmin[RT_K] = cmin[RT_K] <  -top ? -RT_INF : cmin[RT_K];
 
         cmax[RT_I] = cmax[RT_I] >= +rad ? +RT_INF : cmax[RT_I];
         cmax[RT_J] = cmax[RT_J] >= +rad ? +RT_INF : cmax[RT_J];
+        cmax[RT_K] = cmax[RT_K] >  +top ? +RT_INF : cmax[RT_K];
+
+        cb = RT_TRUE; /* self-adjust if cbox is passed */
+    }
+
+    if (bmin != RT_NULL && bmax != RT_NULL)
+    {
+        bmin[RT_I] = RT_MAX(smin[RT_I], -rad);
+        bmin[RT_J] = RT_MAX(smin[RT_J], -rad);
+        bmin[RT_K] = cb == RT_TRUE ? RT_MAX(smin[RT_K], -top) : smin[RT_K];
+
+        bmax[RT_I] = RT_MIN(smax[RT_I], +rad);
+        bmax[RT_J] = RT_MIN(smax[RT_J], +rad);
+        bmax[RT_K] = cb == RT_TRUE ? RT_MIN(smax[RT_K], +top) : smax[RT_K];
     }
 }
 
@@ -3204,8 +3232,11 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
     xpb = (rt_PARABOLOID *)obj->obj.pobj;
 
     /* init surface's bvbox used for tiling, rtgeom and array's bounds */
-    if (srf->min[RT_K] != -RT_INF && xpb->par < 0.0f
-    ||  srf->max[RT_K] != +RT_INF && xpb->par > 0.0f)
+    if (srf->min[RT_I] != -RT_INF
+    &&  srf->max[RT_I] != +RT_INF
+    &&  srf->min[RT_J] != -RT_INF
+    &&  srf->max[RT_J] != +RT_INF
+    ||  srf->max[RT_K] != +RT_INF)
     {
         bvbox->verts_num = 8;
         bvbox->verts = (rt_VERT *)
@@ -3226,7 +3257,7 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
 
     rt_SIMD_PARABOLOID *s_xpb = (rt_SIMD_PARABOLOID *)s_srf;
 
-    rt_real par = xpb->par;
+    rt_real par = RT_FABS(xpb->par);
 
     RT_SIMD_SET(s_xpb->par_2, par / 2.0f);
     RT_SIMD_SET(s_xpb->i_par, par * par / 4.0f);
@@ -3247,7 +3278,7 @@ rt_void rt_Paraboloid::update_fields()
     rt_Quadric::update_fields();
 
     shape->sci[mp_k] = 0.0f;
-    shape->scj[mp_k] = xpb->par * (rt_real)sgn[RT_K];
+    shape->scj[mp_k] = RT_FABS(xpb->par) * (rt_real)sgn[RT_K];
 }
 
 /*
@@ -3259,34 +3290,39 @@ rt_void rt_Paraboloid::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 {
     rt_Quadric::adjust_minmax(smin, smax, bmin, bmax, cmin, cmax);
 
-    rt_real par = xpb->par;
-    rt_real top = RT_MAX(par < 0.0f ? -smin[RT_K] : +smax[RT_K], 0.0f);
-    rt_real rad = RT_SQRT(top * RT_FABS(par));
+    rt_real par = RT_FABS(xpb->par);
+    rt_real top = RT_MAX(smax[RT_K], 0.0f);
+    rt_real rad = top != RT_INF ? RT_SQRT(top * par) : RT_INF;
 
-    if (bmin != RT_NULL && bmax != RT_NULL)
-    {
-        bmin[RT_I] = RT_MAX(smin[RT_I], -rad);
-        bmin[RT_J] = RT_MAX(smin[RT_J], -rad);
-        bmin[RT_K] = smin[RT_K] <= 0.0f &&
-                             par > 0.0f ? 0.0f : smin[RT_K];
+    rt_real mxi = RT_MAX(RT_FABS(smin[RT_I]), RT_FABS(smax[RT_I]));
+    rt_real mxj = RT_MAX(RT_FABS(smin[RT_J]), RT_FABS(smax[RT_J]));
+            top = RT_MIN(mxi != RT_INF && mxj != RT_INF ?
+                  (mxi * mxi + mxj * mxj) / par : top, top);
 
-        bmax[RT_I] = RT_MIN(smax[RT_I], +rad);
-        bmax[RT_J] = RT_MIN(smax[RT_J], +rad);
-        bmax[RT_K] = smax[RT_K] >= 0.0f && 
-                             par < 0.0f ? 0.0f : smax[RT_K];
-    }
+    rt_bool cb = RT_FALSE; /* distinguish self-adjust from clip-adjust */
 
     if (cmin != RT_NULL && cmax != RT_NULL)
     {
         cmin[RT_I] = cmin[RT_I] <= -rad ? -RT_INF : cmin[RT_I];
         cmin[RT_J] = cmin[RT_J] <= -rad ? -RT_INF : cmin[RT_J];
-        cmin[RT_K] = cmin[RT_K] <= 0.0f &&
-                             par > 0.0f ? -RT_INF : cmin[RT_K];
+        cmin[RT_K] = cmin[RT_K] <= 0.0f ? -RT_INF : cmin[RT_K];
 
         cmax[RT_I] = cmax[RT_I] >= +rad ? +RT_INF : cmax[RT_I];
         cmax[RT_J] = cmax[RT_J] >= +rad ? +RT_INF : cmax[RT_J];
-        cmax[RT_K] = cmax[RT_K] >= 0.0f &&
-                             par < 0.0f ? +RT_INF : cmax[RT_K];
+        cmax[RT_K] = cmax[RT_K] >  +top ? +RT_INF : cmax[RT_K];
+
+        cb = RT_TRUE; /* self-adjust if cbox is passed */
+    }
+
+    if (bmin != RT_NULL && bmax != RT_NULL)
+    {
+        bmin[RT_I] = RT_MAX(smin[RT_I], -rad);
+        bmin[RT_J] = RT_MAX(smin[RT_J], -rad);
+        bmin[RT_K] = RT_MAX(smin[RT_K], 0.0f);
+
+        bmax[RT_I] = RT_MIN(smax[RT_I], +rad);
+        bmax[RT_J] = RT_MIN(smax[RT_J], +rad);
+        bmax[RT_K] = cb == RT_TRUE ? RT_MIN(smax[RT_K], +top) : smax[RT_K];
     }
 }
 
@@ -3313,7 +3349,11 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
     xhb = (rt_HYPERBOLOID *)obj->obj.pobj;
 
     /* init surface's bvbox used for tiling, rtgeom and array's bounds */
-    if (srf->min[RT_K] != -RT_INF
+    if (srf->min[RT_I] != -RT_INF
+    &&  srf->max[RT_I] != +RT_INF
+    &&  srf->min[RT_J] != -RT_INF
+    &&  srf->max[RT_J] != +RT_INF
+    ||  srf->min[RT_K] != -RT_INF
     &&  srf->max[RT_K] != +RT_INF)
     {
         bvbox->verts_num = 8;
@@ -3369,27 +3409,40 @@ rt_void rt_Hyperboloid::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 {
     rt_Quadric::adjust_minmax(smin, smax, bmin, bmax, cmin, cmax);
 
+    rt_real rat = RT_FABS(xhb->rat);
+    rt_real hyp = xhb->hyp;
     rt_real top = RT_MAX(RT_FABS(smin[RT_K]), RT_FABS(smax[RT_K]));
-    rt_real rad = RT_SQRT(top * top * xhb->rat * xhb->rat + xhb->hyp);
+    rt_real rad = top != RT_INF ? RT_SQRT(top * top * rat * rat + hyp) : RT_INF;
 
-    if (bmin != RT_NULL && bmax != RT_NULL)
-    {
-        bmin[RT_I] = RT_MAX(smin[RT_I], -rad);
-        bmin[RT_J] = RT_MAX(smin[RT_J], -rad);
-        bmin[RT_K] = smin[RT_K];
+    rt_real mxi = RT_MAX(RT_FABS(smin[RT_I]), RT_FABS(smax[RT_I]));
+    rt_real mxj = RT_MAX(RT_FABS(smin[RT_J]), RT_FABS(smax[RT_J]));
+            top = RT_MIN(mxi != RT_INF && mxj != RT_INF ?
+                  RT_SQRT(mxi * mxi + mxj * mxj - hyp) / rat : top, top);
 
-        bmax[RT_I] = RT_MIN(smax[RT_I], +rad);
-        bmax[RT_J] = RT_MIN(smax[RT_J], +rad);
-        bmax[RT_K] = smax[RT_K];
-    }
+    rt_bool cb = RT_FALSE; /* distinguish self-adjust from clip-adjust */
 
     if (cmin != RT_NULL && cmax != RT_NULL)
     {
         cmin[RT_I] = cmin[RT_I] <= -rad ? -RT_INF : cmin[RT_I];
         cmin[RT_J] = cmin[RT_J] <= -rad ? -RT_INF : cmin[RT_J];
+        cmin[RT_K] = cmin[RT_K] <  -top ? -RT_INF : cmin[RT_K];
 
         cmax[RT_I] = cmax[RT_I] >= +rad ? +RT_INF : cmax[RT_I];
         cmax[RT_J] = cmax[RT_J] >= +rad ? +RT_INF : cmax[RT_J];
+        cmax[RT_K] = cmax[RT_K] >  +top ? +RT_INF : cmax[RT_K];
+
+        cb = RT_TRUE; /* self-adjust if cbox is passed */
+    }
+
+    if (bmin != RT_NULL && bmax != RT_NULL)
+    {
+        bmin[RT_I] = RT_MAX(smin[RT_I], -rad);
+        bmin[RT_J] = RT_MAX(smin[RT_J], -rad);
+        bmin[RT_K] = cb == RT_TRUE ? RT_MAX(smin[RT_K], -top) : smin[RT_K];
+
+        bmax[RT_I] = RT_MIN(smax[RT_I], +rad);
+        bmax[RT_J] = RT_MIN(smax[RT_J], +rad);
+        bmax[RT_K] = cb == RT_TRUE ? RT_MIN(smax[RT_K], +top) : smax[RT_K];
     }
 }
 
@@ -3418,8 +3471,9 @@ rt_ParaCylinder::rt_ParaCylinder(rt_Registry *rg, rt_Object *parent,
     /* init surface's bvbox used for tiling, rtgeom and array's bounds */
     if (srf->min[RT_J] != -RT_INF
     &&  srf->max[RT_J] != +RT_INF
-    && (srf->min[RT_K] != -RT_INF && xpc->par < 0.0f
-    ||  srf->max[RT_K] != +RT_INF && xpc->par > 0.0f))
+    && (srf->min[RT_I] != -RT_INF
+    &&  srf->max[RT_I] != +RT_INF
+    ||  srf->max[RT_K] != +RT_INF))
     {
         bvbox->verts_num = 8;
         bvbox->verts = (rt_VERT *)
@@ -3440,7 +3494,7 @@ rt_ParaCylinder::rt_ParaCylinder(rt_Registry *rg, rt_Object *parent,
 
     rt_SIMD_PARACYLINDER *s_xpc = (rt_SIMD_PARACYLINDER *)s_srf;
 
-    rt_real par = xpc->par;
+    rt_real par = RT_FABS(xpc->par);
 
     RT_SIMD_SET(s_xpc->par_2, par / 2.0f);
     RT_SIMD_SET(s_xpc->i_par, par * par / 4.0f);
@@ -3462,7 +3516,7 @@ rt_void rt_ParaCylinder::update_fields()
 
     shape->sci[mp_j] = 0.0f;
     shape->sci[mp_k] = 0.0f;
-    shape->scj[mp_k] = xpc->par * (rt_real)sgn[RT_K];
+    shape->scj[mp_k] = RT_FABS(xpc->par) * (rt_real)sgn[RT_K];
 }
 
 /*
@@ -3474,32 +3528,36 @@ rt_void rt_ParaCylinder::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 {
     rt_Quadric::adjust_minmax(smin, smax, bmin, bmax, cmin, cmax);
 
-    rt_real par = xpc->par;
-    rt_real top = RT_MAX(par < 0.0f ? -smin[RT_K] : +smax[RT_K], 0.0f);
-    rt_real rad = RT_SQRT(top * RT_FABS(par));
+    rt_real par = RT_FABS(xpc->par);
+    rt_real top = RT_MAX(smax[RT_K], 0.0f);
+    rt_real rad = top != RT_INF ? RT_SQRT(top * par) : RT_INF;
+
+    rt_real mxi = RT_MAX(RT_FABS(smin[RT_I]), RT_FABS(smax[RT_I]));
+            top = RT_MIN(mxi != RT_INF ?
+                  (mxi * mxi) / par : top, top);
+
+    rt_bool cb = RT_FALSE; /* distinguish self-adjust from clip-adjust */
+
+    if (cmin != RT_NULL && cmax != RT_NULL)
+    {
+        cmin[RT_I] = cmin[RT_I] <= -rad ? -RT_INF : cmin[RT_I];
+        cmin[RT_K] = cmin[RT_K] <= 0.0f ? -RT_INF : cmin[RT_K];
+
+        cmax[RT_I] = cmax[RT_I] >= +rad ? +RT_INF : cmax[RT_I];
+        cmax[RT_K] = cmax[RT_K] >  +top ? +RT_INF : cmax[RT_K];
+
+        cb = RT_TRUE; /* self-adjust if cbox is passed */
+    }
 
     if (bmin != RT_NULL && bmax != RT_NULL)
     {
         bmin[RT_I] = RT_MAX(smin[RT_I], -rad);
         bmin[RT_J] = smin[RT_J];
-        bmin[RT_K] = smin[RT_K] <= 0.0f &&
-                             par > 0.0f ? 0.0f : smin[RT_K];
+        bmin[RT_K] = RT_MAX(smin[RT_K], 0.0f);
 
         bmax[RT_I] = RT_MIN(smax[RT_I], +rad);
         bmax[RT_J] = smax[RT_J];
-        bmax[RT_K] = smax[RT_K] >= 0.0f && 
-                             par < 0.0f ? 0.0f : smax[RT_K];
-    }
-
-    if (cmin != RT_NULL && cmax != RT_NULL)
-    {
-        cmin[RT_I] = cmin[RT_I] <= -rad ? -RT_INF : cmin[RT_I];
-        cmin[RT_K] = cmin[RT_K] <= 0.0f &&
-                             par > 0.0f ? -RT_INF : cmin[RT_K];
-
-        cmax[RT_I] = cmax[RT_I] >= +rad ? +RT_INF : cmax[RT_I];
-        cmax[RT_K] = cmax[RT_K] >= 0.0f &&
-                             par < 0.0f ? +RT_INF : cmax[RT_K];
+        bmax[RT_K] = cb == RT_TRUE ? RT_MIN(smax[RT_K], +top) : smax[RT_K];
     }
 }
 
@@ -3528,8 +3586,10 @@ rt_HyperCylinder::rt_HyperCylinder(rt_Registry *rg, rt_Object *parent,
     /* init surface's bvbox used for tiling, rtgeom and array's bounds */
     if (srf->min[RT_J] != -RT_INF
     &&  srf->max[RT_J] != +RT_INF
-    &&  srf->min[RT_K] != -RT_INF
-    &&  srf->max[RT_K] != +RT_INF)
+    && (srf->min[RT_I] != -RT_INF
+    &&  srf->max[RT_I] != +RT_INF
+    ||  srf->min[RT_K] != -RT_INF
+    &&  srf->max[RT_K] != +RT_INF))
     {
         bvbox->verts_num = 8;
         bvbox->verts = (rt_VERT *)
@@ -3585,25 +3645,37 @@ rt_void rt_HyperCylinder::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 {
     rt_Quadric::adjust_minmax(smin, smax, bmin, bmax, cmin, cmax);
 
+    rt_real rat = RT_FABS(xhc->rat);
+    rt_real hyp = xhc->hyp;
     rt_real top = RT_MAX(RT_FABS(smin[RT_K]), RT_FABS(smax[RT_K]));
-    rt_real rad = RT_SQRT(top * top * xhc->rat * xhc->rat + xhc->hyp);
+    rt_real rad = top != RT_INF ? RT_SQRT(top * top * rat * rat + hyp) : RT_INF;
+
+    rt_real mxi = RT_MAX(RT_FABS(smin[RT_I]), RT_FABS(smax[RT_I]));
+            top = RT_MIN(mxi != RT_INF ?
+                  RT_SQRT(mxi * mxi - hyp) / rat : top, top);
+
+    rt_bool cb = RT_FALSE; /* distinguish self-adjust from clip-adjust */
+
+    if (cmin != RT_NULL && cmax != RT_NULL)
+    {
+        cmin[RT_I] = cmin[RT_I] <= -rad ? -RT_INF : cmin[RT_I];
+        cmin[RT_K] = cmin[RT_K] <  -top ? -RT_INF : cmin[RT_K];
+
+        cmax[RT_I] = cmax[RT_I] >= +rad ? +RT_INF : cmax[RT_I];
+        cmax[RT_K] = cmax[RT_K] >  +top ? +RT_INF : cmax[RT_K];
+
+        cb = RT_TRUE; /* self-adjust if cbox is passed */
+    }
 
     if (bmin != RT_NULL && bmax != RT_NULL)
     {
         bmin[RT_I] = RT_MAX(smin[RT_I], -rad);
         bmin[RT_J] = smin[RT_J];
-        bmin[RT_K] = smin[RT_K];
+        bmin[RT_K] = cb == RT_TRUE ? RT_MAX(smin[RT_K], -top) : smin[RT_K];
 
         bmax[RT_I] = RT_MIN(smax[RT_I], +rad);
         bmax[RT_J] = smax[RT_J];
-        bmax[RT_K] = smax[RT_K];
-    }
-
-    if (cmin != RT_NULL && cmax != RT_NULL)
-    {
-        cmin[RT_I] = cmin[RT_I] <= -rad ? -RT_INF : cmin[RT_I];
-
-        cmax[RT_I] = cmax[RT_I] >= +rad ? +RT_INF : cmax[RT_I];
+        bmax[RT_K] = cb == RT_TRUE ? RT_MIN(smax[RT_K], +top) : smax[RT_K];
     }
 }
 
@@ -3633,9 +3705,7 @@ rt_HyperParaboloid::rt_HyperParaboloid(rt_Registry *rg, rt_Object *parent,
     if (srf->min[RT_I] != -RT_INF
     &&  srf->max[RT_I] != +RT_INF
     &&  srf->min[RT_J] != -RT_INF
-    &&  srf->max[RT_J] != +RT_INF
-    &&  srf->min[RT_K] != -RT_INF   /* temporarily, for adjust_minmax */
-    &&  srf->max[RT_K] != +RT_INF)  /* temporarily, for adjust_minmax */
+    &&  srf->max[RT_J] != +RT_INF)
     {
         bvbox->verts_num = 8;
         bvbox->verts = (rt_VERT *)
@@ -3692,15 +3762,31 @@ rt_void rt_HyperParaboloid::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 {
     rt_Quadric::adjust_minmax(smin, smax, bmin, bmax, cmin, cmax);
 
+    rt_real rd1 = RT_MAX(-smin[RT_I], +smax[RT_I]);
+    rt_real rd2 = RT_MAX(-smin[RT_J], +smax[RT_J]);
+    rt_real tp1 = rd1 * rd1 / RT_FABS(xhp->pr1);
+    rt_real tp2 = rd2 * rd2 / RT_FABS(xhp->pr2);
+
+    rt_bool cb = RT_FALSE; /* distinguish self-adjust from clip-adjust */
+
+    if (cmin != RT_NULL && cmax != RT_NULL)
+    {
+        cmin[RT_K] = cmin[RT_K] <= -tp2 ? -RT_INF : cmin[RT_K];
+
+        cmax[RT_K] = cmax[RT_K] >= +tp1 ? +RT_INF : cmax[RT_K];
+
+        cb = RT_TRUE; /* self-adjust if cbox is passed */
+    }
+
     if (bmin != RT_NULL && bmax != RT_NULL)
     {
         bmin[RT_I] = smin[RT_I];
         bmin[RT_J] = smin[RT_J];
-        bmin[RT_K] = smin[RT_K]; /* to handle bbox adjust by clippers */
+        bmin[RT_K] = cb == RT_TRUE ? RT_MAX(smin[RT_K], -tp2) : smin[RT_K];
 
         bmax[RT_I] = smax[RT_I];
         bmax[RT_J] = smax[RT_J];
-        bmax[RT_K] = smax[RT_K]; /* to handle bbox adjust by clippers */
+        bmax[RT_K] = cb == RT_TRUE ? RT_MIN(smax[RT_K], +tp1) : smax[RT_K];
     }
 }
 
