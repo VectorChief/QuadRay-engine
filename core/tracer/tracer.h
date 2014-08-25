@@ -82,6 +82,9 @@ struct rt_SIMD_SPHERE;
 struct rt_SIMD_CONE;
 struct rt_SIMD_PARABOLOID;
 struct rt_SIMD_HYPERBOLOID;
+struct rt_SIMD_PARACYLINDER;
+struct rt_SIMD_HYPERCYLINDER;
+struct rt_SIMD_HYPERPARABOLOID;
 
 struct rt_SIMD_MATERIAL;
 
@@ -288,6 +291,12 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
 
     rt_pntr clp_hc;
 #define inf_CLP_HC          DP(Q*0x100+0x13C)
+
+    rt_pntr ptr_hp;
+#define inf_PTR_HP          DP(Q*0x100+0x140)
+
+    rt_pntr clp_hp;
+#define inf_CLP_HP          DP(Q*0x100+0x144)
 
 };
 
@@ -958,6 +967,30 @@ struct rt_SIMD_HYPERCYLINDER : public rt_SIMD_SURFACE
 
     rt_real one_k[S];
 #define xhc_ONE_K           DP(Q*0x230)
+
+};
+
+/******************************************************************************/
+/*****************************   HYPERPARABOLOID   ****************************/
+/******************************************************************************/
+
+/*
+ * Extended SIMD surface structure with properties for hyperparaboloid.
+ * Structure is read-only in backend.
+ */
+struct rt_SIMD_HYPERPARABOLOID : public rt_SIMD_SURFACE
+{
+    rt_real i_pr1[S];
+#define xhp_I_PR1           DP(Q*0x200)
+
+    rt_real i_pr2[S];
+#define xhp_I_PR2           DP(Q*0x210)
+
+    rt_real n_pr1[S];
+#define xhp_N_PR1           DP(Q*0x220)
+
+    rt_real n_pr2[S];
+#define xhp_N_PR2           DP(Q*0x230)
 
 };
 

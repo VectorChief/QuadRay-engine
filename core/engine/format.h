@@ -51,7 +51,8 @@
 #define RT_TAG_HYPERBOLOID                  5
 #define RT_TAG_PARACYLINDER                 6
 #define RT_TAG_HYPERCYLINDER                7
-#define RT_TAG_SURFACE_MAX                  8
+#define RT_TAG_HYPERPARABOLOID              8
+#define RT_TAG_SURFACE_MAX                  9
 
 /* special tags */
 #define RT_TAG_CAMERA                       100
@@ -634,6 +635,39 @@ rt_cell HC_(rt_HYPERCYLINDER *pobj)
 #define RT_OBJ_HYPERCYLINDER_MAT(pobj, pmat_outer, pmat_inner)              \
 {                                                                           \
     HC_(pobj),                                                              \
+    pobj,                   1,                                              \
+    RT_NULL,                0,                                              \
+    pmat_outer,             pmat_inner                                      \
+}
+
+/******************************************************************************/
+/*****************************   HYPERPARABOLOID   ****************************/
+/******************************************************************************/
+
+struct rt_HYPERPARABOLOID
+{
+    rt_SURFACE          srf;
+    rt_real             pr1;
+    rt_real             pr2;
+};
+
+static /* needed for strict typization */
+rt_cell HP_(rt_HYPERPARABOLOID *pobj)
+{
+    return RT_TAG_HYPERPARABOLOID;
+}
+
+#define RT_OBJ_HYPERPARABOLOID(pobj)                                        \
+{                                                                           \
+    HP_(pobj),                                                              \
+    pobj,                   1,                                              \
+    RT_NULL,                0,                                              \
+    RT_NULL,                RT_NULL                                         \
+}
+
+#define RT_OBJ_HYPERPARABOLOID_MAT(pobj, pmat_outer, pmat_inner)            \
+{                                                                           \
+    HP_(pobj),                                                              \
     pobj,                   1,                                              \
     RT_NULL,                0,                                              \
     pmat_outer,             pmat_inner                                      \

@@ -720,7 +720,8 @@ rt_cell surf_conc(rt_SHAPE *srf)
 
     if (srf->tag == RT_TAG_CONE
     ||  srf->tag == RT_TAG_HYPERBOLOID
-    ||  srf->tag == RT_TAG_HYPERCYLINDER)
+    ||  srf->tag == RT_TAG_HYPERCYLINDER
+    ||  srf->tag == RT_TAG_HYPERPARABOLOID)
     {
         c = 1;
     }
@@ -750,7 +751,8 @@ rt_cell clip_conc(rt_SHAPE *srf)
     &&  (srf->sci[RT_W] <= 0.0f
     &&   srf->bmin[mp_k] < pps[mp_k]
     &&   srf->bmax[mp_k] > pps[mp_k]
-    ||   srf->sci[RT_W] > 0.0f))
+    ||   srf->sci[RT_W] > 0.0f)
+    ||  (srf->tag == RT_TAG_HYPERPARABOLOID))
     {
         c = 1;
     }

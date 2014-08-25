@@ -90,6 +90,9 @@ class rt_Sphere;
 class rt_Cone;
 class rt_Paraboloid;
 class rt_Hyperboloid;
+class rt_ParaCylinder;
+class rt_HyperCylinder;
+class rt_HyperParaboloid;
 
 class rt_Texture;
 class rt_Material;
@@ -892,6 +895,42 @@ class rt_HyperCylinder : public rt_Quadric
 
     virtual
    ~rt_HyperCylinder();
+
+    virtual
+    rt_void update_fields();
+};
+
+/******************************************************************************/
+/*****************************   HYPERPARABOLOID   ****************************/
+/******************************************************************************/
+
+/*
+ * HyperParaboloid is a basic 2nd order surface.
+ */
+class rt_HyperParaboloid : public rt_Quadric
+{
+/*  fields */
+
+    private:
+
+    rt_HYPERPARABOLOID *xhp;
+
+/*  methods */
+
+    protected:
+
+    virtual
+    rt_void adjust_minmax(rt_vec4 smin, rt_vec4 smax,  /* src */
+                          rt_vec4 bmin, rt_vec4 bmax,  /* bbox */
+                          rt_vec4 cmin, rt_vec4 cmax); /* cbox */
+
+    public:
+
+    rt_HyperParaboloid(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
+                       rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+
+    virtual
+   ~rt_HyperParaboloid();
 
     virtual
     rt_void update_fields();

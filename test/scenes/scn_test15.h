@@ -120,6 +120,32 @@ rt_HYPERCYLINDER hc_frame03 =
 /* hyp */  -0.5,
 };
 
+rt_HYPERPARABOLOID hp_frame04 =
+{
+    {      /*   RT_I,       RT_J,       RT_K    */
+/* min */   {   -1.0,       -1.0,       -2.0    },
+/* max */   {   +1.0,       +1.0,       +2.0    },
+        {
+/* OUTER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_metal01_cyan01,
+        },
+        {
+/* INNER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_plain01_gray01,
+        },
+    },
+/* pr1 */   0.5,
+/* pr2 */   1.5,
+};
+
 rt_OBJECT ob_base01[] =
 {
     {
@@ -153,6 +179,14 @@ rt_OBJECT ob_base01[] =
 /* pos */   {   -3.0,        0.0,        3.5    },
         },
         RT_OBJ_HYPERCYLINDER(&hc_frame03)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {    0.0,       -2.0,        3.5    },
+        },
+        RT_OBJ_HYPERPARABOLOID(&hp_frame04)
     },
 };
 
