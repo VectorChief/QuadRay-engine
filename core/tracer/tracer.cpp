@@ -3080,7 +3080,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
 
-        /* Refine root with 1 linear iteration to clean up parabolic anomaly.
+        /* Refine root with 1 linear iteration to fix accuracy divergence.
          * TODO: only enable linear refinement when two roots are far apart */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 
@@ -3161,7 +3161,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
 
-        /* Refine root with 1 linear iteration to clean up parabolic anomaly.
+        /* Refine root with 1 linear iteration to fix accuracy divergence.
          * TODO: only enable linear refinement when two roots are far apart */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 
@@ -3617,7 +3617,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
 
-        /* Refine root with 1 linear iteration to clean up parabolic anomaly.
+        /* Refine root with 1 linear iteration to fix accuracy divergence.
          * TODO: only enable linear refinement when two roots are far apart */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 
@@ -3683,7 +3683,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
 
-        /* Refine root with 1 linear iteration to clean up parabolic anomaly.
+        /* Refine root with 1 linear iteration to fix accuracy divergence.
          * TODO: only enable linear refinement when two roots are far apart */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 
@@ -4103,7 +4103,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
 
-        /* Refine root with 1 linear iteration to clean up parabolic anomaly.
+        /* Refine root with 1 linear iteration to fix accuracy divergence.
          * TODO: only enable linear refinement when two roots are far apart */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 
@@ -4186,7 +4186,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
 
-        /* Refine root with 1 linear iteration to clean up parabolic anomaly.
+        /* Refine root with 1 linear iteration to fix accuracy divergence.
          * TODO: only enable linear refinement when two roots are far apart */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 

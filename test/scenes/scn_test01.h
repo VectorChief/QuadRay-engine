@@ -182,7 +182,7 @@ rt_OBJECT ob_tree[] =
     },
 };
 
-rt_RELATION  rl_tree[] =
+rt_RELATION rl_tree[] =
 {
     {   2,  RT_REL_MINUS_OUTER,   1   },
     {   1,  RT_REL_MINUS_OUTER,   2   },

@@ -180,7 +180,6 @@ rt_OBJECT ob_base01[] =
         },
         RT_OBJ_HYPERCYLINDER(&hc_frame03)
     },
-#if 0
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
@@ -189,7 +188,6 @@ rt_OBJECT ob_base01[] =
         },
         RT_OBJ_HYPERPARABOLOID(&hp_frame04)
     },
-#endif
 };
 
 /******************************************************************************/
@@ -201,8 +199,8 @@ rt_OBJECT ob_camera01[] =
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   { -141.8,        0.0,        0.0    },
-/* pos */   {    0.0,       -0.74,       0.0    },
+/* rot */   {  -95.0,        0.0,        0.0    },
+/* pos */   {    0.0,      -15.0,        0.0    },
         },
         RT_OBJ_CAMERA(&cm_camera01)
     },
