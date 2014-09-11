@@ -98,7 +98,7 @@ rt_HYPERPARABOLOID hp_clip01 =
 /*********************************   CAMERA   *********************************/
 /******************************************************************************/
 
-#if 0
+#if 1
 rt_OBJECT ob_camera01[] =
 {
     {
@@ -110,7 +110,7 @@ rt_OBJECT ob_camera01[] =
         RT_OBJ_CAMERA(&cm_camera01)
     },
 };
-#elif 1
+#elif 0
 rt_OBJECT ob_camera01[] =
 {
     {
