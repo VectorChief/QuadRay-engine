@@ -110,7 +110,7 @@ rt_OBJECT ob_camera01[] =
         RT_OBJ_CAMERA(&cm_camera01)
     },
 };
-#else
+#elif 0
 rt_OBJECT ob_camera01[] =
 {
     {
@@ -118,6 +118,18 @@ rt_OBJECT ob_camera01[] =
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {  -18.270023,   0.000000,   89.639969},
 /* pos */   {    1.784209,   0.010557,   0.0    },
+        },
+        RT_OBJ_CAMERA(&cm_camera01)
+    },
+};
+#else
+rt_OBJECT ob_camera01[] =
+{
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {-91.559982, 0.000000, 12.240015},
+/* pos */   {-2.526821, -3.969936,   0.0    },
         },
         RT_OBJ_CAMERA(&cm_camera01)
     },
@@ -167,6 +179,14 @@ rt_OBJECT ob_tree[] =
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {  180.0,        0.0,        0.0    },
 /* pos */   {    0.0,        0.0,       10.0    },
+        },
+        RT_OBJ_PLANE(&pl_floor01)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {  +90.0,        0.0,        0.0    },
+/* pos */   {    0.0,       +5.0,       +5.0    },
         },
         RT_OBJ_PLANE(&pl_floor01)
     },
