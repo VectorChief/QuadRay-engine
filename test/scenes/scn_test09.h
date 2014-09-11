@@ -110,7 +110,7 @@ rt_OBJECT ob_camera01[] =
         RT_OBJ_CAMERA(&cm_camera01)
     },
 };
-#elif 0
+#elif 1
 rt_OBJECT ob_camera01[] =
 {
     {
