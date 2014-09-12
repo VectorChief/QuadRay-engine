@@ -30,6 +30,9 @@
  *   cn for CONE
  *   pb for PARABOLOID
  *   hb for HYPERBOLOID
+ *   pc for PARACYLINDER
+ *   hc for HYPERCYLINDER
+ *   hp for HYPERPARABOLOID
  *   cm for CAMERA
  *   lt for LIGHT
  *   ob for OBJECT array
