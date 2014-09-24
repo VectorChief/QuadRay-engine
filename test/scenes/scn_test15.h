@@ -71,8 +71,8 @@ rt_PARACYLINDER pc_frame01 =
 rt_HYPERCYLINDER hc_frame02 =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
-/* min */   {   -2.0,       -2.0,       -2.0    },
-/* max */   {   +2.0,       +2.0,       +2.0    },
+/* min */   {   -1.0,       -2.0,       -1.0    },
+/* max */   {   +1.0,       +2.0,       +1.0    },
         {
 /* OUTER        RT_U,       RT_V    */
 /* scl */   {    1.0,        1.0    },
@@ -90,8 +90,8 @@ rt_HYPERCYLINDER hc_frame02 =
 /* mat */   &mt_plain01_gray01,
         },
     },
-/* rat */   1.0,
-/* hyp */   0.0,
+/* rat */   1.5,
+/* hyp */   0.5,
 };
 
 rt_HYPERCYLINDER hc_frame03 =
@@ -160,26 +160,25 @@ rt_OBJECT ob_base01[] =
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {  -90.0,        0.0,        0.0    },
-/* pos */   {   +4.0,        0.0,        3.5    },
-        },
-        RT_OBJ_HYPERCYLINDER(&hc_frame02)
-    },
-#if 0
-    {
-        {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {  -90.0,        0.0,        0.0    },
-/* pos */   {   -4.0,        0.0,        3.5    },
-        },
-        RT_OBJ_HYPERCYLINDER(&hc_frame03)
-    },
-    {
-        {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {  -90.0,        0.0,        0.0    },
 /* pos */   {    0.0,        0.0,        3.5    },
         },
         RT_OBJ_PARACYLINDER(&pc_frame01)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {  -90.0,        0.0,        0.0    },
+/* pos */   {   +3.0,        0.0,        3.5    },
+        },
+        RT_OBJ_HYPERCYLINDER(&hc_frame02)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {  -90.0,        0.0,        0.0    },
+/* pos */   {   -3.0,        0.0,        3.5    },
+        },
+        RT_OBJ_HYPERCYLINDER(&hc_frame03)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -189,14 +188,12 @@ rt_OBJECT ob_base01[] =
         },
         RT_OBJ_HYPERPARABOLOID(&hp_frame04)
     },
-#endif
 };
 
 /******************************************************************************/
 /*********************************   CAMERA   *********************************/
 /******************************************************************************/
 
-#if 0
 rt_OBJECT ob_camera01[] =
 {
     {
@@ -208,31 +205,6 @@ rt_OBJECT ob_camera01[] =
         RT_OBJ_CAMERA(&cm_camera01)
     },
 };
-#elif 1
-rt_OBJECT ob_camera01[] =
-{
-    {
-        {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {-104.299995,    0.000000, -44.730064},
-/* pos */   {0.506161, -0.942222,        0.0    },
-        },
-        RT_OBJ_CAMERA(&cm_camera01)
-    },
-};
-#else
-rt_OBJECT ob_camera01[] =
-{
-    {
-        {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {-114.590004,    0.000000, -136.26004},
-/* pos */   {0.560797,  1.280872,        0.0    },
-        },
-        RT_OBJ_CAMERA(&cm_camera01)
-    },
-};
-#endif
 
 /******************************************************************************/
 /*********************************   LIGHTS   *********************************/
