@@ -3375,7 +3375,7 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
 
     rt_SIMD_HYPERBOLOID *s_xhb = (rt_SIMD_HYPERBOLOID *)s_srf;
 
-    rt_real rat = xhb->rat;
+    rt_real rat = RT_FABS(xhb->rat);
     rt_real hyp = xhb->hyp;
 
     RT_SIMD_SET(s_xhb->rat_2, rat * rat);
@@ -3610,13 +3610,13 @@ rt_HyperCylinder::rt_HyperCylinder(rt_Registry *rg, rt_Object *parent,
 
     rt_SIMD_HYPERCYLINDER *s_xhc = (rt_SIMD_HYPERCYLINDER *)s_srf;
 
-    rt_real rat = xhc->rat;
+    rt_real rat = RT_FABS(xhc->rat);
     rt_real hyp = xhc->hyp;
 
     RT_SIMD_SET(s_xhc->rat_2, rat * rat);
     RT_SIMD_SET(s_xhc->i_rat, (1.0f + rat * rat) * rat * rat);
     RT_SIMD_SET(s_xhc->hyp_k, hyp);
-    RT_SIMD_SET(s_xhc->one_k, 1.0f);
+    RT_SIMD_SET(s_xhc->rat_k, rat);
 }
 
 /*

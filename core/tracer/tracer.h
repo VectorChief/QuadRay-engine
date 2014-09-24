@@ -444,13 +444,13 @@ struct rt_SIMD_CONTEXT
     rt_cell c_tmp[S];
 #define ctx_C_TMP           DP(Q*0x200)
 
-    rt_cell xtmp1[S];
+    rt_real xtmp1[S];
 #define ctx_XTMP1           DP(Q*0x210)
 
-    rt_cell xtmp2[S];
+    rt_real xtmp2[S];
 #define ctx_XTMP2           DP(Q*0x220)
 
-    rt_cell xtmp3[S];
+    rt_real xtmp3[S];
 #define ctx_XTMP3           DP(Q*0x230)
 
     /* normal */
@@ -477,8 +477,11 @@ struct rt_SIMD_CONTEXT
 
     /* reserved area 1 */
 
-    rt_word pad01[S*6];
-#define ctx_PAD01           DP(Q*0x2A0)
+    rt_cell xsign[S];
+#define ctx_XSIGN           DP(Q*0x2A0)
+
+    rt_word pad01[S*5];
+#define ctx_PAD01           DP(Q*0x2B0)
 
     /* overlapping next context,
      * new depth min */
@@ -965,8 +968,8 @@ struct rt_SIMD_HYPERCYLINDER : public rt_SIMD_SURFACE
     rt_real hyp_k[S];
 #define xhc_HYP_K           DP(Q*0x220)
 
-    rt_real one_k[S];
-#define xhc_ONE_K           DP(Q*0x230)
+    rt_real rat_k[S];
+#define xhc_RAT_K           DP(Q*0x230)
 
 };
 
