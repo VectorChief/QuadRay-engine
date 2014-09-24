@@ -208,6 +208,18 @@ rt_OBJECT ob_camera01[] =
         RT_OBJ_CAMERA(&cm_camera01)
     },
 };
+#elif 1
+rt_OBJECT ob_camera01[] =
+{
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {-104.299995,    0.000000, -44.730064},
+/* pos */   {0.506161, -0.942222,        0.0    },
+        },
+        RT_OBJ_CAMERA(&cm_camera01)
+    },
+};
 #else
 rt_OBJECT ob_camera01[] =
 {
