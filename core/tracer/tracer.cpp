@@ -431,10 +431,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mebp, inf_CTX, IB(0))
         jeqxx_lb(fetch_ptr)
 
-        /* enable "rounding towards minus infinity"
-         * for texture coords float-to-integer conversion */
-        FCTRL_ENTER(ROUNDM)
-
         movxx_ld(Recx, Mebp, inf_CTX)
         movxx_ld(Redx, Mebp, inf_CAM)
 
@@ -701,6 +697,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         CHECK_PROP(MT_tex, RT_PROP_TEXTURE)
 
+        /* enable "rounding towards minus infinity"
+         * for texture coords float-to-integer conversion */
+        FCTRL_ENTER(ROUNDM)
+
         /* transform surface's UV coords
          *        to texture's XY coords */
 
@@ -728,6 +728,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addpx_rr(Xmm1, Xmm2)                    /* tex_x += tex_y */
         shlpx_ri(Xmm1, IB(2))                   /* tex_x <<     2 */
         addpx_rr(Xmm0, Xmm1)                    /* tex_x += tex_p */
+
+        /* restore default "rounding to nearest" */
+        FCTRL_LEAVE(ROUNDM)
 
     LBL(MT_tex)
 
@@ -2748,9 +2751,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ld(Reax, Mebp, inf_FRM_Y)
         cmpxx_rm(Reax, Mebp, inf_FRM_H)
         jltxx_lb(YY_cyc)
-
-        /* restore default "rounding to nearest" */
-        FCTRL_LEAVE(ROUNDM)
 
     LBL(fetch_end)
 
