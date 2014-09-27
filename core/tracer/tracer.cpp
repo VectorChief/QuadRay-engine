@@ -3443,7 +3443,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* clipping */
         movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
         SUBROUTINE(HB_cp2, CC_clp)
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
@@ -4055,12 +4054,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(HC_lo2)
 
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
         movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
         SUBROUTINE(HC_cp2, CC_clp)
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
@@ -4391,7 +4388,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* clipping */
         movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
         SUBROUTINE(HP_cp2, CC_clp)
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
