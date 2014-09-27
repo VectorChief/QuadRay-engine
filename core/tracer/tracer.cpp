@@ -2350,7 +2350,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         MOVZR_ST(Xmm5, Iecx, ctx_NRM_O)         /* 0     -> NRM_J */
 
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        movpx_ld(Xmm6, Mebx, xpl_NRM_K)         /* tmp_v <-     1 */
+        movpx_ld(Xmm6, Mebp, inf_GPC01)         /* tmp_v <- +1.0f */
         xorpx_rr(Xmm6, Xmm7)                    /* tmp_v ^= ssign */
         MOVXR_ST(Xmm6, Iecx, ctx_NRM_O)         /* tmp_v -> NRM_K */
 
@@ -3260,7 +3260,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm1, Mebx, xpb_PAR_K)         /* loc_k *= PAR_K */
         addps_ld(Xmm1, Mebx, xpb_I_PAR)         /* loc_k += I_PAR */
         sqrps_rr(Xmm1, Xmm1)                    /* loc_k sq loc_k */
-        movpx_ld(Xmm3, Mebx, xpb_ONE_K)         /* i_par <-     1 */
+        movpx_ld(Xmm3, Mebp, inf_GPC01)         /* i_par <- +1.0f */
         divps_rr(Xmm3, Xmm1)                    /* i_par /= loc_k */
         movpx_ld(Xmm6, Mebx, xpb_PAR_2)         /* par_2 <- PAR_2 */
         xorpx_ld(Xmm6, Mebx, srf_SMASK)         /* par_2 = -par_2 */
@@ -3480,7 +3480,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm1, Xmm6)                    /* hyp_k *= loc_k */
         addps_ld(Xmm1, Mebx, xhb_HYP_K)         /* hyp_k += HYP_K */
         sqrps_rr(Xmm1, Xmm1)                    /* hyp_k sq hyp_k */
-        movpx_ld(Xmm3, Mebx, xhb_ONE_K)         /* i_rat <-     1 */
+        movpx_ld(Xmm3, Mebp, inf_GPC01)         /* i_rat <- +1.0f */
         divps_rr(Xmm3, Xmm1)                    /* i_rat /= hyp_k */
         mulps_ld(Xmm6, Mebx, xhb_RAT_2)         /* rat_2 <- RAT_2 */
         mulps_rr(Xmm6, Xmm3)                    /* rat_2 *= i_rat */
@@ -3767,7 +3767,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm1, Mebx, xpc_PAR_K)         /* loc_k *= PAR_K */
         addps_ld(Xmm1, Mebx, xpc_I_PAR)         /* loc_k += I_PAR */
         sqrps_rr(Xmm1, Xmm1)                    /* loc_k sq loc_k */
-        movpx_ld(Xmm3, Mebx, xpc_ONE_K)         /* i_par <-     1 */
+        movpx_ld(Xmm3, Mebp, inf_GPC01)         /* i_par <- +1.0f */
         divps_rr(Xmm3, Xmm1)                    /* i_par /= loc_k */
         movpx_ld(Xmm6, Mebx, xpc_PAR_2)         /* par_2 <- PAR_2 */
         xorpx_ld(Xmm6, Mebx, srf_SMASK)         /* par_2 = -par_2 */
@@ -3870,9 +3870,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm5, Xmm6)                    /* cxx_i -= cxx_k */
 
         /* "s" section */
-        movpx_rr(Xmm0, Xmm5)
-        andpx_ld(Xmm0, Mebx, srf_SMASK)
-        movpx_st(Xmm0, Mecx, ctx_XSIGN)         /* xsign -> XSIGN */
+        movpx_rr(Xmm2, Xmm5)
+        andpx_ld(Xmm2, Mebx, srf_SMASK)         /* xsign &= SMASK */
+        movpx_st(Xmm2, Mecx, ctx_XSIGN)         /* xsign -> XSIGN */
 
         /* "c" section */
         mulps_rr(Xmm5, Xmm5)                    /* cxx_t *= cxx_t */
@@ -3939,10 +3939,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
 
         /* "s" section */
-        movpx_ld(Xmm0, Mebx, xhc_HYP_K)         /* hyp_k <- HYP_K */
         movpx_rr(Xmm3, Xmm5)                    /* dff_k <- dff_k */
         xorpx_rr(Xmm6, Xmm7)                    /* dff_i ^= xsign */
         subps_rr(Xmm3, Xmm6)                    /* dff_k -= dff_i */
+        movpx_ld(Xmm0, Mebx, xhc_HYP_K)         /* hyp_k <- HYP_K */
+        /* it's safe to use Xmm0 above
+         * as axis mapping is complete */
 
         /* "*" section */
         mulps_rr(Xmm5, Xmm5)                    /* dff_k *= dff_k */
@@ -3991,6 +3993,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
         movpx_ld(Xmm7, Mecx, ctx_XSIGN)         /* xsign <- XSIGN */
+        xorpx_ld(Xmm7, Mebx, srf_SMASK)         /* xsign = -xsign */
 
         /* Refine root with 1 linear iteration to fix accuracy divergence.
          * TODO: only enable linear refinement when two roots are far apart */
@@ -4021,10 +4024,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
 
         /* "s" section */
-        movpx_ld(Xmm0, Mebx, xhc_HYP_K)         /* hyp_k <- HYP_K */
         movpx_rr(Xmm3, Xmm5)                    /* dff_k <- dff_k */
         xorpx_rr(Xmm6, Xmm7)                    /* dff_i ^= xsign */
-        addps_rr(Xmm3, Xmm6)                    /* dff_k += dff_i */
+        subps_rr(Xmm3, Xmm6)                    /* dff_k -= dff_i */
+        movpx_ld(Xmm0, Mebx, xhc_HYP_K)         /* hyp_k <- HYP_K */
+        /* it's safe to use Xmm0 above
+         * as axis mapping is complete */
 
         /* "*" section */
         mulps_rr(Xmm5, Xmm5)                    /* dff_k *= dff_k */
@@ -4040,7 +4045,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm3, Xmm0)                    /* s_val -= hyp_k */
         subps_rr(Xmm3, Xmm0)                    /* s_val -= hyp_k */
         mulps_rr(Xmm1, Xmm3)                    /* ray_k *= s_val */
-        subps_rr(Xmm1, Xmm2)                    /* ray_k -= ray_i */
+        addps_rr(Xmm1, Xmm2)                    /* ray_k += ray_i */
 
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */

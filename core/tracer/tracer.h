@@ -791,8 +791,8 @@ struct rt_SIMD_SURFACE
  */
 struct rt_SIMD_PLANE : public rt_SIMD_SURFACE
 {
-    rt_real nrm_k[S];
-#define xpl_NRM_K           DP(Q*0x200)
+    rt_real msc_0[S];
+#define xpl_MSC_0           DP(Q*0x200)
 
     rt_cell msc_1[S];
 #define xpl_MSC_1           DP(Q*0x210)
@@ -869,8 +869,8 @@ struct rt_SIMD_CONE : public rt_SIMD_SURFACE
     rt_real i_rat[S];
 #define xcn_I_RAT           DP(Q*0x210)
 
-    rt_real msc_2[S];
-#define xcn_MSC_2           DP(Q*0x220)
+    rt_real rat_k[S];
+#define xcn_RAT_K           DP(Q*0x220)
 
     rt_real msc_3[S];
 #define xcn_MSC_3           DP(Q*0x230)
@@ -896,8 +896,8 @@ struct rt_SIMD_PARABOLOID : public rt_SIMD_SURFACE
     rt_real par_k[S];
 #define xpb_PAR_K           DP(Q*0x220)
 
-    rt_real one_k[S];
-#define xpb_ONE_K           DP(Q*0x230)
+    rt_real msc_3[S];
+#define xpb_MSC_3           DP(Q*0x230)
 
 };
 
@@ -917,11 +917,11 @@ struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
     rt_real i_rat[S];
 #define xhb_I_RAT           DP(Q*0x210)
 
-    rt_real hyp_k[S];
-#define xhb_HYP_K           DP(Q*0x220)
+    rt_real rat_k[S];
+#define xhb_RAT_K           DP(Q*0x220)
 
-    rt_real one_k[S];
-#define xhb_ONE_K           DP(Q*0x230)
+    rt_real hyp_k[S];
+#define xhb_HYP_K           DP(Q*0x230)
 
 };
 
@@ -944,8 +944,8 @@ struct rt_SIMD_PARACYLINDER : public rt_SIMD_SURFACE
     rt_real par_k[S];
 #define xpc_PAR_K           DP(Q*0x220)
 
-    rt_real one_k[S];
-#define xpc_ONE_K           DP(Q*0x230)
+    rt_real msc_3[S];
+#define xpc_MSC_3           DP(Q*0x230)
 
 };
 
@@ -965,11 +965,11 @@ struct rt_SIMD_HYPERCYLINDER : public rt_SIMD_SURFACE
     rt_real i_rat[S];
 #define xhc_I_RAT           DP(Q*0x210)
 
-    rt_real hyp_k[S];
-#define xhc_HYP_K           DP(Q*0x220)
-
     rt_real rat_k[S];
-#define xhc_RAT_K           DP(Q*0x230)
+#define xhc_RAT_K           DP(Q*0x220)
+
+    rt_real hyp_k[S];
+#define xhc_HYP_K           DP(Q*0x230)
 
 };
 

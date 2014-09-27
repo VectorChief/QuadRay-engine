@@ -2749,12 +2749,6 @@ rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
                      rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
         memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
-
-/*  rt_SIMD_PLANE */
-
-    rt_SIMD_PLANE *s_xpl = (rt_SIMD_PLANE *)s_srf;
-
-    RT_SIMD_SET(s_xpl->nrm_k, +1.0f);
 }
 
 /*
@@ -3147,6 +3141,7 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
 
     RT_SIMD_SET(s_xcn->rat_2, rat * rat);
     RT_SIMD_SET(s_xcn->i_rat, 1.0f / (rat * RT_SQRT(rat * rat + 1.0f)));
+    RT_SIMD_SET(s_xcn->rat_k, rat);
 }
 
 /*
@@ -3262,7 +3257,6 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_xpb->par_2, par / 2.0f);
     RT_SIMD_SET(s_xpb->i_par, par * par / 4.0f);
     RT_SIMD_SET(s_xpb->par_k, par);
-    RT_SIMD_SET(s_xpb->one_k, 1.0f);
 }
 
 /*
@@ -3380,8 +3374,8 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
 
     RT_SIMD_SET(s_xhb->rat_2, rat * rat);
     RT_SIMD_SET(s_xhb->i_rat, (1.0f + rat * rat) * rat * rat);
+    RT_SIMD_SET(s_xhb->rat_k, rat);
     RT_SIMD_SET(s_xhb->hyp_k, hyp);
-    RT_SIMD_SET(s_xhb->one_k, 1.0f);
 }
 
 /*
@@ -3499,7 +3493,6 @@ rt_ParaCylinder::rt_ParaCylinder(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_xpc->par_2, par / 2.0f);
     RT_SIMD_SET(s_xpc->i_par, par * par / 4.0f);
     RT_SIMD_SET(s_xpc->par_k, par);
-    RT_SIMD_SET(s_xpc->one_k, 1.0f);
 }
 
 /*
@@ -3615,8 +3608,8 @@ rt_HyperCylinder::rt_HyperCylinder(rt_Registry *rg, rt_Object *parent,
 
     RT_SIMD_SET(s_xhc->rat_2, rat * rat);
     RT_SIMD_SET(s_xhc->i_rat, (1.0f + rat * rat) * rat * rat);
-    RT_SIMD_SET(s_xhc->hyp_k, hyp);
     RT_SIMD_SET(s_xhc->rat_k, rat);
+    RT_SIMD_SET(s_xhc->hyp_k, hyp);
 }
 
 /*
