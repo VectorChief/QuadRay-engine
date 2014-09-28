@@ -48,6 +48,7 @@
 #define RT_SHOW_TILES               0
 
 #define RT_FEAT_TILING              1
+#define RT_FEAT_ANTIALIASING        1
 #define RT_FEAT_MULTITHREADING      1
 #define RT_FEAT_CLIPPING_MINMAX     1
 #define RT_FEAT_CLIPPING_CUSTOM     1
@@ -64,7 +65,6 @@
 #define RT_FEAT_REFLECTIONS         1
 #define RT_FEAT_TRANSPARENCY        1
 #define RT_FEAT_REFRACTIONS         1
-#define RT_FEAT_ANTIALIASING        1
 #define RT_FEAT_TRANSFORM           1
 #define RT_FEAT_TRANSFORM_ARRAY     1
 #define RT_FEAT_BOUND_VOL_ARRAY     1
@@ -2883,6 +2883,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
         SUBROUTINE(CN_mt1, CN_mat)
 
+        /* optimize overdraw */
+        /* not applicable as inner and outer roots swap places
+         * along the ray's direction based on "a_val's" sign */
+
 /******************************************************************************/
     LBL(CN_rt2)
 
@@ -3152,6 +3156,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
         SUBROUTINE(PB_mt1, PB_mat)
+
+        /* optimize overdraw */
+        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
+        CHECK_MASK(OO_end, FULL, Xmm7)
 
 /******************************************************************************/
     LBL(PB_rt2)
@@ -3429,6 +3437,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
         SUBROUTINE(HB_mt1, HB_mat)
 
+        /* optimize overdraw */
+        /* not applicable as inner and outer roots swap places
+         * along the ray's direction based on "a_val's" sign */
+
 /******************************************************************************/
     LBL(HB_rt2)
 
@@ -3586,8 +3598,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm6, Xmm4)                    /* dff_k *= par_k */
 
         /* "+" section */
-        addps_rr(Xmm3, Xmm2)                    /* bxx_t += bxx_j */
-        addps_rr(Xmm5, Xmm6)                    /* cxx_t += cxx_j */
+        addps_rr(Xmm3, Xmm2)                    /* bxx_i += bxx_k */
+        addps_rr(Xmm5, Xmm6)                    /* cxx_i += cxx_k */
 
         /* "d" section */
         mulps_rr(Xmm5, Xmm1)                    /* c_val *= a_val */
@@ -3673,6 +3685,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
         SUBROUTINE(PC_mt1, PC_mat)
+
+        /* optimize overdraw */
+        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
+        CHECK_MASK(OO_end, FULL, Xmm7)
 
 /******************************************************************************/
     LBL(PC_rt2)
@@ -3981,6 +3997,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
         SUBROUTINE(HC_mt1, HC_mat)
 
+        /* optimize overdraw */
+        /* not applicable as inner and outer roots swap places
+         * along the ray's direction based on "a_val's" sign */
+
 /******************************************************************************/
     LBL(HC_rt2)
 
@@ -4196,9 +4216,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm6, Xmm0)                    /* dff_j *= tmp_v */
 
         /* "-" section */
-        subps_rr(Xmm1, Xmm2)                    /* axx_t -= axx_j */
-        subps_rr(Xmm3, Xmm4)                    /* bxx_t -= bxx_j */
-        subps_rr(Xmm5, Xmm6)                    /* cxx_t -= cxx_j */
+        subps_rr(Xmm1, Xmm2)                    /* axx_i -= axx_j */
+        subps_rr(Xmm3, Xmm4)                    /* bxx_i -= bxx_j */
+        subps_rr(Xmm5, Xmm6)                    /* cxx_i -= cxx_j */
 
         /* "k" section */
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
@@ -4311,6 +4331,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
         SUBROUTINE(HP_mt1, HP_mat)
+
+        /* optimize overdraw */
+        /* not applicable as inner and outer roots swap places
+         * along the ray's direction based on "a_val's" sign */
 
 /******************************************************************************/
     LBL(HP_rt2)
