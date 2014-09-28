@@ -108,6 +108,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
     XSelectInput(disp, win, ExposureMask | KeyPressMask | KeyReleaseMask);
     /* map (show) the window */
     XMapWindow(disp, win);
+    XSync(disp, False);
 
     Window win_root;
     rt_cell win_x = 0, win_y = 0;
@@ -167,6 +168,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
     shmctl(shminfo.shmid, IPC_RMID, 0);
 
     gc = XCreateGC(disp, win, 0, &gc_values);
+    XSync(disp, False);
 
     if (depth > 16)
     {
