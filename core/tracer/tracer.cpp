@@ -15,6 +15,7 @@
 /* Conditional compilation flags
  * for respective segments of code.
  */
+#define RT_FEAT_ANTIALIASING        1
 #define RT_FEAT_MULTITHREADING      1
 #define RT_FEAT_CLIPPING_MINMAX     1
 #define RT_FEAT_CLIPPING_CUSTOM     1
@@ -28,7 +29,6 @@
 #define RT_FEAT_REFLECTIONS         1
 #define RT_FEAT_TRANSPARENCY        1
 #define RT_FEAT_REFRACTIONS         1
-#define RT_FEAT_ANTIALIASING        1
 #define RT_FEAT_TRANSFORM           1
 
 /* Byte-offsets within SIMD-field
@@ -2380,6 +2380,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
         SUBROUTINE(CN_mt1, CN_mat)
 
+        /* optimize overdraw */
+        /* not applicable as inner and outer roots swap places
+         * along the ray's direction based on "a_val's" sign */
+
 /******************************************************************************/
     LBL(CN_rt2)
 
@@ -2582,6 +2586,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
         SUBROUTINE(PB_mt1, PB_mat)
+
+        /* optimize overdraw */
+        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
+        CHECK_MASK(OO_end, FULL, Xmm7)
 
 /******************************************************************************/
     LBL(PB_rt2)
@@ -2792,6 +2800,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
         SUBROUTINE(HB_mt1, HB_mat)
 
+        /* optimize overdraw */
+        /* not applicable as inner and outer roots swap places
+         * along the ray's direction based on "a_val's" sign */
+
 /******************************************************************************/
     LBL(HB_rt2)
 
@@ -2806,7 +2818,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* clipping */
         movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
         SUBROUTINE(HB_cp2, CC_clp)
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
