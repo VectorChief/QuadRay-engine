@@ -2872,6 +2872,67 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
+
+        /* Refine root with 1 linear iteration to fix accuracy divergence.
+         * TODO: only enable linear refinement when two roots are far apart */
+        movxx_mi(Mebp, inf_LIN_ITR, IB(1))
+
+    LBL(CN_ln1)
+
+        cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
+        jeqxx_lb(CN_lo1)
+
+        /* "k" section */
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
+        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
+        movpx_rr(Xmm2, Xmm1)                    /* ray_k <- ray_k */
+        mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
+        subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
+        movpx_ld(Xmm3, Mebx, xcn_RAT_2)         /* rat_2 <- RAT_2 */
+        mulps_rr(Xmm1, Xmm5)                    /* ray_k *= dff_k */
+        mulps_rr(Xmm5, Xmm5)                    /* dff_k *= dff_k */
+        mulps_rr(Xmm1, Xmm3)                    /* bxx_k *= rat_2 */
+        mulps_rr(Xmm5, Xmm3)                    /* cxx_k *= rat_2 */
+
+        /* "i" section */
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
+        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
+        movpx_rr(Xmm3, Xmm2)                    /* ray_i <- ray_i */
+        mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
+        subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
+        mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
+        mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
+
+        /* "-" section */
+        subps_rr(Xmm1, Xmm2)                    /* bxx_k -= bxx_i */
+        subps_rr(Xmm5, Xmm6)                    /* cxx_k -= cxx_i */
+
+        /* "j" section */
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_j <- RAY_J */
+        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_j <- DFF_J */
+        movpx_rr(Xmm3, Xmm2)                    /* ray_j <- ray_j */
+        mulps_rr(Xmm3, Xmm4)                    /* ray_j *= t_val */
+        subps_rr(Xmm6, Xmm3)                    /* dff_j -= ray_j */
+        mulps_rr(Xmm2, Xmm6)                    /* ray_j *= dff_j */
+        mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
+
+        /* "-" section */
+        subps_rr(Xmm1, Xmm2)                    /* bxx_t -= bxx_j */
+        subps_rr(Xmm5, Xmm6)                    /* cxx_t -= cxx_j */
+
+        /* "t" section */
+        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
+        divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
+        addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
+
+        subxx_mi(Mebp, inf_LIN_ITR, IB(1))
+        jmpxx_lb(CN_ln1)
+
+    LBL(CN_lo1)
+
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
@@ -2897,6 +2958,67 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
+
+        /* Refine root with 1 linear iteration to fix accuracy divergence.
+         * TODO: only enable linear refinement when two roots are far apart */
+        movxx_mi(Mebp, inf_LIN_ITR, IB(1))
+
+    LBL(CN_ln2)
+
+        cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
+        jeqxx_lb(CN_lo2)
+
+        /* "k" section */
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
+        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
+        movpx_rr(Xmm2, Xmm1)                    /* ray_k <- ray_k */
+        mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
+        subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
+        movpx_ld(Xmm3, Mebx, xcn_RAT_2)         /* rat_2 <- RAT_2 */
+        mulps_rr(Xmm1, Xmm5)                    /* ray_k *= dff_k */
+        mulps_rr(Xmm5, Xmm5)                    /* dff_k *= dff_k */
+        mulps_rr(Xmm1, Xmm3)                    /* bxx_k *= rat_2 */
+        mulps_rr(Xmm5, Xmm3)                    /* cxx_k *= rat_2 */
+
+        /* "i" section */
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
+        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
+        movpx_rr(Xmm3, Xmm2)                    /* ray_i <- ray_i */
+        mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
+        subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
+        mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
+        mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
+
+        /* "-" section */
+        subps_rr(Xmm1, Xmm2)                    /* bxx_k -= bxx_i */
+        subps_rr(Xmm5, Xmm6)                    /* cxx_k -= cxx_i */
+
+        /* "j" section */
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_j <- RAY_J */
+        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_j <- DFF_J */
+        movpx_rr(Xmm3, Xmm2)                    /* ray_j <- ray_j */
+        mulps_rr(Xmm3, Xmm4)                    /* ray_j *= t_val */
+        subps_rr(Xmm6, Xmm3)                    /* dff_j -= ray_j */
+        mulps_rr(Xmm2, Xmm6)                    /* ray_j *= dff_j */
+        mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
+
+        /* "-" section */
+        subps_rr(Xmm1, Xmm2)                    /* bxx_t -= bxx_j */
+        subps_rr(Xmm5, Xmm6)                    /* cxx_t -= cxx_j */
+
+        /* "t" section */
+        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
+        divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
+        addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
+
+        subxx_mi(Mebp, inf_LIN_ITR, IB(1))
+        jmpxx_lb(CN_ln2)
+
+    LBL(CN_lo2)
+
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
@@ -3426,6 +3548,68 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
+
+        /* Refine root with 1 linear iteration to fix accuracy divergence.
+         * TODO: only enable linear refinement when two roots are far apart */
+        movxx_mi(Mebp, inf_LIN_ITR, IB(1))
+
+    LBL(HB_ln1)
+
+        cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
+        jeqxx_lb(HB_lo1)
+
+        /* "k" section */
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
+        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
+        movpx_rr(Xmm2, Xmm1)                    /* ray_k <- ray_k */
+        mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
+        subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
+        movpx_ld(Xmm3, Mebx, xhb_RAT_2)         /* rat_2 <- RAT_2 */
+        mulps_rr(Xmm1, Xmm5)                    /* ray_k *= dff_k */
+        mulps_rr(Xmm5, Xmm5)                    /* dff_k *= dff_k */
+        mulps_rr(Xmm1, Xmm3)                    /* bxx_k *= rat_2 */
+        mulps_rr(Xmm5, Xmm3)                    /* cxx_k *= rat_2 */
+        addps_ld(Xmm5, Mebx, xhb_HYP_K)         /* cxx_k += HYP_K */
+
+        /* "i" section */
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
+        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
+        movpx_rr(Xmm3, Xmm2)                    /* ray_i <- ray_i */
+        mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
+        subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
+        mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
+        mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
+
+        /* "-" section */
+        subps_rr(Xmm1, Xmm2)                    /* bxx_k -= bxx_i */
+        subps_rr(Xmm5, Xmm6)                    /* cxx_k -= cxx_i */
+
+        /* "j" section */
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_j <- RAY_J */
+        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_j <- DFF_J */
+        movpx_rr(Xmm3, Xmm2)                    /* ray_j <- ray_j */
+        mulps_rr(Xmm3, Xmm4)                    /* ray_j *= t_val */
+        subps_rr(Xmm6, Xmm3)                    /* dff_j -= ray_j */
+        mulps_rr(Xmm2, Xmm6)                    /* ray_j *= dff_j */
+        mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
+
+        /* "-" section */
+        subps_rr(Xmm1, Xmm2)                    /* bxx_t -= bxx_j */
+        subps_rr(Xmm5, Xmm6)                    /* cxx_t -= cxx_j */
+
+        /* "t" section */
+        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
+        divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
+        addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
+
+        subxx_mi(Mebp, inf_LIN_ITR, IB(1))
+        jmpxx_lb(HB_ln1)
+
+    LBL(HB_lo1)
+
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
@@ -3451,6 +3635,68 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
+
+        /* Refine root with 1 linear iteration to fix accuracy divergence.
+         * TODO: only enable linear refinement when two roots are far apart */
+        movxx_mi(Mebp, inf_LIN_ITR, IB(1))
+
+    LBL(HB_ln2)
+
+        cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
+        jeqxx_lb(HB_lo2)
+
+        /* "k" section */
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
+        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
+        movpx_rr(Xmm2, Xmm1)                    /* ray_k <- ray_k */
+        mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
+        subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
+        movpx_ld(Xmm3, Mebx, xhb_RAT_2)         /* rat_2 <- RAT_2 */
+        mulps_rr(Xmm1, Xmm5)                    /* ray_k *= dff_k */
+        mulps_rr(Xmm5, Xmm5)                    /* dff_k *= dff_k */
+        mulps_rr(Xmm1, Xmm3)                    /* bxx_k *= rat_2 */
+        mulps_rr(Xmm5, Xmm3)                    /* cxx_k *= rat_2 */
+        addps_ld(Xmm5, Mebx, xhb_HYP_K)         /* cxx_k += HYP_K */
+
+        /* "i" section */
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
+        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
+        movpx_rr(Xmm3, Xmm2)                    /* ray_i <- ray_i */
+        mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
+        subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
+        mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
+        mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
+
+        /* "-" section */
+        subps_rr(Xmm1, Xmm2)                    /* bxx_k -= bxx_i */
+        subps_rr(Xmm5, Xmm6)                    /* cxx_k -= cxx_i */
+
+        /* "j" section */
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_j <- RAY_J */
+        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_j <- DFF_J */
+        movpx_rr(Xmm3, Xmm2)                    /* ray_j <- ray_j */
+        mulps_rr(Xmm3, Xmm4)                    /* ray_j *= t_val */
+        subps_rr(Xmm6, Xmm3)                    /* dff_j -= ray_j */
+        mulps_rr(Xmm2, Xmm6)                    /* ray_j *= dff_j */
+        mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
+
+        /* "-" section */
+        subps_rr(Xmm1, Xmm2)                    /* bxx_t -= bxx_j */
+        subps_rr(Xmm5, Xmm6)                    /* cxx_t -= cxx_j */
+
+        /* "t" section */
+        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
+        divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
+        addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
+
+        subxx_mi(Mebp, inf_LIN_ITR, IB(1))
+        jmpxx_lb(HB_ln2)
+
+    LBL(HB_lo2)
+
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
