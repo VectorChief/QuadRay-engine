@@ -498,6 +498,7 @@ rt_RELATION rl_figures01[] =
 /*********************************   CAMERA   *********************************/
 /******************************************************************************/
 
+#if 0
 rt_OBJECT ob_camera01[] =
 {
     {
@@ -509,6 +510,19 @@ rt_OBJECT ob_camera01[] =
         RT_OBJ_CAMERA(&cm_camera01)
     },
 };
+#else
+rt_OBJECT ob_camera01[] =
+{
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {-129.170029,    0.0,    -156.869949},
+/* pos */   {-1.147467, 3.615378,        0.0    },
+        },
+        RT_OBJ_CAMERA(&cm_camera01)
+    },
+};
+#endif
 
 rt_void an_camera01(rt_time time, rt_time last_time,
                     rt_TRANSFORM3D *trm, rt_pntr pobj)
@@ -605,7 +619,7 @@ rt_OBJECT ob_tree[] =
 /* pos */   {    0.0,        0.0,        5.0    },
         },
         RT_OBJ_ARRAY(&ob_camera01),
-        &an_camera01,
+        //&an_camera01,
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -614,7 +628,7 @@ rt_OBJECT ob_tree[] =
 /* pos */   {    0.0,        0.0,        4.5    },
         },
         RT_OBJ_ARRAY(&ob_light01),
-        &an_light01,
+        //&an_light01,
     },
 };
 
