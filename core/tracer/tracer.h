@@ -477,11 +477,8 @@ struct rt_SIMD_CONTEXT
 
     /* reserved area 1 */
 
-    rt_cell xsign[S];
-#define ctx_XSIGN           DP(Q*0x2A0)
-
-    rt_word pad01[S*5];
-#define ctx_PAD01           DP(Q*0x2B0)
+    rt_word pad01[S*6];
+#define ctx_PAD01           DP(Q*0x2A0)
 
     /* overlapping next context,
      * new depth min */
