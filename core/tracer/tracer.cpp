@@ -3226,8 +3226,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
         subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
         movpx_ld(Xmm3, Mebx, xpb_PAR_2)         /* par_2 <- PAR_2 */
+        mulps_rr(Xmm1, Xmm3)                    /* ray_k *= par_2 */
         addps_rr(Xmm3, Xmm3)                    /* par_2 += par_2 */
-        mulps_rr(Xmm1, Xmm3)                    /* ray_k *= par_k */
         mulps_rr(Xmm5, Xmm3)                    /* dff_k *= par_k */
 
         /* "i" section */
@@ -3238,7 +3238,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
         subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
         mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
-        addps_rr(Xmm2, Xmm2)                    /* bxx_i += bxx_i */
         mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
 
         /* "+" section */
@@ -3253,13 +3252,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm3, Xmm4)                    /* ray_j *= t_val */
         subps_rr(Xmm6, Xmm3)                    /* dff_j -= ray_j */
         mulps_rr(Xmm2, Xmm6)                    /* ray_j *= dff_j */
-        addps_rr(Xmm2, Xmm2)                    /* bxx_j += bxx_j */
         mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
 
         /* "+" section */
         addps_rr(Xmm1, Xmm2)                    /* bxx_t += bxx_j */
         addps_rr(Xmm5, Xmm6)                    /* cxx_t += cxx_j */
 
+        /* "t" section */
+        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
 
@@ -3311,8 +3311,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
         subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
         movpx_ld(Xmm3, Mebx, xpb_PAR_2)         /* par_2 <- PAR_2 */
+        mulps_rr(Xmm1, Xmm3)                    /* ray_k *= par_2 */
         addps_rr(Xmm3, Xmm3)                    /* par_2 += par_2 */
-        mulps_rr(Xmm1, Xmm3)                    /* ray_k *= par_k */
         mulps_rr(Xmm5, Xmm3)                    /* dff_k *= par_k */
 
         /* "i" section */
@@ -3323,7 +3323,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
         subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
         mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
-        addps_rr(Xmm2, Xmm2)                    /* bxx_i += bxx_i */
         mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
 
         /* "+" section */
@@ -3338,13 +3337,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm3, Xmm4)                    /* ray_j *= t_val */
         subps_rr(Xmm6, Xmm3)                    /* dff_j -= ray_j */
         mulps_rr(Xmm2, Xmm6)                    /* ray_j *= dff_j */
-        addps_rr(Xmm2, Xmm2)                    /* bxx_j += bxx_j */
         mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
 
         /* "+" section */
         addps_rr(Xmm1, Xmm2)                    /* bxx_t += bxx_j */
         addps_rr(Xmm5, Xmm6)                    /* cxx_t += cxx_j */
 
+        /* "t" section */
+        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
 
@@ -3894,8 +3894,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
         subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
         movpx_ld(Xmm3, Mebx, xpc_PAR_2)         /* par_2 <- PAR_2 */
+        mulps_rr(Xmm1, Xmm3)                    /* ray_k *= par_2 */
         addps_rr(Xmm3, Xmm3)                    /* par_2 += par_2 */
-        mulps_rr(Xmm1, Xmm3)                    /* ray_k *= par_k */
         mulps_rr(Xmm5, Xmm3)                    /* dff_k *= par_k */
 
         /* "i" section */
@@ -3906,13 +3906,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
         subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
         mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
-        addps_rr(Xmm2, Xmm2)                    /* bxx_i += bxx_i */
         mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
 
         /* "+" section */
         addps_rr(Xmm1, Xmm2)                    /* bxx_k += bxx_i */
         addps_rr(Xmm5, Xmm6)                    /* cxx_k += cxx_i */
 
+        /* "t" section */
+        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
 
@@ -3964,8 +3965,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
         subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
         movpx_ld(Xmm3, Mebx, xpc_PAR_2)         /* par_2 <- PAR_2 */
+        mulps_rr(Xmm1, Xmm3)                    /* ray_k *= par_2 */
         addps_rr(Xmm3, Xmm3)                    /* par_2 += par_2 */
-        mulps_rr(Xmm1, Xmm3)                    /* ray_k *= par_k */
         mulps_rr(Xmm5, Xmm3)                    /* dff_k *= par_k */
 
         /* "i" section */
@@ -3976,13 +3977,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
         subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
         mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
-        addps_rr(Xmm2, Xmm2)                    /* bxx_i += bxx_i */
         mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
 
         /* "+" section */
         addps_rr(Xmm1, Xmm2)                    /* bxx_k += bxx_i */
         addps_rr(Xmm5, Xmm6)                    /* cxx_k += cxx_i */
 
+        /* "t" section */
+        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
 
@@ -4201,8 +4203,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* "-" section */
         subps_rr(Xmm1, Xmm2)                    /* bxx_k -= bxx_i */
         subps_rr(Xmm5, Xmm6)                    /* cxx_k -= cxx_i */
-        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
 
+        /* "t" section */
+        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
 
@@ -4273,8 +4276,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* "-" section */
         subps_rr(Xmm1, Xmm2)                    /* bxx_k -= bxx_i */
         subps_rr(Xmm5, Xmm6)                    /* cxx_k -= cxx_i */
-        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
 
+        /* "t" section */
+        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
 
@@ -4406,10 +4410,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm3, Xmm5)                    /* ray_i *= dff_i */
         mulps_rr(Xmm1, Xmm1)                    /* ray_i *= ray_i */
         mulps_rr(Xmm5, Xmm5)                    /* dff_i *= dff_i */
-        movpx_ld(Xmm0, Mebx, xhp_I_PR1)         /* tmp_v <- I_PR1 */
-        mulps_rr(Xmm1, Xmm0)                    /* ray_i *= tmp_v */
-        mulps_rr(Xmm3, Xmm0)                    /* mix_i *= tmp_v */
-        mulps_rr(Xmm5, Xmm0)                    /* dff_i *= tmp_v */
+        movpx_ld(Xmm0, Mebx, xhp_I_PR1)         /* i_pr1 <- I_PR1 */
+        mulps_rr(Xmm1, Xmm0)                    /* ray_i *= i_pr1 */
+        mulps_rr(Xmm3, Xmm0)                    /* mix_i *= i_pr1 */
+        mulps_rr(Xmm5, Xmm0)                    /* dff_i *= i_pr1 */
 
         /* "j" section */
         INDEX_AXIS(RT_J)                        /* eax   <-     j */
@@ -4419,10 +4423,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm4, Xmm6)                    /* ray_j *= dff_j */
         mulps_rr(Xmm2, Xmm2)                    /* ray_j *= ray_j */
         mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
-        movpx_ld(Xmm0, Mebx, xhp_I_PR2)         /* tmp_v <- I_PR2 */
-        mulps_rr(Xmm2, Xmm0)                    /* ray_j *= tmp_v */
-        mulps_rr(Xmm4, Xmm0)                    /* mix_j *= tmp_v */
-        mulps_rr(Xmm6, Xmm0)                    /* dff_j *= tmp_v */
+        movpx_ld(Xmm0, Mebx, xhp_I_PR2)         /* i_pr2 <- I_PR2 */
+        mulps_rr(Xmm2, Xmm0)                    /* ray_j *= i_pr2 */
+        mulps_rr(Xmm4, Xmm0)                    /* mix_j *= i_pr2 */
+        mulps_rr(Xmm6, Xmm0)                    /* dff_j *= i_pr2 */
 
         /* "-" section */
         subps_rr(Xmm1, Xmm2)                    /* axx_i -= axx_j */
@@ -4478,31 +4482,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
         jeqxx_lb(HP_lo1)
 
-        /* "k" section */
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
-        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
-        movpx_rr(Xmm2, Xmm1)                    /* ray_k <- ray_k */
-        mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
-        subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
-
         /* "i" section */
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_i <- ray_i */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
-        movpx_ld(Xmm0, Mebx, xhp_I_PR1)         /* tmp_v <- I_PR1 */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
-        mulps_rr(Xmm2, Xmm0)                    /* ray_i *= tmp_v */
-        addps_rr(Xmm2, Xmm2)                    /* bxx_i += bxx_i */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
-        mulps_rr(Xmm6, Xmm0)                    /* dff_i *= tmp_v */
-
-        /* "+" section */
-        addps_rr(Xmm1, Xmm2)                    /* bxx_k += bxx_i */
-        addps_rr(Xmm5, Xmm6)                    /* cxx_k += cxx_i */
+        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
+        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
+        movpx_rr(Xmm2, Xmm1)                    /* ray_i <- ray_i */
+        mulps_rr(Xmm2, Xmm4)                    /* ray_i *= t_val */
+        subps_rr(Xmm5, Xmm2)                    /* dff_i -= ray_i */
+        movpx_ld(Xmm0, Mebx, xhp_I_PR1)         /* i_pr1 <- I_PR1 */
+        mulps_rr(Xmm1, Xmm5)                    /* ray_i *= dff_i */
+        mulps_rr(Xmm1, Xmm0)                    /* ray_i *= i_pr1 */
+        mulps_rr(Xmm5, Xmm5)                    /* dff_i *= dff_i */
+        mulps_rr(Xmm5, Xmm0)                    /* dff_i *= i_pr1 */
 
         /* "j" section */
         INDEX_AXIS(RT_J)                        /* eax   <-     j */
@@ -4511,17 +4502,31 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_rr(Xmm3, Xmm2)                    /* ray_j <- ray_j */
         mulps_rr(Xmm3, Xmm4)                    /* ray_j *= t_val */
         subps_rr(Xmm6, Xmm3)                    /* dff_j -= ray_j */
-        movpx_ld(Xmm0, Mebx, xhp_I_PR2)         /* tmp_v <- I_PR2 */
+        movpx_ld(Xmm0, Mebx, xhp_I_PR2)         /* i_pr2 <- I_PR2 */
         mulps_rr(Xmm2, Xmm6)                    /* ray_j *= dff_j */
-        mulps_rr(Xmm2, Xmm0)                    /* ray_j *= tmp_v */
-        addps_rr(Xmm2, Xmm2)                    /* bxx_j += bxx_j */
+        mulps_rr(Xmm2, Xmm0)                    /* ray_j *= i_pr2 */
         mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
-        mulps_rr(Xmm6, Xmm0)                    /* dff_j *= tmp_v */
+        mulps_rr(Xmm6, Xmm0)                    /* dff_j *= i_pr2 */
 
         /* "-" section */
-        subps_rr(Xmm1, Xmm2)                    /* bxx_t -= bxx_j */
-        subps_rr(Xmm5, Xmm6)                    /* cxx_t -= cxx_j */
+        subps_rr(Xmm1, Xmm2)                    /* bxx_i -= bxx_j */
+        subps_rr(Xmm5, Xmm6)                    /* cxx_i -= cxx_j */
 
+        /* "k" section */
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
+        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
+        movpx_rr(Xmm3, Xmm2)                    /* ray_k <- ray_k */
+        mulps_rr(Xmm3, Xmm4)                    /* ray_k *= t_val */
+        subps_rr(Xmm6, Xmm3)                    /* dff_k -= ray_k */
+        mulps_ld(Xmm2, Mebp, inf_GPC02)         /* ray_k *= -0.5f */
+
+        /* "+" section */
+        subps_rr(Xmm1, Xmm2)                    /* bxx_t -= bxx_k */
+        addps_rr(Xmm5, Xmm6)                    /* cxx_t += cxx_k */
+
+        /* "t" section */
+        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
 
@@ -4565,31 +4570,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
         jeqxx_lb(HP_lo2)
 
-        /* "k" section */
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
-        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
-        movpx_rr(Xmm2, Xmm1)                    /* ray_k <- ray_k */
-        mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
-        subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
-
         /* "i" section */
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_i <- ray_i */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
-        movpx_ld(Xmm0, Mebx, xhp_I_PR1)         /* tmp_v <- I_PR1 */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
-        mulps_rr(Xmm2, Xmm0)                    /* ray_i *= tmp_v */
-        addps_rr(Xmm2, Xmm2)                    /* bxx_i += bxx_i */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
-        mulps_rr(Xmm6, Xmm0)                    /* dff_i *= tmp_v */
-
-        /* "+" section */
-        addps_rr(Xmm1, Xmm2)                    /* bxx_k += bxx_i */
-        addps_rr(Xmm5, Xmm6)                    /* cxx_k += cxx_i */
+        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
+        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
+        movpx_rr(Xmm2, Xmm1)                    /* ray_i <- ray_i */
+        mulps_rr(Xmm2, Xmm4)                    /* ray_i *= t_val */
+        subps_rr(Xmm5, Xmm2)                    /* dff_i -= ray_i */
+        movpx_ld(Xmm0, Mebx, xhp_I_PR1)         /* i_pr1 <- I_PR1 */
+        mulps_rr(Xmm1, Xmm5)                    /* ray_i *= dff_i */
+        mulps_rr(Xmm1, Xmm0)                    /* ray_i *= i_pr1 */
+        mulps_rr(Xmm5, Xmm5)                    /* dff_i *= dff_i */
+        mulps_rr(Xmm5, Xmm0)                    /* dff_i *= i_pr1 */
 
         /* "j" section */
         INDEX_AXIS(RT_J)                        /* eax   <-     j */
@@ -4598,17 +4590,31 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_rr(Xmm3, Xmm2)                    /* ray_j <- ray_j */
         mulps_rr(Xmm3, Xmm4)                    /* ray_j *= t_val */
         subps_rr(Xmm6, Xmm3)                    /* dff_j -= ray_j */
-        movpx_ld(Xmm0, Mebx, xhp_I_PR2)         /* tmp_v <- I_PR2 */
+        movpx_ld(Xmm0, Mebx, xhp_I_PR2)         /* i_pr2 <- I_PR2 */
         mulps_rr(Xmm2, Xmm6)                    /* ray_j *= dff_j */
-        mulps_rr(Xmm2, Xmm0)                    /* ray_j *= tmp_v */
-        addps_rr(Xmm2, Xmm2)                    /* bxx_j += bxx_j */
+        mulps_rr(Xmm2, Xmm0)                    /* ray_j *= i_pr2 */
         mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
-        mulps_rr(Xmm6, Xmm0)                    /* dff_j *= tmp_v */
+        mulps_rr(Xmm6, Xmm0)                    /* dff_j *= i_pr2 */
 
         /* "-" section */
-        subps_rr(Xmm1, Xmm2)                    /* bxx_t -= bxx_j */
-        subps_rr(Xmm5, Xmm6)                    /* cxx_t -= cxx_j */
+        subps_rr(Xmm1, Xmm2)                    /* bxx_i -= bxx_j */
+        subps_rr(Xmm5, Xmm6)                    /* cxx_i -= cxx_j */
 
+        /* "k" section */
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
+        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
+        movpx_rr(Xmm3, Xmm2)                    /* ray_k <- ray_k */
+        mulps_rr(Xmm3, Xmm4)                    /* ray_k *= t_val */
+        subps_rr(Xmm6, Xmm3)                    /* dff_k -= ray_k */
+        mulps_ld(Xmm2, Mebp, inf_GPC02)         /* ray_k *= -0.5f */
+
+        /* "+" section */
+        subps_rr(Xmm1, Xmm2)                    /* bxx_t -= bxx_k */
+        addps_rr(Xmm5, Xmm6)                    /* cxx_t += cxx_k */
+
+        /* "t" section */
+        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
 
