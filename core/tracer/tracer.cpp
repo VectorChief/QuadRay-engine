@@ -2873,8 +2873,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
 
-        /* Refine root with 1 linear iteration to fix accuracy divergence.
-         * TODO: only enable linear refinement when two roots are far apart */
+        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
+         * due to cancellation of significant bits for certain ray directions.
+         * TODO: only use linear refinement when "a_val" is close to zero. */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 
     LBL(CN_ln1)
@@ -2959,8 +2960,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
 
-        /* Refine root with 1 linear iteration to fix accuracy divergence.
-         * TODO: only enable linear refinement when two roots are far apart */
+        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
+         * due to cancellation of significant bits for certain ray directions.
+         * TODO: only use linear refinement when "a_val" is close to zero. */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 
     LBL(CN_ln2)
@@ -3209,8 +3211,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
 
-        /* Refine root with 1 linear iteration to fix accuracy divergence.
-         * TODO: only enable linear refinement when two roots are far apart */
+        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
+         * due to cancellation of significant bits for certain ray directions.
+         * TODO: only use linear refinement when "a_val" is close to zero. */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 
     LBL(PB_ln1)
@@ -3294,8 +3297,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
 
-        /* Refine root with 1 linear iteration to fix accuracy divergence.
-         * TODO: only enable linear refinement when two roots are far apart */
+        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
+         * due to cancellation of significant bits for certain ray directions.
+         * TODO: only use linear refinement when "a_val" is close to zero. */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 
     LBL(PB_ln2)
@@ -3549,8 +3553,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
 
-        /* Refine root with 1 linear iteration to fix accuracy divergence.
-         * TODO: only enable linear refinement when two roots are far apart */
+        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
+         * due to cancellation of significant bits for certain ray directions.
+         * TODO: only use linear refinement when "a_val" is close to zero. */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 
     LBL(HB_ln1)
@@ -3636,8 +3641,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
 
-        /* Refine root with 1 linear iteration to fix accuracy divergence.
-         * TODO: only enable linear refinement when two roots are far apart */
+        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
+         * due to cancellation of significant bits for certain ray directions.
+         * TODO: only use linear refinement when "a_val" is close to zero. */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 
     LBL(HB_ln2)
@@ -3877,8 +3883,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
 
-        /* Refine root with 1 linear iteration to fix accuracy divergence.
-         * TODO: only enable linear refinement when two roots are far apart */
+        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
+         * due to cancellation of significant bits for certain ray directions.
+         * TODO: only use linear refinement when "a_val" is close to zero. */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 
     LBL(PC_ln1)
@@ -3948,8 +3955,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
 
-        /* Refine root with 1 linear iteration to fix accuracy divergence.
-         * TODO: only enable linear refinement when two roots are far apart */
+        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
+         * due to cancellation of significant bits for certain ray directions.
+         * TODO: only use linear refinement when "a_val" is close to zero. */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 
     LBL(PC_ln2)
@@ -4167,8 +4175,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
 
-        /* Refine root with 1 linear iteration to fix accuracy divergence.
-         * TODO: only enable linear refinement when two roots are far apart */
+        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
+         * due to cancellation of significant bits for certain ray directions.
+         * TODO: only use linear refinement when "a_val" is close to zero. */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 
     LBL(HC_ln1)
@@ -4240,8 +4249,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
 
-        /* Refine root with 1 linear iteration to fix accuracy divergence.
-         * TODO: only enable linear refinement when two roots are far apart */
+        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
+         * due to cancellation of significant bits for certain ray directions.
+         * TODO: only use linear refinement when "a_val" is close to zero. */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 
     LBL(HC_ln2)
@@ -4473,8 +4483,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
 
-        /* Refine root with 1 linear iteration to fix accuracy divergence.
-         * TODO: only enable linear refinement when two roots are far apart */
+        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
+         * due to cancellation of significant bits for certain ray directions.
+         * TODO: only use linear refinement when "a_val" is close to zero. */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 
     LBL(HP_ln1)
@@ -4561,8 +4572,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
 
-        /* Refine root with 1 linear iteration to fix accuracy divergence.
-         * TODO: only enable linear refinement when two roots are far apart */
+        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
+         * due to cancellation of significant bits for certain ray directions.
+         * TODO: only use linear refinement when "a_val" is close to zero. */
         movxx_mi(Mebp, inf_LIN_ITR, IB(1))
 
     LBL(HP_ln2)
