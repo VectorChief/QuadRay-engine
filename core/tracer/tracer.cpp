@@ -68,6 +68,7 @@
 #define RT_FEAT_TRANSFORM           1
 #define RT_FEAT_TRANSFORM_ARRAY     1
 #define RT_FEAT_BOUND_VOL_ARRAY     1
+#define RT_FEAT_LINEAR_REFINEMENT   1
 
 /*
  * Byte-offsets within SIMD-field
@@ -2918,6 +2919,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
     LBL(CN_lin)
 
+#if RT_FEAT_LINEAR_REFINEMENT
+
         /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
          * due to cancellation of significant bits for certain ray directions.
          * TODO: only apply linear refinement when "a_val" is close to zero. */
@@ -2967,6 +2970,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
+
+#endif /* RT_FEAT_LINEAR_REFINEMENT */
 
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
@@ -3191,6 +3196,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
     LBL(PB_lin)
 
+#if RT_FEAT_LINEAR_REFINEMENT
+
         /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
          * due to cancellation of significant bits for certain ray directions.
          * TODO: only apply linear refinement when "a_val" is close to zero. */
@@ -3239,6 +3246,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
+
+#endif /* RT_FEAT_LINEAR_REFINEMENT */
 
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
@@ -3469,6 +3478,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
     LBL(HB_lin)
 
+#if RT_FEAT_LINEAR_REFINEMENT
+
         /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
          * due to cancellation of significant bits for certain ray directions.
          * TODO: only apply linear refinement when "a_val" is close to zero. */
@@ -3519,6 +3530,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
+
+#endif /* RT_FEAT_LINEAR_REFINEMENT */
 
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
@@ -3733,6 +3746,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
     LBL(PC_lin)
 
+#if RT_FEAT_LINEAR_REFINEMENT
+
         /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
          * due to cancellation of significant bits for certain ray directions.
          * TODO: only apply linear refinement when "a_val" is close to zero. */
@@ -3767,6 +3782,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
+
+#endif /* RT_FEAT_LINEAR_REFINEMENT */
 
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
@@ -3975,6 +3992,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
     LBL(HC_lin)
 
+#if RT_FEAT_LINEAR_REFINEMENT
+
         /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
          * due to cancellation of significant bits for certain ray directions.
          * TODO: only apply linear refinement when "a_val" is close to zero. */
@@ -4011,6 +4030,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
+
+#endif /* RT_FEAT_LINEAR_REFINEMENT */
 
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
@@ -4231,6 +4252,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
     LBL(HP_lin)
 
+#if RT_FEAT_LINEAR_REFINEMENT
+
         /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
          * due to cancellation of significant bits for certain ray directions.
          * TODO: only apply linear refinement when "a_val" is close to zero. */
@@ -4282,6 +4305,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
+
+#endif /* RT_FEAT_LINEAR_REFINEMENT */
 
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
