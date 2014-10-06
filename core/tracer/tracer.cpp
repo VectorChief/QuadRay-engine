@@ -2872,68 +2872,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
-
-        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
-         * due to cancellation of significant bits for certain ray directions.
-         * TODO: only use linear refinement when "a_val" is close to zero. */
-        movxx_mi(Mebp, inf_LIN_ITR, IB(1))
-
-    LBL(CN_ln1)
-
-        cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
-        jeqxx_lb(CN_lo1)
-
-        /* "k" section */
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
-        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
-        movpx_rr(Xmm2, Xmm1)                    /* ray_k <- ray_k */
-        mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
-        subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
-        movpx_ld(Xmm3, Mebx, xcn_RAT_2)         /* rat_2 <- RAT_2 */
-        mulps_rr(Xmm1, Xmm5)                    /* ray_k *= dff_k */
-        mulps_rr(Xmm5, Xmm5)                    /* dff_k *= dff_k */
-        mulps_rr(Xmm1, Xmm3)                    /* bxx_k *= rat_2 */
-        mulps_rr(Xmm5, Xmm3)                    /* cxx_k *= rat_2 */
-
-        /* "i" section */
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_i <- ray_i */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
-
-        /* "-" section */
-        subps_rr(Xmm1, Xmm2)                    /* bxx_k -= bxx_i */
-        subps_rr(Xmm5, Xmm6)                    /* cxx_k -= cxx_i */
-
-        /* "j" section */
-        INDEX_AXIS(RT_J)                        /* eax   <-     j */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_j <- RAY_J */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_j <- DFF_J */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_j <- ray_j */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_j *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_j -= ray_j */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_j *= dff_j */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
-
-        /* "-" section */
-        subps_rr(Xmm1, Xmm2)                    /* bxx_t -= bxx_j */
-        subps_rr(Xmm5, Xmm6)                    /* cxx_t -= cxx_j */
-
-        /* "t" section */
-        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
-        divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
-        addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
-
-        subxx_mi(Mebp, inf_LIN_ITR, IB(1))
-        jmpxx_lb(CN_ln1)
-
-    LBL(CN_lo1)
-
+        /* linear refinement */
+        SUBROUTINE(CN_ln1, CN_lin)
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
@@ -2959,16 +2899,28 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
+        /* linear refinement */
+        SUBROUTINE(CN_ln2, CN_lin)
+        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
+
+        /* clipping */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+        SUBROUTINE(CN_cp2, CC_clp)
+        CHECK_MASK(OO_end, NONE, Xmm7)
+        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
+
+        /* material */
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
+        SUBROUTINE(CN_mt2, CN_mat)
+
+        jmpxx_lb(OO_end)
+
+/******************************************************************************/
+    LBL(CN_lin)
 
         /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
          * due to cancellation of significant bits for certain ray directions.
-         * TODO: only use linear refinement when "a_val" is close to zero. */
-        movxx_mi(Mebp, inf_LIN_ITR, IB(1))
-
-    LBL(CN_ln2)
-
-        cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
-        jeqxx_lb(CN_lo2)
+         * TODO: only apply linear refinement when "a_val" is close to zero. */
 
         /* "k" section */
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
@@ -3016,24 +2968,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
 
-        subxx_mi(Mebp, inf_LIN_ITR, IB(1))
-        jmpxx_lb(CN_ln2)
-
-    LBL(CN_lo2)
-
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
-
-        /* clipping */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-        SUBROUTINE(CN_cp2, CC_clp)
-        CHECK_MASK(OO_end, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
-        SUBROUTINE(CN_mt2, CN_mat)
-
-        jmpxx_lb(OO_end)
+        jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
 /******************************************************************************/
     LBL(CN_mat)
@@ -3210,67 +3145,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
-
-        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
-         * due to cancellation of significant bits for certain ray directions.
-         * TODO: only use linear refinement when "a_val" is close to zero. */
-        movxx_mi(Mebp, inf_LIN_ITR, IB(1))
-
-    LBL(PB_ln1)
-
-        cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
-        jeqxx_lb(PB_lo1)
-
-        /* "k" section */
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
-        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
-        movpx_rr(Xmm2, Xmm1)                    /* ray_k <- ray_k */
-        mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
-        subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
-        movpx_ld(Xmm3, Mebx, xpb_PAR_2)         /* par_2 <- PAR_2 */
-        mulps_rr(Xmm1, Xmm3)                    /* ray_k *= par_2 */
-        addps_rr(Xmm3, Xmm3)                    /* par_2 += par_2 */
-        mulps_rr(Xmm5, Xmm3)                    /* dff_k *= par_k */
-
-        /* "i" section */
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_i <- ray_i */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
-
-        /* "+" section */
-        addps_rr(Xmm1, Xmm2)                    /* bxx_k += bxx_i */
-        addps_rr(Xmm5, Xmm6)                    /* cxx_k += cxx_i */
-
-        /* "j" section */
-        INDEX_AXIS(RT_J)                        /* eax   <-     j */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_j <- RAY_J */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_j <- DFF_J */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_j <- ray_j */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_j *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_j -= ray_j */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_j *= dff_j */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
-
-        /* "+" section */
-        addps_rr(Xmm1, Xmm2)                    /* bxx_t += bxx_j */
-        addps_rr(Xmm5, Xmm6)                    /* cxx_t += cxx_j */
-
-        /* "t" section */
-        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
-        divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
-        addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
-
-        subxx_mi(Mebp, inf_LIN_ITR, IB(1))
-        jmpxx_lb(PB_ln1)
-
-    LBL(PB_lo1)
-
+        /* linear refinement */
+        SUBROUTINE(PB_ln1, PB_lin)
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
@@ -3296,16 +3172,28 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
+        /* linear refinement */
+        SUBROUTINE(PB_ln2, PB_lin)
+        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
+
+        /* clipping */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+        SUBROUTINE(PB_cp2, CC_clp)
+        CHECK_MASK(OO_end, NONE, Xmm7)
+        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
+
+        /* material */
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
+        SUBROUTINE(PB_mt2, PB_mat)
+
+        jmpxx_lb(OO_end)
+
+/******************************************************************************/
+    LBL(PB_lin)
 
         /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
          * due to cancellation of significant bits for certain ray directions.
-         * TODO: only use linear refinement when "a_val" is close to zero. */
-        movxx_mi(Mebp, inf_LIN_ITR, IB(1))
-
-    LBL(PB_ln2)
-
-        cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
-        jeqxx_lb(PB_lo2)
+         * TODO: only apply linear refinement when "a_val" is close to zero. */
 
         /* "k" section */
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
@@ -3352,24 +3240,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
 
-        subxx_mi(Mebp, inf_LIN_ITR, IB(1))
-        jmpxx_lb(PB_ln2)
-
-    LBL(PB_lo2)
-
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
-
-        /* clipping */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-        SUBROUTINE(PB_cp2, CC_clp)
-        CHECK_MASK(OO_end, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
-        SUBROUTINE(PB_mt2, PB_mat)
-
-        jmpxx_lb(OO_end)
+        jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
 /******************************************************************************/
     LBL(PB_mat)
@@ -3552,69 +3423,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
-
-        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
-         * due to cancellation of significant bits for certain ray directions.
-         * TODO: only use linear refinement when "a_val" is close to zero. */
-        movxx_mi(Mebp, inf_LIN_ITR, IB(1))
-
-    LBL(HB_ln1)
-
-        cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
-        jeqxx_lb(HB_lo1)
-
-        /* "k" section */
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
-        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
-        movpx_rr(Xmm2, Xmm1)                    /* ray_k <- ray_k */
-        mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
-        subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
-        movpx_ld(Xmm3, Mebx, xhb_RAT_2)         /* rat_2 <- RAT_2 */
-        mulps_rr(Xmm1, Xmm5)                    /* ray_k *= dff_k */
-        mulps_rr(Xmm5, Xmm5)                    /* dff_k *= dff_k */
-        mulps_rr(Xmm1, Xmm3)                    /* bxx_k *= rat_2 */
-        mulps_rr(Xmm5, Xmm3)                    /* cxx_k *= rat_2 */
-        addps_ld(Xmm5, Mebx, xhb_HYP_K)         /* cxx_k += HYP_K */
-
-        /* "i" section */
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_i <- ray_i */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
-
-        /* "-" section */
-        subps_rr(Xmm1, Xmm2)                    /* bxx_k -= bxx_i */
-        subps_rr(Xmm5, Xmm6)                    /* cxx_k -= cxx_i */
-
-        /* "j" section */
-        INDEX_AXIS(RT_J)                        /* eax   <-     j */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_j <- RAY_J */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_j <- DFF_J */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_j <- ray_j */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_j *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_j -= ray_j */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_j *= dff_j */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
-
-        /* "-" section */
-        subps_rr(Xmm1, Xmm2)                    /* bxx_t -= bxx_j */
-        subps_rr(Xmm5, Xmm6)                    /* cxx_t -= cxx_j */
-
-        /* "t" section */
-        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
-        divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
-        addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
-
-        subxx_mi(Mebp, inf_LIN_ITR, IB(1))
-        jmpxx_lb(HB_ln1)
-
-    LBL(HB_lo1)
-
+        /* linear refinement */
+        SUBROUTINE(HB_ln1, HB_lin)
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
@@ -3640,16 +3450,28 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
+        /* linear refinement */
+        SUBROUTINE(HB_ln2, HB_lin)
+        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
+
+        /* clipping */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+        SUBROUTINE(HB_cp2, CC_clp)
+        CHECK_MASK(OO_end, NONE, Xmm7)
+        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
+
+        /* material */
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
+        SUBROUTINE(HB_mt2, HB_mat)
+
+        jmpxx_lb(OO_end)
+
+/******************************************************************************/
+    LBL(HB_lin)
 
         /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
          * due to cancellation of significant bits for certain ray directions.
-         * TODO: only use linear refinement when "a_val" is close to zero. */
-        movxx_mi(Mebp, inf_LIN_ITR, IB(1))
-
-    LBL(HB_ln2)
-
-        cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
-        jeqxx_lb(HB_lo2)
+         * TODO: only apply linear refinement when "a_val" is close to zero. */
 
         /* "k" section */
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
@@ -3698,24 +3520,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
 
-        subxx_mi(Mebp, inf_LIN_ITR, IB(1))
-        jmpxx_lb(HB_ln2)
-
-    LBL(HB_lo2)
-
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
-
-        /* clipping */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-        SUBROUTINE(HB_cp2, CC_clp)
-        CHECK_MASK(OO_end, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
-        SUBROUTINE(HB_mt2, HB_mat)
-
-        jmpxx_lb(OO_end)
+        jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
 /******************************************************************************/
     LBL(HB_mat)
@@ -3882,53 +3687,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
-
-        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
-         * due to cancellation of significant bits for certain ray directions.
-         * TODO: only use linear refinement when "a_val" is close to zero. */
-        movxx_mi(Mebp, inf_LIN_ITR, IB(1))
-
-    LBL(PC_ln1)
-
-        cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
-        jeqxx_lb(PC_lo1)
-
-        /* "k" section */
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
-        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
-        movpx_rr(Xmm2, Xmm1)                    /* ray_k <- ray_k */
-        mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
-        subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
-        movpx_ld(Xmm3, Mebx, xpc_PAR_2)         /* par_2 <- PAR_2 */
-        mulps_rr(Xmm1, Xmm3)                    /* ray_k *= par_2 */
-        addps_rr(Xmm3, Xmm3)                    /* par_2 += par_2 */
-        mulps_rr(Xmm5, Xmm3)                    /* dff_k *= par_k */
-
-        /* "i" section */
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_i <- ray_i */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
-
-        /* "+" section */
-        addps_rr(Xmm1, Xmm2)                    /* bxx_k += bxx_i */
-        addps_rr(Xmm5, Xmm6)                    /* cxx_k += cxx_i */
-
-        /* "t" section */
-        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
-        divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
-        addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
-
-        subxx_mi(Mebp, inf_LIN_ITR, IB(1))
-        jmpxx_lb(PC_ln1)
-
-    LBL(PC_lo1)
-
+        /* linear refinement */
+        SUBROUTINE(PC_ln1, PC_lin)
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
@@ -3954,16 +3714,28 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
+        /* linear refinement */
+        SUBROUTINE(PC_ln2, PC_lin)
+        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
+
+        /* clipping */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+        SUBROUTINE(PC_cp2, CC_clp)
+        CHECK_MASK(OO_end, NONE, Xmm7)
+        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
+
+        /* material */
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
+        SUBROUTINE(PC_mt2, PC_mat)
+
+        jmpxx_lb(OO_end)
+
+/******************************************************************************/
+    LBL(PC_lin)
 
         /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
          * due to cancellation of significant bits for certain ray directions.
-         * TODO: only use linear refinement when "a_val" is close to zero. */
-        movxx_mi(Mebp, inf_LIN_ITR, IB(1))
-
-    LBL(PC_ln2)
-
-        cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
-        jeqxx_lb(PC_lo2)
+         * TODO: only apply linear refinement when "a_val" is close to zero. */
 
         /* "k" section */
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
@@ -3996,24 +3768,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
 
-        subxx_mi(Mebp, inf_LIN_ITR, IB(1))
-        jmpxx_lb(PC_ln2)
-
-    LBL(PC_lo2)
-
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
-
-        /* clipping */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-        SUBROUTINE(PC_cp2, CC_clp)
-        CHECK_MASK(OO_end, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
-        SUBROUTINE(PC_mt2, PC_mat)
-
-        jmpxx_lb(OO_end)
+        jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
 /******************************************************************************/
     LBL(PC_mat)
@@ -4174,55 +3929,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
-
-        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
-         * due to cancellation of significant bits for certain ray directions.
-         * TODO: only use linear refinement when "a_val" is close to zero. */
-        movxx_mi(Mebp, inf_LIN_ITR, IB(1))
-
-    LBL(HC_ln1)
-
-        cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
-        jeqxx_lb(HC_lo1)
-
-        /* "k" section */
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
-        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
-        movpx_rr(Xmm2, Xmm1)                    /* ray_k <- ray_k */
-        mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
-        subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
-        movpx_ld(Xmm3, Mebx, xhc_RAT_2)         /* rat_2 <- RAT_2 */
-        mulps_rr(Xmm1, Xmm5)                    /* ray_k *= dff_k */
-        mulps_rr(Xmm5, Xmm5)                    /* dff_k *= dff_k */
-        mulps_rr(Xmm1, Xmm3)                    /* bxx_k *= rat_2 */
-        mulps_rr(Xmm5, Xmm3)                    /* cxx_k *= rat_2 */
-        addps_ld(Xmm5, Mebx, xhc_HYP_K)         /* cxx_k += HYP_K */
-
-        /* "i" section */
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_i <- ray_i */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
-
-        /* "-" section */
-        subps_rr(Xmm1, Xmm2)                    /* bxx_k -= bxx_i */
-        subps_rr(Xmm5, Xmm6)                    /* cxx_k -= cxx_i */
-
-        /* "t" section */
-        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
-        divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
-        addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
-
-        subxx_mi(Mebp, inf_LIN_ITR, IB(1))
-        jmpxx_lb(HC_ln1)
-
-    LBL(HC_lo1)
-
+        /* linear refinement */
+        SUBROUTINE(HC_ln1, HC_lin)
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
@@ -4248,16 +3956,28 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
+        /* linear refinement */
+        SUBROUTINE(HC_ln2, HC_lin)
+        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
+
+        /* clipping */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+        SUBROUTINE(HC_cp2, CC_clp)
+        CHECK_MASK(OO_end, NONE, Xmm7)
+        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
+
+        /* material */
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
+        SUBROUTINE(HC_mt2, HC_mat)
+
+        jmpxx_lb(OO_end)
+
+/******************************************************************************/
+    LBL(HC_lin)
 
         /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
          * due to cancellation of significant bits for certain ray directions.
-         * TODO: only use linear refinement when "a_val" is close to zero. */
-        movxx_mi(Mebp, inf_LIN_ITR, IB(1))
-
-    LBL(HC_ln2)
-
-        cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
-        jeqxx_lb(HC_lo2)
+         * TODO: only apply linear refinement when "a_val" is close to zero. */
 
         /* "k" section */
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
@@ -4292,24 +4012,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
 
-        subxx_mi(Mebp, inf_LIN_ITR, IB(1))
-        jmpxx_lb(HC_ln2)
-
-    LBL(HC_lo2)
-
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
-
-        /* clipping */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-        SUBROUTINE(HC_cp2, CC_clp)
-        CHECK_MASK(OO_end, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
-        SUBROUTINE(HC_mt2, HC_mat)
-
-        jmpxx_lb(OO_end)
+        jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
 /******************************************************************************/
     LBL(HC_mat)
@@ -4482,70 +4185,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
-
-        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
-         * due to cancellation of significant bits for certain ray directions.
-         * TODO: only use linear refinement when "a_val" is close to zero. */
-        movxx_mi(Mebp, inf_LIN_ITR, IB(1))
-
-    LBL(HP_ln1)
-
-        cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
-        jeqxx_lb(HP_lo1)
-
-        /* "i" section */
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
-        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
-        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
-        movpx_rr(Xmm2, Xmm1)                    /* ray_i <- ray_i */
-        mulps_rr(Xmm2, Xmm4)                    /* ray_i *= t_val */
-        subps_rr(Xmm5, Xmm2)                    /* dff_i -= ray_i */
-        movpx_ld(Xmm0, Mebx, xhp_I_PR1)         /* i_pr1 <- I_PR1 */
-        mulps_rr(Xmm1, Xmm5)                    /* ray_i *= dff_i */
-        mulps_rr(Xmm1, Xmm0)                    /* ray_i *= i_pr1 */
-        mulps_rr(Xmm5, Xmm5)                    /* dff_i *= dff_i */
-        mulps_rr(Xmm5, Xmm0)                    /* dff_i *= i_pr1 */
-
-        /* "j" section */
-        INDEX_AXIS(RT_J)                        /* eax   <-     j */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_j <- RAY_J */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_j <- DFF_J */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_j <- ray_j */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_j *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_j -= ray_j */
-        movpx_ld(Xmm0, Mebx, xhp_I_PR2)         /* i_pr2 <- I_PR2 */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_j *= dff_j */
-        mulps_rr(Xmm2, Xmm0)                    /* ray_j *= i_pr2 */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
-        mulps_rr(Xmm6, Xmm0)                    /* dff_j *= i_pr2 */
-
-        /* "-" section */
-        subps_rr(Xmm1, Xmm2)                    /* bxx_i -= bxx_j */
-        subps_rr(Xmm5, Xmm6)                    /* cxx_i -= cxx_j */
-
-        /* "k" section */
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_k <- ray_k */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_k *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_k -= ray_k */
-        mulps_ld(Xmm2, Mebp, inf_GPC02)         /* ray_k *= -0.5f */
-
-        /* "+" section */
-        subps_rr(Xmm1, Xmm2)                    /* bxx_t -= bxx_k */
-        addps_rr(Xmm5, Xmm6)                    /* cxx_t += cxx_k */
-
-        /* "t" section */
-        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
-        divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
-        addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
-
-        subxx_mi(Mebp, inf_LIN_ITR, IB(1))
-        jmpxx_lb(HP_ln1)
-
-    LBL(HP_lo1)
-
+        /* linear refinement */
+        SUBROUTINE(HP_ln1, HP_lin)
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
@@ -4571,16 +4212,28 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
         addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
         divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
+        /* linear refinement */
+        SUBROUTINE(HP_ln2, HP_lin)
+        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
+
+        /* clipping */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+        SUBROUTINE(HP_cp2, CC_clp)
+        CHECK_MASK(OO_end, NONE, Xmm7)
+        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
+
+        /* material */
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
+        SUBROUTINE(HP_mt2, HP_mat)
+
+        jmpxx_lb(OO_end)
+
+/******************************************************************************/
+    LBL(HP_lin)
 
         /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
          * due to cancellation of significant bits for certain ray directions.
-         * TODO: only use linear refinement when "a_val" is close to zero. */
-        movxx_mi(Mebp, inf_LIN_ITR, IB(1))
-
-    LBL(HP_ln2)
-
-        cmpxx_mi(Mebp, inf_LIN_ITR, IB(0))
-        jeqxx_lb(HP_lo2)
+         * TODO: only apply linear refinement when "a_val" is close to zero. */
 
         /* "i" section */
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
@@ -4630,24 +4283,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
         addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
 
-        subxx_mi(Mebp, inf_LIN_ITR, IB(1))
-        jmpxx_lb(HP_ln2)
-
-    LBL(HP_lo2)
-
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
-
-        /* clipping */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-        SUBROUTINE(HP_cp2, CC_clp)
-        CHECK_MASK(OO_end, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
-        SUBROUTINE(HP_mt2, HP_mat)
-
-        jmpxx_lb(OO_end)
+        jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
 /******************************************************************************/
     LBL(HP_mat)
