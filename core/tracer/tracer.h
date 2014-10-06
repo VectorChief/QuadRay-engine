@@ -213,11 +213,8 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr tls;
 #define inf_TLS             DP(Q*0x100+0x050)
 
-    rt_cell lin_itr;
-#define inf_LIN_ITR         DP(Q*0x100+0x054)
-
-    rt_word pad11[34];
-#define inf_PAD11           DP(Q*0x100+0x058)
+    rt_word pad11[35];
+#define inf_PAD11           DP(Q*0x100+0x054)
 
     /* specular pow entry points */
 

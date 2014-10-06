@@ -68,6 +68,9 @@
 #define RT_FEAT_TRANSFORM           1
 #define RT_FEAT_TRANSFORM_ARRAY     1
 #define RT_FEAT_BOUND_VOL_ARRAY     1
+/* temporary solution for occasional loss of accuracy in quadric solvers,
+ * a better algorithm from wikipedia article below will be implemented instead:
+ * https://en.wikipedia.org/wiki/Loss_of_significance */
 #define RT_FEAT_LINEAR_REFINEMENT   1
 
 /*
