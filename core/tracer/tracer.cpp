@@ -2442,30 +2442,36 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
         /* "tt" section */
         sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
 
-        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
-        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
-
 /******************************************************************************/
-/*  LBL(CL_rt1)  */
+/*  LBL(CL_rs1)  */
 
         /* outer side */
         CHECK_SIDE(CL_sd1, CL_rt2, RT_FLAG_SIDE_OUTER)
+
+        /* if "Xvars" are needed outside of solvers,
+         * swap this block with CHECK_SIDE macro above */
+        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
+        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
+        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
+
+/*  LBL(CL_rt1)  */
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
+        /* linear refinement */
+        /* not needed as "a_val > 0.0" */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
         SUBROUTINE(CL_cp1, CC_clp)
-        CHECK_MASK(CL_rt2, NONE, Xmm7)
+        CHECK_MASK(CL_rs2, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
@@ -2477,19 +2483,29 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_MASK(OO_end, FULL, Xmm7)
 
 /******************************************************************************/
-    LBL(CL_rt2)
+    LBL(CL_rs2)
 
         /* inner side */
         CHECK_SIDE(CL_sd2, OO_end, RT_FLAG_SIDE_INNER)
 
+        /* load "Xvars" on registers here explicitly,
+         * so they can be re-used in linear refinement */
+        movpx_ld(Xmm1, Mecx, ctx_XTMP1)         /* a_val <- XTMP1 */
+        movpx_ld(Xmm2, Mecx, ctx_XTMP2)         /* b_val <- XTMP2 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP3)         /* d_val <- XTMP3 */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+
+    LBL(CL_rt2)
+
         /* "t2" section */
-        movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
-        addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
-        divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
+        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += d_val */
+        divps_rr(Xmm4, Xmm1)                    /* t_rt2 /= a_val */
+        /* linear refinement */
+        /* not needed as "a_val > 0.0" */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
         SUBROUTINE(CL_cp2, CC_clp)
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
@@ -2642,30 +2658,36 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
         /* "tt" section */
         sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
 
-        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
-        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
-
 /******************************************************************************/
-/*  LBL(SP_rt1)  */
+/*  LBL(SP_rs1)  */
 
         /* outer side */
         CHECK_SIDE(SP_sd1, SP_rt2, RT_FLAG_SIDE_OUTER)
+
+        /* if "Xvars" are needed outside of solvers,
+         * swap this block with CHECK_SIDE macro above */
+        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
+        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
+        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
+
+/*  LBL(SP_rt1)  */
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
         subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
         divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
+        /* linear refinement */
+        /* not needed as "a_val > 0.0" */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
         SUBROUTINE(SP_cp1, CC_clp)
-        CHECK_MASK(SP_rt2, NONE, Xmm7)
+        CHECK_MASK(SP_rs2, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
@@ -2677,19 +2699,29 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_MASK(OO_end, FULL, Xmm7)
 
 /******************************************************************************/
-    LBL(SP_rt2)
+    LBL(SP_rs2)
 
         /* inner side */
         CHECK_SIDE(SP_sd2, OO_end, RT_FLAG_SIDE_INNER)
 
+        /* load "Xvars" on registers here explicitly,
+         * so they can be re-used in linear refinement */
+        movpx_ld(Xmm1, Mecx, ctx_XTMP1)         /* a_val <- XTMP1 */
+        movpx_ld(Xmm2, Mecx, ctx_XTMP2)         /* b_val <- XTMP2 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP3)         /* d_val <- XTMP3 */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+
+    LBL(SP_rt2)
+
         /* "t2" section */
-        movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
-        addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
-        divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
+        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += d_val */
+        divps_rr(Xmm4, Xmm1)                    /* t_rt2 /= a_val */
+        /* linear refinement */
+        /* not needed as "a_val > 0.0" */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
         SUBROUTINE(SP_cp2, CC_clp)
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
@@ -2857,20 +2889,24 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
         /* "tt" section */
         sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
 
-        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
-        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
-
 /******************************************************************************/
-/*  LBL(CN_rt1)  */
+/*  LBL(CN_rs1)  */
 
         /* outer side */
         CHECK_SIDE(CN_sd1, CN_rt2, RT_FLAG_SIDE_OUTER)
+
+        /* if "Xvars" are needed outside of solvers,
+         * swap this block with CHECK_SIDE macro above */
+        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
+        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
+        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
+
+/*  LBL(CN_rt1)  */
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
@@ -2882,7 +2918,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* clipping */
         SUBROUTINE(CN_cp1, CC_clp)
-        CHECK_MASK(CN_rt2, NONE, Xmm7)
+        CHECK_MASK(CN_rs2, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
@@ -2894,21 +2930,29 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * along the ray's direction based on "a_val's" sign */
 
 /******************************************************************************/
-    LBL(CN_rt2)
+    LBL(CN_rs2)
 
         /* inner side */
         CHECK_SIDE(CN_sd2, OO_end, RT_FLAG_SIDE_INNER)
 
+        /* load "Xvars" on registers here explicitly,
+         * so they can be re-used in linear refinement */
+        movpx_ld(Xmm1, Mecx, ctx_XTMP1)         /* a_val <- XTMP1 */
+        movpx_ld(Xmm2, Mecx, ctx_XTMP2)         /* b_val <- XTMP2 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP3)         /* d_val <- XTMP3 */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+
+    LBL(CN_rt2)
+
         /* "t2" section */
-        movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
-        addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
-        divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
+        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += d_val */
+        divps_rr(Xmm4, Xmm1)                    /* t_rt2 /= a_val */
         /* linear refinement */
         SUBROUTINE(CN_ln2, CN_lin)
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
         SUBROUTINE(CN_cp2, CC_clp)
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
@@ -3134,20 +3178,24 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
         /* "tt" section */
         sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
 
-        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
-        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
-
 /******************************************************************************/
-/*  LBL(PB_rt1)  */
+/*  LBL(PB_rs1)  */
 
         /* outer side */
         CHECK_SIDE(PB_sd1, PB_rt2, RT_FLAG_SIDE_OUTER)
+
+        /* if "Xvars" are needed outside of solvers,
+         * swap this block with CHECK_SIDE macro above */
+        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
+        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
+        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
+
+/*  LBL(PB_rt1)  */
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
@@ -3159,7 +3207,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* clipping */
         SUBROUTINE(PB_cp1, CC_clp)
-        CHECK_MASK(PB_rt2, NONE, Xmm7)
+        CHECK_MASK(PB_rs2, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
@@ -3171,21 +3219,29 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_MASK(OO_end, FULL, Xmm7)
 
 /******************************************************************************/
-    LBL(PB_rt2)
+    LBL(PB_rs2)
 
         /* inner side */
         CHECK_SIDE(PB_sd2, OO_end, RT_FLAG_SIDE_INNER)
 
+        /* load "Xvars" on registers here explicitly,
+         * so they can be re-used in linear refinement */
+        movpx_ld(Xmm1, Mecx, ctx_XTMP1)         /* a_val <- XTMP1 */
+        movpx_ld(Xmm2, Mecx, ctx_XTMP2)         /* b_val <- XTMP2 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP3)         /* d_val <- XTMP3 */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+
+    LBL(PB_rt2)
+
         /* "t2" section */
-        movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
-        addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
-        divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
+        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += d_val */
+        divps_rr(Xmm4, Xmm1)                    /* t_rt2 /= a_val */
         /* linear refinement */
         SUBROUTINE(PB_ln2, PB_lin)
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
         SUBROUTINE(PB_cp2, CC_clp)
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
@@ -3416,20 +3472,24 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
         /* "tt" section */
         sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
 
-        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
-        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
-
 /******************************************************************************/
-/*  LBL(HB_rt1)  */
+/*  LBL(HB_rs1)  */
 
         /* outer side */
         CHECK_SIDE(HB_sd1, HB_rt2, RT_FLAG_SIDE_OUTER)
+
+        /* if "Xvars" are needed outside of solvers,
+         * swap this block with CHECK_SIDE macro above */
+        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
+        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
+        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
+
+/*  LBL(HB_rt1)  */
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
@@ -3441,7 +3501,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* clipping */
         SUBROUTINE(HB_cp1, CC_clp)
-        CHECK_MASK(HB_rt2, NONE, Xmm7)
+        CHECK_MASK(HB_rs2, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
@@ -3453,21 +3513,29 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * along the ray's direction based on "a_val's" sign */
 
 /******************************************************************************/
-    LBL(HB_rt2)
+    LBL(HB_rs2)
 
         /* inner side */
         CHECK_SIDE(HB_sd2, OO_end, RT_FLAG_SIDE_INNER)
 
+        /* load "Xvars" on registers here explicitly,
+         * so they can be re-used in linear refinement */
+        movpx_ld(Xmm1, Mecx, ctx_XTMP1)         /* a_val <- XTMP1 */
+        movpx_ld(Xmm2, Mecx, ctx_XTMP2)         /* b_val <- XTMP2 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP3)         /* d_val <- XTMP3 */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+
+    LBL(HB_rt2)
+
         /* "t2" section */
-        movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
-        addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
-        divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
+        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += d_val */
+        divps_rr(Xmm4, Xmm1)                    /* t_rt2 /= a_val */
         /* linear refinement */
         SUBROUTINE(HB_ln2, HB_lin)
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
         SUBROUTINE(HB_cp2, CC_clp)
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
@@ -3684,20 +3752,24 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
         /* "tt" section */
         sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
 
-        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
-        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
-
 /******************************************************************************/
-/*  LBL(PC_rt1)  */
+/*  LBL(PC_rs1)  */
 
         /* outer side */
         CHECK_SIDE(PC_sd1, PC_rt2, RT_FLAG_SIDE_OUTER)
+
+        /* if "Xvars" are needed outside of solvers,
+         * swap this block with CHECK_SIDE macro above */
+        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
+        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
+        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
+
+/*  LBL(PC_rt1)  */
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
@@ -3709,7 +3781,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* clipping */
         SUBROUTINE(PC_cp1, CC_clp)
-        CHECK_MASK(PC_rt2, NONE, Xmm7)
+        CHECK_MASK(PC_rs2, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
@@ -3721,21 +3793,29 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_MASK(OO_end, FULL, Xmm7)
 
 /******************************************************************************/
-    LBL(PC_rt2)
+    LBL(PC_rs2)
 
         /* inner side */
         CHECK_SIDE(PC_sd2, OO_end, RT_FLAG_SIDE_INNER)
 
+        /* load "Xvars" on registers here explicitly,
+         * so they can be re-used in linear refinement */
+        movpx_ld(Xmm1, Mecx, ctx_XTMP1)         /* a_val <- XTMP1 */
+        movpx_ld(Xmm2, Mecx, ctx_XTMP2)         /* b_val <- XTMP2 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP3)         /* d_val <- XTMP3 */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+
+    LBL(PC_rt2)
+
         /* "t2" section */
-        movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
-        addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
-        divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
+        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += d_val */
+        divps_rr(Xmm4, Xmm1)                    /* t_rt2 /= a_val */
         /* linear refinement */
         SUBROUTINE(PC_ln2, PC_lin)
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
         SUBROUTINE(PC_cp2, CC_clp)
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
@@ -3930,20 +4010,24 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
         /* "tt" section */
         sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
 
-        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
-        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
-
 /******************************************************************************/
-/*  LBL(HC_rt1)  */
+/*  LBL(HC_rs1)  */
 
         /* outer side */
         CHECK_SIDE(HC_sd1, HC_rt2, RT_FLAG_SIDE_OUTER)
+
+        /* if "Xvars" are needed outside of solvers,
+         * swap this block with CHECK_SIDE macro above */
+        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
+        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
+        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
+
+/*  LBL(HC_rt1)  */
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
@@ -3955,7 +4039,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* clipping */
         SUBROUTINE(HC_cp1, CC_clp)
-        CHECK_MASK(HC_rt2, NONE, Xmm7)
+        CHECK_MASK(HC_rs2, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
@@ -3967,21 +4051,29 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * along the ray's direction based on "a_val's" sign */
 
 /******************************************************************************/
-    LBL(HC_rt2)
+    LBL(HC_rs2)
 
         /* inner side */
         CHECK_SIDE(HC_sd2, OO_end, RT_FLAG_SIDE_INNER)
 
+        /* load "Xvars" on registers here explicitly,
+         * so they can be re-used in linear refinement */
+        movpx_ld(Xmm1, Mecx, ctx_XTMP1)         /* a_val <- XTMP1 */
+        movpx_ld(Xmm2, Mecx, ctx_XTMP2)         /* b_val <- XTMP2 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP3)         /* d_val <- XTMP3 */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+
+    LBL(HC_rt2)
+
         /* "t2" section */
-        movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
-        addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
-        divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
+        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += d_val */
+        divps_rr(Xmm4, Xmm1)                    /* t_rt2 /= a_val */
         /* linear refinement */
         SUBROUTINE(HC_ln2, HC_lin)
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
         SUBROUTINE(HC_cp2, CC_clp)
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
@@ -4190,20 +4282,24 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
         /* "tt" section */
         sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
 
-        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
-        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
-
 /******************************************************************************/
-/*  LBL(HP_rt1)  */
+/*  LBL(HP_rs1)  */
 
         /* outer side */
         CHECK_SIDE(HP_sd1, HP_rt2, RT_FLAG_SIDE_OUTER)
+
+        /* if "Xvars" are needed outside of solvers,
+         * swap this block with CHECK_SIDE macro above */
+        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
+        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
+        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
+
+/*  LBL(HP_rt1)  */
 
         /* "t1" section */
         movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
@@ -4215,7 +4311,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* clipping */
         SUBROUTINE(HP_cp1, CC_clp)
-        CHECK_MASK(HP_rt2, NONE, Xmm7)
+        CHECK_MASK(HP_rs2, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
@@ -4227,21 +4323,29 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * along the ray's direction based on "a_val's" sign */
 
 /******************************************************************************/
-    LBL(HP_rt2)
+    LBL(HP_rs2)
 
         /* inner side */
         CHECK_SIDE(HP_sd2, OO_end, RT_FLAG_SIDE_INNER)
 
+        /* load "Xvars" on registers here explicitly,
+         * so they can be re-used in linear refinement */
+        movpx_ld(Xmm1, Mecx, ctx_XTMP1)         /* a_val <- XTMP1 */
+        movpx_ld(Xmm2, Mecx, ctx_XTMP2)         /* b_val <- XTMP2 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP3)         /* d_val <- XTMP3 */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+
+    LBL(HP_rt2)
+
         /* "t2" section */
-        movpx_ld(Xmm4, Mecx, ctx_XTMP2)         /* b_val <- b_val */
-        addps_ld(Xmm4, Mecx, ctx_XTMP3)         /* b_val += d_val */
-        divps_ld(Xmm4, Mecx, ctx_XTMP1)         /* t_rt2 /= a_val */
+        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += d_val */
+        divps_rr(Xmm4, Xmm1)                    /* t_rt2 /= a_val */
         /* linear refinement */
         SUBROUTINE(HP_ln2, HP_lin)
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
         SUBROUTINE(HP_cp2, CC_clp)
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
