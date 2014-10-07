@@ -3255,8 +3255,9 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
     rt_real par = RT_FABS(xpb->par);
 
     RT_SIMD_SET(s_xpb->par_2, par / 2.0f);
-    RT_SIMD_SET(s_xpb->i_par, par * par / 4.0f);
+    RT_SIMD_SET(s_xpb->n_par, par * par / 4.0f);
     RT_SIMD_SET(s_xpb->par_k, par);
+    RT_SIMD_SET(s_xpb->i_par, 1.0f / par);
 }
 
 /*
@@ -3373,7 +3374,7 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
     rt_real hyp = xhb->hyp;
 
     RT_SIMD_SET(s_xhb->rat_2, rat * rat);
-    RT_SIMD_SET(s_xhb->i_rat, (1.0f + rat * rat) * rat * rat);
+    RT_SIMD_SET(s_xhb->n_rat, (1.0f + rat * rat) * rat * rat);
     RT_SIMD_SET(s_xhb->rat_k, rat);
     RT_SIMD_SET(s_xhb->hyp_k, hyp);
 }
@@ -3491,8 +3492,9 @@ rt_ParaCylinder::rt_ParaCylinder(rt_Registry *rg, rt_Object *parent,
     rt_real par = RT_FABS(xpc->par);
 
     RT_SIMD_SET(s_xpc->par_2, par / 2.0f);
-    RT_SIMD_SET(s_xpc->i_par, par * par / 4.0f);
+    RT_SIMD_SET(s_xpc->n_par, par * par / 4.0f);
     RT_SIMD_SET(s_xpc->par_k, par);
+    RT_SIMD_SET(s_xpc->i_par, 1.0f / par);
 }
 
 /*
@@ -3607,7 +3609,7 @@ rt_HyperCylinder::rt_HyperCylinder(rt_Registry *rg, rt_Object *parent,
     rt_real hyp = xhc->hyp;
 
     RT_SIMD_SET(s_xhc->rat_2, rat * rat);
-    RT_SIMD_SET(s_xhc->i_rat, (1.0f + rat * rat) * rat * rat);
+    RT_SIMD_SET(s_xhc->n_rat, (1.0f + rat * rat) * rat * rat);
     RT_SIMD_SET(s_xhc->rat_k, rat);
     RT_SIMD_SET(s_xhc->hyp_k, hyp);
 }

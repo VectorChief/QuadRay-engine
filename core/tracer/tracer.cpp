@@ -2998,11 +2998,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
         MOVXR_LD(Xmm6, Iecx, ctx_NEW_O)         /* loc_k <- NEW_K */
-        movpx_ld(Xmm1, Mebx, srf_SMASK)         /* smask <- SMASK */
+        movpx_ld(Xmm1, Mebx, srf_SMASK)         /* n_rat <- SMASK */
         xorpx_rr(Xmm6, Xmm1)                    /* loc_k = -loc_k */
-        annpx_rr(Xmm1, Xmm6)                    /* tmp_v = |loc_k|*/
+        annpx_rr(Xmm1, Xmm6)                    /* n_rat = |loc_k|*/
         movpx_ld(Xmm3, Mebx, xcn_I_RAT)         /* i_rat <- I_RAT */
-        divps_rr(Xmm3, Xmm1)                    /* i_rat /= tmp_v */
+        divps_rr(Xmm3, Xmm1)                    /* i_rat /= n_rat */
         mulps_ld(Xmm6, Mebx, xcn_RAT_2)         /* loc_k *= rat_2 */
         mulps_rr(Xmm6, Xmm3)                    /* loc_k *= i_rat */
         xorpx_rr(Xmm6, Xmm7)                    /* loc_k ^= ssign */
@@ -3275,10 +3275,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * as temporary storage for local HIT */
         MOVXR_LD(Xmm1, Iecx, ctx_NEW_O)         /* loc_k <- NEW_K */
         mulps_ld(Xmm1, Mebx, xpb_PAR_K)         /* loc_k *= PAR_K */
-        addps_ld(Xmm1, Mebx, xpb_I_PAR)         /* loc_k += I_PAR */
-        sqrps_rr(Xmm1, Xmm1)                    /* loc_k sq loc_k */
+        addps_ld(Xmm1, Mebx, xpb_N_PAR)         /* n_par += N_PAR */
+        sqrps_rr(Xmm1, Xmm1)                    /* n_par sq n_par */
         movpx_ld(Xmm3, Mebp, inf_GPC01)         /* i_par <- +1.0f */
-        divps_rr(Xmm3, Xmm1)                    /* i_par /= loc_k */
+        divps_rr(Xmm3, Xmm1)                    /* i_par /= n_par */
         movpx_ld(Xmm6, Mebx, xpb_PAR_2)         /* par_2 <- PAR_2 */
         xorpx_ld(Xmm6, Mebx, srf_SMASK)         /* par_2 = -par_2 */
         mulps_rr(Xmm6, Xmm3)                    /* par_2 *= i_par */
@@ -3559,13 +3559,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * as temporary storage for local HIT */
         MOVXR_LD(Xmm6, Iecx, ctx_NEW_O)         /* loc_k <- NEW_K */
         xorpx_ld(Xmm6, Mebx, srf_SMASK)         /* loc_k = -loc_k */
-        movpx_ld(Xmm1, Mebx, xhb_I_RAT)         /* hyp_k <- I_RAT */
-        mulps_rr(Xmm1, Xmm6)                    /* hyp_k *= loc_k */
-        mulps_rr(Xmm1, Xmm6)                    /* hyp_k *= loc_k */
-        addps_ld(Xmm1, Mebx, xhb_HYP_K)         /* hyp_k += HYP_K */
-        sqrps_rr(Xmm1, Xmm1)                    /* hyp_k sq hyp_k */
+        movpx_ld(Xmm1, Mebx, xhb_N_RAT)         /* n_rat <- N_RAT */
+        mulps_rr(Xmm1, Xmm6)                    /* n_rat *= loc_k */
+        mulps_rr(Xmm1, Xmm6)                    /* n_rat *= loc_k */
+        addps_ld(Xmm1, Mebx, xhb_HYP_K)         /* n_rat += HYP_K */
+        sqrps_rr(Xmm1, Xmm1)                    /* n_rat sq n_rat */
         movpx_ld(Xmm3, Mebp, inf_GPC01)         /* i_rat <- +1.0f */
-        divps_rr(Xmm3, Xmm1)                    /* i_rat /= hyp_k */
+        divps_rr(Xmm3, Xmm1)                    /* i_rat /= n_rat */
         mulps_ld(Xmm6, Mebx, xhb_RAT_2)         /* rat_2 <- RAT_2 */
         mulps_rr(Xmm6, Xmm3)                    /* rat_2 *= i_rat */
         xorpx_rr(Xmm6, Xmm7)                    /* rat_2 ^= ssign */
@@ -3811,10 +3811,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * as temporary storage for local HIT */
         MOVXR_LD(Xmm1, Iecx, ctx_NEW_O)         /* loc_k <- NEW_K */
         mulps_ld(Xmm1, Mebx, xpc_PAR_K)         /* loc_k *= PAR_K */
-        addps_ld(Xmm1, Mebx, xpc_I_PAR)         /* loc_k += I_PAR */
-        sqrps_rr(Xmm1, Xmm1)                    /* loc_k sq loc_k */
+        addps_ld(Xmm1, Mebx, xpc_N_PAR)         /* n_par += N_PAR */
+        sqrps_rr(Xmm1, Xmm1)                    /* n_par sq n_par */
         movpx_ld(Xmm3, Mebp, inf_GPC01)         /* i_par <- +1.0f */
-        divps_rr(Xmm3, Xmm1)                    /* i_par /= loc_k */
+        divps_rr(Xmm3, Xmm1)                    /* i_par /= n_par */
         movpx_ld(Xmm6, Mebx, xpc_PAR_2)         /* par_2 <- PAR_2 */
         xorpx_ld(Xmm6, Mebx, srf_SMASK)         /* par_2 = -par_2 */
         mulps_rr(Xmm6, Xmm3)                    /* par_2 *= i_par */
@@ -4059,13 +4059,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * as temporary storage for local HIT */
         MOVXR_LD(Xmm6, Iecx, ctx_NEW_O)         /* loc_k <- NEW_K */
         xorpx_ld(Xmm6, Mebx, srf_SMASK)         /* loc_k = -loc_k */
-        movpx_ld(Xmm1, Mebx, xhc_I_RAT)         /* hyp_k <- I_RAT */
-        mulps_rr(Xmm1, Xmm6)                    /* hyp_k *= loc_k */
-        mulps_rr(Xmm1, Xmm6)                    /* hyp_k *= loc_k */
-        addps_ld(Xmm1, Mebx, xhc_HYP_K)         /* hyp_k += HYP_K */
-        sqrps_rr(Xmm1, Xmm1)                    /* hyp_k sq hyp_k */
+        movpx_ld(Xmm1, Mebx, xhc_N_RAT)         /* n_rat <- N_RAT */
+        mulps_rr(Xmm1, Xmm6)                    /* n_rat *= loc_k */
+        mulps_rr(Xmm1, Xmm6)                    /* n_rat *= loc_k */
+        addps_ld(Xmm1, Mebx, xhc_HYP_K)         /* n_rat += HYP_K */
+        sqrps_rr(Xmm1, Xmm1)                    /* n_rat sq n_rat */
         movpx_ld(Xmm3, Mebp, inf_GPC01)         /* i_rat <- +1.0f */
-        divps_rr(Xmm3, Xmm1)                    /* i_rat /= hyp_k */
+        divps_rr(Xmm3, Xmm1)                    /* i_rat /= n_rat */
         mulps_ld(Xmm6, Mebx, xhc_RAT_2)         /* rat_2 <- RAT_2 */
         mulps_rr(Xmm6, Xmm3)                    /* rat_2 *= i_rat */
         xorpx_rr(Xmm6, Xmm7)                    /* rat_2 ^= ssign */
@@ -4343,13 +4343,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm5, Xmm5)                    /* loc_j *= loc_j */
         mulps_ld(Xmm5, Mebx, xhp_N_PR2)         /* loc_j *= N_PR2 */
 
-        movpx_ld(Xmm6, Mebp, inf_GPC01)         /* tmp_v <- +1.0f */
+        movpx_ld(Xmm6, Mebp, inf_GPC01)         /* n_par <- +1.0f */
         xorpx_rr(Xmm3, Xmm3)                    /* i_par <-     0 */
         subps_rr(Xmm3, Xmm6)                    /* i_par -= +1.0f */
-        addps_rr(Xmm6, Xmm4)                    /* tmp_v += loc_i */
-        addps_rr(Xmm6, Xmm5)                    /* tmp_v += loc_j */
-        sqrps_rr(Xmm6, Xmm6)                    /* tmp_v sq tmp_v */        
-        divps_rr(Xmm3, Xmm6)                    /* i_par /= tmp_v */        
+        addps_rr(Xmm6, Xmm4)                    /* n_par += loc_i */
+        addps_rr(Xmm6, Xmm5)                    /* n_par += loc_j */
+        sqrps_rr(Xmm6, Xmm6)                    /* n_par sq n_par */        
+        divps_rr(Xmm3, Xmm6)                    /* i_par /= n_par */        
 
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
         movpx_rr(Xmm6, Xmm3)                    /* nrm_k <- i_par */
