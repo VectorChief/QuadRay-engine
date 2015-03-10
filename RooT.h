@@ -1,5 +1,5 @@
 /******************************************************************************/
-/* Copyright (c) 2013-2014 VectorChief (at github, bitbucket, sourceforge)    */
+/* Copyright (c) 2013-2015 VectorChief (at github, bitbucket, sourceforge)    */
 /* Distributed under the MIT software license, see the accompanying           */
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
@@ -15,7 +15,7 @@ using namespace scn_demo01;
 #define RT_X_RES    800
 #define RT_Y_RES    480
 
-rt_astr     title   = "QuadRay engine demo, (C) 2013-2014 VectorChief";
+rt_astr     title   = "QuadRay engine demo, (C) 2013-2015 VectorChief";
 
 rt_cell     x_res   = RT_X_RES;
 rt_cell     y_res   = RT_Y_RES;
