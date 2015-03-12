@@ -91,7 +91,7 @@ rt_HYPERCYLINDER hc_frame02 =
         },
     },
 /* rat */   1.5,
-/* hyp */   0.5,
+/* hyp */   0.0,
 };
 
 rt_HYPERCYLINDER hc_frame03 =
@@ -117,7 +117,7 @@ rt_HYPERCYLINDER hc_frame03 =
         },
     },
 /* rat */   1.5,
-/* hyp */  -0.5,
+/* hyp */  -0.0,
 };
 
 rt_HYPERPARABOLOID hp_frame04 =
@@ -156,6 +156,7 @@ rt_OBJECT ob_base01[] =
         },
         RT_OBJ_PLANE(&pl_floor01)
     },
+#if 0
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
@@ -164,6 +165,7 @@ rt_OBJECT ob_base01[] =
         },
         RT_OBJ_PARACYLINDER(&pc_frame01)
     },
+#endif
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
@@ -180,6 +182,7 @@ rt_OBJECT ob_base01[] =
         },
         RT_OBJ_HYPERCYLINDER(&hc_frame03)
     },
+#if 0
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
@@ -188,6 +191,7 @@ rt_OBJECT ob_base01[] =
         },
         RT_OBJ_HYPERPARABOLOID(&hp_frame04)
     },
+#endif
 };
 
 /******************************************************************************/
