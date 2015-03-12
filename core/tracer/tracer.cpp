@@ -68,10 +68,6 @@
 #define RT_FEAT_TRANSFORM           1
 #define RT_FEAT_TRANSFORM_ARRAY     1
 #define RT_FEAT_BOUND_VOL_ARRAY     1
-/* temporary solution for occasional loss of accuracy in quadric solvers,
- * a better algorithm from wikipedia article below will be implemented instead:
- * https://en.wikipedia.org/wiki/Loss_of_significance */
-#define RT_FEAT_LINEAR_REFINEMENT   1
 
 /*
  * Byte-offsets within SIMD-field
@@ -2433,8 +2429,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_ld(Xmm5, Mebx, xcl_RAD_2)         /* cxx_t -= RAD_2 */
 
         /* "d" section */
+        movpx_rr(Xmm6, Xmm5)                    /* c_val <- c_val */
         mulps_rr(Xmm5, Xmm1)                    /* c_val *= a_val */
-        movpx_rr(Xmm2, Xmm3)                    /* b_val <- b_val */
+        movpx_rr(Xmm4, Xmm3)                    /* b_val <- b_val */
         mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
@@ -2444,7 +2441,34 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
+        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
+        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
         sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
+        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
+
+        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
+        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
+        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
+        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
+        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
+
+        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
+        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
+        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
+        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
+        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
+        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
+
+        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
+        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
+        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
+        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
+        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
 
 /******************************************************************************/
 /*  LBL(CL_rs1)  */
@@ -2452,21 +2476,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* outer side */
         CHECK_SIDE(CL_sd1, CL_rt2, RT_FLAG_SIDE_OUTER)
 
-        /* if "Xvars" are needed outside of solvers,
+        /* if "Xvars" are needed outside of the solvers,
          * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
-        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
+        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
 /*  LBL(CL_rt1)  */
 
         /* "t1" section */
-        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
-        subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
-        divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
-        /* linear refinement */
-        /* not needed as "a_val > 0.0" */
+        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
@@ -2490,19 +2509,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* load "Xvars" on registers here explicitly,
          * so they can be re-used in linear refinement */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP1)         /* a_val <- XTMP1 */
-        movpx_ld(Xmm2, Mecx, ctx_XTMP2)         /* b_val <- XTMP2 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP3)         /* d_val <- XTMP3 */
+        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
         movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
 
     LBL(CL_rt2)
 
         /* "t2" section */
-        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
-        addps_rr(Xmm4, Xmm3)                    /* b_val += d_val */
-        divps_rr(Xmm4, Xmm1)                    /* t_rt2 /= a_val */
-        /* linear refinement */
-        /* not needed as "a_val > 0.0" */
+        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
+        movpx_rr(Xmm4, Xmm6)                    /* t_rt2 <- t_rt2 */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
@@ -2649,8 +2664,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_ld(Xmm5, Mebx, xsp_RAD_2)         /* cxx_t -= RAD_2 */
 
         /* "d" section */
+        movpx_rr(Xmm6, Xmm5)                    /* c_val <- c_val */
         mulps_rr(Xmm5, Xmm1)                    /* c_val *= a_val */
-        movpx_rr(Xmm2, Xmm3)                    /* b_val <- b_val */
+        movpx_rr(Xmm4, Xmm3)                    /* b_val <- b_val */
         mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
@@ -2660,7 +2676,34 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
+        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
+        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
         sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
+        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
+
+        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
+        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
+        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
+        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
+        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
+
+        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
+        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
+        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
+        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
+        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
+        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
+
+        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
+        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
+        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
+        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
+        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
 
 /******************************************************************************/
 /*  LBL(SP_rs1)  */
@@ -2668,21 +2711,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* outer side */
         CHECK_SIDE(SP_sd1, SP_rt2, RT_FLAG_SIDE_OUTER)
 
-        /* if "Xvars" are needed outside of solvers,
+        /* if "Xvars" are needed outside of the solvers,
          * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
-        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
+        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
 /*  LBL(SP_rt1)  */
 
         /* "t1" section */
-        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
-        subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
-        divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
-        /* linear refinement */
-        /* not needed as "a_val > 0.0" */
+        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
@@ -2706,19 +2744,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* load "Xvars" on registers here explicitly,
          * so they can be re-used in linear refinement */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP1)         /* a_val <- XTMP1 */
-        movpx_ld(Xmm2, Mecx, ctx_XTMP2)         /* b_val <- XTMP2 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP3)         /* d_val <- XTMP3 */
+        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
         movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
 
     LBL(SP_rt2)
 
         /* "t2" section */
-        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
-        addps_rr(Xmm4, Xmm3)                    /* b_val += d_val */
-        divps_rr(Xmm4, Xmm1)                    /* t_rt2 /= a_val */
-        /* linear refinement */
-        /* not needed as "a_val > 0.0" */
+        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
+        movpx_rr(Xmm4, Xmm6)                    /* t_rt2 <- t_rt2 */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
@@ -2880,18 +2914,46 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm5, Xmm6)                    /* cxx_t -= cxx_k */
 
         /* "d" section */
+        movpx_rr(Xmm6, Xmm5)                    /* c_val <- c_val */
         mulps_rr(Xmm5, Xmm1)                    /* c_val *= a_val */
-        movpx_rr(Xmm2, Xmm3)                    /* b_val <- b_val */
+        movpx_rr(Xmm4, Xmm3)                    /* b_val <- b_val */
         mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
+        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
+        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
+        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
         sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
+        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
+
+        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
+        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
+        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
+        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
+        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
+
+        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
+        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
+        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
+        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
+        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
+        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
+
+        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
+        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
+        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
+        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
+        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
 
 /******************************************************************************/
 /*  LBL(CN_rs1)  */
@@ -2899,21 +2961,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* outer side */
         CHECK_SIDE(CN_sd1, CN_rt2, RT_FLAG_SIDE_OUTER)
 
-        /* if "Xvars" are needed outside of solvers,
+        /* if "Xvars" are needed outside of the solvers,
          * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
-        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
+        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
 /*  LBL(CN_rt1)  */
 
         /* "t1" section */
-        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
-        subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
-        divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
-        /* linear refinement */
-        SUBROUTINE(CN_ln1, CN_lin)
+        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
@@ -2937,19 +2994,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* load "Xvars" on registers here explicitly,
          * so they can be re-used in linear refinement */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP1)         /* a_val <- XTMP1 */
-        movpx_ld(Xmm2, Mecx, ctx_XTMP2)         /* b_val <- XTMP2 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP3)         /* d_val <- XTMP3 */
+        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
         movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
 
     LBL(CN_rt2)
 
         /* "t2" section */
-        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
-        addps_rr(Xmm4, Xmm3)                    /* b_val += d_val */
-        divps_rr(Xmm4, Xmm1)                    /* t_rt2 /= a_val */
-        /* linear refinement */
-        SUBROUTINE(CN_ln2, CN_lin)
+        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
+        movpx_rr(Xmm4, Xmm6)                    /* t_rt2 <- t_rt2 */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
@@ -2962,65 +3015,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         SUBROUTINE(CN_mt2, CN_mat)
 
         jmpxx_lb(OO_end)
-
-/******************************************************************************/
-    LBL(CN_lin)
-
-#if RT_FEAT_LINEAR_REFINEMENT
-
-        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
-         * due to cancellation of significant bits for certain ray directions.
-         * TODO: only apply linear refinement when "a_val" is close to zero. */
-
-        /* "k" section */
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
-        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
-        movpx_rr(Xmm2, Xmm1)                    /* ray_k <- ray_k */
-        mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
-        subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
-        movpx_ld(Xmm3, Mebx, xcn_RAT_2)         /* rat_2 <- RAT_2 */
-        mulps_rr(Xmm1, Xmm5)                    /* ray_k *= dff_k */
-        mulps_rr(Xmm5, Xmm5)                    /* dff_k *= dff_k */
-        mulps_rr(Xmm1, Xmm3)                    /* bxx_k *= rat_2 */
-        mulps_rr(Xmm5, Xmm3)                    /* cxx_k *= rat_2 */
-
-        /* "i" section */
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_i <- ray_i */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
-
-        /* "-" section */
-        subps_rr(Xmm1, Xmm2)                    /* bxx_k -= bxx_i */
-        subps_rr(Xmm5, Xmm6)                    /* cxx_k -= cxx_i */
-
-        /* "j" section */
-        INDEX_AXIS(RT_J)                        /* eax   <-     j */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_j <- RAY_J */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_j <- DFF_J */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_j <- ray_j */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_j *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_j -= ray_j */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_j *= dff_j */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
-
-        /* "-" section */
-        subps_rr(Xmm1, Xmm2)                    /* bxx_t -= bxx_j */
-        subps_rr(Xmm5, Xmm6)                    /* cxx_t -= cxx_j */
-
-        /* "t" section */
-        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
-        divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
-        addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
-
-#endif /* RT_FEAT_LINEAR_REFINEMENT */
-
-        jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
 /******************************************************************************/
     LBL(CN_mat)
@@ -3169,18 +3163,46 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm5, Xmm6)                    /* cxx_t += cxx_k */
 
         /* "d" section */
+        movpx_rr(Xmm6, Xmm5)                    /* c_val <- c_val */
         mulps_rr(Xmm5, Xmm1)                    /* c_val *= a_val */
-        movpx_rr(Xmm2, Xmm3)                    /* b_val <- b_val */
+        movpx_rr(Xmm4, Xmm3)                    /* b_val <- b_val */
         mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
+        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
+        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
+        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
         sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
+        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
+
+        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
+        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
+        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
+        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
+        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
+
+        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
+        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
+        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
+        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
+        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
+        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
+
+        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
+        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
+        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
+        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
+        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
 
 /******************************************************************************/
 /*  LBL(PB_rs1)  */
@@ -3188,21 +3210,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* outer side */
         CHECK_SIDE(PB_sd1, PB_rt2, RT_FLAG_SIDE_OUTER)
 
-        /* if "Xvars" are needed outside of solvers,
+        /* if "Xvars" are needed outside of the solvers,
          * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
-        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
+        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
 /*  LBL(PB_rt1)  */
 
         /* "t1" section */
-        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
-        subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
-        divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
-        /* linear refinement */
-        SUBROUTINE(PB_ln1, PB_lin)
+        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
@@ -3226,19 +3243,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* load "Xvars" on registers here explicitly,
          * so they can be re-used in linear refinement */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP1)         /* a_val <- XTMP1 */
-        movpx_ld(Xmm2, Mecx, ctx_XTMP2)         /* b_val <- XTMP2 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP3)         /* d_val <- XTMP3 */
+        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
         movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
 
     LBL(PB_rt2)
 
         /* "t2" section */
-        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
-        addps_rr(Xmm4, Xmm3)                    /* b_val += d_val */
-        divps_rr(Xmm4, Xmm1)                    /* t_rt2 /= a_val */
-        /* linear refinement */
-        SUBROUTINE(PB_ln2, PB_lin)
+        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
+        movpx_rr(Xmm4, Xmm6)                    /* t_rt2 <- t_rt2 */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
@@ -3251,64 +3264,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         SUBROUTINE(PB_mt2, PB_mat)
 
         jmpxx_lb(OO_end)
-
-/******************************************************************************/
-    LBL(PB_lin)
-
-#if RT_FEAT_LINEAR_REFINEMENT
-
-        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
-         * due to cancellation of significant bits for certain ray directions.
-         * TODO: only apply linear refinement when "a_val" is close to zero. */
-
-        /* "k" section */
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
-        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
-        movpx_rr(Xmm2, Xmm1)                    /* ray_k <- ray_k */
-        mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
-        subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
-        movpx_ld(Xmm3, Mebx, xpb_PAR_2)         /* par_2 <- PAR_2 */
-        mulps_rr(Xmm1, Xmm3)                    /* ray_k *= par_2 */
-        addps_rr(Xmm3, Xmm3)                    /* par_2 += par_2 */
-        mulps_rr(Xmm5, Xmm3)                    /* dff_k *= par_k */
-
-        /* "i" section */
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_i <- ray_i */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
-
-        /* "+" section */
-        addps_rr(Xmm1, Xmm2)                    /* bxx_k += bxx_i */
-        addps_rr(Xmm5, Xmm6)                    /* cxx_k += cxx_i */
-
-        /* "j" section */
-        INDEX_AXIS(RT_J)                        /* eax   <-     j */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_j <- RAY_J */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_j <- DFF_J */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_j <- ray_j */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_j *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_j -= ray_j */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_j *= dff_j */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
-
-        /* "+" section */
-        addps_rr(Xmm1, Xmm2)                    /* bxx_t += bxx_j */
-        addps_rr(Xmm5, Xmm6)                    /* cxx_t += cxx_j */
-
-        /* "t" section */
-        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
-        divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
-        addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
-
-#endif /* RT_FEAT_LINEAR_REFINEMENT */
-
-        jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
 /******************************************************************************/
     LBL(PB_mat)
@@ -3463,18 +3418,46 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm5, Xmm6)                    /* cxx_t -= cxx_k */
 
         /* "d" section */
+        movpx_rr(Xmm6, Xmm5)                    /* c_val <- c_val */
         mulps_rr(Xmm5, Xmm1)                    /* c_val *= a_val */
-        movpx_rr(Xmm2, Xmm3)                    /* b_val <- b_val */
+        movpx_rr(Xmm4, Xmm3)                    /* b_val <- b_val */
         mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
+        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
+        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
+        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
         sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
+        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
+
+        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
+        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
+        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
+        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
+        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
+
+        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
+        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
+        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
+        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
+        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
+        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
+
+        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
+        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
+        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
+        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
+        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
 
 /******************************************************************************/
 /*  LBL(HB_rs1)  */
@@ -3482,21 +3465,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* outer side */
         CHECK_SIDE(HB_sd1, HB_rt2, RT_FLAG_SIDE_OUTER)
 
-        /* if "Xvars" are needed outside of solvers,
+        /* if "Xvars" are needed outside of the solvers,
          * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
-        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
+        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
 /*  LBL(HB_rt1)  */
 
         /* "t1" section */
-        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
-        subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
-        divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
-        /* linear refinement */
-        SUBROUTINE(HB_ln1, HB_lin)
+        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
@@ -3520,19 +3498,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* load "Xvars" on registers here explicitly,
          * so they can be re-used in linear refinement */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP1)         /* a_val <- XTMP1 */
-        movpx_ld(Xmm2, Mecx, ctx_XTMP2)         /* b_val <- XTMP2 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP3)         /* d_val <- XTMP3 */
+        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
         movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
 
     LBL(HB_rt2)
 
         /* "t2" section */
-        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
-        addps_rr(Xmm4, Xmm3)                    /* b_val += d_val */
-        divps_rr(Xmm4, Xmm1)                    /* t_rt2 /= a_val */
-        /* linear refinement */
-        SUBROUTINE(HB_ln2, HB_lin)
+        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
+        movpx_rr(Xmm4, Xmm6)                    /* t_rt2 <- t_rt2 */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
@@ -3545,66 +3519,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         SUBROUTINE(HB_mt2, HB_mat)
 
         jmpxx_lb(OO_end)
-
-/******************************************************************************/
-    LBL(HB_lin)
-
-#if RT_FEAT_LINEAR_REFINEMENT
-
-        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
-         * due to cancellation of significant bits for certain ray directions.
-         * TODO: only apply linear refinement when "a_val" is close to zero. */
-
-        /* "k" section */
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
-        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
-        movpx_rr(Xmm2, Xmm1)                    /* ray_k <- ray_k */
-        mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
-        subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
-        movpx_ld(Xmm3, Mebx, xhb_RAT_2)         /* rat_2 <- RAT_2 */
-        mulps_rr(Xmm1, Xmm5)                    /* ray_k *= dff_k */
-        mulps_rr(Xmm5, Xmm5)                    /* dff_k *= dff_k */
-        mulps_rr(Xmm1, Xmm3)                    /* bxx_k *= rat_2 */
-        mulps_rr(Xmm5, Xmm3)                    /* cxx_k *= rat_2 */
-        addps_ld(Xmm5, Mebx, xhb_HYP_K)         /* cxx_k += HYP_K */
-
-        /* "i" section */
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_i <- ray_i */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
-
-        /* "-" section */
-        subps_rr(Xmm1, Xmm2)                    /* bxx_k -= bxx_i */
-        subps_rr(Xmm5, Xmm6)                    /* cxx_k -= cxx_i */
-
-        /* "j" section */
-        INDEX_AXIS(RT_J)                        /* eax   <-     j */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_j <- RAY_J */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_j <- DFF_J */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_j <- ray_j */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_j *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_j -= ray_j */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_j *= dff_j */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
-
-        /* "-" section */
-        subps_rr(Xmm1, Xmm2)                    /* bxx_t -= bxx_j */
-        subps_rr(Xmm5, Xmm6)                    /* cxx_t -= cxx_j */
-
-        /* "t" section */
-        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
-        divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
-        addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
-
-#endif /* RT_FEAT_LINEAR_REFINEMENT */
-
-        jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
 /******************************************************************************/
     LBL(HB_mat)
@@ -3743,18 +3657,46 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm5, Xmm6)                    /* cxx_i += cxx_k */
 
         /* "d" section */
+        movpx_rr(Xmm6, Xmm5)                    /* c_val <- c_val */
         mulps_rr(Xmm5, Xmm1)                    /* c_val *= a_val */
-        movpx_rr(Xmm2, Xmm3)                    /* b_val <- b_val */
+        movpx_rr(Xmm4, Xmm3)                    /* b_val <- b_val */
         mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
+        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
+        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
+        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
         sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
+        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
+
+        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
+        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
+        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
+        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
+        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
+
+        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
+        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
+        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
+        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
+        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
+        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
+
+        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
+        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
+        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
+        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
+        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
 
 /******************************************************************************/
 /*  LBL(PC_rs1)  */
@@ -3762,21 +3704,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* outer side */
         CHECK_SIDE(PC_sd1, PC_rt2, RT_FLAG_SIDE_OUTER)
 
-        /* if "Xvars" are needed outside of solvers,
+        /* if "Xvars" are needed outside of the solvers,
          * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
-        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
+        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
 /*  LBL(PC_rt1)  */
 
         /* "t1" section */
-        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
-        subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
-        divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
-        /* linear refinement */
-        SUBROUTINE(PC_ln1, PC_lin)
+        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
@@ -3800,19 +3737,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* load "Xvars" on registers here explicitly,
          * so they can be re-used in linear refinement */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP1)         /* a_val <- XTMP1 */
-        movpx_ld(Xmm2, Mecx, ctx_XTMP2)         /* b_val <- XTMP2 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP3)         /* d_val <- XTMP3 */
+        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
         movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
 
     LBL(PC_rt2)
 
         /* "t2" section */
-        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
-        addps_rr(Xmm4, Xmm3)                    /* b_val += d_val */
-        divps_rr(Xmm4, Xmm1)                    /* t_rt2 /= a_val */
-        /* linear refinement */
-        SUBROUTINE(PC_ln2, PC_lin)
+        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
+        movpx_rr(Xmm4, Xmm6)                    /* t_rt2 <- t_rt2 */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
@@ -3825,50 +3758,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         SUBROUTINE(PC_mt2, PC_mat)
 
         jmpxx_lb(OO_end)
-
-/******************************************************************************/
-    LBL(PC_lin)
-
-#if RT_FEAT_LINEAR_REFINEMENT
-
-        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
-         * due to cancellation of significant bits for certain ray directions.
-         * TODO: only apply linear refinement when "a_val" is close to zero. */
-
-        /* "k" section */
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
-        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
-        movpx_rr(Xmm2, Xmm1)                    /* ray_k <- ray_k */
-        mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
-        subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
-        movpx_ld(Xmm3, Mebx, xpc_PAR_2)         /* par_2 <- PAR_2 */
-        mulps_rr(Xmm1, Xmm3)                    /* ray_k *= par_2 */
-        addps_rr(Xmm3, Xmm3)                    /* par_2 += par_2 */
-        mulps_rr(Xmm5, Xmm3)                    /* dff_k *= par_k */
-
-        /* "i" section */
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_i <- ray_i */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
-
-        /* "+" section */
-        addps_rr(Xmm1, Xmm2)                    /* bxx_k += bxx_i */
-        addps_rr(Xmm5, Xmm6)                    /* cxx_k += cxx_i */
-
-        /* "t" section */
-        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
-        divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
-        addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
-
-#endif /* RT_FEAT_LINEAR_REFINEMENT */
-
-        jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
 /******************************************************************************/
     LBL(PC_mat)
@@ -3973,6 +3862,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
         movpx_rr(Xmm3, Xmm1)                    /* ray_i <- ray_i */
         mulps_rr(Xmm3, Xmm5)                    /* ray_i *= dff_i */
+        mulps_rr(Xmm1, Xmm1)                    /* ray_i *= ray_i */
+        mulps_rr(Xmm5, Xmm5)                    /* dff_i *= dff_i */
 
         /* "k" section */
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
@@ -3980,39 +3871,60 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
         movpx_rr(Xmm4, Xmm2)                    /* ray_k <- ray_k */
         mulps_rr(Xmm4, Xmm6)                    /* ray_k *= dff_k */
-        movpx_ld(Xmm7, Mebx, xhc_RAT_2)         /* rat_2 <- RAT_2 */
-        mulps_rr(Xmm4, Xmm7)                    /* bxx_k *= rat_2 */
-
-        /* "*" section */
-        mulps_rr(Xmm6, Xmm1)                    /* dff_k *= ray_i */
-        mulps_rr(Xmm5, Xmm2)                    /* dff_i *= ray_k */
-        mulps_rr(Xmm1, Xmm1)                    /* ray_i *= ray_i */
         mulps_rr(Xmm2, Xmm2)                    /* ray_k *= ray_k */
+        mulps_rr(Xmm6, Xmm6)                    /* dff_k *= dff_k */
+        movpx_ld(Xmm7, Mebx, xhb_RAT_2)         /* rat_2 <- RAT_2 */
+        mulps_rr(Xmm4, Xmm7)                    /* bxx_k *= rat_2 */
         mulps_rr(Xmm2, Xmm7)                    /* axx_k *= rat_2 */
+        mulps_rr(Xmm6, Xmm7)                    /* cxx_k *= rat_2 */
+        addps_ld(Xmm6, Mebx, xhb_HYP_K)         /* cxx_k += HYP_K */
 
         /* "-" section */
-        subps_rr(Xmm1, Xmm2)                    /* axx_i -= axx_k */
-        subps_rr(Xmm3, Xmm4)                    /* bxx_i -= bxx_k */
-        subps_rr(Xmm5, Xmm6)                    /* cxx_i -= cxx_k */
-
-        /* "c" section */
-        mulps_rr(Xmm5, Xmm5)                    /* cxx_t *= cxx_t */
-        mulps_rr(Xmm5, Xmm7)                    /* cxx_t *= rat_2 */
-        movpx_rr(Xmm2, Xmm1)                    /* tmp_v <- axx_t */
-        mulps_ld(Xmm2, Mebx, xhc_HYP_K)         /* tmp_v *= HYP_K */
-        addps_rr(Xmm5, Xmm2)                    /* cxx_t += tmp_v */
+        subps_rr(Xmm1, Xmm2)                    /* axx_t -= axx_k */
+        subps_rr(Xmm3, Xmm4)                    /* bxx_t -= bxx_k */
+        subps_rr(Xmm5, Xmm6)                    /* cxx_t -= cxx_k */
 
         /* "d" section */
-        movpx_rr(Xmm2, Xmm3)                    /* b_val <- b_val */
-        movpx_rr(Xmm3, Xmm5)                    /* d_val <- d_val */
+        movpx_rr(Xmm6, Xmm5)                    /* c_val <- c_val */
+        mulps_rr(Xmm5, Xmm1)                    /* c_val *= a_val */
+        movpx_rr(Xmm4, Xmm3)                    /* b_val <- b_val */
+        mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
+        subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
+        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
+        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
+        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
         sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
+        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
+
+        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
+        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
+        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
+        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
+        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
+
+        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
+        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
+        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
+        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
+        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
+        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
+
+        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
+        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
+        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
+        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
+        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
 
 /******************************************************************************/
 /*  LBL(HC_rs1)  */
@@ -4020,21 +3932,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* outer side */
         CHECK_SIDE(HC_sd1, HC_rt2, RT_FLAG_SIDE_OUTER)
 
-        /* if "Xvars" are needed outside of solvers,
+        /* if "Xvars" are needed outside of the solvers,
          * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
-        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
+        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
 /*  LBL(HC_rt1)  */
 
         /* "t1" section */
-        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
-        subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
-        divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
-        /* linear refinement */
-        SUBROUTINE(HC_ln1, HC_lin)
+        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
@@ -4058,19 +3965,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* load "Xvars" on registers here explicitly,
          * so they can be re-used in linear refinement */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP1)         /* a_val <- XTMP1 */
-        movpx_ld(Xmm2, Mecx, ctx_XTMP2)         /* b_val <- XTMP2 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP3)         /* d_val <- XTMP3 */
+        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
         movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
 
     LBL(HC_rt2)
 
         /* "t2" section */
-        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
-        addps_rr(Xmm4, Xmm3)                    /* b_val += d_val */
-        divps_rr(Xmm4, Xmm1)                    /* t_rt2 /= a_val */
-        /* linear refinement */
-        SUBROUTINE(HC_ln2, HC_lin)
+        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
+        movpx_rr(Xmm4, Xmm6)                    /* t_rt2 <- t_rt2 */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
@@ -4083,52 +3986,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         SUBROUTINE(HC_mt2, HC_mat)
 
         jmpxx_lb(OO_end)
-
-/******************************************************************************/
-    LBL(HC_lin)
-
-#if RT_FEAT_LINEAR_REFINEMENT
-
-        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
-         * due to cancellation of significant bits for certain ray directions.
-         * TODO: only apply linear refinement when "a_val" is close to zero. */
-
-        /* "k" section */
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
-        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
-        movpx_rr(Xmm2, Xmm1)                    /* ray_k <- ray_k */
-        mulps_rr(Xmm2, Xmm4)                    /* ray_k *= t_val */
-        subps_rr(Xmm5, Xmm2)                    /* dff_k -= ray_k */
-        movpx_ld(Xmm3, Mebx, xhc_RAT_2)         /* rat_2 <- RAT_2 */
-        mulps_rr(Xmm1, Xmm5)                    /* ray_k *= dff_k */
-        mulps_rr(Xmm5, Xmm5)                    /* dff_k *= dff_k */
-        mulps_rr(Xmm1, Xmm3)                    /* bxx_k *= rat_2 */
-        mulps_rr(Xmm5, Xmm3)                    /* cxx_k *= rat_2 */
-        addps_ld(Xmm5, Mebx, xhc_HYP_K)         /* cxx_k += HYP_K */
-
-        /* "i" section */
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_i <- ray_i */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_i *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_i -= ray_i */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_i *= dff_i */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_i *= dff_i */
-
-        /* "-" section */
-        subps_rr(Xmm1, Xmm2)                    /* bxx_k -= bxx_i */
-        subps_rr(Xmm5, Xmm6)                    /* cxx_k -= cxx_i */
-
-        /* "t" section */
-        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
-        divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
-        addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
-
-#endif /* RT_FEAT_LINEAR_REFINEMENT */
-
-        jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
 /******************************************************************************/
     LBL(HC_mat)
@@ -4273,18 +4130,46 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm5, Xmm6)                    /* cxx_t += cxx_k */
 
         /* "d" section */
+        movpx_rr(Xmm6, Xmm5)                    /* c_val <- c_val */
         mulps_rr(Xmm5, Xmm1)                    /* c_val *= a_val */
-        movpx_rr(Xmm2, Xmm3)                    /* b_val <- b_val */
+        movpx_rr(Xmm4, Xmm3)                    /* b_val <- b_val */
         mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
+        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
+        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
+        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
         sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
+        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
+
+        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
+        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
+        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
+        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
+        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
+
+        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
+        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
+        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
+        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
+        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
+        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
+
+        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
+        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
+        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
+        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
+        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
 
 /******************************************************************************/
 /*  LBL(HP_rs1)  */
@@ -4292,21 +4177,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* outer side */
         CHECK_SIDE(HP_sd1, HP_rt2, RT_FLAG_SIDE_OUTER)
 
-        /* if "Xvars" are needed outside of solvers,
+        /* if "Xvars" are needed outside of the solvers,
          * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm1, Mecx, ctx_XTMP1)         /* a_val -> XTMP1 */
-        movpx_st(Xmm2, Mecx, ctx_XTMP2)         /* b_val -> XTMP2 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP3)         /* d_val -> XTMP3 */
+        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
 /*  LBL(HP_rt1)  */
 
         /* "t1" section */
-        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
-        subps_rr(Xmm4, Xmm3)                    /* b_val -= d_val */
-        divps_rr(Xmm4, Xmm1)                    /* t_rt1 /= a_val */
-        /* linear refinement */
-        SUBROUTINE(HP_ln1, HP_lin)
+        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
@@ -4330,19 +4210,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* load "Xvars" on registers here explicitly,
          * so they can be re-used in linear refinement */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP1)         /* a_val <- XTMP1 */
-        movpx_ld(Xmm2, Mecx, ctx_XTMP2)         /* b_val <- XTMP2 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP3)         /* d_val <- XTMP3 */
+        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
         movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
 
     LBL(HP_rt2)
 
         /* "t2" section */
-        movpx_rr(Xmm4, Xmm2)                    /* b_val <- b_val */
-        addps_rr(Xmm4, Xmm3)                    /* b_val += d_val */
-        divps_rr(Xmm4, Xmm1)                    /* t_rt2 /= a_val */
-        /* linear refinement */
-        SUBROUTINE(HP_ln2, HP_lin)
+        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
+        movpx_rr(Xmm4, Xmm6)                    /* t_rt2 <- t_rt2 */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
@@ -4355,67 +4231,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         SUBROUTINE(HP_mt2, HP_mat)
 
         jmpxx_lb(OO_end)
-
-/******************************************************************************/
-    LBL(HP_lin)
-
-#if RT_FEAT_LINEAR_REFINEMENT
-
-        /* Refine root with 1 linear iteration to fix dramatic loss of accuracy
-         * due to cancellation of significant bits for certain ray directions.
-         * TODO: only apply linear refinement when "a_val" is close to zero. */
-
-        /* "i" section */
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
-        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
-        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
-        movpx_rr(Xmm2, Xmm1)                    /* ray_i <- ray_i */
-        mulps_rr(Xmm2, Xmm4)                    /* ray_i *= t_val */
-        subps_rr(Xmm5, Xmm2)                    /* dff_i -= ray_i */
-        movpx_ld(Xmm0, Mebx, xhp_I_PR1)         /* i_pr1 <- I_PR1 */
-        mulps_rr(Xmm1, Xmm5)                    /* ray_i *= dff_i */
-        mulps_rr(Xmm1, Xmm0)                    /* ray_i *= i_pr1 */
-        mulps_rr(Xmm5, Xmm5)                    /* dff_i *= dff_i */
-        mulps_rr(Xmm5, Xmm0)                    /* dff_i *= i_pr1 */
-
-        /* "j" section */
-        INDEX_AXIS(RT_J)                        /* eax   <-     j */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_j <- RAY_J */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_j <- DFF_J */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_j <- ray_j */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_j *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_j -= ray_j */
-        movpx_ld(Xmm0, Mebx, xhp_I_PR2)         /* i_pr2 <- I_PR2 */
-        mulps_rr(Xmm2, Xmm6)                    /* ray_j *= dff_j */
-        mulps_rr(Xmm2, Xmm0)                    /* ray_j *= i_pr2 */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
-        mulps_rr(Xmm6, Xmm0)                    /* dff_j *= i_pr2 */
-
-        /* "-" section */
-        subps_rr(Xmm1, Xmm2)                    /* bxx_i -= bxx_j */
-        subps_rr(Xmm5, Xmm6)                    /* cxx_i -= cxx_j */
-
-        /* "k" section */
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
-        movpx_rr(Xmm3, Xmm2)                    /* ray_k <- ray_k */
-        mulps_rr(Xmm3, Xmm4)                    /* ray_k *= t_val */
-        subps_rr(Xmm6, Xmm3)                    /* dff_k -= ray_k */
-        mulps_ld(Xmm2, Mebp, inf_GPC02)         /* ray_k *= -0.5f */
-
-        /* "+" section */
-        subps_rr(Xmm1, Xmm2)                    /* bxx_t -= bxx_k */
-        addps_rr(Xmm5, Xmm6)                    /* cxx_t += cxx_k */
-
-        /* "t" section */
-        addps_rr(Xmm1, Xmm1)                    /* bxx_t += bxx_t */
-        divps_rr(Xmm5, Xmm1)                    /* c_val /= b_val */
-        addps_rr(Xmm4, Xmm5)                    /* t_val += t_eps */
-
-#endif /* RT_FEAT_LINEAR_REFINEMENT */
-
-        jmpxx_mm(Mecx, ctx_LOCAL(PTR))
 
 /******************************************************************************/
     LBL(HP_mat)
