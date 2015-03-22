@@ -447,8 +447,8 @@ struct rt_SIMD_CONTEXT
     rt_real xtmp2[S];
 #define ctx_XTMP2           DP(Q*0x220)
 
-    rt_real xtmp3[S];
-#define ctx_XTMP3           DP(Q*0x230)
+    rt_real xmisc[S];
+#define ctx_XMISC(nx)       DP(Q*0x230 + nx)
 
     /* normal */
 
