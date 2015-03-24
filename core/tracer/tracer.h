@@ -866,8 +866,8 @@ struct rt_SIMD_CONE : public rt_SIMD_SURFACE
     rt_real rat_k[S];
 #define xcn_RAT_K           DP(Q*0x220)
 
-    rt_real msc_3[S];
-#define xcn_MSC_3           DP(Q*0x230)
+    rt_real epsil[S];
+#define xcn_EPSIL           DP(Q*0x230)
 
 };
 

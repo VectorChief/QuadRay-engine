@@ -3150,12 +3150,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm1, Mebx, srf_SMASK)         /* n_rat <- SMASK */
         xorpx_rr(Xmm6, Xmm1)                    /* loc_k = -loc_k */
         annpx_rr(Xmm1, Xmm6)                    /* n_rat = |loc_k|*/
+        movpx_ld(Xmm2, Mebx, xcn_EPSIL)         /* epsil <- EPSIL */
+        cgtps_rr(Xmm2, Xmm1)                    /* epsil >! n_rat */
+        andpx_ld(Xmm2, Mecx, ctx_TMASK(0))      /* emask &= TMASK */
         movpx_ld(Xmm3, Mebx, xcn_I_RAT)         /* i_rat <- I_RAT */
         divps_rr(Xmm3, Xmm1)                    /* i_rat /= n_rat */
         mulps_ld(Xmm6, Mebx, xcn_RAT_2)         /* loc_k *= rat_2 */
         mulps_rr(Xmm6, Xmm3)                    /* loc_k *= i_rat */
         xorpx_rr(Xmm6, Xmm7)                    /* loc_k ^= ssign */
-        MOVXR_ST(Xmm6, Iecx, ctx_NRM_O)         /* nrm_k -> NRM_K */
 
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
         /* use next context's RAY fields (NEW)
@@ -3163,7 +3165,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         MOVXR_LD(Xmm4, Iecx, ctx_NEW_O)         /* loc_i <- NEW_I */
         mulps_rr(Xmm4, Xmm3)                    /* loc_i *= i_rat */
         xorpx_rr(Xmm4, Xmm7)                    /* loc_i ^= ssign */
-        MOVXR_ST(Xmm4, Iecx, ctx_NRM_O)         /* nrm_i -> NRM_I */
 
         INDEX_AXIS(RT_J)                        /* eax   <-     j */
         /* use next context's RAY fields (NEW)
@@ -3171,6 +3172,37 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         MOVXR_LD(Xmm5, Iecx, ctx_NEW_O)         /* loc_j <- NEW_J */
         mulps_rr(Xmm5, Xmm3)                    /* loc_j *= i_rat */
         xorpx_rr(Xmm5, Xmm7)                    /* loc_j ^= ssign */
+
+        CHECK_MASK(CN_rnm, NONE, Xmm2)
+
+        /* renormalize normal */
+        movpx_rr(Xmm1, Xmm4)
+        mulps_rr(Xmm1, Xmm4)
+
+        movpx_rr(Xmm2, Xmm5)
+        mulps_rr(Xmm2, Xmm5)
+
+        movpx_rr(Xmm3, Xmm6)
+        mulps_rr(Xmm3, Xmm6)
+
+        addps_rr(Xmm1, Xmm2)
+        addps_rr(Xmm1, Xmm3)
+
+        rsqps_rr(Xmm0, Xmm1)
+
+        mulps_rr(Xmm4, Xmm0)
+        mulps_rr(Xmm5, Xmm0)
+        mulps_rr(Xmm6, Xmm0)
+
+    LBL(CN_rnm)
+
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        MOVXR_ST(Xmm6, Iecx, ctx_NRM_O)         /* nrm_k -> NRM_K */
+
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        MOVXR_ST(Xmm4, Iecx, ctx_NRM_O)         /* nrm_i -> NRM_I */
+
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
         MOVXR_ST(Xmm5, Iecx, ctx_NRM_O)         /* nrm_j -> NRM_J */
 
         jmpxx_lb(MT_nrm)
