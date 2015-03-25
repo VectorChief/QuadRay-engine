@@ -381,7 +381,7 @@ rt_CONE cn_cone01 =
 /* rat */   1.0,
 };
 
-rt_CYLINDER cl_test01 =
+rt_SPHERE sp_test01 =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
 /* min */   {  -RT_INF,    -RT_INF,     -1.0    },
@@ -403,7 +403,7 @@ rt_CYLINDER cl_test01 =
 /* mat */   &mt_plain01_gray01,
         },
     },
-/* rad */   0.05,
+/* rad */   1.0,
 };
 
 rt_OBJECT ob_ball01[] =
@@ -507,11 +507,11 @@ rt_OBJECT ob_figures01[] =
 #endif
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        1.0,        1.0    },
+/* scl */   {    0.05,       0.05,       1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   -3.0,        0.0,        1.0    },
         },
-        RT_OBJ_CYLINDER(&cl_test01)
+        RT_OBJ_SPHERE(&sp_test01)
     },
 };
 

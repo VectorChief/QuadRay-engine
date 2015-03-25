@@ -836,8 +836,8 @@ struct rt_SIMD_SPHERE : public rt_SIMD_SURFACE
     rt_real rad_2[S];
 #define xsp_RAD_2           DP(Q*0x200)
 
-    rt_real i_rad[S];
-#define xsp_I_RAD           DP(Q*0x210)
+    rt_real msc_1[S];
+#define xsp_MSC_1           DP(Q*0x210)
 
     rt_real msc_2[S];
 #define xsp_MSC_2           DP(Q*0x220)

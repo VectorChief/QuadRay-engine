@@ -3011,7 +3011,6 @@ rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
     rt_real rad = RT_FABS(xsp->rad);
 
     RT_SIMD_SET(s_xsp->rad_2, rad * rad);
-    RT_SIMD_SET(s_xsp->i_rad, 1.0f / rad);
 }
 
 /*
