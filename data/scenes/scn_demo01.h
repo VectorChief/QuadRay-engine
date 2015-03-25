@@ -381,7 +381,7 @@ rt_CONE cn_cone01 =
 /* rat */   0.05,
 };
 
-rt_HYPERBOLOID hb_test01 =
+rt_PARACYLINDER pc_test01 =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
 /* min */   {  -RT_INF,    -RT_INF,     -1.0    },
@@ -403,8 +403,7 @@ rt_HYPERBOLOID hb_test01 =
 /* mat */   &mt_plain01_gray01,
         },
     },
-/* rat */   0.05,
-/* hyp */   0.0005,
+/* par */   0.0025,
 };
 
 rt_OBJECT ob_ball01[] =
@@ -508,11 +507,11 @@ rt_OBJECT ob_figures01[] =
 #endif
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        1.0,        1.0    },
+/* scl */   {    1.0,        1.0,       -1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   -3.0,        0.0,        1.0    },
         },
-        RT_OBJ_HYPERBOLOID(&hb_test01)
+        RT_OBJ_PARACYLINDER(&pc_test01)
     },
 };
 
