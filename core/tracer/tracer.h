@@ -911,11 +911,11 @@ struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
     rt_real n_rat[S];
 #define xhb_N_RAT           DP(Q*0x210)
 
-    rt_real rat_k[S];
-#define xhb_RAT_K           DP(Q*0x220)
-
     rt_real hyp_k[S];
-#define xhb_HYP_K           DP(Q*0x230)
+#define xhb_HYP_K           DP(Q*0x220)
+
+    rt_real msc_3[S];
+#define xhb_MSC_3           DP(Q*0x230)
 
 };
 

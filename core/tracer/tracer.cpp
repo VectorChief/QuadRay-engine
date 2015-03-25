@@ -3271,7 +3271,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * as temporary storage for clipping */
         MOVXR_LD(Xmm6, Iecx, ctx_NRM_O)         /* dff_k <- NRM_K */
         mulps_rr(Xmm6, Xmm6)                    /* dff_k *= dff_k */
-        mulps_ld(Xmm6, Mebx, xcn_RAT_2)         /* dff_k *= RAT_2 */
+        mulps_ld(Xmm6, Mebx, xcn_RAT_2)         /* df2_k *= RAT_2 */
 
         APPLY_CLIP(CN, Xmm4, Xmm6)
 
@@ -3818,7 +3818,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm6, Mebx, xhb_RAT_2)         /* rat_2 <- RAT_2 */
         mulps_rr(Xmm6, Xmm3)                    /* rat_2 *= i_rat */
         xorpx_rr(Xmm6, Xmm7)                    /* rat_2 ^= ssign */
-        MOVXR_ST(Xmm6, Iecx, ctx_NRM_O)         /* nrm_k -> NRM_K */
 
         INDEX_AXIS(RT_I)                        /* eax   <-     i */
         /* use next context's RAY fields (NEW)
@@ -3826,7 +3825,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         MOVXR_LD(Xmm4, Iecx, ctx_NEW_O)         /* loc_i <- NEW_I */
         mulps_rr(Xmm4, Xmm3)                    /* loc_i *= i_rat */
         xorpx_rr(Xmm4, Xmm7)                    /* loc_i ^= ssign */
-        MOVXR_ST(Xmm4, Iecx, ctx_NRM_O)         /* nrm_i -> NRM_I */
 
         INDEX_AXIS(RT_J)                        /* eax   <-     j */
         /* use next context's RAY fields (NEW)
@@ -3834,7 +3832,33 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         MOVXR_LD(Xmm5, Iecx, ctx_NEW_O)         /* loc_j <- NEW_J */
         mulps_rr(Xmm5, Xmm3)                    /* loc_j *= i_rat */
         xorpx_rr(Xmm5, Xmm7)                    /* loc_j ^= ssign */
+
+        /* renormalize normal */
+        movpx_rr(Xmm1, Xmm4)                    /* loc_i <- loc_i */
+        movpx_rr(Xmm2, Xmm5)                    /* loc_j <- loc_j */
+        movpx_rr(Xmm3, Xmm6)                    /* loc_k <- loc_k */
+
+        mulps_rr(Xmm1, Xmm4)                    /* loc_i *= loc_i */
+        mulps_rr(Xmm2, Xmm5)                    /* loc_j *= loc_j */
+        mulps_rr(Xmm3, Xmm6)                    /* loc_k *= loc_k */
+
+        addps_rr(Xmm1, Xmm2)                    /* lc2_i += lc2_j */
+        addps_rr(Xmm1, Xmm3)                    /* lc2_t += lc2_k */
+        rsqps_rr(Xmm0, Xmm1)                    /* i_len rs n_len */
+
+        mulps_rr(Xmm4, Xmm0)                    /* loc_i *= i_len */
+        mulps_rr(Xmm5, Xmm0)                    /* loc_j *= i_len */
+        mulps_rr(Xmm6, Xmm0)                    /* loc_k *= i_len */
+
+        /* store normal */
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        MOVXR_ST(Xmm4, Iecx, ctx_NRM_O)         /* nrm_i -> NRM_I */
+
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
         MOVXR_ST(Xmm5, Iecx, ctx_NRM_O)         /* nrm_j -> NRM_J */
+
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        MOVXR_ST(Xmm6, Iecx, ctx_NRM_O)         /* nrm_k -> NRM_K */
 
         jmpxx_lb(MT_nrm)
 
@@ -3867,15 +3891,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         MOVXR_LD(Xmm5, Iecx, ctx_NRM_O)         /* dff_j <- NRM_J */
         mulps_rr(Xmm5, Xmm5)                    /* dff_j *= dff_j */
 
-        addps_rr(Xmm4, Xmm5)
+        addps_rr(Xmm4, Xmm5)                    /* df2_i += df2_j */
 
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
         /* use context's normal fields (NRM)
          * as temporary storage for clipping */
         MOVXR_LD(Xmm6, Iecx, ctx_NRM_O)         /* dff_k <- NRM_K */
         mulps_rr(Xmm6, Xmm6)                    /* dff_k *= dff_k */
-        mulps_ld(Xmm6, Mebx, xhb_RAT_2)
-        addps_ld(Xmm6, Mebx, xhb_HYP_K)
+        mulps_ld(Xmm6, Mebx, xhb_RAT_2)         /* df2_k *= RAT_2 */
+        addps_ld(Xmm6, Mebx, xhb_HYP_K)         /* df2_k += HYP_K */
 
         APPLY_CLIP(HB, Xmm4, Xmm6)
 

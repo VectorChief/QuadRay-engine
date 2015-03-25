@@ -3370,7 +3370,6 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
 
     RT_SIMD_SET(s_xhb->rat_2, rat * rat);
     RT_SIMD_SET(s_xhb->n_rat, (1.0f + rat * rat) * rat * rat);
-    RT_SIMD_SET(s_xhb->rat_k, rat);
     RT_SIMD_SET(s_xhb->hyp_k, hyp);
 }
 
