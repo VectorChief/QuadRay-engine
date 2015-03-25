@@ -2910,7 +2910,6 @@ rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
     rt_real rad = RT_FABS(xcl->rad);
 
     RT_SIMD_SET(s_xcl->rad_2, rad * rad);
-    RT_SIMD_SET(s_xcl->i_rad, 1.0f / rad);
 }
 
 /*

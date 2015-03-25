@@ -812,8 +812,8 @@ struct rt_SIMD_CYLINDER : public rt_SIMD_SURFACE
     rt_real rad_2[S];
 #define xcl_RAD_2           DP(Q*0x200)
 
-    rt_real i_rad[S];
-#define xcl_I_RAD           DP(Q*0x210)
+    rt_real msc_1[S];
+#define xcl_MSC_1           DP(Q*0x210)
 
     rt_real msc_2[S];
 #define xcl_MSC_2           DP(Q*0x220)
