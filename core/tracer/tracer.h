@@ -959,11 +959,11 @@ struct rt_SIMD_HYPERCYLINDER : public rt_SIMD_SURFACE
     rt_real n_rat[S];
 #define xhc_N_RAT           DP(Q*0x210)
 
-    rt_real rat_k[S];
-#define xhc_RAT_K           DP(Q*0x220)
-
     rt_real hyp_k[S];
-#define xhc_HYP_K           DP(Q*0x230)
+#define xhc_HYP_K           DP(Q*0x220)
+
+    rt_real msc_3[S];
+#define xhc_MSC_3           DP(Q*0x230)
 
 };
 
