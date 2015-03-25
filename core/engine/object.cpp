@@ -3487,8 +3487,6 @@ rt_ParaCylinder::rt_ParaCylinder(rt_Registry *rg, rt_Object *parent,
 
     RT_SIMD_SET(s_xpc->par_2, par / 2.0f);
     RT_SIMD_SET(s_xpc->n_par, par * par / 4.0f);
-    RT_SIMD_SET(s_xpc->par_k, par);
-    RT_SIMD_SET(s_xpc->i_par, 1.0f / par);
 }
 
 /*

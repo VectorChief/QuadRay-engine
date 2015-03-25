@@ -935,11 +935,11 @@ struct rt_SIMD_PARACYLINDER : public rt_SIMD_SURFACE
     rt_real n_par[S];
 #define xpc_N_PAR           DP(Q*0x210)
 
-    rt_real par_k[S];
-#define xpc_PAR_K           DP(Q*0x220)
+    rt_real msc_2[S];
+#define xpc_MSC_2           DP(Q*0x220)
 
-    rt_real i_par[S];
-#define xpc_I_PAR           DP(Q*0x230)
+    rt_real msc_3[S];
+#define xpc_MSC_3           DP(Q*0x230)
 
 };
 
