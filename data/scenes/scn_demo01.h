@@ -378,7 +378,7 @@ rt_CONE cn_cone01 =
 /* mat */   &mt_plain01_gray01,
         },
     },
-/* rat */   1.0,
+/* rat */   0.05,
 };
 
 rt_SPHERE sp_test01 =
@@ -507,11 +507,11 @@ rt_OBJECT ob_figures01[] =
 #endif
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    0.05,       0.05,       1.0    },
+/* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   -3.0,        0.0,        1.0    },
         },
-        RT_OBJ_SPHERE(&sp_test01)
+        RT_OBJ_CONE(&cn_cone01)
     },
 };
 

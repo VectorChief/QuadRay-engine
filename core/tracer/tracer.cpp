@@ -3183,11 +3183,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
         MOVXR_LD(Xmm6, Iecx, ctx_NEW_O)         /* loc_k <- NEW_K */
-        movpx_ld(Xmm1, Mebx, srf_SMASK)         /* n_rat <- SMASK */
+        movpx_ld(Xmm1, Mebx, srf_SMASK)         /* smask <- SMASK */
         xorpx_rr(Xmm6, Xmm1)                    /* loc_k = -loc_k */
         annpx_rr(Xmm1, Xmm6)                    /* n_rat = |loc_k|*/
-        movpx_ld(Xmm3, Mebx, xcn_I_RAT)         /* i_rat <- I_RAT */
-        divps_rr(Xmm3, Xmm1)                    /* i_rat /= n_rat */
+        mulps_ld(Xmm1, Mebx, xcn_N_RAT)         /* n_rat *= N_RAT */
+        rcpps_rr(Xmm3, Xmm1)                    /* i_rat rc n_rat */
         mulps_ld(Xmm6, Mebx, xcn_RAT_2)         /* loc_k *= rat_2 */
         mulps_rr(Xmm6, Xmm3)                    /* loc_k *= i_rat */
         xorpx_rr(Xmm6, Xmm7)                    /* loc_k ^= ssign */

@@ -860,11 +860,11 @@ struct rt_SIMD_CONE : public rt_SIMD_SURFACE
     rt_real rat_2[S];
 #define xcn_RAT_2           DP(Q*0x200)
 
-    rt_real i_rat[S];
-#define xcn_I_RAT           DP(Q*0x210)
+    rt_real n_rat[S];
+#define xcn_N_RAT           DP(Q*0x210)
 
-    rt_real rat_k[S];
-#define xcn_RAT_K           DP(Q*0x220)
+    rt_real msc_2[S];
+#define xcn_MSC_2           DP(Q*0x220)
 
     rt_real msc_3[S];
 #define xcn_MSC_3           DP(Q*0x230)
