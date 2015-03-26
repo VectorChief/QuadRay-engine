@@ -3228,7 +3228,8 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
     &&  srf->max[RT_I] != +RT_INF
     &&  srf->min[RT_J] != -RT_INF
     &&  srf->max[RT_J] != +RT_INF
-    ||  srf->max[RT_K] != +RT_INF)
+    ||  srf->min[RT_K] != -RT_INF && xpb->par < 0.0f
+    ||  srf->max[RT_K] != +RT_INF && xpb->par > 0.0f)
     {
         bvbox->verts_num = 8;
         bvbox->verts = (rt_VERT *)
@@ -3249,7 +3250,7 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
 
     rt_SIMD_PARABOLOID *s_xpb = (rt_SIMD_PARABOLOID *)s_srf;
 
-    rt_real par = RT_FABS(xpb->par);
+    rt_real par = xpb->par;
 
     RT_SIMD_SET(s_xpb->par_2, par / 2.0f);
     RT_SIMD_SET(s_xpb->n_par, par * par / 4.0f);
@@ -3268,7 +3269,7 @@ rt_void rt_Paraboloid::update_fields()
     rt_Quadric::update_fields();
 
     shape->sci[mp_k] = 0.0f;
-    shape->scj[mp_k] = RT_FABS(xpb->par) * (rt_real)sgn[RT_K];
+    shape->scj[mp_k] = xpb->par * (rt_real)sgn[RT_K];
 }
 
 /*
@@ -3280,14 +3281,14 @@ rt_void rt_Paraboloid::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 {
     rt_Quadric::adjust_minmax(smin, smax, bmin, bmax, cmin, cmax);
 
-    rt_real par = RT_FABS(xpb->par);
-    rt_real top = RT_MAX(smax[RT_K], 0.0f);
-    rt_real rad = top != RT_INF ? RT_SQRT(top * par) : RT_INF;
+    rt_real par = xpb->par;
+    rt_real top = RT_MAX(par < 0.0f ? -smin[RT_K] : +smax[RT_K], 0.0f);
+    rt_real rad = top != RT_INF ? RT_SQRT(top * RT_FABS(par)) : RT_INF;
 
     rt_real mxi = RT_MAX(RT_FABS(smin[RT_I]), RT_FABS(smax[RT_I]));
     rt_real mxj = RT_MAX(RT_FABS(smin[RT_J]), RT_FABS(smax[RT_J]));
             top = RT_MIN(mxi != RT_INF && mxj != RT_INF ?
-                  (mxi * mxi + mxj * mxj) / par : top, top);
+                  (mxi * mxi + mxj * mxj) / RT_FABS(par) : top, top);
 
     rt_bool cb = RT_FALSE; /* distinguish self-adjust from clip-adjust */
 
@@ -3295,11 +3296,15 @@ rt_void rt_Paraboloid::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
     {
         cmin[RT_I] = cmin[RT_I] <= -rad ? -RT_INF : cmin[RT_I];
         cmin[RT_J] = cmin[RT_J] <= -rad ? -RT_INF : cmin[RT_J];
-        cmin[RT_K] = cmin[RT_K] <= 0.0f ? -RT_INF : cmin[RT_K];
+        cmin[RT_K] = cmin[RT_K] <= 0.0f && par > 0.0f ||
+                     cmin[RT_K] <  -top && par < 0.0f
+                                        ? -RT_INF : cmin[RT_K];
 
         cmax[RT_I] = cmax[RT_I] >= +rad ? +RT_INF : cmax[RT_I];
         cmax[RT_J] = cmax[RT_J] >= +rad ? +RT_INF : cmax[RT_J];
-        cmax[RT_K] = cmax[RT_K] >  +top ? +RT_INF : cmax[RT_K];
+        cmax[RT_K] = cmax[RT_K] >= 0.0f && par < 0.0f ||
+                     cmax[RT_K] >  +top && par > 0.0f
+                                        ? +RT_INF : cmax[RT_K];
 
         cb = RT_TRUE; /* self-adjust if cbox is passed */
     }
@@ -3308,11 +3313,17 @@ rt_void rt_Paraboloid::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
     {
         bmin[RT_I] = RT_MAX(smin[RT_I], -rad);
         bmin[RT_J] = RT_MAX(smin[RT_J], -rad);
-        bmin[RT_K] = RT_MAX(smin[RT_K], 0.0f);
+        bmin[RT_K] = par > 0.0f ?
+                     RT_MAX(smin[RT_K], 0.0f) :
+                     cb == RT_TRUE ?
+                     RT_MAX(smin[RT_K], -top) : smin[RT_K];
 
         bmax[RT_I] = RT_MIN(smax[RT_I], +rad);
         bmax[RT_J] = RT_MIN(smax[RT_J], +rad);
-        bmax[RT_K] = cb == RT_TRUE ? RT_MIN(smax[RT_K], +top) : smax[RT_K];
+        bmax[RT_K] = par < 0.0f ?
+                     RT_MIN(smax[RT_K], 0.0f) :
+                     cb == RT_TRUE ?
+                     RT_MIN(smax[RT_K], +top) : smax[RT_K];
     }
 }
 
@@ -3462,7 +3473,8 @@ rt_ParaCylinder::rt_ParaCylinder(rt_Registry *rg, rt_Object *parent,
     &&  srf->max[RT_J] != +RT_INF
     && (srf->min[RT_I] != -RT_INF
     &&  srf->max[RT_I] != +RT_INF
-    ||  srf->max[RT_K] != +RT_INF))
+    ||  srf->min[RT_K] != -RT_INF && xpc->par < 0.0f
+    ||  srf->max[RT_K] != +RT_INF && xpc->par > 0.0f))
     {
         bvbox->verts_num = 8;
         bvbox->verts = (rt_VERT *)
@@ -3483,7 +3495,7 @@ rt_ParaCylinder::rt_ParaCylinder(rt_Registry *rg, rt_Object *parent,
 
     rt_SIMD_PARACYLINDER *s_xpc = (rt_SIMD_PARACYLINDER *)s_srf;
 
-    rt_real par = RT_FABS(xpc->par);
+    rt_real par = xpc->par;
 
     RT_SIMD_SET(s_xpc->par_2, par / 2.0f);
     RT_SIMD_SET(s_xpc->n_par, par * par / 4.0f);
@@ -3503,7 +3515,7 @@ rt_void rt_ParaCylinder::update_fields()
 
     shape->sci[mp_j] = 0.0f;
     shape->sci[mp_k] = 0.0f;
-    shape->scj[mp_k] = RT_FABS(xpc->par) * (rt_real)sgn[RT_K];
+    shape->scj[mp_k] = xpc->par * (rt_real)sgn[RT_K];
 }
 
 /*
@@ -3515,23 +3527,27 @@ rt_void rt_ParaCylinder::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 {
     rt_Quadric::adjust_minmax(smin, smax, bmin, bmax, cmin, cmax);
 
-    rt_real par = RT_FABS(xpc->par);
-    rt_real top = RT_MAX(smax[RT_K], 0.0f);
-    rt_real rad = top != RT_INF ? RT_SQRT(top * par) : RT_INF;
+    rt_real par = xpc->par;
+    rt_real top = RT_MAX(par < 0.0f ? -smin[RT_K] : +smax[RT_K], 0.0f);
+    rt_real rad = top != RT_INF ? RT_SQRT(top * RT_FABS(par)) : RT_INF;
 
     rt_real mxi = RT_MAX(RT_FABS(smin[RT_I]), RT_FABS(smax[RT_I]));
             top = RT_MIN(mxi != RT_INF ?
-                  (mxi * mxi) / par : top, top);
+                  (mxi * mxi) / RT_FABS(par) : top, top);
 
     rt_bool cb = RT_FALSE; /* distinguish self-adjust from clip-adjust */
 
     if (cmin != RT_NULL && cmax != RT_NULL)
     {
         cmin[RT_I] = cmin[RT_I] <= -rad ? -RT_INF : cmin[RT_I];
-        cmin[RT_K] = cmin[RT_K] <= 0.0f ? -RT_INF : cmin[RT_K];
+        cmin[RT_K] = cmin[RT_K] <= 0.0f && par > 0.0f ||
+                     cmin[RT_K] <  -top && par < 0.0f
+                                        ? -RT_INF : cmin[RT_K];
 
         cmax[RT_I] = cmax[RT_I] >= +rad ? +RT_INF : cmax[RT_I];
-        cmax[RT_K] = cmax[RT_K] >  +top ? +RT_INF : cmax[RT_K];
+        cmax[RT_K] = cmax[RT_K] >= 0.0f && par < 0.0f ||
+                     cmax[RT_K] >  +top && par > 0.0f
+                                        ? +RT_INF : cmax[RT_K];
 
         cb = RT_TRUE; /* self-adjust if cbox is passed */
     }
@@ -3540,11 +3556,17 @@ rt_void rt_ParaCylinder::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
     {
         bmin[RT_I] = RT_MAX(smin[RT_I], -rad);
         bmin[RT_J] = smin[RT_J];
-        bmin[RT_K] = RT_MAX(smin[RT_K], 0.0f);
+        bmin[RT_K] = par > 0.0f ?
+                     RT_MAX(smin[RT_K], 0.0f) :
+                     cb == RT_TRUE ?
+                     RT_MAX(smin[RT_K], -top) : smin[RT_K];
 
         bmax[RT_I] = RT_MIN(smax[RT_I], +rad);
         bmax[RT_J] = smax[RT_J];
-        bmax[RT_K] = cb == RT_TRUE ? RT_MIN(smax[RT_K], +top) : smax[RT_K];
+        bmax[RT_K] = par < 0.0f ?
+                     RT_MIN(smax[RT_K], 0.0f) :
+                     cb == RT_TRUE ?
+                     RT_MIN(smax[RT_K], +top) : smax[RT_K];
     }
 }
 
