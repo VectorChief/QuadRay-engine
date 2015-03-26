@@ -65,7 +65,7 @@ rt_PARACYLINDER pc_frame01 =
 /* mat */   &mt_plain01_gray01,
         },
     },
-/* par */   0.5,
+/* par */  -0.5,
 };
 
 rt_HYPERCYLINDER hc_frame02 =
@@ -160,7 +160,7 @@ rt_OBJECT ob_base01[] =
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {  -90.0,        0.0,        0.0    },
-/* pos */   {    0.0,        0.0,        3.5    },
+/* pos */   {    0.0,        2.0,        3.5    },
         },
         RT_OBJ_PARACYLINDER(&pc_frame01)
     },
