@@ -15,7 +15,7 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
-#define RUN_LEVEL           14
+#define RUN_LEVEL           15
 #define CYC_SIZE            1000000
 
 #define ARR_SIZE            S*3 /* hardcoded in asm sections, S = SIMD width */
@@ -400,10 +400,10 @@ rt_void p_test03(rt_SIMD_INFOX *info)
         RT_LOGI("farr[%d] = %e, farr[%d] = %e\n",
                 j, far0[j], (j + S) % n, far0[(j + S) % n]);
 
-        RT_LOGI("C (farr[%d] > farr[%d]) = %X, (farr[%d] >= farr[%d]) = %X\n",
+        RT_LOGI("C (farr[%d]>farr[%d]) = %X, (farr[%d]>=farr[%d]) = %X\n",
                 j, (j + S) % n, ico1[j], j, (j + S) % n, ico2[j]);
 
-        RT_LOGI("S (farr[%d] > farr[%d]) = %X, (farr[%d] >= farr[%d]) = %X\n",
+        RT_LOGI("S (farr[%d]>farr[%d]) = %X, (farr[%d]>=farr[%d]) = %X\n",
                 j, (j + S) % n, iso1[j], j, (j + S) % n, iso2[j]);
     }
 }
@@ -500,10 +500,10 @@ rt_void p_test04(rt_SIMD_INFOX *info)
         RT_LOGI("farr[%d] = %e, farr[%d] = %e\n",
                 j, far0[j], (j + S) % n, far0[(j + S) % n]);
 
-        RT_LOGI("C (farr[%d] < farr[%d]) = %X, (farr[%d] <= farr[%d]) = %X\n",
+        RT_LOGI("C (farr[%d]<farr[%d]) = %X, (farr[%d]<=farr[%d]) = %X\n",
                 j, (j + S) % n, ico1[j], j, (j + S) % n, ico2[j]);
 
-        RT_LOGI("S (farr[%d] < farr[%d]) = %X, (farr[%d] <= farr[%d]) = %X\n",
+        RT_LOGI("S (farr[%d]<farr[%d]) = %X, (farr[%d]<=farr[%d]) = %X\n",
                 j, (j + S) % n, iso1[j], j, (j + S) % n, iso2[j]);
     }
 }
@@ -600,10 +600,10 @@ rt_void p_test05(rt_SIMD_INFOX *info)
         RT_LOGI("farr[%d] = %e, farr[%d] = %e\n",
                 j, far0[j], (j + S) % n, far0[(j + S) % n]);
 
-        RT_LOGI("C (farr[%d] == farr[%d]) = %X, (farr[%d] != farr[%d]) = %X\n",
+        RT_LOGI("C (farr[%d]==farr[%d]) = %X, (farr[%d]!=farr[%d]) = %X\n",
                 j, (j + S) % n, ico1[j], j, (j + S) % n, ico2[j]);
 
-        RT_LOGI("S (farr[%d] == farr[%d]) = %X, (farr[%d] != farr[%d]) = %X\n",
+        RT_LOGI("S (farr[%d]==farr[%d]) = %X, (farr[%d]!=farr[%d]) = %X\n",
                 j, (j + S) % n, iso1[j], j, (j + S) % n, iso2[j]);
     }
 }
@@ -1605,8 +1605,8 @@ rt_void p_test14(rt_SIMD_INFOX *info)
         k = S;
         while (k-->0)
         {
-            RT_LOGI("C (farr[%d] == farr[%d]) = %X, "
-                      "(farr[%d] != farr[%d]) = %X\n",
+            RT_LOGI("C (farr[%d]==farr[%d]) = %X, "
+                      "(farr[%d]!=farr[%d]) = %X\n",
                     j*S + k, ((j+1)*S + k) % n, ico1[j*S + k],
                     j*S + k, ((j+1)*S + k) % n, ico2[j*S + k]);
         }
@@ -1614,8 +1614,8 @@ rt_void p_test14(rt_SIMD_INFOX *info)
         k = S;
         while (k-->0)
         {
-            RT_LOGI("S (farr[%d] == farr[%d]) = %X, "
-                      "(farr[%d] != farr[%d]) = %X\n",
+            RT_LOGI("S (farr[%d]==farr[%d]) = %X, "
+                      "(farr[%d]!=farr[%d]) = %X\n",
                     j*S + k, ((j+1)*S + k) % n, iso1[j*S + k],
                     j*S + k, ((j+1)*S + k) % n, iso2[j*S + k]);
         }
@@ -1623,6 +1623,113 @@ rt_void p_test14(rt_SIMD_INFOX *info)
 }
 
 #endif /* RUN_LEVEL 14 */
+
+/******************************************************************************/
+/******************************   RUN LEVEL 15   ******************************/
+/******************************************************************************/
+
+#if RUN_LEVEL >= 15
+
+rt_void c_test15(rt_SIMD_INFOX *info)
+{
+    rt_cell i, j, n = info->size;
+    rt_real *far0 = info->far0;
+    rt_cell *ico1 = info->ico1;
+    rt_cell *ico2 = info->ico2;
+
+    i = info->cyc;
+    while (i-->0)
+    {
+        j = n;
+        while (j-->0)
+        {
+            rt_word q = 0xFFFFFFFF; /* -qnan */
+            rt_real f = far0[j] + *(rt_real *)&q; /* generates +qnan */
+
+            ico1[j] = far0[j] < *(rt_real *)&q ? 0xFFFFFFFF : 0x00000000;
+            ico2[j] = *(rt_cell *)&f | 0x80000000; /* fix to -qnan */
+        }
+    }
+}
+
+rt_void s_test15(rt_SIMD_INFOX *info)
+{
+    rt_cell i;
+
+    i = info->cyc;
+    while (i-->0)
+    {
+        ASM_ENTER(info)
+
+        movxx_ld(Recx, Mebp, inf_FAR0)
+        movxx_ld(Redx, Mebp, inf_ISO1)
+        movxx_ld(Rebx, Mebp, inf_ISO2)
+
+        xorpx_rr(Xmm0, Xmm0)
+        ceqps_rr(Xmm0, Xmm0) /* generate -qnan */
+
+        /* 0th section */
+        movpx_ld(Xmm1, Mecx, AJ0)
+        movpx_rr(Xmm2, Xmm1)
+        cltps_rr(Xmm2, Xmm0)
+        movpx_st(Xmm2, Medx, AJ0)
+
+        addps_rr(Xmm1, Xmm0)
+        movpx_st(Xmm1, Mebx, AJ0)
+
+        /* 1st section */
+        movpx_ld(Xmm1, Mecx, AJ1)
+        movpx_rr(Xmm2, Xmm1)
+        cltps_rr(Xmm2, Xmm0)
+        movpx_st(Xmm2, Medx, AJ1)
+
+        addps_rr(Xmm1, Xmm0)
+        movpx_st(Xmm1, Mebx, AJ1)
+
+        /* 2nd section */
+        movpx_ld(Xmm1, Mecx, AJ2)
+        movpx_rr(Xmm2, Xmm1)
+        cltps_rr(Xmm2, Xmm0)
+        movpx_st(Xmm2, Medx, AJ2)
+
+        addps_rr(Xmm1, Xmm0)
+        movpx_st(Xmm1, Mebx, AJ2)
+
+        ASM_LEAVE(info)
+    }
+}
+
+rt_void p_test15(rt_SIMD_INFOX *info)
+{
+    rt_cell j, n = info->size;
+
+    rt_real *far0 = info->far0;
+    rt_cell *ico1 = info->ico1;
+    rt_cell *ico2 = info->ico2;
+    rt_cell *iso1 = info->iso1;
+    rt_cell *iso2 = info->iso2;
+
+    j = n;
+    while (j-->0)
+    {
+        if (IEQ(ico1[j], iso1[j]) && IEQ(ico2[j], iso2[j]) && !v_mode)
+        {
+            continue;
+        }
+
+        RT_LOGI("farr[%d] = %e\n",
+                j, far0[j]);
+
+        RT_LOGI("C farr[%d]<-qnan = %X, farr[%d]+-qnan = %X\n",
+                j, ico1[j], j, ico2[j]);
+
+        RT_LOGI("S farr[%d]<-qnan = %X, farr[%d]+-qnan = %X\n",
+                j, iso1[j], j, iso2[j]);
+
+    }
+}
+
+#endif /* RUN_LEVEL 15 */
 
 /******************************************************************************/
 /*********************************   TABLES   *********************************/
@@ -1687,6 +1794,10 @@ testXX c_test[RUN_LEVEL] =
 #if RUN_LEVEL >= 14
     c_test14,
 #endif /* RUN_LEVEL 14 */
+
+#if RUN_LEVEL >= 15
+    c_test15,
+#endif /* RUN_LEVEL 15 */
 };
 
 testXX s_test[RUN_LEVEL] =
@@ -1746,6 +1857,10 @@ testXX s_test[RUN_LEVEL] =
 #if RUN_LEVEL >= 14
     s_test14,
 #endif /* RUN_LEVEL 14 */
+
+#if RUN_LEVEL >= 15
+    s_test15,
+#endif /* RUN_LEVEL 15 */
 };
 
 testXX p_test[RUN_LEVEL] =
@@ -1805,6 +1920,10 @@ testXX p_test[RUN_LEVEL] =
 #if RUN_LEVEL >= 14
     p_test14,
 #endif /* RUN_LEVEL 14 */
+
+#if RUN_LEVEL >= 15
+    p_test15,
+#endif /* RUN_LEVEL 15 */
 };
 
 /******************************************************************************/
@@ -1944,7 +2063,6 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 
     inf0->iar0 = iar0;
     inf0->ico1 = ico1;
-
     inf0->ico2 = ico2;
     inf0->iso1 = iso1;
     inf0->iso2 = iso2;
