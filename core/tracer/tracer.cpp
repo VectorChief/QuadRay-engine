@@ -827,19 +827,22 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CC_clp)
 
+        /* load "t_val" */
+        movpx_ld(Xmm1, Mecx, ctx_T_VAL(0))      /* t_val <- T_VAL */
+
         /* depth testing */
         movpx_ld(Xmm0, Mecx, ctx_T_BUF(0))      /* t_buf <- T_BUF */
-        cgtps_rr(Xmm0, Xmm4)                    /* t_buf >! t_val */
+        cgtps_rr(Xmm0, Xmm1)                    /* t_buf >! t_val */
         andpx_rr(Xmm7, Xmm0)                    /* tmask &= gmask */
 
         /* near plane clipping */
         movpx_ld(Xmm0, Mecx, ctx_T_MIN)         /* t_min <- T_MIN */
-        cltps_rr(Xmm0, Xmm4)                    /* t_min <! t_val */
+        cltps_rr(Xmm0, Xmm1)                    /* t_min <! t_val */
         andpx_rr(Xmm7, Xmm0)                    /* tmask &= lmask */
 
         /* "x" section */
         movpx_ld(Xmm4, Mecx, ctx_RAY_X)         /* ray_x <- RAY_X */
-        mulps_ld(Xmm4, Mecx, ctx_T_VAL(0))      /* ray_x *= t_val */
+        mulps_rr(Xmm4, Xmm1)                    /* ray_x *= t_val */
         addps_ld(Xmm4, Mecx, ctx_ORG_X)         /* hit_x += ORG_X */
         movpx_st(Xmm4, Mecx, ctx_HIT_X)         /* hit_x -> HIT_X */
         subps_ld(Xmm4, Mebx, srf_POS_X)         /* loc_x -= POS_X */
@@ -853,7 +856,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jeqxx_lb(CX_trm)
 
         movpx_ld(Xmm4, Mecx, ctx_RAY_I)         /* ray_i <- RAY_I */
-        mulps_ld(Xmm4, Mecx, ctx_T_VAL(0))      /* ray_i *= t_val */
+        mulps_rr(Xmm4, Xmm1)                    /* ray_i *= t_val */
         subps_ld(Xmm4, Mecx, ctx_DFF_I)         /* ray_i -= DFF_I */
         movpx_st(Xmm4, Mecx, ctx_NEW_I)         /* loc_i -> NEW_I */
         /* use next context's RAY fields (NEW)
@@ -885,7 +888,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "y" section */
         movpx_ld(Xmm5, Mecx, ctx_RAY_Y)         /* ray_y <- RAY_Y */
-        mulps_ld(Xmm5, Mecx, ctx_T_VAL(0))      /* ray_y *= t_val */
+        mulps_rr(Xmm5, Xmm1)                    /* ray_y *= t_val */
         addps_ld(Xmm5, Mecx, ctx_ORG_Y)         /* hit_y += ORG_Y */
         movpx_st(Xmm5, Mecx, ctx_HIT_Y)         /* hit_y -> HIT_Y */
         subps_ld(Xmm5, Mebx, srf_POS_Y)         /* loc_y -= POS_Y */
@@ -899,7 +902,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jeqxx_lb(CY_trm)
 
         movpx_ld(Xmm5, Mecx, ctx_RAY_J)         /* ray_j <- RAY_J */
-        mulps_ld(Xmm5, Mecx, ctx_T_VAL(0))      /* ray_j *= t_val */
+        mulps_rr(Xmm5, Xmm1)                    /* ray_j *= t_val */
         subps_ld(Xmm5, Mecx, ctx_DFF_J)         /* ray_j -= DFF_J */
         movpx_st(Xmm5, Mecx, ctx_NEW_J)         /* loc_j -> NEW_J */
         /* use next context's RAY fields (NEW)
@@ -931,7 +934,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "z" section */
         movpx_ld(Xmm6, Mecx, ctx_RAY_Z)         /* ray_z <- RAY_Z */
-        mulps_ld(Xmm6, Mecx, ctx_T_VAL(0))      /* ray_z *= t_val */
+        mulps_rr(Xmm6, Xmm1)                    /* ray_z *= t_val */
         addps_ld(Xmm6, Mecx, ctx_ORG_Z)         /* hit_z += ORG_Z */
         movpx_st(Xmm6, Mecx, ctx_HIT_Z)         /* hit_z -> HIT_Z */
         subps_ld(Xmm6, Mebx, srf_POS_Z)         /* loc_z -= POS_Z */
@@ -945,7 +948,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jeqxx_lb(CZ_trm)
 
         movpx_ld(Xmm6, Mecx, ctx_RAY_K)         /* ray_k <- RAY_K */
-        mulps_ld(Xmm6, Mecx, ctx_T_VAL(0))      /* ray_k *= t_val */
+        mulps_rr(Xmm6, Xmm1)                    /* ray_k *= t_val */
         subps_ld(Xmm6, Mecx, ctx_DFF_K)         /* ray_k -= DFF_K */
         movpx_st(Xmm6, Mecx, ctx_NEW_K)         /* loc_k -> NEW_K */
         /* use next context's RAY fields (NEW)
@@ -2546,8 +2549,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "t2" section */
         divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
-        movpx_rr(Xmm4, Xmm6)                    /* t_rt2 <- t_rt2 */
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
+        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
         SUBROUTINE(CL_cp2, CC_clp)
@@ -2565,6 +2567,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
         CHECK_MASK(OO_end, FULL, Xmm7)
+
         jmpxx_lb(CL_rs1)
 
 /******************************************************************************/
@@ -2834,8 +2837,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "t2" section */
         divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
-        movpx_rr(Xmm4, Xmm6)                    /* t_rt2 <- t_rt2 */
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
+        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
         SUBROUTINE(SP_cp2, CC_clp)
@@ -2853,6 +2855,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
         CHECK_MASK(OO_end, FULL, Xmm7)
+
         jmpxx_lb(SP_rs1)
 
 /******************************************************************************/
@@ -3142,8 +3145,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "t2" section */
         divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
-        movpx_rr(Xmm4, Xmm6)                    /* t_rt2 <- t_rt2 */
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
+        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
         SUBROUTINE(CN_cp2, CC_clp)
@@ -3161,6 +3163,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
         CHECK_MASK(OO_end, FULL, Xmm7)
+
         jmpxx_lb(CN_rs1)
 
 /******************************************************************************/
@@ -3452,8 +3455,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "t2" section */
         divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
-        movpx_rr(Xmm4, Xmm6)                    /* t_rt2 <- t_rt2 */
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
+        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
         SUBROUTINE(PB_cp2, CC_clp)
@@ -3471,6 +3473,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
         CHECK_MASK(OO_end, FULL, Xmm7)
+
         jmpxx_lb(PB_rs1)
 
 /******************************************************************************/
@@ -3768,8 +3771,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "t2" section */
         divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
-        movpx_rr(Xmm4, Xmm6)                    /* t_rt2 <- t_rt2 */
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
+        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
         SUBROUTINE(HB_cp2, CC_clp)
@@ -3787,6 +3789,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
         CHECK_MASK(OO_end, FULL, Xmm7)
+
         jmpxx_lb(HB_rs1)
 
 /******************************************************************************/
@@ -4066,8 +4069,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "t2" section */
         divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
-        movpx_rr(Xmm4, Xmm6)                    /* t_rt2 <- t_rt2 */
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
+        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
         SUBROUTINE(PC_cp2, CC_clp)
@@ -4085,6 +4087,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
         CHECK_MASK(OO_end, FULL, Xmm7)
+
         jmpxx_lb(PC_rs1)
 
 /******************************************************************************/
@@ -4361,8 +4364,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "t2" section */
         divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
-        movpx_rr(Xmm4, Xmm6)                    /* t_rt2 <- t_rt2 */
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
+        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
         SUBROUTINE(HC_cp2, CC_clp)
@@ -4380,6 +4382,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
         CHECK_MASK(OO_end, FULL, Xmm7)
+
         jmpxx_lb(HC_rs1)
 
 /******************************************************************************/
@@ -4508,9 +4511,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm1, Xmm1)                    /* ray_i *= ray_i */
         mulps_rr(Xmm5, Xmm5)                    /* dff_i *= dff_i */
         movpx_ld(Xmm0, Mebx, xhp_I_PR1)         /* i_pr1 <- I_PR1 */
-        mulps_rr(Xmm1, Xmm0)                    /* ray_i *= i_pr1 */
-        mulps_rr(Xmm3, Xmm0)                    /* mix_i *= i_pr1 */
-        mulps_rr(Xmm5, Xmm0)                    /* dff_i *= i_pr1 */
+        mulps_rr(Xmm1, Xmm0)                    /* axx_i *= i_pr1 */
+        mulps_rr(Xmm3, Xmm0)                    /* bxx_i *= i_pr1 */
+        mulps_rr(Xmm5, Xmm0)                    /* cxx_i *= i_pr1 */
 
         /* "j" section */
         INDEX_AXIS(RT_J)                        /* eax   <-     j */
@@ -4521,9 +4524,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm2, Xmm2)                    /* ray_j *= ray_j */
         mulps_rr(Xmm6, Xmm6)                    /* dff_j *= dff_j */
         movpx_ld(Xmm0, Mebx, xhp_I_PR2)         /* i_pr2 <- I_PR2 */
-        mulps_rr(Xmm2, Xmm0)                    /* ray_j *= i_pr2 */
-        mulps_rr(Xmm4, Xmm0)                    /* mix_j *= i_pr2 */
-        mulps_rr(Xmm6, Xmm0)                    /* dff_j *= i_pr2 */
+        mulps_rr(Xmm2, Xmm0)                    /* axx_j *= i_pr2 */
+        mulps_rr(Xmm4, Xmm0)                    /* bxx_j *= i_pr2 */
+        mulps_rr(Xmm6, Xmm0)                    /* cxx_j *= i_pr2 */
 
         /* "-" section */
         subps_rr(Xmm1, Xmm2)                    /* axx_i -= axx_j */
@@ -4659,8 +4662,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "t2" section */
         divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
-        movpx_rr(Xmm4, Xmm6)                    /* t_rt2 <- t_rt2 */
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
+        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
         SUBROUTINE(HP_cp2, CC_clp)
@@ -4678,6 +4680,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
         CHECK_MASK(OO_end, FULL, Xmm7)
+
         jmpxx_lb(HP_rs1)
 
 /******************************************************************************/
