@@ -131,6 +131,7 @@ rt_OBJECT ob_tree[] =
 rt_SCENE sc_root =
 {
     RT_OBJ_ARRAY(&ob_tree),
+    RT_OPTS_INSERT,
 };
 
 } /* namespace scn_test08 */
