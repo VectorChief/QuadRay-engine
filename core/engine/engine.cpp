@@ -2456,6 +2456,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
 
     depth = RT_MAX(RT_STACK_DEPTH, 0);
     fsaa  = RT_FSAA_NO;
+    opts &= ~scn->opts;
 
     /* instantiate object hierarchy */
     memset(&rootobj, 0, sizeof(rt_OBJECT));
@@ -2479,7 +2480,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
 
     cam = cam_head;
 
-    /* lock scene data, when scene constructor can no longer fail */
+    /* lock scene data, when scene's constructor can no longer fail */
     scn->lock = this;
 
     /* create scene threads array */

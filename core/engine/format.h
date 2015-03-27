@@ -8,6 +8,7 @@
 #define RT_FORMAT_H
 
 #include "rtbase.h"
+#include "rtconf.h"
 
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/
@@ -680,6 +681,7 @@ rt_cell HP_(rt_HYPERPARABOLOID *pobj)
 struct rt_SCENE
 {
     rt_OBJ              root;
+    rt_word             opts; /* set flags to disable runtime opts per scene */
     rt_pntr             lock;
 };
 
