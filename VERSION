@@ -1,3 +1,34 @@
+v0.6.0: Backend improvements, full set of quadrics + numerical stability
+  - implement solvers for paracylinder, hypercylinder, hyperparaboloid
+  - rework bbox adjust to fully support new quadrics
+  - experiment with linear approximation (refinement) of roots (dropped)
+  - use Vieta's formulas for better numerical stability in solvers
+  - renormalize normals to avoid visual artifacts in edge cases
+  - speed up normals with reciprocal square root
+  - optimize overdraw of inner and outer roots for all quadrics
+  - configure runtime optimization flags per scene, adjust scn_test08
+  - add core test for new quadrics, run level 15
+  - add SIMD test for signed shift, run level 15
+  - use unfiltered hierarchical list to skip search while inserting element
+  - handle element removal in ssort, lsort, insert routines
+  - enable basic hidden-surfaces-removal in bbox_sort
+  - enable removal while building lists for surface object
+  - allow array nodes to remove other nodes, extend cases
+  - adjust spherical early-out to not prevent nodes removal
+  - enable array's contents removal by bbox for surface's and camera's lists
+  - make material types mandatory in their names (from here backported down)
+  - adjust core test to ignore isolated pixels, add pixhunt mode
+  - reduce rounding mode's scope from global to texturing only
+  - fix visual artifacts in specular highlights
+  - rename lighting and bvnode feature flags in rendering backend
+  - add feature flags for colored lights, ambient and diffuse to backend
+  - fix compilation on 64-bit Linux systems, add 64-bit types (for time args)
+  - increase divps, sqrps precision for ARM NEON (1 extra step, 2 in total)
+  - fix divxn in ARM to use signed integers (as the name suggests)
+  - add margins control to rtgeom, rename base routines, adjust usage in code
+  - add clip relations handling to rtgeom, new runtime optimization flags
+  - add future extensions to rtarch, update comments for existing targets
+
 v0.5.9: Performance optimizations, hierarchical lists sorting
   - add command line options to core and SIMD test frameworks
   - add legends with description to all source and header files
