@@ -46,123 +46,112 @@ rt_cell main_term();
  */
 rt_cell main()
 {
-    /* open connection to Xserver */
+    /* open connection to X server */
     disp = XOpenDisplay(NULL);
-    /* RT_LOGI("Display = %p\n", disp); */
     if (disp == NULL)
     {
-        RT_LOGE("Cannot open display\n");
+        RT_LOGE("Cannot open X display\n");
         return 1;
     }
 
+    /* acquire depth */
     rt_cell screen = DefaultScreen(disp);
-    /* RT_LOGI("Screen = %X\n", screen); */
-
-    XVisualInfo vi;
-    XMatchVisualInfo(disp, screen, 24, TrueColor, &vi);
-    /* RT_LOGI("Visual = %p\n", vi.visual); */
+    depth = DefaultDepth(disp, screen);
 
     /* create simple window */
     win = XCreateSimpleWindow(disp, RootWindow(disp, screen),
                                     10, 10, x_res, y_res, 1, 0, 0);
-    /* RT_LOGI("Window = %p\n", (rt_pntr)win); */
     if ((rt_pntr)win == NULL)
     {
-        RT_LOGE("Cannot create window\n");
+        RT_LOGE("Cannot create X window\n");
+        XCloseDisplay(disp);
         return 1;
     }
+
+    /* disable window resize (only a hint) */
+    XSizeHints sh;
+    sh.flags = PMinSize | PMaxSize;
+    sh.min_width  = sh.max_width  = x_res;
+    sh.min_height = sh.max_height = y_res;
+    XSetWMNormalHints(disp, win, &sh);
 
 #if RT_FULLSCREEN == 1
 
+    /* activate fullscreen */
     Atom atom  = XInternAtom(disp, "_NET_WM_STATE", False);
     Atom state = XInternAtom(disp, "_NET_WM_STATE_FULLSCREEN", False);
-    XChangeProperty(disp, win, atom,
-                    XA_ATOM, 32, PropModeReplace,
-                    (rt_byte *)&state, 1);
+    XChangeProperty(disp, win, atom, XA_ATOM, 32,
+                    PropModeReplace, (rt_byte *)&state, 1);
 
 #endif /* RT_FULLSCREEN */
 
-    /* set title */
+    /* set title and events */
     XStoreName(disp, win, title);
-    /* select kind of events we are interested in */
     XSelectInput(disp, win, ExposureMask | KeyPressMask | KeyReleaseMask);
-    /* map (show) the window */
+    /* map (show) window */
     XMapWindow(disp, win);
     XSync(disp, False);
 
-    Window win_root;
-    rt_cell win_x = 0, win_y = 0;
-    rt_word win_w = 0, win_h = 0;
-    rt_word win_b = 0, win_d = 0;
-
-    /* Not reliable query mechanism to determine fullscreen window size.
-     * It sporadically returns either original size or fullscreen size,
-     * therefore always use original x_res, y_res for rendering. */
-    XGetGeometry(disp, win, &win_root,
-                &win_x, &win_y,
-                &win_w, &win_h,
-                &win_b, &win_d);
-    /*
-    RT_LOGI("XWindow W = %d\n", win_w);
-    RT_LOGI("XWindow H = %d\n", win_h);
-    RT_LOGI("XWindow B = %d\n", win_b);
-    RT_LOGI("XWindow D = %d\n", win_d);
-    */
-    depth = win_d;
-
-    /* create image */
+    /* create image,
+     * use preconfigured x_res, y_res for rendering,
+     * window resizing in runtime is not supported for now */
     ximage = XShmCreateImage(disp,
-                            DefaultVisual(disp, screen),
-                            DefaultDepth(disp, screen),
-                            ZPixmap,  NULL, &shminfo,
-                            x_res, y_res);
-
+                             DefaultVisual(disp, screen),
+                             depth,
+                             ZPixmap,  NULL, &shminfo,
+                             x_res, y_res);
     if (ximage == NULL)
     {
-        RT_LOGE("XShmCreateImage failed!\n");
+        RT_LOGE("Cannot create XShm image\n");
+        XDestroyWindow(disp, win);
+        XCloseDisplay(disp);
         return 1;
     }
 
+    /* get shared memory */
     shminfo.shmid = shmget(IPC_PRIVATE,
-                    ximage->bytes_per_line * ximage->height, IPC_CREAT|0777);
-
+                           ximage->bytes_per_line * ximage->height,
+                           IPC_CREAT|0777);
     if (shminfo.shmid < 0)
     {
         RT_LOGE("shmget failed!\n");
         XDestroyImage(ximage);
+        XDestroyWindow(disp, win);
+        XCloseDisplay(disp);
         return 1;
     }
 
+    /* attach shared memory */
     shminfo.shmaddr = ximage->data = (rt_char *)shmat(shminfo.shmid, 0, 0);
-
     if (shminfo.shmaddr == (rt_char *)-1)
     {
         RT_LOGE("shmat failed!\n");
         XDestroyImage(ximage);
+        XDestroyWindow(disp, win);
+        XCloseDisplay(disp);
         return 1;
     }
 
     shminfo.readOnly = False;
     XShmAttach(disp, &shminfo);
-
     shmctl(shminfo.shmid, IPC_RMID, 0);
-
     gc = XCreateGC(disp, win, 0, &gc_values);
     XSync(disp, False);
 
+    /* use true-color target directly */
     if (depth > 16)
     {
         frame = (rt_word *)ximage->data;
         x_row = ximage->bytes_per_line / 4;
     }
 
-    rt_cell ret;
+    /* run main loop */
+    main_init();
+    main_loop();
+    main_term();
 
-    ret = main_init();
-    ret = main_loop();
-    ret = main_term();
-
-    /* destroy image */
+    /* destroy image,
+     * detach shared memory */
     XShmDetach(disp, &shminfo);
     XDestroyImage(ximage);
     shmdt(shminfo.shmaddr);
@@ -171,7 +160,7 @@ rt_cell main()
     /* destroy window */
     XDestroyWindow(disp, win);
 
-    /* close connection to Xserver */
+    /* close connection to X server */
     XCloseDisplay(disp);
 
     return 0;
@@ -574,7 +563,6 @@ rt_cell main_loop()
         while (XPending(disp))
         {
             XEvent event;
-
             XNextEvent(disp, &event);
 
             if (event.type == KeyPress)
