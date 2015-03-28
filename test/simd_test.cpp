@@ -304,7 +304,6 @@ rt_void p_test02(rt_SIMD_INFOX *info)
 
         RT_LOGI("S farr[%d]*farr[%d] = %e, farr[%d]/farr[%d] = %e\n",
                 j, (j + S) % n, fso1[j], j, (j + S) % n, fso2[j]);
-
     }
 }
 
@@ -821,8 +820,8 @@ rt_void c_test08(rt_SIMD_INFOX *info)
         j = n;
         while (j-->0)
         {
-            ico1[j] = iar0[j] + (iar0[j] << 1);
-            ico2[j] = iar0[j] - (iar0[j] >> 2);
+            ico1[j] = iar0[j] + ((rt_word)+iar0[j] << 1);
+            ico2[j] = iar0[j] - ((rt_word)-iar0[j] >> 2);
         }
     }
 }
@@ -841,35 +840,38 @@ rt_void s_test08(rt_SIMD_INFOX *info)
         movxx_ld(Rebx, Mebp, inf_ISO2)
 
         movpx_ld(Xmm0, Mesi, AJ0)
-        movpx_ld(Xmm1, Mesi, AJ0)
+        movpx_ld(Xmm3, Mesi, AJ0)
         movpx_rr(Xmm2, Xmm0)
         shlpx_ri(Xmm0, IB(1))
         addpx_rr(Xmm2, Xmm0)
-        movpx_rr(Xmm3, Xmm1)
-        shrpx_ri(Xmm1, IB(2))
-        subpx_rr(Xmm3, Xmm1)
+        xorpx_rr(Xmm0, Xmm0)
+        subpx_rr(Xmm0, Xmm3)
+        shrpx_ri(Xmm0, IB(2))
+        subpx_rr(Xmm3, Xmm0)
         movpx_st(Xmm2, Medx, AJ0)
         movpx_st(Xmm3, Mebx, AJ0)
 
         movpx_ld(Xmm0, Mesi, AJ1)
-        movpx_ld(Xmm1, Mesi, AJ1)
+        movpx_ld(Xmm3, Mesi, AJ1)
         movpx_rr(Xmm2, Xmm0)
         shlpx_ri(Xmm0, IB(1))
         addpx_rr(Xmm2, Xmm0)
-        movpx_rr(Xmm3, Xmm1)
-        shrpx_ri(Xmm1, IB(2))
-        subpx_rr(Xmm3, Xmm1)
+        xorpx_rr(Xmm0, Xmm0)
+        subpx_rr(Xmm0, Xmm3)
+        shrpx_ri(Xmm0, IB(2))
+        subpx_rr(Xmm3, Xmm0)
         movpx_st(Xmm2, Medx, AJ1)
         movpx_st(Xmm3, Mebx, AJ1)
 
         movpx_ld(Xmm0, Mesi, AJ2)
-        movpx_ld(Xmm1, Mesi, AJ2)
+        movpx_ld(Xmm3, Mesi, AJ2)
         movpx_rr(Xmm2, Xmm0)
         shlpx_ri(Xmm0, IB(1))
         addpx_rr(Xmm2, Xmm0)
-        movpx_rr(Xmm3, Xmm1)
-        shrpx_ri(Xmm1, IB(2))
-        subpx_rr(Xmm3, Xmm1)
+        xorpx_rr(Xmm0, Xmm0)
+        subpx_rr(Xmm0, Xmm3)
+        shrpx_ri(Xmm0, IB(2))
+        subpx_rr(Xmm3, Xmm0)
         movpx_st(Xmm2, Medx, AJ2)
         movpx_st(Xmm3, Mebx, AJ2)
 
@@ -898,12 +900,13 @@ rt_void p_test08(rt_SIMD_INFOX *info)
         RT_LOGI("iarr[%d] = %d\n",
                 j, iar0[j]);
 
-        RT_LOGI("C iarr[%d]+(iarr[%d]<<1) = %d, iarr[%d]+(iarr[%d]>>2) = %d\n",
+        RT_LOGI("C iarr[%d]+((rt_word)+iarr[%d]<<1) = %d, "
+                  "iarr[%d]-((rt_word)-iarr[%d]>>2) = %d\n",
                 j, j, ico1[j], j, j, ico2[j]);
 
-        RT_LOGI("S iarr[%d]+(iarr[%d]<<1) = %d, iarr[%d]+(iarr[%d]>>2) = %d\n",
+        RT_LOGI("S iarr[%d]+((rt_word)+iarr[%d]<<1) = %d, "
+                  "iarr[%d]-((rt_word)-iarr[%d]>>2) = %d\n",
                 j, j, iso1[j], j, j, iso2[j]);
-
     }
 }
 
@@ -1026,7 +1029,6 @@ rt_void p_test09(rt_SIMD_INFOX *info)
 
         RT_LOGI("S iarr[%d]*iarr[%d] = %d, iarr[%d]/iarr[%d] = %d\n",
                 j, (j + S) % n, iso1[j], j, (j + S) % n, iso2[j]);
-
     }
 }
 
@@ -1233,7 +1235,6 @@ rt_void p_test11(rt_SIMD_INFOX *info)
 
         RT_LOGI("S iarr[%d]|(iarr[%d]<<7) = %d, iarr[%d]^(iarr[%d]>>3) = %d\n",
                 j, j, iso1[j], j, j, iso2[j]);
-
     }
 }
 
@@ -1341,7 +1342,6 @@ rt_void p_test12(rt_SIMD_INFOX *info)
 
         RT_LOGI("S iarr[%d]&(iarr[%d]<<7) = %d, ~iarr[%d]&(iarr[%d]>>3) = %d\n",
                 j, j, iso1[j], j, j, iso2[j]);
-
     }
 }
 
@@ -1633,7 +1633,7 @@ rt_void p_test14(rt_SIMD_INFOX *info)
 rt_void c_test15(rt_SIMD_INFOX *info)
 {
     rt_cell i, j, n = info->size;
-    rt_real *far0 = info->far0;
+    rt_cell *iar0 = info->iar0;
     rt_cell *ico1 = info->ico1;
     rt_cell *ico2 = info->ico2;
 
@@ -1643,11 +1643,8 @@ rt_void c_test15(rt_SIMD_INFOX *info)
         j = n;
         while (j-->0)
         {
-            rt_word q = 0xFFFFFFFF; /* -qnan */
-            rt_real f = far0[j] + *(rt_real *)&q; /* generates +qnan */
-
-            ico1[j] = far0[j] < *(rt_real *)&q ? 0xFFFFFFFF : 0x00000000;
-            ico2[j] = *(rt_cell *)&f | 0x80000000; /* fix to -qnan */
+            ico1[j] = +iar0[j] >> 3;
+            ico2[j] = -iar0[j] >> 5;
         }
     }
 }
@@ -1661,39 +1658,33 @@ rt_void s_test15(rt_SIMD_INFOX *info)
     {
         ASM_ENTER(info)
 
-        movxx_ld(Recx, Mebp, inf_FAR0)
+        movxx_ld(Resi, Mebp, inf_IAR0)
         movxx_ld(Redx, Mebp, inf_ISO1)
         movxx_ld(Rebx, Mebp, inf_ISO2)
 
-        xorpx_rr(Xmm0, Xmm0)
-        ceqps_rr(Xmm0, Xmm0) /* generate -qnan */
-
-        /* 0th section */
-        movpx_ld(Xmm1, Mecx, AJ0)
-        movpx_rr(Xmm2, Xmm1)
-        cltps_rr(Xmm2, Xmm0)
+        movpx_ld(Xmm2, Mesi, AJ0)
+        xorpx_rr(Xmm3, Xmm3)
+        subpx_rr(Xmm3, Xmm2)
+        shrpn_ri(Xmm2, IB(3))
+        shrpn_ri(Xmm3, IB(5))
         movpx_st(Xmm2, Medx, AJ0)
+        movpx_st(Xmm3, Mebx, AJ0)
 
-        addps_rr(Xmm1, Xmm0)
-        movpx_st(Xmm1, Mebx, AJ0)
-
-        /* 1st section */
-        movpx_ld(Xmm1, Mecx, AJ1)
-        movpx_rr(Xmm2, Xmm1)
-        cltps_rr(Xmm2, Xmm0)
+        movpx_ld(Xmm2, Mesi, AJ1)
+        xorpx_rr(Xmm3, Xmm3)
+        subpx_rr(Xmm3, Xmm2)
+        shrpn_ri(Xmm2, IB(3))
+        shrpn_ri(Xmm3, IB(5))
         movpx_st(Xmm2, Medx, AJ1)
+        movpx_st(Xmm3, Mebx, AJ1)
 
-        addps_rr(Xmm1, Xmm0)
-        movpx_st(Xmm1, Mebx, AJ1)
-
-        /* 2nd section */
-        movpx_ld(Xmm1, Mecx, AJ2)
-        movpx_rr(Xmm2, Xmm1)
-        cltps_rr(Xmm2, Xmm0)
+        movpx_ld(Xmm2, Mesi, AJ2)
+        xorpx_rr(Xmm3, Xmm3)
+        subpx_rr(Xmm3, Xmm2)
+        shrpn_ri(Xmm2, IB(3))
+        shrpn_ri(Xmm3, IB(5))
         movpx_st(Xmm2, Medx, AJ2)
-
-        addps_rr(Xmm1, Xmm0)
-        movpx_st(Xmm1, Mebx, AJ2)
+        movpx_st(Xmm3, Mebx, AJ2)
 
         ASM_LEAVE(info)
     }
@@ -1703,7 +1694,7 @@ rt_void p_test15(rt_SIMD_INFOX *info)
 {
     rt_cell j, n = info->size;
 
-    rt_real *far0 = info->far0;
+    rt_cell *iar0 = info->iar0;
     rt_cell *ico1 = info->ico1;
     rt_cell *ico2 = info->ico2;
     rt_cell *iso1 = info->iso1;
@@ -1717,15 +1708,14 @@ rt_void p_test15(rt_SIMD_INFOX *info)
             continue;
         }
 
-        RT_LOGI("farr[%d] = %e\n",
-                j, far0[j]);
+        RT_LOGI("iarr[%d] = %d\n",
+                j, iar0[j]);
 
-        RT_LOGI("C farr[%d]<-qnan = %X, farr[%d]+-qnan = %X\n",
+        RT_LOGI("C +iarr[%d]>>3 = %d, -iarr[%d]>>5 = %d\n",
                 j, ico1[j], j, ico2[j]);
 
-        RT_LOGI("S farr[%d]<-qnan = %X, farr[%d]+-qnan = %X\n",
+        RT_LOGI("S +iarr[%d]>>3 = %d, -iarr[%d]>>5 = %d\n",
                 j, iso1[j], j, iso2[j]);
-
     }
 }
 
