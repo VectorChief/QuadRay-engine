@@ -2372,7 +2372,7 @@ rt_void rt_Surface::update_fields()
     s_srf->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
     s_srf->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
     s_srf->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_srf->a_sgn[RT_L] = 0;
+    s_srf->a_sgn[RT_L] = shift * RT_SIMD_WIDTH * 4;
 
     /* trnode's simd ptr is needed in rendering backend
      * to check if surface and its clippers belong to the same trnode */
@@ -2853,6 +2853,26 @@ rt_void rt_Quadric::update_fields()
 }
 
 /*
+ * Commit SIMD fields after update in sub-classes.
+ */
+rt_void rt_Quadric::commit_fields()
+{
+    if (obj_changed == 0)
+    {
+        return;
+    }
+
+    RT_SIMD_SET(s_srf->sci_x, shape->sci[RT_X]);
+    RT_SIMD_SET(s_srf->sci_y, shape->sci[RT_Y]);
+    RT_SIMD_SET(s_srf->sci_z, shape->sci[RT_Z]);
+    RT_SIMD_SET(s_srf->sci_w, shape->sci[RT_W]);
+
+    RT_SIMD_SET(s_srf->scj_x, shape->scj[RT_X] * 0.5f);
+    RT_SIMD_SET(s_srf->scj_y, shape->scj[RT_Y] * 0.5f);
+    RT_SIMD_SET(s_srf->scj_z, shape->scj[RT_Z] * 0.5f);
+}
+
+/*
  * Adjust local space bounding and clipping boxes according to surface shape.
  */
 rt_void rt_Quadric::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
@@ -2926,6 +2946,8 @@ rt_void rt_Cylinder::update_fields()
 
     shape->sci[mp_k] = 0.0f;
     shape->sci[RT_W] = xcl->rad * xcl->rad;
+
+    rt_Quadric::commit_fields();
 }
 
 /*
@@ -3026,6 +3048,8 @@ rt_void rt_Sphere::update_fields()
     rt_Quadric::update_fields();
 
     shape->sci[RT_W] = xsp->rad * xsp->rad;
+
+    rt_Quadric::commit_fields();
 }
 
 /*
@@ -3154,6 +3178,8 @@ rt_void rt_Cone::update_fields()
     rt_Quadric::update_fields();
 
     shape->sci[mp_k] = -(xcn->rat * xcn->rat);
+
+    rt_Quadric::commit_fields();
 }
 
 /*
@@ -3270,6 +3296,8 @@ rt_void rt_Paraboloid::update_fields()
 
     shape->sci[mp_k] = 0.0f;
     shape->scj[mp_k] = xpb->par * (rt_real)sgn[RT_K];
+
+    rt_Quadric::commit_fields();
 }
 
 /*
@@ -3398,6 +3426,8 @@ rt_void rt_Hyperboloid::update_fields()
 
     shape->sci[mp_k] = -(xhb->rat * xhb->rat);
     shape->sci[RT_W] = xhb->hyp;
+
+    rt_Quadric::commit_fields();
 }
 
 /*
@@ -3516,6 +3546,8 @@ rt_void rt_ParaCylinder::update_fields()
     shape->sci[mp_j] = 0.0f;
     shape->sci[mp_k] = 0.0f;
     shape->scj[mp_k] = xpc->par * (rt_real)sgn[RT_K];
+
+    rt_Quadric::commit_fields();
 }
 
 /*
@@ -3642,6 +3674,8 @@ rt_void rt_HyperCylinder::update_fields()
     shape->sci[mp_j] = 0.0f;
     shape->sci[mp_k] = -(xhc->rat * xhc->rat);
     shape->sci[RT_W] = xhc->hyp;
+
+    rt_Quadric::commit_fields();
 }
 
 /*
@@ -3759,6 +3793,8 @@ rt_void rt_HyperParaboloid::update_fields()
     shape->sci[mp_j] = 1.0f / -RT_FABS(xhp->pr2);
     shape->sci[mp_k] = 0.0f;
     shape->scj[mp_k] = 1.0f * (rt_real)sgn[RT_K];
+
+    rt_Quadric::commit_fields();
 }
 
 /*

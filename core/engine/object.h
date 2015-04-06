@@ -646,6 +646,8 @@ class rt_Quadric : public rt_Surface
 
     virtual
     rt_void update_fields();
+
+    rt_void commit_fields();
 };
 
 /******************************************************************************/

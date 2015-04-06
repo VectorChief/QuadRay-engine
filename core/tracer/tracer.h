@@ -295,6 +295,12 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr clp_hp;
 #define inf_CLP_HP          DP(Q*0x100+0x144)
 
+    rt_pntr ptr_qd;
+#define inf_PTR_QD          DP(Q*0x100+0x148)
+
+    rt_pntr clp_qd;
+#define inf_CLP_QD          DP(Q*0x100+0x14C)
+
 };
 
 /******************************************************************************/
@@ -768,10 +774,34 @@ struct rt_SIMD_SURFACE
     rt_real tck_z[S];
 #define srf_TCK_Z           DP(Q*0x1C0)
 
+    /* geometry scaling coeffs */
+
+    rt_real sci_x[S];
+#define srf_SCI_X           DP(Q*0x1D0)
+
+    rt_real sci_y[S];
+#define srf_SCI_Y           DP(Q*0x1E0)
+
+    rt_real sci_z[S];
+#define srf_SCI_Z           DP(Q*0x1F0)
+
+    rt_real sci_w[S];
+#define srf_SCI_W           DP(Q*0x200)
+
+
+    rt_real scj_x[S];
+#define srf_SCJ_X           DP(Q*0x210)
+
+    rt_real scj_y[S];
+#define srf_SCJ_Y           DP(Q*0x220)
+
+    rt_real scj_z[S];
+#define srf_SCJ_Z           DP(Q*0x230)
+
     /* reserved area 1 */
 
-    rt_real pad01[S*3];
-#define srf_PAD01           DP(Q*0x1D0)
+    rt_real pad01[S*12];
+#define srf_PAD01           DP(Q*0x240)
 
 };
 
@@ -786,16 +816,16 @@ struct rt_SIMD_SURFACE
 struct rt_SIMD_PLANE : public rt_SIMD_SURFACE
 {
     rt_real msc_0[S];
-#define xpl_MSC_0           DP(Q*0x200)
+#define xpl_MSC_0           DP(Q*0x300)
 
     rt_cell msc_1[S];
-#define xpl_MSC_1           DP(Q*0x210)
+#define xpl_MSC_1           DP(Q*0x310)
 
     rt_cell msc_2[S];
-#define xpl_MSC_2           DP(Q*0x220)
+#define xpl_MSC_2           DP(Q*0x320)
 
     rt_real msc_3[S];
-#define xpl_MSC_3           DP(Q*0x230)
+#define xpl_MSC_3           DP(Q*0x330)
 
 };
 
@@ -810,16 +840,16 @@ struct rt_SIMD_PLANE : public rt_SIMD_SURFACE
 struct rt_SIMD_CYLINDER : public rt_SIMD_SURFACE
 {
     rt_real rad_2[S];
-#define xcl_RAD_2           DP(Q*0x200)
+#define xcl_RAD_2           DP(Q*0x300)
 
     rt_real msc_1[S];
-#define xcl_MSC_1           DP(Q*0x210)
+#define xcl_MSC_1           DP(Q*0x310)
 
     rt_real msc_2[S];
-#define xcl_MSC_2           DP(Q*0x220)
+#define xcl_MSC_2           DP(Q*0x320)
 
     rt_real msc_3[S];
-#define xcl_MSC_3           DP(Q*0x230)
+#define xcl_MSC_3           DP(Q*0x330)
 
 };
 
@@ -834,16 +864,16 @@ struct rt_SIMD_CYLINDER : public rt_SIMD_SURFACE
 struct rt_SIMD_SPHERE : public rt_SIMD_SURFACE
 {
     rt_real rad_2[S];
-#define xsp_RAD_2           DP(Q*0x200)
+#define xsp_RAD_2           DP(Q*0x300)
 
     rt_real msc_1[S];
-#define xsp_MSC_1           DP(Q*0x210)
+#define xsp_MSC_1           DP(Q*0x310)
 
     rt_real msc_2[S];
-#define xsp_MSC_2           DP(Q*0x220)
+#define xsp_MSC_2           DP(Q*0x320)
 
     rt_real msc_3[S];
-#define xsp_MSC_3           DP(Q*0x230)
+#define xsp_MSC_3           DP(Q*0x330)
 
 };
 
@@ -858,16 +888,16 @@ struct rt_SIMD_SPHERE : public rt_SIMD_SURFACE
 struct rt_SIMD_CONE : public rt_SIMD_SURFACE
 {
     rt_real rat_2[S];
-#define xcn_RAT_2           DP(Q*0x200)
+#define xcn_RAT_2           DP(Q*0x300)
 
     rt_real n_rat[S];
-#define xcn_N_RAT           DP(Q*0x210)
+#define xcn_N_RAT           DP(Q*0x310)
 
     rt_real msc_2[S];
-#define xcn_MSC_2           DP(Q*0x220)
+#define xcn_MSC_2           DP(Q*0x320)
 
     rt_real msc_3[S];
-#define xcn_MSC_3           DP(Q*0x230)
+#define xcn_MSC_3           DP(Q*0x330)
 
 };
 
@@ -882,16 +912,16 @@ struct rt_SIMD_CONE : public rt_SIMD_SURFACE
 struct rt_SIMD_PARABOLOID : public rt_SIMD_SURFACE
 {
     rt_real par_2[S];
-#define xpb_PAR_2           DP(Q*0x200)
+#define xpb_PAR_2           DP(Q*0x300)
 
     rt_real n_par[S];
-#define xpb_N_PAR           DP(Q*0x210)
+#define xpb_N_PAR           DP(Q*0x310)
 
     rt_real msc_2[S];
-#define xpb_MSC_2           DP(Q*0x220)
+#define xpb_MSC_2           DP(Q*0x320)
 
     rt_real msc_3[S];
-#define xpb_MSC_3           DP(Q*0x230)
+#define xpb_MSC_3           DP(Q*0x330)
 
 };
 
@@ -906,16 +936,16 @@ struct rt_SIMD_PARABOLOID : public rt_SIMD_SURFACE
 struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
 {
     rt_real rat_2[S];
-#define xhb_RAT_2           DP(Q*0x200)
+#define xhb_RAT_2           DP(Q*0x300)
 
     rt_real n_rat[S];
-#define xhb_N_RAT           DP(Q*0x210)
+#define xhb_N_RAT           DP(Q*0x310)
 
     rt_real hyp_k[S];
-#define xhb_HYP_K           DP(Q*0x220)
+#define xhb_HYP_K           DP(Q*0x320)
 
     rt_real msc_3[S];
-#define xhb_MSC_3           DP(Q*0x230)
+#define xhb_MSC_3           DP(Q*0x330)
 
 };
 
@@ -930,16 +960,16 @@ struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
 struct rt_SIMD_PARACYLINDER : public rt_SIMD_SURFACE
 {
     rt_real par_2[S];
-#define xpc_PAR_2           DP(Q*0x200)
+#define xpc_PAR_2           DP(Q*0x300)
 
     rt_real n_par[S];
-#define xpc_N_PAR           DP(Q*0x210)
+#define xpc_N_PAR           DP(Q*0x310)
 
     rt_real msc_2[S];
-#define xpc_MSC_2           DP(Q*0x220)
+#define xpc_MSC_2           DP(Q*0x320)
 
     rt_real msc_3[S];
-#define xpc_MSC_3           DP(Q*0x230)
+#define xpc_MSC_3           DP(Q*0x330)
 
 };
 
@@ -954,16 +984,16 @@ struct rt_SIMD_PARACYLINDER : public rt_SIMD_SURFACE
 struct rt_SIMD_HYPERCYLINDER : public rt_SIMD_SURFACE
 {
     rt_real rat_2[S];
-#define xhc_RAT_2           DP(Q*0x200)
+#define xhc_RAT_2           DP(Q*0x300)
 
     rt_real n_rat[S];
-#define xhc_N_RAT           DP(Q*0x210)
+#define xhc_N_RAT           DP(Q*0x310)
 
     rt_real hyp_k[S];
-#define xhc_HYP_K           DP(Q*0x220)
+#define xhc_HYP_K           DP(Q*0x320)
 
     rt_real msc_3[S];
-#define xhc_MSC_3           DP(Q*0x230)
+#define xhc_MSC_3           DP(Q*0x330)
 
 };
 
@@ -978,16 +1008,16 @@ struct rt_SIMD_HYPERCYLINDER : public rt_SIMD_SURFACE
 struct rt_SIMD_HYPERPARABOLOID : public rt_SIMD_SURFACE
 {
     rt_real i_pr1[S];
-#define xhp_I_PR1           DP(Q*0x200)
+#define xhp_I_PR1           DP(Q*0x300)
 
     rt_real i_pr2[S];
-#define xhp_I_PR2           DP(Q*0x210)
+#define xhp_I_PR2           DP(Q*0x310)
 
     rt_real n_pr1[S];
-#define xhp_N_PR1           DP(Q*0x220)
+#define xhp_N_PR1           DP(Q*0x320)
 
     rt_real n_pr2[S];
-#define xhp_N_PR2           DP(Q*0x230)
+#define xhp_N_PR2           DP(Q*0x330)
 
 };
 
