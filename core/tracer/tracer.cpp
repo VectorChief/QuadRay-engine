@@ -185,15 +185,13 @@
  * based on the side of the clipping surface.
  */
 #define APPLY_CLIP(lb, RG, RM) /* destroys Reax */                          \
-        movxx_ri(Reax, IB(1))                                               \
-        subxx_ld(Reax, Medi, elm_DATA)                                      \
-        shlxx_ri(Reax, IB(3))                                               \
+        movxx_ld(Reax, Medi, elm_DATA)                                      \
         cmpxx_ri(Reax, IB(0))                                               \
-        jgtxx_lb(lb##_cs1)                                                  \
+        jltxn_lb(lb##_cs1)                      /* signed comparison */     \
         cleps_rr(W(RG), W(RM))                                              \
         jmpxx_lb(lb##_cs2)                                                  \
     LBL(lb##_cs1)                                                           \
-        cgtps_rr(W(RG), W(RM))                                              \
+        cgeps_rr(W(RG), W(RM))                                              \
     LBL(lb##_cs2)
 
 /*
