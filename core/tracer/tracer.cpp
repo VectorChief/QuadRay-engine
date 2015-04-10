@@ -408,10 +408,10 @@
  * for quick entry point resolution.
  */
 static
-rt_pntr t_ptr[RT_TAG_SURFACE_MAX + 1];
+rt_pntr t_ptr[RT_TAG_SURFACE_MAX + 2];
 
 static
-rt_pntr t_clp[RT_TAG_SURFACE_MAX + 1];
+rt_pntr t_clp[RT_TAG_SURFACE_MAX + 2];
 
 static
 rt_pntr t_pow[6];
@@ -474,8 +474,14 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
 
     /* save surface's entry points from local pointer tables
      * filled during backend's one-time initialization */
-    s_srf->srf_p[0] = t_ptr[tag > RT_TAG_PLANE ? RT_TAG_SURFACE_MAX : tag];
-    s_srf->srf_p[2] = t_clp[tag > RT_TAG_PLANE ? RT_TAG_SURFACE_MAX : tag];
+    s_srf->srf_p[0] = t_ptr[tag > RT_TAG_PLANE ? 
+                            tag == RT_TAG_HYPERCYLINDER &&
+                            ((rt_SIMD_HYPERCYLINDER *)s_srf)->hyp_k[0] == 0.0f?
+                            RT_TAG_SURFACE_MAX+0 : RT_TAG_SURFACE_MAX+1 : tag];
+    s_srf->srf_p[2] = t_clp[tag > RT_TAG_PLANE ? 
+                            tag == RT_TAG_HYPERCYLINDER &&
+                            ((rt_SIMD_HYPERCYLINDER *)s_srf)->hyp_k[0] == 0.0f?
+                            RT_TAG_SURFACE_MAX+0 : RT_TAG_SURFACE_MAX+1 : tag];
 
     /* update surface's materials for each side */
     update_mat((rt_SIMD_MATERIAL *)s_srf->mat_p[0]);
@@ -4490,7 +4496,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         adrxx_lb(HP_ptr)                        /* load HP_ptr to Reax */
         movxx_st(Reax, Mebp, inf_PTR_HP)
-        jmpxx_lb(fetch_QD_ptr)
+        jmpxx_lb(fetch_TP_ptr)
 
     LBL(HP_ptr)
 
@@ -4782,7 +4788,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         adrxx_lb(HP_clp)                        /* load HP_clp to Reax */
         movxx_st(Reax, Mebp, inf_CLP_HP)
-        jmpxx_lb(fetch_QD_clp)
+        jmpxx_lb(fetch_TP_clp)
 
     LBL(HP_clp)
 
@@ -4814,6 +4820,296 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #endif /* RT_FEAT_CLIPPING_CUSTOM */
 
 /******************************************************************************/
+/*******************************   TWO-PLANE   ********************************/
+/******************************************************************************/
+
+    LBL(fetch_TP_ptr)
+
+        adrxx_lb(TP_ptr)                        /* load TP_ptr to Reax */
+        movxx_st(Reax, Mebp, inf_PTR_TP)
+        jmpxx_lb(fetch_QD_ptr)
+
+    LBL(TP_ptr)
+
+#if RT_SHOW_TILES
+
+        SHOW_TILES(TP, 0x00884444)
+
+#endif /* RT_SHOW_TILES */
+
+        /* "i" section */
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
+        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
+        movpx_rr(Xmm3, Xmm1)                    /* ray_i <- ray_i */
+        mulps_rr(Xmm3, Xmm5)                    /* ray_i *= dff_i */
+
+        /* "k" section */
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
+        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
+        movpx_rr(Xmm4, Xmm2)                    /* ray_k <- ray_k */
+        mulps_rr(Xmm4, Xmm6)                    /* ray_k *= dff_k */
+
+        /* "*" section */
+        movpx_rr(Xmm0, Xmm5)                    /* dff_i <- dff_i */
+        movpx_rr(Xmm7, Xmm6)                    /* dff_k <- dff_k */
+        mulps_rr(Xmm0, Xmm5)                    /* dff_i *= dff_i */
+        mulps_rr(Xmm7, Xmm6)                    /* dff_k *= dff_k */
+        mulps_rr(Xmm6, Xmm1)                    /* dff_k *= ray_i */
+        mulps_rr(Xmm5, Xmm2)                    /* dff_i *= ray_k */
+
+        mulps_ld(Xmm7, Mebx, xhc_RAT_2)         /* cxx_k *= RAT_2 */
+        subps_rr(Xmm0, Xmm7)                    /* cxx_i -= cxx_k */
+        movpx_ld(Xmm7, Mebx, xhc_RAT_2)         /* rat_2 <- RAT_2 */
+        mulps_rr(Xmm4, Xmm7)                    /* bxx_k *= rat_2 */
+
+        mulps_rr(Xmm1, Xmm1)                    /* ray_i *= ray_i */
+        mulps_rr(Xmm2, Xmm2)                    /* ray_k *= ray_k */
+        mulps_rr(Xmm2, Xmm7)                    /* axx_k *= rat_2 */
+
+        /* "-" section */
+        subps_rr(Xmm1, Xmm2)                    /* axx_i -= axx_k */
+        subps_rr(Xmm3, Xmm4)                    /* bxx_i -= bxx_k */
+        subps_rr(Xmm5, Xmm6)                    /* dxx_i -= dxx_k */
+
+        /* "d" section */
+        movpx_rr(Xmm6, Xmm0)                    /* c_val <- c_val */
+        andpx_ld(Xmm5, Mebp, inf_GPC04)         /* dxx_t = |dxx_t|*/
+        mulps_ld(Xmm5, Mebx, xhc_RAT_K)         /* dxx_t *= RAT_K */
+        movpx_rr(Xmm4, Xmm3)                    /* b_val <- b_val */
+        movpx_rr(Xmm3, Xmm5)                    /* d_val <- d_val */
+
+        /* create xmask */
+        xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
+        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
+        CHECK_MASK(OO_end, NONE, Xmm7)
+
+        /* "tt" section */
+        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
+        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
+        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
+
+        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
+        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
+        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
+        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
+        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
+
+        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
+        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
+        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
+        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
+        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
+        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
+
+        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
+        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
+        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
+        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
+        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
+        orrpx_rr(Xmm0, Xmm1)                    /* a_pos |= a_neg */
+        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
+
+        /* "aa" section */
+        movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
+        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
+        cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
+        CHECK_MASK(TP_rt2, FULL, Xmm5)
+        jmpxx_lb(TP_rt1)
+
+/******************************************************************************/
+    LBL(TP_rs1)
+
+        movpx_ld(Xmm4, Mecx, ctx_XTMP1)         /* bdval <- XTMP1 */
+        movpx_ld(Xmm1, Mecx, ctx_XTMP2)         /* a_val <- XTMP2 */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+
+    LBL(TP_rt1)
+
+        /* side count check */
+        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
+        jeqxx_lb(OO_end)
+        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
+
+        /* outer side */
+        CHECK_SIDE(TP_sd1, TP_rt2, RT_FLAG_SIDE_OUTER)
+
+        /* if "Xvars" are needed outside of the solvers,
+         * swap this block with CHECK_SIDE macro above */
+        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
+        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
+
+        /* "t1" section */
+        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
+        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
+
+        /* clipping */
+        SUBROUTINE(TP_cp1, CC_clp)
+        CHECK_MASK(TP_rs2, NONE, Xmm7)
+        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
+
+        /* material */
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
+        SUBROUTINE(TP_mt1, TP_mat)
+
+        /* side count check */
+        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
+        jeqxx_lb(OO_end)
+
+        /* optimize overdraw */
+        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
+        CHECK_MASK(OO_end, FULL, Xmm7)
+
+/******************************************************************************/
+    LBL(TP_rs2)
+
+        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+
+    LBL(TP_rt2)
+
+        /* side count check */
+        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
+        jeqxx_lb(OO_end)
+        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
+
+        /* inner side */
+        CHECK_SIDE(TP_sd2, TP_rt1, RT_FLAG_SIDE_INNER)
+
+        /* if "Xvars" are needed outside of the solvers,
+         * swap this block with CHECK_SIDE macro above */
+        movpx_st(Xmm4, Mecx, ctx_XTMP1)         /* bdval -> XTMP1 */
+        movpx_st(Xmm1, Mecx, ctx_XTMP2)         /* a_val -> XTMP2 */
+        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
+
+        /* "t2" section */
+        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
+        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
+
+        /* clipping */
+        SUBROUTINE(TP_cp2, CC_clp)
+        CHECK_MASK(TP_rs1, NONE, Xmm7)
+        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
+
+        /* material */
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
+        SUBROUTINE(TP_mt2, TP_mat)
+
+        /* side count check */
+        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
+        jeqxx_lb(OO_end)
+
+        /* optimize overdraw */
+        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
+        CHECK_MASK(OO_end, FULL, Xmm7)
+
+        jmpxx_lb(TP_rs1)
+
+/******************************************************************************/
+    LBL(TP_mat)
+
+        FETCH_PROP()                            /* Xmm7  <- ssign */
+
+#if RT_FEAT_LIGHTS_SHADOWS
+
+        CHECK_SHAD(TP_shd)
+
+#endif /* RT_FEAT_LIGHTS_SHADOWS */
+
+#if RT_FEAT_NORMALS
+
+        /* compute normal, if enabled */
+        CHECK_PROP(TP_nrm, RT_PROP_NORMAL)
+
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        MOVXR_LD(Xmm6, Iecx, ctx_NEW_O)         /* loc_k <- NEW_K */
+        xorpx_ld(Xmm6, Mebx, srf_SMASK)         /* loc_k = -loc_k */
+        movpx_ld(Xmm1, Mebx, xhc_N_RAT)         /* n_rat <- N_RAT */
+        mulps_rr(Xmm1, Xmm6)                    /* n_rat *= loc_k */
+        mulps_rr(Xmm1, Xmm6)                    /* n_rat *= loc_k */
+        rsqps_rr(Xmm3, Xmm1)                    /* i_rat rs n_rat */
+        mulps_ld(Xmm6, Mebx, xhc_RAT_2)         /* rat_2 <- RAT_2 */
+        mulps_rr(Xmm6, Xmm3)                    /* rat_2 *= i_rat */
+        xorpx_rr(Xmm6, Xmm7)                    /* rat_2 ^= ssign */
+
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        MOVXR_LD(Xmm4, Iecx, ctx_NEW_O)         /* loc_i <- NEW_I */
+        mulps_rr(Xmm4, Xmm3)                    /* loc_i *= i_rat */
+        xorpx_rr(Xmm4, Xmm7)                    /* loc_i ^= ssign */
+
+        /* renormalize normal */
+        movpx_rr(Xmm1, Xmm4)                    /* loc_i <- loc_i */
+        movpx_rr(Xmm3, Xmm6)                    /* loc_k <- loc_k */
+
+        mulps_rr(Xmm1, Xmm4)                    /* loc_i *= loc_i */
+        mulps_rr(Xmm3, Xmm6)                    /* loc_k *= loc_k */
+
+        addps_rr(Xmm1, Xmm3)                    /* lc2_i += lc2_k */
+        rsqps_rr(Xmm0, Xmm1)                    /* i_len rs n_len */
+
+        mulps_rr(Xmm4, Xmm0)                    /* loc_i *= i_len */
+        mulps_rr(Xmm6, Xmm0)                    /* loc_k *= i_len */
+
+        /* store normal */
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        MOVXR_ST(Xmm4, Iecx, ctx_NRM_O)         /* nrm_i -> NRM_I */
+
+        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        MOVZR_ST(Xmm5, Iecx, ctx_NRM_O)         /* 0     -> NRM_J */
+
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        MOVXR_ST(Xmm6, Iecx, ctx_NRM_O)         /* nrm_k -> NRM_K */
+
+        jmpxx_lb(MT_nrm)
+
+    LBL(TP_nrm)
+
+#endif /* RT_FEAT_NORMALS */
+
+        jmpxx_lb(MT_mat)
+
+/******************************************************************************/
+#if RT_FEAT_CLIPPING_CUSTOM
+
+    LBL(fetch_TP_clp)
+
+        adrxx_lb(TP_clp)                        /* load TP_clp to Reax */
+        movxx_st(Reax, Mebp, inf_CLP_TP)
+        jmpxx_lb(fetch_QD_clp)
+
+    LBL(TP_clp)
+
+        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        MOVXR_LD(Xmm4, Iecx, ctx_NRM_O)         /* dff_i <- NRM_I */
+        mulps_rr(Xmm4, Xmm4)                    /* dff_i *= dff_i */
+
+        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        MOVXR_LD(Xmm6, Iecx, ctx_NRM_O)         /* dff_k <- NRM_K */
+        mulps_rr(Xmm6, Xmm6)                    /* dff_k *= dff_k */
+        mulps_ld(Xmm6, Mebx, xhc_RAT_2)         /* df2_k *= RAT_2 */
+
+        APPLY_CLIP(TP, Xmm4, Xmm6)
+
+        jmpxx_lb(CC_ret)
+
+#endif /* RT_FEAT_CLIPPING_CUSTOM */
+
+/******************************************************************************/
 /********************************   QUADRIC   *********************************/
 /******************************************************************************/
 
@@ -4827,7 +5123,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_SHOW_TILES
 
-        SHOW_TILES(QD, 0x00884444)
+        SHOW_TILES(QD, 0x00448844)
 
 #endif /* RT_SHOW_TILES */
 
@@ -5084,6 +5380,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm5, Xmm7)
         xorpx_rr(Xmm6, Xmm7)
 
+        /* store normal */
         movpx_st(Xmm4, Iecx, ctx_NRM_X)
         movpx_st(Xmm5, Iecx, ctx_NRM_Y)
         movpx_st(Xmm6, Iecx, ctx_NRM_Z)
@@ -5332,7 +5629,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     t_ptr[RT_TAG_PARACYLINDER]      = s_inf->ptr_pc;
     t_ptr[RT_TAG_HYPERCYLINDER]     = s_inf->ptr_hc;
     t_ptr[RT_TAG_HYPERPARABOLOID]   = s_inf->ptr_hp;
-    t_ptr[RT_TAG_SURFACE_MAX]       = s_inf->ptr_qd;
+    t_ptr[RT_TAG_SURFACE_MAX + 0]   = s_inf->ptr_tp;
+    t_ptr[RT_TAG_SURFACE_MAX + 1]   = s_inf->ptr_qd;
 
     t_clp[RT_TAG_PLANE]             = s_inf->clp_pl;
     t_clp[RT_TAG_CYLINDER]          = s_inf->clp_cl;
@@ -5343,7 +5641,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     t_clp[RT_TAG_PARACYLINDER]      = s_inf->clp_pc;
     t_clp[RT_TAG_HYPERCYLINDER]     = s_inf->clp_hc;
     t_clp[RT_TAG_HYPERPARABOLOID]   = s_inf->clp_hp;
-    t_clp[RT_TAG_SURFACE_MAX]       = s_inf->clp_qd;
+    t_clp[RT_TAG_SURFACE_MAX + 0]   = s_inf->clp_tp;
+    t_clp[RT_TAG_SURFACE_MAX + 1]   = s_inf->clp_qd;
 
     t_pow[0]                        = s_inf->pow_e0;
     t_pow[1]                        = s_inf->pow_e1;
@@ -5361,6 +5660,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     /* RT_LOGI("PC ptr = %p\n", s_inf->ptr_pc); */
     /* RT_LOGI("HC ptr = %p\n", s_inf->ptr_hc); */
     /* RT_LOGI("HP ptr = %p\n", s_inf->ptr_hp); */
+    /* RT_LOGI("TP ptr = %p\n", s_inf->ptr_tp); */
     /* RT_LOGI("QD ptr = %p\n", s_inf->ptr_qd); */
 
     /* RT_LOGI("PL clp = %p\n", s_inf->clp_pl); */
@@ -5372,6 +5672,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     /* RT_LOGI("PC clp = %p\n", s_inf->clp_pc); */
     /* RT_LOGI("HC clp = %p\n", s_inf->clp_hc); */
     /* RT_LOGI("HP clp = %p\n", s_inf->clp_hp); */
+    /* RT_LOGI("TP clp = %p\n", s_inf->clp_tp); */
     /* RT_LOGI("QD clp = %p\n", s_inf->clp_qd); */
 
     /* RT_LOGI("E0 pow = %p\n", s_inf->pow_e0); */

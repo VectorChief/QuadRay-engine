@@ -295,11 +295,17 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr clp_hp;
 #define inf_CLP_HP          DP(Q*0x100+0x144)
 
+    rt_pntr ptr_tp;
+#define inf_PTR_TP          DP(Q*0x100+0x148)
+
+    rt_pntr clp_tp;
+#define inf_CLP_TP          DP(Q*0x100+0x14C)
+
     rt_pntr ptr_qd;
-#define inf_PTR_QD          DP(Q*0x100+0x148)
+#define inf_PTR_QD          DP(Q*0x100+0x150)
 
     rt_pntr clp_qd;
-#define inf_CLP_QD          DP(Q*0x100+0x14C)
+#define inf_CLP_QD          DP(Q*0x100+0x154)
 
 };
 
@@ -992,8 +998,8 @@ struct rt_SIMD_HYPERCYLINDER : public rt_SIMD_SURFACE
     rt_real hyp_k[S];
 #define xhc_HYP_K           DP(Q*0x320)
 
-    rt_real msc_3[S];
-#define xhc_MSC_3           DP(Q*0x330)
+    rt_real rat_k[S];
+#define xhc_RAT_K           DP(Q*0x330)
 
 };
 

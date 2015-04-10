@@ -3657,6 +3657,7 @@ rt_HyperCylinder::rt_HyperCylinder(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_xhc->rat_2, rat * rat);
     RT_SIMD_SET(s_xhc->n_rat, (1.0f + rat * rat) * rat * rat);
     RT_SIMD_SET(s_xhc->hyp_k, hyp);
+    RT_SIMD_SET(s_xhc->rat_k, rat);
 }
 
 /*
