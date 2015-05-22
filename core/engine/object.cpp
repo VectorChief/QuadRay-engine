@@ -1494,7 +1494,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
 /*  rt_SIMD_SURFACE */
 
     s_bvb = (rt_SIMD_SURFACE *)
-            rg->alloc(RT_MAX(ssize, sizeof(rt_SIMD_SPHERE)), RT_SIMD_ALIGN);
+            rg->alloc(RT_MAX(ssize, sizeof(rt_SIMD_SURFACE)), RT_SIMD_ALIGN);
 
     s_bvb->mat_p[0] = RT_NULL; /* outer material */
     s_bvb->mat_p[1] = RT_NULL; /* outer material props */
@@ -1523,7 +1523,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
 /*  rt_SIMD_SURFACE */
 
     s_inb = (rt_SIMD_SURFACE *)
-            rg->alloc(RT_MAX(ssize, sizeof(rt_SIMD_SPHERE)), RT_SIMD_ALIGN);
+            rg->alloc(RT_MAX(ssize, sizeof(rt_SIMD_SURFACE)), RT_SIMD_ALIGN);
 
     s_inb->mat_p[0] = RT_NULL; /* outer material */
     s_inb->mat_p[1] = RT_NULL; /* outer material props */
@@ -2101,12 +2101,10 @@ rt_void rt_Array::update_bounds()
     {
         update_bbgeom(inbox);
 
-        rt_SIMD_SPHERE *s_xsp = (rt_SIMD_SPHERE *)s_inb;
-
-        RT_SIMD_SET(s_xsp->pos_x, inbox->mid[RT_X]);
-        RT_SIMD_SET(s_xsp->pos_y, inbox->mid[RT_Y]);
-        RT_SIMD_SET(s_xsp->pos_z, inbox->mid[RT_Z]);
-        RT_SIMD_SET(s_xsp->rad_2, inbox->rad * inbox->rad);
+        RT_SIMD_SET(s_inb->pos_x, inbox->mid[RT_X]);
+        RT_SIMD_SET(s_inb->pos_y, inbox->mid[RT_Y]);
+        RT_SIMD_SET(s_inb->pos_z, inbox->mid[RT_Z]);
+        RT_SIMD_SET(s_inb->sci_w, inbox->rad * inbox->rad);
 
         /* contribute trnode array's inbox to trbox if trbox has contents,
          * trbox has priority over bvbox here as bvbox might get split */
@@ -2181,12 +2179,10 @@ rt_void rt_Array::update_bounds()
     {
         update_bbgeom(bvbox);
 
-        rt_SIMD_SPHERE *s_xsp = (rt_SIMD_SPHERE *)s_bvb;
-
-        RT_SIMD_SET(s_xsp->pos_x, bvbox->mid[RT_X]);
-        RT_SIMD_SET(s_xsp->pos_y, bvbox->mid[RT_Y]);
-        RT_SIMD_SET(s_xsp->pos_z, bvbox->mid[RT_Z]);
-        RT_SIMD_SET(s_xsp->rad_2, bvbox->rad * bvbox->rad);
+        RT_SIMD_SET(s_bvb->pos_x, bvbox->mid[RT_X]);
+        RT_SIMD_SET(s_bvb->pos_y, bvbox->mid[RT_Y]);
+        RT_SIMD_SET(s_bvb->pos_z, bvbox->mid[RT_Z]);
+        RT_SIMD_SET(s_bvb->sci_w, bvbox->rad * bvbox->rad);
     }
 
     /* update trbox's geometry */
@@ -2725,7 +2721,7 @@ rt_Surface::~rt_Surface()
 rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
                    rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Surface(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_PLANE)))
+    rt_Surface(rg, parent, obj, ssize)
 {
     xpl = (rt_PLANE *)obj->obj.pobj;
 
@@ -2900,7 +2896,7 @@ rt_Quadric::~rt_Quadric()
 rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
                          rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_CYLINDER)))
+    rt_Quadric(rg, parent, obj, ssize)
 {
     xcl = (rt_CYLINDER *)obj->obj.pobj;
 
@@ -2922,14 +2918,6 @@ rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
                      rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
         memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
-
-/*  rt_SIMD_CYLINDER */
-
-    rt_SIMD_CYLINDER *s_xcl = (rt_SIMD_CYLINDER *)s_srf;
-
-    rt_real rad = RT_FABS(xcl->rad);
-
-    RT_SIMD_SET(s_xcl->rad_2, rad * rad);
 }
 
 /*
@@ -3004,7 +2992,7 @@ rt_Cylinder::~rt_Cylinder()
 rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
                      rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_SPHERE)))
+    rt_Quadric(rg, parent, obj, ssize)
 {
     xsp = (rt_SPHERE *)obj->obj.pobj;
 
@@ -3025,14 +3013,6 @@ rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
                      rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
         memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
-
-/*  rt_SIMD_SPHERE */
-
-    rt_SIMD_SPHERE *s_xsp = (rt_SIMD_SPHERE *)s_srf;
-
-    rt_real rad = RT_FABS(xsp->rad);
-
-    RT_SIMD_SET(s_xsp->rad_2, rad * rad);
 }
 
 /*
@@ -3128,7 +3108,7 @@ rt_Sphere::~rt_Sphere()
 rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
                  rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_CONE)))
+    rt_Quadric(rg, parent, obj, ssize)
 {
     xcn = (rt_CONE *)obj->obj.pobj;
 
@@ -3154,15 +3134,6 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
                      rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
         memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
-
-/*  rt_SIMD_CONE */
-
-    rt_SIMD_CONE *s_xcn = (rt_SIMD_CONE *)s_srf;
-
-    rt_real rat = RT_FABS(xcn->rat);
-
-    RT_SIMD_SET(s_xcn->rat_2, rat * rat);
-    RT_SIMD_SET(s_xcn->n_rat, rat * RT_SQRT(rat * rat + 1.0f));
 }
 
 /*
@@ -3245,7 +3216,7 @@ rt_Cone::~rt_Cone()
 rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
                              rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_PARABOLOID)))
+    rt_Quadric(rg, parent, obj, ssize)
 {
     xpb = (rt_PARABOLOID *)obj->obj.pobj;
 
@@ -3271,15 +3242,6 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
                      rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
         memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
-
-/*  rt_SIMD_PARABOLOID */
-
-    rt_SIMD_PARABOLOID *s_xpb = (rt_SIMD_PARABOLOID *)s_srf;
-
-    rt_real par = xpb->par;
-
-    RT_SIMD_SET(s_xpb->par_2, par / 2.0f);
-    RT_SIMD_SET(s_xpb->n_par, par * par / 4.0f);
 }
 
 /*
@@ -3373,7 +3335,7 @@ rt_Paraboloid::~rt_Paraboloid()
 rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
                                rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_HYPERBOLOID)))
+    rt_Quadric(rg, parent, obj, ssize)
 {
     xhb = (rt_HYPERBOLOID *)obj->obj.pobj;
 
@@ -3399,17 +3361,6 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
                      rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
         memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
-
-/*  rt_SIMD_HYPERBOLOID */
-
-    rt_SIMD_HYPERBOLOID *s_xhb = (rt_SIMD_HYPERBOLOID *)s_srf;
-
-    rt_real rat = RT_FABS(xhb->rat);
-    rt_real hyp = xhb->hyp;
-
-    RT_SIMD_SET(s_xhb->rat_2, rat * rat);
-    RT_SIMD_SET(s_xhb->n_rat, (1.0f + rat * rat) * rat * rat);
-    RT_SIMD_SET(s_xhb->hyp_k, hyp);
 }
 
 /*
@@ -3494,7 +3445,7 @@ rt_Hyperboloid::~rt_Hyperboloid()
 rt_ParaCylinder::rt_ParaCylinder(rt_Registry *rg, rt_Object *parent,
                                  rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_PARACYLINDER)))
+    rt_Quadric(rg, parent, obj, ssize)
 {
     xpc = (rt_PARACYLINDER *)obj->obj.pobj;
 
@@ -3520,15 +3471,6 @@ rt_ParaCylinder::rt_ParaCylinder(rt_Registry *rg, rt_Object *parent,
                      rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
         memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
-
-/*  rt_SIMD_PARACYLINDER */
-
-    rt_SIMD_PARACYLINDER *s_xpc = (rt_SIMD_PARACYLINDER *)s_srf;
-
-    rt_real par = xpc->par;
-
-    RT_SIMD_SET(s_xpc->par_2, par / 2.0f);
-    RT_SIMD_SET(s_xpc->n_par, par * par / 4.0f);
 }
 
 /*
@@ -3740,7 +3682,7 @@ rt_HyperCylinder::~rt_HyperCylinder()
 rt_HyperParaboloid::rt_HyperParaboloid(rt_Registry *rg, rt_Object *parent,
                                        rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_HYPERPARABOLOID)))
+    rt_Quadric(rg, parent, obj, ssize)
 {
     xhp = (rt_HYPERPARABOLOID *)obj->obj.pobj;
 
@@ -3764,18 +3706,6 @@ rt_HyperParaboloid::rt_HyperParaboloid(rt_Registry *rg, rt_Object *parent,
                      rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
         memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
-
-/*  rt_SIMD_HYPERPARABOLOID */
-
-    rt_SIMD_HYPERPARABOLOID *s_xhp = (rt_SIMD_HYPERPARABOLOID *)s_srf;
-
-    rt_real pr1 = RT_FABS(xhp->pr1);
-    rt_real pr2 = RT_FABS(xhp->pr2);
-
-    RT_SIMD_SET(s_xhp->i_pr1, 1.0f / pr1);
-    RT_SIMD_SET(s_xhp->i_pr2, 1.0f / pr2);
-    RT_SIMD_SET(s_xhp->n_pr1, 4.0f / pr1 * pr1);
-    RT_SIMD_SET(s_xhp->n_pr2, 4.0f / pr2 * pr2);
 }
 
 /*

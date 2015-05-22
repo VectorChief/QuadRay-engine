@@ -76,15 +76,7 @@ struct rt_SIMD_CAMERA;
 struct rt_SIMD_LIGHT;
 
 struct rt_SIMD_SURFACE;
-struct rt_SIMD_PLANE;
-struct rt_SIMD_CYLINDER;
-struct rt_SIMD_SPHERE;
-struct rt_SIMD_CONE;
-struct rt_SIMD_PARABOLOID;
-struct rt_SIMD_HYPERBOLOID;
-struct rt_SIMD_PARACYLINDER;
 struct rt_SIMD_HYPERCYLINDER;
-struct rt_SIMD_HYPERPARABOLOID;
 
 struct rt_SIMD_MATERIAL;
 
@@ -247,65 +239,17 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr clp_pl;
 #define inf_CLP_PL          DP(Q*0x100+0x104)
 
-    rt_pntr ptr_cl;
-#define inf_PTR_CL          DP(Q*0x100+0x108)
-
-    rt_pntr clp_cl;
-#define inf_CLP_CL          DP(Q*0x100+0x10C)
-
-    rt_pntr ptr_sp;
-#define inf_PTR_SP          DP(Q*0x100+0x110)
-
-    rt_pntr clp_sp;
-#define inf_CLP_SP          DP(Q*0x100+0x114)
-
-    rt_pntr ptr_cn;
-#define inf_PTR_CN          DP(Q*0x100+0x118)
-
-    rt_pntr clp_cn;
-#define inf_CLP_CN          DP(Q*0x100+0x11C)
-
-    rt_pntr ptr_pb;
-#define inf_PTR_PB          DP(Q*0x100+0x120)
-
-    rt_pntr clp_pb;
-#define inf_CLP_PB          DP(Q*0x100+0x124)
-
-    rt_pntr ptr_hb;
-#define inf_PTR_HB          DP(Q*0x100+0x128)
-
-    rt_pntr clp_hb;
-#define inf_CLP_HB          DP(Q*0x100+0x12C)
-
-    rt_pntr ptr_pc;
-#define inf_PTR_PC          DP(Q*0x100+0x130)
-
-    rt_pntr clp_pc;
-#define inf_CLP_PC          DP(Q*0x100+0x134)
-
-    rt_pntr ptr_hc;
-#define inf_PTR_HC          DP(Q*0x100+0x138)
-
-    rt_pntr clp_hc;
-#define inf_CLP_HC          DP(Q*0x100+0x13C)
-
-    rt_pntr ptr_hp;
-#define inf_PTR_HP          DP(Q*0x100+0x140)
-
-    rt_pntr clp_hp;
-#define inf_CLP_HP          DP(Q*0x100+0x144)
-
     rt_pntr ptr_tp;
-#define inf_PTR_TP          DP(Q*0x100+0x148)
+#define inf_PTR_TP          DP(Q*0x100+0x108)
 
     rt_pntr clp_tp;
-#define inf_CLP_TP          DP(Q*0x100+0x14C)
+#define inf_CLP_TP          DP(Q*0x100+0x10C)
 
     rt_pntr ptr_qd;
-#define inf_PTR_QD          DP(Q*0x100+0x150)
+#define inf_PTR_QD          DP(Q*0x100+0x110)
 
     rt_pntr clp_qd;
-#define inf_CLP_QD          DP(Q*0x100+0x154)
+#define inf_CLP_QD          DP(Q*0x100+0x114)
 
 };
 
@@ -812,174 +756,6 @@ struct rt_SIMD_SURFACE
 };
 
 /******************************************************************************/
-/**********************************   PLANE   *********************************/
-/******************************************************************************/
-
-/*
- * Extended SIMD surface structure with properties for plane.
- * Structure is read-only in backend.
- */
-struct rt_SIMD_PLANE : public rt_SIMD_SURFACE
-{
-    rt_real msc_0[S];
-#define xpl_MSC_0           DP(Q*0x300)
-
-    rt_cell msc_1[S];
-#define xpl_MSC_1           DP(Q*0x310)
-
-    rt_cell msc_2[S];
-#define xpl_MSC_2           DP(Q*0x320)
-
-    rt_real msc_3[S];
-#define xpl_MSC_3           DP(Q*0x330)
-
-};
-
-/******************************************************************************/
-/********************************   CYLINDER   ********************************/
-/******************************************************************************/
-
-/*
- * Extended SIMD surface structure with properties for cylinder.
- * Structure is read-only in backend.
- */
-struct rt_SIMD_CYLINDER : public rt_SIMD_SURFACE
-{
-    rt_real rad_2[S];
-#define xcl_RAD_2           DP(Q*0x300)
-
-    rt_real msc_1[S];
-#define xcl_MSC_1           DP(Q*0x310)
-
-    rt_real msc_2[S];
-#define xcl_MSC_2           DP(Q*0x320)
-
-    rt_real msc_3[S];
-#define xcl_MSC_3           DP(Q*0x330)
-
-};
-
-/******************************************************************************/
-/*********************************   SPHERE   *********************************/
-/******************************************************************************/
-
-/*
- * Extended SIMD surface structure with properties for sphere.
- * Structure is read-only in backend.
- */
-struct rt_SIMD_SPHERE : public rt_SIMD_SURFACE
-{
-    rt_real rad_2[S];
-#define xsp_RAD_2           DP(Q*0x300)
-
-    rt_real msc_1[S];
-#define xsp_MSC_1           DP(Q*0x310)
-
-    rt_real msc_2[S];
-#define xsp_MSC_2           DP(Q*0x320)
-
-    rt_real msc_3[S];
-#define xsp_MSC_3           DP(Q*0x330)
-
-};
-
-/******************************************************************************/
-/**********************************   CONE   **********************************/
-/******************************************************************************/
-
-/*
- * Extended SIMD surface structure with properties for cone.
- * Structure is read-only in backend.
- */
-struct rt_SIMD_CONE : public rt_SIMD_SURFACE
-{
-    rt_real rat_2[S];
-#define xcn_RAT_2           DP(Q*0x300)
-
-    rt_real n_rat[S];
-#define xcn_N_RAT           DP(Q*0x310)
-
-    rt_real msc_2[S];
-#define xcn_MSC_2           DP(Q*0x320)
-
-    rt_real msc_3[S];
-#define xcn_MSC_3           DP(Q*0x330)
-
-};
-
-/******************************************************************************/
-/*******************************   PARABOLOID   *******************************/
-/******************************************************************************/
-
-/*
- * Extended SIMD surface structure with properties for paraboloid.
- * Structure is read-only in backend.
- */
-struct rt_SIMD_PARABOLOID : public rt_SIMD_SURFACE
-{
-    rt_real par_2[S];
-#define xpb_PAR_2           DP(Q*0x300)
-
-    rt_real n_par[S];
-#define xpb_N_PAR           DP(Q*0x310)
-
-    rt_real msc_2[S];
-#define xpb_MSC_2           DP(Q*0x320)
-
-    rt_real msc_3[S];
-#define xpb_MSC_3           DP(Q*0x330)
-
-};
-
-/******************************************************************************/
-/*******************************   HYPERBOLOID   ******************************/
-/******************************************************************************/
-
-/*
- * Extended SIMD surface structure with properties for hyperboloid.
- * Structure is read-only in backend.
- */
-struct rt_SIMD_HYPERBOLOID : public rt_SIMD_SURFACE
-{
-    rt_real rat_2[S];
-#define xhb_RAT_2           DP(Q*0x300)
-
-    rt_real n_rat[S];
-#define xhb_N_RAT           DP(Q*0x310)
-
-    rt_real hyp_k[S];
-#define xhb_HYP_K           DP(Q*0x320)
-
-    rt_real msc_3[S];
-#define xhb_MSC_3           DP(Q*0x330)
-
-};
-
-/******************************************************************************/
-/******************************   PARACYLINDER   ******************************/
-/******************************************************************************/
-
-/*
- * Extended SIMD surface structure with properties for paracylinder.
- * Structure is read-only in backend.
- */
-struct rt_SIMD_PARACYLINDER : public rt_SIMD_SURFACE
-{
-    rt_real par_2[S];
-#define xpc_PAR_2           DP(Q*0x300)
-
-    rt_real n_par[S];
-#define xpc_N_PAR           DP(Q*0x310)
-
-    rt_real msc_2[S];
-#define xpc_MSC_2           DP(Q*0x320)
-
-    rt_real msc_3[S];
-#define xpc_MSC_3           DP(Q*0x330)
-
-};
-
-/******************************************************************************/
 /******************************   HYPERCYLINDER   *****************************/
 /******************************************************************************/
 
@@ -1000,30 +776,6 @@ struct rt_SIMD_HYPERCYLINDER : public rt_SIMD_SURFACE
 
     rt_real rat_k[S];
 #define xhc_RAT_K           DP(Q*0x330)
-
-};
-
-/******************************************************************************/
-/*****************************   HYPERPARABOLOID   ****************************/
-/******************************************************************************/
-
-/*
- * Extended SIMD surface structure with properties for hyperparaboloid.
- * Structure is read-only in backend.
- */
-struct rt_SIMD_HYPERPARABOLOID : public rt_SIMD_SURFACE
-{
-    rt_real i_pr1[S];
-#define xhp_I_PR1           DP(Q*0x300)
-
-    rt_real i_pr2[S];
-#define xhp_I_PR2           DP(Q*0x310)
-
-    rt_real n_pr1[S];
-#define xhp_N_PR1           DP(Q*0x320)
-
-    rt_real n_pr2[S];
-#define xhp_N_PR2           DP(Q*0x330)
 
 };
 
