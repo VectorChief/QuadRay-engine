@@ -750,7 +750,7 @@ struct rt_SIMD_SURFACE
 
     /* reserved area 1 */
 
-    rt_real pad01[S*12];
+    rt_real pad01[S];
 #define srf_PAD01           DP(Q*0x240)
 
 };
@@ -765,17 +765,14 @@ struct rt_SIMD_SURFACE
  */
 struct rt_SIMD_HYPERCYLINDER : public rt_SIMD_SURFACE
 {
+    rt_real rat_k[S];
+#define xhc_RAT_K           DP(Q*0x250)
+
     rt_real rat_2[S];
-#define xhc_RAT_2           DP(Q*0x300)
+#define xhc_RAT_2           DP(Q*0x260)
 
     rt_real n_rat[S];
-#define xhc_N_RAT           DP(Q*0x310)
-
-    rt_real hyp_k[S];
-#define xhc_HYP_K           DP(Q*0x320)
-
-    rt_real rat_k[S];
-#define xhc_RAT_K           DP(Q*0x330)
+#define xhc_N_RAT           DP(Q*0x270)
 
 };
 

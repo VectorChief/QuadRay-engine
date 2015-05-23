@@ -479,7 +479,7 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
     public:
 
     rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-             rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+             rt_cell ssize = 0);
 
     virtual
    ~rt_Array();
@@ -605,7 +605,7 @@ class rt_Plane : public rt_Surface
     public:
 
     rt_Plane(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-             rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+             rt_cell ssize = 0);
 
     virtual
    ~rt_Plane();
@@ -677,7 +677,7 @@ class rt_Cylinder : public rt_Quadric
     public:
 
     rt_Cylinder(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-                rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+                rt_cell ssize = 0);
 
     virtual
    ~rt_Cylinder();
@@ -713,7 +713,7 @@ class rt_Sphere : public rt_Quadric
     public:
 
     rt_Sphere(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-              rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+              rt_cell ssize = 0);
 
     virtual
    ~rt_Sphere();
@@ -749,7 +749,7 @@ class rt_Cone : public rt_Quadric
     public:
 
     rt_Cone(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-            rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+            rt_cell ssize = 0);
 
     virtual
    ~rt_Cone();
@@ -785,7 +785,7 @@ class rt_Paraboloid : public rt_Quadric
     public:
 
     rt_Paraboloid(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-                  rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+                  rt_cell ssize = 0);
 
     virtual
    ~rt_Paraboloid();
@@ -821,7 +821,7 @@ class rt_Hyperboloid : public rt_Quadric
     public:
 
     rt_Hyperboloid(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-                   rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+                   rt_cell ssize = 0);
 
     virtual
    ~rt_Hyperboloid();
@@ -857,7 +857,7 @@ class rt_ParaCylinder : public rt_Quadric
     public:
 
     rt_ParaCylinder(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-                    rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+                    rt_cell ssize = 0);
 
     virtual
    ~rt_ParaCylinder();
@@ -893,7 +893,7 @@ class rt_HyperCylinder : public rt_Quadric
     public:
 
     rt_HyperCylinder(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-                     rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+                     rt_cell ssize = 0);
 
     virtual
    ~rt_HyperCylinder();
@@ -929,7 +929,7 @@ class rt_HyperParaboloid : public rt_Quadric
     public:
 
     rt_HyperParaboloid(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-                       rt_cell ssize = sizeof(rt_SIMD_SURFACE));
+                       rt_cell ssize = 0);
 
     virtual
    ~rt_HyperParaboloid();

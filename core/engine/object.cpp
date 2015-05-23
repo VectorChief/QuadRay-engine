@@ -658,6 +658,7 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
 
 /*  rt_SIMD_SURFACE */
 
+    ssize = RT_MAX(ssize, sizeof(rt_SIMD_SURFACE));
     s_srf = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
 
     s_srf->mat_p[0] = RT_NULL; /* outer material */
@@ -1121,7 +1122,7 @@ rt_Node::~rt_Node()
 rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
                    rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Node(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_SURFACE))),
+    rt_Node(rg, parent, obj, ssize),
     rt_List<rt_Array>(rg->get_arr())
 {
     rg->put_arr(this);
@@ -3589,17 +3590,15 @@ rt_HyperCylinder::rt_HyperCylinder(rt_Registry *rg, rt_Object *parent,
         memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
 
-/*  rt_SIMD_HYPERCYLINDER */
+/*  rt_SIMD_HYPERCYLINDER data for two-plane solver (hyp == 0.0f) */
 
     rt_SIMD_HYPERCYLINDER *s_xhc = (rt_SIMD_HYPERCYLINDER *)s_srf;
 
     rt_real rat = RT_FABS(xhc->rat);
-    rt_real hyp = xhc->hyp;
 
+    RT_SIMD_SET(s_xhc->rat_k, rat);
     RT_SIMD_SET(s_xhc->rat_2, rat * rat);
     RT_SIMD_SET(s_xhc->n_rat, (1.0f + rat * rat) * rat * rat);
-    RT_SIMD_SET(s_xhc->hyp_k, hyp);
-    RT_SIMD_SET(s_xhc->rat_k, rat);
 }
 
 /*
