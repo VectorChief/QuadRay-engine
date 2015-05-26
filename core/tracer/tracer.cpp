@@ -1660,7 +1660,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(LT_pwn)
 
         movpx_rr(Xmm2, Xmm1)
-        movpx_ld(Xmm1, Medx, mat_C_ONE)
+        movpx_ld(Xmm1, Mebp, inf_GPC01)
 
     LBL(LT_pwc)
 
@@ -1941,7 +1941,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(RF_mix)
 
-        movpx_ld(Xmm0, Medx, mat_C_ONE)
+        movpx_ld(Xmm0, Mebp, inf_GPC01)
         subps_ld(Xmm0, Medx, mat_C_RFL)
 
         movpx_ld(Xmm4, Mecx, ctx_COL_R(0))
@@ -2015,7 +2015,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm0, Medx, mat_C_RFR)
         movpx_rr(Xmm7, Xmm0)
         mulps_rr(Xmm7, Xmm7)
-        addps_ld(Xmm7, Medx, mat_C_ONE)
+        addps_ld(Xmm7, Mebp, inf_GPC01)
         subps_ld(Xmm7, Medx, mat_RFR_2)
         sqrps_rr(Xmm7, Xmm7)
         addps_rr(Xmm0, Xmm7)
@@ -2115,7 +2115,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(TR_mix)
 
-        movpx_ld(Xmm0, Medx, mat_C_ONE)
+        movpx_ld(Xmm0, Mebp, inf_GPC01)
         subps_ld(Xmm0, Medx, mat_C_TRN)
 
         movpx_ld(Xmm4, Mecx, ctx_COL_R(0))
