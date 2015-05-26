@@ -3910,9 +3910,7 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     RT_SIMD_SET(s_mat->c_rfl, mat->prp[0]);
     RT_SIMD_SET(s_mat->c_trn, mat->prp[1]);
     RT_SIMD_SET(s_mat->c_rfr, mat->prp[2]);
-
     RT_SIMD_SET(s_mat->rfr_2, mat->prp[2] * mat->prp[2]);
-    RT_SIMD_SET(s_mat->c_one, 1.0f);
 }
 
 /*

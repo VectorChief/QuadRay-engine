@@ -850,9 +850,6 @@ struct rt_SIMD_MATERIAL
     rt_real rfr_2[S];
 #define mat_RFR_2           DP(Q*0x110)
 
-    rt_real c_one[S];
-#define mat_C_ONE           DP(Q*0x120)
-
 };
 
 #endif /* RT_TRACER_H */
