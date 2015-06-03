@@ -413,6 +413,14 @@ rt_OBJECT ob_tree[] =
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,       19.0    },
+/* pos */   {   -5.7,        0.5,        1.0001 },
+        },
+        RT_OBJ_ARRAY_REL(&ob_aliencube01, &rl_aliencube01)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   -6.0,        3.0,        4.5    },
         },
