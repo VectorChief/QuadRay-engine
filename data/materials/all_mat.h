@@ -427,6 +427,20 @@ rt_MATERIAL mt_light01_bulb01 =
     },
 };
 
+rt_MATERIAL mt_light01_blue01 =
+{
+    RT_MAT(LIGHT),
+
+    RT_TEX(PCOLOR, 0xFF0000FF),
+
+    {/* dff     spc     pow */
+        1.0,    0.0,    1.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    0.0,    1.0
+    },
+};
+
 #endif /* RT_ALL_MAT_H */
 
 /******************************************************************************/
