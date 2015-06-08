@@ -4,8 +4,8 @@
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
 
-#ifndef RT_SCN_DEMO01_H
-#define RT_SCN_DEMO01_H
+#ifndef RT_SCN_DEMO03_H
+#define RT_SCN_DEMO03_H
 
 #include "format.h"
 
@@ -36,14 +36,14 @@ rt_SPHERE sp_bulb01 =
 /* scl */   {    1.0,        1.0    },
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
-            &mt_light01_blue01,
+            &mt_light01_violet01,
         },
         {
 /* INNER        RT_U,       RT_V    */
 /* scl */   {    1.0,        1.0    },
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
-            &mt_light01_blue01,
+            &mt_light01_violet01,
         },
     },
 /* rad */   0.05,
@@ -131,8 +131,8 @@ rt_OBJECT ob_tree[] =
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {    0.0,        0.0,      180.0    },
-/* pos */   {    0.0,       13.0,       15.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {    0.0,       11.0,       15.0    },
         },
         RT_OBJ_ARRAY(&ob_carousel01),
     },
