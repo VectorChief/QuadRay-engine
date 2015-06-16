@@ -422,6 +422,14 @@ rt_OBJECT ob_tree[] =
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {   -3.7,        5.5,        0.0001 },
+        },
+        RT_OBJ_ARRAY(&ob_frametable01)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   -6.0,        3.0,        4.5    },
         },
         RT_OBJ_ARRAY(&ob_light01),

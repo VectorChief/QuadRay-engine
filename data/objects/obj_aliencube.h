@@ -18,9 +18,9 @@ rt_PLANE pl_aliencube01side01 =
 /* max */   {   +1.0,       +1.0,      +RT_INF  },
         {
 /* OUTER        RT_U,       RT_V    */
-/* scl */   {    2.0,        2.0    },
+/* scl */   {    1.0,        1.0    },
 /* rot */              0.0           ,
-/* pos */   {   -1.0,       -1.0    },
+/* pos */   {    0.0,        0.0    },
 /* mat */   &mt_plain01_gray02,
         },
         {
@@ -194,7 +194,7 @@ rt_OBJECT ob_aliencube01[] =
     },
 };
 
-rt_RELATION  rl_aliencube01[] = 
+rt_RELATION rl_aliencube01[] = 
 {
     {   0,  RT_REL_MINUS_OUTER,   6   },
     {   1,  RT_REL_MINUS_OUTER,   6   },
