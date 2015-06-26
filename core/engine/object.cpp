@@ -728,7 +728,7 @@ rt_void rt_Node::update_matrix(rt_mat4 mtx)
     /* determine axis mapping for trivial transform
      * (multiple of 90 degree rotation, +/-1.0 scalers),
      * applicable to objects without trnode or with trnode
-     * other that the object itself (transform caching),
+     * other than the object itself (transform caching),
      * to objects which have scaling with trivial rotation
      * in their full transform matrix */
     if (trnode != this
