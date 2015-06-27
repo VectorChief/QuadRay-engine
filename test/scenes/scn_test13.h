@@ -392,7 +392,7 @@ rt_OBJECT ob_tree[] =
 /* rot */   {    0.0,        0.0,       17.0    },
 /* pos */   {  -10.7,       -4.7,        1.0001 },
         },
-        RT_OBJ_ARRAY(&ob_cube01)
+        RT_OBJ_ARRAY_REL(&ob_cube01, &rl_bound)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -400,7 +400,7 @@ rt_OBJECT ob_tree[] =
 /* rot */   {    0.0,        0.0,      -43.0    },
 /* pos */   {  -10.7,        0.5,        1.0001 },
         },
-        RT_OBJ_ARRAY(&ob_cube02)
+        RT_OBJ_ARRAY_REL(&ob_cube02, &rl_bound)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -408,7 +408,7 @@ rt_OBJECT ob_tree[] =
 /* rot */   {    0.0,        0.0,       -7.0    },
 /* pos */   {  -10.7,        5.5,        1.0001 },
         },
-        RT_OBJ_ARRAY(&ob_cube03)
+        RT_OBJ_ARRAY_REL(&ob_cube03, &rl_bound)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -424,7 +424,7 @@ rt_OBJECT ob_tree[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   -3.7,        5.5,        0.0001 },
         },
-        RT_OBJ_ARRAY(&ob_frametable01)
+        RT_OBJ_ARRAY_REL(&ob_frametable01, &rl_bound)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */

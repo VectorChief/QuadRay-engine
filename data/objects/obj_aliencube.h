@@ -11,6 +11,10 @@
 
 #include "all_mat.h"
 
+/******************************************************************************/
+/********************************   ALIENCUBE   *******************************/
+/******************************************************************************/
+
 rt_PLANE pl_aliencube01side01 =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
@@ -33,30 +37,7 @@ rt_PLANE pl_aliencube01side01 =
     },
 };
 
-rt_SPHERE sp_aliencube01ball05 =
-{
-    {      /*   RT_I,       RT_J,       RT_K    */
-/* min */   {   -1.0,       -1.0,       -1.0    },
-/* max */   {   +1.0,       +1.0,       +1.0    },
-        {
-/* OUTER        RT_U,       RT_V    */
-/* scl */   {    1.0,        1.0    },
-/* rot */              0.0           ,
-/* pos */   {    0.0,        0.0    },
-/* mat */   &mt_plain03_white01,
-        },
-        {
-/* INNER        RT_U,       RT_V    */
-/* scl */   {    1.0,        1.0    },
-/* rot */              0.0           ,
-/* pos */   {    0.0,        0.0    },
-/* mat */   &mt_plain01_gray02,
-        },
-    },
-/* rad */   1.5,
-};
-
-rt_SPHERE sp_aliencube01ball06 =
+rt_SPHERE sp_aliencube01ball01 =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
 /* min */   {  -RT_INF,    -RT_INF,    -RT_INF  },
@@ -77,6 +58,29 @@ rt_SPHERE sp_aliencube01ball06 =
         },
     },
 /* rad */   1.0,
+};
+
+rt_SPHERE sp_aliencube01ball02 =
+{
+    {      /*   RT_I,       RT_J,       RT_K    */
+/* min */   {   -1.0,       -1.0,       -1.0    },
+/* max */   {   +1.0,       +1.0,       +1.0    },
+        {
+/* OUTER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+/* mat */   &mt_plain03_white01,
+        },
+        {
+/* INNER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+/* mat */   &mt_plain01_gray02,
+        },
+    },
+/* rad */   1.5,
 };
 
 rt_CONE cn_aliencube01cone01 =
@@ -158,7 +162,7 @@ rt_OBJECT ob_aliencube01[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {    0.0,        0.0,        0.0    },
         },
-            RT_OBJ_SPHERE(&sp_aliencube01ball05)
+            RT_OBJ_SPHERE(&sp_aliencube01ball02)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -190,12 +194,13 @@ rt_OBJECT ob_aliencube01[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {    0.0,        0.0,        0.0    },
         },
-            RT_OBJ_SPHERE(&sp_aliencube01ball06)
+            RT_OBJ_SPHERE(&sp_aliencube01ball01)
     },
 };
 
 rt_RELATION rl_aliencube01[] = 
 {
+    {  -1,  RT_REL_BOUND_ARRAY,  -1   },
     {   0,  RT_REL_MINUS_OUTER,   6   },
     {   1,  RT_REL_MINUS_OUTER,   6   },
     {   2,  RT_REL_MINUS_OUTER,   6   },

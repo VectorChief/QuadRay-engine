@@ -11,6 +11,19 @@
 
 #include "all_mat.h"
 
+/******************************************************************************/
+/*******************************   FRAMETABLE   *******************************/
+/******************************************************************************/
+
+/* --------------------------------   BOUND   ------------------------------- */
+
+rt_RELATION rl_bound[] =
+{
+    {  -1,  RT_REL_BOUND_ARRAY,  -1   },
+};
+
+/* -------------------------------   CORNER   ------------------------------- */
+
 rt_CYLINDER cl_frametable01outer01 =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
@@ -117,11 +130,14 @@ rt_OBJECT ob_frametable01corner01[] =
 
 rt_RELATION rl_frametable01corner01[] = 
 {
+    {  -1,  RT_REL_BOUND_ARRAY,  -1   },
     {   2,  RT_REL_MINUS_OUTER,   0   },
     {   2,  RT_REL_MINUS_INNER,   1   },
     {   3,  RT_REL_MINUS_OUTER,   0   },
     {   3,  RT_REL_MINUS_INNER,   1   },
 };
+
+/* -------------------------------   HORLEG   ------------------------------- */
 
 rt_PLANE pl_frametable01side02 =
 {
@@ -203,6 +219,8 @@ rt_OBJECT ob_frametable01horleg01[] =
     },
 };
 
+/* -------------------------------   VERLEG   ------------------------------- */
+
 rt_PLANE pl_frametable01side04 =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
@@ -283,6 +301,8 @@ rt_OBJECT ob_frametable01verleg01[] =
     },
 };
 
+/* --------------------------------   FRAME   ------------------------------- */
+
 rt_OBJECT ob_frametable01leg01[] =
 {
     {
@@ -307,7 +327,7 @@ rt_OBJECT ob_frametable01leg01[] =
 /* rot */   {  180.0,        0.0,        0.0    },
 /* pos */   {    0.0,       -1.5,        0.0    },
         },
-            RT_OBJ_ARRAY(&ob_frametable01horleg01)
+            RT_OBJ_ARRAY_REL(&ob_frametable01horleg01, &rl_bound)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -315,7 +335,7 @@ rt_OBJECT ob_frametable01leg01[] =
 /* rot */   {  180.0,        0.0,      -90.0    },
 /* pos */   {   -2.0,        0.0,        0.0    },
         },
-            RT_OBJ_ARRAY(&ob_frametable01verleg01)
+            RT_OBJ_ARRAY_REL(&ob_frametable01verleg01, &rl_bound)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -339,7 +359,7 @@ rt_OBJECT ob_frametable01leg01[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {    0.0,       +1.5,        0.0    },
         },
-            RT_OBJ_ARRAY(&ob_frametable01horleg01)
+            RT_OBJ_ARRAY_REL(&ob_frametable01horleg01, &rl_bound)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -347,9 +367,11 @@ rt_OBJECT ob_frametable01leg01[] =
 /* rot */   {  180.0,        0.0,      +90.0    },
 /* pos */   {   +2.0,        0.0,        0.0    },
         },
-            RT_OBJ_ARRAY(&ob_frametable01verleg01)
+            RT_OBJ_ARRAY_REL(&ob_frametable01verleg01, &rl_bound)
     },
 };
+
+/* ---------------------------------   TOP   -------------------------------- */
 
 rt_PLANE pl_frametable01side06 =
 {
@@ -431,6 +453,8 @@ rt_OBJECT ob_frametable01top01[] =
     },
 };
 
+/* --------------------------------   TABLE   ------------------------------- */
+
 rt_OBJECT ob_frametable01[] =
 {
     {
@@ -439,7 +463,7 @@ rt_OBJECT ob_frametable01[] =
 /* rot */   {   90.0,        0.0,      +90.0    },
 /* pos */   {   -2.7,        0.0,        1.5    },
         },
-            RT_OBJ_ARRAY(&ob_frametable01leg01)
+            RT_OBJ_ARRAY_REL(&ob_frametable01leg01, &rl_bound)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -447,7 +471,7 @@ rt_OBJECT ob_frametable01[] =
 /* rot */   {   90.0,        0.0,      -90.0    },
 /* pos */   {   +2.7,        0.0,        1.5    },
         },
-            RT_OBJ_ARRAY(&ob_frametable01leg01)
+            RT_OBJ_ARRAY_REL(&ob_frametable01leg01, &rl_bound)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -455,7 +479,7 @@ rt_OBJECT ob_frametable01[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {    0.0,        0.0,        3.0    },
         },
-            RT_OBJ_ARRAY(&ob_frametable01top01)
+            RT_OBJ_ARRAY_REL(&ob_frametable01top01, &rl_bound)
     },
 };
 
