@@ -1800,7 +1800,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                 /* insert nodes according to
                  * side value computed above */
                 cuo = RT_NULL;
-                if (c & 2 && r != 12)
+                if (c & 2 && r != 6)
                 {
                     cuo = insert(obj, pto, elm);
                     if (cuo != RT_NULL)
@@ -1809,7 +1809,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                     }
                 }
                 cui = RT_NULL;
-                if (c & 1 && r != 12)
+                if (c & 1 && r != 6)
                 {
                     cui = insert(obj, pti, elm);
                     if (cui != RT_NULL)
@@ -1854,7 +1854,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                 {
                     /* if anything except bbox's faces isn't removed,
                      * "abx" isn't effective */
-                    if (abx != RT_NULL && !RT_IS_PLANE(box) && r != 12)
+                    if (abx != RT_NULL && !RT_IS_PLANE(box) && r != 6)
                     {
                         abx = RT_NULL;
                     }
@@ -1898,7 +1898,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
 #endif /* RT_OPTS_2SIDED */
             {
                 cur = RT_NULL;
-                if (r != 12)
+                if (r != 6)
                 {
                     cur = insert(obj, ptr, elm);
                 }
@@ -1926,7 +1926,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
                 {
                     /* if anything except bbox's faces isn't removed,
                      * "abx" isn't effective */
-                    if (abx != RT_NULL && !RT_IS_PLANE(box) && r != 12)
+                    if (abx != RT_NULL && !RT_IS_PLANE(box) && r != 6)
                     {
                         abx = RT_NULL;
                     }
