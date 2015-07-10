@@ -1834,7 +1834,7 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmin[k] > src_box->bmin[k])
                         {
                             dst_box->bmin[k] = src_box->bmin[k];
-                            dst_box->flm &= 2 << (k * 2);
+                            dst_box->flm &= ~(1 << (k * 2));
                             if (k == m)
                             {
                                 c |= 1;
@@ -1858,7 +1858,7 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmax[k] < src_box->bmax[k])
                         {
                             dst_box->bmax[k] = src_box->bmax[k];
-                            dst_box->flm &= 1 << (k * 2);
+                            dst_box->flm &= ~(2 << (k * 2));
                             if (k == m)
                             {
                                 c |= 2;
@@ -1894,12 +1894,12 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmin[k] > src_box->bmin[k])
                         {
                             dst_box->bmin[k] = src_box->bmin[k];
-                            dst_box->flm &= 2 << (k * 2);
+                            dst_box->flm &= ~(1 << (k * 2));
                         }
                         if (dst_box->bmax[k] < src_box->bmax[k])
                         {
                             dst_box->bmax[k] = src_box->bmax[k];
-                            dst_box->flm &= 1 << (k * 2);
+                            dst_box->flm &= ~(2 << (k * 2));
                         }
                     }
                 }
@@ -1963,7 +1963,7 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmin[k] > src_box->bmin[k])
                         {
                             dst_box->bmin[k] = src_box->bmin[k];
-                            dst_box->flm &= 2 << (k * 2);
+                            dst_box->flm &= ~(1 << (k * 2));
                             if (k == m)
                             {
                                 c |= 1;
@@ -1987,7 +1987,7 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmax[k] < src_box->bmax[k])
                         {
                             dst_box->bmax[k] = src_box->bmax[k];
-                            dst_box->flm &= 1 << (k * 2);
+                            dst_box->flm &= ~(2 << (k * 2));
                             if (k == m)
                             {
                                 c |= 2;
@@ -2023,12 +2023,12 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmin[k] > src_box->bmin[k])
                         {
                             dst_box->bmin[k] = src_box->bmin[k];
-                            dst_box->flm &= 2 << (k * 2);
+                            dst_box->flm &= ~(1 << (k * 2));
                         }
                         if (dst_box->bmax[k] < src_box->bmax[k])
                         {
                             dst_box->bmax[k] = src_box->bmax[k];
-                            dst_box->flm &= 1 << (k * 2);
+                            dst_box->flm &= ~(2 << (k * 2));
                         }
                     }
                 }
