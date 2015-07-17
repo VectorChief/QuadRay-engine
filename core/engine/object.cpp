@@ -1086,16 +1086,21 @@ rt_void rt_Node::update_bbgeom(rt_BOUND *box)
         else
         if (RT_IS_ARRAY(box) && box->flm != 0)
         {
-            rt_cell c = 0;
-
             /* convert array bbox's flags
              * from minmax data format to face index format */
-            c += (box->flf |= ((box->flm & (2 << (mp_k * 2))) != 0) << 0) >> 0;
-            c += (box->flf |= ((box->flm & (2 << (mp_j * 2))) != 0) << 1) >> 1;
-            c += (box->flf |= ((box->flm & (1 << (mp_i * 2))) != 0) << 2) >> 2;
-            c += (box->flf |= ((box->flm & (1 << (mp_j * 2))) != 0) << 3) >> 3;
-            c += (box->flf |= ((box->flm & (2 << (mp_i * 2))) != 0) << 4) >> 4;
-            c += (box->flf |= ((box->flm & (1 << (mp_k * 2))) != 0) << 5) >> 5;
+            box->flf = bbox_flag(box->map, box->flm);
+
+            rt_cell c = 0;
+            rt_BOUND *arrbnd[6] = {0};
+
+            c += (arrbnd[0] = box->arrbnd[mp_k * 2 + 1]) != RT_NULL;
+            c += (arrbnd[1] = box->arrbnd[mp_j * 2 + 1]) != RT_NULL;
+            c += (arrbnd[2] = box->arrbnd[mp_i * 2 + 0]) != RT_NULL;
+            c += (arrbnd[3] = box->arrbnd[mp_j * 2 + 0]) != RT_NULL;
+            c += (arrbnd[4] = box->arrbnd[mp_i * 2 + 1]) != RT_NULL;
+            c += (arrbnd[5] = box->arrbnd[mp_k * 2 + 0]) != RT_NULL;
+
+            memcpy(box->arrbnd, arrbnd, 6 * sizeof(rt_BOUND *));
 
             /* number of array bbox's fully covered (by plane) faces */
             box->fln = c;
@@ -1146,6 +1151,9 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
         bvbox->faces = (rt_FACE *)
                      rg->alloc(bvbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
         memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
+
+        bvbox->arrbnd = (rt_BOUND **)
+                     rg->alloc(6 * sizeof(rt_BOUND *), RT_ALIGN);
     }
 
     /* init trbox used for trnode if present and has contents outside bvnode,
@@ -1177,6 +1185,9 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
         trbox->faces = (rt_FACE *)
                      rg->alloc(trbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
         memcpy(trbox->faces, bx_faces, trbox->faces_num * sizeof(rt_FACE));
+
+        trbox->arrbnd = (rt_BOUND **)
+                     rg->alloc(6 * sizeof(rt_BOUND *), RT_ALIGN);
     }
 
     /* init inbox used for inner part of split bvnode if present,
@@ -1208,6 +1219,9 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
         inbox->faces = (rt_FACE *)
                      rg->alloc(inbox->faces_num * sizeof(rt_FACE), RT_ALIGN);
         memcpy(inbox->faces, bx_faces, inbox->faces_num * sizeof(rt_FACE));
+
+        inbox->arrbnd = (rt_BOUND **)
+                     rg->alloc(6 * sizeof(rt_BOUND *), RT_ALIGN);
     }
 
     /* process array's objects */
@@ -1760,6 +1774,7 @@ rt_void rt_Array::update_bounds()
     bvbox->fln = 0;
     bvbox->flm = 0;
     bvbox->flf = 0;
+    memset(bvbox->arrbnd, 0, 6 * sizeof(rt_BOUND *));
 
     RT_VEC3_SET_VAL1(trbox->bmin, +RT_INF);
     RT_VEC3_SET_VAL1(trbox->bmax, -RT_INF);
@@ -1767,6 +1782,7 @@ rt_void rt_Array::update_bounds()
     trbox->fln = 0;
     trbox->flm = 0;
     trbox->flf = 0;
+    memset(trbox->arrbnd, 0, 6 * sizeof(rt_BOUND *));
 
     RT_VEC3_SET_VAL1(inbox->bmin, +RT_INF);
     RT_VEC3_SET_VAL1(inbox->bmax, -RT_INF);
@@ -1774,6 +1790,7 @@ rt_void rt_Array::update_bounds()
     inbox->fln = 0;
     inbox->flm = 0;
     inbox->flf = 0;
+    memset(inbox->arrbnd, 0, 6 * sizeof(rt_BOUND *));
 
     rt_cell i, j, k;
     rt_BOUND *src_box, *dst_box;
@@ -1834,7 +1851,9 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmin[k] > src_box->bmin[k])
                         {
                             dst_box->bmin[k] = src_box->bmin[k];
-                            dst_box->flm &= ~(1 << (k * 2));
+                            j = k * 2 + 0;
+                            dst_box->flm &= ~(1 << j);
+                            dst_box->arrbnd[j] = RT_NULL;
                             if (k == m)
                             {
                                 c |= 1;
@@ -1858,7 +1877,9 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmax[k] < src_box->bmax[k])
                         {
                             dst_box->bmax[k] = src_box->bmax[k];
-                            dst_box->flm &= ~(2 << (k * 2));
+                            j = k * 2 + 1;
+                            dst_box->flm &= ~(1 << j);
+                            dst_box->arrbnd[j] = RT_NULL;
                             if (k == m)
                             {
                                 c |= 2;
@@ -1883,7 +1904,17 @@ rt_void rt_Array::update_bounds()
 
                     if (b == 0 && m < 3)
                     {
-                        dst_box->flm |= c << (m * 2);
+                        j = m * 2;
+                        dst_box->flm |= c << j;
+
+                        if ((c & 1) != 0)
+                        {
+                            dst_box->arrbnd[j+0] = src_box;
+                        }
+                        if ((c & 2) != 0)
+                        {
+                            dst_box->arrbnd[j+1] = src_box;
+                        }
                     }
                 }
                 else
@@ -1894,12 +1925,16 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmin[k] > src_box->bmin[k])
                         {
                             dst_box->bmin[k] = src_box->bmin[k];
-                            dst_box->flm &= ~(1 << (k * 2));
+                            j = k * 2 + 0;
+                            dst_box->flm &= ~(1 << j);
+                            dst_box->arrbnd[j] = RT_NULL;
                         }
                         if (dst_box->bmax[k] < src_box->bmax[k])
                         {
                             dst_box->bmax[k] = src_box->bmax[k];
-                            dst_box->flm &= ~(2 << (k * 2));
+                            j = k * 2 + 1;
+                            dst_box->flm &= ~(1 << j);
+                            dst_box->arrbnd[j] = RT_NULL;
                         }
                     }
                 }
@@ -1963,7 +1998,9 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmin[k] > src_box->bmin[k])
                         {
                             dst_box->bmin[k] = src_box->bmin[k];
-                            dst_box->flm &= ~(1 << (k * 2));
+                            j = k * 2 + 0;
+                            dst_box->flm &= ~(1 << j);
+                            dst_box->arrbnd[j] = RT_NULL;
                             if (k == m)
                             {
                                 c |= 1;
@@ -1987,7 +2024,9 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmax[k] < src_box->bmax[k])
                         {
                             dst_box->bmax[k] = src_box->bmax[k];
-                            dst_box->flm &= ~(2 << (k * 2));
+                            j = k * 2 + 1;
+                            dst_box->flm &= ~(1 << j);
+                            dst_box->arrbnd[j] = RT_NULL;
                             if (k == m)
                             {
                                 c |= 2;
@@ -2012,7 +2051,17 @@ rt_void rt_Array::update_bounds()
 
                     if (b == 0 && m < 3)
                     {
-                        dst_box->flm |= c << (m * 2);
+                        j = m * 2;
+                        dst_box->flm |= c << j;
+
+                        if ((c & 1) != 0)
+                        {
+                            dst_box->arrbnd[j+0] = src_box;
+                        }
+                        if ((c & 2) != 0)
+                        {
+                            dst_box->arrbnd[j+1] = src_box;
+                        }
                     }
                 }
                 else
@@ -2023,12 +2072,16 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmin[k] > src_box->bmin[k])
                         {
                             dst_box->bmin[k] = src_box->bmin[k];
-                            dst_box->flm &= ~(1 << (k * 2));
+                            j = k * 2 + 0;
+                            dst_box->flm &= ~(1 << j);
+                            dst_box->arrbnd[j] = RT_NULL;
                         }
                         if (dst_box->bmax[k] < src_box->bmax[k])
                         {
                             dst_box->bmax[k] = src_box->bmax[k];
-                            dst_box->flm &= ~(2 << (k * 2));
+                            j = k * 2 + 1;
+                            dst_box->flm &= ~(1 << j);
+                            dst_box->arrbnd[j] = RT_NULL;
                         }
                     }
                 }

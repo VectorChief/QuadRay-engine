@@ -1148,27 +1148,47 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 }
 
 /*
+ * Convert bbox flags from "flm" to "flf" format.
+ *
+ * Return values:
+ *   flags
+ */
+rt_cell bbox_flag(rt_cell *map, rt_cell flm)
+{
+    rt_cell flf = 0;
+
+    flf |= ((flm & (2 << (map[RT_K] * 2))) != 0) << 0;
+    flf |= ((flm & (2 << (map[RT_J] * 2))) != 0) << 1;
+    flf |= ((flm & (1 << (map[RT_I] * 2))) != 0) << 2;
+    flf |= ((flm & (1 << (map[RT_J] * 2))) != 0) << 3;
+    flf |= ((flm & (2 << (map[RT_I] * 2))) != 0) << 4;
+    flf |= ((flm & (1 << (map[RT_K] * 2))) != 0) << 5;
+
+    return flf;
+}
+
+/*
  * Determine whether "obj's" bbox projection is convex or concave
  * as seen from "pos". Only fully covered (by plane) bbox's faces are counted.
  *
  * Return values:
- *   0 - convex
- *   1 - concave
+ *   0 - concave
+ *   * - convex mask
  */
 static
-rt_cell proj_conc(rt_BOUND *obj, rt_real *pos)
+rt_cell proj_conv(rt_BOUND *obj, rt_real *pos)
 {
     if (obj->fln == 0)
     {
-        return 1;
+        return 0;
     }
 
-    /* if all or just one bbox's faces are fully covered (by plane),
+    /* if only one bbox's face is fully covered (by plane),
      * then bbox's projection is always convex */
     if (RT_IS_PLANE(obj)
-    ||  RT_IS_ARRAY(obj) && (obj->fln == 1 || obj->fln == 6))
+    ||  RT_IS_ARRAY(obj) && obj->fln == 1)
     {
-        return 0;
+        return obj->flf;
     }
 
     /* transform "pos" to "obj's" trnode sub-world space,
@@ -1176,7 +1196,7 @@ rt_cell proj_conc(rt_BOUND *obj, rt_real *pos)
     rt_vec4  loc;
     rt_real *pps = node_tran(obj, pos, loc);
 
-    rt_cell i, map = 0;
+    rt_cell i, flm = 0;
 
     /* determine which bbox's faces are visible from "pps",
      * store result in minmax data format:
@@ -1185,23 +1205,23 @@ rt_cell proj_conc(rt_BOUND *obj, rt_real *pos)
     {
         if (pps[i] < obj->bmin[i])
         {
-            map |= 1 << (i * 2);
+            flm |= 1 << (i * 2);
         }
         else
         if (pps[i] > obj->bmax[i])
         {
-            map |= 2 << (i * 2);
+            flm |= 2 << (i * 2);
         }
     }
 
     /* determine if visible bbox's faces are fully covered (by plane),
      * thus making their projection convex, other faces are ignored */
-    if (map != 0 && map == (map & obj->flm))
+    if (flm != 0 && flm == (flm & obj->flm))
     {
-        return 0;
+        return bbox_flag(obj->map, flm);
     }
 
-    return 1;
+    return 0;
 }
 
 /*
@@ -1523,13 +1543,15 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     /* check if nodes are capable of removing each other,
      * if hidden surfaces removal optimization is enabled */
 #if RT_OPTS_REMOVE != 0
+    rt_cell m1 = 0, m2 = 0;
+
     if ((*obj->opts & RT_OPTS_REMOVE) != 0)
     {
-        if (obj != nd1 && proj_conc(nd1, pps) == 0)
+        if (obj != nd1 && (m1 = proj_conv(nd1, pps)) != 0)
         {
             r |= 1;
         }
-        if (obj != nd2 && proj_conc(nd2, pps) == 0)
+        if (obj != nd2 && (m2 = proj_conv(nd2, pps)) != 0)
         {
             r |= 2;
         }
@@ -1556,6 +1578,12 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                               nd2->verts[fc->index[1]].pos,
                               nd2->verts[fc->index[3]].pos,
                               fc->k, fc->i, fc->j);
+                /* disable removal if "nd1" belongs to "nd2's" blank faces */
+                if ((m2 & (1 << j)) != 0
+                && nd2->arrbnd != RT_NULL && nd2->arrbnd[j] == nd1)
+                {
+                    r &= ~2;
+                }
                 /* ignore "nd2's" face if not fully covered (by plane),
                  * when attempting to remove "nd1" */
                 if ((nd2->flf & (1 << j)) != 0
@@ -1604,7 +1632,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
          * represents aggressive removal on the surface,
          * ignore (k == 3) for lesser aggression level */
         if (r & 2 && c == 2 && n == nd1->verts_num
-        && (q == 0 || proj_conc(nd2, pps) == 0))
+        && (q == 0 || (m2 = proj_conv(nd2, pps)) != 0))
         {
             if (RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj))
             {
@@ -1658,6 +1686,12 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                               nd1->verts[fc->index[1]].pos,
                               nd1->verts[fc->index[3]].pos,
                               fc->k, fc->i, fc->j);
+                /* disable removal if "nd2" belongs to "nd1's" blank faces */
+                if ((m1 & (1 << j)) != 0
+                && nd1->arrbnd != RT_NULL && nd1->arrbnd[j] == nd2)
+                {
+                    r &= ~1;
+                }
                 /* ignore "nd1's" face if not fully covered (by plane),
                  * when attempting to remove "nd2" */
                 if ((nd1->flf & (1 << j)) != 0
@@ -1706,7 +1740,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
          * represents aggressive removal on the surface,
          * ignore (k == 3) for lesser aggression level */
         if (r & 1 && c == 1 && n == nd2->verts_num
-        && (q == 0 || proj_conc(nd1, pps) == 0))
+        && (q == 0 || (m1 = proj_conv(nd1, pps)) != 0))
         {
             if (RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj))
             {
