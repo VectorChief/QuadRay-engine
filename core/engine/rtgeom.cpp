@@ -1247,6 +1247,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 
     rt_real *pps = obj->mid;
     rt_cell i, j, k, m, n, p, q, r = 0, s, t, u = 8, f = 0, c = 0;
+    rt_cell m1 = 0, m2 = 0;
 
     /* check if "nd1" and "nd2" is SURFACE
      * and clip relations for sorting optimization is enabled in runtime */
@@ -1543,8 +1544,6 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     /* check if nodes are capable of removing each other,
      * if hidden surfaces removal optimization is enabled */
 #if RT_OPTS_REMOVE != 0
-    rt_cell m1 = 0, m2 = 0;
-
     if ((*obj->opts & RT_OPTS_REMOVE) != 0)
     {
         if (obj != nd1 && (m1 = proj_conv(nd1, pps)) != 0)
