@@ -1085,16 +1085,16 @@ rt_void rt_Node::update_bbgeom(rt_BOUND *box)
         else
         if (RT_IS_ARRAY(box) && box->flm != 0)
         {
-            rt_cell c = 0;
-
             /* convert array bbox's flags
              * from minmax data format to face index format */
-            c += (box->flf |= ((box->flm & (2 << (mp_k * 2))) != 0) << 0) >> 0;
-            c += (box->flf |= ((box->flm & (2 << (mp_j * 2))) != 0) << 1) >> 1;
-            c += (box->flf |= ((box->flm & (1 << (mp_i * 2))) != 0) << 2) >> 2;
-            c += (box->flf |= ((box->flm & (1 << (mp_j * 2))) != 0) << 3) >> 3;
-            c += (box->flf |= ((box->flm & (2 << (mp_i * 2))) != 0) << 4) >> 4;
-            c += (box->flf |= ((box->flm & (1 << (mp_k * 2))) != 0) << 5) >> 5;
+            box->flf = bbox_flag(box->map, box->flm);
+
+            rt_cell c = 0, i;
+
+            for (i = 0; i < 6; i++)
+            {
+                c += (box->flf & (1 << i)) != 0;
+            }
 
             /* number of array bbox's fully covered (by plane) faces */
             box->fln = c;

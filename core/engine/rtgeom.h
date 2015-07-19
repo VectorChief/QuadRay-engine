@@ -322,6 +322,14 @@ struct rt_SHAPE : public rt_BOUND
 rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2);
 
 /*
+ * Convert bbox flags from "flm" to "flf" format.
+ *
+ * Return values:
+ *   flags
+ */
+rt_cell bbox_flag(rt_cell *map, rt_cell flm);
+
+/*
  * Determine the order of "nd1's" and "nd2's" bboxes
  * as seen from "obj's" bbox "mid".
  *
