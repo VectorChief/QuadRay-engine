@@ -1577,14 +1577,6 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                               nd2->verts[fc->index[1]].pos,
                               nd2->verts[fc->index[3]].pos,
                               fc->k, fc->i, fc->j);
-#if 0
-                /* disable removal if "nd1" belongs to "nd2's" blank faces */
-                if ((m2 & (1 << j)) != 0
-                && nd2->arrbnd != RT_NULL && nd2->arrbnd[j] == nd1)
-                {
-                    r &= ~2;
-                }
-#endif
                 /* ignore "nd2's" face if not fully covered (by plane),
                  * when attempting to remove "nd1" */
                 if ((m2 & (1 << j)) != 0
@@ -1698,14 +1690,6 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                               nd1->verts[fc->index[1]].pos,
                               nd1->verts[fc->index[3]].pos,
                               fc->k, fc->i, fc->j);
-#if 0
-                /* disable removal if "nd2" belongs to "nd1's" blank faces */
-                if ((m1 & (1 << j)) != 0
-                && nd1->arrbnd != RT_NULL && nd1->arrbnd[j] == nd2)
-                {
-                    r &= ~1;
-                }
-#endif
                 /* ignore "nd1's" face if not fully covered (by plane),
                  * when attempting to remove "nd2" */
                 if ((m1 & (1 << j)) != 0

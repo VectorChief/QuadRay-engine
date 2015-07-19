@@ -289,8 +289,6 @@ struct rt_BOUND
     rt_cell             flm;
     /* in face index format as defined in bx_faces: 1 << face_index */
     rt_cell             flf;
-    /* contributors to array's bbox blank faces in "flf" order above */
-    rt_BOUND          **arrbnd;
 };
 
 /*
