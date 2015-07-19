@@ -1176,7 +1176,7 @@ rt_cell bbox_flag(rt_cell *map, rt_cell flm)
  *   * - convex mask
  */
 static
-rt_cell proj_conv(rt_BOUND *obj, rt_real *pos)
+rt_cell bbox_conv(rt_BOUND *obj, rt_real *pos)
 {
     if (obj->fln == 0)
     {
@@ -1546,11 +1546,11 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 #if RT_OPTS_REMOVE != 0
     if ((*obj->opts & RT_OPTS_REMOVE) != 0)
     {
-        if (obj != nd1 && (m1 = proj_conv(nd1, pps)) != 0)
+        if (obj != nd1 && (m1 = bbox_conv(nd1, pps)) != 0)
         {
             r |= 1;
         }
-        if (obj != nd2 && (m2 = proj_conv(nd2, pps)) != 0)
+        if (obj != nd2 && (m2 = bbox_conv(nd2, pps)) != 0)
         {
             r |= 2;
         }
@@ -1585,7 +1585,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                 }
                 /* ignore "nd2's" face if not fully covered (by plane),
                  * when attempting to remove "nd1" */
-                if ((nd2->flf & (1 << j)) != 0
+                if ((m2 & (1 << j)) != 0
                 && (k == 3 || k == 2 || (k == 4 && q != 0)))
                 {
                     t = 1;
@@ -1630,8 +1630,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         /* NOTE: "vert_face's" return value (k == 3)
          * represents aggressive removal on the surface,
          * ignore (k == 3) for lesser aggression level */
-        if (r & 2 && c == 2 && n == nd1->verts_num
-        && (q == 0 || (m2 = proj_conv(nd2, pps)) != 0))
+        if (r & 2 && c == 2 && n == nd1->verts_num)
         {
             if (RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj))
             {
@@ -1639,17 +1638,22 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                 {
                     break;
                 }
-                if (q == 0)
-                {
-                    m = obj->verts_num + 1;
-                }
                 if (q < obj->verts_num)
                 {
                     pps = obj->verts[q].pos;
+                    m2 = bbox_conv(nd2, pps);
                 }
                 else
                 {
                     return 4|2;
+                }
+                if (m2 == 0)
+                {
+                    break;
+                }
+                if (q == 0)
+                {
+                    m = obj->verts_num + 1;
                 }
             }
             else /* RT_IS_CAMERA(obj) || RT_IS_LIGHT(obj) */
@@ -1693,7 +1697,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                 }
                 /* ignore "nd1's" face if not fully covered (by plane),
                  * when attempting to remove "nd2" */
-                if ((nd1->flf & (1 << j)) != 0
+                if ((m1 & (1 << j)) != 0
                 && (k == 3 || k == 2 || (k == 4 && q != 0)))
                 {
                     t = 1;
@@ -1738,8 +1742,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         /* NOTE: "vert_face's" return value (k == 3)
          * represents aggressive removal on the surface,
          * ignore (k == 3) for lesser aggression level */
-        if (r & 1 && c == 1 && n == nd2->verts_num
-        && (q == 0 || (m1 = proj_conv(nd1, pps)) != 0))
+        if (r & 1 && c == 1 && n == nd2->verts_num)
         {
             if (RT_IS_SURFACE(obj) || RT_IS_ARRAY(obj))
             {
@@ -1747,17 +1750,22 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                 {
                     break;
                 }
-                if (q == 0)
-                {
-                    m = obj->verts_num + 1;
-                }
                 if (q < obj->verts_num)
                 {
                     pps = obj->verts[q].pos;
+                    m1 = bbox_conv(nd1, pps);
                 }
                 else
                 {
                     return 4|1;
+                }
+                if (m1 == 0)
+                {
+                    break;
+                }
+                if (q == 0)
+                {
+                    m = obj->verts_num + 1;
                 }
             }
             else /* RT_IS_CAMERA(obj) || RT_IS_LIGHT(obj) */
