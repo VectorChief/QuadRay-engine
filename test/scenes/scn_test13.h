@@ -125,6 +125,7 @@ rt_OBJECT ob_base01[] =
         },
         RT_OBJ_PLANE(&pl_floor01)
     },
+#if 0
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
@@ -165,6 +166,7 @@ rt_OBJECT ob_base01[] =
         },
         RT_OBJ_PLANE(&pl_wall01)
     },
+#endif
 };
 
 /******************************************************************************/
@@ -394,6 +396,7 @@ rt_OBJECT ob_tree[] =
         },
         RT_OBJ_ARRAY_REL(&ob_cube01, &rl_bound)
     },
+#if 0
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
@@ -421,7 +424,7 @@ rt_OBJECT ob_tree[] =
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {    0.0,        0.0,        0.0    },
+/* rot */   {    0.0,        0.0,        0.1    },
 /* pos */   {   -3.7,        5.5,        0.0001 },
         },
         RT_OBJ_ARRAY_REL(&ob_frametable01, &rl_bound)
@@ -434,6 +437,7 @@ rt_OBJECT ob_tree[] =
         },
         RT_OBJ_ARRAY(&ob_light01),
     },
+#endif
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
