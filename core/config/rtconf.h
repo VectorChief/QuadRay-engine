@@ -71,10 +71,10 @@
 #define RT_OPTS_2SIDED          (1 << 13)
 #define RT_OPTS_2SIDED_EXT1     (1 << 14)
 #define RT_OPTS_2SIDED_EXT2     (1 << 15)
-#define RT_OPTS_INSERT          (1 << 16)
-#define RT_OPTS_INSERT_EXT1     (1 << 17)
-#define RT_OPTS_INSERT_EXT2     (1 << 18)
-#define RT_OPTS_REMOVE          (1 << 19)
+#define RT_OPTS_INSERT          (0 << 16)
+#define RT_OPTS_INSERT_EXT1     (0 << 17)
+#define RT_OPTS_INSERT_EXT2     (0 << 18)
+#define RT_OPTS_REMOVE          (0 << 19)
 
 #define RT_OPTS_FULL            (                                           \
         RT_OPTS_THREAD          |                                           \
