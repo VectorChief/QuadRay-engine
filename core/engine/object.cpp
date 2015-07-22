@@ -173,7 +173,7 @@ rt_void rt_Object::update_status(rt_time time, rt_cell flags,
     }
 
     /* always update time in scene data to distinguish
-     * between first update and any subsequent updates,
+     * between first update and all subsequent updates,
      * even if animator is not present */
     obj->time = time;
 
@@ -215,7 +215,7 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
 
     /* determine object's own transform for transform caching,
      * which allows to apply single matrix transform
-     * in rendering backend for array of objects
+     * in rendering backend to array of objects
      * with trivial transform relative to array node */
     rt_cell i, c;
 
