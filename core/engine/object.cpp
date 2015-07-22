@@ -173,7 +173,7 @@ rt_void rt_Object::update_status(rt_time time, rt_cell flags,
     }
 
     /* always update time in scene data to distinguish
-     * between first update and any subsequent updates,
+     * between first update and all subsequent updates,
      * even if animator is not present */
     obj->time = time;
 
@@ -215,7 +215,7 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
 
     /* determine object's own transform for transform caching,
      * which allows to apply single matrix transform
-     * in rendering backend for array of objects
+     * in rendering backend to array of objects
      * with trivial transform relative to array node */
     rt_cell i, c;
 
@@ -728,7 +728,7 @@ rt_void rt_Node::update_matrix(rt_mat4 mtx)
     /* determine axis mapping for trivial transform
      * (multiple of 90 degree rotation, +/-1.0 scalers),
      * applicable to objects without trnode or with trnode
-     * other that the object itself (transform caching),
+     * other than the object itself (transform caching),
      * to objects which have scaling with trivial rotation
      * in their full transform matrix */
     if (trnode != this
