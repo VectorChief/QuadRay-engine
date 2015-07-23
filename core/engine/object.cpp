@@ -1834,8 +1834,7 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmin[k] > src_box->bmin[k])
                         {
                             dst_box->bmin[k] = src_box->bmin[k];
-                            j = k * 2 + 0;
-                            dst_box->flm &= ~(1 << j);
+                            dst_box->flm &= ~(1 << (k * 2));
                             if (k == m)
                             {
                                 c |= 1;
@@ -1859,8 +1858,7 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmax[k] < src_box->bmax[k])
                         {
                             dst_box->bmax[k] = src_box->bmax[k];
-                            j = k * 2 + 1;
-                            dst_box->flm &= ~(1 << j);
+                            dst_box->flm &= ~(2 << (k * 2));
                             if (k == m)
                             {
                                 c |= 2;
@@ -1885,8 +1883,7 @@ rt_void rt_Array::update_bounds()
 
                     if (b == 0 && m < 3)
                     {
-                        j = m * 2;
-                        dst_box->flm |= c << j;
+                        dst_box->flm |= c << (m * 2);
                     }
                 }
                 else
@@ -1897,14 +1894,12 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmin[k] > src_box->bmin[k])
                         {
                             dst_box->bmin[k] = src_box->bmin[k];
-                            j = k * 2 + 0;
-                            dst_box->flm &= ~(1 << j);
+                            dst_box->flm &= ~(1 << (k * 2));
                         }
                         if (dst_box->bmax[k] < src_box->bmax[k])
                         {
                             dst_box->bmax[k] = src_box->bmax[k];
-                            j = k * 2 + 1;
-                            dst_box->flm &= ~(1 << j);
+                            dst_box->flm &= ~(2 << (k * 2));
                         }
                     }
                 }
@@ -1968,8 +1963,7 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmin[k] > src_box->bmin[k])
                         {
                             dst_box->bmin[k] = src_box->bmin[k];
-                            j = k * 2 + 0;
-                            dst_box->flm &= ~(1 << j);
+                            dst_box->flm &= ~(1 << (k * 2));
                             if (k == m)
                             {
                                 c |= 1;
@@ -1993,8 +1987,7 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmax[k] < src_box->bmax[k])
                         {
                             dst_box->bmax[k] = src_box->bmax[k];
-                            j = k * 2 + 1;
-                            dst_box->flm &= ~(1 << j);
+                            dst_box->flm &= ~(2 << (k * 2));
                             if (k == m)
                             {
                                 c |= 2;
@@ -2019,8 +2012,7 @@ rt_void rt_Array::update_bounds()
 
                     if (b == 0 && m < 3)
                     {
-                        j = m * 2;
-                        dst_box->flm |= c << j;
+                        dst_box->flm |= c << (m * 2);
                     }
                 }
                 else
@@ -2031,14 +2023,12 @@ rt_void rt_Array::update_bounds()
                         if (dst_box->bmin[k] > src_box->bmin[k])
                         {
                             dst_box->bmin[k] = src_box->bmin[k];
-                            j = k * 2 + 0;
-                            dst_box->flm &= ~(1 << j);
+                            dst_box->flm &= ~(1 << (k * 2));
                         }
                         if (dst_box->bmax[k] < src_box->bmax[k])
                         {
                             dst_box->bmax[k] = src_box->bmax[k];
-                            j = k * 2 + 1;
-                            dst_box->flm &= ~(1 << j);
+                            dst_box->flm &= ~(2 << (k * 2));
                         }
                     }
                 }
