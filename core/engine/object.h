@@ -199,6 +199,7 @@ class rt_Object
     /* axis mapping for trivial transform */
     rt_cell             map[4];
     rt_cell             sgn[4];
+    rt_vec4             scl;
 
     /* axis mapping shorteners */
     rt_cell             mp_i;
