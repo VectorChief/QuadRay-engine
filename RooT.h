@@ -12,8 +12,8 @@
 //#include "data/scenes/scn_demo01.h"
 //using namespace scn_demo01;
 
-#include "test/scenes/scn_test13.h"
-using namespace scn_test13;
+#include "test/scenes/scn_test09.h"
+using namespace scn_test09;
 
 #define RT_X_RES    800
 #define RT_Y_RES    480
