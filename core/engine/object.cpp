@@ -745,7 +745,7 @@ rt_void rt_Node::update_matrix(rt_mat4 mtx)
                 {
                     map[i] = j;
                     sgn[i] = RT_SIGN(this->mtx[i][j]);
-                    scl[i] = RT_FABS(this->mtx[i][j]);
+                    scl[j] = RT_FABS(this->mtx[i][j]);
                 }
             }
         }
@@ -766,10 +766,9 @@ rt_void rt_Node::update_matrix(rt_mat4 mtx)
     {
         for (i = 0; i < 3; i++)
         {
-            j = map[i];
-            this->mtx[j][0] = iden4[j][0] * scl[i];
-            this->mtx[j][1] = iden4[j][1] * scl[i];
-            this->mtx[j][2] = iden4[j][2] * scl[i];
+            this->mtx[i][0] = iden4[i][0] * scl[i];
+            this->mtx[i][1] = iden4[i][1] * scl[i];
+            this->mtx[i][2] = iden4[i][2] * scl[i];
         }
     }
 }
