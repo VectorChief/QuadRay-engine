@@ -2780,6 +2780,44 @@ rt_void rt_Plane::update_fields()
 
     rt_Surface::update_fields();
 
+    /* apply axis scalers to texturing */
+
+    rt_real asc[2], isc[2];
+
+    asc[RT_U] = scl[mp_i];
+    asc[RT_V] = scl[mp_j];
+
+    isc[RT_U] = 1.0f / asc[RT_U];
+    isc[RT_V] = 1.0f / asc[RT_V];
+
+    rt_cell *map;
+    rt_real *scl, *pos;
+    rt_SIMD_MATERIAL *s_mat;
+
+    map = outer->map;
+    scl = outer->scl;
+    pos = outer->sd->pos;
+    s_mat = outer->s_mat;
+
+    RT_SIMD_SET(s_mat->xscal, scl[RT_X] * isc[map[RT_X]]);
+    RT_SIMD_SET(s_mat->yscal, scl[RT_Y] * isc[map[RT_Y]]);
+
+    RT_SIMD_SET(s_mat->xoffs, pos[map[RT_X]] * asc[map[RT_X]]);
+    RT_SIMD_SET(s_mat->yoffs, pos[map[RT_Y]] * asc[map[RT_Y]]);
+
+    map = inner->map;
+    scl = inner->scl;
+    pos = inner->sd->pos;
+    s_mat = inner->s_mat;
+
+    RT_SIMD_SET(s_mat->xscal, scl[RT_X] * isc[map[RT_X]]);
+    RT_SIMD_SET(s_mat->yscal, scl[RT_Y] * isc[map[RT_Y]]);
+
+    RT_SIMD_SET(s_mat->xoffs, pos[map[RT_X]] * asc[map[RT_X]]);
+    RT_SIMD_SET(s_mat->yoffs, pos[map[RT_Y]] * asc[map[RT_Y]]);
+
+    /* set surface shape */
+
     RT_VEC3_SET_VAL1(shape->sci, 0.0f);
     shape->sci[RT_W] = 0.0f;
 
@@ -3846,6 +3884,7 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
 
     rg->put_mat(this);
 
+    this->sd  = sd;
     this->mat = mat;
     otx.x_dim = otx.y_dim = -1;
     /* save original texture data */
@@ -3872,7 +3911,7 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     mtx[1][0] = -RT_SINA(sd->rot);
     mtx[1][1] = +RT_COSA(sd->rot);
 
-    rt_cell map[2], sgn[2];
+    rt_cell sgn[2];
     rt_cell match = 0;
 
     rt_cell i, j;
@@ -3911,8 +3950,11 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     s_mat->t_map[2] = 0;
     s_mat->t_map[3] = 0;
 
-    RT_SIMD_SET(s_mat->xscal, tx->x_dim / sd->scl[RT_X] * sgn[RT_X]);
-    RT_SIMD_SET(s_mat->yscal, tx->y_dim / sd->scl[RT_Y] * sgn[RT_Y]);
+    scl[RT_X] = tx->x_dim / (sd->scl[RT_X] * sgn[RT_X]);
+    scl[RT_Y] = tx->y_dim / (sd->scl[RT_Y] * sgn[RT_Y]);
+
+    RT_SIMD_SET(s_mat->xscal, scl[RT_X]);
+    RT_SIMD_SET(s_mat->yscal, scl[RT_Y]);
 
     RT_SIMD_SET(s_mat->xoffs, sd->pos[map[RT_X]]);
     RT_SIMD_SET(s_mat->yoffs, sd->pos[map[RT_Y]]);

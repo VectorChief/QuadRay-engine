@@ -510,13 +510,11 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
 {
 /*  fields */
 
-    private:
+    protected:
 
     /* per-side materials */
     rt_Material        *outer;
     rt_Material        *inner;
-
-    protected:
 
     rt_SURFACE         *srf;
 
@@ -982,6 +980,11 @@ class rt_Material : public rt_List<rt_Material>
     rt_mat2             mtx;
 
     public:
+
+    rt_SIDE            *sd;
+
+    rt_cell             map[2];
+    rt_real             scl[2];
 
     rt_SIMD_MATERIAL   *s_mat;
     rt_cell             props;
