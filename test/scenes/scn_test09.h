@@ -26,11 +26,11 @@ rt_PLANE pl_floor01 =
 /* max */   {   +5.0,       +5.0,      +RT_INF  },
         {
 /* OUTER        RT_U,       RT_V    */
-/* scl */   {    1.0,        1.0    },
-/* rot */              0.0           ,
-/* pos */   {    0.0,        0.0    },
+/* scl */   {   -1.0,        2.0    },
+/* rot */             90.0           ,
+/* pos */   {    0.3,        0.3    },
 
-/* mat */   &mt_plain01_gray01,
+/* mat */   &mt_plain01_crate01,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -46,8 +46,8 @@ rt_PLANE pl_floor01 =
 rt_PARABOLOID pb_clip01 =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
-/* min */   {  -RT_INF,    -RT_INF,     -3.0    },
-/* max */   {  +RT_INF,    +RT_INF,     +3.0    },
+/* min */   {   -1.65,     -RT_INF,     -3.0    },
+/* max */   {   +1.65,     +RT_INF,     +3.0    },
         {
 /* OUTER        RT_U,       RT_V    */
 /* scl */   {    1.0,        1.0    },
@@ -116,7 +116,7 @@ rt_OBJECT ob_tree[] =
 {
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        1.0,        1.0    },
+/* scl */   {    0.7,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {    0.0,        0.0,        0.0    },
         },
@@ -124,7 +124,7 @@ rt_OBJECT ob_tree[] =
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        0.5,        1.0    },
+/* scl */   {    0.7,        0.5,        1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {    0.0,        0.0,        0.8    },
         },
