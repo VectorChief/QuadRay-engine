@@ -76,12 +76,15 @@
  */
 #define PTR   0x00 /* LOCAL, PARAM, MAT_P, SRF_P */
 #define LGT   0x00 /* LST_P */
-#define FLG   0x04 /* LOCAL, PARAM, MAT_P */
+
+#define FLG   0x04 /* LOCAL, PARAM, MAT_P, XMISC */
 #define SRF   0x04 /* LST_P */
+
 #define CLP   0x08 /* MSC_P, SRF_P */
 #define LST   0x08 /* LOCAL, PARAM */
+
 #define OBJ   0x0C /* LOCAL, PARAM, MSC_P */
-#define TAG   0x0C /* SRF_P */
+#define TAG   0x0C /* SRF_P, XMISC */
 
 /*
  * Manual register allocation table
@@ -2843,10 +2846,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "aa" section */
         movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+
         xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
         cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(QD_rt2, FULL, Xmm5)
-        jmpxx_lb(QD_rt1)
+        CHECK_MASK(QD_rc1, NONE, Xmm5)
+        CHECK_MASK(QD_rc2, FULL, Xmm5)
+
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
+        jmpxx_lb(QD_rc1)
 
 /******************************************************************************/
     LBL(QD_rs1)
@@ -2860,6 +2868,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(QD_rc1)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* outer side */
@@ -2888,6 +2899,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(QD_rs2)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
         xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
@@ -2905,6 +2920,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(QD_rc2)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* inner side */
@@ -2932,6 +2950,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(QD_rs1)
 
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
