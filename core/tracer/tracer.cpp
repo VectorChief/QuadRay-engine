@@ -2780,9 +2780,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_DEBUG == 1
 
-        cmpxx_mi(Mebp, inf_FRM_X, IH(336))      /* <- pin point buggy quad */
+        cmpxx_mi(Mebp, inf_FRM_X, IH(0))        /* <- pin point buggy quad */
         jnexx_lb(QD_go1)
-        cmpxx_mi(Mebp, inf_FRM_Y, IH(212))      /* <- pin point buggy quad */
+        cmpxx_mi(Mebp, inf_FRM_Y, IH(0))        /* <- pin point buggy quad */
         jnexx_lb(QD_go1)
 
         cmpxx_mi(Mebp, inf_Q_DBG, IB(1))
@@ -3290,14 +3290,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
             RT_LOGE("    T2DNM = {%f, %f, %f, %f}\n",
             s_inf->t2dnm[0], s_inf->t2dnm[1], s_inf->t2dnm[2], s_inf->t2dnm[3]);
-
-            RT_LOGE("\n");
-
-            RT_LOGE("    T1[1] = {%+.20f} <- outer root is greater than\n",
-            s_inf->t1nmr[1] / s_inf->t1dnm[1]);
-
-            RT_LOGE("    T2[1] = {%+.20f} <- inner root in paraboloid\n",
-            s_inf->t2nmr[1] / s_inf->t2dnm[1]);
 
             RT_LOGE("\n");
         }
