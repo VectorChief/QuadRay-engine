@@ -2437,7 +2437,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
+        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
@@ -2725,7 +2725,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
+        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
@@ -3033,7 +3033,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
+        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
@@ -3343,7 +3343,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
+        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
@@ -3659,7 +3659,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
+        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
@@ -3957,7 +3957,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
+        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
@@ -4252,7 +4252,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
+        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
@@ -4550,7 +4550,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
+        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
