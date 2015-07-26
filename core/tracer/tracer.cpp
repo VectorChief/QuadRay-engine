@@ -2890,7 +2890,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
 /******************************************************************************/
     LBL(QD_rs2)
@@ -2934,7 +2935,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
         jmpxx_lb(QD_rs1)
 
