@@ -205,8 +205,37 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr tls;
 #define inf_TLS             DP(Q*0x100+0x050)
 
-    rt_word pad11[35];
+    rt_word pad11[2];
 #define inf_PAD11           DP(Q*0x100+0x054)
+
+    /* quadric debug info */
+
+    rt_word q_dbg;
+#define inf_Q_DBG           DP(Q*0x100+0x05C)
+
+    rt_real a_val[S];
+#define inf_A_VAL           DP(Q*0x100+0x060)
+
+    rt_real b_val[S];
+#define inf_B_VAL           DP(Q*0x100+0x070)
+
+    rt_real c_val[S];
+#define inf_C_VAL           DP(Q*0x100+0x080)
+
+    rt_real d_val[S];
+#define inf_D_VAL           DP(Q*0x100+0x090)
+
+    rt_real t1nmr[S];
+#define inf_T1NMR           DP(Q*0x100+0x0A0)
+
+    rt_real t1dnm[S];
+#define inf_T1DNM           DP(Q*0x100+0x0B0)
+
+    rt_real t2nmr[S];
+#define inf_T2NMR           DP(Q*0x100+0x0C0)
+
+    rt_real t2dnm[S];
+#define inf_T2DNM           DP(Q*0x100+0x0D0)
 
     /* specular pow entry points */
 
