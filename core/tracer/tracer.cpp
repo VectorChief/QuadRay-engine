@@ -2500,10 +2500,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "aa" section */
         movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+
         xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
         cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(TP_rt2, FULL, Xmm5)
-        jmpxx_lb(TP_rt1)
+        CHECK_MASK(TP_rc1, NONE, Xmm5)
+        CHECK_MASK(TP_rc2, FULL, Xmm5)
+
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
+        jmpxx_lb(TP_rc1)
 
 /******************************************************************************/
     LBL(TP_rs1)
@@ -2517,6 +2522,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(TP_rc1)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* outer side */
@@ -2545,9 +2553,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(TP_rs2)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
 /******************************************************************************/
     LBL(TP_rs2)
@@ -2561,6 +2574,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(TP_rc2)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* inner side */
@@ -2589,9 +2605,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(TP_rs1)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
         jmpxx_lb(TP_rs1)
 
