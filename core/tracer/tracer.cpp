@@ -2403,7 +2403,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #endif /* RT_FEAT_CLIPPING_CUSTOM */
 
 /******************************************************************************/
-/*******************************   TWO-PLANE   ********************************/
+/********************************   TWO-PLANE   *******************************/
 /******************************************************************************/
 
     LBL(fetch_TP_ptr)
@@ -2442,9 +2442,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm6, Xmm1)                    /* dff_k *= ray_i */
         mulps_rr(Xmm5, Xmm2)                    /* dff_i *= ray_k */
 
-        mulps_ld(Xmm7, Mebx, xhc_RAT_2)         /* cxx_k *= RAT_2 */
+        mulps_ld(Xmm7, Mebx, xtp_RAT_2)         /* cxx_k *= RAT_2 */
         subps_rr(Xmm0, Xmm7)                    /* cxx_i -= cxx_k */
-        movpx_ld(Xmm7, Mebx, xhc_RAT_2)         /* rat_2 <- RAT_2 */
+        movpx_ld(Xmm7, Mebx, xtp_RAT_2)         /* rat_2 <- RAT_2 */
         mulps_rr(Xmm4, Xmm7)                    /* bxx_k *= rat_2 */
 
         mulps_rr(Xmm1, Xmm1)                    /* ray_i *= ray_i */
@@ -2459,7 +2459,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* "d" section */
         movpx_rr(Xmm6, Xmm0)                    /* c_val <- c_val */
         andpx_ld(Xmm5, Mebp, inf_GPC04)         /* dxx_t = |dxx_t|*/
-        mulps_ld(Xmm5, Mebx, xhc_RAT_K)         /* dxx_t *= RAT_K */
+        mulps_ld(Xmm5, Mebx, xtp_RAT_K)         /* dxx_t *= RAT_K */
         movpx_rr(Xmm4, Xmm3)                    /* b_val <- b_val */
         movpx_rr(Xmm3, Xmm5)                    /* d_val <- d_val */
 
@@ -2637,11 +2637,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * as temporary storage for local HIT */
         MOVXR_LD(Xmm6, Iecx, ctx_NEW_O)         /* loc_k <- NEW_K */
         xorpx_ld(Xmm6, Mebx, srf_SMASK)         /* loc_k = -loc_k */
-        movpx_ld(Xmm1, Mebx, xhc_N_RAT)         /* n_rat <- N_RAT */
+        movpx_ld(Xmm1, Mebx, xtp_N_RAT)         /* n_rat <- N_RAT */
         mulps_rr(Xmm1, Xmm6)                    /* n_rat *= loc_k */
         mulps_rr(Xmm1, Xmm6)                    /* n_rat *= loc_k */
         rsqps_rr(Xmm3, Xmm1)                    /* i_rat rs n_rat */
-        mulps_ld(Xmm6, Mebx, xhc_RAT_2)         /* rat_2 <- RAT_2 */
+        mulps_ld(Xmm6, Mebx, xtp_RAT_2)         /* rat_2 <- RAT_2 */
         mulps_rr(Xmm6, Xmm3)                    /* rat_2 *= i_rat */
         xorpx_rr(Xmm6, Xmm7)                    /* rat_2 ^= ssign */
 
@@ -2705,7 +2705,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * as temporary storage for clipping */
         MOVXR_LD(Xmm6, Iecx, ctx_NRM_O)         /* dff_k <- NRM_K */
         mulps_rr(Xmm6, Xmm6)                    /* dff_k *= dff_k */
-        mulps_ld(Xmm6, Mebx, xhc_RAT_2)         /* df2_k *= RAT_2 */
+        mulps_ld(Xmm6, Mebx, xtp_RAT_2)         /* df2_k *= RAT_2 */
 
         APPLY_CLIP(TP, Xmm4, Xmm6)
 

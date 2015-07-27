@@ -3635,7 +3635,7 @@ rt_ParaCylinder::~rt_ParaCylinder()
 rt_HyperCylinder::rt_HyperCylinder(rt_Registry *rg, rt_Object *parent,
                                    rt_OBJECT *obj, rt_cell ssize) :
 
-    rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_HYPERCYLINDER)))
+    rt_Quadric(rg, parent, obj, RT_MAX(ssize, sizeof(rt_SIMD_TWOPLANE)))
 {
     xhc = (rt_HYPERCYLINDER *)obj->obj.pobj;
 
@@ -3662,15 +3662,15 @@ rt_HyperCylinder::rt_HyperCylinder(rt_Registry *rg, rt_Object *parent,
         memcpy(bvbox->faces, bx_faces, bvbox->faces_num * sizeof(rt_FACE));
     }
 
-/*  rt_SIMD_HYPERCYLINDER data for two-plane solver (hyp == 0.0f) */
+/*  rt_SIMD_TWOPLANE data for two-plane solver (hyp == 0.0f) */
 
-    rt_SIMD_HYPERCYLINDER *s_xhc = (rt_SIMD_HYPERCYLINDER *)s_srf;
+    rt_SIMD_TWOPLANE *s_xtp = (rt_SIMD_TWOPLANE *)s_srf;
 
     rt_real rat = RT_FABS(xhc->rat);
 
-    RT_SIMD_SET(s_xhc->rat_k, rat);
-    RT_SIMD_SET(s_xhc->rat_2, rat * rat);
-    RT_SIMD_SET(s_xhc->n_rat, (1.0f + rat * rat) * rat * rat);
+    RT_SIMD_SET(s_xtp->rat_k, rat);
+    RT_SIMD_SET(s_xtp->rat_2, rat * rat);
+    RT_SIMD_SET(s_xtp->n_rat, (1.0f + rat * rat) * rat * rat);
 }
 
 /*

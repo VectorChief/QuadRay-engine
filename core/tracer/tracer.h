@@ -785,23 +785,23 @@ struct rt_SIMD_SURFACE
 };
 
 /******************************************************************************/
-/******************************   HYPERCYLINDER   *****************************/
+/********************************   TWO-PLANE   *******************************/
 /******************************************************************************/
 
 /*
- * Extended SIMD surface structure with properties for hypercylinder.
+ * Extended SIMD surface structure with properties for two-plane.
  * Structure is read-only in backend.
  */
-struct rt_SIMD_HYPERCYLINDER : public rt_SIMD_SURFACE
+struct rt_SIMD_TWOPLANE : public rt_SIMD_SURFACE
 {
     rt_real rat_k[S];
-#define xhc_RAT_K           DP(Q*0x250)
+#define xtp_RAT_K           DP(Q*0x250)
 
     rt_real rat_2[S];
-#define xhc_RAT_2           DP(Q*0x260)
+#define xtp_RAT_2           DP(Q*0x260)
 
     rt_real n_rat[S];
-#define xhc_N_RAT           DP(Q*0x270)
+#define xtp_N_RAT           DP(Q*0x270)
 
 };
 
