@@ -2421,45 +2421,56 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #endif /* RT_SHOW_TILES */
 
         /* "i" section */
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
-        MOVXR_LD(Xmm1, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
-        MOVXR_LD(Xmm5, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
-        movpx_rr(Xmm3, Xmm1)                    /* ray_i <- ray_i */
-        mulps_rr(Xmm3, Xmm5)                    /* ray_i *= dff_i */
+        movxx_ld(Reax, Mebx, srf_A_MAP(RT_I * 4)) /* Reax is used in Iecx */
+        movpx_ld(Xmm1, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
+        movpx_ld(Xmm5, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
+        subxx_ld(Reax, Mebx, srf_A_SGN(RT_W * 4)) /* Reax is used in Iebx */
+        movpx_ld(Xmm3, Iebx, srf_SCI_O)         /* sci_i <- SCI_I */
 
         /* "k" section */
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        MOVXR_LD(Xmm2, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
-        MOVXR_LD(Xmm6, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
-        movpx_rr(Xmm4, Xmm2)                    /* ray_k <- ray_k */
-        mulps_rr(Xmm4, Xmm6)                    /* ray_k *= dff_k */
-
-        /* "*" section */
-        movpx_rr(Xmm0, Xmm5)                    /* dff_i <- dff_i */
-        movpx_rr(Xmm7, Xmm6)                    /* dff_k <- dff_k */
-        mulps_rr(Xmm0, Xmm5)                    /* dff_i *= dff_i */
-        mulps_rr(Xmm7, Xmm6)                    /* dff_k *= dff_k */
-        mulps_rr(Xmm6, Xmm1)                    /* dff_k *= ray_i */
-        mulps_rr(Xmm5, Xmm2)                    /* dff_i *= ray_k */
-
-        mulps_ld(Xmm7, Mebx, xtp_RAT_2)         /* cxx_k *= RAT_2 */
-        subps_rr(Xmm0, Xmm7)                    /* cxx_i -= cxx_k */
-        movpx_ld(Xmm7, Mebx, xtp_RAT_2)         /* rat_2 <- RAT_2 */
-        mulps_rr(Xmm4, Xmm7)                    /* bxx_k *= rat_2 */
-
-        mulps_rr(Xmm1, Xmm1)                    /* ray_i *= ray_i */
-        mulps_rr(Xmm2, Xmm2)                    /* ray_k *= ray_k */
-        mulps_rr(Xmm2, Xmm7)                    /* axx_k *= rat_2 */
-
-        /* "-" section */
-        subps_rr(Xmm1, Xmm2)                    /* axx_i -= axx_k */
-        subps_rr(Xmm3, Xmm4)                    /* bxx_i -= bxx_k */
-        subps_rr(Xmm5, Xmm6)                    /* dxx_i -= dxx_k */
+        movxx_ld(Reax, Mebx, srf_A_MAP(RT_K * 4)) /* Reax is used in Iecx */
+        movpx_ld(Xmm2, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
+        movpx_ld(Xmm6, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
+        subxx_ld(Reax, Mebx, srf_A_SGN(RT_W * 4)) /* Reax is used in Iebx */
+        movpx_ld(Xmm4, Iebx, srf_SCI_O)         /* sci_k <- SCI_K */
 
         /* "d" section */
-        movpx_rr(Xmm6, Xmm0)                    /* c_val <- c_val */
+        movpx_rr(Xmm0, Xmm5)                    /* dff_i <- dff_i */
+        movpx_rr(Xmm7, Xmm6)                    /* dff_k <- dff_k */
+        mulps_rr(Xmm6, Xmm1)                    /* dff_k *= ray_i */
+        mulps_rr(Xmm5, Xmm2)                    /* dff_i *= ray_k */
+        subps_rr(Xmm5, Xmm6)                    /* dxx_i -= dxx_k */
+        mulps_rr(Xmm5, Xmm5)                    /* dxx_t *= dxx_t */
+        mulps_rr(Xmm5, Xmm3)                    /* dxx_t *= sci_i */
+        mulps_rr(Xmm5, Xmm4)                    /* dxx_t *= sci_k */
         andpx_ld(Xmm5, Mebp, inf_GPC04)         /* dxx_t = |dxx_t|*/
-        mulps_ld(Xmm5, Mebx, xtp_RAT_K)         /* dxx_t *= RAT_K */
+        sqrps_rr(Xmm5, Xmm5)                    /* dxx_t sq dxx_t */
+
+        /* "b" section */
+        movpx_rr(Xmm6, Xmm3)                    /* sci_i <- sci_i */
+        mulps_rr(Xmm3, Xmm0)                    /* sci_i *= dff_i */
+        mulps_rr(Xmm4, Xmm7)                    /* sci_k *= dff_k */
+        mulps_rr(Xmm3, Xmm1)                    /* bxx_i *= ray_i */
+        mulps_rr(Xmm4, Xmm2)                    /* bxx_k *= ray_k */
+        addps_rr(Xmm3, Xmm4)                    /* bxx_i += bxx_k */
+        movpx_ld(Xmm4, Iebx, srf_SCI_O)         /* sci_k <- SCI_K */
+
+        /* "c" section */
+        mulps_rr(Xmm0, Xmm0)                    /* dff_i *= dff_i */
+        mulps_rr(Xmm7, Xmm7)                    /* dff_k *= dff_k */
+        mulps_rr(Xmm0, Xmm6)                    /* dff_i *= sci_i */
+        mulps_rr(Xmm7, Xmm4)                    /* dff_k *= sci_k */
+        addps_rr(Xmm0, Xmm7)                    /* cxx_i += cxx_k */
+
+        /* "a" section */
+        mulps_rr(Xmm1, Xmm1)                    /* ray_i *= ray_i */
+        mulps_rr(Xmm2, Xmm2)                    /* ray_k *= ray_k */
+        mulps_rr(Xmm1, Xmm6)                    /* ray_i *= sci_i */
+        mulps_rr(Xmm2, Xmm4)                    /* ray_k *= sci_k */
+        addps_rr(Xmm1, Xmm2)                    /* axx_i += axx_k */
+
+        /* mov section */
+        movpx_rr(Xmm6, Xmm0)                    /* c_val <- c_val */
         movpx_rr(Xmm4, Xmm3)                    /* b_val <- b_val */
         movpx_rr(Xmm3, Xmm5)                    /* d_val <- d_val */
 
@@ -2632,48 +2643,48 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* compute normal, if enabled */
         CHECK_PROP(TP_nrm, RT_PROP_NORMAL)
 
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        /* use next context's RAY fields (NEW)
-         * as temporary storage for local HIT */
-        MOVXR_LD(Xmm6, Iecx, ctx_NEW_O)         /* loc_k <- NEW_K */
-        xorpx_ld(Xmm6, Mebx, srf_SMASK)         /* loc_k = -loc_k */
-        movpx_ld(Xmm1, Mebx, xtp_N_RAT)         /* n_rat <- N_RAT */
-        mulps_rr(Xmm1, Xmm6)                    /* n_rat *= loc_k */
-        mulps_rr(Xmm1, Xmm6)                    /* n_rat *= loc_k */
-        rsqps_rr(Xmm3, Xmm1)                    /* i_rat rs n_rat */
-        mulps_ld(Xmm6, Mebx, xtp_RAT_2)         /* rat_2 <- RAT_2 */
-        mulps_rr(Xmm6, Xmm3)                    /* rat_2 *= i_rat */
-        xorpx_rr(Xmm6, Xmm7)                    /* rat_2 ^= ssign */
+        movxx_ld(Reax, Mebx, srf_A_SGN(RT_W * 4)) /* Reax is used in Iecx */
 
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
-        MOVXR_LD(Xmm4, Iecx, ctx_NEW_O)         /* loc_i <- NEW_I */
-        mulps_rr(Xmm4, Xmm3)                    /* loc_i *= i_rat */
-        xorpx_rr(Xmm4, Xmm7)                    /* loc_i ^= ssign */
+        movpx_ld(Xmm4, Iecx, ctx_NEW_X)         /* loc_x <- NEW_X */
+        mulps_ld(Xmm4, Mebx, srf_SCI_X)         /* loc_x *= SCI_X */
+
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        movpx_ld(Xmm5, Iecx, ctx_NEW_Y)         /* loc_y <- NEW_Y */
+        mulps_ld(Xmm5, Mebx, srf_SCI_Y)         /* loc_y *= SCI_Y */
+
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        movpx_ld(Xmm6, Iecx, ctx_NEW_Z)         /* loc_z <- NEW_Z */
+        mulps_ld(Xmm6, Mebx, srf_SCI_Z)         /* loc_z *= SCI_Z */
 
         /* renormalize normal */
-        movpx_rr(Xmm1, Xmm4)                    /* loc_i <- loc_i */
-        movpx_rr(Xmm3, Xmm6)                    /* loc_k <- loc_k */
+        movpx_rr(Xmm1, Xmm4)
+        movpx_rr(Xmm2, Xmm5)
+        movpx_rr(Xmm3, Xmm6)
 
-        mulps_rr(Xmm1, Xmm4)                    /* loc_i *= loc_i */
-        mulps_rr(Xmm3, Xmm6)                    /* loc_k *= loc_k */
+        mulps_rr(Xmm1, Xmm4)
+        mulps_rr(Xmm2, Xmm5)
+        mulps_rr(Xmm3, Xmm6)
 
-        addps_rr(Xmm1, Xmm3)                    /* lc2_i += lc2_k */
-        rsqps_rr(Xmm0, Xmm1)                    /* i_len rs n_len */
+        addps_rr(Xmm1, Xmm2)
+        addps_rr(Xmm1, Xmm3)
+        rsqps_rr(Xmm0, Xmm1)
 
-        mulps_rr(Xmm4, Xmm0)                    /* loc_i *= i_len */
-        mulps_rr(Xmm6, Xmm0)                    /* loc_k *= i_len */
+        mulps_rr(Xmm4, Xmm0)
+        mulps_rr(Xmm5, Xmm0)
+        mulps_rr(Xmm6, Xmm0)
+
+        xorpx_rr(Xmm4, Xmm7)
+        xorpx_rr(Xmm5, Xmm7)
+        xorpx_rr(Xmm6, Xmm7)
 
         /* store normal */
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
-        MOVXR_ST(Xmm4, Iecx, ctx_NRM_O)         /* nrm_i -> NRM_I */
-
-        INDEX_AXIS(RT_J)                        /* eax   <-     j */
-        MOVZR_ST(Xmm5, Iecx, ctx_NRM_O)         /* 0     -> NRM_J */
-
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
-        MOVXR_ST(Xmm6, Iecx, ctx_NRM_O)         /* nrm_k -> NRM_K */
+        movpx_st(Xmm4, Iecx, ctx_NRM_X)
+        movpx_st(Xmm5, Iecx, ctx_NRM_Y)
+        movpx_st(Xmm6, Iecx, ctx_NRM_Z)
 
         jmpxx_lb(MT_nrm)
 
@@ -2694,20 +2705,39 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(TP_clp)
 
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        movxx_ld(Reax, Mebx, srf_A_SGN(RT_W * 4)) /* Reax is used in Iecx */
+
         /* use context's normal fields (NRM)
          * as temporary storage for clipping */
-        MOVXR_LD(Xmm4, Iecx, ctx_NRM_O)         /* dff_i <- NRM_I */
-        mulps_rr(Xmm4, Xmm4)                    /* dff_i *= dff_i */
+        movpx_ld(Xmm4, Iecx, ctx_NRM_X)         /* dff_x <- DFF_X */
+        mulps_rr(Xmm4, Xmm4)                    /* df2_x *= dff_x */
+        mulps_ld(Xmm4, Mebx, srf_SCI_X)         /* df2_x *= SCI_X */
 
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
         /* use context's normal fields (NRM)
          * as temporary storage for clipping */
-        MOVXR_LD(Xmm6, Iecx, ctx_NRM_O)         /* dff_k <- NRM_K */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_k *= dff_k */
-        mulps_ld(Xmm6, Mebx, xtp_RAT_2)         /* df2_k *= RAT_2 */
+        movpx_ld(Xmm5, Iecx, ctx_NRM_Y)         /* dff_y <- DFF_Y */
+        mulps_rr(Xmm5, Xmm5)                    /* df2_y *= dff_y */
+        mulps_ld(Xmm5, Mebx, srf_SCI_Y)         /* df2_y *= SCI_Y */
 
-        APPLY_CLIP(TP, Xmm4, Xmm6)
+        /* use context's normal fields (NRM)
+         * as temporary storage for clipping */
+        movpx_ld(Xmm6, Iecx, ctx_NRM_Z)         /* dff_z <- DFF_Z */
+        mulps_rr(Xmm6, Xmm6)                    /* df2_z *= dff_z */
+        mulps_ld(Xmm6, Mebx, srf_SCI_Z)         /* df2_z *= SCI_Z */
+
+        subps_ld(Xmm4, Mebx, srf_SCI_W)         /* dff_x -= SCI_W */
+        addps_rr(Xmm4, Xmm5)                    /* dff_x += dff_y */
+        addps_rr(Xmm4, Xmm6)                    /* dff_x += dff_z */
+        xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
+
+        /* apply clip, equivalent to
+         * APPLY_CLIP(QD, Xmm4, Xmm0) */
+        movxx_ri(Reax, IB(1))
+        subxx_ld(Reax, Medi, elm_DATA)
+        shlxx_ri(Reax, IB(3))
+        movpx_ld(Xmm1, Iebx, srf_SBASE)
+        xorpx_rr(Xmm4, Xmm1)
+        cleps_rr(Xmm4, Xmm0)
 
         jmpxx_lb(CC_ret)
 
@@ -2731,7 +2761,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_SHOW_TILES */
 
-        movxx_ld(Reax, Mebx, srf_A_SGN(RT_W * 4))
+        movxx_ld(Reax, Mebx, srf_A_SGN(RT_W * 4)) /* Reax is used in Iecx */
 
         /* "x" section */
         movpx_ld(Xmm1, Iecx, ctx_RAY_X)         /* ray_x <- RAY_X */
@@ -2999,7 +3029,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* compute normal, if enabled */
         CHECK_PROP(QD_nrm, RT_PROP_NORMAL)
 
-        movxx_ld(Reax, Mebx, srf_A_SGN(RT_W * 4))
+        movxx_ld(Reax, Mebx, srf_A_SGN(RT_W * 4)) /* Reax is used in Iecx */
 
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
@@ -3064,7 +3094,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(QD_clp)
 
-        movxx_ld(Reax, Mebx, srf_A_SGN(RT_W * 4))
+        movxx_ld(Reax, Mebx, srf_A_SGN(RT_W * 4)) /* Reax is used in Iecx */
 
         /* use context's normal fields (NRM)
          * as temporary storage for clipping */

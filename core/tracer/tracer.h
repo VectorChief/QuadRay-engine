@@ -755,6 +755,8 @@ struct rt_SIMD_SURFACE
 
     /* geometry scaling coeffs */
 
+#define srf_SCI_O           DP(Q*0x1D0)
+
     rt_real sci_x[S];
 #define srf_SCI_X           DP(Q*0x1D0)
 
@@ -776,32 +778,6 @@ struct rt_SIMD_SURFACE
 
     rt_real scj_z[S];
 #define srf_SCJ_Z           DP(Q*0x230)
-
-    /* reserved area 1 */
-
-    rt_real pad01[S];
-#define srf_PAD01           DP(Q*0x240)
-
-};
-
-/******************************************************************************/
-/********************************   TWO-PLANE   *******************************/
-/******************************************************************************/
-
-/*
- * Extended SIMD surface structure with properties for two-plane.
- * Structure is read-only in backend.
- */
-struct rt_SIMD_TWOPLANE : public rt_SIMD_SURFACE
-{
-    rt_real rat_k[S];
-#define xtp_RAT_K           DP(Q*0x250)
-
-    rt_real rat_2[S];
-#define xtp_RAT_2           DP(Q*0x260)
-
-    rt_real n_rat[S];
-#define xtp_N_RAT           DP(Q*0x270)
 
 };
 
