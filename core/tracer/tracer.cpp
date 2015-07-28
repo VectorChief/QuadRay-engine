@@ -155,9 +155,9 @@
  * transform is a multiple of 90 degree rotation.
  */
 #define INDEX_AXIS(nx) /* destroys Reax, Xmm0 */                            \
-        movxx_ld(Reax, Mebx, srf_A_SGN(nx * 4))                             \
+        movxx_ld(Reax, Mebx, srf_A_SGN(nx*4))                               \
         movpx_ld(Xmm0, Iebx, srf_SBASE)                                     \
-        movxx_ld(Reax, Mebx, srf_A_MAP(nx * 4))
+        movxx_ld(Reax, Mebx, srf_A_MAP(nx*4))
 
 #define MOVXR_LD(RG, RM, DP) /* reads Xmm0 */                               \
         movpx_ld(W(RG), W(RM), W(DP))                                       \
@@ -172,7 +172,7 @@
         movpx_st(W(RG), W(RM), W(DP))
 
 #define INDEX_TMAP(nx) /* destroys Reax */                                  \
-        movxx_ld(Reax, Medx, mat_T_MAP(nx * 4))
+        movxx_ld(Reax, Medx, mat_T_MAP(nx*4))
 
 /*
  * Axis clipping.
@@ -180,7 +180,7 @@
  * jump to "lb" otherwise.
  */
 #define CHECK_CLIP(lb, pl, nx)                                              \
-        cmpxx_mi(Mebx, srf_##pl(nx * 4), IB(0))                             \
+        cmpxx_mi(Mebx, srf_##pl(nx*4), IB(0))                               \
         jeqxx_lb(lb)
 
 /*
@@ -274,7 +274,7 @@
 #define FETCH_PROP() /* destroys Reax, Xmm7 */                              \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
-        mulxn_ri(Reax, IB(RT_SIMD_WIDTH * 4))                               \
+        mulxn_ri(Reax, IB(RT_SIMD_WIDTH*4))                                 \
         movpx_ld(Xmm7, Iebx, srf_SBASE)                                     \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         shlxx_ri(Reax, IB(3))                                               \
@@ -692,7 +692,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM
 
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0))
         jeqxx_lb(OO_trm)
 
         /* transform diff */
@@ -705,7 +705,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* bypass non-diagonal terms
          * in transform matrix for scaling fastpath */
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(1))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(1))
         jeqxx_lb(OO_trd)
 
         movpx_ld(Xmm0, Mebx, srf_TCI_Y)
@@ -770,7 +770,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* bypass non-diagonal terms
          * in transform matrix for scaling fastpath */
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(1))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(1))
         jeqxx_lb(OO_trr)
 
         movpx_ld(Xmm0, Mebx, srf_TCI_Y)
@@ -868,7 +868,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM
 
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0))
         jeqxx_lb(CX_trm)
 
         movpx_ld(Xmm4, Mecx, ctx_RAY_I)         /* ray_i <- RAY_I */
@@ -914,7 +914,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM
 
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0))
         jeqxx_lb(CY_trm)
 
         movpx_ld(Xmm5, Mecx, ctx_RAY_J)         /* ray_j <- RAY_J */
@@ -960,7 +960,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM
 
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0))
         jeqxx_lb(CZ_trm)
 
         movpx_ld(Xmm6, Mecx, ctx_RAY_K)         /* ray_k <- RAY_K */
@@ -1123,7 +1123,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM
 
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0))
         jeqxx_lb(CC_trm)
 
         /* transform clip */
@@ -1136,7 +1136,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* bypass non-diagonal terms
          * in transform matrix for scaling fastpath */
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(1))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(1))
         jeqxx_lb(CC_trc)
 
         movpx_ld(Xmm0, Mebx, srf_TCI_Y)
@@ -1221,7 +1221,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM
 
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0))
         jeqxx_lb(MT_mat)
 
         movxx_ld(Rebx, Mebx, srf_MSC_P(OBJ))    /* load trnode's simd ptr */
@@ -1241,7 +1241,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* bypass non-diagonal terms
          * in transform matrix for scaling fastpath */
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(1))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(1))
         jeqxx_lb(MT_trn)
 
         movpx_ld(Xmm0, Mebx, srf_TCJ_X)
@@ -1267,7 +1267,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* bypass normal renormalization
          * if scaling is not present in transform matrix */
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(2))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(2))
         jeqxx_lb(MT_rnm)
 
     LBL(MT_trn)
@@ -2422,17 +2422,17 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #endif /* RT_SHOW_TILES */
 
         /* "i" section */
-        movxx_ld(Reax, Mebx, srf_A_MAP(RT_I * 4)) /* Reax is used in Iecx */
+        movxx_ld(Reax, Mebx, srf_A_MAP(RT_I*4)) /* Reax is used in Iecx */
         movpx_ld(Xmm1, Iecx, ctx_RAY_O)         /* ray_i <- RAY_I */
         movpx_ld(Xmm5, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
-        subxx_ld(Reax, Mebx, srf_A_SGN(RT_W * 4)) /* Reax is used in Iebx */
+        subxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iebx */
         movpx_ld(Xmm3, Iebx, srf_SCI_O)         /* sci_i <- SCI_I */
 
         /* "k" section */
-        movxx_ld(Reax, Mebx, srf_A_MAP(RT_K * 4)) /* Reax is used in Iecx */
+        movxx_ld(Reax, Mebx, srf_A_MAP(RT_K*4)) /* Reax is used in Iecx */
         movpx_ld(Xmm2, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
         movpx_ld(Xmm6, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
-        subxx_ld(Reax, Mebx, srf_A_SGN(RT_W * 4)) /* Reax is used in Iebx */
+        subxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iebx */
         movpx_ld(Xmm4, Iebx, srf_SCI_O)         /* sci_k <- SCI_K */
 
         /* "d" section */
@@ -2487,7 +2487,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(TP_clp)
 
-        movxx_ld(Reax, Mebx, srf_A_SGN(RT_W * 4)) /* Reax is used in Iecx */
+        movxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iecx */
 
         /* use context's normal fields (NRM)
          * as temporary storage for clipping */
@@ -2543,7 +2543,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_SHOW_TILES */
 
-        movxx_ld(Reax, Mebx, srf_A_SGN(RT_W * 4)) /* Reax is used in Iecx */
+        movxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iecx */
 
         /* "x" section */
         movpx_ld(Xmm1, Iecx, ctx_RAY_X)         /* ray_x <- RAY_X */
@@ -2813,7 +2813,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* compute normal, if enabled */
         CHECK_PROP(QD_nrm, RT_PROP_NORMAL)
 
-        movxx_ld(Reax, Mebx, srf_A_SGN(RT_W * 4)) /* Reax is used in Iecx */
+        movxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iecx */
 
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
@@ -2878,7 +2878,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(QD_clp)
 
-        movxx_ld(Reax, Mebx, srf_A_SGN(RT_W * 4)) /* Reax is used in Iecx */
+        movxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iecx */
 
         /* use context's normal fields (NRM)
          * as temporary storage for clipping */
