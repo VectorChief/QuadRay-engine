@@ -484,8 +484,9 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
                             RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
 
     s_srf->srf_p[2] = t_clp[tag > RT_TAG_PLANE ? 
-                            tag == RT_TAG_HYPERCYLINDER &&
-                            s_srf->sci_w[0] == 0.0f ?
+                            tag != RT_TAG_PARABOLOID &&
+                            tag != RT_TAG_PARACYLINDER &&
+                            tag != RT_TAG_HYPERPARABOLOID ?
                             RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
 
     /* update surface's materials for each side */
@@ -2444,7 +2445,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm5, Xmm3)                    /* dxx_t *= sci_i */
         mulps_rr(Xmm5, Xmm4)                    /* dxx_t *= sci_k */
         andpx_ld(Xmm5, Mebp, inf_GPC04)         /* dxx_t = |dxx_t|*/
-        sqrps_rr(Xmm5, Xmm5)                    /* dxx_t sq dxx_t */
 
         /* "b" section */
         movpx_rr(Xmm6, Xmm3)                    /* sci_i <- sci_i */
@@ -2474,225 +2474,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_rr(Xmm4, Xmm3)                    /* b_val <- b_val */
         movpx_rr(Xmm3, Xmm5)                    /* d_val <- d_val */
 
-        /* create xmask */
-        xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        /* "tt" section */
-        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
-        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
-        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
-        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
-
-        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
-        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
-        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
-
-        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
-        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
-        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
-        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
-        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
-        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
-        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
-
-        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
-        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
-        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
-        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
-        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
-        orrpx_rr(Xmm0, Xmm1)                    /* a_pos |= a_neg */
-        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
-
-        /* "aa" section */
-        movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(TP_rc1, NONE, Xmm5)
-        CHECK_MASK(TP_rc2, FULL, Xmm5)
-
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
-        jmpxx_lb(TP_rc1)
-
-/******************************************************************************/
-    LBL(TP_rs1)
-
-        movpx_ld(Xmm4, Mecx, ctx_XTMP1)         /* bdval <- XTMP1 */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP2)         /* a_val <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(TP_rt1)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(TP_rc1)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* outer side */
-        CHECK_SIDE(TP_sd1, TP_rt2, RT_FLAG_SIDE_OUTER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t1" section */
-        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(TP_cp1, CC_clp)
-        CHECK_MASK(TP_rs2, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
-        SUBROUTINE(TP_mt1, TP_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(TP_rs2)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-/******************************************************************************/
-    LBL(TP_rs2)
-
-        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(TP_rt2)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(TP_rc2)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* inner side */
-        CHECK_SIDE(TP_sd2, TP_rt1, RT_FLAG_SIDE_INNER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm4, Mecx, ctx_XTMP1)         /* bdval -> XTMP1 */
-        movpx_st(Xmm1, Mecx, ctx_XTMP2)         /* a_val -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t2" section */
-        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
-        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(TP_cp2, CC_clp)
-        CHECK_MASK(TP_rs1, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
-        SUBROUTINE(TP_mt2, TP_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(TP_rs1)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        jmpxx_lb(TP_rs1)
-
-/******************************************************************************/
-    LBL(TP_mat)
-
-        FETCH_PROP()                            /* Xmm7  <- ssign */
-
-#if RT_FEAT_LIGHTS_SHADOWS
-
-        CHECK_SHAD(TP_shd)
-
-#endif /* RT_FEAT_LIGHTS_SHADOWS */
-
-#if RT_FEAT_NORMALS
-
-        /* compute normal, if enabled */
-        CHECK_PROP(TP_nrm, RT_PROP_NORMAL)
-
-        movxx_ld(Reax, Mebx, srf_A_SGN(RT_W * 4)) /* Reax is used in Iecx */
-
-        /* use next context's RAY fields (NEW)
-         * as temporary storage for local HIT */
-        movpx_ld(Xmm4, Iecx, ctx_NEW_X)         /* loc_x <- NEW_X */
-        mulps_ld(Xmm4, Mebx, srf_SCI_X)         /* loc_x *= SCI_X */
-
-        /* use next context's RAY fields (NEW)
-         * as temporary storage for local HIT */
-        movpx_ld(Xmm5, Iecx, ctx_NEW_Y)         /* loc_y <- NEW_Y */
-        mulps_ld(Xmm5, Mebx, srf_SCI_Y)         /* loc_y *= SCI_Y */
-
-        /* use next context's RAY fields (NEW)
-         * as temporary storage for local HIT */
-        movpx_ld(Xmm6, Iecx, ctx_NEW_Z)         /* loc_z <- NEW_Z */
-        mulps_ld(Xmm6, Mebx, srf_SCI_Z)         /* loc_z *= SCI_Z */
-
-        /* renormalize normal */
-        movpx_rr(Xmm1, Xmm4)
-        movpx_rr(Xmm2, Xmm5)
-        movpx_rr(Xmm3, Xmm6)
-
-        mulps_rr(Xmm1, Xmm4)
-        mulps_rr(Xmm2, Xmm5)
-        mulps_rr(Xmm3, Xmm6)
-
-        addps_rr(Xmm1, Xmm2)
-        addps_rr(Xmm1, Xmm3)
-        rsqps_rr(Xmm0, Xmm1)
-
-        mulps_rr(Xmm4, Xmm0)
-        mulps_rr(Xmm5, Xmm0)
-        mulps_rr(Xmm6, Xmm0)
-
-        xorpx_rr(Xmm4, Xmm7)
-        xorpx_rr(Xmm5, Xmm7)
-        xorpx_rr(Xmm6, Xmm7)
-
-        /* store normal */
-        movpx_st(Xmm4, Iecx, ctx_NRM_X)
-        movpx_st(Xmm5, Iecx, ctx_NRM_Y)
-        movpx_st(Xmm6, Iecx, ctx_NRM_Z)
-
-        jmpxx_lb(MT_nrm)
-
-    LBL(TP_nrm)
-
-#endif /* RT_FEAT_NORMALS */
-
-        jmpxx_lb(MT_mat)
+        jmpxx_lb(QD_rts)                        /* quadric  roots */
 
 /******************************************************************************/
 #if RT_FEAT_CLIPPING_CUSTOM
@@ -2823,6 +2605,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_rr(Xmm4, Xmm3)                    /* b_val <- b_val */
         mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
+
+    LBL(QD_rts)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
