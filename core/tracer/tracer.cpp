@@ -75,12 +75,15 @@
  */
 #define PTR   0x00 /* LOCAL, PARAM, MAT_P, SRF_P */
 #define LGT   0x00 /* LST_P */
-#define FLG   0x04 /* LOCAL, PARAM, MAT_P */
+
+#define FLG   0x04 /* LOCAL, PARAM, MAT_P, XMISC */
 #define SRF   0x04 /* LST_P */
+
 #define CLP   0x08 /* MSC_P, SRF_P */
 #define LST   0x08 /* LOCAL, PARAM */
+
 #define OBJ   0x0C /* LOCAL, PARAM, MSC_P */
-#define TAG   0x0C /* SRF_P */
+#define TAG   0x0C /* SRF_P, XMISC */
 
 /*
  * Manual register allocation table
@@ -2437,7 +2440,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
+        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
@@ -2473,10 +2476,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "aa" section */
         movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+
         xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
         cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(CL_rt2, FULL, Xmm5)
-        jmpxx_lb(CL_rt1)
+        CHECK_MASK(CL_rc1, NONE, Xmm5)
+        CHECK_MASK(CL_rc2, FULL, Xmm5)
+
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
+        jmpxx_lb(CL_rc1)
 
 /******************************************************************************/
     LBL(CL_rs1)
@@ -2490,6 +2498,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(CL_rc1)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* outer side */
@@ -2518,9 +2529,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(CL_rs2)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
 /******************************************************************************/
     LBL(CL_rs2)
@@ -2534,6 +2550,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(CL_rc2)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* inner side */
@@ -2562,9 +2581,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(CL_rs1)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
         jmpxx_lb(CL_rs1)
 
@@ -2725,7 +2749,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
+        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
@@ -2761,10 +2785,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "aa" section */
         movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+
         xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
         cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(SP_rt2, FULL, Xmm5)
-        jmpxx_lb(SP_rt1)
+        CHECK_MASK(SP_rc1, NONE, Xmm5)
+        CHECK_MASK(SP_rc2, FULL, Xmm5)
+
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
+        jmpxx_lb(SP_rc1)
 
 /******************************************************************************/
     LBL(SP_rs1)
@@ -2778,6 +2807,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(SP_rc1)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* outer side */
@@ -2806,9 +2838,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(SP_rs2)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
 /******************************************************************************/
     LBL(SP_rs2)
@@ -2822,6 +2859,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(SP_rc2)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* inner side */
@@ -2850,9 +2890,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(SP_rs1)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
         jmpxx_lb(SP_rs1)
 
@@ -3033,7 +3078,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
+        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
@@ -3069,10 +3114,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "aa" section */
         movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+
         xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
         cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(CN_rt2, FULL, Xmm5)
-        jmpxx_lb(CN_rt1)
+        CHECK_MASK(CN_rc1, NONE, Xmm5)
+        CHECK_MASK(CN_rc2, FULL, Xmm5)
+
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
+        jmpxx_lb(CN_rc1)
 
 /******************************************************************************/
     LBL(CN_rs1)
@@ -3086,6 +3136,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(CN_rc1)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* outer side */
@@ -3114,9 +3167,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(CN_rs2)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
 /******************************************************************************/
     LBL(CN_rs2)
@@ -3130,6 +3188,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(CN_rc2)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* inner side */
@@ -3158,9 +3219,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(CN_rs1)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
         jmpxx_lb(CN_rs1)
 
@@ -3343,7 +3409,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
+        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
@@ -3379,10 +3445,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "aa" section */
         movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+
         xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
         cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(PB_rt2, FULL, Xmm5)
-        jmpxx_lb(PB_rt1)
+        CHECK_MASK(PB_rc1, NONE, Xmm5)
+        CHECK_MASK(PB_rc2, FULL, Xmm5)
+
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
+        jmpxx_lb(PB_rc1)
 
 /******************************************************************************/
     LBL(PB_rs1)
@@ -3396,6 +3467,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(PB_rc1)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* outer side */
@@ -3424,9 +3498,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(PB_rs2)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
 /******************************************************************************/
     LBL(PB_rs2)
@@ -3440,6 +3519,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(PB_rc2)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* inner side */
@@ -3468,9 +3550,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(PB_rs1)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
         jmpxx_lb(PB_rs1)
 
@@ -3659,7 +3746,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
+        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
@@ -3695,10 +3782,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "aa" section */
         movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+
         xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
         cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(HB_rt2, FULL, Xmm5)
-        jmpxx_lb(HB_rt1)
+        CHECK_MASK(HB_rc1, NONE, Xmm5)
+        CHECK_MASK(HB_rc2, FULL, Xmm5)
+
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
+        jmpxx_lb(HB_rc1)
 
 /******************************************************************************/
     LBL(HB_rs1)
@@ -3712,6 +3804,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(HB_rc1)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* outer side */
@@ -3740,9 +3835,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(HB_rs2)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
 /******************************************************************************/
     LBL(HB_rs2)
@@ -3756,6 +3856,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(HB_rc2)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* inner side */
@@ -3784,9 +3887,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(HB_rs1)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
         jmpxx_lb(HB_rs1)
 
@@ -3957,7 +4065,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
+        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
@@ -3993,10 +4101,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "aa" section */
         movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+
         xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
         cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(PC_rt2, FULL, Xmm5)
-        jmpxx_lb(PC_rt1)
+        CHECK_MASK(PC_rc1, NONE, Xmm5)
+        CHECK_MASK(PC_rc2, FULL, Xmm5)
+
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
+        jmpxx_lb(PC_rc1)
 
 /******************************************************************************/
     LBL(PC_rs1)
@@ -4010,6 +4123,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(PC_rc1)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* outer side */
@@ -4038,9 +4154,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(PC_rs2)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
 /******************************************************************************/
     LBL(PC_rs2)
@@ -4054,6 +4175,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(PC_rc2)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* inner side */
@@ -4082,9 +4206,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(PC_rs1)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
         jmpxx_lb(PC_rs1)
 
@@ -4252,7 +4381,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
+        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
@@ -4288,10 +4417,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "aa" section */
         movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+
         xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
         cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(HC_rt2, FULL, Xmm5)
-        jmpxx_lb(HC_rt1)
+        CHECK_MASK(HC_rc1, NONE, Xmm5)
+        CHECK_MASK(HC_rc2, FULL, Xmm5)
+
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
+        jmpxx_lb(HC_rc1)
 
 /******************************************************************************/
     LBL(HC_rs1)
@@ -4305,6 +4439,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(HC_rc1)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* outer side */
@@ -4333,9 +4470,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(HC_rs2)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
 /******************************************************************************/
     LBL(HC_rs2)
@@ -4349,6 +4491,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(HC_rc2)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* inner side */
@@ -4377,9 +4522,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(HC_rs1)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
         jmpxx_lb(HC_rs1)
 
@@ -4550,7 +4700,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cltps_rr(Xmm7, Xmm3)                    /* d_min <! d_val */
+        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
         /* "tt" section */
@@ -4586,10 +4736,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "aa" section */
         movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+
         xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
         cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(HP_rt2, FULL, Xmm5)
-        jmpxx_lb(HP_rt1)
+        CHECK_MASK(HP_rc1, NONE, Xmm5)
+        CHECK_MASK(HP_rc2, FULL, Xmm5)
+
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
+        jmpxx_lb(HP_rc1)
 
 /******************************************************************************/
     LBL(HP_rs1)
@@ -4603,6 +4758,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(HP_rc1)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* outer side */
@@ -4631,9 +4789,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(HP_rs2)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
 /******************************************************************************/
     LBL(HP_rs2)
@@ -4647,6 +4810,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
+
+    LBL(HP_rc2)
+
         subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* inner side */
@@ -4675,9 +4841,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
         jeqxx_lb(OO_end)
 
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(HP_rs1)
+
         /* optimize overdraw */
         movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        CHECK_MASK(OO_end, FULL, Xmm7)
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
 
         jmpxx_lb(HP_rs1)
 
