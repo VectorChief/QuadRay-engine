@@ -97,6 +97,11 @@
         RT_OPTS_INSERT_EXT2     |                                           \
         RT_OPTS_REMOVE          )
 
+/*
+ * Temporary flag for new scalers/trnode code.
+ */
+#define RT_NEWCODE              1
+
 #endif /* RT_RTCONF_H */
 
 /******************************************************************************/

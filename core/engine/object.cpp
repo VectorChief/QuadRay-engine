@@ -222,31 +222,151 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
     /* reset object's own transform flags */
     mtx_has_trm = 0;
 
-    rt_real scl[] = {-1.0f, +1.0f};
+    rt_real fsc[] = {-1.0f, +1.0f};
 
-    for (i = 0, c = 0; i < RT_ARR_SIZE(scl); i++)
+    for (i = 0, c = 0; i < RT_ARR_SIZE(fsc); i++)
     {
-        if (trm->scl[RT_X] == scl[i]) c++;
-        if (trm->scl[RT_Y] == scl[i]) c++;
-        if (trm->scl[RT_Z] == scl[i]) c++;
+        if (trm->scl[RT_X] == fsc[i]) c++;
+        if (trm->scl[RT_Y] == fsc[i]) c++;
+        if (trm->scl[RT_Z] == fsc[i]) c++;
     }
 
     /* determine if object itself has
      * non-trivial scaling */
     mtx_has_trm |= (c == 3) ? 0 : RT_UPDATE_FLAG_SCL;
 
-    rt_real rot[] = {-270.0f, -180.0f, -90.0f, 0.0f, +90.0f, +180.0f, +270.0f};
+    rt_real frt[] = {-270.0f, -180.0f, -90.0f, 0.0f, +90.0f, +180.0f, +270.0f};
 
-    for (i = 0, c = 0; i < RT_ARR_SIZE(rot); i++)
+    for (i = 0, c = 0; i < RT_ARR_SIZE(frt); i++)
     {
-        if (trm->rot[RT_X] == rot[i]) c++;
-        if (trm->rot[RT_Y] == rot[i]) c++;
-        if (trm->rot[RT_Z] == rot[i]) c++;
+        if (trm->rot[RT_X] == frt[i]) c++;
+        if (trm->rot[RT_Y] == frt[i]) c++;
+        if (trm->rot[RT_Z] == frt[i]) c++;
     }
 
     /* determine if object itself has
      * non-trivial rotation */
     mtx_has_trm |= (c == 3) ? 0 : RT_UPDATE_FLAG_ROT;
+
+#if RT_NEWCODE
+
+    if ((mtx_has_trm & RT_UPDATE_FLAG_ROT) == 0)
+    {
+        rt_mat4 trm_mtx;
+        matrix_from_transform(trm_mtx, trm, RT_TRUE);
+        matrix_mul_matrix(this->mtx, mtx, trm_mtx);
+
+        if (obj_has_trm == RT_UPDATE_FLAG_SCL)
+        {
+            mtx_has_trm = obj_has_trm;
+            obj_has_trm = 0;
+        }
+
+        rt_cell i, j;
+
+        /* determine axis mapping for trivial transform
+         * (multiple of 90 degree rotation, +/-1.0 scalers),
+         * applicable to objects without trnode or with trnode
+         * other than the object itself (transform caching),
+         * to objects which have scaling with trivial rotation
+         * in their full transform matrix */
+        for (i = 0; i < 3; i++)
+        {
+            for (j = 0; j < 3; j++)
+            {
+                if ((this->mtx[i][0] != 0.0f) == (iden4[j][0] != 0.0f)
+                &&  (this->mtx[i][1] != 0.0f) == (iden4[j][1] != 0.0f)
+                &&  (this->mtx[i][2] != 0.0f) == (iden4[j][2] != 0.0f))
+                {
+                    map[i] = j;
+                    sgn[i] = RT_SIGN(this->mtx[i][j]);
+                    scl[j] = RT_FABS(this->mtx[i][j]);
+                }
+            }
+        }
+
+        map[RT_L] = RT_W;
+        sgn[RT_L] = 1;
+        scl[RT_W] = 1.0f;
+    }
+
+    if ((mtx_has_trm & RT_UPDATE_FLAG_ROT) != 0
+    &&  trnode == RT_NULL)
+    {
+        rt_mat4 trm_mtx;
+        matrix_from_transform(trm_mtx, trm, RT_FALSE);
+        matrix_mul_matrix(this->mtx, mtx, trm_mtx);
+    }
+    if ((mtx_has_trm & RT_UPDATE_FLAG_ROT) != 0
+    &&  trnode != RT_NULL)
+    {
+        rt_mat4 trm_mtx, tmp_mtx;
+        matrix_from_transform(trm_mtx, trm, RT_FALSE);
+        matrix_mul_matrix(tmp_mtx, trnode->mtx, mtx);
+        matrix_mul_matrix(this->mtx, tmp_mtx, trm_mtx);
+    }
+    if ((mtx_has_trm & RT_UPDATE_FLAG_ROT) != 0)
+    {
+        trnode = this;
+        obj_has_trm |= RT_UPDATE_FLAG_ROT;
+
+        /* axis mapping for trivial transform */
+        map[RT_I] = RT_X;
+        map[RT_J] = RT_Y;
+        map[RT_K] = RT_Z;
+        map[RT_L] = RT_W;
+
+        sgn[RT_I] = 1;
+        sgn[RT_J] = 1;
+        sgn[RT_K] = 1;
+        sgn[RT_L] = 1;
+
+        scl[RT_X] = trm->scl[RT_X];
+        scl[RT_Y] = trm->scl[RT_Y];
+        scl[RT_Z] = trm->scl[RT_Z];
+        scl[RT_W] = 1.0f;
+    }
+
+    if ((obj_has_trm & RT_UPDATE_FLAG_ROT) != 0
+#if RT_OPTS_FSCALE != 0
+    && (rg->opts & RT_OPTS_FSCALE) == 0
+#endif /* RT_OPTS_FSCALE */
+       )
+    {
+        obj_has_trm |= RT_UPDATE_FLAG_SCL;
+    }
+
+    if (trnode != RT_NULL && trnode != this
+#if RT_OPTS_TARRAY != 0
+    && ((rg->opts & RT_OPTS_TARRAY) == 0 || tag > RT_TAG_SURFACE_MAX)
+#endif /* RT_OPTS_TARRAY */
+       )
+    {
+        rt_mat4 tmp_mtx;
+        matrix_mul_matrix(tmp_mtx, trnode->mtx, this->mtx);
+        memcpy(this->mtx, tmp_mtx, sizeof(rt_mat4));
+
+        trnode = this;
+        obj_has_trm |= mtx_has_trm;
+
+        /* axis mapping for trivial transform */
+        map[RT_I] = RT_X;
+        map[RT_J] = RT_Y;
+        map[RT_K] = RT_Z;
+        map[RT_L] = RT_W;
+
+        sgn[RT_I] = 1;
+        sgn[RT_J] = 1;
+        sgn[RT_K] = 1;
+        sgn[RT_L] = 1;
+
+        scl[RT_X] = 1.0f;
+        scl[RT_Y] = 1.0f;
+        scl[RT_Z] = 1.0f;
+        scl[RT_W] = 1.0f;
+    }
+
+#else /* RT_NEWCODE */
 
     if (mtx_has_trm != 0
 #if RT_OPTS_FSCALE != 0
@@ -264,7 +384,7 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
     if (trnode != RT_NULL && mtx_has_trm == 0
     && (trnode == parent && (obj_has_trm & RT_UPDATE_FLAG_ROT) != 0))
     {
-        matrix_from_transform(this->mtx, trm);
+        matrix_from_transform(this->mtx, trm, RT_TRUE);
     }
     else
     /* if object itself has non-trivial transform, recombine matrices
@@ -275,7 +395,7 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
     && (trnode != parent || (obj_has_trm & RT_UPDATE_FLAG_ROT) == 0))
     {
         rt_mat4 trm_mtx, tmp_mtx;
-        matrix_from_transform(trm_mtx, trm);
+        matrix_from_transform(trm_mtx, trm, RT_TRUE);
         matrix_mul_matrix(tmp_mtx, trnode->mtx, mtx);
         matrix_mul_matrix(this->mtx, tmp_mtx, trm_mtx);
     }
@@ -284,7 +404,7 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
      * (either from trnode or from root) multiplied by its own matrix */
     {
         rt_mat4 trm_mtx;
-        matrix_from_transform(trm_mtx, trm);
+        matrix_from_transform(trm_mtx, trm, RT_TRUE);
         matrix_mul_matrix(this->mtx, mtx, trm_mtx);
     }
 
@@ -316,9 +436,6 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
         trnode = this;
     }
 
-    /* set bvbox's trnode for rtgeom */
-    bvbox->trnode = trnode != RT_NULL ? trnode->bvbox : RT_NULL;
-
     /* axis mapping for trivial transform */
     map[RT_I] = RT_X;
     map[RT_J] = RT_Y;
@@ -330,10 +447,15 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
     sgn[RT_K] = 1;
     sgn[RT_L] = 1;
 
-    this->scl[RT_X] = 1.0f;
-    this->scl[RT_Y] = 1.0f;
-    this->scl[RT_Z] = 1.0f;
-    this->scl[RT_W] = 1.0f;
+    scl[RT_X] = 1.0f;
+    scl[RT_Y] = 1.0f;
+    scl[RT_Z] = 1.0f;
+    scl[RT_W] = 1.0f;
+
+#endif /* RT_NEWCODE */
+
+    /* set bvbox's trnode for rtgeom */
+    bvbox->trnode = trnode != RT_NULL ? trnode->bvbox : RT_NULL;
 
     /* axis mapping shorteners */
     mp_i = map[RT_I];
@@ -728,6 +850,10 @@ rt_void rt_Node::update_matrix(rt_mat4 mtx)
 
     rt_Object::update_matrix(mtx);
 
+#if RT_NEWCODE
+
+#else /* RT_NEWCODE */
+
     rt_cell i, j;
     rt_vec4 scl; /* <- temporarily masks out this->scl */
 
@@ -776,6 +902,8 @@ rt_void rt_Node::update_matrix(rt_mat4 mtx)
             this->mtx[i][2] = iden4[i][2] * scl[i];
         }
     }
+
+#endif /* RT_NEWCODE */
 }
 
 /*
@@ -1636,6 +1764,30 @@ rt_void rt_Array::update_matrix(rt_mat4 mtx)
      * to array's transform matrix */
     pmtx = &this->mtx;
 
+#if RT_NEWCODE
+
+    /* if object itself has non-trivial transform
+     * and it is scaling with trivial rotation,
+     * separate axis mapping from transform matrix,
+     * which would then only have scalers on main diagonal */
+    if (trnode == this)
+    {
+        if (obj_changed)
+        {
+            memcpy(axm, iden4, sizeof(rt_mat4));
+
+            axm[0][0] = scl[0];
+            axm[1][1] = scl[1];
+            axm[2][2] = scl[2];
+        }
+
+        /* set matrix pointer for sub-objects
+         * to axis mapping matrix */
+        pmtx = &axm;
+    }
+
+#else /* RT_NEWCODE */
+
     /* if array itself has non-trivial transform
      * and it is scaling with trivial rotation,
      * separate axis mapping from transform matrix,
@@ -1678,6 +1830,8 @@ rt_void rt_Array::update_matrix(rt_mat4 mtx)
     mp_j = map[RT_J];
     mp_k = map[RT_K];
     mp_l = map[RT_L];
+
+#endif /* RT_NEWCODE */
 }
 
 /*
@@ -2426,6 +2580,8 @@ rt_void rt_Surface::invert_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
     tmax[RT_Y] = smax[RT_Y] == +RT_INF ? +RT_INF : smax[RT_Y] - pps[RT_Y];
     tmax[RT_Z] = smax[RT_Z] == +RT_INF ? +RT_INF : smax[RT_Z] - pps[RT_Z];
 
+#if RT_NEWCODE
+
     tmin[RT_X] = tmin[RT_X] == -RT_INF ? -RT_INF : tmin[RT_X] / scl[RT_X];
     tmin[RT_Y] = tmin[RT_Y] == -RT_INF ? -RT_INF : tmin[RT_Y] / scl[RT_Y];
     tmin[RT_Z] = tmin[RT_Z] == -RT_INF ? -RT_INF : tmin[RT_Z] / scl[RT_Z];
@@ -2433,6 +2589,8 @@ rt_void rt_Surface::invert_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
     tmax[RT_X] = tmax[RT_X] == +RT_INF ? +RT_INF : tmax[RT_X] / scl[RT_X];
     tmax[RT_Y] = tmax[RT_Y] == +RT_INF ? +RT_INF : tmax[RT_Y] / scl[RT_Y];
     tmax[RT_Z] = tmax[RT_Z] == +RT_INF ? +RT_INF : tmax[RT_Z] / scl[RT_Z];
+
+#endif /* RT_NEWCODE */
 
     dmin[RT_I] = sgn[RT_I] > 0 ? +tmin[mp_i] : -tmax[mp_i];
     dmin[RT_J] = sgn[RT_J] > 0 ? +tmin[mp_j] : -tmax[mp_j];
@@ -2467,6 +2625,8 @@ rt_void rt_Surface::direct_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
     tmax[mp_j] = sgn[RT_J] > 0 ? +smax[RT_J] : -smin[RT_J];
     tmax[mp_k] = sgn[RT_K] > 0 ? +smax[RT_K] : -smin[RT_K];
 
+#if RT_NEWCODE
+
     tmin[RT_X] = tmin[RT_X] == -RT_INF ? -RT_INF : tmin[RT_X] * scl[RT_X];
     tmin[RT_Y] = tmin[RT_Y] == -RT_INF ? -RT_INF : tmin[RT_Y] * scl[RT_Y];
     tmin[RT_Z] = tmin[RT_Z] == -RT_INF ? -RT_INF : tmin[RT_Z] * scl[RT_Z];
@@ -2474,6 +2634,8 @@ rt_void rt_Surface::direct_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
     tmax[RT_X] = tmax[RT_X] == +RT_INF ? +RT_INF : tmax[RT_X] * scl[RT_X];
     tmax[RT_Y] = tmax[RT_Y] == +RT_INF ? +RT_INF : tmax[RT_Y] * scl[RT_Y];
     tmax[RT_Z] = tmax[RT_Z] == +RT_INF ? +RT_INF : tmax[RT_Z] * scl[RT_Z];
+
+#endif /* RT_NEWCODE */
 
     dmin[RT_X] = tmin[RT_X] == -RT_INF ? -RT_INF : tmin[RT_X] + pps[RT_X];
     dmin[RT_Y] = tmin[RT_Y] == -RT_INF ? -RT_INF : tmin[RT_Y] + pps[RT_Y];
@@ -2780,6 +2942,8 @@ rt_void rt_Plane::update_fields()
 
     rt_Surface::update_fields();
 
+#if RT_NEWCODE
+
     /* apply axis scalers to texturing */
 
     rt_real asc[2], isc[2];
@@ -2815,6 +2979,8 @@ rt_void rt_Plane::update_fields()
 
     RT_SIMD_SET(s_mat->xoffs, pos[map[RT_X]] * asc[map[RT_X]]);
     RT_SIMD_SET(s_mat->yoffs, pos[map[RT_Y]] * asc[map[RT_Y]]);
+
+#endif /* RT_NEWCODE */
 
     /* set surface shape */
 
@@ -2917,6 +3083,8 @@ rt_void rt_Quadric::commit_fields()
         return;
     }
 
+#if RT_NEWCODE
+
     rt_vec4 isc;
 
     isc[RT_X] = 1.0f / scl[RT_X];
@@ -2930,6 +3098,8 @@ rt_void rt_Quadric::commit_fields()
     shape->scj[RT_X] *= isc[RT_X];
     shape->scj[RT_Y] *= isc[RT_Y];
     shape->scj[RT_Z] *= isc[RT_Z];
+
+#endif /* RT_NEWCODE */
 
     RT_SIMD_SET(s_srf->sci_x, shape->sci[RT_X]);
     RT_SIMD_SET(s_srf->sci_y, shape->sci[RT_Y]);

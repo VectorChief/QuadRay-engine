@@ -100,13 +100,13 @@ rt_void matrix_mul_matrix(rt_mat4 mp, rt_mat4 m1, rt_mat4 m2)
 /*
  * Compute matrix from transform.
  */
-rt_void matrix_from_transform(rt_mat4 mp, rt_TRANSFORM3D *t1)
+rt_void matrix_from_transform(rt_mat4 mp, rt_TRANSFORM3D *t1, rt_bool as)
 {
     rt_mat4 mt;
 
-    rt_real scl_x = t1->scl[RT_X];
-    rt_real scl_y = t1->scl[RT_Y];
-    rt_real scl_z = t1->scl[RT_Z];
+    rt_real scl_x = as != 0 ? t1->scl[RT_X] : 1.0f;
+    rt_real scl_y = as != 0 ? t1->scl[RT_Y] : 1.0f;
+    rt_real scl_z = as != 0 ? t1->scl[RT_Z] : 1.0f;
     rt_mat4 sc =
     {
         scl_x,      0.0f,       0.0f,       0.0f,

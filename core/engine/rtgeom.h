@@ -202,7 +202,7 @@ rt_void matrix_mul_matrix(rt_mat4 mp, rt_mat4 m1, rt_mat4 m2);
 /*
  * Compute matrix from transform.
  */
-rt_void matrix_from_transform(rt_mat4 mp, rt_TRANSFORM3D *t1);
+rt_void matrix_from_transform(rt_mat4 mp, rt_TRANSFORM3D *t1, rt_bool as);
 
 /*
  * Compute upper-left 3x3 inverse of a 4x4 matrix.
