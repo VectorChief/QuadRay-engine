@@ -2409,6 +2409,171 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #endif /* RT_FEAT_CLIPPING_CUSTOM */
 
 /******************************************************************************/
+/*********************************   QUADRIC   ********************************/
+/******************************************************************************/
+
+    LBL(QD_rts)
+
+        /* create xmask */
+        xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
+        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
+        CHECK_MASK(OO_end, NONE, Xmm7)
+
+        /* "tt" section */
+        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
+        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
+        sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
+        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
+        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
+
+        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
+        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
+        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
+        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
+        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
+
+        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
+        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
+        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
+        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
+        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
+        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
+        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
+
+        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
+        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
+        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
+        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
+        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
+        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
+        orrpx_rr(Xmm0, Xmm1)                    /* a_pos |= a_neg */
+        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
+
+        /* "aa" section */
+        movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+
+        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
+        cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
+        CHECK_MASK(QD_rc1, NONE, Xmm5)
+        CHECK_MASK(QD_rc2, FULL, Xmm5)
+
+        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
+        jmpxx_lb(QD_rc1)
+
+/******************************************************************************/
+    LBL(QD_rs1)
+
+        movpx_ld(Xmm4, Mecx, ctx_XTMP1)         /* bdval <- XTMP1 */
+        movpx_ld(Xmm1, Mecx, ctx_XTMP2)         /* a_val <- XTMP2 */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+
+    LBL(QD_rt1)
+
+        /* side count check */
+        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
+        jeqxx_lb(OO_end)
+
+    LBL(QD_rc1)
+
+        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
+
+        /* outer side */
+        CHECK_SIDE(QD_sd1, QD_rt2, RT_FLAG_SIDE_OUTER)
+
+        /* if "Xvars" are needed outside of the solvers,
+         * swap this block with CHECK_SIDE macro above */
+        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
+        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
+
+        /* "t1" section */
+        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
+        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
+
+        /* clipping */
+        SUBROUTINE(QD_cp1, CC_clp)
+        CHECK_MASK(QD_rs2, NONE, Xmm7)
+        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
+
+        /* material */
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
+        SUBROUTINE(QD_mt1, QD_mat)
+
+        /* side count check */
+        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
+        jeqxx_lb(OO_end)
+
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(QD_rs2)
+
+        /* optimize overdraw */
+        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
+
+/******************************************************************************/
+    LBL(QD_rs2)
+
+        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
+        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
+
+    LBL(QD_rt2)
+
+        /* side count check */
+        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
+        jeqxx_lb(OO_end)
+
+    LBL(QD_rc2)
+
+        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
+
+        /* inner side */
+        CHECK_SIDE(QD_sd2, QD_rt1, RT_FLAG_SIDE_INNER)
+
+        /* if "Xvars" are needed outside of the solvers,
+         * swap this block with CHECK_SIDE macro above */
+        movpx_st(Xmm4, Mecx, ctx_XTMP1)         /* bdval -> XTMP1 */
+        movpx_st(Xmm1, Mecx, ctx_XTMP2)         /* a_val -> XTMP2 */
+        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
+
+        /* "t2" section */
+        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
+        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
+
+        /* clipping */
+        SUBROUTINE(QD_cp2, CC_clp)
+        CHECK_MASK(QD_rs1, NONE, Xmm7)
+        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
+
+        /* material */
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
+        SUBROUTINE(QD_mt2, QD_mat)
+
+        /* side count check */
+        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
+        jeqxx_lb(OO_end)
+
+        /* overdraw check */
+        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
+        jnexx_lb(QD_rs1)
+
+        /* optimize overdraw */
+        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
+        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
+        CHECK_MASK(OO_end, NONE, Xmm7)
+
+        jmpxx_lb(QD_rs1)
+
+/******************************************************************************/
+    LBL(QD_mat)
+
+        jmpxx_mm(Mebx, srf_SRF_P(SRF))
+
+/******************************************************************************/
 /********************************   CYLINDER   ********************************/
 /******************************************************************************/
 
@@ -2458,159 +2623,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
-        /* create xmask */
-        xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        /* "tt" section */
-        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
-        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
-        sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
-        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
-        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
-
-        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
-        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
-        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
-
-        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
-        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
-        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
-        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
-        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
-        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
-        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
-
-        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
-        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
-        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
-        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
-        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
-        orrpx_rr(Xmm0, Xmm1)                    /* a_pos |= a_neg */
-        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
-
-        /* "aa" section */
-        movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(CL_rc1, NONE, Xmm5)
-        CHECK_MASK(CL_rc2, FULL, Xmm5)
-
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
-        jmpxx_lb(CL_rc1)
-
-/******************************************************************************/
-    LBL(CL_rs1)
-
-        movpx_ld(Xmm4, Mecx, ctx_XTMP1)         /* bdval <- XTMP1 */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP2)         /* a_val <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(CL_rt1)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(CL_rc1)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* outer side */
-        CHECK_SIDE(CL_sd1, CL_rt2, RT_FLAG_SIDE_OUTER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t1" section */
-        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(CL_cp1, CC_clp)
-        CHECK_MASK(CL_rs2, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
-        SUBROUTINE(CL_mt1, CL_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(CL_rs2)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-/******************************************************************************/
-    LBL(CL_rs2)
-
-        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(CL_rt2)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(CL_rc2)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* inner side */
-        CHECK_SIDE(CL_sd2, CL_rt1, RT_FLAG_SIDE_INNER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm4, Mecx, ctx_XTMP1)         /* bdval -> XTMP1 */
-        movpx_st(Xmm1, Mecx, ctx_XTMP2)         /* a_val -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t2" section */
-        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
-        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(CL_cp2, CC_clp)
-        CHECK_MASK(CL_rs1, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
-        SUBROUTINE(CL_mt2, CL_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(CL_rs1)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        jmpxx_lb(CL_rs1)
+        jmpxx_lb(QD_rts)                        /* quadric  roots */
 
 /******************************************************************************/
     LBL(fetch_CL_mat)
@@ -2773,159 +2786,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
-        /* create xmask */
-        xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        /* "tt" section */
-        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
-        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
-        sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
-        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
-        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
-
-        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
-        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
-        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
-
-        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
-        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
-        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
-        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
-        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
-        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
-        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
-
-        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
-        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
-        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
-        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
-        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
-        orrpx_rr(Xmm0, Xmm1)                    /* a_pos |= a_neg */
-        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
-
-        /* "aa" section */
-        movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(SP_rc1, NONE, Xmm5)
-        CHECK_MASK(SP_rc2, FULL, Xmm5)
-
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
-        jmpxx_lb(SP_rc1)
-
-/******************************************************************************/
-    LBL(SP_rs1)
-
-        movpx_ld(Xmm4, Mecx, ctx_XTMP1)         /* bdval <- XTMP1 */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP2)         /* a_val <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(SP_rt1)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(SP_rc1)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* outer side */
-        CHECK_SIDE(SP_sd1, SP_rt2, RT_FLAG_SIDE_OUTER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t1" section */
-        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(SP_cp1, CC_clp)
-        CHECK_MASK(SP_rs2, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
-        SUBROUTINE(SP_mt1, SP_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(SP_rs2)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-/******************************************************************************/
-    LBL(SP_rs2)
-
-        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(SP_rt2)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(SP_rc2)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* inner side */
-        CHECK_SIDE(SP_sd2, SP_rt1, RT_FLAG_SIDE_INNER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm4, Mecx, ctx_XTMP1)         /* bdval -> XTMP1 */
-        movpx_st(Xmm1, Mecx, ctx_XTMP2)         /* a_val -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t2" section */
-        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
-        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(SP_cp2, CC_clp)
-        CHECK_MASK(SP_rs1, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
-        SUBROUTINE(SP_mt2, SP_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(SP_rs1)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        jmpxx_lb(SP_rs1)
+        jmpxx_lb(QD_rts)                        /* quadric  roots */
 
 /******************************************************************************/
     LBL(fetch_SP_mat)
@@ -3108,159 +2969,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
-        /* create xmask */
-        xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        /* "tt" section */
-        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
-        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
-        sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
-        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
-        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
-
-        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
-        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
-        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
-
-        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
-        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
-        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
-        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
-        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
-        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
-        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
-
-        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
-        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
-        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
-        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
-        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
-        orrpx_rr(Xmm0, Xmm1)                    /* a_pos |= a_neg */
-        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
-
-        /* "aa" section */
-        movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(CN_rc1, NONE, Xmm5)
-        CHECK_MASK(CN_rc2, FULL, Xmm5)
-
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
-        jmpxx_lb(CN_rc1)
-
-/******************************************************************************/
-    LBL(CN_rs1)
-
-        movpx_ld(Xmm4, Mecx, ctx_XTMP1)         /* bdval <- XTMP1 */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP2)         /* a_val <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(CN_rt1)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(CN_rc1)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* outer side */
-        CHECK_SIDE(CN_sd1, CN_rt2, RT_FLAG_SIDE_OUTER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t1" section */
-        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(CN_cp1, CC_clp)
-        CHECK_MASK(CN_rs2, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
-        SUBROUTINE(CN_mt1, CN_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(CN_rs2)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-/******************************************************************************/
-    LBL(CN_rs2)
-
-        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(CN_rt2)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(CN_rc2)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* inner side */
-        CHECK_SIDE(CN_sd2, CN_rt1, RT_FLAG_SIDE_INNER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm4, Mecx, ctx_XTMP1)         /* bdval -> XTMP1 */
-        movpx_st(Xmm1, Mecx, ctx_XTMP2)         /* a_val -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t2" section */
-        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
-        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(CN_cp2, CC_clp)
-        CHECK_MASK(CN_rs1, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
-        SUBROUTINE(CN_mt2, CN_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(CN_rs1)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        jmpxx_lb(CN_rs1)
+        jmpxx_lb(QD_rts)                        /* quadric  roots */
 
 /******************************************************************************/
     LBL(fetch_CN_mat)
@@ -3445,159 +3154,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
-        /* create xmask */
-        xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        /* "tt" section */
-        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
-        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
-        sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
-        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
-        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
-
-        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
-        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
-        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
-
-        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
-        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
-        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
-        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
-        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
-        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
-        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
-
-        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
-        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
-        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
-        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
-        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
-        orrpx_rr(Xmm0, Xmm1)                    /* a_pos |= a_neg */
-        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
-
-        /* "aa" section */
-        movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(PB_rc1, NONE, Xmm5)
-        CHECK_MASK(PB_rc2, FULL, Xmm5)
-
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
-        jmpxx_lb(PB_rc1)
-
-/******************************************************************************/
-    LBL(PB_rs1)
-
-        movpx_ld(Xmm4, Mecx, ctx_XTMP1)         /* bdval <- XTMP1 */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP2)         /* a_val <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(PB_rt1)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(PB_rc1)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* outer side */
-        CHECK_SIDE(PB_sd1, PB_rt2, RT_FLAG_SIDE_OUTER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t1" section */
-        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(PB_cp1, CC_clp)
-        CHECK_MASK(PB_rs2, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
-        SUBROUTINE(PB_mt1, PB_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(PB_rs2)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-/******************************************************************************/
-    LBL(PB_rs2)
-
-        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(PB_rt2)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(PB_rc2)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* inner side */
-        CHECK_SIDE(PB_sd2, PB_rt1, RT_FLAG_SIDE_INNER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm4, Mecx, ctx_XTMP1)         /* bdval -> XTMP1 */
-        movpx_st(Xmm1, Mecx, ctx_XTMP2)         /* a_val -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t2" section */
-        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
-        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(PB_cp2, CC_clp)
-        CHECK_MASK(PB_rs1, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
-        SUBROUTINE(PB_mt2, PB_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(PB_rs1)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        jmpxx_lb(PB_rs1)
+        jmpxx_lb(QD_rts)                        /* quadric  roots */
 
 /******************************************************************************/
     LBL(fetch_PB_mat)
@@ -3788,159 +3345,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
-        /* create xmask */
-        xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        /* "tt" section */
-        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
-        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
-        sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
-        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
-        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
-
-        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
-        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
-        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
-
-        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
-        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
-        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
-        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
-        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
-        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
-        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
-
-        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
-        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
-        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
-        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
-        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
-        orrpx_rr(Xmm0, Xmm1)                    /* a_pos |= a_neg */
-        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
-
-        /* "aa" section */
-        movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(HB_rc1, NONE, Xmm5)
-        CHECK_MASK(HB_rc2, FULL, Xmm5)
-
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
-        jmpxx_lb(HB_rc1)
-
-/******************************************************************************/
-    LBL(HB_rs1)
-
-        movpx_ld(Xmm4, Mecx, ctx_XTMP1)         /* bdval <- XTMP1 */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP2)         /* a_val <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(HB_rt1)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(HB_rc1)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* outer side */
-        CHECK_SIDE(HB_sd1, HB_rt2, RT_FLAG_SIDE_OUTER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t1" section */
-        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(HB_cp1, CC_clp)
-        CHECK_MASK(HB_rs2, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
-        SUBROUTINE(HB_mt1, HB_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(HB_rs2)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-/******************************************************************************/
-    LBL(HB_rs2)
-
-        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(HB_rt2)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(HB_rc2)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* inner side */
-        CHECK_SIDE(HB_sd2, HB_rt1, RT_FLAG_SIDE_INNER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm4, Mecx, ctx_XTMP1)         /* bdval -> XTMP1 */
-        movpx_st(Xmm1, Mecx, ctx_XTMP2)         /* a_val -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t2" section */
-        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
-        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(HB_cp2, CC_clp)
-        CHECK_MASK(HB_rs1, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
-        SUBROUTINE(HB_mt2, HB_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(HB_rs1)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        jmpxx_lb(HB_rs1)
+        jmpxx_lb(QD_rts)                        /* quadric  roots */
 
 /******************************************************************************/
     LBL(fetch_HB_mat)
@@ -4113,159 +3518,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
-        /* create xmask */
-        xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        /* "tt" section */
-        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
-        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
-        sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
-        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
-        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
-
-        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
-        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
-        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
-
-        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
-        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
-        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
-        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
-        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
-        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
-        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
-
-        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
-        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
-        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
-        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
-        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
-        orrpx_rr(Xmm0, Xmm1)                    /* a_pos |= a_neg */
-        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
-
-        /* "aa" section */
-        movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(PC_rc1, NONE, Xmm5)
-        CHECK_MASK(PC_rc2, FULL, Xmm5)
-
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
-        jmpxx_lb(PC_rc1)
-
-/******************************************************************************/
-    LBL(PC_rs1)
-
-        movpx_ld(Xmm4, Mecx, ctx_XTMP1)         /* bdval <- XTMP1 */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP2)         /* a_val <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(PC_rt1)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(PC_rc1)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* outer side */
-        CHECK_SIDE(PC_sd1, PC_rt2, RT_FLAG_SIDE_OUTER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t1" section */
-        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(PC_cp1, CC_clp)
-        CHECK_MASK(PC_rs2, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
-        SUBROUTINE(PC_mt1, PC_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(PC_rs2)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-/******************************************************************************/
-    LBL(PC_rs2)
-
-        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(PC_rt2)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(PC_rc2)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* inner side */
-        CHECK_SIDE(PC_sd2, PC_rt1, RT_FLAG_SIDE_INNER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm4, Mecx, ctx_XTMP1)         /* bdval -> XTMP1 */
-        movpx_st(Xmm1, Mecx, ctx_XTMP2)         /* a_val -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t2" section */
-        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
-        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(PC_cp2, CC_clp)
-        CHECK_MASK(PC_rs1, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
-        SUBROUTINE(PC_mt2, PC_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(PC_rs1)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        jmpxx_lb(PC_rs1)
+        jmpxx_lb(QD_rts)                        /* quadric  roots */
 
 /******************************************************************************/
     LBL(fetch_PC_mat)
@@ -4435,159 +3688,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm5, Xmm2)                    /* dxx_t += tmp_v */
         movpx_rr(Xmm3, Xmm5)                    /* d_val <- d_val */
 
-        /* create xmask */
-        xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        /* "tt" section */
-        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
-        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
-        sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
-        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
-        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
-
-        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
-        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
-        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
-
-        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
-        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
-        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
-        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
-        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
-        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
-        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
-
-        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
-        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
-        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
-        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
-        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
-        orrpx_rr(Xmm0, Xmm1)                    /* a_pos |= a_neg */
-        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
-
-        /* "aa" section */
-        movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(HC_rc1, NONE, Xmm5)
-        CHECK_MASK(HC_rc2, FULL, Xmm5)
-
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
-        jmpxx_lb(HC_rc1)
-
-/******************************************************************************/
-    LBL(HC_rs1)
-
-        movpx_ld(Xmm4, Mecx, ctx_XTMP1)         /* bdval <- XTMP1 */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP2)         /* a_val <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(HC_rt1)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(HC_rc1)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* outer side */
-        CHECK_SIDE(HC_sd1, HC_rt2, RT_FLAG_SIDE_OUTER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t1" section */
-        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(HC_cp1, CC_clp)
-        CHECK_MASK(HC_rs2, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
-        SUBROUTINE(HC_mt1, HC_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(HC_rs2)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-/******************************************************************************/
-    LBL(HC_rs2)
-
-        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(HC_rt2)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(HC_rc2)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* inner side */
-        CHECK_SIDE(HC_sd2, HC_rt1, RT_FLAG_SIDE_INNER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm4, Mecx, ctx_XTMP1)         /* bdval -> XTMP1 */
-        movpx_st(Xmm1, Mecx, ctx_XTMP2)         /* a_val -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t2" section */
-        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
-        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(HC_cp2, CC_clp)
-        CHECK_MASK(HC_rs1, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
-        SUBROUTINE(HC_mt2, HC_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(HC_rs1)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        jmpxx_lb(HC_rs1)
+        jmpxx_lb(QD_rts)                        /* quadric  roots */
 
 /******************************************************************************/
     LBL(fetch_HC_mat)
@@ -4760,159 +3861,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
 
-        /* create xmask */
-        xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
-        cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        /* "tt" section */
-        movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
-        andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
-        sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
-        xorpx_rr(Xmm3, Xmm5)                    /* d_val ^= bsign */
-        addps_rr(Xmm4, Xmm3)                    /* b_val += sdval */
-
-        xorpx_rr(Xmm2, Xmm2)                    /* tmp_v <-     0 */
-        cleps_rr(Xmm2, Xmm3)                    /* tmp_v <= sdval */
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm3)                    /* tmp_v >! sdval */
-        movpx_rr(Xmm3, Xmm4)                    /* bdval <- bdval */
-
-        movpx_rr(Xmm0, Xmm6)                    /* c_val <- c_val */
-        andpx_rr(Xmm6, Xmm5)                    /* c_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* c_val &= m_pos */
-        andpx_rr(Xmm4, Xmm5)                    /* bdval &= m_neg */
-        andpx_rr(Xmm3, Xmm2)                    /* bdval &= m_pos */
-        orrpx_rr(Xmm6, Xmm3)                    /* c_neg |= bdpos */
-        orrpx_rr(Xmm3, Xmm4)                    /* bdpos |= bdneg */
-        orrpx_rr(Xmm4, Xmm0)                    /* bdneg |= c_pos */
-
-        movpx_rr(Xmm0, Xmm1)                    /* a_val <- a_val */
-        andpx_rr(Xmm1, Xmm5)                    /* a_val &= m_neg */
-        andpx_rr(Xmm0, Xmm2)                    /* a_val &= m_pos */
-        andpx_rr(Xmm2, Xmm3)                    /* bdval &= m_pos */
-        andpx_rr(Xmm3, Xmm5)                    /* bdval &= m_neg */
-        orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
-        orrpx_rr(Xmm0, Xmm1)                    /* a_pos |= a_neg */
-        orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
-
-        /* "aa" section */
-        movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-
-        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
-        cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
-        CHECK_MASK(HP_rc1, NONE, Xmm5)
-        CHECK_MASK(HP_rc2, FULL, Xmm5)
-
-        movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
-        jmpxx_lb(HP_rc1)
-
-/******************************************************************************/
-    LBL(HP_rs1)
-
-        movpx_ld(Xmm4, Mecx, ctx_XTMP1)         /* bdval <- XTMP1 */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP2)         /* a_val <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(HP_rt1)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(HP_rc1)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* outer side */
-        CHECK_SIDE(HP_sd1, HP_rt2, RT_FLAG_SIDE_OUTER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t1" section */
-        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
-        movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(HP_cp1, CC_clp)
-        CHECK_MASK(HP_rs2, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
-        SUBROUTINE(HP_mt1, HP_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(HP_rs2)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-/******************************************************************************/
-    LBL(HP_rs2)
-
-        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
-        movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
-
-    LBL(HP_rt2)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-    LBL(HP_rc2)
-
-        subxx_mi(Mecx, ctx_XMISC(FLG), IB(1))
-
-        /* inner side */
-        CHECK_SIDE(HP_sd2, HP_rt1, RT_FLAG_SIDE_INNER)
-
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm4, Mecx, ctx_XTMP1)         /* bdval -> XTMP1 */
-        movpx_st(Xmm1, Mecx, ctx_XTMP2)         /* a_val -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
-
-        /* "t2" section */
-        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
-        movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
-
-        /* clipping */
-        SUBROUTINE(HP_cp2, CC_clp)
-        CHECK_MASK(HP_rs1, NONE, Xmm7)
-        movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
-
-        /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
-        SUBROUTINE(HP_mt2, HP_mat)
-
-        /* side count check */
-        cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
-        jeqxx_lb(OO_end)
-
-        /* overdraw check */
-        cmpxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
-        jnexx_lb(HP_rs1)
-
-        /* optimize overdraw */
-        movpx_ld(Xmm7, Mecx, ctx_TMASK(0))      /* tmask <- TMASK */
-        xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
-        CHECK_MASK(OO_end, NONE, Xmm7)
-
-        jmpxx_lb(HP_rs1)
+        jmpxx_lb(QD_rts)                        /* quadric  roots */
 
 /******************************************************************************/
     LBL(fetch_HP_mat)
