@@ -507,6 +507,12 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
 rt_void render0(rt_SIMD_INFOX *s_inf)
 {
 
+#if RT_DEBUG == 1
+
+    s_inf->q_dbg = (g_print != 0);
+
+#endif /* RT_DEBUG */
+
 /******************************************************************************/
 /**********************************   ENTER   *********************************/
 /******************************************************************************/
@@ -2419,6 +2425,26 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
+#if RT_DEBUG == 1
+
+        cmpxx_mi(Mebp, inf_FRM_X, IH(0))        /* <- pin point buggy quad */
+        jnexx_lb(QD_go1)
+        cmpxx_mi(Mebp, inf_FRM_Y, IH(0))        /* <- pin point buggy quad */
+        jnexx_lb(QD_go1)
+
+        cmpxx_mi(Mebp, inf_Q_DBG, IB(1))
+        jnexx_lb(QD_go1)
+        movxx_mi(Mebp, inf_Q_DBG, IB(2))
+
+        movpx_st(Xmm1, Mebp, inf_A_VAL)
+        movpx_st(Xmm4, Mebp, inf_B_VAL)
+        movpx_st(Xmm6, Mebp, inf_C_VAL)
+        movpx_st(Xmm3, Mebp, inf_D_VAL)
+
+    LBL(QD_go1)
+
+#endif /* RT_DEBUG */
+
         /* "tt" section */
         movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
         andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
@@ -2449,6 +2475,21 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         orrpx_rr(Xmm3, Xmm0)                    /* bdneg |= a_pos */
         orrpx_rr(Xmm0, Xmm1)                    /* a_pos |= a_neg */
         orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
+
+#if RT_DEBUG == 1
+
+        cmpxx_mi(Mebp, inf_Q_DBG, IB(2))
+        jnexx_lb(QD_go2)
+        movxx_mi(Mebp, inf_Q_DBG, IB(3))
+
+        movpx_st(Xmm4, Mebp, inf_T1NMR)
+        movpx_st(Xmm1, Mebp, inf_T1DNM)
+        movpx_st(Xmm6, Mebp, inf_T2NMR)
+        movpx_st(Xmm3, Mebp, inf_T2DNM)
+
+    LBL(QD_go2)
+
+#endif /* RT_DEBUG */
 
         /* "aa" section */
         movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
@@ -4164,6 +4205,47 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     if (s_inf->ctx != RT_NULL)
     {
+#if RT_DEBUG == 1
+
+        if (s_inf->q_dbg == 3)
+        {
+            RT_LOGE("---------------------------------------------");
+            RT_LOGE("------------- quadric debug info ------------");
+            RT_LOGE("---------------------------------------------");
+            RT_LOGE("\n");
+            RT_LOGE("\n");
+
+            RT_LOGE("    A_VAL = {%f, %f, %f, %f}\n",
+            s_inf->a_val[0], s_inf->a_val[1], s_inf->a_val[2], s_inf->a_val[3]);
+
+            RT_LOGE("    B_VAL = {%f, %f, %f, %f}\n",
+            s_inf->b_val[0], s_inf->b_val[1], s_inf->b_val[2], s_inf->b_val[3]);
+
+            RT_LOGE("    C_VAL = {%f, %f, %f, %f}\n",
+            s_inf->c_val[0], s_inf->c_val[1], s_inf->c_val[2], s_inf->c_val[3]);
+
+            RT_LOGE("    D_VAL = {%f, %f, %f, %f}\n",
+            s_inf->d_val[0], s_inf->d_val[1], s_inf->d_val[2], s_inf->d_val[3]);
+
+            RT_LOGE("\n");
+
+            RT_LOGE("    T1NMR = {%f, %f, %f, %f}\n",
+            s_inf->t1nmr[0], s_inf->t1nmr[1], s_inf->t1nmr[2], s_inf->t1nmr[3]);
+
+            RT_LOGE("    T1DNM = {%f, %f, %f, %f}\n",
+            s_inf->t1dnm[0], s_inf->t1dnm[1], s_inf->t1dnm[2], s_inf->t1dnm[3]);
+
+            RT_LOGE("    T2NMR = {%f, %f, %f, %f}\n",
+            s_inf->t2nmr[0], s_inf->t2nmr[1], s_inf->t2nmr[2], s_inf->t2nmr[3]);
+
+            RT_LOGE("    T2DNM = {%f, %f, %f, %f}\n",
+            s_inf->t2dnm[0], s_inf->t2dnm[1], s_inf->t2dnm[2], s_inf->t2dnm[3]);
+
+            RT_LOGE("\n");
+        }
+
+#endif /* RT_DEBUG */
+
         return;
     }
 
