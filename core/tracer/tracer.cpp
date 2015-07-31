@@ -7,6 +7,12 @@
 #include "tracer.h"
 #include "format.h"
 
+#if RT_DEBUG == 1
+
+#include "system.h"
+
+#endif /* RT_DEBUG */
+
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/
 /******************************************************************************/
@@ -414,6 +420,9 @@ static
 rt_pntr t_ptr[RT_TAG_SURFACE_MAX];
 
 static
+rt_pntr t_mat[RT_TAG_SURFACE_MAX];
+
+static
 rt_pntr t_clp[RT_TAG_SURFACE_MAX];
 
 static
@@ -478,6 +487,7 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
     /* save surface's entry points from local pointer tables
      * filled during backend's one-time initialization */
     s_srf->srf_p[0] = t_ptr[tag];
+    s_srf->srf_p[1] = t_mat[tag];
     s_srf->srf_p[2] = t_clp[tag];
 
     /* update surface's materials for each side */
@@ -803,6 +813,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_ptr)
 
         jmpxx_lb(fetch_PL_ptr)
+
+    LBL(fetch_mat)
+
+        jmpxx_lb(fetch_PL_mat)
 
     LBL(fetch_clp)
 
@@ -2242,7 +2256,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_PL_ptr)
 
         adrxx_lb(PL_ptr)                        /* load PL_ptr to Reax */
-        movxx_st(Reax, Mebp, inf_PTR_PL)
+        movxx_st(Reax, Mebp, inf_XPL_P(PTR))
         jmpxx_lb(fetch_CL_ptr)
 
     LBL(PL_ptr)
@@ -2309,6 +2323,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(OO_end)
 
 /******************************************************************************/
+    LBL(fetch_PL_mat)
+
+        adrxx_lb(PL_mat)                        /* load PL_mat to Reax */
+        movxx_st(Reax, Mebp, inf_XPL_P(SRF))
+        jmpxx_lb(fetch_CL_mat)
+
     LBL(PL_mat)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
@@ -2371,7 +2391,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_PL_clp)
 
         adrxx_lb(PL_clp)                        /* load PL_clp to Reax */
-        movxx_st(Reax, Mebp, inf_CLP_PL)
+        movxx_st(Reax, Mebp, inf_XPL_P(CLP))
         jmpxx_lb(fetch_CL_clp)
 
     LBL(PL_clp)
@@ -2395,7 +2415,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_CL_ptr)
 
         adrxx_lb(CL_ptr)                        /* load CL_ptr to Reax */
-        movxx_st(Reax, Mebp, inf_PTR_CL)
+        movxx_st(Reax, Mebp, inf_XCL_P(PTR))
         jmpxx_lb(fetch_SP_ptr)
 
     LBL(CL_ptr)
@@ -2593,6 +2613,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(CL_rs1)
 
 /******************************************************************************/
+    LBL(fetch_CL_mat)
+
+        adrxx_lb(CL_mat)                        /* load CL_mat to Reax */
+        movxx_st(Reax, Mebp, inf_XCL_P(SRF))
+        jmpxx_lb(fetch_SP_mat)
+
     LBL(CL_mat)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
@@ -2657,7 +2683,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_CL_clp)
 
         adrxx_lb(CL_clp)                        /* load CL_clp to Reax */
-        movxx_st(Reax, Mebp, inf_CLP_CL)
+        movxx_st(Reax, Mebp, inf_XCL_P(CLP))
         jmpxx_lb(fetch_SP_clp)
 
     LBL(CL_clp)
@@ -2690,7 +2716,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_SP_ptr)
 
         adrxx_lb(SP_ptr)                        /* load SP_ptr to Reax */
-        movxx_st(Reax, Mebp, inf_PTR_SP)
+        movxx_st(Reax, Mebp, inf_XSP_P(PTR))
         jmpxx_lb(fetch_CN_ptr)
 
     LBL(SP_ptr)
@@ -2902,6 +2928,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(SP_rs1)
 
 /******************************************************************************/
+    LBL(fetch_SP_mat)
+
+        adrxx_lb(SP_mat)                        /* load SP_mat to Reax */
+        movxx_st(Reax, Mebp, inf_XSP_P(SRF))
+        jmpxx_lb(fetch_CN_mat)
+
     LBL(SP_mat)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
@@ -2976,7 +3008,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_SP_clp)
 
         adrxx_lb(SP_clp)                        /* load SP_clp to Reax */
-        movxx_st(Reax, Mebp, inf_CLP_SP)
+        movxx_st(Reax, Mebp, inf_XSP_P(CLP))
         jmpxx_lb(fetch_CN_clp)
 
     LBL(SP_clp)
@@ -3017,7 +3049,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_CN_ptr)
 
         adrxx_lb(CN_ptr)                        /* load CN_ptr to Reax */
-        movxx_st(Reax, Mebp, inf_PTR_CN)
+        movxx_st(Reax, Mebp, inf_XCN_P(PTR))
         jmpxx_lb(fetch_PB_ptr)
 
     LBL(CN_ptr)
@@ -3231,6 +3263,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(CN_rs1)
 
 /******************************************************************************/
+    LBL(fetch_CN_mat)
+
+        adrxx_lb(CN_mat)                        /* load CN_mat to Reax */
+        movxx_st(Reax, Mebp, inf_XCN_P(SRF))
+        jmpxx_lb(fetch_PB_mat)
+
     LBL(CN_mat)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
@@ -3314,7 +3352,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_CN_clp)
 
         adrxx_lb(CN_clp)                        /* load CN_clp to Reax */
-        movxx_st(Reax, Mebp, inf_CLP_CN)
+        movxx_st(Reax, Mebp, inf_XCN_P(CLP))
         jmpxx_lb(fetch_PB_clp)
 
     LBL(CN_clp)
@@ -3353,7 +3391,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_PB_ptr)
 
         adrxx_lb(PB_ptr)                        /* load PB_ptr to Reax */
-        movxx_st(Reax, Mebp, inf_PTR_PB)
+        movxx_st(Reax, Mebp, inf_XPB_P(PTR))
         jmpxx_lb(fetch_HB_ptr)
 
     LBL(PB_ptr)
@@ -3562,6 +3600,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(PB_rs1)
 
 /******************************************************************************/
+    LBL(fetch_PB_mat)
+
+        adrxx_lb(PB_mat)                        /* load PB_mat to Reax */
+        movxx_st(Reax, Mebp, inf_XPB_P(SRF))
+        jmpxx_lb(fetch_HB_mat)
+
     LBL(PB_mat)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
@@ -3645,7 +3689,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_PB_clp)
 
         adrxx_lb(PB_clp)                        /* load PB_clp to Reax */
-        movxx_st(Reax, Mebp, inf_CLP_PB)
+        movxx_st(Reax, Mebp, inf_XPB_P(CLP))
         jmpxx_lb(fetch_HB_clp)
 
     LBL(PB_clp)
@@ -3684,7 +3728,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_HB_ptr)
 
         adrxx_lb(HB_ptr)                        /* load HB_ptr to Reax */
-        movxx_st(Reax, Mebp, inf_PTR_HB)
+        movxx_st(Reax, Mebp, inf_XHB_P(PTR))
         jmpxx_lb(fetch_PC_ptr)
 
     LBL(HB_ptr)
@@ -3899,6 +3943,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(HB_rs1)
 
 /******************************************************************************/
+    LBL(fetch_HB_mat)
+
+        adrxx_lb(HB_mat)                        /* load HB_mat to Reax */
+        movxx_st(Reax, Mebp, inf_XHB_P(SRF))
+        jmpxx_lb(fetch_PC_mat)
+
     LBL(HB_mat)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
@@ -3983,7 +4033,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_HB_clp)
 
         adrxx_lb(HB_clp)                        /* load HB_clp to Reax */
-        movxx_st(Reax, Mebp, inf_CLP_HB)
+        movxx_st(Reax, Mebp, inf_XHB_P(CLP))
         jmpxx_lb(fetch_PC_clp)
 
     LBL(HB_clp)
@@ -4023,7 +4073,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_PC_ptr)
 
         adrxx_lb(PC_ptr)                        /* load PC_ptr to Reax */
-        movxx_st(Reax, Mebp, inf_PTR_PC)
+        movxx_st(Reax, Mebp, inf_XPC_P(PTR))
         jmpxx_lb(fetch_HC_ptr)
 
     LBL(PC_ptr)
@@ -4218,6 +4268,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(PC_rs1)
 
 /******************************************************************************/
+    LBL(fetch_PC_mat)
+
+        adrxx_lb(PC_mat)                        /* load PC_mat to Reax */
+        movxx_st(Reax, Mebp, inf_XPC_P(SRF))
+        jmpxx_lb(fetch_HC_mat)
+
     LBL(PC_mat)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
@@ -4290,7 +4346,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_PC_clp)
 
         adrxx_lb(PC_clp)                        /* load PC_clp to Reax */
-        movxx_st(Reax, Mebp, inf_CLP_PC)
+        movxx_st(Reax, Mebp, inf_XPC_P(CLP))
         jmpxx_lb(fetch_HC_clp)
 
     LBL(PC_clp)
@@ -4321,7 +4377,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_HC_ptr)
 
         adrxx_lb(HC_ptr)                        /* load HC_ptr to Reax */
-        movxx_st(Reax, Mebp, inf_PTR_HC)
+        movxx_st(Reax, Mebp, inf_XHC_P(PTR))
         jmpxx_lb(fetch_HP_ptr)
 
     LBL(HC_ptr)
@@ -4534,6 +4590,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(HC_rs1)
 
 /******************************************************************************/
+    LBL(fetch_HC_mat)
+
+        adrxx_lb(HC_mat)                        /* load HC_mat to Reax */
+        movxx_st(Reax, Mebp, inf_XHC_P(SRF))
+        jmpxx_lb(fetch_HP_mat)
+
     LBL(HC_mat)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
@@ -4607,7 +4669,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_HC_clp)
 
         adrxx_lb(HC_clp)                        /* load HC_clp to Reax */
-        movxx_st(Reax, Mebp, inf_CLP_HC)
+        movxx_st(Reax, Mebp, inf_XHC_P(CLP))
         jmpxx_lb(fetch_HP_clp)
 
     LBL(HC_clp)
@@ -4639,8 +4701,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_HP_ptr)
 
         adrxx_lb(HP_ptr)                        /* load HP_ptr to Reax */
-        movxx_st(Reax, Mebp, inf_PTR_HP)
-        jmpxx_lb(fetch_clp)
+        movxx_st(Reax, Mebp, inf_XHP_P(PTR))
+        jmpxx_lb(fetch_mat)
 
     LBL(HP_ptr)
 
@@ -4853,6 +4915,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(HP_rs1)
 
 /******************************************************************************/
+    LBL(fetch_HP_mat)
+
+        adrxx_lb(HP_mat)                        /* load HP_mat to Reax */
+        movxx_st(Reax, Mebp, inf_XHP_P(SRF))
+        jmpxx_lb(fetch_clp)
+
     LBL(HP_mat)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
@@ -4952,7 +5020,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_HP_clp)
 
         adrxx_lb(HP_clp)                        /* load HP_clp to Reax */
-        movxx_st(Reax, Mebp, inf_CLP_HP)
+        movxx_st(Reax, Mebp, inf_XHP_P(CLP))
         jmpxx_lb(fetch_pow)
 
     LBL(HP_clp)
@@ -5150,25 +5218,35 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         return;
     }
 
-    t_ptr[RT_TAG_PLANE]             = s_inf->ptr_pl;
-    t_ptr[RT_TAG_CYLINDER]          = s_inf->ptr_cl;
-    t_ptr[RT_TAG_SPHERE]            = s_inf->ptr_sp;
-    t_ptr[RT_TAG_CONE]              = s_inf->ptr_cn;
-    t_ptr[RT_TAG_PARABOLOID]        = s_inf->ptr_pb;
-    t_ptr[RT_TAG_HYPERBOLOID]       = s_inf->ptr_hb;
-    t_ptr[RT_TAG_PARACYLINDER]      = s_inf->ptr_pc;
-    t_ptr[RT_TAG_HYPERCYLINDER]     = s_inf->ptr_hc;
-    t_ptr[RT_TAG_HYPERPARABOLOID]   = s_inf->ptr_hp;
+    t_ptr[RT_TAG_PLANE]             = s_inf->xpl_p[0];
+    t_ptr[RT_TAG_CYLINDER]          = s_inf->xcl_p[0];
+    t_ptr[RT_TAG_SPHERE]            = s_inf->xsp_p[0];
+    t_ptr[RT_TAG_CONE]              = s_inf->xcn_p[0];
+    t_ptr[RT_TAG_PARABOLOID]        = s_inf->xpb_p[0];
+    t_ptr[RT_TAG_HYPERBOLOID]       = s_inf->xhb_p[0];
+    t_ptr[RT_TAG_PARACYLINDER]      = s_inf->xpc_p[0];
+    t_ptr[RT_TAG_HYPERCYLINDER]     = s_inf->xhc_p[0];
+    t_ptr[RT_TAG_HYPERPARABOLOID]   = s_inf->xhp_p[0];
 
-    t_clp[RT_TAG_PLANE]             = s_inf->clp_pl;
-    t_clp[RT_TAG_CYLINDER]          = s_inf->clp_cl;
-    t_clp[RT_TAG_SPHERE]            = s_inf->clp_sp;
-    t_clp[RT_TAG_CONE]              = s_inf->clp_cn;
-    t_clp[RT_TAG_PARABOLOID]        = s_inf->clp_pb;
-    t_clp[RT_TAG_HYPERBOLOID]       = s_inf->clp_hb;
-    t_clp[RT_TAG_PARACYLINDER]      = s_inf->clp_pc;
-    t_clp[RT_TAG_HYPERCYLINDER]     = s_inf->clp_hc;
-    t_clp[RT_TAG_HYPERPARABOLOID]   = s_inf->clp_hp;
+    t_mat[RT_TAG_PLANE]             = s_inf->xpl_p[1];
+    t_mat[RT_TAG_CYLINDER]          = s_inf->xcl_p[1];
+    t_mat[RT_TAG_SPHERE]            = s_inf->xsp_p[1];
+    t_mat[RT_TAG_CONE]              = s_inf->xcn_p[1];
+    t_mat[RT_TAG_PARABOLOID]        = s_inf->xpb_p[1];
+    t_mat[RT_TAG_HYPERBOLOID]       = s_inf->xhb_p[1];
+    t_mat[RT_TAG_PARACYLINDER]      = s_inf->xpc_p[1];
+    t_mat[RT_TAG_HYPERCYLINDER]     = s_inf->xhc_p[1];
+    t_mat[RT_TAG_HYPERPARABOLOID]   = s_inf->xhp_p[1];
+
+    t_clp[RT_TAG_PLANE]             = s_inf->xpl_p[2];
+    t_clp[RT_TAG_CYLINDER]          = s_inf->xcl_p[2];
+    t_clp[RT_TAG_SPHERE]            = s_inf->xsp_p[2];
+    t_clp[RT_TAG_CONE]              = s_inf->xcn_p[2];
+    t_clp[RT_TAG_PARABOLOID]        = s_inf->xpb_p[2];
+    t_clp[RT_TAG_HYPERBOLOID]       = s_inf->xhb_p[2];
+    t_clp[RT_TAG_PARACYLINDER]      = s_inf->xpc_p[2];
+    t_clp[RT_TAG_HYPERCYLINDER]     = s_inf->xhc_p[2];
+    t_clp[RT_TAG_HYPERPARABOLOID]   = s_inf->xhp_p[2];
 
     t_pow[0]                        = s_inf->pow_e0;
     t_pow[1]                        = s_inf->pow_e1;
@@ -5177,32 +5255,46 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     t_pow[4]                        = s_inf->pow_e4;
     t_pow[5]                        = s_inf->pow_en;
 
-    /* RT_LOGI("PL ptr = %p\n", s_inf->ptr_pl); */
-    /* RT_LOGI("CL ptr = %p\n", s_inf->ptr_cl); */
-    /* RT_LOGI("SP ptr = %p\n", s_inf->ptr_sp); */
-    /* RT_LOGI("CN ptr = %p\n", s_inf->ptr_cn); */
-    /* RT_LOGI("PB ptr = %p\n", s_inf->ptr_pb); */
-    /* RT_LOGI("HB ptr = %p\n", s_inf->ptr_hb); */
-    /* RT_LOGI("PC ptr = %p\n", s_inf->ptr_pc); */
-    /* RT_LOGI("HC ptr = %p\n", s_inf->ptr_hc); */
-    /* RT_LOGI("HP ptr = %p\n", s_inf->ptr_hp); */
+#if RT_DEBUG == 1
 
-    /* RT_LOGI("PL clp = %p\n", s_inf->clp_pl); */
-    /* RT_LOGI("CL clp = %p\n", s_inf->clp_cl); */
-    /* RT_LOGI("SP clp = %p\n", s_inf->clp_sp); */
-    /* RT_LOGI("CN clp = %p\n", s_inf->clp_cn); */
-    /* RT_LOGI("PB clp = %p\n", s_inf->clp_pb); */
-    /* RT_LOGI("HB clp = %p\n", s_inf->clp_hb); */
-    /* RT_LOGI("PC clp = %p\n", s_inf->clp_pc); */
-    /* RT_LOGI("HC clp = %p\n", s_inf->clp_hc); */
-    /* RT_LOGI("HP clp = %p\n", s_inf->clp_hp); */
+    RT_LOGI("PL ptr = %p\n", s_inf->xpl_p[0]);
+    RT_LOGI("CL ptr = %p\n", s_inf->xcl_p[0]);
+    RT_LOGI("SP ptr = %p\n", s_inf->xsp_p[0]);
+    RT_LOGI("CN ptr = %p\n", s_inf->xcn_p[0]);
+    RT_LOGI("PB ptr = %p\n", s_inf->xpb_p[0]);
+    RT_LOGI("HB ptr = %p\n", s_inf->xhb_p[0]);
+    RT_LOGI("PC ptr = %p\n", s_inf->xpc_p[0]);
+    RT_LOGI("HC ptr = %p\n", s_inf->xhc_p[0]);
+    RT_LOGI("HP ptr = %p\n", s_inf->xhp_p[0]);
 
-    /* RT_LOGI("E0 pow = %p\n", s_inf->pow_e0); */
-    /* RT_LOGI("E1 pow = %p\n", s_inf->pow_e1); */
-    /* RT_LOGI("E2 pow = %p\n", s_inf->pow_e2); */
-    /* RT_LOGI("E3 pow = %p\n", s_inf->pow_e3); */
-    /* RT_LOGI("E4 pow = %p\n", s_inf->pow_e4); */
-    /* RT_LOGI("EN pow = %p\n", s_inf->pow_en); */
+    RT_LOGI("PL mat = %p\n", s_inf->xpl_p[1]);
+    RT_LOGI("CL mat = %p\n", s_inf->xcl_p[1]);
+    RT_LOGI("SP mat = %p\n", s_inf->xsp_p[1]);
+    RT_LOGI("CN mat = %p\n", s_inf->xcn_p[1]);
+    RT_LOGI("PB mat = %p\n", s_inf->xpb_p[1]);
+    RT_LOGI("HB mat = %p\n", s_inf->xhb_p[1]);
+    RT_LOGI("PC mat = %p\n", s_inf->xpc_p[1]);
+    RT_LOGI("HC mat = %p\n", s_inf->xhc_p[1]);
+    RT_LOGI("HP mat = %p\n", s_inf->xhp_p[1]);
+
+    RT_LOGI("PL clp = %p\n", s_inf->xpl_p[2]);
+    RT_LOGI("CL clp = %p\n", s_inf->xcl_p[2]);
+    RT_LOGI("SP clp = %p\n", s_inf->xsp_p[2]);
+    RT_LOGI("CN clp = %p\n", s_inf->xcn_p[2]);
+    RT_LOGI("PB clp = %p\n", s_inf->xpb_p[2]);
+    RT_LOGI("HB clp = %p\n", s_inf->xhb_p[2]);
+    RT_LOGI("PC clp = %p\n", s_inf->xpc_p[2]);
+    RT_LOGI("HC clp = %p\n", s_inf->xhc_p[2]);
+    RT_LOGI("HP clp = %p\n", s_inf->xhp_p[2]);
+
+    RT_LOGI("E0 pow = %p\n", s_inf->pow_e0);
+    RT_LOGI("E1 pow = %p\n", s_inf->pow_e1);
+    RT_LOGI("E2 pow = %p\n", s_inf->pow_e2);
+    RT_LOGI("E3 pow = %p\n", s_inf->pow_e3);
+    RT_LOGI("E4 pow = %p\n", s_inf->pow_e4);
+    RT_LOGI("EN pow = %p\n", s_inf->pow_en);
+
+#endif /* RT_DEBUG */
 }
 
 /******************************************************************************/

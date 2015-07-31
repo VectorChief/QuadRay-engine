@@ -22,7 +22,7 @@
  *
  * Note that DP offsets below accept only 12-bit values (0xFFF),
  * use DH and DW for 16-bit and 32-bit SIMD offsets respectively,
- * place packed scalar fields at the top of the structs to be within DP reach.
+ * place packed scalar fields at the top of the structs to be within DP's reach.
  * SIMD width is taken into account via S and Q from rtarch.h
  */
 
@@ -241,59 +241,32 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
 
     /* surface entry points */
 
-    rt_pntr ptr_pl;
-#define inf_PTR_PL          DP(Q*0x100+0x100)
+    rt_pntr xpl_p[4];
+#define inf_XPL_P(nx)       DP(Q*0x100+0x100 + nx)
 
-    rt_pntr clp_pl;
-#define inf_CLP_PL          DP(Q*0x100+0x104)
+    rt_pntr xcl_p[4];
+#define inf_XCL_P(nx)       DP(Q*0x100+0x110 + nx)
 
-    rt_pntr ptr_cl;
-#define inf_PTR_CL          DP(Q*0x100+0x108)
+    rt_pntr xsp_p[4];
+#define inf_XSP_P(nx)       DP(Q*0x100+0x120 + nx)
 
-    rt_pntr clp_cl;
-#define inf_CLP_CL          DP(Q*0x100+0x10C)
+    rt_pntr xcn_p[4];
+#define inf_XCN_P(nx)       DP(Q*0x100+0x130 + nx)
 
-    rt_pntr ptr_sp;
-#define inf_PTR_SP          DP(Q*0x100+0x110)
+    rt_pntr xpb_p[4];
+#define inf_XPB_P(nx)       DP(Q*0x100+0x140 + nx)
 
-    rt_pntr clp_sp;
-#define inf_CLP_SP          DP(Q*0x100+0x114)
+    rt_pntr xhb_p[4];
+#define inf_XHB_P(nx)       DP(Q*0x100+0x150 + nx)
 
-    rt_pntr ptr_cn;
-#define inf_PTR_CN          DP(Q*0x100+0x118)
+    rt_pntr xpc_p[4];
+#define inf_XPC_P(nx)       DP(Q*0x100+0x160 + nx)
 
-    rt_pntr clp_cn;
-#define inf_CLP_CN          DP(Q*0x100+0x11C)
+    rt_pntr xhc_p[4];
+#define inf_XHC_P(nx)       DP(Q*0x100+0x170 + nx)
 
-    rt_pntr ptr_pb;
-#define inf_PTR_PB          DP(Q*0x100+0x120)
-
-    rt_pntr clp_pb;
-#define inf_CLP_PB          DP(Q*0x100+0x124)
-
-    rt_pntr ptr_hb;
-#define inf_PTR_HB          DP(Q*0x100+0x128)
-
-    rt_pntr clp_hb;
-#define inf_CLP_HB          DP(Q*0x100+0x12C)
-
-    rt_pntr ptr_pc;
-#define inf_PTR_PC          DP(Q*0x100+0x130)
-
-    rt_pntr clp_pc;
-#define inf_CLP_PC          DP(Q*0x100+0x134)
-
-    rt_pntr ptr_hc;
-#define inf_PTR_HC          DP(Q*0x100+0x138)
-
-    rt_pntr clp_hc;
-#define inf_CLP_HC          DP(Q*0x100+0x13C)
-
-    rt_pntr ptr_hp;
-#define inf_PTR_HP          DP(Q*0x100+0x140)
-
-    rt_pntr clp_hp;
-#define inf_CLP_HP          DP(Q*0x100+0x144)
+    rt_pntr xhp_p[4];
+#define inf_XHP_P(nx)       DP(Q*0x100+0x180 + nx)
 
 };
 
