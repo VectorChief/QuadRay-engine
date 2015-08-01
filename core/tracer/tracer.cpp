@@ -5,8 +5,13 @@
 /******************************************************************************/
 
 #include "tracer.h"
-#include "system.h"
 #include "format.h"
+
+#if RT_DEBUG == 1
+
+#include "system.h"
+
+#endif /* RT_DEBUG */
 
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/
@@ -415,6 +420,9 @@ static
 rt_pntr t_ptr[3];
 
 static
+rt_pntr t_mat[3];
+
+static
 rt_pntr t_clp[3];
 
 static
@@ -479,6 +487,11 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
     /* save surface's entry points from local pointer tables
      * filled during backend's one-time initialization */
     s_srf->srf_p[0] = t_ptr[tag > RT_TAG_PLANE ? 
+                            tag == RT_TAG_HYPERCYLINDER &&
+                            s_srf->sci_w[0] == 0.0f ?
+                            RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
+
+    s_srf->srf_p[1] = t_mat[tag > RT_TAG_PLANE ? 
                             tag == RT_TAG_HYPERCYLINDER &&
                             s_srf->sci_w[0] == 0.0f ?
                             RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
@@ -818,6 +831,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_ptr)
 
         jmpxx_lb(fetch_PL_ptr)
+
+    LBL(fetch_mat)
+
+        jmpxx_lb(fetch_PL_mat)
 
     LBL(fetch_clp)
 
@@ -2257,7 +2274,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_PL_ptr)
 
         adrxx_lb(PL_ptr)                        /* load PL_ptr to Reax */
-        movxx_st(Reax, Mebp, inf_PTR_PL)
+        movxx_st(Reax, Mebp, inf_XPL_P(PTR))
         jmpxx_lb(fetch_TP_ptr)
 
     LBL(PL_ptr)
@@ -2324,6 +2341,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(OO_end)
 
 /******************************************************************************/
+    LBL(fetch_PL_mat)
+
+        adrxx_lb(PL_mat)                        /* load PL_mat to Reax */
+        movxx_st(Reax, Mebp, inf_XPL_P(SRF))
+        jmpxx_lb(fetch_TP_mat)
+
     LBL(PL_mat)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
@@ -2386,7 +2409,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_PL_clp)
 
         adrxx_lb(PL_clp)                        /* load PL_clp to Reax */
-        movxx_st(Reax, Mebp, inf_CLP_PL)
+        movxx_st(Reax, Mebp, inf_XPL_P(CLP))
         jmpxx_lb(fetch_TP_clp)
 
     LBL(PL_clp)
@@ -2410,7 +2433,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_TP_ptr)
 
         adrxx_lb(TP_ptr)                        /* load TP_ptr to Reax */
-        movxx_st(Reax, Mebp, inf_PTR_TP)
+        movxx_st(Reax, Mebp, inf_XTP_P(PTR))
         jmpxx_lb(fetch_QD_ptr)
 
     LBL(TP_ptr)
@@ -2477,12 +2500,85 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(QD_rts)                        /* quadric  roots */
 
 /******************************************************************************/
+    LBL(fetch_TP_mat)
+
+        adrxx_lb(TP_mat)                        /* load TP_mat to Reax */
+        movxx_st(Reax, Mebp, inf_XTP_P(SRF))
+        jmpxx_lb(fetch_QD_mat)
+
+    LBL(TP_mat)
+
+        FETCH_PROP()                            /* Xmm7  <- ssign */
+
+#if RT_FEAT_LIGHTS_SHADOWS
+
+        CHECK_SHAD(TP_shd)
+
+#endif /* RT_FEAT_LIGHTS_SHADOWS */
+
+#if RT_FEAT_NORMALS
+
+        /* compute normal, if enabled */
+        CHECK_PROP(TP_nrm, RT_PROP_NORMAL)
+
+        movxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iecx */
+
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        movpx_ld(Xmm4, Iecx, ctx_NEW_X)         /* loc_x <- NEW_X */
+        mulps_ld(Xmm4, Mebx, srf_SCI_X)         /* loc_x *= SCI_X */
+
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        movpx_ld(Xmm5, Iecx, ctx_NEW_Y)         /* loc_y <- NEW_Y */
+        mulps_ld(Xmm5, Mebx, srf_SCI_Y)         /* loc_y *= SCI_Y */
+
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+        movpx_ld(Xmm6, Iecx, ctx_NEW_Z)         /* loc_z <- NEW_Z */
+        mulps_ld(Xmm6, Mebx, srf_SCI_Z)         /* loc_z *= SCI_Z */
+
+        /* renormalize normal */
+        movpx_rr(Xmm1, Xmm4)
+        movpx_rr(Xmm2, Xmm5)
+        movpx_rr(Xmm3, Xmm6)
+
+        mulps_rr(Xmm1, Xmm4)
+        mulps_rr(Xmm2, Xmm5)
+        mulps_rr(Xmm3, Xmm6)
+
+        addps_rr(Xmm1, Xmm2)
+        addps_rr(Xmm1, Xmm3)
+        rsqps_rr(Xmm0, Xmm1)
+
+        mulps_rr(Xmm4, Xmm0)
+        mulps_rr(Xmm5, Xmm0)
+        mulps_rr(Xmm6, Xmm0)
+
+        xorpx_rr(Xmm4, Xmm7)
+        xorpx_rr(Xmm5, Xmm7)
+        xorpx_rr(Xmm6, Xmm7)
+
+        /* store normal */
+        movpx_st(Xmm4, Iecx, ctx_NRM_X)
+        movpx_st(Xmm5, Iecx, ctx_NRM_Y)
+        movpx_st(Xmm6, Iecx, ctx_NRM_Z)
+
+        jmpxx_lb(MT_nrm)
+
+    LBL(TP_nrm)
+
+#endif /* RT_FEAT_NORMALS */
+
+        jmpxx_lb(MT_mat)
+
+/******************************************************************************/
 #if RT_FEAT_CLIPPING_CUSTOM
 
     LBL(fetch_TP_clp)
 
         adrxx_lb(TP_clp)                        /* load TP_clp to Reax */
-        movxx_st(Reax, Mebp, inf_CLP_TP)
+        movxx_st(Reax, Mebp, inf_XTP_P(CLP))
         jmpxx_lb(fetch_QD_clp)
 
     LBL(TP_clp)
@@ -2526,14 +2622,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #endif /* RT_FEAT_CLIPPING_CUSTOM */
 
 /******************************************************************************/
-/********************************   QUADRIC   *********************************/
+/*********************************   QUADRIC   ********************************/
 /******************************************************************************/
 
     LBL(fetch_QD_ptr)
 
         adrxx_lb(QD_ptr)                        /* load QD_ptr to Reax */
-        movxx_st(Reax, Mebp, inf_PTR_QD)
-        jmpxx_lb(fetch_clp)
+        movxx_st(Reax, Mebp, inf_XQD_P(PTR))
+        jmpxx_lb(fetch_mat)
 
     LBL(QD_ptr)
 
@@ -2728,7 +2824,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
-        SUBROUTINE(QD_mt1, QD_mat)
+        SUBROUTINE(QD_mt1, QD_rdr)
 
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
@@ -2780,7 +2876,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
-        SUBROUTINE(QD_mt2, QD_mat)
+        SUBROUTINE(QD_mt2, QD_rdr)
 
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
@@ -2797,7 +2893,17 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         jmpxx_lb(QD_rs1)
 
+    LBL(QD_rdr)
+
+        jmpxx_mm(Mebx, srf_SRF_P(SRF))
+
 /******************************************************************************/
+    LBL(fetch_QD_mat)
+
+        adrxx_lb(QD_mat)                        /* load QD_mat to Reax */
+        movxx_st(Reax, Mebp, inf_XQD_P(SRF))
+        jmpxx_lb(fetch_clp)
+
     LBL(QD_mat)
 
         FETCH_PROP()                            /* Xmm7  <- ssign */
@@ -2873,7 +2979,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(fetch_QD_clp)
 
         adrxx_lb(QD_clp)                        /* load QD_clp to Reax */
-        movxx_st(Reax, Mebp, inf_CLP_QD)
+        movxx_st(Reax, Mebp, inf_XQD_P(CLP))
         jmpxx_lb(fetch_pow)
 
     LBL(QD_clp)
@@ -3092,6 +3198,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     if (s_inf->ctx != RT_NULL)
     {
 #if RT_DEBUG == 1
+
         if (s_inf->q_dbg == 3)
         {
             RT_LOGE("---------------------------------------------");
@@ -3128,18 +3235,23 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
             RT_LOGE("\n");
         }
+
 #endif /* RT_DEBUG */
 
         return;
     }
 
-    t_ptr[RT_TAG_PLANE]             = s_inf->ptr_pl;
-    t_ptr[RT_TAG_PLANE + 1]         = s_inf->ptr_tp;
-    t_ptr[RT_TAG_PLANE + 2]         = s_inf->ptr_qd;
+    t_ptr[RT_TAG_PLANE]             = s_inf->xpl_p[0];
+    t_ptr[RT_TAG_PLANE + 1]         = s_inf->xtp_p[0];
+    t_ptr[RT_TAG_PLANE + 2]         = s_inf->xqd_p[0];
 
-    t_clp[RT_TAG_PLANE]             = s_inf->clp_pl;
-    t_clp[RT_TAG_PLANE + 1]         = s_inf->clp_tp;
-    t_clp[RT_TAG_PLANE + 2]         = s_inf->clp_qd;
+    t_mat[RT_TAG_PLANE]             = s_inf->xpl_p[1];
+    t_mat[RT_TAG_PLANE + 1]         = s_inf->xtp_p[1];
+    t_mat[RT_TAG_PLANE + 2]         = s_inf->xqd_p[1];
+
+    t_clp[RT_TAG_PLANE]             = s_inf->xpl_p[2];
+    t_clp[RT_TAG_PLANE + 1]         = s_inf->xtp_p[2];
+    t_clp[RT_TAG_PLANE + 2]         = s_inf->xqd_p[2];
 
     t_pow[0]                        = s_inf->pow_e0;
     t_pow[1]                        = s_inf->pow_e1;
@@ -3148,20 +3260,28 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     t_pow[4]                        = s_inf->pow_e4;
     t_pow[5]                        = s_inf->pow_en;
 
-    /* RT_LOGI("PL ptr = %p\n", s_inf->ptr_pl); */
-    /* RT_LOGI("TP ptr = %p\n", s_inf->ptr_tp); */
-    /* RT_LOGI("QD ptr = %p\n", s_inf->ptr_qd); */
+#if RT_DEBUG == 1
 
-    /* RT_LOGI("PL clp = %p\n", s_inf->clp_pl); */
-    /* RT_LOGI("TP clp = %p\n", s_inf->clp_tp); */
-    /* RT_LOGI("QD clp = %p\n", s_inf->clp_qd); */
+    RT_LOGI("PL ptr = %p\n", s_inf->xpl_p[0]);
+    RT_LOGI("TP ptr = %p\n", s_inf->xtp_p[0]);
+    RT_LOGI("QD ptr = %p\n", s_inf->xqd_p[0]);
 
-    /* RT_LOGI("E0 pow = %p\n", s_inf->pow_e0); */
-    /* RT_LOGI("E1 pow = %p\n", s_inf->pow_e1); */
-    /* RT_LOGI("E2 pow = %p\n", s_inf->pow_e2); */
-    /* RT_LOGI("E3 pow = %p\n", s_inf->pow_e3); */
-    /* RT_LOGI("E4 pow = %p\n", s_inf->pow_e4); */
-    /* RT_LOGI("EN pow = %p\n", s_inf->pow_en); */
+    RT_LOGI("PL mat = %p\n", s_inf->xpl_p[1]);
+    RT_LOGI("TP mat = %p\n", s_inf->xtp_p[1]);
+    RT_LOGI("QD mat = %p\n", s_inf->xqd_p[1]);
+
+    RT_LOGI("PL clp = %p\n", s_inf->xpl_p[2]);
+    RT_LOGI("TP clp = %p\n", s_inf->xtp_p[2]);
+    RT_LOGI("QD clp = %p\n", s_inf->xqd_p[2]);
+
+    RT_LOGI("E0 pow = %p\n", s_inf->pow_e0);
+    RT_LOGI("E1 pow = %p\n", s_inf->pow_e1);
+    RT_LOGI("E2 pow = %p\n", s_inf->pow_e2);
+    RT_LOGI("E3 pow = %p\n", s_inf->pow_e3);
+    RT_LOGI("E4 pow = %p\n", s_inf->pow_e4);
+    RT_LOGI("EN pow = %p\n", s_inf->pow_en);
+
+#endif /* RT_DEBUG */
 }
 
 /******************************************************************************/

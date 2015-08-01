@@ -22,7 +22,7 @@
  *
  * Note that DP offsets below accept only 12-bit values (0xFFF),
  * use DH and DW for 16-bit and 32-bit SIMD offsets respectively,
- * place packed scalar fields at the top of the structs to be within DP reach.
+ * place packed scalar fields at the top of the structs to be within DP's reach.
  * SIMD width is taken into account via S and Q from rtarch.h
  */
 
@@ -262,23 +262,14 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
 
     /* surface entry points */
 
-    rt_pntr ptr_pl;
-#define inf_PTR_PL          DP(Q*0x100+0x100)
+    rt_pntr xpl_p[4];
+#define inf_XPL_P(nx)       DP(Q*0x100+0x100 + nx)
 
-    rt_pntr clp_pl;
-#define inf_CLP_PL          DP(Q*0x100+0x104)
+    rt_pntr xtp_p[4];
+#define inf_XTP_P(nx)       DP(Q*0x100+0x110 + nx)
 
-    rt_pntr ptr_tp;
-#define inf_PTR_TP          DP(Q*0x100+0x108)
-
-    rt_pntr clp_tp;
-#define inf_CLP_TP          DP(Q*0x100+0x10C)
-
-    rt_pntr ptr_qd;
-#define inf_PTR_QD          DP(Q*0x100+0x110)
-
-    rt_pntr clp_qd;
-#define inf_CLP_QD          DP(Q*0x100+0x114)
+    rt_pntr xqd_p[4];
+#define inf_XQD_P(nx)       DP(Q*0x100+0x120 + nx)
 
 };
 

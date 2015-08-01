@@ -794,7 +794,7 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
     s_srf->mat_p[3] = RT_NULL; /* inner material props */
 
     s_srf->srf_p[0] = RT_NULL; /* surf ptr, filled in update0 */
-    s_srf->srf_p[1] = RT_NULL; /* reserved */
+    s_srf->srf_p[1] = RT_NULL; /* norm ptr, filled in update0 */
     s_srf->srf_p[2] = RT_NULL; /* clip ptr, filled in update0 */
     s_srf->srf_p[3] = (rt_pntr)tag; /* tag */
 
@@ -1635,7 +1635,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     s_bvb->mat_p[3] = RT_NULL; /* inner material props */
 
     s_bvb->srf_p[0] = RT_NULL; /* surf ptr, filled in update0 */
-    s_bvb->srf_p[1] = RT_NULL; /* reserved */
+    s_bvb->srf_p[1] = RT_NULL; /* norm ptr, filled in update0 */
     s_bvb->srf_p[2] = RT_NULL; /* clip ptr, filled in update0 */
     s_bvb->srf_p[3] = (rt_pntr)tag; /* tag */
 
@@ -1664,7 +1664,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     s_inb->mat_p[3] = RT_NULL; /* inner material props */
 
     s_inb->srf_p[0] = RT_NULL; /* surf ptr, filled in update0 */
-    s_inb->srf_p[1] = RT_NULL; /* reserved */
+    s_inb->srf_p[1] = RT_NULL; /* norm ptr, filled in update0 */
     s_inb->srf_p[2] = RT_NULL; /* clip ptr, filled in update0 */
     s_inb->srf_p[3] = (rt_pntr)tag; /* tag */
 
@@ -3037,7 +3037,7 @@ rt_Plane::~rt_Plane()
 }
 
 /******************************************************************************/
-/********************************   QUADRIC   *********************************/
+/*********************************   QUADRIC   ********************************/
 /******************************************************************************/
 
 /*
