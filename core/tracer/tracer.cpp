@@ -2537,21 +2537,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm5, Xmm7)
         xorpx_rr(Xmm6, Xmm7)
 
-        /* normalize normal */
-        movpx_rr(Xmm1, Xmm4)
-        movpx_rr(Xmm2, Xmm5)
-        movpx_rr(Xmm3, Xmm6)
-
-        mulps_rr(Xmm1, Xmm4)
-        mulps_rr(Xmm2, Xmm5)
-        mulps_rr(Xmm3, Xmm6)
-
-        addps_rr(Xmm1, Xmm2)
-        addps_rr(Xmm1, Xmm3)
-
         /* handle anomaly around zero */
         movpx_ld(Xmm0, Mecx, ctx_XTMP0)
-        cltps_ld(Xmm0, Mebx, srf_N_EPS)
+        cltps_ld(Xmm0, Mebx, srf_D_EPS)
         CHECK_MASK(TP_nct, NONE, Xmm0)          /* <- destroys Reax */
         movpx_ld(Xmm7, Mebx, srf_SMASK)
 
@@ -2596,7 +2584,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm6, Xmm0)
         orrpx_rr(Xmm6, Xmm3)
 
-        /* normalize new normal */
+    LBL(TP_nct)
+
+        /* normalize normal */
         movpx_rr(Xmm1, Xmm4)
         movpx_rr(Xmm2, Xmm5)
         movpx_rr(Xmm3, Xmm6)
@@ -2607,10 +2597,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         addps_rr(Xmm1, Xmm2)
         addps_rr(Xmm1, Xmm3)
-
-    LBL(TP_nct)
-
-        /* continue normalization */
         rsqps_rr(Xmm0, Xmm1)
 
         mulps_rr(Xmm4, Xmm0)
@@ -2623,21 +2609,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm4, Iecx, ctx_NRM_X)
         movpx_st(Xmm5, Iecx, ctx_NRM_Y)
         movpx_st(Xmm6, Iecx, ctx_NRM_Z)
-
-#if RT_DEBUG == 1
-
-        cmpxx_mi(Mebp, inf_Q_DBG, IB(3))
-        jnexx_lb(QD_go3)
-        movxx_mi(Mebp, inf_Q_DBG, IB(4))
-
-        movpx_st(Xmm4, Mebp, inf_T1NMR)
-        movpx_st(Xmm5, Mebp, inf_T1DNM)
-        movpx_st(Xmm6, Mebp, inf_T2NMR)
-        movpx_st(Xmm7, Mebp, inf_T2DNM)
-
-    LBL(QD_go3)
-
-#endif /* RT_DEBUG */
 
         jmpxx_lb(MT_nrm)
 
@@ -2788,17 +2759,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_DEBUG == 1
 
-#if 0
-        cmpxx_mi(Mebp, inf_FRM_X, IH(528))        /* <- pin point buggy quad */
+        cmpxx_mi(Mebp, inf_FRM_X, IH(0))        /* <- pin point buggy quad */
         jnexx_lb(QD_go1)
-        cmpxx_mi(Mebp, inf_FRM_Y, IH(426))        /* <- pin point buggy quad */
+        cmpxx_mi(Mebp, inf_FRM_Y, IH(0))        /* <- pin point buggy quad */
         jnexx_lb(QD_go1)
-#else
-        cmpxx_mi(Mebp, inf_FRM_X, IH(392))        /* <- pin point buggy quad */
-        jnexx_lb(QD_go1)
-        cmpxx_mi(Mebp, inf_FRM_Y, IH(219))        /* <- pin point buggy quad */
-        jnexx_lb(QD_go1)
-#endif
 
         cmpxx_mi(Mebp, inf_Q_DBG, IB(1))
         jnexx_lb(QD_go1)
@@ -3276,7 +3240,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     {
 #if RT_DEBUG == 1
 
-        if (s_inf->q_dbg == 4)
+        if (s_inf->q_dbg == 3)
         {
             RT_LOGE("---------------------------------------------");
             RT_LOGE("------------- quadric debug info ------------");
@@ -3284,30 +3248,30 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
             RT_LOGE("\n");
             RT_LOGE("\n");
 
-            RT_LOGE("    A_VAL = {%f, %f, %f, %.20f}\n",
+            RT_LOGE("    A_VAL = {%f, %f, %f, %f}\n",
             s_inf->a_val[0], s_inf->a_val[1], s_inf->a_val[2], s_inf->a_val[3]);
 
-            RT_LOGE("    B_VAL = {%f, %f, %f, %.20f}\n",
+            RT_LOGE("    B_VAL = {%f, %f, %f, %f}\n",
             s_inf->b_val[0], s_inf->b_val[1], s_inf->b_val[2], s_inf->b_val[3]);
 
-            RT_LOGE("    C_VAL = {%f, %f, %f, %.20f}\n",
+            RT_LOGE("    C_VAL = {%f, %f, %f, %f}\n",
             s_inf->c_val[0], s_inf->c_val[1], s_inf->c_val[2], s_inf->c_val[3]);
 
-            RT_LOGE("    D_VAL = {%f, %f, %f, %.20f}\n",
+            RT_LOGE("    D_VAL = {%f, %f, %f, %f}\n",
             s_inf->d_val[0], s_inf->d_val[1], s_inf->d_val[2], s_inf->d_val[3]);
 
             RT_LOGE("\n");
 
-            RT_LOGE("    T1NMR = {%f, %f, %f, %.20f}\n",
+            RT_LOGE("    T1NMR = {%f, %f, %f, %f}\n",
             s_inf->t1nmr[0], s_inf->t1nmr[1], s_inf->t1nmr[2], s_inf->t1nmr[3]);
 
-            RT_LOGE("    T1DNM = {%f, %f, %f, %.20f}\n",
+            RT_LOGE("    T1DNM = {%f, %f, %f, %f}\n",
             s_inf->t1dnm[0], s_inf->t1dnm[1], s_inf->t1dnm[2], s_inf->t1dnm[3]);
 
-            RT_LOGE("    T2NMR = {%f, %f, %f, %.20f}\n",
+            RT_LOGE("    T2NMR = {%f, %f, %f, %f}\n",
             s_inf->t2nmr[0], s_inf->t2nmr[1], s_inf->t2nmr[2], s_inf->t2nmr[3]);
 
-            RT_LOGE("    T2DNM = {%f, %f, %f, %.20f}\n",
+            RT_LOGE("    T2DNM = {%f, %f, %f, %f}\n",
             s_inf->t2dnm[0], s_inf->t2dnm[1], s_inf->t2dnm[2], s_inf->t2dnm[3]);
 
             RT_LOGE("\n");

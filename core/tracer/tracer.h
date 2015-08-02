@@ -773,8 +773,8 @@ struct rt_SIMD_SURFACE
     rt_real scj_z[S];
 #define srf_SCJ_Z           DP(Q*0x230)
 
-    rt_real n_eps[S];
-#define srf_N_EPS           DP(Q*0x240)
+    rt_real d_eps[S];
+#define srf_D_EPS           DP(Q*0x240)
 
 };
 
