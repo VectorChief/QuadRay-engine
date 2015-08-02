@@ -74,9 +74,7 @@ struct rt_SIMD_INFOX;
 struct rt_SIMD_CONTEXT;
 struct rt_SIMD_CAMERA;
 struct rt_SIMD_LIGHT;
-
 struct rt_SIMD_SURFACE;
-struct rt_SIMD_HYPERCYLINDER;
 
 struct rt_SIMD_MATERIAL;
 
@@ -769,6 +767,9 @@ struct rt_SIMD_SURFACE
 
     rt_real scj_z[S];
 #define srf_SCJ_Z           DP(Q*0x230)
+
+    rt_real n_eps[S];
+#define srf_N_EPS           DP(Q*0x240)
 
 };
 

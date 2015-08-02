@@ -2526,19 +2526,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
         movpx_ld(Xmm4, Iecx, ctx_NEW_X)         /* loc_x <- NEW_X */
-        mulps_ld(Xmm4, Mebx, srf_SCI_X)         /* loc_x *= SCI_X */
-
-        /* use next context's RAY fields (NEW)
-         * as temporary storage for local HIT */
         movpx_ld(Xmm5, Iecx, ctx_NEW_Y)         /* loc_y <- NEW_Y */
-        mulps_ld(Xmm5, Mebx, srf_SCI_Y)         /* loc_y *= SCI_Y */
-
-        /* use next context's RAY fields (NEW)
-         * as temporary storage for local HIT */
         movpx_ld(Xmm6, Iecx, ctx_NEW_Z)         /* loc_z <- NEW_Z */
+
+        mulps_ld(Xmm4, Mebx, srf_SCI_X)         /* loc_x *= SCI_X */
+        mulps_ld(Xmm5, Mebx, srf_SCI_Y)         /* loc_y *= SCI_Y */
         mulps_ld(Xmm6, Mebx, srf_SCI_Z)         /* loc_z *= SCI_Z */
 
-        /* renormalize normal */
+        xorpx_rr(Xmm4, Xmm7)
+        xorpx_rr(Xmm5, Xmm7)
+        xorpx_rr(Xmm6, Xmm7)
+
+        /* normalize normal */
         movpx_rr(Xmm1, Xmm4)
         movpx_rr(Xmm2, Xmm5)
         movpx_rr(Xmm3, Xmm6)
@@ -2549,15 +2548,91 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         addps_rr(Xmm1, Xmm2)
         addps_rr(Xmm1, Xmm3)
+
+#if RT_DEBUG == 1
+
+        cmpxx_mi(Mebp, inf_Q_DBG, IB(3))
+        jnexx_lb(QD_go3)
+        movxx_mi(Mebp, inf_Q_DBG, IB(4))
+
+        movpx_st(Xmm4, Mebp, inf_T1NMR)
+        movpx_st(Xmm5, Mebp, inf_T1DNM)
+        movpx_st(Xmm6, Mebp, inf_T2NMR)
+        movpx_st(Xmm1, Mebp, inf_T2DNM)
+
+    LBL(QD_go3)
+
+#endif /* RT_DEBUG */
+
+        /* handle anomaly around zero */
+        movpx_ld(Xmm0, Mebx, srf_N_EPS)
+        cgeps_rr(Xmm0, Xmm1)
+        CHECK_MASK(TP_nct, NONE, Xmm0)          /* <- destroys Reax */
+        movpx_ld(Xmm7, Mebx, srf_SMASK)
+
+        movxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iecx */
+
+        /* extend normal towards ray */
+        movpx_ld(Xmm1, Iecx, ctx_RAY_X)         /* ray_x <- RAY_X */
+        movpx_ld(Xmm2, Iecx, ctx_RAY_Y)         /* ray_y <- RAY_Y */
+        movpx_ld(Xmm3, Iecx, ctx_RAY_Z)         /* ray_z <- RAY_Z */
+
+        xorpx_rr(Xmm1, Xmm7)
+        xorpx_rr(Xmm2, Xmm7)
+        xorpx_rr(Xmm3, Xmm7)
+
+        /* mask out normal's components */
+        xorpx_rr(Xmm7, Xmm7)
+        cneps_ld(Xmm7, Mebx, srf_SCI_X)
+        andpx_rr(Xmm1, Xmm7)
+
+        xorpx_rr(Xmm7, Xmm7)
+        cneps_ld(Xmm7, Mebx, srf_SCI_Y)
+        andpx_rr(Xmm2, Xmm7)
+
+        xorpx_rr(Xmm7, Xmm7)
+        cneps_ld(Xmm7, Mebx, srf_SCI_Z)
+        andpx_rr(Xmm3, Xmm7)
+
+        andpx_rr(Xmm1, Xmm0)
+        andpx_rr(Xmm2, Xmm0)
+        andpx_rr(Xmm3, Xmm0)
+
+        /* recombine normals */
+        orrpx_rr(Xmm4, Xmm0)
+        xorpx_rr(Xmm4, Xmm0)
+        orrpx_rr(Xmm4, Xmm1)
+
+        orrpx_rr(Xmm5, Xmm0)
+        xorpx_rr(Xmm5, Xmm0)
+        orrpx_rr(Xmm5, Xmm2)
+
+        orrpx_rr(Xmm6, Xmm0)
+        xorpx_rr(Xmm6, Xmm0)
+        orrpx_rr(Xmm6, Xmm3)
+
+        /* normalize new normal */
+        movpx_rr(Xmm1, Xmm4)
+        movpx_rr(Xmm2, Xmm5)
+        movpx_rr(Xmm3, Xmm6)
+
+        mulps_rr(Xmm1, Xmm4)
+        mulps_rr(Xmm2, Xmm5)
+        mulps_rr(Xmm3, Xmm6)
+
+        addps_rr(Xmm1, Xmm2)
+        addps_rr(Xmm1, Xmm3)
+
+    LBL(TP_nct)
+
+        /* continue normalization */
         rsqps_rr(Xmm0, Xmm1)
 
         mulps_rr(Xmm4, Xmm0)
         mulps_rr(Xmm5, Xmm0)
         mulps_rr(Xmm6, Xmm0)
 
-        xorpx_rr(Xmm4, Xmm7)
-        xorpx_rr(Xmm5, Xmm7)
-        xorpx_rr(Xmm6, Xmm7)
+        movxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iecx */
 
         /* store normal */
         movpx_st(Xmm4, Iecx, ctx_NRM_X)
@@ -2711,9 +2786,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_DEBUG == 1
 
-        cmpxx_mi(Mebp, inf_FRM_X, IH(0))        /* <- pin point buggy quad */
+        cmpxx_mi(Mebp, inf_FRM_X, IH(528))        /* <- pin point buggy quad */
         jnexx_lb(QD_go1)
-        cmpxx_mi(Mebp, inf_FRM_Y, IH(0))        /* <- pin point buggy quad */
+        cmpxx_mi(Mebp, inf_FRM_Y, IH(426))        /* <- pin point buggy quad */
         jnexx_lb(QD_go1)
 
         cmpxx_mi(Mebp, inf_Q_DBG, IB(1))
@@ -2924,22 +2999,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
         movpx_ld(Xmm4, Iecx, ctx_NEW_X)         /* loc_x <- NEW_X */
-        mulps_ld(Xmm4, Mebx, srf_SCI_X)         /* loc_x *= SCI_X */
-        subps_ld(Xmm4, Mebx, srf_SCJ_X)         /* loc_x -= SCJ_X */
-
-        /* use next context's RAY fields (NEW)
-         * as temporary storage for local HIT */
         movpx_ld(Xmm5, Iecx, ctx_NEW_Y)         /* loc_y <- NEW_Y */
-        mulps_ld(Xmm5, Mebx, srf_SCI_Y)         /* loc_y *= SCI_Y */
-        subps_ld(Xmm5, Mebx, srf_SCJ_Y)         /* loc_y -= SCJ_Y */
-
-        /* use next context's RAY fields (NEW)
-         * as temporary storage for local HIT */
         movpx_ld(Xmm6, Iecx, ctx_NEW_Z)         /* loc_z <- NEW_Z */
+
+        mulps_ld(Xmm4, Mebx, srf_SCI_X)         /* loc_x *= SCI_X */
+        mulps_ld(Xmm5, Mebx, srf_SCI_Y)         /* loc_y *= SCI_Y */
         mulps_ld(Xmm6, Mebx, srf_SCI_Z)         /* loc_z *= SCI_Z */
+
+        subps_ld(Xmm4, Mebx, srf_SCJ_X)         /* loc_x -= SCJ_X */
+        subps_ld(Xmm5, Mebx, srf_SCJ_Y)         /* loc_y -= SCJ_Y */
         subps_ld(Xmm6, Mebx, srf_SCJ_Z)         /* loc_z -= SCJ_Z */
 
-        /* renormalize normal */
+        /* normalize normal */
         movpx_rr(Xmm1, Xmm4)
         movpx_rr(Xmm2, Xmm5)
         movpx_rr(Xmm3, Xmm6)
@@ -2951,14 +3022,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm1, Xmm2)
         addps_rr(Xmm1, Xmm3)
         rsqps_rr(Xmm0, Xmm1)
+        xorpx_rr(Xmm0, Xmm7)
 
         mulps_rr(Xmm4, Xmm0)
         mulps_rr(Xmm5, Xmm0)
         mulps_rr(Xmm6, Xmm0)
-
-        xorpx_rr(Xmm4, Xmm7)
-        xorpx_rr(Xmm5, Xmm7)
-        xorpx_rr(Xmm6, Xmm7)
 
         /* store normal */
         movpx_st(Xmm4, Iecx, ctx_NRM_X)
@@ -3199,7 +3267,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     {
 #if RT_DEBUG == 1
 
-        if (s_inf->q_dbg == 3)
+        if (s_inf->q_dbg == 4)
         {
             RT_LOGE("---------------------------------------------");
             RT_LOGE("------------- quadric debug info ------------");
@@ -3207,30 +3275,30 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
             RT_LOGE("\n");
             RT_LOGE("\n");
 
-            RT_LOGE("    A_VAL = {%f, %f, %f, %f}\n",
+            RT_LOGE("    A_VAL = {%f, %f, %f, %.20f}\n",
             s_inf->a_val[0], s_inf->a_val[1], s_inf->a_val[2], s_inf->a_val[3]);
 
-            RT_LOGE("    B_VAL = {%f, %f, %f, %f}\n",
+            RT_LOGE("    B_VAL = {%f, %f, %f, %.20f}\n",
             s_inf->b_val[0], s_inf->b_val[1], s_inf->b_val[2], s_inf->b_val[3]);
 
-            RT_LOGE("    C_VAL = {%f, %f, %f, %f}\n",
+            RT_LOGE("    C_VAL = {%f, %f, %f, %.20f}\n",
             s_inf->c_val[0], s_inf->c_val[1], s_inf->c_val[2], s_inf->c_val[3]);
 
-            RT_LOGE("    D_VAL = {%f, %f, %f, %f}\n",
+            RT_LOGE("    D_VAL = {%f, %f, %f, %.20f}\n",
             s_inf->d_val[0], s_inf->d_val[1], s_inf->d_val[2], s_inf->d_val[3]);
 
             RT_LOGE("\n");
 
-            RT_LOGE("    T1NMR = {%f, %f, %f, %f}\n",
+            RT_LOGE("    T1NMR = {%f, %f, %f, %.20f}\n",
             s_inf->t1nmr[0], s_inf->t1nmr[1], s_inf->t1nmr[2], s_inf->t1nmr[3]);
 
-            RT_LOGE("    T1DNM = {%f, %f, %f, %f}\n",
+            RT_LOGE("    T1DNM = {%f, %f, %f, %.20f}\n",
             s_inf->t1dnm[0], s_inf->t1dnm[1], s_inf->t1dnm[2], s_inf->t1dnm[3]);
 
-            RT_LOGE("    T2NMR = {%f, %f, %f, %f}\n",
+            RT_LOGE("    T2NMR = {%f, %f, %f, %.20f}\n",
             s_inf->t2nmr[0], s_inf->t2nmr[1], s_inf->t2nmr[2], s_inf->t2nmr[3]);
 
-            RT_LOGE("    T2DNM = {%f, %f, %f, %f}\n",
+            RT_LOGE("    T2DNM = {%f, %f, %f, %.20f}\n",
             s_inf->t2dnm[0], s_inf->t2dnm[1], s_inf->t2dnm[2], s_inf->t2dnm[3]);
 
             RT_LOGE("\n");
