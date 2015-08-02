@@ -2549,24 +2549,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm1, Xmm2)
         addps_rr(Xmm1, Xmm3)
 
-#if RT_DEBUG == 1
-
-        cmpxx_mi(Mebp, inf_Q_DBG, IB(3))
-        jnexx_lb(QD_go3)
-        movxx_mi(Mebp, inf_Q_DBG, IB(4))
-
-        movpx_st(Xmm4, Mebp, inf_T1NMR)
-        movpx_st(Xmm5, Mebp, inf_T1DNM)
-        movpx_st(Xmm6, Mebp, inf_T2NMR)
-        movpx_st(Xmm1, Mebp, inf_T2DNM)
-
-    LBL(QD_go3)
-
-#endif /* RT_DEBUG */
-
         /* handle anomaly around zero */
-        movpx_ld(Xmm0, Mebx, srf_N_EPS)
-        cgeps_rr(Xmm0, Xmm1)
+        movpx_ld(Xmm0, Mecx, ctx_XTMP0)
+        cltps_ld(Xmm0, Mebx, srf_N_EPS)
         CHECK_MASK(TP_nct, NONE, Xmm0)          /* <- destroys Reax */
         movpx_ld(Xmm7, Mebx, srf_SMASK)
 
@@ -2638,6 +2623,21 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm4, Iecx, ctx_NRM_X)
         movpx_st(Xmm5, Iecx, ctx_NRM_Y)
         movpx_st(Xmm6, Iecx, ctx_NRM_Z)
+
+#if RT_DEBUG == 1
+
+        cmpxx_mi(Mebp, inf_Q_DBG, IB(3))
+        jnexx_lb(QD_go3)
+        movxx_mi(Mebp, inf_Q_DBG, IB(4))
+
+        movpx_st(Xmm4, Mebp, inf_T1NMR)
+        movpx_st(Xmm5, Mebp, inf_T1DNM)
+        movpx_st(Xmm6, Mebp, inf_T2NMR)
+        movpx_st(Xmm7, Mebp, inf_T2DNM)
+
+    LBL(QD_go3)
+
+#endif /* RT_DEBUG */
 
         jmpxx_lb(MT_nrm)
 
@@ -2783,6 +2783,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
         CHECK_MASK(OO_end, NONE, Xmm7)
+
+        movpx_st(Xmm3, Mecx, ctx_XTMP0)
 
 #if RT_DEBUG == 1
 

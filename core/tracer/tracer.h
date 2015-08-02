@@ -412,8 +412,8 @@ struct rt_SIMD_CONTEXT
 #define ctx_XMASK           DP(Q*0x1F0)
 
 
-    rt_cell c_tmp[S];
-#define ctx_C_TMP           DP(Q*0x200)
+    rt_cell xtmp0[S];
+#define ctx_XTMP0           DP(Q*0x200)
 
     rt_real xtmp1[S];
 #define ctx_XTMP1           DP(Q*0x210)
@@ -446,10 +446,15 @@ struct rt_SIMD_CONTEXT
     rt_real nrm_k[S];
 #define ctx_NRM_K           DP(Q*0x290)
 
+    /* custom clipping */
+
+    rt_cell c_tmp[S];
+#define ctx_C_TMP           DP(Q*0x2A0)
+
     /* reserved area 1 */
 
-    rt_word pad01[S*6];
-#define ctx_PAD01           DP(Q*0x2A0)
+    rt_word pad01[S*5];
+#define ctx_PAD01           DP(Q*0x2B0)
 
     /* overlapping next context,
      * new depth min */
