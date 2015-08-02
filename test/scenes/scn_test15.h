@@ -90,7 +90,7 @@ rt_HYPERCYLINDER hc_frame02 =
 /* mat */   &mt_plain01_gray01,
         },
     },
-/* rat */   1.0,
+/* rat */   1.5,
 /* hyp */   0.0,
 };
 
@@ -116,7 +116,7 @@ rt_HYPERCYLINDER hc_frame03 =
 /* mat */   &mt_plain01_gray01,
         },
     },
-/* rat */   1.0,
+/* rat */   1.5,
 /* hyp */   0.0,
 };
 
@@ -156,7 +156,6 @@ rt_OBJECT ob_base01[] =
         },
         RT_OBJ_PLANE(&pl_floor01)
     },
-#if 0
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
@@ -165,7 +164,6 @@ rt_OBJECT ob_base01[] =
         },
         RT_OBJ_PARACYLINDER(&pc_frame01)
     },
-#endif
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
@@ -174,7 +172,6 @@ rt_OBJECT ob_base01[] =
         },
         RT_OBJ_HYPERCYLINDER(&hc_frame02)
     },
-#if 0
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
@@ -191,13 +188,13 @@ rt_OBJECT ob_base01[] =
         },
         RT_OBJ_HYPERPARABOLOID(&hp_frame04)
     },
-#endif
 };
 
 /******************************************************************************/
 /*********************************   CAMERA   *********************************/
 /******************************************************************************/
 
+#if 0
 rt_OBJECT ob_camera01[] =
 {
     {
@@ -209,6 +206,19 @@ rt_OBJECT ob_camera01[] =
         RT_OBJ_CAMERA(&cm_camera01)
     },
 };
+#elif 1
+rt_OBJECT ob_camera01[] =
+{
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   { -141.830017, 0.000000, 98.520027  },
+/* pos */   {   3.757579, -0.163691,     0.0    },
+        },
+        RT_OBJ_CAMERA(&cm_camera01)
+    },
+};
+#endif
 
 /******************************************************************************/
 /*********************************   LIGHTS   *********************************/
@@ -248,7 +258,6 @@ rt_OBJECT ob_tree[] =
         },
         RT_OBJ_ARRAY(&ob_base01)
     },
-#if 0
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
@@ -257,7 +266,6 @@ rt_OBJECT ob_tree[] =
         },
         RT_OBJ_ARRAY(&ob_light01)
     },
-#endif
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
