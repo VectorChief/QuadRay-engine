@@ -2848,8 +2848,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
         cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
+        andpx_rr(Xmm5, Xmm7)                    /* amask &= xmask */
         CHECK_MASK(QD_rc1, NONE, Xmm5)
-        CHECK_MASK(QD_rc2, FULL, Xmm5)
+        xorpx_rr(Xmm5, Xmm7)                    /* amask ^= xmask */
+        CHECK_MASK(QD_rc2, NONE, Xmm5)
 
         movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
         jmpxx_lb(QD_rc1)
