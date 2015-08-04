@@ -3056,6 +3056,7 @@ rt_void rt_Scene::render_slice(rt_cell index, rt_cell phase)
     rt_SIMD_CONTEXT *s_ctx = tharr[index]->s_ctx;
 
     RT_SIMD_SET(s_ctx->t_min, cam->pov);
+    RT_SIMD_SET(s_ctx->wmask, 0xFFFFFFFF);
 
     RT_SIMD_SET(s_ctx->org_x, pos[RT_X]);
     RT_SIMD_SET(s_ctx->org_y, pos[RT_Y]);

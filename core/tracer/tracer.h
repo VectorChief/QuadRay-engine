@@ -411,7 +411,6 @@ struct rt_SIMD_CONTEXT
     rt_cell xmask[S];
 #define ctx_XMASK           DP(Q*0x1F0)
 
-
     rt_cell xtmp0[S];
 #define ctx_XTMP0           DP(Q*0x200)
 
@@ -453,8 +452,11 @@ struct rt_SIMD_CONTEXT
 
     /* reserved area 1 */
 
-    rt_word pad01[S*5];
+    rt_word pad01[S*4];
 #define ctx_PAD01           DP(Q*0x2B0)
+
+    rt_cell wmask[S];
+#define ctx_WMASK           DP(Q*0x2F0)
 
     /* overlapping next context,
      * new depth min */
