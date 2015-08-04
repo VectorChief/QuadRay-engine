@@ -883,11 +883,32 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
 
+        /* "y" section */
+        movpx_ld(Xmm5, Mecx, ctx_RAY_Y)         /* ray_y <- RAY_Y */
+        mulps_rr(Xmm5, Xmm1)                    /* ray_y *= t_val */
+        addps_ld(Xmm5, Mecx, ctx_ORG_Y)         /* hit_y += ORG_Y */
+        movpx_st(Xmm5, Mecx, ctx_HIT_Y)         /* hit_y -> HIT_Y */
+        subps_ld(Xmm5, Mebx, srf_POS_Y)         /* loc_y -= POS_Y */
+        movpx_st(Xmm5, Mecx, ctx_NEW_Y)         /* loc_y -> NEW_Y */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+
+        /* "z" section */
+        movpx_ld(Xmm6, Mecx, ctx_RAY_Z)         /* ray_z <- RAY_Z */
+        mulps_rr(Xmm6, Xmm1)                    /* ray_z *= t_val */
+        addps_ld(Xmm6, Mecx, ctx_ORG_Z)         /* hit_z += ORG_Z */
+        movpx_st(Xmm6, Mecx, ctx_HIT_Z)         /* hit_z -> HIT_Z */
+        subps_ld(Xmm6, Mebx, srf_POS_Z)         /* loc_z -= POS_Z */
+        movpx_st(Xmm6, Mecx, ctx_NEW_Z)         /* loc_z -> NEW_Z */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+
 #if RT_FEAT_TRANSFORM
 
         cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0))
-        jeqxx_lb(CX_trm)
+        jeqxx_lb(CC_loc)
 
+        /* "x" section */
         movpx_ld(Xmm4, Mecx, ctx_RAY_I)         /* ray_i <- RAY_I */
         mulps_rr(Xmm4, Xmm1)                    /* ray_i *= t_val */
         subps_ld(Xmm4, Mecx, ctx_DFF_I)         /* ray_i -= DFF_I */
@@ -895,12 +916,29 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
 
-    LBL(CX_trm)
+        /* "y" section */
+        movpx_ld(Xmm5, Mecx, ctx_RAY_J)         /* ray_j <- RAY_J */
+        mulps_rr(Xmm5, Xmm1)                    /* ray_j *= t_val */
+        subps_ld(Xmm5, Mecx, ctx_DFF_J)         /* ray_j -= DFF_J */
+        movpx_st(Xmm5, Mecx, ctx_NEW_J)         /* loc_j -> NEW_J */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+
+        /* "z" section */
+        movpx_ld(Xmm6, Mecx, ctx_RAY_K)         /* ray_k <- RAY_K */
+        mulps_rr(Xmm6, Xmm1)                    /* ray_k *= t_val */
+        subps_ld(Xmm6, Mecx, ctx_DFF_K)         /* ray_k -= DFF_K */
+        movpx_st(Xmm6, Mecx, ctx_NEW_K)         /* loc_k -> NEW_K */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+
+    LBL(CC_loc)
 
 #endif /* RT_FEAT_TRANSFORM */
 
 #if RT_FEAT_CLIPPING_MINMAX
 
+        /* "x" section */
         CHECK_CLIP(CX_min, MIN_T, RT_X)
 
         movpx_ld(Xmm0, Mebx, srf_MIN_X)         /* min_x <- MIN_X */
@@ -917,36 +955,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CX_max)
 
-#endif /* RT_FEAT_CLIPPING_MINMAX */
-
         /* "y" section */
-        movpx_ld(Xmm5, Mecx, ctx_RAY_Y)         /* ray_y <- RAY_Y */
-        mulps_rr(Xmm5, Xmm1)                    /* ray_y *= t_val */
-        addps_ld(Xmm5, Mecx, ctx_ORG_Y)         /* hit_y += ORG_Y */
-        movpx_st(Xmm5, Mecx, ctx_HIT_Y)         /* hit_y -> HIT_Y */
-        subps_ld(Xmm5, Mebx, srf_POS_Y)         /* loc_y -= POS_Y */
-        movpx_st(Xmm5, Mecx, ctx_NEW_Y)         /* loc_y -> NEW_Y */
-        /* use next context's RAY fields (NEW)
-         * as temporary storage for local HIT */
-
-#if RT_FEAT_TRANSFORM
-
-        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0))
-        jeqxx_lb(CY_trm)
-
-        movpx_ld(Xmm5, Mecx, ctx_RAY_J)         /* ray_j <- RAY_J */
-        mulps_rr(Xmm5, Xmm1)                    /* ray_j *= t_val */
-        subps_ld(Xmm5, Mecx, ctx_DFF_J)         /* ray_j -= DFF_J */
-        movpx_st(Xmm5, Mecx, ctx_NEW_J)         /* loc_j -> NEW_J */
-        /* use next context's RAY fields (NEW)
-         * as temporary storage for local HIT */
-
-    LBL(CY_trm)
-
-#endif /* RT_FEAT_TRANSFORM */
-
-#if RT_FEAT_CLIPPING_MINMAX
-
         CHECK_CLIP(CY_min, MIN_T, RT_Y)
 
         movpx_ld(Xmm0, Mebx, srf_MIN_Y)         /* min_y <- MIN_Y */
@@ -963,36 +972,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CY_max)
 
-#endif /* RT_FEAT_CLIPPING_MINMAX */
-
         /* "z" section */
-        movpx_ld(Xmm6, Mecx, ctx_RAY_Z)         /* ray_z <- RAY_Z */
-        mulps_rr(Xmm6, Xmm1)                    /* ray_z *= t_val */
-        addps_ld(Xmm6, Mecx, ctx_ORG_Z)         /* hit_z += ORG_Z */
-        movpx_st(Xmm6, Mecx, ctx_HIT_Z)         /* hit_z -> HIT_Z */
-        subps_ld(Xmm6, Mebx, srf_POS_Z)         /* loc_z -= POS_Z */
-        movpx_st(Xmm6, Mecx, ctx_NEW_Z)         /* loc_z -> NEW_Z */
-        /* use next context's RAY fields (NEW)
-         * as temporary storage for local HIT */
-
-#if RT_FEAT_TRANSFORM
-
-        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0))
-        jeqxx_lb(CZ_trm)
-
-        movpx_ld(Xmm6, Mecx, ctx_RAY_K)         /* ray_k <- RAY_K */
-        mulps_rr(Xmm6, Xmm1)                    /* ray_k *= t_val */
-        subps_ld(Xmm6, Mecx, ctx_DFF_K)         /* ray_k -= DFF_K */
-        movpx_st(Xmm6, Mecx, ctx_NEW_K)         /* loc_k -> NEW_K */
-        /* use next context's RAY fields (NEW)
-         * as temporary storage for local HIT */
-
-    LBL(CZ_trm)
-
-#endif /* RT_FEAT_TRANSFORM */
-
-#if RT_FEAT_CLIPPING_MINMAX
-
         CHECK_CLIP(CZ_min, MIN_T, RT_Z)
 
         movpx_ld(Xmm0, Mebx, srf_MIN_Z)         /* min_z <- MIN_Z */
