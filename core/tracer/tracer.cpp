@@ -2803,6 +2803,36 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_DEBUG */
 
+        /* "dd" section */
+        movxx_mi(Mecx, ctx_XMISC(PTR), IB(0))
+        movpx_ld(Xmm5, Mecx, ctx_XTMP0)         /* dmask <- d_val */
+        cltps_ld(Xmm5, Mebx, srf_D_EPS)         /* dmask <! d_eps */
+        CHECK_MASK(QD_dzr, NONE, Xmm5)
+
+        divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
+        movpx_ld(Xmm2, Mebx, srf_SMASK)         /* amask <- smask */
+        andpx_rr(Xmm2, Xmm0)                    /* amask &= a_val */
+        divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
+
+        movpx_rr(Xmm1, Xmm4)                    /* t1tmp <- t1val */
+        movpx_rr(Xmm3, Xmm6)                    /* t2tmp <- t2val */
+        subps_rr(Xmm3, Xmm1)                    /* t2tmp -= t1tmp */
+        xorpx_rr(Xmm3, Xmm2)                    /* t_dff ^= amask */
+
+        xorpx_rr(Xmm1, Xmm1)                    /* tmask <-     0 */
+        cgeps_rr(Xmm1, Xmm3)                    /* tmask >= t_dff */
+        subps_ld(Xmm3, Mebx, srf_D_EPS)         /* t_dff -= D_EPS */
+        andpx_rr(Xmm3, Xmm1)                    /* t_dff &= tmask */
+
+        andpx_rr(Xmm3, Xmm5)                    /* t_dff &= dmask */
+        xorpx_rr(Xmm3, Xmm2)                    /* t_dff ^= amask */
+        addps_rr(Xmm4, Xmm3)                    /* t1val += t_dff */
+        subps_rr(Xmm6, Xmm3)                    /* t2val -= t_dff */
+
+        movxx_mi(Mecx, ctx_XMISC(PTR), IB(1))
+
+    LBL(QD_dzr)
+
         /* "aa" section */
         movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
         movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
@@ -2835,14 +2865,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* outer side */
         CHECK_SIDE(QD_sd1, QD_rt2, RT_FLAG_SIDE_OUTER)
 
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
+        /* division check */
+        cmpxx_mi(Mecx, ctx_XMISC(PTR), IB(0))
+        jnexx_lb(QD_rd1)
 
         /* "t1" section */
         divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
+        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
+
+    LBL(QD_rd1)
+
+        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
+        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
@@ -2887,14 +2921,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* inner side */
         CHECK_SIDE(QD_sd2, QD_rt1, RT_FLAG_SIDE_INNER)
 
-        /* if "Xvars" are needed outside of the solvers,
-         * swap this block with CHECK_SIDE macro above */
-        movpx_st(Xmm4, Mecx, ctx_XTMP1)         /* bdval -> XTMP1 */
-        movpx_st(Xmm1, Mecx, ctx_XTMP2)         /* a_val -> XTMP2 */
-        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
+        /* division check */
+        cmpxx_mi(Mecx, ctx_XMISC(PTR), IB(0))
+        jnexx_lb(QD_rd2)
 
         /* "t2" section */
         divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
+        movpx_st(Xmm1, Mecx, ctx_XTMP2)         /* a_val -> XTMP2 */
+
+    LBL(QD_rd2)
+
+        movpx_st(Xmm4, Mecx, ctx_XTMP1)         /* bdval -> XTMP1 */
+        movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
         movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
         /* clipping */
