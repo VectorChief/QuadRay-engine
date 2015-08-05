@@ -79,17 +79,17 @@
  * Byte-offsets within SIMD-field
  * for packed scalar fields.
  */
-#define PTR   0x00 /* LOCAL, PARAM, MAT_P, SRF_P */
+#define PTR   0x00 /* LOCAL, PARAM, MAT_P, SRF_P, XMISC */
 #define LGT   0x00 /* LST_P */
 
 #define FLG   0x04 /* LOCAL, PARAM, MAT_P, XMISC */
-#define SRF   0x04 /* LST_P */
+#define SRF   0x04 /* LST_P, SRF_P */
 
 #define CLP   0x08 /* MSC_P, SRF_P */
 #define LST   0x08 /* LOCAL, PARAM */
 
-#define OBJ   0x0C /* LOCAL, PARAM, MSC_P */
 #define TAG   0x0C /* SRF_P, XMISC */
+#define OBJ   0x0C /* LOCAL, PARAM, MSC_P */
 
 /*
  * Manual register allocation table
@@ -2814,8 +2814,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "dd" section */
         movxx_mi(Mecx, ctx_XMISC(PTR), IB(0))
+
         movpx_ld(Xmm5, Mecx, ctx_XTMP0)         /* emask <- d_val */
         cltps_ld(Xmm5, Mebx, srf_D_EPS)         /* emask <! d_eps */
+        andpx_rr(Xmm5, Xmm7)                    /* emask &= xmask */
         CHECK_MASK(QD_dzr, NONE, Xmm5)
 
         divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
