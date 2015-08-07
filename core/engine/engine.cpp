@@ -93,14 +93,18 @@ rt_void print_cam(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     if (obj != RT_NULL)
     {
         RT_LOGI("    ");
-        RT_LOGI("rot: {%f, %f, %f}",
+        RT_LOGI("rot: {%+.25e, %+.25e, %+.25e}\n",
             obj->trm->rot[RT_X], obj->trm->rot[RT_Y], obj->trm->rot[RT_Z]);
+        RT_LOGI("%s", mgn);
+        RT_LOGI("               ");
         RT_LOGI("    ");
-        RT_LOGI("pos,rad: {%f, %f, %f}, %f",
-            obj->pos[RT_X], obj->pos[RT_Y], obj->pos[RT_Z], obj->bvbox->rad);
+        RT_LOGI("pos: {%+.25e, %+.25e, %+.25e}",
+            obj->trm->pos[RT_X], obj->trm->pos[RT_Y], obj->trm->pos[RT_Z]);
     }
     else
     {
+        RT_LOGI("%s", mgn);
+        RT_LOGI("               ");
         RT_LOGI("    ");
         RT_LOGI("empty object");
     }
