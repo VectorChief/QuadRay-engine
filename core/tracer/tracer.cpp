@@ -1030,6 +1030,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm4, Xmm5)
         movpx_rr(Xmm5, Xmm4)
 
+        /* compensate negated diff */
+        movpx_ld(Xmm5, Mebx, srf_SMASK)
+        xorpx_rr(Xmm1, Xmm5)                    /* dff_i ^= smask */
+        xorpx_rr(Xmm2, Xmm5)                    /* dff_j ^= smask */
+
         /* check distance */
         cltps_ld(Xmm5, Mebx, srf_D_EPS)
         andpx_rr(Xmm5, Xmm0)
@@ -1100,6 +1105,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ld(Reax, Mebx, srf_A_MAP(RT_K*4)) /* Reax is used in Iecx */
         movpx_ld(Xmm6, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
         andpx_ld(Xmm6, Mebx, srf_SMASK)
+        xorpx_ld(Xmm6, Mebx, srf_SMASK)         /* compensate negated diff */
 
         xorpx_rr(Xmm3, Xmm6)
 
