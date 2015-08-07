@@ -82,7 +82,7 @@
 #define PTR   0x00 /* LOCAL, PARAM, MAT_P, SRF_P, XMISC */
 #define LGT   0x00 /* LST_P */
 
-#define FLG   0x04 /* LOCAL, PARAM, MAT_P, XMISC */
+#define FLG   0x04 /* LOCAL, PARAM, MAT_P, MSC_P, XMISC */
 #define SRF   0x04 /* LST_P, SRF_P */
 
 #define CLP   0x08 /* MSC_P, SRF_P */
@@ -278,7 +278,6 @@
  */
 #define FETCH_PROP() /* destroys Reax, Xmm7 */                              \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
-        andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
         mulxn_ri(Reax, IB(RT_SIMD_WIDTH*4))                                 \
         movpx_ld(Xmm7, Iebx, srf_SBASE)                                     \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
@@ -492,8 +491,9 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
                             RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
 
     s_srf->srf_p[1] = t_mat[tag > RT_TAG_PLANE ? 
-                            tag == RT_TAG_HYPERCYLINDER &&
-                            s_srf->sci_w[0] == 0.0f ?
+                            tag != RT_TAG_PARABOLOID &&
+                            tag != RT_TAG_PARACYLINDER &&
+                            tag != RT_TAG_HYPERPARABOLOID ?
                             RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
 
     s_srf->srf_p[2] = t_clp[tag > RT_TAG_PLANE ? 
@@ -501,6 +501,12 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
                             tag != RT_TAG_PARACYLINDER &&
                             tag != RT_TAG_HYPERPARABOLOID ?
                             RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
+
+    s_srf->msc_p[1] =       tag == RT_TAG_CONE || 
+                           (tag == RT_TAG_HYPERBOLOID ||
+                            tag == RT_TAG_HYPERCYLINDER) &&
+                            s_srf->sci_w[0] == 0.0f ?
+                            (rt_pntr)1 : (rt_pntr)0;
 
     /* update surface's materials for each side */
     update_mat((rt_SIMD_MATERIAL *)s_srf->mat_p[0]);
@@ -935,6 +941,179 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(CC_loc)
 
 #endif /* RT_FEAT_TRANSFORM */
+
+        /* test for singularity */
+        cmpxx_mi(Mebx, srf_MSC_P(FLG), IB(0))
+        jeqxx_lb(CC_adj)
+
+        cmpxx_mi(Mecx, ctx_XMISC(PTR), IB(0))
+        jeqxx_lb(CC_adj)
+
+        /* compute squares */
+        movpx_rr(Xmm1, Xmm4)
+        movpx_rr(Xmm2, Xmm5)
+        movpx_rr(Xmm3, Xmm6)
+
+        mulps_rr(Xmm1, Xmm4)
+        mulps_rr(Xmm2, Xmm5)
+        mulps_rr(Xmm3, Xmm6)
+
+        /* mask out J axis */
+        xorpx_rr(Xmm0, Xmm0)
+        cneps_ld(Xmm0, Mebx, srf_SCI_X)
+        andpx_rr(Xmm1, Xmm0)
+
+        xorpx_rr(Xmm0, Xmm0)
+        cneps_ld(Xmm0, Mebx, srf_SCI_Y)
+        andpx_rr(Xmm2, Xmm0)
+
+        xorpx_rr(Xmm0, Xmm0)
+        cneps_ld(Xmm0, Mebx, srf_SCI_Z)
+        andpx_rr(Xmm3, Xmm0)
+
+        /* add squares */
+        movpx_rr(Xmm0, Xmm1)
+        addps_rr(Xmm0, Xmm2)
+        addps_rr(Xmm0, Xmm3)
+
+        /* check distance */
+        cltps_ld(Xmm0, Mebx, srf_H_EPS)
+        andpx_ld(Xmm0, Mecx, ctx_DMASK)
+        CHECK_MASK(CC_adj, NONE, Xmm0)
+
+        /* compute squares */
+        movxx_ld(Reax, Mebx, srf_A_MAP(RT_I*4)) /* Reax is used in Iecx */
+        movpx_ld(Xmm1, Iecx, ctx_DFF_O)         /* dff_i <- DFF_I */
+        subxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iebx */
+        movpx_rr(Xmm4, Xmm1)
+        mulps_rr(Xmm4, Xmm1)
+        movpx_rr(Xmm3, Xmm4)
+        mulps_ld(Xmm3, Iebx, srf_SCI_O)         /* dff_i *= SCI_I */
+
+        movxx_ld(Reax, Mebx, srf_A_MAP(RT_J*4)) /* Reax is used in Iecx */
+        movpx_ld(Xmm2, Iecx, ctx_DFF_O)         /* dff_j <- DFF_J */
+        subxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iebx */
+        xorpx_rr(Xmm6, Xmm6)
+        cneps_ld(Xmm6, Iebx, srf_SCI_O)
+        andpx_rr(Xmm2, Xmm6)                    /* mask out J axis */
+        movpx_rr(Xmm5, Xmm2)
+        mulps_rr(Xmm5, Xmm2)
+        movpx_rr(Xmm6, Xmm5)
+        mulps_ld(Xmm6, Iebx, srf_SCI_O)         /* dff_j *= SCI_J */
+
+        /* add squares */
+        addps_rr(Xmm4, Xmm5)
+        movpx_rr(Xmm5, Xmm4)
+
+        /* check distance */
+        cltps_ld(Xmm5, Mebx, srf_D_EPS)
+        andpx_rr(Xmm5, Xmm0)
+        CHECK_MASK(CC_sgn, NONE, Xmm5)
+
+        /* substitute signs */
+        movpx_ld(Xmm5, Mebx, srf_SMASK)
+        andpx_rr(Xmm1, Xmm5)                    /* dff_i &= smask */
+        andpx_rr(Xmm2, Xmm5)                    /* dff_j &= smask */
+        movpx_ld(Xmm5, Mebp, inf_GPC01)
+        xorpx_rr(Xmm1, Xmm5)                    /* dff_i ^= +1.0f */
+        xorpx_rr(Xmm2, Xmm5)                    /* dff_j ^= +1.0f */
+
+        /* compute squares */
+        movxx_ld(Reax, Mebx, srf_A_MAP(RT_I*4)) /* Reax is used in Iecx */
+        subxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iebx */
+        movpx_rr(Xmm4, Xmm5)
+        movpx_ld(Xmm3, Iebx, srf_SCI_O)         /* dff_i <- SCI_I */
+
+        movxx_ld(Reax, Mebx, srf_A_MAP(RT_J*4)) /* Reax is used in Iecx */
+        subxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iebx */
+        xorpx_rr(Xmm6, Xmm6)
+        cneps_ld(Xmm6, Iebx, srf_SCI_O)
+        andpx_rr(Xmm2, Xmm6)                    /* mask out J axis */
+        andpx_rr(Xmm5, Xmm6)
+        movpx_ld(Xmm6, Iebx, srf_SCI_O)         /* dff_j <- SCI_J */
+
+        /* add squares */
+        addps_rr(Xmm4, Xmm5)
+
+    LBL(CC_sgn)
+
+        /* evaluate surface */
+        movxx_ld(Reax, Mebx, srf_A_MAP(RT_K*4)) /* Reax is used in Iecx */
+        addps_rr(Xmm3, Xmm6)
+        subxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iebx */
+        divps_ld(Xmm3, Iebx, srf_SCI_O)
+        andpx_ld(Xmm3, Mebp, inf_GPC04)
+        movpx_rr(Xmm6, Xmm3)
+        sqrps_rr(Xmm3, Xmm3)
+
+        /* normalize point */
+        addps_rr(Xmm6, Xmm4)
+        rsqps_rr(Xmm4, Xmm6)
+        mulps_ld(Xmm4, Mebx, srf_H_EPS)
+        mulps_rr(Xmm1, Xmm4)
+        mulps_rr(Xmm2, Xmm4)
+        mulps_rr(Xmm3, Xmm4)
+
+        /* apply signs */
+        movpx_ld(Xmm4, Mecx, ctx_AMASK)
+
+        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
+        mulxn_ri(Reax, IB(RT_SIMD_WIDTH*4))
+        movpx_ld(Xmm5, Iebx, srf_SBASE)
+
+        movxx_ld(Reax, Mebx, srf_A_MAP(RT_K*4)) /* Reax is used in Iecx */
+        movpx_ld(Xmm6, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
+        andpx_ld(Xmm6, Mebx, srf_SMASK)
+
+        xorpx_rr(Xmm3, Xmm6)
+
+        movpx_rr(Xmm6, Xmm5)
+        andpx_rr(Xmm6, Xmm4)
+        xorpx_rr(Xmm6, Xmm4)
+        xorpx_rr(Xmm3, Xmm6)
+
+        orrpx_rr(Xmm5, Xmm4)
+        xorpx_rr(Xmm5, Xmm4)
+        xorpx_rr(Xmm1, Xmm5)
+        xorpx_rr(Xmm2, Xmm5)
+
+        /* recombine points */
+        movxx_ld(Reax, Mebx, srf_A_MAP(RT_I*4)) /* Reax is used in Iecx */
+        movpx_ld(Xmm4, Iecx, ctx_NEW_O)         /* loc_i <- NEW_I */
+        orrpx_rr(Xmm4, Xmm0)
+        xorpx_rr(Xmm4, Xmm0)
+        andpx_rr(Xmm1, Xmm0)
+        orrpx_rr(Xmm1, Xmm4)
+        movpx_st(Xmm1, Iecx, ctx_NEW_O)         /* loc_i -> NEW_I */
+
+        movxx_ld(Reax, Mebx, srf_A_MAP(RT_K*4)) /* Reax is used in Iecx */
+        movpx_ld(Xmm6, Iecx, ctx_NEW_O)         /* loc_k <- NEW_K */
+        orrpx_rr(Xmm6, Xmm0)
+        xorpx_rr(Xmm6, Xmm0)
+        andpx_rr(Xmm3, Xmm0)
+        orrpx_rr(Xmm3, Xmm6)
+        movpx_st(Xmm3, Iecx, ctx_NEW_O)         /* loc_k -> NEW_K */
+
+        movxx_ld(Reax, Mebx, srf_A_MAP(RT_J*4)) /* Reax is used in Iecx */
+        subxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iebx */
+        xorpx_rr(Xmm6, Xmm6)
+        cneps_ld(Xmm6, Iebx, srf_SCI_O)
+        andpx_rr(Xmm0, Xmm6)                    /* mask out J axis */
+        movxx_ld(Reax, Mebx, srf_A_MAP(RT_J*4)) /* Reax is used in Iecx */
+        movpx_ld(Xmm5, Iecx, ctx_NEW_O)         /* loc_j <- NEW_J */
+        orrpx_rr(Xmm5, Xmm0)
+        xorpx_rr(Xmm5, Xmm0)
+        andpx_rr(Xmm2, Xmm0)
+        orrpx_rr(Xmm2, Xmm5)
+        movpx_st(Xmm2, Iecx, ctx_NEW_O)         /* loc_j -> NEW_J */
+
+        /* load adjusted point */
+        movxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iecx */
+        movpx_ld(Xmm4, Iecx, ctx_NEW_X)         /* loc_x <- NEW_X */
+        movpx_ld(Xmm5, Iecx, ctx_NEW_Y)         /* loc_y <- NEW_Y */
+        movpx_ld(Xmm6, Iecx, ctx_NEW_Z)         /* loc_z <- NEW_Z */
+
+    LBL(CC_adj)
 
 #if RT_FEAT_CLIPPING_MINMAX
 
@@ -2521,59 +2700,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm5, Mebx, srf_SCI_Y)         /* loc_y *= SCI_Y */
         mulps_ld(Xmm6, Mebx, srf_SCI_Z)         /* loc_z *= SCI_Z */
 
-        xorpx_rr(Xmm4, Xmm7)
-        xorpx_rr(Xmm5, Xmm7)
-        xorpx_rr(Xmm6, Xmm7)
-
-        /* handle anomaly around zero */
-        movpx_ld(Xmm0, Mecx, ctx_XTMP0)
-        cltps_ld(Xmm0, Mebx, srf_D_EPS)
-        CHECK_MASK(TP_nct, NONE, Xmm0)          /* <- destroys Reax */
-        movpx_ld(Xmm7, Mebx, srf_SMASK)
-
-        movxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iecx */
-
-        /* extend normal towards ray */
-        movpx_ld(Xmm1, Iecx, ctx_RAY_X)         /* ray_x <- RAY_X */
-        movpx_ld(Xmm2, Iecx, ctx_RAY_Y)         /* ray_y <- RAY_Y */
-        movpx_ld(Xmm3, Iecx, ctx_RAY_Z)         /* ray_z <- RAY_Z */
-
-        xorpx_rr(Xmm1, Xmm7)
-        xorpx_rr(Xmm2, Xmm7)
-        xorpx_rr(Xmm3, Xmm7)
-
-        /* mask out normal's components */
-        xorpx_rr(Xmm7, Xmm7)
-        cneps_ld(Xmm7, Mebx, srf_SCI_X)
-        andpx_rr(Xmm1, Xmm7)
-
-        xorpx_rr(Xmm7, Xmm7)
-        cneps_ld(Xmm7, Mebx, srf_SCI_Y)
-        andpx_rr(Xmm2, Xmm7)
-
-        xorpx_rr(Xmm7, Xmm7)
-        cneps_ld(Xmm7, Mebx, srf_SCI_Z)
-        andpx_rr(Xmm3, Xmm7)
-
-        andpx_rr(Xmm1, Xmm0)
-        andpx_rr(Xmm2, Xmm0)
-        andpx_rr(Xmm3, Xmm0)
-
-        /* recombine normals */
-        orrpx_rr(Xmm4, Xmm0)
-        xorpx_rr(Xmm4, Xmm0)
-        orrpx_rr(Xmm4, Xmm1)
-
-        orrpx_rr(Xmm5, Xmm0)
-        xorpx_rr(Xmm5, Xmm0)
-        orrpx_rr(Xmm5, Xmm2)
-
-        orrpx_rr(Xmm6, Xmm0)
-        xorpx_rr(Xmm6, Xmm0)
-        orrpx_rr(Xmm6, Xmm3)
-
-    LBL(TP_nct)
-
         /* normalize normal */
         movpx_rr(Xmm1, Xmm4)
         movpx_rr(Xmm2, Xmm5)
@@ -2586,12 +2712,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm1, Xmm2)
         addps_rr(Xmm1, Xmm3)
         rsqps_rr(Xmm0, Xmm1)
+        xorpx_rr(Xmm0, Xmm7)
 
         mulps_rr(Xmm4, Xmm0)
         mulps_rr(Xmm5, Xmm0)
         mulps_rr(Xmm6, Xmm0)
-
-        movxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iecx */
 
         /* store normal */
         movpx_st(Xmm4, Iecx, ctx_NRM_X)
@@ -2815,9 +2940,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* "dd" section */
         movxx_mi(Mecx, ctx_XMISC(PTR), IB(0))
 
-        movpx_ld(Xmm5, Mecx, ctx_XTMP0)         /* emask <- d_val */
-        cltps_ld(Xmm5, Mebx, srf_D_EPS)         /* emask <! d_eps */
-        andpx_rr(Xmm5, Xmm7)                    /* emask &= xmask */
+        movpx_ld(Xmm5, Mecx, ctx_XTMP0)         /* dmask <- d_val */
+        cltps_ld(Xmm5, Mebx, srf_D_EPS)         /* dmask <! d_eps */
+        andpx_rr(Xmm5, Xmm7)                    /* dmask &= xmask */
         CHECK_MASK(QD_dzr, NONE, Xmm5)
 
         divps_rr(Xmm4, Xmm1)                    /* bdval /= a_val */
@@ -2825,17 +2950,20 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         andpx_rr(Xmm2, Xmm0)                    /* amask &= a_val */
         divps_rr(Xmm6, Xmm3)                    /* c_val /= bdval */
 
+        movpx_st(Xmm2, Mecx, ctx_AMASK)         /* amask -> AMASK */
+        movpx_st(Xmm5, Mecx, ctx_DMASK)         /* dmask -> DMASK */
+
         movpx_rr(Xmm1, Xmm4)                    /* t1tmp <- t1val */
         movpx_rr(Xmm3, Xmm6)                    /* t2tmp <- t2val */
         subps_rr(Xmm3, Xmm1)                    /* t2tmp -= t1tmp */
         xorpx_rr(Xmm3, Xmm2)                    /* t_dff ^= amask */
 
-        xorpx_rr(Xmm1, Xmm1)                    /* dmask <-     0 */
-        cgeps_rr(Xmm1, Xmm3)                    /* dmask >= t_dff */
+        xorpx_rr(Xmm1, Xmm1)                    /* fmask <-     0 */
+        cgeps_rr(Xmm1, Xmm3)                    /* fmask >= t_dff */
         subps_ld(Xmm3, Mebx, srf_D_EPS)         /* t_dff -= D_EPS */
-        andpx_rr(Xmm3, Xmm1)                    /* t_dff &= dmask */
+        andpx_rr(Xmm3, Xmm1)                    /* t_dff &= fmask */
 
-        andpx_rr(Xmm3, Xmm5)                    /* t_dff &= emask */
+        andpx_rr(Xmm3, Xmm5)                    /* t_dff &= dmask */
         xorpx_rr(Xmm3, Xmm2)                    /* t_dff ^= amask */
         addps_rr(Xmm4, Xmm3)                    /* t1val += t_dff */
         subps_rr(Xmm6, Xmm3)                    /* t2val -= t_dff */
@@ -2892,6 +3020,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
+
         /* clipping */
         SUBROUTINE(QD_cp1, CC_clp)
         andpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask &= XMASK */
@@ -2899,7 +3029,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
         SUBROUTINE(QD_mt1, QD_rdr)
 
         /* side count check */
@@ -2949,6 +3078,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
         movpx_st(Xmm6, Mecx, ctx_T_VAL(0))      /* t_rt2 -> T_VAL */
 
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
+
         /* clipping */
         SUBROUTINE(QD_cp2, CC_clp)
         andpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask &= XMASK */
@@ -2956,7 +3087,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
         SUBROUTINE(QD_mt2, QD_rdr)
 
         /* side count check */

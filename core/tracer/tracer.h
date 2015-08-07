@@ -452,8 +452,14 @@ struct rt_SIMD_CONTEXT
 
     /* reserved area 1 */
 
-    rt_word pad01[S*4];
+    rt_word pad01[S*2];
 #define ctx_PAD01           DP(Q*0x2B0)
+
+    rt_cell amask[S];
+#define ctx_AMASK           DP(Q*0x2D0)
+
+    rt_cell dmask[S];
+#define ctx_DMASK           DP(Q*0x2E0)
 
     rt_cell wmask[S];
 #define ctx_WMASK           DP(Q*0x2F0)
@@ -775,8 +781,12 @@ struct rt_SIMD_SURFACE
     rt_real scj_z[S];
 #define srf_SCJ_Z           DP(Q*0x230)
 
+
+    rt_real h_eps[S];
+#define srf_H_EPS           DP(Q*0x240)
+
     rt_real d_eps[S];
-#define srf_D_EPS           DP(Q*0x240)
+#define srf_D_EPS           DP(Q*0x250)
 
 };
 
