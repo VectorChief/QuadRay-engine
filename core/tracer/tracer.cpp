@@ -3059,18 +3059,23 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm2, Mecx, ctx_AMASK)         /* amask -> AMASK */
         movpx_st(Xmm5, Mecx, ctx_DMASK)         /* dmask -> DMASK */
 
-        movpx_rr(Xmm1, Xmm4)                    /* t1tmp <- t1val */
+        andpx_rr(Xmm1, Xmm5)                    /* f1msk &= dmask */
+        andpx_rr(Xmm3, Xmm5)                    /* f2msk &= dmask */
+        movpx_ld(Xmm5, Mebp, inf_GPC04)         /* tmp_v <- GPC04 */
+        andpx_rr(Xmm1, Xmm5)                    /* f1msk &= tmp_v */
+        andpx_rr(Xmm3, Xmm5)                    /* f2msk &= tmp_v */
+        xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
+        cneps_rr(Xmm1, Xmm5)                    /* f1msk != tmp_v */
+        cneps_rr(Xmm3, Xmm5)                    /* f2msk != tmp_v */
+        andpx_rr(Xmm1, Xmm3)                    /* f1msk &= f2msk */
+
         movpx_rr(Xmm3, Xmm6)                    /* t2tmp <- t2val */
-        subps_rr(Xmm3, Xmm1)                    /* t2tmp -= t1tmp */
+        subps_rr(Xmm3, Xmm4)                    /* t2tmp -= t1val */
         xorpx_rr(Xmm3, Xmm2)                    /* t_dff ^= amask */
-
-        xorpx_rr(Xmm1, Xmm1)                    /* fmask <-     0 */
-        cgeps_rr(Xmm1, Xmm3)                    /* fmask >= t_dff */
-        subps_ld(Xmm3, Mebx, srf_D_EPS)         /* t_dff -= D_EPS */
+        cgeps_rr(Xmm5, Xmm3)                    /* tmp_v >= t_dff */
+        andpx_rr(Xmm1, Xmm5)                    /* fmask &= tmp_v */
+        xorpx_rr(Xmm3, Xmm2)                    /* t_dff ^= amask */
         andpx_rr(Xmm3, Xmm1)                    /* t_dff &= fmask */
-
-        andpx_rr(Xmm3, Xmm5)                    /* t_dff &= dmask */
-        xorpx_rr(Xmm3, Xmm2)                    /* t_dff ^= amask */
         addps_rr(Xmm4, Xmm3)                    /* t1val += t_dff */
         subps_rr(Xmm6, Xmm3)                    /* t2val -= t_dff */
 
