@@ -64,7 +64,7 @@
 #define RT_FEAT_LIGHTS              1
 #define RT_FEAT_LIGHTS_COLORED      1
 #define RT_FEAT_LIGHTS_AMBIENT      1
-#define RT_FEAT_LIGHTS_SHADOWS      1
+#define RT_FEAT_LIGHTS_SHADOWS      0
 #define RT_FEAT_LIGHTS_DIFFUSE      1
 #define RT_FEAT_LIGHTS_ATTENUATION  1
 #define RT_FEAT_LIGHTS_SPECULAR     1
@@ -2943,6 +2943,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mebp, inf_FRM_X, IH(316))        /* <- pin point buggy quad */
         jnexx_lb(QD_go1)
         cmpxx_mi(Mebp, inf_FRM_Y, IH(419))        /* <- pin point buggy quad */
+        jnexx_lb(QD_go1)
+
+        cmpxx_mi(Mebp, inf_DEPTH, IB(0))
         jnexx_lb(QD_go1)
 
         cmpxx_mi(Mebp, inf_Q_DBG, IB(1))
