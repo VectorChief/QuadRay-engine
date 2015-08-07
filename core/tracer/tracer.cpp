@@ -1125,29 +1125,57 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         orrpx_rr(Xmm4, Xmm0)
         xorpx_rr(Xmm4, Xmm0)
         andpx_rr(Xmm1, Xmm0)
-        orrpx_rr(Xmm1, Xmm4)
-        movpx_st(Xmm1, Iecx, ctx_NEW_O)         /* loc_i -> NEW_I */
+        orrpx_rr(Xmm4, Xmm1)
+        movpx_st(Xmm4, Iecx, ctx_NEW_O)         /* loc_i -> NEW_I */
+
+        subxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iebx */
+        movpx_ld(Xmm1, Iebx, srf_POS_X)         /* pos_i <- POS_I */
+        movpx_ld(Xmm4, Iecx, ctx_HIT_X)         /* hit_i <- HIT_I */
+        orrpx_rr(Xmm4, Xmm0)
+        xorpx_rr(Xmm4, Xmm0)
+        andpx_rr(Xmm1, Xmm0)
+        orrpx_rr(Xmm4, Xmm1)
+        movpx_st(Xmm4, Iecx, ctx_HIT_X)         /* hit_i -> HIT_I */
 
         movxx_ld(Reax, Mebx, srf_A_MAP(RT_K*4)) /* Reax is used in Iecx */
         movpx_ld(Xmm6, Iecx, ctx_NEW_O)         /* loc_k <- NEW_K */
         orrpx_rr(Xmm6, Xmm0)
         xorpx_rr(Xmm6, Xmm0)
         andpx_rr(Xmm3, Xmm0)
-        orrpx_rr(Xmm3, Xmm6)
-        movpx_st(Xmm3, Iecx, ctx_NEW_O)         /* loc_k -> NEW_K */
+        orrpx_rr(Xmm6, Xmm3)
+        movpx_st(Xmm6, Iecx, ctx_NEW_O)         /* loc_k -> NEW_K */
+
+        subxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iebx */
+        movpx_ld(Xmm3, Iebx, srf_POS_X)         /* pos_k <- POS_K */
+        movpx_ld(Xmm6, Iecx, ctx_HIT_X)         /* hit_k <- HIT_K */
+        orrpx_rr(Xmm6, Xmm0)
+        xorpx_rr(Xmm6, Xmm0)
+        andpx_rr(Xmm3, Xmm0)
+        orrpx_rr(Xmm6, Xmm3)
+        movpx_st(Xmm6, Iecx, ctx_HIT_X)         /* hit_k -> HIT_K */
 
         movxx_ld(Reax, Mebx, srf_A_MAP(RT_J*4)) /* Reax is used in Iecx */
         subxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iebx */
         xorpx_rr(Xmm6, Xmm6)
         cneps_ld(Xmm6, Iebx, srf_SCI_O)
         andpx_rr(Xmm0, Xmm6)                    /* mask out J axis */
+
         movxx_ld(Reax, Mebx, srf_A_MAP(RT_J*4)) /* Reax is used in Iecx */
         movpx_ld(Xmm5, Iecx, ctx_NEW_O)         /* loc_j <- NEW_J */
         orrpx_rr(Xmm5, Xmm0)
         xorpx_rr(Xmm5, Xmm0)
         andpx_rr(Xmm2, Xmm0)
-        orrpx_rr(Xmm2, Xmm5)
-        movpx_st(Xmm2, Iecx, ctx_NEW_O)         /* loc_j -> NEW_J */
+        orrpx_rr(Xmm5, Xmm2)
+        movpx_st(Xmm5, Iecx, ctx_NEW_O)         /* loc_j -> NEW_J */
+
+        subxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iebx */
+        movpx_ld(Xmm2, Iebx, srf_POS_X)         /* hit_j <- POS_J */
+        movpx_ld(Xmm5, Iecx, ctx_HIT_X)         /* hit_j <- HIT_J */
+        orrpx_rr(Xmm5, Xmm0)
+        xorpx_rr(Xmm5, Xmm0)
+        andpx_rr(Xmm2, Xmm0)
+        orrpx_rr(Xmm5, Xmm2)
+        movpx_st(Xmm5, Iecx, ctx_HIT_X)         /* hit_j -> HIT_J */
 
         /* load adjusted point */
         movxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iecx */
