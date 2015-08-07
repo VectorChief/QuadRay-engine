@@ -144,8 +144,8 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr lst;
 #define inf_LST             DP(Q*0x100+0x008)
 
-    rt_word pad10;
-#define inf_PAD10           DP(Q*0x100+0x00C)
+    rt_word rsrv;
+#define inf_RSRV            DP(Q*0x100+0x00C)
 
 
     rt_word frm_w;
@@ -203,13 +203,14 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr tls;
 #define inf_TLS             DP(Q*0x100+0x050)
 
-    rt_word pad11[2];
-#define inf_PAD11           DP(Q*0x100+0x054)
+    rt_word pad10[2];
+#define inf_PAD10           DP(Q*0x100+0x054)
 
     /* quadric debug info */
 
     rt_word q_dbg;
 #define inf_Q_DBG           DP(Q*0x100+0x05C)
+
 
     rt_real a_val[S];
 #define inf_A_VAL           DP(Q*0x100+0x060)
@@ -223,6 +224,7 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_real d_val[S];
 #define inf_D_VAL           DP(Q*0x100+0x090)
 
+
     rt_real t1nmr[S];
 #define inf_T1NMR           DP(Q*0x100+0x0A0)
 
@@ -235,39 +237,91 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_real t2dnm[S];
 #define inf_T2DNM           DP(Q*0x100+0x0D0)
 
+
+    rt_real t1val[S];
+#define inf_T1VAL           DP(Q*0x100+0x0E0)
+
+    rt_real t2val[S];
+#define inf_T2VAL           DP(Q*0x100+0x0F0)
+
+    rt_real t1srt[S];
+#define inf_T1SRT           DP(Q*0x100+0x100)
+
+    rt_real t2srt[S];
+#define inf_T2SRT           DP(Q*0x100+0x110)
+
+
+    rt_real hit_x[S];
+#define inf_HIT_X           DP(Q*0x100+0x120)
+
+    rt_real hit_y[S];
+#define inf_HIT_Y           DP(Q*0x100+0x130)
+
+    rt_real hit_z[S];
+#define inf_HIT_Z           DP(Q*0x100+0x140)
+
+    rt_real hit_r[S];
+#define inf_HIT_R           DP(Q*0x100+0x150)
+
+
+    rt_real adj_x[S];
+#define inf_ADJ_X           DP(Q*0x100+0x160)
+
+    rt_real adj_y[S];
+#define inf_ADJ_Y           DP(Q*0x100+0x170)
+
+    rt_real adj_z[S];
+#define inf_ADJ_Z           DP(Q*0x100+0x180)
+
+    rt_real adj_r[S];
+#define inf_ADJ_R           DP(Q*0x100+0x190)
+
+
+    rt_real nrm_x[S];
+#define inf_NRM_X           DP(Q*0x100+0x1A0)
+
+    rt_real nrm_y[S];
+#define inf_NRM_Y           DP(Q*0x100+0x1B0)
+
+    rt_real nrm_z[S];
+#define inf_NRM_Z           DP(Q*0x100+0x1C0)
+
+    rt_real nrm_r[S];
+#define inf_NRM_R           DP(Q*0x100+0x1D0)
+
     /* specular pow entry points */
 
     rt_pntr pow_e0;
-#define inf_POW_E0          DP(Q*0x100+0x0E0)
+#define inf_POW_E0          DP(Q*0x100+0x1E0)
 
     rt_pntr pow_e1;
-#define inf_POW_E1          DP(Q*0x100+0x0E4)
+#define inf_POW_E1          DP(Q*0x100+0x1E4)
 
     rt_pntr pow_e2;
-#define inf_POW_E2          DP(Q*0x100+0x0E8)
+#define inf_POW_E2          DP(Q*0x100+0x1E8)
 
     rt_pntr pow_e3;
-#define inf_POW_E3          DP(Q*0x100+0x0EC)
+#define inf_POW_E3          DP(Q*0x100+0x1EC)
 
     rt_pntr pow_e4;
-#define inf_POW_E4          DP(Q*0x100+0x0F0)
+#define inf_POW_E4          DP(Q*0x100+0x1F0)
 
     rt_pntr pow_en;
-#define inf_POW_EN          DP(Q*0x100+0x0F4)
+#define inf_POW_EN          DP(Q*0x100+0x1F4)
 
     rt_word pad12[2];
-#define inf_PAD12           DP(Q*0x100+0x0F8)
+#define inf_PAD12           DP(Q*0x100+0x1F8)
 
     /* surface entry points */
 
     rt_pntr xpl_p[4];
-#define inf_XPL_P(nx)       DP(Q*0x100+0x100 + nx)
+#define inf_XPL_P(nx)       DP(Q*0x100+0x200 + nx)
 
     rt_pntr xtp_p[4];
-#define inf_XTP_P(nx)       DP(Q*0x100+0x110 + nx)
+#define inf_XTP_P(nx)       DP(Q*0x100+0x210 + nx)
 
     rt_pntr xqd_p[4];
-#define inf_XQD_P(nx)       DP(Q*0x100+0x120 + nx)
+#define inf_XQD_P(nx)       DP(Q*0x100+0x220 + nx)
 
 };
 
