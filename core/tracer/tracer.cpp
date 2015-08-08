@@ -3051,15 +3051,28 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         andpx_rr(Xmm5, Xmm7)                    /* dmask &= xmask */
         CHECK_MASK(QD_srt, NONE, Xmm5)
 
-        divps_rr(Xmm4, Xmm1)                    /* t1nmr /= t1dnm */
-        divps_rr(Xmm6, Xmm3)                    /* t2nmr /= t2dnm */
-
         movpx_ld(Xmm2, Mebx, srf_SMASK)         /* amask <- smask */
         andpx_rr(Xmm2, Xmm0)                    /* amask &= a_val */
         movpx_st(Xmm2, Mecx, ctx_AMASK)         /* amask -> AMASK */
         movpx_st(Xmm5, Mecx, ctx_DMASK)         /* dmask -> DMASK */
-
         xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
+
+        movpx_rr(Xmm2, Xmm4)                    /* t1zro <- t1nmr */
+        ceqps_rr(Xmm2, Xmm5)                    /* t1zro != tmp_v */
+        orrpx_rr(Xmm1, Xmm2)                    /* t1dnm |= t1zro */
+        xorpx_rr(Xmm1, Xmm2)                    /* t1dnm ^= t1zro */
+        andpx_ld(Xmm2, Mebp, inf_GPC01)         /* t1zro &= +1.0f */
+        orrpx_rr(Xmm1, Xmm2)                    /* t1dnm |= t1zro */
+
+        movpx_rr(Xmm2, Xmm6)                    /* t2zro <- t2nmr */
+        ceqps_rr(Xmm2, Xmm5)                    /* t2zro != tmp_v */
+        orrpx_rr(Xmm3, Xmm2)                    /* t2dnm |= t2zro */
+        xorpx_rr(Xmm3, Xmm2)                    /* t2dnm ^= t2zro */
+        andpx_ld(Xmm2, Mebp, inf_GPC01)         /* t2zro &= +1.0f */
+        orrpx_rr(Xmm3, Xmm2)                    /* t2dnm |= t2zro */
+
+        divps_rr(Xmm4, Xmm1)                    /* t1nmr /= t1dnm */
+        divps_rr(Xmm6, Xmm3)                    /* t2nmr /= t2dnm */
         cneps_rr(Xmm1, Xmm5)                    /* t1msk != tmp_v */
         cneps_rr(Xmm3, Xmm5)                    /* t2msk != tmp_v */
 
