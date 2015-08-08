@@ -64,7 +64,7 @@
 #define RT_FEAT_LIGHTS              1
 #define RT_FEAT_LIGHTS_COLORED      1
 #define RT_FEAT_LIGHTS_AMBIENT      1
-#define RT_FEAT_LIGHTS_SHADOWS      0
+#define RT_FEAT_LIGHTS_SHADOWS      1
 #define RT_FEAT_LIGHTS_DIFFUSE      1
 #define RT_FEAT_LIGHTS_ATTENUATION  1
 #define RT_FEAT_LIGHTS_SPECULAR     1
@@ -1040,17 +1040,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm0, Xmm2)
         addps_rr(Xmm0, Xmm3)
 
-#if RT_DEBUG == 1
-
-        cmpxx_mi(Mebp, inf_Q_DBG, IB(5))
-        jnexx_lb(QD_go4a)
-
-        movpx_st(Xmm0, Mebp, inf_HIT_R)
-
-    LBL(QD_go4a)
-
-#endif /* RT_DEBUG */
-
         /* check distance */
         cltps_ld(Xmm0, Mebx, srf_H_EPS)
         andpx_ld(Xmm0, Mecx, ctx_DMASK)
@@ -1133,17 +1122,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm1, Xmm4)
         mulps_rr(Xmm2, Xmm4)
         mulps_rr(Xmm3, Xmm4)
-
-#if RT_DEBUG == 1
-
-        cmpxx_mi(Mebp, inf_Q_DBG, IB(5))
-        jnexx_lb(QD_go4b)
-
-        movpx_st(Xmm4, Mebp, inf_ADJ_R)
-
-    LBL(QD_go4b)
-
-#endif /* RT_DEBUG */
 
         /* apply signs */
         movpx_ld(Xmm4, Mecx, ctx_AMASK)
@@ -3036,12 +3014,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_DEBUG == 1
 
-        cmpxx_mi(Mebp, inf_FRM_X, IH(316))        /* <- pin point buggy quad */
+        cmpxx_mi(Mebp, inf_FRM_X, IH(596))        /* <- pin point buggy quad */
         jnexx_lb(QD_go1)
-        cmpxx_mi(Mebp, inf_FRM_Y, IH(419))        /* <- pin point buggy quad */
-        jnexx_lb(QD_go1)
-
-        cmpxx_mi(Mebp, inf_DEPTH, IB(0))
+        cmpxx_mi(Mebp, inf_FRM_Y, IH(306))        /* <- pin point buggy quad */
         jnexx_lb(QD_go1)
 
         cmpxx_mi(Mebp, inf_Q_DBG, IB(1))

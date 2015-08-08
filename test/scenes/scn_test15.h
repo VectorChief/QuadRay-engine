@@ -174,7 +174,6 @@ rt_OBJECT ob_base01[] =
         },
         RT_OBJ_HYPERCYLINDER(&hc_frame02)
     },
-#if 0
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
@@ -183,6 +182,7 @@ rt_OBJECT ob_base01[] =
         },
         RT_OBJ_HYPERCYLINDER(&hc_frame03)
     },
+#if 0
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
@@ -210,7 +210,7 @@ rt_OBJECT ob_camera01[] =
         RT_OBJ_CAMERA(&cm_camera01)
     },
 };
-#elif 1
+#elif 0
 rt_OBJECT ob_camera01[] =
 {
     {
@@ -222,7 +222,7 @@ rt_OBJECT ob_camera01[] =
         RT_OBJ_CAMERA(&cm_camera01)
     },
 };
-#elif 1
+#elif 0
 rt_OBJECT ob_camera01[] =
 {
     {
@@ -234,7 +234,7 @@ rt_OBJECT ob_camera01[] =
         RT_OBJ_CAMERA(&cm_camera01)
     },
 };
-#elif 1
+#elif 0
 rt_OBJECT ob_camera01[] =
 {
     {
@@ -246,7 +246,7 @@ rt_OBJECT ob_camera01[] =
         RT_OBJ_CAMERA(&cm_camera01)
     },
 };
-#elif 1
+#elif 0
 rt_OBJECT ob_camera01[] =
 {
     {

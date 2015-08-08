@@ -22,7 +22,7 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
-#define RT_STACK_DEPTH          1 /* context stack depth for secondary rays */
+#define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
 #define RT_THREADS_NUM          16 /* number of threads for update and render */
 
 #define RT_CHUNK_SIZE           4096 /* heap chunk size granularity */
