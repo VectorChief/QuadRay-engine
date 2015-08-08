@@ -646,15 +646,50 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movxx_ld(Rebx, Mesi, elm_SIMD)
 
+        /* use local (potentially adjusted)
+         * hit point from unused normal fields
+         * as negated diff for secondary rays
+         * when originating from the same surface */
+        cmpxx_rm(Rebx, Mecx, ctx_PARAM(OBJ))
+        jnexx_lb(OO_loc)
+
+        subxx_ri(Recx, IH(RT_STACK_STEP))
+
+        movpx_ld(Xmm1, Mecx, ctx_NRM_I)
+        movpx_ld(Xmm2, Mecx, ctx_NRM_J)
+        movpx_ld(Xmm3, Mecx, ctx_NRM_K)
+        /* use context's normal fields (NRM)
+         * as temporary storage for local HIT */
+
+        addxx_ri(Recx, IH(RT_STACK_STEP))
+
+        movpx_ld(Xmm0, Mebx, srf_SMASK)
+
+        xorpx_rr(Xmm1, Xmm0)
+        xorpx_rr(Xmm2, Xmm0)
+        xorpx_rr(Xmm3, Xmm0)
+
+        movxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iecx */
+
+        movpx_st(Xmm1, Iecx, ctx_DFF_X)
+        movpx_st(Xmm2, Iecx, ctx_DFF_Y)
+        movpx_st(Xmm3, Iecx, ctx_DFF_Z)
+
+    LBL(OO_loc)
+
 #if RT_FEAT_TRANSFORM_ARRAY
+
+        cmpxx_mi(Mebx, srf_SRF_P(TAG), IB(0))
+        jltxn_lb(OO_dff)                        /* signed comparison */
 
         /* ctx_LOCAL(OBJ) holds trnode's
          * last element for transform caching,
          * caching is not applied if NULL */
-        cmpxx_mi(Mebx, srf_SRF_P(TAG), IB(0))
-        jltxn_lb(OO_dff)                        /* signed comparison */
         cmpxx_mi(Mecx, ctx_LOCAL(OBJ), IB(0))
         jeqxx_lb(OO_dff)
+
+        cmpxx_rm(Rebx, Mecx, ctx_PARAM(OBJ))
+        jeqxx_lb(OO_elm)
 
         movpx_ld(Xmm1, Mecx, ctx_DFF_X)
         movpx_ld(Xmm2, Mecx, ctx_DFF_Y)
@@ -670,6 +705,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm2, Mecx, ctx_DFF_J)
         movpx_st(Xmm3, Mecx, ctx_DFF_K)
 
+    LBL(OO_elm)
+
         /* check if surface is trnode's
          * last element for transform caching */
         cmpxx_rm(Resi, Mecx, ctx_LOCAL(OBJ))
@@ -682,6 +719,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(OO_dff)
 
 #endif /* RT_FEAT_TRANSFORM_ARRAY */
+
+        cmpxx_rm(Rebx, Mecx, ctx_PARAM(OBJ))
+        jeqxx_lb(OO_ray)
 
 #if RT_FEAT_BOUND_VOL_ARRAY
 
@@ -1574,6 +1614,24 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(MT_mat)
 
+        /* preserve local (potentially adjusted)
+         * hit point to unused normal fields
+         * for use in secondary rays' contexts */
+        movxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iecx */
+
+        movpx_ld(Xmm4, Iecx, ctx_NEW_X)         /* loc_x <- NEW_X */
+        movpx_ld(Xmm5, Iecx, ctx_NEW_Y)         /* loc_y <- NEW_Y */
+        movpx_ld(Xmm6, Iecx, ctx_NEW_Z)         /* loc_z <- NEW_Z */
+        /* use next context's RAY fields (NEW)
+         * as temporary storage for local HIT */
+
+        movpx_st(Xmm4, Mecx, ctx_NRM_I)         /* loc_x -> NRM_I */
+        movpx_st(Xmm5, Mecx, ctx_NRM_J)         /* loc_y -> NRM_J */
+        movpx_st(Xmm6, Mecx, ctx_NRM_K)         /* loc_z -> NRM_K */
+        /* use context's normal fields (NRM)
+         * as temporary storage for local HIT */
+
+        /* process material */
         movxx_st(Resi, Mecx, ctx_LOCAL(LST))
 
         FETCH_XPTR(Redx, MAT_P(PTR))
