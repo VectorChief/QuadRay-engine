@@ -647,8 +647,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ld(Rebx, Mesi, elm_SIMD)
 
         /* use local (potentially adjusted)
-         * hit point from unused normal fields
-         * as negated diff for secondary rays
+         * hit point (from unused normal fields)
+         * as local diff for secondary rays
          * when originating from the same surface */
         cmpxx_rm(Rebx, Mecx, ctx_PARAM(OBJ))
         jnexx_lb(OO_loc)
@@ -662,12 +662,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * as temporary storage for local HIT */
 
         addxx_ri(Recx, IH(RT_STACK_STEP))
-
-        movpx_ld(Xmm0, Mebx, srf_SMASK)
-
-        xorpx_rr(Xmm1, Xmm0)
-        xorpx_rr(Xmm2, Xmm0)
-        xorpx_rr(Xmm3, Xmm0)
 
         movxx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iecx */
 
@@ -688,6 +682,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_mi(Mecx, ctx_LOCAL(OBJ), IB(0))
         jeqxx_lb(OO_dff)
 
+        /* bypass computation for local diff
+         * when used with secondary rays
+         * originating from the same surface */
         cmpxx_rm(Rebx, Mecx, ctx_PARAM(OBJ))
         jeqxx_lb(OO_elm)
 
@@ -696,10 +693,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm3, Mecx, ctx_DFF_Z)
 
         /* contribute to trnode's POS,
-         * add as ORG is subtracted from it */
-        addps_ld(Xmm1, Mebx, srf_POS_X)
-        addps_ld(Xmm2, Mebx, srf_POS_Y)
-        addps_ld(Xmm3, Mebx, srf_POS_Z)
+         * subtract as it is subtracted from ORG */
+        subps_ld(Xmm1, Mebx, srf_POS_X)
+        subps_ld(Xmm2, Mebx, srf_POS_Y)
+        subps_ld(Xmm3, Mebx, srf_POS_Z)
 
         movpx_st(Xmm1, Mecx, ctx_DFF_I)
         movpx_st(Xmm2, Mecx, ctx_DFF_J)
@@ -720,6 +717,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_TRANSFORM_ARRAY */
 
+        /* bypass computation for local diff
+         * when used with secondary rays
+         * originating from the same surface */
         cmpxx_rm(Rebx, Mecx, ctx_PARAM(OBJ))
         jeqxx_lb(OO_ray)
 
@@ -735,15 +735,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_BOUND_VOL_ARRAY */
 
-        /* compute negated diff
-         * to compensate for minus in solvers */
-        movpx_ld(Xmm1, Mebx, srf_POS_X)
-        movpx_ld(Xmm2, Mebx, srf_POS_Y)
-        movpx_ld(Xmm3, Mebx, srf_POS_Z)
+        /* compute diff */
+        movpx_ld(Xmm1, Mecx, ctx_ORG_X)
+        movpx_ld(Xmm2, Mecx, ctx_ORG_Y)
+        movpx_ld(Xmm3, Mecx, ctx_ORG_Z)
 
-        subps_ld(Xmm1, Mecx, ctx_ORG_X)
-        subps_ld(Xmm2, Mecx, ctx_ORG_Y)
-        subps_ld(Xmm3, Mecx, ctx_ORG_Z)
+        subps_ld(Xmm1, Mebx, srf_POS_X)
+        subps_ld(Xmm2, Mebx, srf_POS_Y)
+        subps_ld(Xmm3, Mebx, srf_POS_Z)
 
         movpx_st(Xmm1, Mecx, ctx_DFF_X)
         movpx_st(Xmm2, Mecx, ctx_DFF_Y)
@@ -945,7 +944,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* "x" section */
         movpx_ld(Xmm4, Mecx, ctx_RAY_I)         /* ray_i <- RAY_I */
         mulps_rr(Xmm4, Xmm1)                    /* ray_i *= t_val */
-        subps_ld(Xmm4, Mecx, ctx_DFF_I)         /* ray_i -= DFF_I */
+        addps_ld(Xmm4, Mecx, ctx_DFF_I)         /* ray_i += DFF_I */
         movpx_st(Xmm4, Mecx, ctx_NEW_I)         /* loc_i -> NEW_I */
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
@@ -953,7 +952,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* "y" section */
         movpx_ld(Xmm5, Mecx, ctx_RAY_J)         /* ray_j <- RAY_J */
         mulps_rr(Xmm5, Xmm1)                    /* ray_j *= t_val */
-        subps_ld(Xmm5, Mecx, ctx_DFF_J)         /* ray_j -= DFF_J */
+        addps_ld(Xmm5, Mecx, ctx_DFF_J)         /* ray_j += DFF_J */
         movpx_st(Xmm5, Mecx, ctx_NEW_J)         /* loc_j -> NEW_J */
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
@@ -961,7 +960,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* "z" section */
         movpx_ld(Xmm6, Mecx, ctx_RAY_K)         /* ray_k <- RAY_K */
         mulps_rr(Xmm6, Xmm1)                    /* ray_k *= t_val */
-        subps_ld(Xmm6, Mecx, ctx_DFF_K)         /* ray_k -= DFF_K */
+        addps_ld(Xmm6, Mecx, ctx_DFF_K)         /* ray_k += DFF_K */
         movpx_st(Xmm6, Mecx, ctx_NEW_K)         /* loc_k -> NEW_K */
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
@@ -1074,11 +1073,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm4, Xmm5)
         movpx_rr(Xmm5, Xmm4)
 
-        /* compensate negated diff */
-        movpx_ld(Xmm5, Mebx, srf_SMASK)
-        xorpx_rr(Xmm1, Xmm5)                    /* dff_i ^= smask */
-        xorpx_rr(Xmm2, Xmm5)                    /* dff_j ^= smask */
-
         /* check distance */
         cltps_ld(Xmm5, Mebx, srf_D_EPS)
         andpx_rr(Xmm5, Xmm0)
@@ -1138,7 +1132,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ld(Reax, Mebx, srf_A_MAP(RT_K*4)) /* Reax is used in Iecx */
         movpx_ld(Xmm6, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
         andpx_ld(Xmm6, Mebx, srf_SMASK)
-        xorpx_ld(Xmm6, Mebx, srf_SMASK)         /* compensate negated diff */
 
         xorpx_rr(Xmm3, Xmm6)
 
@@ -1326,11 +1319,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM_ARRAY
 
+        cmpxx_mi(Mebx, srf_SRF_P(TAG), IB(0))
+        jltxn_lb(CC_arr)                        /* signed comparison */
+
         /* Redx holds trnode's
          * last element for transform caching,
          * caching is not applied if NULL */
-        cmpxx_mi(Mebx, srf_SRF_P(TAG), IB(0))
-        jltxn_lb(CC_arr)                        /* signed comparison */
         cmpxx_ri(Redx, IB(0))
         jeqxx_lb(CC_dff)
 
@@ -1398,8 +1392,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_TRANSFORM_ARRAY */
 
-        /* unlike for solvers
-         * compute regular diff for clippers */
+        /* compute diff */
         movpx_ld(Xmm1, Mecx, ctx_HIT_X)
         movpx_ld(Xmm2, Mecx, ctx_HIT_Y)
         movpx_ld(Xmm3, Mecx, ctx_HIT_Z)
@@ -2595,6 +2588,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
         MOVXR_LD(Xmm4, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
         MOVXR_LD(Xmm3, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
+        xorpx_ld(Xmm4, Mebx, srf_SMASK)
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* xmask <-     0 */
@@ -2778,9 +2772,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm3, Xmm1)                    /* bxx_i *= ray_i */
         mulps_rr(Xmm4, Xmm2)                    /* bxx_k *= ray_k */
         addps_rr(Xmm3, Xmm4)                    /* bxx_i += bxx_k */
-        movpx_ld(Xmm4, Iebx, srf_SCI_O)         /* sci_k <- SCI_K */
+        xorpx_ld(Xmm3, Mebx, srf_SMASK)         /* b_val = -b_val */
 
         /* "c" section */
+        movpx_ld(Xmm4, Iebx, srf_SCI_O)         /* sci_k <- SCI_K */
         mulps_rr(Xmm0, Xmm0)                    /* dff_i *= dff_i */
         mulps_rr(Xmm7, Xmm7)                    /* dff_k *= dff_k */
         mulps_rr(Xmm0, Xmm6)                    /* dff_i *= sci_i */
@@ -2953,11 +2948,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm5, Iecx, ctx_DFF_X)         /* dff_x <- DFF_X */
         movpx_ld(Xmm7, Mebx, srf_SCI_X)         /* sdi_x <- SCI_X */
         mulps_rr(Xmm7, Xmm5)                    /* sdi_x *= dff_x */
-        addps_ld(Xmm7, Mebx, srf_SCJ_X)         /* sdi_x += SCJ_X */
+        subps_ld(Xmm7, Mebx, srf_SCJ_X)         /* sdi_x -= SCJ_X */
         movpx_rr(Xmm3, Xmm1)                    /* ray_x <- ray_x */
         mulps_rr(Xmm1, Xmm0)                    /* ray_x *= sri_x */
         mulps_rr(Xmm3, Xmm7)                    /* ray_x *= sdi_x */
-        addps_ld(Xmm7, Mebx, srf_SCJ_X)         /* sdi_x += SCJ_X */
+        subps_ld(Xmm7, Mebx, srf_SCJ_X)         /* sdi_x -= SCJ_X */
         mulps_rr(Xmm5, Xmm7)                    /* dff_x *= sdi_x */
 
         /* "y" section */
@@ -2967,11 +2962,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm6, Iecx, ctx_DFF_Y)         /* dff_y <- DFF_Y */
         movpx_ld(Xmm7, Mebx, srf_SCI_Y)         /* sdi_y <- SCI_Y */
         mulps_rr(Xmm7, Xmm6)                    /* sdi_y *= dff_y */
-        addps_ld(Xmm7, Mebx, srf_SCJ_Y)         /* sdi_y += SCJ_Y */
+        subps_ld(Xmm7, Mebx, srf_SCJ_Y)         /* sdi_y -= SCJ_Y */
         movpx_rr(Xmm4, Xmm2)                    /* ray_y <- ray_y */
         mulps_rr(Xmm2, Xmm0)                    /* ray_y *= sri_y */
         mulps_rr(Xmm4, Xmm7)                    /* ray_y *= sdi_y */
-        addps_ld(Xmm7, Mebx, srf_SCJ_Y)         /* sdi_y += SCJ_Y */
+        subps_ld(Xmm7, Mebx, srf_SCJ_Y)         /* sdi_y -= SCJ_Y */
         mulps_rr(Xmm6, Xmm7)                    /* dff_y *= sdi_y */
 
         /* "+" section */
@@ -2986,11 +2981,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm6, Iecx, ctx_DFF_Z)         /* dff_z <- DFF_Z */
         movpx_ld(Xmm7, Mebx, srf_SCI_Z)         /* sdi_z <- SCI_Z */
         mulps_rr(Xmm7, Xmm6)                    /* sdi_z *= dff_z */
-        addps_ld(Xmm7, Mebx, srf_SCJ_Z)         /* sdi_z += SCJ_Z */
+        subps_ld(Xmm7, Mebx, srf_SCJ_Z)         /* sdi_z -= SCJ_Z */
         movpx_rr(Xmm4, Xmm2)                    /* ray_z <- ray_z */
         mulps_rr(Xmm2, Xmm0)                    /* ray_z *= sri_z */
         mulps_rr(Xmm4, Xmm7)                    /* ray_z *= sdi_z */
-        addps_ld(Xmm7, Mebx, srf_SCJ_Z)         /* sdi_z += SCJ_Z */
+        subps_ld(Xmm7, Mebx, srf_SCJ_Z)         /* sdi_z -= SCJ_Z */
         mulps_rr(Xmm6, Xmm7)                    /* dff_z *= sdi_z */
 
         /* "+" section */
@@ -2999,6 +2994,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm5, Xmm6)                    /* cxx_t += cxx_z */
 
         subps_ld(Xmm5, Mebx, srf_SCI_W)         /* cxx_t -= SCI_W */
+        xorpx_ld(Xmm3, Mebx, srf_SMASK)         /* b_val = -b_val */
 
         /* "d" section */
         movpx_rr(Xmm6, Xmm5)                    /* c_val <- c_val */
@@ -3780,6 +3776,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_DEBUG == 1
 
+    /*
     RT_LOGI("PL ptr = %p\n", s_inf->xpl_p[0]);
     RT_LOGI("TP ptr = %p\n", s_inf->xtp_p[0]);
     RT_LOGI("QD ptr = %p\n", s_inf->xqd_p[0]);
@@ -3798,6 +3795,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     RT_LOGI("E3 pow = %p\n", s_inf->pow_e3);
     RT_LOGI("E4 pow = %p\n", s_inf->pow_e4);
     RT_LOGI("EN pow = %p\n", s_inf->pow_en);
+    */
 
 #endif /* RT_DEBUG */
 }
