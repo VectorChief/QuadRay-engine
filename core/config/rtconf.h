@@ -49,7 +49,6 @@
 #define RT_LINE_THRESHOLD       0.01f
 #define RT_CLIP_THRESHOLD       0.01f
 #define RT_CULL_THRESHOLD       0.0001f
-#define RT_HEPS_THRESHOLD       0.0000001f
 #define RT_DEPS_THRESHOLD       0.0000000001f
 
 /*
