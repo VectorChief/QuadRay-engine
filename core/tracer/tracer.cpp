@@ -2959,9 +2959,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_DEBUG == 1
 
-        cmpxx_mi(Mebp, inf_FRM_X, IH(596))        /* <- pin point buggy quad */
+        cmpxx_mi(Mebp, inf_FRM_X, IH(0))        /* <- pin point buggy quad */
         jnexx_lb(QD_go1)
-        cmpxx_mi(Mebp, inf_FRM_Y, IH(306))        /* <- pin point buggy quad */
+        cmpxx_mi(Mebp, inf_FRM_Y, IH(0))        /* <- pin point buggy quad */
         jnexx_lb(QD_go1)
 
         cmpxx_mi(Mebp, inf_Q_DBG, IB(1))
