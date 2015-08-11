@@ -2372,7 +2372,7 @@ rt_void rt_Surface::update_fields()
     s_srf->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
     s_srf->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
     s_srf->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_srf->a_sgn[RT_L] = 0;
+    s_srf->a_sgn[RT_L] = shift * RT_SIMD_WIDTH * 4;
 
     /* trnode's simd ptr is needed in rendering backend
      * to check if surface and its clippers belong to the same trnode */
