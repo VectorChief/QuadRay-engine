@@ -1454,6 +1454,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 /************************************ ENTER ***********************************/
 
+        movpx_ld(Xmm0, Mecx, ctx_TMASK(0))      /* load tmask */
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
         orrxx_ri(Reax, IB(RT_FLAG_SHAD | RT_FLAG_PASS_BACK))
         addxx_ri(Recx, IH(RT_STACK_STEP))
@@ -1464,6 +1465,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_st(Rebx, Mecx, ctx_PARAM(OBJ))    /* originating surface */
         adrxx_lb(LT_ret)                        /* load LT_ret to Reax */
         movxx_st(Reax, Mecx, ctx_PARAM(PTR))    /* return ptr */
+        movpx_st(Xmm0, Mecx, ctx_WMASK)         /* tmask -> WMASK */
 
         movpx_ld(Xmm0, Medx, lgt_T_MAX)         /* tmp_v <- T_MAX */
         movpx_st(Xmm0, Mecx, ctx_T_BUF(0))      /* tmp_v -> T_BUF */
@@ -1916,6 +1918,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_XPTR(Resi, LST_P(SRF))
 
+        movpx_ld(Xmm0, Mecx, ctx_TMASK(0))      /* load tmask */
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
         orrxx_ri(Reax, IB(RT_FLAG_PASS_BACK))
         addxx_ri(Recx, IH(RT_STACK_STEP))
@@ -1926,6 +1929,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_st(Rebx, Mecx, ctx_PARAM(OBJ))    /* originating surface */
         adrxx_lb(RF_ret)                        /* load RF_ret to Reax */
         movxx_st(Reax, Mecx, ctx_PARAM(PTR))    /* return pointer */
+        movpx_st(Xmm0, Mecx, ctx_WMASK)         /* tmask -> WMASK */
 
         movxx_ld(Redx, Mebp, inf_CAM)
         movpx_ld(Xmm0, Medx, cam_T_MAX)         /* tmp_v <- T_MAX */
@@ -2090,6 +2094,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_IPTR(Resi, LST_P(SRF))
 
+        movpx_ld(Xmm0, Mecx, ctx_TMASK(0))      /* load tmask */
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
         orrxx_ri(Reax, IB(RT_FLAG_PASS_THRU))
         addxx_ri(Recx, IH(RT_STACK_STEP))
@@ -2100,6 +2105,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_st(Rebx, Mecx, ctx_PARAM(OBJ))    /* originating surface */
         adrxx_lb(TR_ret)                        /* load TR_ret to Reax */
         movxx_st(Reax, Mecx, ctx_PARAM(PTR))    /* return pointer */
+        movpx_st(Xmm0, Mecx, ctx_WMASK)         /* tmask -> WMASK */
 
         movxx_ld(Redx, Mebp, inf_CAM)
         movpx_ld(Xmm0, Medx, cam_T_MAX)         /* tmp_v <- T_MAX */
@@ -2232,6 +2238,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
+        andpx_ld(Xmm7, Mecx, ctx_WMASK)         /* xmask &= WMASK */
         CHECK_MASK(AR_skp, NONE, Xmm7)
         jmpxx_lb(OO_end)
 
@@ -2286,6 +2293,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* xmask <-     0 */
         cneps_rr(Xmm7, Xmm3)                    /* xmask != ray_k */
+        andpx_ld(Xmm7, Mecx, ctx_WMASK)         /* xmask &= WMASK */
 
         /* "tt" section */
         divps_rr(Xmm4, Xmm3)                    /* dff_k /= ray_k */
@@ -2423,6 +2431,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
         cleps_rr(Xmm7, Xmm3)                    /* d_min <= d_val */
+        andpx_ld(Xmm7, Mecx, ctx_WMASK)         /* xmask &= WMASK */
         CHECK_MASK(OO_end, NONE, Xmm7)
 
 #if RT_DEBUG == 1
@@ -2497,8 +2506,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
         cgtps_rr(Xmm5, Xmm0)                    /* tmp_v >! a_val */
+        andpx_rr(Xmm5, Xmm7)                    /* amask &= xmask */
         CHECK_MASK(QD_rc1, NONE, Xmm5)
-        CHECK_MASK(QD_rc2, FULL, Xmm5)
+        xorpx_rr(Xmm5, Xmm7)                    /* amask ^= xmask */
+        CHECK_MASK(QD_rc2, NONE, Xmm5)
 
         movxx_mi(Mecx, ctx_XMISC(TAG), IB(1))
         jmpxx_lb(QD_rc1)

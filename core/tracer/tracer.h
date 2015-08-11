@@ -476,8 +476,11 @@ struct rt_SIMD_CONTEXT
 
     /* reserved area 1 */
 
-    rt_word pad01[S*6];
+    rt_word pad01[S*5];
 #define ctx_PAD01           DP(Q*0x2A0)
+
+    rt_cell wmask[S];
+#define ctx_WMASK           DP(Q*0x2F0)
 
     /* overlapping next context,
      * new depth min */
