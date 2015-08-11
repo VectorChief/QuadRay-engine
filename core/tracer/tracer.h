@@ -490,7 +490,7 @@ struct rt_SIMD_CONTEXT
     rt_cell xmask[S];
 #define ctx_XMASK           DP(Q*0x1F0)
 
-    rt_cell xtmp0[S];
+    rt_cell xtmp0[S];       /* <- vacant */
 #define ctx_XTMP0           DP(Q*0x200)
 
     rt_real xtmp1[S];
@@ -524,10 +524,10 @@ struct rt_SIMD_CONTEXT
     rt_real nrm_k[S];
 #define ctx_NRM_K           DP(Q*0x290)
 
-    /* custom clipping */
+    /* custom clipping accum */
 
-    rt_cell c_tmp[S];
-#define ctx_C_TMP           DP(Q*0x2A0)
+    rt_cell c_acc[S];
+#define ctx_C_ACC           DP(Q*0x2A0)
 
     /* reserved area 1 */
 
@@ -727,10 +727,10 @@ struct rt_SIMD_LIGHT
  */
 struct rt_SIMD_SURFACE
 {
-    /* constant for clipping */
+    /* clipping accum default */
 
-    rt_cell c_tmp[S];
-#define srf_C_TMP           DP(Q*0x000)
+    rt_cell c_def[S];
+#define srf_C_DEF           DP(Q*0x000)
 
     /* surface position */
 
