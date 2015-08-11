@@ -45,13 +45,13 @@
 /******************************   STATE-LOGGING   *****************************/
 /******************************************************************************/
 
-#define RT_PRINT_STATE_BEG()                                                \
+#define RT_PRINT_STATE_INIT()                                               \
         RT_LOGI("*********************************************");           \
         RT_LOGI("*********************************************");           \
         RT_LOGI("*********************************************");           \
         RT_LOGI("\n");                                                      \
         RT_LOGI("*********************************************");           \
-        RT_LOGI("************** print state beg **************");           \
+        RT_LOGI("************** print state init *************");           \
         RT_LOGI("*********************************************");           \
         RT_LOGI("\n");                                                      \
         RT_LOGI("*********************************************");           \
@@ -62,7 +62,7 @@
 
 #define RT_PRINT_TIME(time)                                                 \
         RT_LOGI("---------------------------------------------");           \
-        RT_LOGI("---------- update time -- %08"RT_PR64"d ----------", time);\
+        RT_LOGI("---- update time -- %020"RT_PR64"d ----", time);           \
         RT_LOGI("---------------------------------------------");           \
         RT_LOGI("\n");                                                      \
         RT_LOGI("\n")
@@ -93,14 +93,18 @@ rt_void print_cam(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     if (obj != RT_NULL)
     {
         RT_LOGI("    ");
-        RT_LOGI("rot: {%f, %f, %f}",
+        RT_LOGI("rot: {%+.25e, %+.25e, %+.25e}\n",
             obj->trm->rot[RT_X], obj->trm->rot[RT_Y], obj->trm->rot[RT_Z]);
+        RT_LOGI("%s", mgn);
+        RT_LOGI("               ");
         RT_LOGI("    ");
-        RT_LOGI("pos,rad: {%f, %f, %f}, %f",
-            obj->pos[RT_X], obj->pos[RT_Y], obj->pos[RT_Z], obj->bvbox->rad);
+        RT_LOGI("pos: {%+.25e, %+.25e, %+.25e}",
+            obj->trm->pos[RT_X], obj->trm->pos[RT_Y], obj->trm->pos[RT_Z]);
     }
     else
     {
+        RT_LOGI("%s", mgn);
+        RT_LOGI("               ");
         RT_LOGI("    ");
         RT_LOGI("empty object");
     }
@@ -135,9 +139,9 @@ rt_void print_lgt(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
     if (obj != RT_NULL)
     {
         RT_LOGI("    ");
-        RT_LOGI("                                    ");
+        RT_LOGI("                                             ");
         RT_LOGI("    ");
-        RT_LOGI("pos,rad: {%f, %f, %f}, %f",
+        RT_LOGI("pos: {%+12.6f,%+12.6f,%+12.6f} rad: %7.2f",
             obj->pos[RT_X], obj->pos[RT_Y], obj->pos[RT_Z], obj->bvbox->rad);
     }
     else
@@ -232,23 +236,25 @@ rt_void print_obj(rt_pstr mgn, rt_ELEM *elm, rt_Object *obj)
         {
             RT_LOGI("arr: %08X, ", (rt_word)obj);
             RT_LOGI("    ");
-            RT_LOGI("tag: AR, trm: %d, data = %08X %s ",
+            RT_LOGI("tag: AR, trm: %d, flg: %02X, data = %08X %s ",
                 obj->obj_has_trm,
+                elm != RT_NULL && elm->temp != RT_NULL ?
+                ((rt_BOUND *)elm->temp)->flm : 0,
                 ((rt_BOUND *)RT_GET_PTR(d)->temp)->obj, nodes[t]);
         }
         else
         {
             RT_LOGI("srf: %08X, ", (rt_word)obj);
             RT_LOGI("    ");
-            RT_LOGI("tag: %s, trm: %d, %s       ",
+            RT_LOGI("tag: %s, trm: %d, flg: %02X, %s       ",
                 tags[obj->tag], obj->obj_has_trm,
+                elm != RT_NULL && elm->temp != RT_NULL ?
+                ((rt_BOUND *)elm->temp)->flm : 0,
                 sides[RT_MIN(i, RT_ARR_SIZE(sides) - 1)]);
             r = obj->bvbox->rad;
         }
         RT_LOGI("    ");
-        RT_LOGI("flg,pos,rad: %02X, {%f, %f, %f}, %f",
-            elm != RT_NULL && elm->temp != RT_NULL ?
-            ((rt_BOUND *)elm->temp)->flm : 0,
+        RT_LOGI("pos: {%+12.6f,%+12.6f,%+12.6f} rad: %7.2f",
             obj->pos[RT_X], obj->pos[RT_Y], obj->pos[RT_Z], r);
     }
     else
@@ -397,13 +403,13 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
         print_lst("    ", lst);                                             \
         RT_LOGI("\n")
 
-#define RT_PRINT_STATE_END()                                                \
+#define RT_PRINT_STATE_DONE()                                               \
         RT_LOGI("*********************************************");           \
         RT_LOGI("*********************************************");           \
         RT_LOGI("*********************************************");           \
         RT_LOGI("\n");                                                      \
         RT_LOGI("*********************************************");           \
-        RT_LOGI("************** print state end **************");           \
+        RT_LOGI("************** print state done *************");           \
         RT_LOGI("*********************************************");           \
         RT_LOGI("\n");                                                      \
         RT_LOGI("*********************************************");           \
@@ -2565,10 +2571,10 @@ rt_void rt_Scene::render(rt_time time)
         tharr[i]->mpool = tharr[i]->reserve(tharr[i]->msize, RT_QUAD_ALIGN);
     }
 
-    /* begin printing state */
+    /* print state init */
     if (g_print)
     {
-        RT_PRINT_STATE_BEG();
+        RT_PRINT_STATE_INIT();
         RT_PRINT_TIME(time);
     }
 
@@ -2834,10 +2840,10 @@ rt_void rt_Scene::render(rt_time time)
         render_scene(this, thnum, 0);
     }
 
-    /* end printing state */
+    /* print state done */
     if (g_print)
     {
-        RT_PRINT_STATE_END();
+        RT_PRINT_STATE_DONE();
         g_print = RT_FALSE;
     }
 
