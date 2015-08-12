@@ -528,6 +528,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #if RT_DEBUG == 1
 
     s_inf->q_dbg = (g_print != 0);
+    s_inf->q_cnt = 0;
 
 #endif /* RT_DEBUG */
 
@@ -1046,7 +1047,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm0, Xmm3)
 
         /* check distance */
-        mulps_rr(Xmm0, Xmm0)
         cltps_ld(Xmm0, Mebx, srf_D_EPS)
         andpx_ld(Xmm0, Mecx, ctx_DMASK)
         CHECK_MASK(CC_adj, NONE, Xmm0)
@@ -1449,6 +1449,20 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(MT_nrm)
 
+#if RT_DEBUG == 1
+
+        cmpxx_mi(Mebp, inf_Q_DBG, IB(6))
+        jnexx_lb(QD_go6)
+        movxx_mi(Mebp, inf_Q_DBG, IB(7))
+
+        movpx_st(Xmm4, Mebp, inf_NRM_X)
+        movpx_st(Xmm5, Mebp, inf_NRM_Y)
+        movpx_st(Xmm6, Mebp, inf_NRM_Z)
+
+    LBL(QD_go6)
+
+#endif /* RT_DEBUG */
+
 #if RT_FEAT_TRANSFORM
 
         cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0))
@@ -1699,7 +1713,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))      /* load tmask */
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
-        orrxx_ri(Reax, IB(RT_FLAG_SHAD | RT_FLAG_PASS_BACK))
+        orrxx_ri(Reax, IB(RT_FLAG_PASS_BACK | RT_FLAG_SHAD))
         addxx_ri(Recx, IH(RT_STACK_STEP))
         subxx_mi(Mebp, inf_DEPTH, IB(1))
 
@@ -2517,6 +2531,17 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(PL_ptr)
 
+#if RT_DEBUG == 1
+
+        /* reset debug info if not complete */
+        cmpxx_mi(Mebp, inf_Q_DBG, IB(7))
+        jeqxx_lb(PL_go1)
+        movxx_mi(Mebp, inf_Q_DBG, IB(1))
+
+    LBL(PL_go1)
+
+#endif /* RT_DEBUG */
+
 #if RT_SHOW_TILES
 
         SHOW_TILES(PL, 0x00880000)
@@ -2748,17 +2773,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(TP_mat)
 
-#if RT_DEBUG == 1
-
-        cmpxx_mi(Mebp, inf_Q_DBG, IB(6))
-        jnexx_lb(QD_go6a)
-
-        jmpxx_lb(QD_mat)
-
-    LBL(QD_go6a)
-
-#endif /* RT_DEBUG */
-
         FETCH_PROP()                            /* Xmm7  <- ssign */
 
 #if RT_FEAT_LIGHTS_SHADOWS
@@ -2956,20 +2970,25 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_ld(Xmm4, Mebx, srf_SMASK)         /* b_val = -b_val */
 
         movpx_rr(Xmm5, Xmm3)                    /* dmask <- d_val */
-        cltps_ld(Xmm5, Mebx, srf_D_EPS)         /* dmask <! d_eps */
+        cltps_ld(Xmm5, Mebx, srf_D_EPS)         /* dmask <! D_EPS */
         andpx_rr(Xmm5, Xmm7)                    /* dmask &= xmask */
         movpx_st(Xmm5, Mecx, ctx_DMASK)         /* dmask -> DMASK */
 
 #if RT_DEBUG == 1
 
-        cmpxx_mi(Mebp, inf_FRM_X, IH(0))        /* <- pin point buggy quad */
-        jnexx_lb(QD_go1)
-        cmpxx_mi(Mebp, inf_FRM_Y, IH(0))        /* <- pin point buggy quad */
-        jnexx_lb(QD_go1)
+        /* reset debug info if not complete */
+        cmpxx_mi(Mebp, inf_Q_DBG, IB(7))
+        jeqxx_lb(QD_go1)
+        movxx_mi(Mebp, inf_Q_DBG, IB(1))
+
+        CHECK_MASK(QD_go1, NONE, Xmm5)
 
         cmpxx_mi(Mebp, inf_Q_DBG, IB(1))
         jnexx_lb(QD_go1)
         movxx_mi(Mebp, inf_Q_DBG, IB(2))
+
+        movxx_ld(Reax, Mebp, inf_DEPTH)
+        movxx_st(Reax, Mebp, inf_Q_CNT)
 
         movpx_ld(Xmm5, Mecx, ctx_WMASK)
         movpx_st(Xmm5, Mebp, inf_WMASK)
@@ -3083,17 +3102,22 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cneps_rr(Xmm1, Xmm5)                    /* t1msk != tmp_v */
         cneps_rr(Xmm3, Xmm5)                    /* t2msk != tmp_v */
 
-        movpx_rr(Xmm2, Xmm4)                    /* t1tmp <- t1val */
-        subps_rr(Xmm2, Xmm6)                    /* t1tmp -= t2val */
+        movpx_rr(Xmm2, Xmm4)                    /* t_dff <- t1val */
+        subps_rr(Xmm2, Xmm6)                    /* t_dff -= t2val */
         xorpx_ld(Xmm2, Mecx, ctx_AMASK)         /* t_dff ^= amask */
-        cltps_rr(Xmm5, Xmm2)                    /* tmp_v <! t_dff */
+        cleps_rr(Xmm5, Xmm2)                    /* tmp_v <= t_dff */
         andpx_rr(Xmm2, Xmm5)                    /* t_dff &= fmask */
+        andpx_ld(Xmm5, Mebx, srf_D_EPS)         /* fmask &= D_EPS */
+        mulps_rr(Xmm5, Xmm4)                    /* d_eps *= t1val */
+        andpx_ld(Xmm5, Mebp, inf_GPC04)         /* t_eps = |t_eps|*/
+        mulps_ld(Xmm2, Mebp, inf_GPC02)         /* t_dff *= -0.5f */
+        subps_rr(Xmm2, Xmm5)                    /* t_dff -= t_eps */
         xorpx_ld(Xmm2, Mecx, ctx_AMASK)         /* t_dff ^= amask */
         andpx_rr(Xmm2, Xmm1)                    /* t_dff &= t1msk */
         andpx_rr(Xmm2, Xmm3)                    /* t_dff &= t2msk */
         andpx_ld(Xmm2, Mecx, ctx_DMASK)         /* t_dff &= DMASK */
-        subps_rr(Xmm4, Xmm2)                    /* t1val -= t_dff */
-        addps_rr(Xmm6, Xmm2)                    /* t2val += t_dff */
+        addps_rr(Xmm4, Xmm2)                    /* t1val += t_dff */
+        subps_rr(Xmm6, Xmm2)                    /* t2val -= t_dff */
 
     LBL(QD_srt)
 
@@ -3132,6 +3156,28 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 /******************************************************************************/
     LBL(QD_rs1)
+
+#if RT_DEBUG == 1
+
+        movxx_ld(Reax, Mebp, inf_DEPTH)
+        cmpxx_rm(Reax, Mebp, inf_Q_CNT)
+        jnexx_lb(QD_gs1)
+
+        cmpxx_mi(Mebp, inf_Q_DBG, IB(6))
+        jnexx_lb(QD_gs1)
+        movxx_mi(Mebp, inf_Q_DBG, IB(4))
+
+        jmpxx_lb(QD_gr1)        
+
+    LBL(QD_gs1)
+
+        cmpxx_mi(Mebp, inf_Q_DBG, IB(7))
+        jeqxx_lb(QD_gr1)
+        movxx_mi(Mebp, inf_Q_DBG, IB(1))
+
+    LBL(QD_gr1)
+
+#endif /* RT_DEBUG */
 
         movpx_ld(Xmm4, Mecx, ctx_XTMP1)         /* bdval <- XTMP1 */
         movpx_ld(Xmm1, Mecx, ctx_XTMP2)         /* a_val <- XTMP2 */
@@ -3175,7 +3221,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
-        SUBROUTINE(QD_mt1, QD_rdr)
+        SUBROUTINE(QD_mt1, QD_mtr)
 
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
@@ -3192,6 +3238,28 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 /******************************************************************************/
     LBL(QD_rs2)
+
+#if RT_DEBUG == 1
+
+        movxx_ld(Reax, Mebp, inf_DEPTH)
+        cmpxx_rm(Reax, Mebp, inf_Q_CNT)
+        jnexx_lb(QD_gs2)
+
+        cmpxx_mi(Mebp, inf_Q_DBG, IB(6))
+        jnexx_lb(QD_gs2)
+        movxx_mi(Mebp, inf_Q_DBG, IB(4))
+
+        jmpxx_lb(QD_gr2)        
+
+    LBL(QD_gs2)
+
+        cmpxx_mi(Mebp, inf_Q_DBG, IB(7))
+        jeqxx_lb(QD_gr2)
+        movxx_mi(Mebp, inf_Q_DBG, IB(1))
+
+    LBL(QD_gr2)
+
+#endif /* RT_DEBUG */
 
         movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
         movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
@@ -3235,7 +3303,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
-        SUBROUTINE(QD_mt2, QD_rdr)
+        SUBROUTINE(QD_mt2, QD_mtr)
 
         /* side count check */
         cmpxx_mi(Mecx, ctx_XMISC(FLG), IB(0))
@@ -3252,7 +3320,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         jmpxx_lb(QD_rs1)
 
-    LBL(QD_rdr)
+    LBL(QD_mtr)
 
         jmpxx_mm(Mebx, srf_SRF_P(SRF))
 
@@ -3316,20 +3384,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm4, Iecx, ctx_NRM_X)
         movpx_st(Xmm5, Iecx, ctx_NRM_Y)
         movpx_st(Xmm6, Iecx, ctx_NRM_Z)
-
-#if RT_DEBUG == 1
-
-        cmpxx_mi(Mebp, inf_Q_DBG, IB(6))
-        jnexx_lb(QD_go6)
-        movxx_mi(Mebp, inf_Q_DBG, IB(7))
-
-        movpx_st(Xmm4, Mebp, inf_NRM_X)
-        movpx_st(Xmm5, Mebp, inf_NRM_Y)
-        movpx_st(Xmm6, Mebp, inf_NRM_Z)
-
-    LBL(QD_go6)
-
-#endif /* RT_DEBUG */
 
         jmpxx_lb(MT_nrm)
 
