@@ -52,6 +52,7 @@
  * for respective segments of code.
  */
 #define RT_SHOW_TILES               0
+#define RT_QUAD_DEBUG               0   /* <- needs RT_DEBUG to be enabled */
 
 #define RT_FEAT_TILING              1
 #define RT_FEAT_ANTIALIASING        1
@@ -525,12 +526,12 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
 rt_void render0(rt_SIMD_INFOX *s_inf)
 {
 
-#if RT_DEBUG == 1
+#if RT_QUAD_DEBUG == 1
 
     s_inf->q_dbg = (g_print != 0);
     s_inf->q_cnt = 0;
 
-#endif /* RT_DEBUG */
+#endif /* RT_QUAD_DEBUG */
 
 /******************************************************************************/
 /**********************************   ENTER   *********************************/
@@ -992,7 +993,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CC_glb)
 
-#if RT_DEBUG == 1
+#if RT_QUAD_DEBUG == 1
 
         cmpxx_mi(Mebp, inf_Q_DBG, IB(4))
         jnexx_lb(QD_go4)
@@ -1009,7 +1010,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(QD_go4)
 
-#endif /* RT_DEBUG */
+#endif /* RT_QUAD_DEBUG */
 
         /* conic singularity solver */
         cmpxx_mi(Mebx, srf_MSC_P(FLG), IB(0))
@@ -1155,7 +1156,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CC_adj)
 
-#if RT_DEBUG == 1
+#if RT_QUAD_DEBUG == 1
 
         cmpxx_mi(Mebp, inf_Q_DBG, IB(5))
         jnexx_lb(QD_go5)
@@ -1167,7 +1168,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(QD_go5)
 
-#endif /* RT_DEBUG */
+#endif /* RT_QUAD_DEBUG */
 
 #if RT_FEAT_CLIPPING_MINMAX
 
@@ -1449,7 +1450,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(MT_nrm)
 
-#if RT_DEBUG == 1
+#if RT_QUAD_DEBUG == 1
 
         cmpxx_mi(Mebp, inf_Q_DBG, IB(6))
         jnexx_lb(QD_go6)
@@ -1461,7 +1462,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(QD_go6)
 
-#endif /* RT_DEBUG */
+#endif /* RT_QUAD_DEBUG */
 
 #if RT_FEAT_TRANSFORM
 
@@ -2531,7 +2532,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(PL_ptr)
 
-#if RT_DEBUG == 1
+#if RT_QUAD_DEBUG == 1
 
         /* reset debug info if not complete */
         cmpxx_mi(Mebp, inf_Q_DBG, IB(7))
@@ -2540,7 +2541,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(PL_go1)
 
-#endif /* RT_DEBUG */
+#endif /* RT_QUAD_DEBUG */
 
 #if RT_SHOW_TILES
 
@@ -2974,7 +2975,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         andpx_rr(Xmm5, Xmm7)                    /* dmask &= xmask */
         movpx_st(Xmm5, Mecx, ctx_DMASK)         /* dmask -> DMASK */
 
-#if RT_DEBUG == 1
+#if RT_QUAD_DEBUG == 1
 
         /* reset debug info if not complete */
         cmpxx_mi(Mebp, inf_Q_DBG, IB(7))
@@ -3016,7 +3017,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(QD_go1)
 
-#endif /* RT_DEBUG */
+#endif /* RT_QUAD_DEBUG */
 
         /* "tt" section */
         movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
@@ -3049,7 +3050,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         orrpx_rr(Xmm0, Xmm1)                    /* a_pos |= a_neg */
         orrpx_rr(Xmm1, Xmm2)                    /* a_neg |= bdpos */
 
-#if RT_DEBUG == 1
+#if RT_QUAD_DEBUG == 1
 
         cmpxx_mi(Mebp, inf_Q_DBG, IB(2))
         jnexx_lb(QD_go2)
@@ -3070,7 +3071,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(QD_go2)
 
-#endif /* RT_DEBUG */
+#endif /* RT_QUAD_DEBUG */
 
         /* "dd" section */
         movxx_mi(Mecx, ctx_XMISC(PTR), IB(0))
@@ -3121,7 +3122,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(QD_srt)
 
-#if RT_DEBUG == 1
+#if RT_QUAD_DEBUG == 1
 
         cmpxx_mi(Mebp, inf_Q_DBG, IB(3))
         jnexx_lb(QD_go3)
@@ -3138,7 +3139,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(QD_go3)
 
-#endif /* RT_DEBUG */
+#endif /* RT_QUAD_DEBUG */
 
         /* "aa" section */
         movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
@@ -3157,7 +3158,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
     LBL(QD_rs1)
 
-#if RT_DEBUG == 1
+#if RT_QUAD_DEBUG == 1
 
         movxx_ld(Reax, Mebp, inf_DEPTH)
         cmpxx_rm(Reax, Mebp, inf_Q_CNT)
@@ -3177,7 +3178,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(QD_gr1)
 
-#endif /* RT_DEBUG */
+#endif /* RT_QUAD_DEBUG */
 
         movpx_ld(Xmm4, Mecx, ctx_XTMP1)         /* bdval <- XTMP1 */
         movpx_ld(Xmm1, Mecx, ctx_XTMP2)         /* a_val <- XTMP2 */
@@ -3239,7 +3240,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
     LBL(QD_rs2)
 
-#if RT_DEBUG == 1
+#if RT_QUAD_DEBUG == 1
 
         movxx_ld(Reax, Mebp, inf_DEPTH)
         cmpxx_rm(Reax, Mebp, inf_Q_CNT)
@@ -3259,7 +3260,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(QD_gr2)
 
-#endif /* RT_DEBUG */
+#endif /* RT_QUAD_DEBUG */
 
         movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
         movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
@@ -3617,7 +3618,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     if (s_inf->ctx != RT_NULL)
     {
-#if RT_DEBUG == 1
+#if RT_QUAD_DEBUG == 1
 
         if (s_inf->q_dbg == 7)
         {
@@ -3746,7 +3747,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
             RT_LOGE("\n");
         }
 
-#endif /* RT_DEBUG */
+#endif /* RT_QUAD_DEBUG */
 
         return;
     }
