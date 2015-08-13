@@ -811,7 +811,9 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_srf->sbase, 0x00000000);
     RT_SIMD_SET(s_srf->smask, 0x80000000);
     RT_SIMD_SET(s_srf->c_def, 0xFFFFFFFF);
+
     RT_SIMD_SET(s_srf->d_eps, RT_DEPS_THRESHOLD);
+    RT_SIMD_SET(s_srf->t_eps, RT_TEPS_THRESHOLD);
 }
 
 /*

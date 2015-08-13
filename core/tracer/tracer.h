@@ -868,11 +868,11 @@ struct rt_SIMD_SURFACE
 #define srf_SCJ_Z           DP(Q*0x230)
 
 
-    rt_real h_eps[S];
-#define srf_H_EPS           DP(Q*0x240)
-
     rt_real d_eps[S];
-#define srf_D_EPS           DP(Q*0x250)
+#define srf_D_EPS           DP(Q*0x240)
+
+    rt_real t_eps[S];
+#define srf_T_EPS           DP(Q*0x250)
 
 };
 
@@ -919,7 +919,7 @@ struct rt_SIMD_MATERIAL
     rt_cell t_map[S];
 #define mat_T_MAP(nx)       DP(Q*0x080 + nx)
 
-    /* color masks */
+    /* color mask */
 
     rt_cell cmask[S];
 #define mat_CMASK           DP(Q*0x090)
@@ -937,6 +937,7 @@ struct rt_SIMD_MATERIAL
 
     rt_pntr pow_p[S];
 #define mat_POW_P           DP(Q*0x0D0)
+
 
     rt_real c_rfl[S];
 #define mat_C_RFL           DP(Q*0x0E0)

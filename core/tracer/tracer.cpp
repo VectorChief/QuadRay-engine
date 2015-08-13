@@ -528,7 +528,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_QUAD_DEBUG == 1
 
-    s_inf->q_dbg = (g_print != 0);
+    s_inf->q_dbg = 1;
     s_inf->q_cnt = 0;
 
 #endif /* RT_QUAD_DEBUG */
@@ -1048,7 +1048,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm0, Xmm3)
 
         /* check distance */
-        cltps_ld(Xmm0, Mebx, srf_D_EPS)
+        cltps_ld(Xmm0, Mebx, srf_T_EPS)
         andpx_ld(Xmm0, Mecx, ctx_DMASK)
         CHECK_MASK(CC_adj, NONE, Xmm0)
 
@@ -1091,7 +1091,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* normalize point */
         addps_rr(Xmm6, Xmm4)
         rsqps_rr(Xmm4, Xmm6)
-        mulps_ld(Xmm4, Mebx, srf_D_EPS)
+        mulps_ld(Xmm4, Mebx, srf_T_EPS)
         mulps_rr(Xmm1, Xmm4)
         mulps_rr(Xmm2, Xmm4)
         mulps_rr(Xmm3, Xmm4)
@@ -2977,12 +2977,21 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_QUAD_DEBUG == 1
 
+#if 0
+        cmpxx_mi(Mebp, inf_FRM_X, IH(0))        /* <- pin point buggy quad */
+        jnexx_lb(QD_go1)
+        cmpxx_mi(Mebp, inf_FRM_Y, IH(0))        /* <- pin point buggy quad */
+        jnexx_lb(QD_go1)
+
+        xorpx_rr(Xmm7, Xmm7)      /* <- mark buggy quad, remove when found */
+#else
         /* reset debug info if not complete */
         cmpxx_mi(Mebp, inf_Q_DBG, IB(7))
         jeqxx_lb(QD_go1)
         movxx_mi(Mebp, inf_Q_DBG, IB(1))
 
         CHECK_MASK(QD_go1, NONE, Xmm5)
+#endif
 
         cmpxx_mi(Mebp, inf_Q_DBG, IB(1))
         jnexx_lb(QD_go1)
@@ -3108,8 +3117,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_ld(Xmm2, Mecx, ctx_AMASK)         /* t_dff ^= amask */
         cleps_rr(Xmm5, Xmm2)                    /* tmp_v <= t_dff */
         andpx_rr(Xmm2, Xmm5)                    /* t_dff &= fmask */
-        andpx_ld(Xmm5, Mebx, srf_D_EPS)         /* fmask &= D_EPS */
-        mulps_rr(Xmm5, Xmm4)                    /* d_eps *= t1val */
+        andpx_ld(Xmm5, Mebx, srf_T_EPS)         /* fmask &= T_EPS */
+        mulps_rr(Xmm5, Xmm4)                    /* t_eps *= t1val */
         andpx_ld(Xmm5, Mebp, inf_GPC04)         /* t_eps = |t_eps|*/
         mulps_ld(Xmm2, Mebp, inf_GPC02)         /* t_dff *= -0.5f */
         subps_rr(Xmm2, Xmm5)                    /* t_dff -= t_eps */

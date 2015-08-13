@@ -58,7 +58,9 @@
 #define RT_LINE_THRESHOLD       0.01f
 #define RT_CLIP_THRESHOLD       0.01f
 #define RT_CULL_THRESHOLD       0.0001f
-#define RT_DEPS_THRESHOLD       0.0000001f /* <- minimum for roots sorting */
+
+#define RT_DEPS_THRESHOLD       0.00000000001f /* <- maximum for two-plane */
+#define RT_TEPS_THRESHOLD       0.0000001f /* <- minimum for roots sorting */
 
 /*
  * Runtime optimization flags,
