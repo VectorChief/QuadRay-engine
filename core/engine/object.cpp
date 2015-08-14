@@ -682,7 +682,10 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
 
     RT_SIMD_SET(s_srf->sbase, 0x00000000);
     RT_SIMD_SET(s_srf->smask, 0x80000000);
-    RT_SIMD_SET(s_srf->c_tmp, 0xFFFFFFFF);
+    RT_SIMD_SET(s_srf->c_def, 0xFFFFFFFF);
+
+    RT_SIMD_SET(s_srf->d_eps, RT_DEPS_THRESHOLD);
+    RT_SIMD_SET(s_srf->t_eps, RT_TEPS_THRESHOLD);
 }
 
 /*
@@ -1496,58 +1499,16 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     s_bvb = (rt_SIMD_SURFACE *)
             rg->alloc(RT_MAX(ssize, sizeof(rt_SIMD_SPHERE)), RT_SIMD_ALIGN);
 
-    s_bvb->mat_p[0] = RT_NULL; /* outer material */
-    s_bvb->mat_p[1] = RT_NULL; /* outer material props */
-    s_bvb->mat_p[2] = RT_NULL; /* inner material */
-    s_bvb->mat_p[3] = RT_NULL; /* inner material props */
-
-    s_bvb->srf_p[0] = RT_NULL; /* surf ptr, filled in update0 */
-    s_bvb->srf_p[1] = RT_NULL; /* norm ptr, filled in update0 */
-    s_bvb->srf_p[2] = RT_NULL; /* clip ptr, filled in update0 */
+    memset(s_bvb, 0, sizeof(rt_SIMD_SURFACE));
     s_bvb->srf_p[3] = (rt_pntr)tag; /* tag */
-
-    s_bvb->msc_p[0] = RT_NULL; /* screen tiles */
-    s_bvb->msc_p[1] = RT_NULL; /* reserved */
-    s_bvb->msc_p[2] = RT_NULL; /* custom clippers */
-    s_bvb->msc_p[3] = RT_NULL; /* trnode's simd ptr */
-
-    s_bvb->lst_p[0] = RT_NULL; /* outer lights/shadows */
-    s_bvb->lst_p[1] = RT_NULL; /* outer surfaces for rfl/rfr */
-    s_bvb->lst_p[2] = RT_NULL; /* inner lights/shadows */
-    s_bvb->lst_p[3] = RT_NULL; /* inner surfaces for rfl/rfr */
-
-    RT_SIMD_SET(s_bvb->sbase, 0x00000000);
-    RT_SIMD_SET(s_bvb->smask, 0x80000000);
-    RT_SIMD_SET(s_bvb->c_tmp, 0xFFFFFFFF);
 
 /*  rt_SIMD_SURFACE */
 
     s_inb = (rt_SIMD_SURFACE *)
             rg->alloc(RT_MAX(ssize, sizeof(rt_SIMD_SPHERE)), RT_SIMD_ALIGN);
 
-    s_inb->mat_p[0] = RT_NULL; /* outer material */
-    s_inb->mat_p[1] = RT_NULL; /* outer material props */
-    s_inb->mat_p[2] = RT_NULL; /* inner material */
-    s_inb->mat_p[3] = RT_NULL; /* inner material props */
-
-    s_inb->srf_p[0] = RT_NULL; /* surf ptr, filled in update0 */
-    s_inb->srf_p[1] = RT_NULL; /* norm ptr, filled in update0 */
-    s_inb->srf_p[2] = RT_NULL; /* clip ptr, filled in update0 */
+    memset(s_inb, 0, sizeof(rt_SIMD_SURFACE));
     s_inb->srf_p[3] = (rt_pntr)tag; /* tag */
-
-    s_inb->msc_p[0] = RT_NULL; /* screen tiles */
-    s_inb->msc_p[1] = RT_NULL; /* reserved */
-    s_inb->msc_p[2] = RT_NULL; /* custom clippers */
-    s_inb->msc_p[3] = RT_NULL; /* trnode's simd ptr */
-
-    s_inb->lst_p[0] = RT_NULL; /* outer lights/shadows */
-    s_inb->lst_p[1] = RT_NULL; /* outer surfaces for rfl/rfr */
-    s_inb->lst_p[2] = RT_NULL; /* inner lights/shadows */
-    s_inb->lst_p[3] = RT_NULL; /* inner surfaces for rfl/rfr */
-
-    RT_SIMD_SET(s_inb->sbase, 0x00000000);
-    RT_SIMD_SET(s_inb->smask, 0x80000000);
-    RT_SIMD_SET(s_inb->c_tmp, 0xFFFFFFFF);
 }
 
 /*

@@ -436,12 +436,11 @@ struct rt_SIMD_CONTEXT
     rt_cell tmask[S];
 #define ctx_TMASK(nx)       DP(Q*0x1E0 + nx)
 
+    rt_cell wmask[S];
+#define ctx_WMASK           DP(Q*0x1F0)
+
     rt_cell xmask[S];
-#define ctx_XMASK           DP(Q*0x1F0)
-
-
-    rt_cell c_tmp[S];
-#define ctx_C_TMP           DP(Q*0x200)
+#define ctx_XMASK           DP(Q*0x200)
 
     rt_real xtmp1[S];
 #define ctx_XTMP1           DP(Q*0x210)
@@ -449,7 +448,7 @@ struct rt_SIMD_CONTEXT
     rt_real xtmp2[S];
 #define ctx_XTMP2           DP(Q*0x220)
 
-    rt_real xmisc[S];
+    rt_cell xmisc[S];
 #define ctx_XMISC(nx)       DP(Q*0x230 + nx)
 
     /* normal */
@@ -474,13 +473,23 @@ struct rt_SIMD_CONTEXT
     rt_real nrm_k[S];
 #define ctx_NRM_K           DP(Q*0x290)
 
+    /* custom clipping accum */
+
+    rt_cell c_acc[S];
+#define ctx_C_ACC           DP(Q*0x2A0)
+
     /* reserved area 1 */
 
-    rt_word pad01[S*5];
-#define ctx_PAD01           DP(Q*0x2A0)
+    rt_word pad01[S*3];
+#define ctx_PAD01           DP(Q*0x2B0)
 
-    rt_cell wmask[S];
-#define ctx_WMASK           DP(Q*0x2F0)
+    /* roots sorting masks */
+
+    rt_cell amask[S];
+#define ctx_AMASK           DP(Q*0x2E0)
+
+    rt_cell dmask[S];
+#define ctx_DMASK           DP(Q*0x2F0)
 
     /* overlapping next context,
      * new depth min */
@@ -488,7 +497,7 @@ struct rt_SIMD_CONTEXT
     rt_real t_new[S];
 #define ctx_T_NEW           DP(Q*0x300)
 
-    /* hit,
+    /* hit point,
      * new origin */
 
     rt_real hit_x[S];
@@ -666,10 +675,10 @@ struct rt_SIMD_LIGHT
  */
 struct rt_SIMD_SURFACE
 {
-    /* constant for clipping */
+    /* clipping accum default */
 
-    rt_cell c_tmp[S];
-#define srf_C_TMP           DP(Q*0x000)
+    rt_cell c_def[S];
+#define srf_C_DEF           DP(Q*0x000)
 
     /* surface position */
 
@@ -773,10 +782,18 @@ struct rt_SIMD_SURFACE
     rt_real tck_z[S];
 #define srf_TCK_Z           DP(Q*0x1C0)
 
+    /* roots sorting thresholds */
+
+    rt_real d_eps[S];
+#define srf_D_EPS           DP(Q*0x1D0)
+
+    rt_real t_eps[S];
+#define srf_T_EPS           DP(Q*0x1E0)
+
     /* reserved area 1 */
 
-    rt_real pad01[S*3];
-#define srf_PAD01           DP(Q*0x1D0)
+    rt_real pad01[S];
+#define srf_PAD01           DP(Q*0x1F0)
 
 };
 
@@ -1039,7 +1056,7 @@ struct rt_SIMD_MATERIAL
     rt_cell t_map[S];
 #define mat_T_MAP(nx)       DP(Q*0x080 + nx)
 
-    /* color masks */
+    /* color mask */
 
     rt_cell cmask[S];
 #define mat_CMASK           DP(Q*0x090)
@@ -1057,6 +1074,7 @@ struct rt_SIMD_MATERIAL
 
     rt_pntr pow_p[S];
 #define mat_POW_P           DP(Q*0x0D0)
+
 
     rt_real c_rfl[S];
 #define mat_C_RFL           DP(Q*0x0E0)
