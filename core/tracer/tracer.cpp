@@ -473,7 +473,7 @@ rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
 
 /*
  * Backend's global entry point (hence 0).
- * Update surfaces's backend-specific fields.
+ * Update surface's backend-specific fields.
  */
 rt_void update0(rt_SIMD_SURFACE *s_srf)
 {
@@ -2970,6 +2970,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         xorpx_ld(Xmm4, Mebx, srf_SMASK)         /* b_val = -b_val */
 
+        /* compute dmask */
         movpx_rr(Xmm5, Xmm3)                    /* dmask <- d_val */
         cltps_ld(Xmm5, Mebx, srf_D_EPS)         /* dmask <! D_EPS */
         andpx_rr(Xmm5, Xmm7)                    /* dmask &= xmask */
@@ -3028,7 +3029,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_QUAD_DEBUG */
 
-        /* "tt" section */
+        /* process b-mixed quads */
         movpx_ld(Xmm5, Mebx, srf_SMASK)         /* smask <- SMASK */
         andpx_rr(Xmm5, Xmm4)                    /* smask &= b_val */
         sqrps_rr(Xmm3, Xmm3)                    /* d_val sq d_val */
@@ -3082,36 +3083,42 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_QUAD_DEBUG */
 
-        /* "dd" section */
+        /* roots sorting
+         * for near-zero determinant */
         movxx_mi(Mecx, ctx_XMISC(PTR), IB(0))
         movpx_ld(Xmm5, Mecx, ctx_DMASK)         /* dmask <- DMASK */
         CHECK_MASK(QD_srt, NONE, Xmm5)
         movxx_mi(Mecx, ctx_XMISC(PTR), IB(1))
 
+        /* compute amask */
         movpx_ld(Xmm2, Mebx, srf_SMASK)         /* amask <- smask */
         andpx_rr(Xmm2, Xmm0)                    /* amask &= a_val */
         movpx_st(Xmm2, Mecx, ctx_AMASK)         /* amask -> AMASK */
         xorpx_rr(Xmm5, Xmm5)                    /* tmp_v <-     0 */
 
+        /* convert nan root to zero */
         movpx_rr(Xmm2, Xmm4)                    /* t1zro <- t1nmr */
-        ceqps_rr(Xmm2, Xmm5)                    /* t1zro != tmp_v */
+        ceqps_rr(Xmm2, Xmm5)                    /* t1zro == tmp_v */
         orrpx_rr(Xmm1, Xmm2)                    /* t1dnm |= t1zro */
         xorpx_rr(Xmm1, Xmm2)                    /* t1dnm ^= t1zro */
         andpx_ld(Xmm2, Mebp, inf_GPC01)         /* t1zro &= +1.0f */
         orrpx_rr(Xmm1, Xmm2)                    /* t1dnm |= t1zro */
 
+        /* convert nan root to zero */
         movpx_rr(Xmm2, Xmm6)                    /* t2zro <- t2nmr */
-        ceqps_rr(Xmm2, Xmm5)                    /* t2zro != tmp_v */
+        ceqps_rr(Xmm2, Xmm5)                    /* t2zro == tmp_v */
         orrpx_rr(Xmm3, Xmm2)                    /* t2dnm |= t2zro */
         xorpx_rr(Xmm3, Xmm2)                    /* t2dnm ^= t2zro */
         andpx_ld(Xmm2, Mebp, inf_GPC01)         /* t2zro &= +1.0f */
         orrpx_rr(Xmm3, Xmm2)                    /* t2dnm |= t2zro */
 
+        /* compute both roots */
         divps_rr(Xmm4, Xmm1)                    /* t1nmr /= t1dnm */
         divps_rr(Xmm6, Xmm3)                    /* t2nmr /= t2dnm */
         cneps_rr(Xmm1, Xmm5)                    /* t1msk != tmp_v */
         cneps_rr(Xmm3, Xmm5)                    /* t2msk != tmp_v */
 
+        /* equate then split roots */
         movpx_rr(Xmm2, Xmm4)                    /* t_dff <- t1val */
         subps_rr(Xmm2, Xmm6)                    /* t_dff -= t2val */
         xorpx_ld(Xmm2, Mecx, ctx_AMASK)         /* t_dff ^= amask */
@@ -3150,7 +3157,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_QUAD_DEBUG */
 
-        /* "aa" section */
+        /* process a-mixed quads */
         movxx_mi(Mecx, ctx_XMISC(FLG), IB(2))
         movxx_mi(Mecx, ctx_XMISC(TAG), IB(0))
 
@@ -3189,8 +3196,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_QUAD_DEBUG */
 
-        movpx_ld(Xmm4, Mecx, ctx_XTMP1)         /* bdval <- XTMP1 */
-        movpx_ld(Xmm1, Mecx, ctx_XTMP2)         /* a_val <- XTMP2 */
+        movpx_ld(Xmm4, Mecx, ctx_XTMP1)         /* t1nmr <- XTMP1 */
+        movpx_ld(Xmm1, Mecx, ctx_XTMP2)         /* t1dnm <- XTMP2 */
         movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
 
     LBL(QD_rt1)
@@ -3217,8 +3224,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(QD_rd1)
 
-        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* c_val -> XTMP1 */
-        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* bdval -> XTMP2 */
+        movpx_st(Xmm6, Mecx, ctx_XTMP1)         /* t2nmr -> XTMP1 */
+        movpx_st(Xmm3, Mecx, ctx_XTMP2)         /* t2dnm -> XTMP2 */
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
         andpx_rr(Xmm7, Xmm1)                    /* tmask &= t1msk */
@@ -3271,8 +3278,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_QUAD_DEBUG */
 
-        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* c_val <- XTMP1 */
-        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* bdval <- XTMP2 */
+        movpx_ld(Xmm6, Mecx, ctx_XTMP1)         /* t2nmr <- XTMP1 */
+        movpx_ld(Xmm3, Mecx, ctx_XTMP2)         /* t2dnm <- XTMP2 */
         movpx_ld(Xmm7, Mecx, ctx_XMASK)         /* xmask <- XMASK */
 
     LBL(QD_rt2)
@@ -3299,8 +3306,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(QD_rd2)
 
-        movpx_st(Xmm4, Mecx, ctx_XTMP1)         /* bdval -> XTMP1 */
-        movpx_st(Xmm1, Mecx, ctx_XTMP2)         /* a_val -> XTMP2 */
+        movpx_st(Xmm4, Mecx, ctx_XTMP1)         /* t1nmr -> XTMP1 */
+        movpx_st(Xmm1, Mecx, ctx_XTMP2)         /* t1dnm -> XTMP2 */
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
         andpx_rr(Xmm7, Xmm3)                    /* tmask &= t2msk */
@@ -3332,7 +3339,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(QD_mtr)
 
-        jmpxx_mm(Mebx, srf_SRF_P(SRF))
+        jmpxx_mm(Mebx, srf_SRF_P(SRF))          /* material redirect */
 
 /******************************************************************************/
     LBL(fetch_QD_mat)
@@ -3633,7 +3640,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         {
             RT_LOGE("---------------------------------------------");
             RT_LOGE("------------- quadric debug info ------------");
-            RT_LOGE("---------------------------------------------");
+            RT_LOGE("--------------------- depth: %d --------------",
+                                        s_inf->depth - s_inf->q_cnt);
             RT_LOGE("\n");
             RT_LOGE("\n");
 
