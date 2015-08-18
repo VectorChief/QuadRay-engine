@@ -128,7 +128,7 @@
 
 /* Argument [* register] is fixed by the implementation.    */
 /* Some formal definitions are not given below to encourage */
-/* the use of friendly aliases for better code readability. */
+/* use of friendly aliases for better code readability.     */
 
 /******************************************************************************/
 /**********************************   X86   ***********************************/

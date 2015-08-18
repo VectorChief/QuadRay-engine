@@ -33,9 +33,9 @@
  * transform is a multiple of 90 degree rotation.
  */
 #define INDEX_AXIS(nx)                                                      \
-        movxx_ld(Reax, Mebx, srf_A_SGN(nx * 4))                             \
+        movxx_ld(Reax, Mebx, srf_A_SGN(nx*4))                               \
         movpx_ld(Xmm0, Iebx, srf_SBASE)                                     \
-        movxx_ld(Reax, Mebx, srf_A_MAP(nx * 4))
+        movxx_ld(Reax, Mebx, srf_A_MAP(nx*4))
 
 #define MOVXR_LD(RG, RM, DP)                                                \
         movpx_ld(W(RG), W(RM), W(DP))                                       \
@@ -54,7 +54,7 @@
  * jump to "lb" otherwise.
  */
 #define CHECK_CLIP(lb, pl, nx)                                              \
-        cmpxx_mi(Mebx, srf_##pl(nx * 4), IB(0))                             \
+        cmpxx_mi(Mebx, srf_##pl(nx*4), IB(0))                               \
         jeqxx_lb(lb)
 
 /* Context flags.
@@ -127,7 +127,7 @@ static
 rt_pntr t_ptr[RT_TAG_SURFACE_MAX];
 
 /* Backend's global entry point (hence 0).
- * Update surfaces's backend data.
+ * Update surface's backend-specific fields.
  */
 rt_void update0(rt_SIMD_SURFACE *s_srf)
 {
@@ -148,7 +148,7 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
 /******************************************************************************/
 
 /* Backend's global entry point (hence 0).
- * Render the frame based on the data structures
+ * Render frame based on the data structures
  * prepared by the engine.
  */
 rt_void render0(rt_SIMD_INFOX *s_inf)

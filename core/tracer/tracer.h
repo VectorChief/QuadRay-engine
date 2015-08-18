@@ -368,8 +368,15 @@ struct rt_SIMD_MATERIAL
 /***************************   GLOBAL ENTRY POINTS   **************************/
 /******************************************************************************/
 
+/* Backend's global entry point (hence 0).
+ * Update surface's backend-specific fields.
+ */
 rt_void update0(rt_SIMD_SURFACE *s_srf);
 
+/* Backend's global entry point (hence 0).
+ * Render frame based on the data structures
+ * prepared by the engine.
+ */
 rt_void render0(rt_SIMD_INFOX *s_inf);
 
 #endif /* RT_TRACER_H */
