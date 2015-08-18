@@ -94,7 +94,7 @@ struct rt_SIMD_MATERIAL;
 
 /*
  * Backend's global entry point (hence 0).
- * Update surfaces's backend-specific fields.
+ * Update surface's backend-specific fields.
  */
 rt_void update0(rt_SIMD_SURFACE *s_srf);
 
