@@ -22,7 +22,7 @@
  *
  * Note that DP offsets below accept only 12-bit values (0xFFF),
  * use DH and DW for 16-bit and 32-bit SIMD offsets respectively,
- * place packed scalar fields at the top of the structs to be within DP reach.
+ * place packed scalar fields at the top of the structs to be within DP's reach.
  * SIMD width is taken into account via S and Q from rtarch.h
  */
 
@@ -91,7 +91,7 @@ struct rt_SIMD_MATERIAL;
 
 /*
  * Backend's global entry point (hence 0).
- * Update surfaces's backend-specific fields.
+ * Update surface's backend-specific fields.
  */
 rt_void update0(rt_SIMD_SURFACE *s_srf);
 
