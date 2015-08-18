@@ -118,9 +118,9 @@
  * transform is a multiple of 90 degree rotation.
  */
 #define INDEX_AXIS(nx)                                                      \
-        movxx_ld(Reax, Mebx, srf_A_SGN(nx * 4))                             \
+        movxx_ld(Reax, Mebx, srf_A_SGN(nx*4))                               \
         movpx_ld(Xmm0, Iebx, srf_SBASE)                                     \
-        movxx_ld(Reax, Mebx, srf_A_MAP(nx * 4))
+        movxx_ld(Reax, Mebx, srf_A_MAP(nx*4))
 
 #define MOVXR_LD(RG, RM, DP)                                                \
         movpx_ld(W(RG), W(RM), W(DP))                                       \
@@ -135,7 +135,7 @@
         movpx_st(W(RG), W(RM), W(DP))
 
 #define INDEX_TMAP(nx)                                                      \
-        movxx_ld(Reax, Medx, mat_T_MAP(nx * 4))
+        movxx_ld(Reax, Medx, mat_T_MAP(nx*4))
 
 /*
  * Axis clipping.
@@ -143,7 +143,7 @@
  * jump to "lb" otherwise.
  */
 #define CHECK_CLIP(lb, pl, nx)                                              \
-        cmpxx_mi(Mebx, srf_##pl(nx * 4), IB(0))                             \
+        cmpxx_mi(Mebx, srf_##pl(nx*4), IB(0))                               \
         jeqxx_lb(lb)
 
 /*
@@ -238,7 +238,6 @@
  */
 #define FETCH_PROP()                                                        \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
-        andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
         shlxx_ri(Reax, IB(4))                                               \
         movpx_ld(Xmm7, Iebx, srf_SBASE)                                     \
         shrxx_ri(Reax, IB(1))                                               \
@@ -429,7 +428,7 @@ rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
 
 /*
  * Backend's global entry point (hence 0).
- * Update surfaces's backend-specific fields.
+ * Update surface's backend-specific fields.
  */
 rt_void update0(rt_SIMD_SURFACE *s_srf)
 {
@@ -630,7 +629,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM
 
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0))
         jeqxx_lb(OO_trm)
 
         /* transform diff */
@@ -644,7 +643,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* bypass non-diagonal terms
          * in transform matrix for scaling fastpath */
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(1))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(1))
         jeqxx_lb(OO_trd)
 
         movpx_ld(Xmm0, Mebx, srf_TCI_Y)
@@ -710,7 +709,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* bypass non-diagonal terms
          * in transform matrix for scaling fastpath */
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(1))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(1))
         jeqxx_lb(OO_trr)
 
         movpx_ld(Xmm0, Mebx, srf_TCI_Y)
@@ -794,7 +793,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM
 
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0))
         jeqxx_lb(CX_trm)
 
         movpx_ld(Xmm4, Mecx, ctx_RAY_I)         /* ray_i <- RAY_I */
@@ -840,7 +839,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM
 
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0))
         jeqxx_lb(CY_trm)
 
         movpx_ld(Xmm5, Mecx, ctx_RAY_J)         /* ray_j <- RAY_J */
@@ -886,7 +885,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM
 
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0))
         jeqxx_lb(CZ_trm)
 
         movpx_ld(Xmm6, Mecx, ctx_RAY_K)         /* ray_k <- RAY_K */
@@ -1049,7 +1048,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM
 
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0))
         jeqxx_lb(CC_trm)
 
         /* transform clip */
@@ -1063,7 +1062,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* bypass non-diagonal terms
          * in transform matrix for scaling fastpath */
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(1))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(1))
         jeqxx_lb(CC_trc)
 
         movpx_ld(Xmm0, Mebx, srf_TCI_Y)
@@ -1148,7 +1147,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM
 
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(0))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0))
         jeqxx_lb(MT_mat)
 
         movxx_ld(Rebx, Mebx, srf_MSC_P(OBJ))    /* load trnode's simd ptr */
@@ -1169,7 +1168,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* bypass non-diagonal terms
          * in transform matrix for scaling fastpath */
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(1))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(1))
         jeqxx_lb(MT_trn)
 
         movpx_ld(Xmm0, Mebx, srf_TCJ_X)
@@ -1195,7 +1194,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* bypass normal renormalization
          * if scaling is not present in transform matrix */
-        cmpxx_mi(Mebx, srf_A_MAP(RT_W * 4), IB(2))
+        cmpxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(2))
         jeqxx_lb(MT_rnm)
 
     LBL(MT_trn)
