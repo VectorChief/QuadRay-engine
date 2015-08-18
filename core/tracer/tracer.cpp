@@ -92,9 +92,9 @@
  * transform is a multiple of 90 degree rotation.
  */
 #define INDEX_AXIS(nx)                                                      \
-        movxx_ld(Reax, Mebx, srf_A_SGN(nx * 4))                             \
+        movxx_ld(Reax, Mebx, srf_A_SGN(nx*4))                               \
         movpx_ld(Xmm0, Iebx, srf_SBASE)                                     \
-        movxx_ld(Reax, Mebx, srf_A_MAP(nx * 4))
+        movxx_ld(Reax, Mebx, srf_A_MAP(nx*4))
 
 #define MOVXR_LD(RG, RM, DP)                                                \
         movpx_ld(W(RG), W(RM), W(DP))                                       \
@@ -109,14 +109,14 @@
         movpx_st(W(RG), W(RM), W(DP))
 
 #define INDEX_TMAP(nx)                                                      \
-        movxx_ld(Reax, Medx, mat_T_MAP(nx * 4))
+        movxx_ld(Reax, Medx, mat_T_MAP(nx*4))
 
 /* Axis clipping.
  * Check if axis clipping (minmax) is needed for given axis "nx",
  * jump to "lb" otherwise.
  */
 #define CHECK_CLIP(lb, pl, nx)                                              \
-        cmpxx_mi(Mebx, srf_##pl(nx * 4), IB(0))                             \
+        cmpxx_mi(Mebx, srf_##pl(nx*4), IB(0))                               \
         jeqxx_lb(lb)
 
 /* Custom clipping.
@@ -205,7 +205,6 @@
  */
 #define FETCH_PROP()                                                        \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
-        andxx_ri(Reax, IB(FLAG_SIDE))                                       \
         shlxx_ri(Reax, IB(4))                                               \
         movpx_ld(Xmm7, Iebx, srf_SBASE)                                     \
         shrxx_ri(Reax, IB(1))                                               \
@@ -386,7 +385,7 @@ rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
 }
 
 /* Backend's global entry point (hence 0).
- * Update surfaces's backend-specific fields.
+ * Update surface's backend-specific fields.
  */
 rt_void update0(rt_SIMD_SURFACE *s_srf)
 {
@@ -412,7 +411,7 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
 /******************************************************************************/
 
 /* Backend's global entry point (hence 0).
- * Render the frame based on the data structures
+ * Render frame based on the data structures
  * prepared by the engine.
  */
 rt_void render0(rt_SIMD_INFOX *s_inf)
