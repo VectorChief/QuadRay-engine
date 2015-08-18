@@ -46,7 +46,6 @@
 /* cmdpx_** - applies [cmd] to packed unsigned integer args */
 /* cmdpn_** - applies [cmd] to packed   signed integer args */
 /* cmdps_** - applies [cmd] to packed single precision args */
-/* cmdpd_** - applies [cmd] to packed double precision args */
 
 /******************************************************************************/
 /**********************************   SSE   ***********************************/
