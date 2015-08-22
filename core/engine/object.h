@@ -60,7 +60,7 @@
  */
 
 /* set for object which has
- * non-trivial axis scaling
+ * non-trivial scaling after rotation
  * (other than +/-1.0 scalers) */
 #define RT_UPDATE_FLAG_SCL          (1 << 0)
 
@@ -234,12 +234,12 @@ class rt_Object
     /* non-zero if object itself or
      * some of its parents has
      * non-trivial transform
-     * (scaling, rotation or both) */
+     * (rotation or scaling after rotation) */
     rt_cell             obj_has_trm;
 
     /* non-zero if object's own matrix has
      * non-trivial transform
-     * (scaling, rotation or both) */
+     * (rotation or scaling after rotation) */
     rt_cell             mtx_has_trm;
 
     /* object's immediate parent
@@ -436,8 +436,8 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
 
     private:
 
-    /* axis mapping matrix */
-    rt_mat4             axm;
+    /* scalers matrix */
+    rt_mat4             scm;
 
     public:
 

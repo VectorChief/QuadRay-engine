@@ -222,6 +222,8 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
     /* reset object's own transform flags */
     mtx_has_trm = 0;
 
+    /* determine if object itself has
+     * non-trivial scaling */
     rt_real fsc[] = {-1.0f, +1.0f};
 
     for (i = 0, c = 0; i < RT_ARR_SIZE(fsc); i++)
@@ -231,10 +233,10 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
         if (trm->scl[RT_Z] == fsc[i]) c++;
     }
 
-    /* determine if object itself has
-     * non-trivial scaling */
     mtx_has_trm |= (c == 3) ? 0 : RT_UPDATE_FLAG_SCL;
 
+    /* determine if object itself has
+     * non-trivial rotation */
     rt_real frt[] = {-270.0f, -180.0f, -90.0f, 0.0f, +90.0f, +180.0f, +270.0f};
 
     for (i = 0, c = 0; i < RT_ARR_SIZE(frt); i++)
@@ -244,10 +246,9 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
         if (trm->rot[RT_Z] == frt[i]) c++;
     }
 
-    /* determine if object itself has
-     * non-trivial rotation */
     mtx_has_trm |= (c == 3) ? 0 : RT_UPDATE_FLAG_ROT;
 
+    /* check if object's own matrix doesn't have rotation */
     if ((mtx_has_trm & RT_UPDATE_FLAG_ROT) == 0)
     {
         rt_mat4 trm_mtx;
@@ -263,11 +264,11 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
         rt_cell i, j;
 
         /* determine axis mapping for trivial transform
-         * (multiple of 90 degree rotation, +/-1.0 scalers),
+         * (multiple of 90 degree rotation, scalers),
          * applicable to objects without trnode or with trnode
          * other than the object itself (transform caching),
-         * to objects which have scaling with trivial rotation
-         * in their full transform matrix */
+         * scalers before rotation do not qualify for trnode
+         * as solvers handle them without transform matrix */
         for (i = 0; i < 3; i++)
         {
             for (j = 0; j < 3; j++)
@@ -288,6 +289,7 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
         scl[RT_W] = 1.0f;
     }
 
+    /* check if object's own matrix has non-trivial rotation */
     if ((mtx_has_trm & RT_UPDATE_FLAG_ROT) != 0
     &&  trnode == RT_NULL)
     {
@@ -1580,24 +1582,23 @@ rt_void rt_Array::update_matrix(rt_mat4 mtx)
      * to array's transform matrix */
     pmtx = &this->mtx;
 
-    /* if object itself has non-trivial transform
-     * and it is scaling with trivial rotation,
-     * separate axis mapping from transform matrix,
-     * which would then only have scalers on main diagonal */
+    /* if array node has non-trivial transform (trnode)
+     * put scalers before rotation into a separate matrix
+     * with main diagonal for passing to sub-objects */
     if (trnode == this)
     {
         if (obj_changed)
         {
-            memcpy(axm, iden4, sizeof(rt_mat4));
+            memcpy(scm, iden4, sizeof(rt_mat4));
 
-            axm[0][0] = scl[0];
-            axm[1][1] = scl[1];
-            axm[2][2] = scl[2];
+            scm[0][0] = scl[0];
+            scm[1][1] = scl[1];
+            scm[2][2] = scl[2];
         }
 
         /* set matrix pointer for sub-objects
-         * to axis mapping matrix */
-        pmtx = &axm;
+         * to scalers matrix */
+        pmtx = &scm;
     }
 }
 
