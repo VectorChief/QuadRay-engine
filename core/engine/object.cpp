@@ -659,26 +659,28 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
 /*  rt_SIMD_SURFACE */
 
     s_srf = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
+    memset(s_srf, 0, ssize);
+    s_srf->srf_p[3] = (rt_pntr)tag;
 
-    s_srf->mat_p[0] = RT_NULL;      /* outer material */
-    s_srf->mat_p[1] = RT_NULL;      /* outer material props */
-    s_srf->mat_p[2] = RT_NULL;      /* inner material */
-    s_srf->mat_p[3] = RT_NULL;      /* inner material props */
+    s_srf->mat_p[0];    /* outer material */
+    s_srf->mat_p[1];    /* outer material props */
+    s_srf->mat_p[2];    /* inner material */
+    s_srf->mat_p[3];    /* inner material props */
 
-    s_srf->srf_p[0] = RT_NULL;      /* surf ptr, filled in update0 */
-    s_srf->srf_p[1] = RT_NULL;      /* norm ptr, filled in update0 */
-    s_srf->srf_p[2] = RT_NULL;      /* clip ptr, filled in update0 */
-    s_srf->srf_p[3] = (rt_pntr)tag; /* surf tag */
+    s_srf->srf_p[0];    /* surf ptr, filled in update0 */
+    s_srf->srf_p[1];    /* norm ptr, filled in update0 */
+    s_srf->srf_p[2];    /* clip ptr, filled in update0 */
+    s_srf->srf_p[3];    /* surf tag */
 
-    s_srf->msc_p[0] = RT_NULL;      /* screen tiles */
-    s_srf->msc_p[1] = RT_NULL;      /* surf flg, filled in update0 */
-    s_srf->msc_p[2] = RT_NULL;      /* custom clippers */
-    s_srf->msc_p[3] = RT_NULL;      /* trnode's simd ptr */
+    s_srf->msc_p[0];    /* screen tiles */
+    s_srf->msc_p[1];    /* surf flg, filled in update0 */
+    s_srf->msc_p[2];    /* custom clippers */
+    s_srf->msc_p[3];    /* trnode's simd ptr */
 
-    s_srf->lst_p[0] = RT_NULL;      /* outer lights/shadows */
-    s_srf->lst_p[1] = RT_NULL;      /* outer surfaces for rfl/rfr */
-    s_srf->lst_p[2] = RT_NULL;      /* inner lights/shadows */
-    s_srf->lst_p[3] = RT_NULL;      /* inner surfaces for rfl/rfr */
+    s_srf->lst_p[0];    /* outer lights/shadows */
+    s_srf->lst_p[1];    /* outer surfaces for rfl/rfr */
+    s_srf->lst_p[2];    /* inner lights/shadows */
+    s_srf->lst_p[3];    /* inner surfaces for rfl/rfr */
 
     RT_SIMD_SET(s_srf->sbase, 0x00000000);
     RT_SIMD_SET(s_srf->smask, 0x80000000);
@@ -1494,21 +1496,19 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
         }
     }
 
-/*  rt_SIMD_SURFACE */
-
-    s_bvb = (rt_SIMD_SURFACE *)
-            rg->alloc(RT_MAX(ssize, sizeof(rt_SIMD_SPHERE)), RT_SIMD_ALIGN);
-
-    memset(s_bvb, 0, sizeof(rt_SIMD_SURFACE));
-    s_bvb->srf_p[3] = (rt_pntr)tag; /* tag */
+    ssize = RT_MAX(ssize, sizeof(rt_SIMD_SPHERE));
 
 /*  rt_SIMD_SURFACE */
 
-    s_inb = (rt_SIMD_SURFACE *)
-            rg->alloc(RT_MAX(ssize, sizeof(rt_SIMD_SPHERE)), RT_SIMD_ALIGN);
+    s_bvb = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
+    memset(s_bvb, 0, ssize);
+    s_bvb->srf_p[3] = (rt_pntr)tag;
 
-    memset(s_inb, 0, sizeof(rt_SIMD_SURFACE));
-    s_inb->srf_p[3] = (rt_pntr)tag; /* tag */
+/*  rt_SIMD_SURFACE */
+
+    s_inb = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
+    memset(s_inb, 0, ssize);
+    s_inb->srf_p[3] = (rt_pntr)tag;
 }
 
 /*
@@ -1672,34 +1672,13 @@ rt_void rt_Array::update_fields()
 
     rt_cell shift = 0;
 
-    s_srf->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
-    s_srf->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
-    s_srf->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
     s_srf->a_map[RT_L] = obj_has_trm;
-
-    s_srf->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_srf->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_srf->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
     s_srf->a_sgn[RT_L] = 0;
 
-    s_bvb->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
-    s_bvb->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
-    s_bvb->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
     s_bvb->a_map[RT_L] = obj_has_trm;
-
-    s_bvb->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_bvb->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_bvb->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
     s_bvb->a_sgn[RT_L] = 0;
 
-    s_inb->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
-    s_inb->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
-    s_inb->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
     s_inb->a_map[RT_L] = obj_has_trm;
-
-    s_inb->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_inb->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_inb->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
     s_inb->a_sgn[RT_L] = 0;
 }
 
@@ -3864,8 +3843,7 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
 /*  rt_SIMD_MATERIAL */
 
     s_mat = (rt_SIMD_MATERIAL *)
-            rg->alloc(sizeof(rt_SIMD_MATERIAL),
-                                RT_SIMD_ALIGN);
+            rg->alloc(sizeof(rt_SIMD_MATERIAL), RT_SIMD_ALIGN);
 
     s_mat->t_map[RT_X] = map[RT_X] * RT_SIMD_WIDTH * 4;
     s_mat->t_map[RT_Y] = map[RT_Y] * RT_SIMD_WIDTH * 4;
