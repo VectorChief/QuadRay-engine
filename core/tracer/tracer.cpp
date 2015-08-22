@@ -2700,9 +2700,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use context's normal fields (NRM)
          * as temporary storage for clipping */
         MOVXR_LD(Xmm4, Iecx, ctx_NRM_O)         /* dff_k <- NRM_K */
-        xorpx_rr(Xmm6, Xmm6)                    /* tmp_k <-     0 */
+        xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
 
-        APPLY_CLIP(PL, Xmm4, Xmm6)
+        APPLY_CLIP(PL, Xmm4, Xmm0)
 
         jmpxx_lb(CC_ret)
 
@@ -2882,14 +2882,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm4, Xmm6)                    /* dff_x += dff_z */
         xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
 
-        /* apply clip, equivalent to
-         * APPLY_CLIP(QD, Xmm4, Xmm0) */
-        movxx_ri(Reax, IB(1))
-        subxx_ld(Reax, Medi, elm_DATA)
-        shlxx_ri(Reax, IB(3))
-        movpx_ld(Xmm1, Iebx, srf_SBASE)
-        xorpx_rr(Xmm4, Xmm1)
-        cleps_rr(Xmm4, Xmm0)
+        APPLY_CLIP(TP, Xmm4, Xmm0)
 
         jmpxx_lb(CC_ret)
 
@@ -3474,14 +3467,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm4, Xmm6)                    /* dff_x += dff_z */
         xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
 
-        /* apply clip, equivalent to
-         * APPLY_CLIP(QD, Xmm4, Xmm0) */
-        movxx_ri(Reax, IB(1))
-        subxx_ld(Reax, Medi, elm_DATA)
-        shlxx_ri(Reax, IB(3))
-        movpx_ld(Xmm1, Iebx, srf_SBASE)
-        xorpx_rr(Xmm4, Xmm1)
-        cleps_rr(Xmm4, Xmm0)
+        APPLY_CLIP(QD, Xmm4, Xmm0)
 
         jmpxx_lb(CC_ret)
 
