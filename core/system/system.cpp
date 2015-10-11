@@ -125,7 +125,7 @@ rt_cell rt_File::error()
 }
 
 /*
- * Destroy file after flushing and closing it.
+ * Deinitialize file after flushing and closing it.
  */
 rt_File::~rt_File()
 {
@@ -249,7 +249,7 @@ rt_pntr rt_Heap::release(rt_pntr ptr)
 }
 
 /*
- * Destroy heap.
+ * Deinitialize heap.
  */
 rt_Heap::~rt_Heap()
 {

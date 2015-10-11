@@ -2310,7 +2310,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 }
 
 /*
- * Destroy scene thread.
+ * Deinitialize scene thread.
  */
 rt_SceneThread::~rt_SceneThread()
 {
@@ -3162,7 +3162,7 @@ rt_void rt_Scene::save_frame(rt_cell index)
 }
 
 /*
- * Destroy scene.
+ * Deinitialize scene.
  */
 rt_Scene::~rt_Scene()
 {

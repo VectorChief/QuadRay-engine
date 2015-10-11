@@ -396,7 +396,7 @@ rt_void rt_Object::update_fields()
 }
 
 /*
- * Destroy object.
+ * Deinitialize object.
  */
 rt_Object::~rt_Object()
 {
@@ -561,7 +561,7 @@ rt_void rt_Camera::update_action(rt_time time, rt_cell action)
 }
 
 /*
- * Destroy camera object.
+ * Deinitialize camera object.
  */
 rt_Camera::~rt_Camera()
 {
@@ -645,7 +645,7 @@ rt_void rt_Light::update_fields()
 }
 
 /*
- * Destroy light object.
+ * Deinitialize light object.
  */
 rt_Light::~rt_Light()
 {
@@ -1100,7 +1100,7 @@ rt_void rt_Node::update_bbgeom(rt_BOUND *box)
 }
 
 /*
- * Destroy node object.
+ * Deinitialize node object.
  */
 rt_Node::~rt_Node()
 {
@@ -2100,7 +2100,7 @@ rt_void rt_Array::update_bounds()
 }
 
 /*
- * Destroy array object.
+ * Deinitialize array object.
  */
 rt_Array::~rt_Array()
 {
@@ -2626,7 +2626,7 @@ rt_void rt_Surface::update_bounds()
 }
 
 /*
- * Destroy surface object.
+ * Deinitialize surface object.
  */
 rt_Surface::~rt_Surface()
 {
@@ -2765,7 +2765,7 @@ rt_void rt_Plane::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 }
 
 /*
- * Destroy plane surface object.
+ * Deinitialize plane surface object.
  */
 rt_Plane::~rt_Plane()
 {
@@ -2854,7 +2854,7 @@ rt_void rt_Quadric::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 }
 
 /*
- * Destroy quadric surface object.
+ * Deinitialize quadric surface object.
  */
 rt_Quadric::~rt_Quadric()
 {
@@ -2950,7 +2950,7 @@ rt_void rt_Cylinder::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 }
 
 /*
- * Destroy cylinder surface object.
+ * Deinitialize cylinder surface object.
  */
 rt_Cylinder::~rt_Cylinder()
 {
@@ -3066,7 +3066,7 @@ rt_void rt_Sphere::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 }
 
 /*
- * Destroy sphere surface object.
+ * Deinitialize sphere surface object.
  */
 rt_Sphere::~rt_Sphere()
 {
@@ -3174,7 +3174,7 @@ rt_void rt_Cone::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 }
 
 /*
- * Destroy cone surface object.
+ * Deinitialize cone surface object.
  */
 rt_Cone::~rt_Cone()
 {
@@ -3293,7 +3293,7 @@ rt_void rt_Paraboloid::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 }
 
 /*
- * Destroy paraboloid surface object.
+ * Deinitialize paraboloid surface object.
  */
 rt_Paraboloid::~rt_Paraboloid()
 {
@@ -3403,7 +3403,7 @@ rt_void rt_Hyperboloid::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 }
 
 /*
- * Destroy hyperboloid surface object.
+ * Deinitialize hyperboloid surface object.
  */
 rt_Hyperboloid::~rt_Hyperboloid()
 {
@@ -3520,7 +3520,7 @@ rt_void rt_ParaCylinder::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 }
 
 /*
- * Destroy paracylinder surface object.
+ * Deinitialize paracylinder surface object.
  */
 rt_ParaCylinder::~rt_ParaCylinder()
 {
@@ -3628,7 +3628,7 @@ rt_void rt_HyperCylinder::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 }
 
 /*
- * Destroy hypercylinder surface object.
+ * Deinitialize hypercylinder surface object.
  */
 rt_HyperCylinder::~rt_HyperCylinder()
 {
@@ -3729,7 +3729,7 @@ rt_void rt_HyperParaboloid::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 }
 
 /*
- * Destroy hyperparaboloid surface object.
+ * Deinitialize hyperparaboloid surface object.
  */
 rt_HyperParaboloid::~rt_HyperParaboloid()
 {
@@ -3755,7 +3755,7 @@ rt_Texture::rt_Texture(rt_Registry *rg, rt_pstr name) :
 }
 
 /*
- * Destroy texture.
+ * Deinitialize texture.
  */
 rt_Texture::~rt_Texture()
 {
@@ -3926,7 +3926,7 @@ rt_void rt_Material::resolve_texture(rt_Registry *rg)
 }
 
 /*
- * Destroy material.
+ * Deinitialize material.
  */
 rt_Material::~rt_Material()
 {
