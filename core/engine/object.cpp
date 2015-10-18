@@ -695,6 +695,7 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
     /* reset relations template */
     rel = RT_NULL;
 
+    /* validate surface size */
     ssize = RT_MAX(ssize, sizeof(rt_SIMD_SURFACE));
 
 /*  rt_SIMD_SURFACE */
@@ -1111,6 +1112,32 @@ rt_Node::~rt_Node()
 /**********************************   ARRAY   *********************************/
 /******************************************************************************/
 
+static
+rt_MATERIAL mt_glass01_array01 =
+{
+    RT_MAT(LIGHT),
+
+    RT_TEX(PCOLOR, 0xFFFF8F00),
+
+    {/* dff     spc     pow */
+        1.0,    0.0,    1.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    0.9,    1.0
+    },
+};
+
+static
+rt_SIDE sd_array01 =
+{
+/* OUTER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_glass01_array01,
+};
+
 /*
  * Instantiate array object.
  */
@@ -1487,6 +1514,13 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
         }
     }
 
+    /* init outer side material */
+    outer = new rt_Material(rg, &sd_array01, &mt_glass01_array01);
+
+    /* init inner side material */
+    inner = new rt_Material(rg, &sd_array01, &mt_glass01_array01);
+
+    /* validate surface size */
     ssize = RT_MAX(ssize, sizeof(rt_SIMD_SURFACE));
 
 /*  rt_SIMD_SURFACE */
@@ -1495,11 +1529,21 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     memset(s_bvb, 0, ssize);
     s_bvb->srf_p[3] = (rt_pntr)tag;
 
+    s_bvb->mat_p[0] = outer->s_mat;
+    s_bvb->mat_p[1] = (rt_pntr)outer->props;
+    s_bvb->mat_p[2] = inner->s_mat;
+    s_bvb->mat_p[3] = (rt_pntr)inner->props;
+
 /*  rt_SIMD_SURFACE */
 
     s_inb = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
     memset(s_inb, 0, ssize);
     s_inb->srf_p[3] = (rt_pntr)tag;
+
+    s_inb->mat_p[0] = outer->s_mat;
+    s_inb->mat_p[1] = (rt_pntr)outer->props;
+    s_inb->mat_p[2] = inner->s_mat;
+    s_inb->mat_p[3] = (rt_pntr)inner->props;
 }
 
 /*
@@ -1637,16 +1681,54 @@ rt_void rt_Array::update_fields()
 
     rt_Node::update_fields();
 
-    rt_cell shift = 0;
+    /* if surface or some of its parents has non-trivial transform,
+     * select aux vector fields for axis mapping in backend structures */
+    rt_cell shift = trnode != RT_NULL ? 3 : 0;
 
+    s_srf->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
+    s_srf->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
+    s_srf->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
     s_srf->a_map[RT_L] = obj_has_trm;
-    s_srf->a_sgn[RT_L] = 0;
 
+    s_srf->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_srf->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_srf->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_srf->a_sgn[RT_L] = shift * RT_SIMD_WIDTH * 4;
+
+    /* trnode's simd ptr is needed in rendering backend
+     * to check if surface and its clippers belong to the same trnode */
+    s_srf->msc_p[3] = trnode == RT_NULL ?
+                                RT_NULL : ((rt_Node *)trnode)->s_srf;
+
+    s_bvb->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
+    s_bvb->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
+    s_bvb->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
     s_bvb->a_map[RT_L] = obj_has_trm;
-    s_bvb->a_sgn[RT_L] = 0;
 
+    s_bvb->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_bvb->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_bvb->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_bvb->a_sgn[RT_L] = shift * RT_SIMD_WIDTH * 4;
+
+    /* trnode's simd ptr is needed in rendering backend
+     * to check if surface and its clippers belong to the same trnode */
+    s_bvb->msc_p[3] = trnode == RT_NULL ?
+                                RT_NULL : ((rt_Node *)trnode)->s_srf;
+
+    s_inb->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
+    s_inb->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
+    s_inb->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
     s_inb->a_map[RT_L] = obj_has_trm;
-    s_inb->a_sgn[RT_L] = 0;
+
+    s_inb->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_inb->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_inb->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
+    s_inb->a_sgn[RT_L] = shift * RT_SIMD_WIDTH * 4;
+
+    /* trnode's simd ptr is needed in rendering backend
+     * to check if surface and its clippers belong to the same trnode */
+    s_inb->msc_p[3] = trnode == RT_NULL ?
+                                RT_NULL : ((rt_Node *)trnode)->s_srf;
 }
 
 /*
@@ -2110,6 +2192,9 @@ rt_Array::~rt_Array()
     {
         delete obj_arr[i];
     }
+
+    delete outer;
+    delete inner;
 }
 
 /******************************************************************************/

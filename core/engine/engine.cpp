@@ -2680,8 +2680,7 @@ rt_void rt_Scene::render(rt_time time)
     }
 
     /* screen tiling */
-    rt_cell tline;
-    rt_cell j;
+    rt_cell tline, j;
 
 #if RT_OPTS_TILING != 0
     if ((opts & RT_OPTS_TILING) != 0)

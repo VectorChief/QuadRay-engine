@@ -52,6 +52,8 @@
  * for respective segments of code.
  */
 #define RT_SHOW_TILES               0
+#define RT_SHOW_BOUND               1   /* <- needs RT_OPTS_TILING to be 0 */
+                                        /* ^- needs RT_OPTS_TARRAY to be 0 */
 #define RT_QUAD_DEBUG               0   /* <- needs RT_DEBUG to be enabled */
 
 #define RT_FEAT_TILING              1
@@ -2368,6 +2370,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_IPTR(Resi, LST_P(SRF))
 
+#if RT_SHOW_BOUND
+
+        cmpxx_mi(Mebx, srf_SRF_P(TAG), IB(0))
+        jgexn_lb(TR_arr)                        /* signed comparison */
+        movxx_ld(Resi, Mebp, inf_LST)
+
+    LBL(TR_arr)
+
+#endif /* RT_SHOW_BOUND */
+
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))      /* load tmask */
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
         orrxx_ri(Reax, IB(RT_FLAG_PASS_THRU))
@@ -2505,9 +2517,17 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_ld(Xmm5, Mebx, srf_SCI_W)         /* cxx_t -= RAD_2 */
 
         /* "d" section */
+        movpx_rr(Xmm6, Xmm5)                    /* c_val <- c_val */
         mulps_rr(Xmm5, Xmm1)                    /* c_val *= a_val */
+        movpx_rr(Xmm4, Xmm3)                    /* b_val <- b_val */
         mulps_rr(Xmm3, Xmm3)                    /* b_val *= b_val */
         subps_rr(Xmm3, Xmm5)                    /* d_bxb -= d_axc */
+
+#if RT_SHOW_BOUND
+
+        jmpxx_lb(QD_rts)
+
+#endif /* RT_SHOW_BOUND */
 
         /* create xmask */
         xorpx_rr(Xmm7, Xmm7)                    /* d_min <-     0 */
@@ -3347,6 +3367,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(QD_rs1)
 
     LBL(QD_mtr)
+
+#if RT_SHOW_BOUND
+
+        cmpxx_mi(Mebx, srf_SRF_P(TAG), IB(0))
+        jltxn_lb(QD_mat)                        /* signed comparison */
+
+#endif /* RT_SHOW_BOUND */
 
         jmpxx_mm(Mebx, srf_SRF_P(SRF))          /* material redirect */
 

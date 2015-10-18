@@ -287,7 +287,7 @@ struct rt_BOUND
     rt_cell             fln;
     /* in minmax data format: (1 - min, 2 - max) << (axis_index * 2) */
     rt_cell             flm;
-    /* in face index format as defined in bx_faces: 1 << face_index */
+    /* in faces index format as defined in bx_faces: 1 << face_index */
     rt_cell             flf;
 };
 

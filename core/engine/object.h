@@ -380,6 +380,12 @@ class rt_Node : public rt_Object
 {
 /*  fields */
 
+    protected:
+
+    /* per-side materials */
+    rt_Material        *outer;
+    rt_Material        *inner;
+
     public:
 
     /* reusable relations template
@@ -511,10 +517,6 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
 /*  fields */
 
     protected:
-
-    /* per-side materials */
-    rt_Material        *outer;
-    rt_Material        *inner;
 
     rt_SURFACE         *srf;
 
