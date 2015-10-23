@@ -53,7 +53,6 @@
  */
 #define RT_SHOW_TILES               0
 #define RT_SHOW_BOUND               1   /* <- needs RT_OPTS_TILING to be 0 */
-                                        /* ^- needs RT_OPTS_TARRAY to be 0 */
 #define RT_QUAD_DEBUG               0   /* <- needs RT_DEBUG to be enabled */
 
 #define RT_FEAT_TILING              1
@@ -652,6 +651,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movxx_ld(Rebx, Mesi, elm_SIMD)
 
+#if RT_FEAT_BOUND_VOL_ARRAY
+
+        /* only arrays are allowed to have
+         * non-zero lower two bits in DATA field
+         * for regular surface lists */
+        movxx_ld(Reax, Mesi, elm_DATA)
+        andxx_ri(Reax, IB(3))
+        cmpxx_ri(Reax, IB(1))
+        jeqxx_lb(AR_ptr)
+
+#endif /* RT_FEAT_BOUND_VOL_ARRAY */
+
         /* use local (potentially adjusted)
          * hit point (from unused normal fields)
          * as local diff for secondary rays
@@ -728,18 +739,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * originating from the same surface */
         cmpxx_rm(Rebx, Mecx, ctx_PARAM(OBJ))
         jeqxx_lb(OO_ray)
-
-#if RT_FEAT_BOUND_VOL_ARRAY
-
-        /* only arrays are allowed to have
-         * non-zero lower two bits in DATA field
-         * for regular surface lists */
-        movxx_ld(Reax, Mesi, elm_DATA)
-        andxx_ri(Reax, IB(3))
-        cmpxx_ri(Reax, IB(1))
-        jeqxx_lb(AR_ptr)
-
-#endif /* RT_FEAT_BOUND_VOL_ARRAY */
 
         /* compute diff */
         movpx_ld(Xmm1, Mecx, ctx_ORG_X)

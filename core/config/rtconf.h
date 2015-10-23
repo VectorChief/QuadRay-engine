@@ -72,7 +72,7 @@
 #define RT_OPTS_TILING          (0 << 1)
 #define RT_OPTS_TILING_EXT1     (1 << 2)
 #define RT_OPTS_FSCALE          (1 << 3)
-#define RT_OPTS_TARRAY          (0 << 4)
+#define RT_OPTS_TARRAY          (1 << 4)
 #define RT_OPTS_VARRAY          (1 << 5) /* 6 reserved for future exts */
 #define RT_OPTS_ADJUST          (1 << 7)
 #define RT_OPTS_UPDATE          (1 << 8)
