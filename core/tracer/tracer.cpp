@@ -2524,7 +2524,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_SHOW_BOUND
 
+        movxx_ld(Redx, Mecx, ctx_PARAM(OBJ))
+        cmpxx_ri(Redx, IB(0))
+        jeqxx_lb(AR_shb)
+
+        cmpxx_mi(Medx, srf_SRF_P(TAG), IB(0))
+        jgexn_lb(AR_shn)                        /* signed comparison */
+
+    LBL(AR_shb)
+
         jmpxx_lb(QD_rts)
+
+    LBL(AR_shn)
 
 #endif /* RT_SHOW_BOUND */
 
