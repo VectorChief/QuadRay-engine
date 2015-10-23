@@ -52,7 +52,7 @@
  * for respective segments of code.
  */
 #define RT_SHOW_TILES               0
-#define RT_SHOW_BOUND               1   /* <- needs RT_OPTS_TILING to be 0 */
+#define RT_SHOW_BOUND               0   /* <- needs RT_OPTS_TILING to be 0 */
 #define RT_QUAD_DEBUG               0   /* <- needs RT_DEBUG to be enabled */
 
 #define RT_FEAT_TILING              1
