@@ -1527,7 +1527,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
 
     s_bvb = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
     memset(s_bvb, 0, ssize);
-    s_bvb->srf_p[3] = (rt_pntr)tag;
+    s_bvb->srf_p[3] = (rt_pntr)RT_TAG_SURFACE_MAX;
 
     s_bvb->mat_p[0] = outer->s_mat;
     s_bvb->mat_p[1] = (rt_pntr)outer->props;
@@ -1538,7 +1538,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
 
     s_inb = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
     memset(s_inb, 0, ssize);
-    s_inb->srf_p[3] = (rt_pntr)tag;
+    s_inb->srf_p[3] = (rt_pntr)RT_TAG_SURFACE_MAX;
 
     s_inb->mat_p[0] = outer->s_mat;
     s_inb->mat_p[1] = (rt_pntr)outer->props;

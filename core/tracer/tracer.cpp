@@ -2371,8 +2371,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_SHOW_BOUND
 
-        cmpxx_mi(Mebx, srf_SRF_P(TAG), IB(0))
-        jgexn_lb(TR_arr)                        /* signed comparison */
+        cmpxx_mi(Mebx, srf_SRF_P(TAG), IB(RT_TAG_SURFACE_MAX))
+        jnexx_lb(TR_arr)
         movxx_ld(Resi, Mebp, inf_LST)
 
     LBL(TR_arr)
@@ -2528,8 +2528,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmpxx_ri(Redx, IB(0))
         jeqxx_lb(AR_shb)
 
-        cmpxx_mi(Medx, srf_SRF_P(TAG), IB(0))
-        jgexn_lb(AR_shn)                        /* signed comparison */
+        cmpxx_mi(Medx, srf_SRF_P(TAG), IB(RT_TAG_SURFACE_MAX))
+        jnexx_lb(AR_shn)
 
     LBL(AR_shb)
 
@@ -3380,8 +3380,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_SHOW_BOUND
 
-        cmpxx_mi(Mebx, srf_SRF_P(TAG), IB(0))
-        jltxn_lb(QD_mat)                        /* signed comparison */
+        cmpxx_mi(Mebx, srf_SRF_P(TAG), IB(RT_TAG_SURFACE_MAX))
+        jeqxx_lb(QD_mat)
 
 #endif /* RT_SHOW_BOUND */
 
