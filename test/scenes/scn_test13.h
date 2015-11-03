@@ -367,26 +367,6 @@ rt_OBJECT ob_camera01[] =
 /**********************************   TREE   **********************************/
 /******************************************************************************/
 
-rt_OBJECT ob_err01[] =
-{
-    {
-        {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {    0.0,        0.0,        1.1    },
-        },
-        RT_OBJ_PLANE(&pl_cube02side01)
-    },
-    {
-        {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {    0.0,        0.0,       17.0    },
-/* pos */   {    0.0,        0.0,        0.0    },
-        },
-        RT_OBJ_ARRAY_REL(&ob_cube01, &rl_bound)
-    },
-};
-
 /*
  * As the rendering backend doesn't attempt to sort overlapping surfaces
  * to produce the correct result, the cubes are placed slightly above the floor
@@ -406,7 +386,6 @@ rt_OBJECT ob_tree[] =
         },
         RT_OBJ_ARRAY(&ob_base01)
     },
-#if 0
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
@@ -415,16 +394,6 @@ rt_OBJECT ob_tree[] =
         },
         RT_OBJ_ARRAY_REL(&ob_cube01, &rl_bound)
     },
-#else
-    {
-        {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {  -10.7,       -4.7,        1.0001 },
-        },
-        RT_OBJ_ARRAY_REL(&ob_err01, &rl_bound)
-    },
-#endif
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
