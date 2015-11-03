@@ -2000,7 +2000,8 @@ rt_void rt_Array::update_bounds()
         if (arr != RT_NULL)
         {
             src_box = RT_IS_ARRAY(nd) ? nd->trnode != nd ||
-                      ((rt_Array *)nd)->trbox->rad != 0.0f ?
+                      ((rt_Array *)nd)->trbox->rad != 0.0f ||
+                      ((rt_Array *)nd)->bvbox->rad == 0.0f ?
                       ((rt_Array *)nd)->inbox : RT_NULL : src_box;
         }
 
