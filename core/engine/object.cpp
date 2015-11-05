@@ -1534,6 +1534,13 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     s_inb->mat_p[2] = inner->s_mat;
     s_inb->mat_p[3] = (rt_pntr)inner->props;
 
+    RT_SIMD_SET(s_inb->sbase, 0x00000000);
+    RT_SIMD_SET(s_inb->smask, 0x80000000);
+    RT_SIMD_SET(s_inb->c_def, 0xFFFFFFFF);
+
+    RT_SIMD_SET(s_inb->d_eps, RT_DEPS_THRESHOLD);
+    RT_SIMD_SET(s_inb->t_eps, RT_TEPS_THRESHOLD);
+
 /*  rt_SIMD_SURFACE */
 
     s_bvb = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
@@ -1544,6 +1551,13 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     s_bvb->mat_p[1] = (rt_pntr)outer->props;
     s_bvb->mat_p[2] = inner->s_mat;
     s_bvb->mat_p[3] = (rt_pntr)inner->props;
+
+    RT_SIMD_SET(s_bvb->sbase, 0x00000000);
+    RT_SIMD_SET(s_bvb->smask, 0x80000000);
+    RT_SIMD_SET(s_bvb->c_def, 0xFFFFFFFF);
+
+    RT_SIMD_SET(s_bvb->d_eps, RT_DEPS_THRESHOLD);
+    RT_SIMD_SET(s_bvb->t_eps, RT_TEPS_THRESHOLD);
 }
 
 /*
@@ -2090,9 +2104,9 @@ rt_void rt_Array::update_bounds()
     {
         update_bbgeom(inbox);
 
-        RT_SIMD_SET(s_inb->pos_x, inbox->mid[RT_X]);
-        RT_SIMD_SET(s_inb->pos_y, inbox->mid[RT_Y]);
-        RT_SIMD_SET(s_inb->pos_z, inbox->mid[RT_Z]);
+        RT_SIMD_SET(s_inb->pos_x, inbox->mid[RT_X] - trnode->pos[RT_X]);
+        RT_SIMD_SET(s_inb->pos_y, inbox->mid[RT_Y] - trnode->pos[RT_Y]);
+        RT_SIMD_SET(s_inb->pos_z, inbox->mid[RT_Z] - trnode->pos[RT_Z]);
         RT_SIMD_SET(s_inb->sci_w, inbox->rad * inbox->rad);
 
         /* contribute trnode array's inbox to trbox if trbox has contents,
@@ -2160,6 +2174,28 @@ rt_void rt_Array::update_bounds()
             {
                 dst_box->rad = src_box->rad;
             }
+        }
+        else
+        if (trnode == this)
+        {
+            s_inb->a_map[RT_I] = RT_X * RT_SIMD_WIDTH * 4;
+            s_inb->a_map[RT_J] = RT_Y * RT_SIMD_WIDTH * 4;
+            s_inb->a_map[RT_K] = RT_Z * RT_SIMD_WIDTH * 4;
+            s_inb->a_map[RT_L] = 0;
+
+            s_inb->a_sgn[RT_I] = 0;
+            s_inb->a_sgn[RT_J] = 0;
+            s_inb->a_sgn[RT_K] = 0;
+            s_inb->a_sgn[RT_L] = 0;
+
+            /* trnode's simd ptr is needed in rendering backend
+             * to check if surface and its clippers belong to the same trnode */
+            s_inb->msc_p[3] = RT_NULL;
+
+            RT_SIMD_SET(s_inb->pos_x, inbox->mid[RT_X]);
+            RT_SIMD_SET(s_inb->pos_y, inbox->mid[RT_Y]);
+            RT_SIMD_SET(s_inb->pos_z, inbox->mid[RT_Z]);
+            RT_SIMD_SET(s_inb->sci_w, inbox->rad * inbox->rad);
         }
     }
 
