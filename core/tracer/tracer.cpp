@@ -2480,19 +2480,27 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "x" section */
         movpx_ld(Xmm1, Iecx, ctx_RAY_X)         /* ray_x <- RAY_X */
+        movpx_ld(Xmm0, Mebx, srf_SCI_X)         /* sri_x <- SCI_X */
+        mulps_rr(Xmm0, Xmm1)                    /* sri_x *= ray_x */
         movpx_ld(Xmm5, Iecx, ctx_DFF_X)         /* dff_x <- DFF_X */
+        movpx_ld(Xmm7, Mebx, srf_SCI_X)         /* sdi_x <- SCI_X */
+        mulps_rr(Xmm7, Xmm5)                    /* sdi_x *= dff_x */
         movpx_rr(Xmm3, Xmm1)                    /* ray_x <- ray_x */
-        mulps_rr(Xmm3, Xmm5)                    /* ray_x *= dff_x */
-        mulps_rr(Xmm1, Xmm1)                    /* ray_x *= ray_x */
-        mulps_rr(Xmm5, Xmm5)                    /* dff_x *= dff_x */
+        mulps_rr(Xmm1, Xmm0)                    /* ray_x *= sri_x */
+        mulps_rr(Xmm3, Xmm7)                    /* ray_x *= sdi_x */
+        mulps_rr(Xmm5, Xmm7)                    /* dff_x *= sdi_x */
 
         /* "y" section */
         movpx_ld(Xmm2, Iecx, ctx_RAY_Y)         /* ray_y <- RAY_Y */
+        movpx_ld(Xmm0, Mebx, srf_SCI_Y)         /* sri_y <- SCI_Y */
+        mulps_rr(Xmm0, Xmm2)                    /* sri_y *= ray_y */
         movpx_ld(Xmm6, Iecx, ctx_DFF_Y)         /* dff_y <- DFF_Y */
+        movpx_ld(Xmm7, Mebx, srf_SCI_Y)         /* sdi_y <- SCI_Y */
+        mulps_rr(Xmm7, Xmm6)                    /* sdi_y *= dff_y */
         movpx_rr(Xmm4, Xmm2)                    /* ray_y <- ray_y */
-        mulps_rr(Xmm4, Xmm6)                    /* ray_y *= dff_y */
-        mulps_rr(Xmm2, Xmm2)                    /* ray_y *= ray_y */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_y *= dff_y */
+        mulps_rr(Xmm2, Xmm0)                    /* ray_y *= sri_y */
+        mulps_rr(Xmm4, Xmm7)                    /* ray_y *= sdi_y */
+        mulps_rr(Xmm6, Xmm7)                    /* dff_y *= sdi_y */
 
         /* "+" section */
         addps_rr(Xmm1, Xmm2)                    /* axx_x += axx_y */
@@ -2501,11 +2509,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* "z" section */
         movpx_ld(Xmm2, Iecx, ctx_RAY_Z)         /* ray_z <- RAY_Z */
+        movpx_ld(Xmm0, Mebx, srf_SCI_Z)         /* sri_z <- SCI_Z */
+        mulps_rr(Xmm0, Xmm2)                    /* sri_z *= ray_z */
         movpx_ld(Xmm6, Iecx, ctx_DFF_Z)         /* dff_z <- DFF_Z */
+        movpx_ld(Xmm7, Mebx, srf_SCI_Z)         /* sdi_z <- SCI_Z */
+        mulps_rr(Xmm7, Xmm6)                    /* sdi_z *= dff_z */
         movpx_rr(Xmm4, Xmm2)                    /* ray_z <- ray_z */
-        mulps_rr(Xmm4, Xmm6)                    /* ray_z *= dff_z */
-        mulps_rr(Xmm2, Xmm2)                    /* ray_z *= ray_z */
-        mulps_rr(Xmm6, Xmm6)                    /* dff_z *= dff_z */
+        mulps_rr(Xmm2, Xmm0)                    /* ray_z *= sri_z */
+        mulps_rr(Xmm4, Xmm7)                    /* ray_z *= sdi_z */
+        mulps_rr(Xmm6, Xmm7)                    /* dff_z *= sdi_z */
 
         /* "+" section */
         addps_rr(Xmm1, Xmm2)                    /* axx_t += axx_z */

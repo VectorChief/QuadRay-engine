@@ -1729,6 +1729,10 @@ rt_void rt_Array::update_fields()
     s_inb->msc_p[3] = trnode == RT_NULL ?
                                 RT_NULL : ((rt_Node *)trnode)->s_srf;
 
+    RT_SIMD_SET(s_inb->scj_x, 0.0f);
+    RT_SIMD_SET(s_inb->scj_y, 0.0f);
+    RT_SIMD_SET(s_inb->scj_z, 0.0f);
+
     s_bvb->a_map[RT_I] = RT_X * RT_SIMD_WIDTH * 4;
     s_bvb->a_map[RT_J] = RT_Y * RT_SIMD_WIDTH * 4;
     s_bvb->a_map[RT_K] = RT_Z * RT_SIMD_WIDTH * 4;
@@ -1742,6 +1746,10 @@ rt_void rt_Array::update_fields()
     /* trnode's simd ptr is needed in rendering backend
      * to check if surface and its clippers belong to the same trnode */
     s_bvb->msc_p[3] = RT_NULL;
+
+    RT_SIMD_SET(s_bvb->scj_x, 0.0f);
+    RT_SIMD_SET(s_bvb->scj_y, 0.0f);
+    RT_SIMD_SET(s_bvb->scj_z, 0.0f);
 }
 
 /*
@@ -2104,10 +2112,17 @@ rt_void rt_Array::update_bounds()
     {
         update_bbgeom(inbox);
 
-        RT_SIMD_SET(s_inb->pos_x, inbox->mid[RT_X] - trnode->pos[RT_X]);
-        RT_SIMD_SET(s_inb->pos_y, inbox->mid[RT_Y] - trnode->pos[RT_Y]);
-        RT_SIMD_SET(s_inb->pos_z, inbox->mid[RT_Z] - trnode->pos[RT_Z]);
-        RT_SIMD_SET(s_inb->sci_w, inbox->rad * inbox->rad);
+        RT_SIMD_SET(s_inb->pos_x, (inbox->bmin[RT_X]+inbox->bmax[RT_X])*0.5f);
+        RT_SIMD_SET(s_inb->pos_y, (inbox->bmin[RT_Y]+inbox->bmax[RT_Y])*0.5f);
+        RT_SIMD_SET(s_inb->pos_z, (inbox->bmin[RT_Z]+inbox->bmax[RT_Z])*0.5f);
+
+        rt_vec4 dff;
+        RT_VEC3_SUB(dff, inbox->bmax, inbox->bmin);
+
+        RT_SIMD_SET(s_inb->sci_w, 0.75f); /* unit cube's radius squared */
+        RT_SIMD_SET(s_inb->sci_x, 1.0f / (dff[RT_X] * dff[RT_X]));
+        RT_SIMD_SET(s_inb->sci_y, 1.0f / (dff[RT_Y] * dff[RT_Y]));
+        RT_SIMD_SET(s_inb->sci_z, 1.0f / (dff[RT_Z] * dff[RT_Z]));
 
         /* contribute trnode array's inbox to trbox if trbox has contents,
          * trbox has priority over bvbox here as bvbox might get split */
@@ -2195,7 +2210,11 @@ rt_void rt_Array::update_bounds()
             RT_SIMD_SET(s_inb->pos_x, inbox->mid[RT_X]);
             RT_SIMD_SET(s_inb->pos_y, inbox->mid[RT_Y]);
             RT_SIMD_SET(s_inb->pos_z, inbox->mid[RT_Z]);
+
             RT_SIMD_SET(s_inb->sci_w, inbox->rad * inbox->rad);
+            RT_SIMD_SET(s_inb->sci_x, 1.0f);
+            RT_SIMD_SET(s_inb->sci_y, 1.0f);
+            RT_SIMD_SET(s_inb->sci_z, 1.0f);
         }
     }
 
@@ -2204,10 +2223,17 @@ rt_void rt_Array::update_bounds()
     {
         update_bbgeom(bvbox);
 
-        RT_SIMD_SET(s_bvb->pos_x, bvbox->mid[RT_X]);
-        RT_SIMD_SET(s_bvb->pos_y, bvbox->mid[RT_Y]);
-        RT_SIMD_SET(s_bvb->pos_z, bvbox->mid[RT_Z]);
-        RT_SIMD_SET(s_bvb->sci_w, bvbox->rad * bvbox->rad);
+        RT_SIMD_SET(s_bvb->pos_x, (bvbox->bmin[RT_X]+bvbox->bmax[RT_X])*0.5f);
+        RT_SIMD_SET(s_bvb->pos_y, (bvbox->bmin[RT_Y]+bvbox->bmax[RT_Y])*0.5f);
+        RT_SIMD_SET(s_bvb->pos_z, (bvbox->bmin[RT_Z]+bvbox->bmax[RT_Z])*0.5f);
+
+        rt_vec4 dff;
+        RT_VEC3_SUB(dff, bvbox->bmax, bvbox->bmin);
+
+        RT_SIMD_SET(s_bvb->sci_w, 0.75f); /* unit cube's radius squared */
+        RT_SIMD_SET(s_bvb->sci_x, 1.0f / (dff[RT_X] * dff[RT_X]));
+        RT_SIMD_SET(s_bvb->sci_y, 1.0f / (dff[RT_Y] * dff[RT_Y]));
+        RT_SIMD_SET(s_bvb->sci_z, 1.0f / (dff[RT_Z] * dff[RT_Z]));
     }
 
     /* update trbox's geometry */
