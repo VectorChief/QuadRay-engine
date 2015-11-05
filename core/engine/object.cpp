@@ -1525,17 +1525,6 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
 
 /*  rt_SIMD_SURFACE */
 
-    s_bvb = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
-    memset(s_bvb, 0, ssize);
-    s_bvb->srf_p[3] = (rt_pntr)RT_TAG_SURFACE_MAX;
-
-    s_bvb->mat_p[0] = outer->s_mat;
-    s_bvb->mat_p[1] = (rt_pntr)outer->props;
-    s_bvb->mat_p[2] = inner->s_mat;
-    s_bvb->mat_p[3] = (rt_pntr)inner->props;
-
-/*  rt_SIMD_SURFACE */
-
     s_inb = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
     memset(s_inb, 0, ssize);
     s_inb->srf_p[3] = (rt_pntr)RT_TAG_SURFACE_MAX;
@@ -1544,6 +1533,17 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     s_inb->mat_p[1] = (rt_pntr)outer->props;
     s_inb->mat_p[2] = inner->s_mat;
     s_inb->mat_p[3] = (rt_pntr)inner->props;
+
+/*  rt_SIMD_SURFACE */
+
+    s_bvb = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
+    memset(s_bvb, 0, ssize);
+    s_bvb->srf_p[3] = (rt_pntr)RT_TAG_SURFACE_MAX;
+
+    s_bvb->mat_p[0] = outer->s_mat;
+    s_bvb->mat_p[1] = (rt_pntr)outer->props;
+    s_bvb->mat_p[2] = inner->s_mat;
+    s_bvb->mat_p[3] = (rt_pntr)inner->props;
 }
 
 /*
@@ -1700,21 +1700,6 @@ rt_void rt_Array::update_fields()
     s_srf->msc_p[3] = trnode == RT_NULL ?
                                 RT_NULL : ((rt_Node *)trnode)->s_srf;
 
-    s_bvb->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
-    s_bvb->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
-    s_bvb->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
-    s_bvb->a_map[RT_L] = obj_has_trm;
-
-    s_bvb->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_bvb->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_bvb->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_bvb->a_sgn[RT_L] = shift * RT_SIMD_WIDTH * 4;
-
-    /* trnode's simd ptr is needed in rendering backend
-     * to check if surface and its clippers belong to the same trnode */
-    s_bvb->msc_p[3] = trnode == RT_NULL ?
-                                RT_NULL : ((rt_Node *)trnode)->s_srf;
-
     s_inb->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
     s_inb->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
     s_inb->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
@@ -1729,6 +1714,20 @@ rt_void rt_Array::update_fields()
      * to check if surface and its clippers belong to the same trnode */
     s_inb->msc_p[3] = trnode == RT_NULL ?
                                 RT_NULL : ((rt_Node *)trnode)->s_srf;
+
+    s_bvb->a_map[RT_I] = RT_X * RT_SIMD_WIDTH * 4;
+    s_bvb->a_map[RT_J] = RT_Y * RT_SIMD_WIDTH * 4;
+    s_bvb->a_map[RT_K] = RT_Z * RT_SIMD_WIDTH * 4;
+    s_bvb->a_map[RT_L] = 0;
+
+    s_bvb->a_sgn[RT_I] = 0;
+    s_bvb->a_sgn[RT_J] = 0;
+    s_bvb->a_sgn[RT_K] = 0;
+    s_bvb->a_sgn[RT_L] = 0;
+
+    /* trnode's simd ptr is needed in rendering backend
+     * to check if surface and its clippers belong to the same trnode */
+    s_bvb->msc_p[3] = RT_NULL;
 }
 
 /*

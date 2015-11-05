@@ -468,12 +468,12 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
     rt_BOUND           *inbox;
 
     /* surface SIMD struct,
-     * used for bvbox part of bvnode */
-    rt_SIMD_SURFACE    *s_bvb;
-
-    /* surface SIMD struct,
      * used for inbox part of bvnode */
     rt_SIMD_SURFACE    *s_inb;
+
+    /* surface SIMD struct,
+     * used for bvbox part of bvnode */
+    rt_SIMD_SURFACE    *s_bvb;
 
 /*  methods */
 
