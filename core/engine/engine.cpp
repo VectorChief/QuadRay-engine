@@ -2984,52 +2984,36 @@ rt_void rt_Scene::render_slice(rt_cell index, rt_cell phase)
     /* adjust ray steppers according to anti-aliasing mode */
     rt_real fdh[8], fdv[8];
     rt_real fhr, fvr;
+    rt_cell i;
 
     if (fsaa == RT_FSAA_4X)
     {
         rt_real as = 0.25f;
         rt_real ar = 0.08f;
 
-        fdh[0] = 0.0f + (-ar-as);
-        fdh[1] = 0.0f + (-ar+as);
-        fdh[2] = 0.0f + (+ar-as);
-        fdh[3] = 0.0f + (+ar+as);
-        fdh[4] = 1.0f + (-ar-as);
-        fdh[5] = 1.0f + (-ar+as);
-        fdh[6] = 1.0f + (+ar-as);
-        fdh[7] = 1.0f + (+ar+as);
+        for (i = 0; i < RT_SIMD_QUADS; i++)
+        {
+            fdh[i*4+0] = (-ar-as) + (rt_real)i;
+            fdh[i*4+1] = (-ar+as) + (rt_real)i;
+            fdh[i*4+2] = (+ar-as) + (rt_real)i;
+            fdh[i*4+3] = (+ar+as) + (rt_real)i;
 
-        fdv[0] = (+ar-as) + (rt_real)index;
-        fdv[1] = (-ar-as) + (rt_real)index;
-        fdv[2] = (+ar+as) + (rt_real)index;
-        fdv[3] = (-ar+as) + (rt_real)index;
-        fdv[4] = (+ar-as) + (rt_real)index;
-        fdv[5] = (-ar-as) + (rt_real)index;
-        fdv[6] = (+ar+as) + (rt_real)index;
-        fdv[7] = (-ar+as) + (rt_real)index;
+            fdv[i*4+0] = (+ar-as) + (rt_real)index;
+            fdv[i*4+1] = (-ar-as) + (rt_real)index;
+            fdv[i*4+2] = (+ar+as) + (rt_real)index;
+            fdv[i*4+3] = (-ar+as) + (rt_real)index;
+        }
 
         fhr = (rt_real)RT_SIMD_QUADS;
         fvr = (rt_real)thnum;
     }
     else
     {
-        fdh[0] = 0.0f;
-        fdh[1] = 1.0f;
-        fdh[2] = 2.0f;
-        fdh[3] = 3.0f;
-        fdh[4] = 4.0f;
-        fdh[5] = 5.0f;
-        fdh[6] = 6.0f;
-        fdh[7] = 7.0f;
-
-        fdv[0] = (rt_real)index;
-        fdv[1] = (rt_real)index;
-        fdv[2] = (rt_real)index;
-        fdv[3] = (rt_real)index;
-        fdv[4] = (rt_real)index;
-        fdv[5] = (rt_real)index;
-        fdv[6] = (rt_real)index;
-        fdv[7] = (rt_real)index;
+        for (i = 0; i < RT_SIMD_WIDTH; i++)
+        {
+            fdh[i] = (rt_real)i;
+            fdv[i] = (rt_real)index;
+        }
 
         fhr = (rt_real)RT_SIMD_WIDTH;
         fvr = (rt_real)thnum;
@@ -3041,32 +3025,12 @@ rt_void rt_Scene::render_slice(rt_cell index, rt_cell phase)
 
     RT_SIMD_SET(s_cam->t_max, RT_INF);
 
-    s_cam->dir_x[0] = dir[RT_X] + fdh[0] * hor[RT_X] + fdv[0] * ver[RT_X];
-    s_cam->dir_x[1] = dir[RT_X] + fdh[1] * hor[RT_X] + fdv[1] * ver[RT_X];
-    s_cam->dir_x[2] = dir[RT_X] + fdh[2] * hor[RT_X] + fdv[2] * ver[RT_X];
-    s_cam->dir_x[3] = dir[RT_X] + fdh[3] * hor[RT_X] + fdv[3] * ver[RT_X];
-    s_cam->dir_x[4] = dir[RT_X] + fdh[4] * hor[RT_X] + fdv[4] * ver[RT_X];
-    s_cam->dir_x[5] = dir[RT_X] + fdh[5] * hor[RT_X] + fdv[5] * ver[RT_X];
-    s_cam->dir_x[6] = dir[RT_X] + fdh[6] * hor[RT_X] + fdv[6] * ver[RT_X];
-    s_cam->dir_x[7] = dir[RT_X] + fdh[7] * hor[RT_X] + fdv[7] * ver[RT_X];
-
-    s_cam->dir_y[0] = dir[RT_Y] + fdh[0] * hor[RT_Y] + fdv[0] * ver[RT_Y];
-    s_cam->dir_y[1] = dir[RT_Y] + fdh[1] * hor[RT_Y] + fdv[1] * ver[RT_Y];
-    s_cam->dir_y[2] = dir[RT_Y] + fdh[2] * hor[RT_Y] + fdv[2] * ver[RT_Y];
-    s_cam->dir_y[3] = dir[RT_Y] + fdh[3] * hor[RT_Y] + fdv[3] * ver[RT_Y];
-    s_cam->dir_y[4] = dir[RT_Y] + fdh[4] * hor[RT_Y] + fdv[4] * ver[RT_Y];
-    s_cam->dir_y[5] = dir[RT_Y] + fdh[5] * hor[RT_Y] + fdv[5] * ver[RT_Y];
-    s_cam->dir_y[6] = dir[RT_Y] + fdh[6] * hor[RT_Y] + fdv[6] * ver[RT_Y];
-    s_cam->dir_y[7] = dir[RT_Y] + fdh[7] * hor[RT_Y] + fdv[7] * ver[RT_Y];
-
-    s_cam->dir_z[0] = dir[RT_Z] + fdh[0] * hor[RT_Z] + fdv[0] * ver[RT_Z];
-    s_cam->dir_z[1] = dir[RT_Z] + fdh[1] * hor[RT_Z] + fdv[1] * ver[RT_Z];
-    s_cam->dir_z[2] = dir[RT_Z] + fdh[2] * hor[RT_Z] + fdv[2] * ver[RT_Z];
-    s_cam->dir_z[3] = dir[RT_Z] + fdh[3] * hor[RT_Z] + fdv[3] * ver[RT_Z];
-    s_cam->dir_z[4] = dir[RT_Z] + fdh[4] * hor[RT_Z] + fdv[4] * ver[RT_Z];
-    s_cam->dir_z[5] = dir[RT_Z] + fdh[5] * hor[RT_Z] + fdv[5] * ver[RT_Z];
-    s_cam->dir_z[6] = dir[RT_Z] + fdh[6] * hor[RT_Z] + fdv[6] * ver[RT_Z];
-    s_cam->dir_z[7] = dir[RT_Z] + fdh[7] * hor[RT_Z] + fdv[7] * ver[RT_Z];
+    for (i = 0; i < RT_SIMD_WIDTH; i++)
+    {
+        s_cam->dir_x[i] = dir[RT_X] + fdh[i] * hor[RT_X] + fdv[i] * ver[RT_X];
+        s_cam->dir_y[i] = dir[RT_Y] + fdh[i] * hor[RT_Y] + fdv[i] * ver[RT_Y];
+        s_cam->dir_z[i] = dir[RT_Z] + fdh[i] * hor[RT_Z] + fdv[i] * ver[RT_Z];
+    }
 
     RT_SIMD_SET(s_cam->hor_x, hor[RT_X] * fhr);
     RT_SIMD_SET(s_cam->hor_y, hor[RT_Y] * fhr);
