@@ -152,6 +152,10 @@
         movxx_st(Reax, Mecx, ctx_C_BUF(0x04))                               \
         movxx_st(Reax, Mecx, ctx_C_BUF(0x08))                               \
         movxx_st(Reax, Mecx, ctx_C_BUF(0x0C))                               \
+        movxx_st(Reax, Mecx, ctx_C_BUF(0x10))                               \
+        movxx_st(Reax, Mecx, ctx_C_BUF(0x14))                               \
+        movxx_st(Reax, Mecx, ctx_C_BUF(0x18))                               \
+        movxx_st(Reax, Mecx, ctx_C_BUF(0x1C))                               \
         PAINT_COLX(10, COL_R(0))                                            \
         PAINT_COLX(08, COL_G(0))                                            \
         PAINT_COLX(00, COL_B(0))
@@ -336,7 +340,11 @@
         STORE_FRAG(lb, 00, pl)                                              \
         STORE_FRAG(lb, 04, pl)                                              \
         STORE_FRAG(lb, 08, pl)                                              \
-        STORE_FRAG(lb, 0C, pl)
+        STORE_FRAG(lb, 0C, pl)                                              \
+        STORE_FRAG(lb, 10, pl)                                              \
+        STORE_FRAG(lb, 14, pl)                                              \
+        STORE_FRAG(lb, 18, pl)                                              \
+        STORE_FRAG(lb, 1C, pl)
 
 /*
  * Update relevant fragments of the
@@ -368,6 +376,10 @@
         PAINT_FRAG(lb, 04)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
         PAINT_FRAG(lb, 0C)                                                  \
+        PAINT_FRAG(lb, 10)                                                  \
+        PAINT_FRAG(lb, 14)                                                  \
+        PAINT_FRAG(lb, 18)                                                  \
+        PAINT_FRAG(lb, 1C)                                                  \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
         PAINT_COLX(10, TEX_R)                                               \
         PAINT_COLX(08, TEX_G)                                               \
@@ -3556,35 +3568,80 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         adrpx_ld(Reax, Mecx, ctx_C_BUF(0))
         FRAME_SIMD()
 
+        movxx_ri(Resi, IW(0x00F0F0F0))
+
         movxx_ld(Rebx, Mecx, ctx_C_BUF(0x00))
-        andxx_ri(Rebx, IW(0x00F0F0F0))
+        andxx_rr(Rebx, Resi)
         movxx_rr(Reax, Rebx)
         movxx_ld(Rebx, Mecx, ctx_C_BUF(0x04))
-        andxx_ri(Rebx, IW(0x00F0F0F0))
+        andxx_rr(Rebx, Resi)
         addxx_rr(Reax, Rebx)
         movxx_ld(Rebx, Mecx, ctx_C_BUF(0x08))
-        andxx_ri(Rebx, IW(0x00F0F0F0))
+        andxx_rr(Rebx, Resi)
         addxx_rr(Reax, Rebx)
         movxx_ld(Rebx, Mecx, ctx_C_BUF(0x0C))
-        andxx_ri(Rebx, IW(0x00F0F0F0))
+        andxx_rr(Rebx, Resi)
         addxx_rr(Reax, Rebx)
         shrxx_ri(Reax, IB(2))
 
+        movxx_ri(Redi, IW(0x000F0F0F))
+
         movxx_ld(Rebx, Mecx, ctx_C_BUF(0x00))
-        andxx_ri(Rebx, IW(0x000F0F0F))
+        andxx_rr(Rebx, Redi)
         movxx_rr(Redx, Rebx)
         movxx_ld(Rebx, Mecx, ctx_C_BUF(0x04))
-        andxx_ri(Rebx, IW(0x000F0F0F))
+        andxx_rr(Rebx, Redi)
         addxx_rr(Redx, Rebx)
         movxx_ld(Rebx, Mecx, ctx_C_BUF(0x08))
-        andxx_ri(Rebx, IW(0x000F0F0F))
+        andxx_rr(Rebx, Redi)
         addxx_rr(Redx, Rebx)
         movxx_ld(Rebx, Mecx, ctx_C_BUF(0x0C))
-        andxx_ri(Rebx, IW(0x000F0F0F))
+        andxx_rr(Rebx, Redi)
         addxx_rr(Redx, Rebx)
         shrxx_ri(Redx, IB(2))
 
-        andxx_ri(Redx, IW(0x000F0F0F))
+        andxx_rr(Redx, Redi)
+        addxx_rr(Redx, Reax)
+
+        movxx_ld(Reax, Mebp, inf_FRM_X)
+        shlxx_ri(Reax, IB(2))
+        addxx_ld(Reax, Mebp, inf_FRM)
+        movxx_st(Redx, Oeax, PLAIN)
+        addxx_mi(Mebp, inf_FRM_X, IB(1))
+
+        movxx_ri(Resi, IW(0x00F0F0F0))
+
+        movxx_ld(Rebx, Mecx, ctx_C_BUF(0x10))
+        andxx_rr(Rebx, Resi)
+        movxx_rr(Reax, Rebx)
+        movxx_ld(Rebx, Mecx, ctx_C_BUF(0x14))
+        andxx_rr(Rebx, Resi)
+        addxx_rr(Reax, Rebx)
+        movxx_ld(Rebx, Mecx, ctx_C_BUF(0x18))
+        andxx_rr(Rebx, Resi)
+        addxx_rr(Reax, Rebx)
+        movxx_ld(Rebx, Mecx, ctx_C_BUF(0x1C))
+        andxx_rr(Rebx, Resi)
+        addxx_rr(Reax, Rebx)
+        shrxx_ri(Reax, IB(2))
+
+        movxx_ri(Redi, IW(0x000F0F0F))
+
+        movxx_ld(Rebx, Mecx, ctx_C_BUF(0x10))
+        andxx_rr(Rebx, Redi)
+        movxx_rr(Redx, Rebx)
+        movxx_ld(Rebx, Mecx, ctx_C_BUF(0x14))
+        andxx_rr(Rebx, Redi)
+        addxx_rr(Redx, Rebx)
+        movxx_ld(Rebx, Mecx, ctx_C_BUF(0x18))
+        andxx_rr(Rebx, Redi)
+        addxx_rr(Redx, Rebx)
+        movxx_ld(Rebx, Mecx, ctx_C_BUF(0x1C))
+        andxx_rr(Rebx, Redi)
+        addxx_rr(Redx, Rebx)
+        shrxx_ri(Redx, IB(2))
+
+        andxx_rr(Redx, Redi)
         addxx_rr(Redx, Reax)
 
         movxx_ld(Reax, Mebp, inf_FRM_X)
@@ -3603,7 +3660,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         shlxx_ri(Reax, IB(2))
         addxx_ld(Reax, Mebp, inf_FRM)
         FRAME_SIMD()
-        addxx_mi(Mebp, inf_FRM_X, IB(4))
+        addxx_mi(Mebp, inf_FRM_X, IB(RT_SIMD_WIDTH))
 
     LBL(FF_end)
 
