@@ -36,7 +36,8 @@
  *  - rtarch_arm.h         - 32-bit ARMv7 ISA, 16 core registers, 8 + temps used
  *  - rtarch_arm_mpe.h     - 32-bit ARMv7 ISA, 16 SIMD registers, 8 + temps used
  *  - rtarch_x86.h         - 32-bit x86 ISA, 8 core registers, 6 + esp, ebp used
- *  - rtarch_x86_sse.h     - 32-bit x86 ISA, 8 SIMD registers, 8 used
+ *  - rtarch_x86_sse.h     - 32-bit x86 ISA, 8 SIMD registers, 8 used, 128-bit
+ *  - rtarch_x86_avx.h     - 32-bit x86 ISA, 8 SIMD registers, 8 used, 256-bit
  *
  * Future 32-bit targets:
  *  - rtarch_a32.h         - 32-bit ARMv8 ISA, 16 core registers, new features
