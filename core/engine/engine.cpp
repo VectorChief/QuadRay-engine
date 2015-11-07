@@ -2982,7 +2982,7 @@ rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
 rt_void rt_Scene::render_slice(rt_cell index, rt_cell phase)
 {
     /* adjust ray steppers according to anti-aliasing mode */
-    rt_real fdh[8], fdv[8];
+    rt_real fdh[RT_SIMD_WIDTH], fdv[RT_SIMD_WIDTH];
     rt_real fhr, fvr;
     rt_cell i;
 
