@@ -7,12 +7,14 @@
 #ifndef RT_ENGINE_H
 #define RT_ENGINE_H
 
-#include "rtbase.h"
 #include "rtconf.h"
 #include "rtgeom.h"
 #include "object.h"
 #include "system.h"
 #include "tracer.h"
+
+#undef Q /* short name for RT_SIMD_QUADS */
+#undef S /* short name for RT_SIMD_WIDTH */
 
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/
