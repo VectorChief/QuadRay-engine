@@ -2543,8 +2543,10 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
     /* create platform-specific worker threads */
     tdata = this->f_init(thnum, this);
 
-    /* init rendering backend */
-    render0(tharr[0]->s_inf);
+    /* init rendering backend,
+     * default SIMD runtime target will be chosen */
+    simd_width = switch0(0);
+    simd_quads = simd_width / 4;
 }
 
 /*
@@ -2990,7 +2992,7 @@ rt_void rt_Scene::render_slice(rt_cell index, rt_cell phase)
         rt_real as = 0.25f;
         rt_real ar = 0.08f;
 
-        for (i = 0; i < RT_SIMD_QUADS; i++)
+        for (i = 0; i < simd_quads; i++)
         {
             fdh[i*4+0] = (-ar-as) + (rt_real)i;
             fdh[i*4+1] = (-ar+as) + (rt_real)i;
@@ -3003,18 +3005,18 @@ rt_void rt_Scene::render_slice(rt_cell index, rt_cell phase)
             fdv[i*4+3] = (-ar+as) + (rt_real)index;
         }
 
-        fhr = (rt_real)RT_SIMD_QUADS;
+        fhr = (rt_real)simd_quads;
         fvr = (rt_real)thnum;
     }
     else
     {
-        for (i = 0; i < RT_SIMD_WIDTH; i++)
+        for (i = 0; i < simd_width; i++)
         {
             fdh[i] = (rt_real)i;
             fdv[i] = (rt_real)index;
         }
 
-        fhr = (rt_real)RT_SIMD_WIDTH;
+        fhr = (rt_real)simd_width;
         fvr = (rt_real)thnum;
     }
 
@@ -3024,7 +3026,7 @@ rt_void rt_Scene::render_slice(rt_cell index, rt_cell phase)
 
     RT_SIMD_SET(s_cam->t_max, RT_INF);
 
-    for (i = 0; i < RT_SIMD_WIDTH; i++)
+    for (i = 0; i < simd_width; i++)
     {
         s_cam->dir_x[i] = dir[RT_X] + fdh[i] * hor[RT_X] + fdv[i] * ver[RT_X];
         s_cam->dir_y[i] = dir[RT_Y] + fdh[i] * hor[RT_Y] + fdv[i] * ver[RT_Y];
@@ -3110,6 +3112,19 @@ rt_void rt_Scene::set_opts(rt_cell opts)
      * safe to reset time as "rootobj" never has an animator,
      * "rootobj's" time is restored within the update */
     rootobj.time = -1;
+}
+
+/*
+ * Set current runtime SIMD target (width: 4, 8).
+ */
+rt_cell rt_Scene::set_simd(rt_cell simd)
+{
+    simd = switch0(simd);
+
+    simd_width = simd;
+    simd_quads = simd_width / 4;
+
+    return simd;
 }
 
 /*
@@ -3289,7 +3304,7 @@ rt_word digits[10][dH][dW] =
  * Render given number "num" on the screen at given coords "x" and "y".
  * Parameters "d" and "z" specify direction and zoom respectively.
  */
-rt_void rt_Scene::render_fps(rt_word x, rt_word y,
+rt_void rt_Scene::render_num(rt_word x, rt_word y,
                              rt_cell d, rt_word z, rt_word num)
 {
     rt_word arr[16], i, c, k;

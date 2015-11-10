@@ -3847,8 +3847,47 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #else /* defined (RT_CODE_SPLIT) */
 
+#include <string.h>
+
 #include "tracer.h"
 #include "format.h"
+
+/******************************************************************************/
+/*********************************   SWITCH   *********************************/
+/******************************************************************************/
+
+static
+rt_cell s_mode = 0;
+
+/*
+ * Backend's global entry point (hence 0).
+ * Switch backend's runtime SIMD target
+ * with "mode" equal to SIMD width (4, 8).
+ */
+rt_cell switch0(rt_cell mode)
+{
+    switch (mode)
+    {
+#if defined (RT_256)
+        case 8:
+        break;
+#endif /* RT_256 */
+        case 4:
+        break;
+
+        default:
+        mode = 4;
+        break;
+    }
+
+    s_mode = mode;
+
+    rt_SIMD_INFOX s_inf;
+    memset(&s_inf, 0, sizeof(rt_SIMD_INFOX));
+    render0(&s_inf);
+
+    return s_mode;
+}
 
 /******************************************************************************/
 /*********************************   UPDATE   *********************************/
@@ -3911,7 +3950,8 @@ rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
 
 /*
  * Backend's global entry point (hence 0).
- * Update surface's backend-specific fields.
+ * Update surface's backend-specific fields
+ * from its internal state.
  */
 rt_void update0(rt_SIMD_SURFACE *s_srf)
 {
@@ -3954,6 +3994,10 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
     update_mat((rt_SIMD_MATERIAL *)s_srf->mat_p[2]);
 }
 
+/******************************************************************************/
+/*********************************   RENDER   *********************************/
+/******************************************************************************/
+
 namespace simd_128
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
@@ -3964,13 +4008,27 @@ namespace simd_256
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
+/*
+ * Backend's global entry point (hence 0).
+ * Render frame based on the data structures
+ * prepared by the engine.
+ */
 rt_void render0(rt_SIMD_INFOX *s_inf)
 {
-#if   defined (RT_256)
-    simd_256::render0(s_inf);
-#elif defined (RT_128)
-    simd_128::render0(s_inf);
-#endif /* RT_256, RT_128 */
+    switch (s_mode)
+    {
+#if defined (RT_256)
+        case 8:
+        simd_256::render0(s_inf);
+        break;
+#endif /* RT_256 */
+        case 4:
+        simd_128::render0(s_inf);
+        break;
+
+        default:
+        break;
+    }
 }
 
 #endif /* defined (RT_CODE_SPLIT) */

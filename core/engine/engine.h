@@ -169,6 +169,11 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_SceneThread    **tharr;
     rt_pntr             tdata;
 
+    /* width and quads parameters of the
+     * currently active SIMD runtime target */
+    rt_cell             simd_width;
+    rt_cell             simd_quads;
+
     /* global hierarchical list */
     rt_ELEM            *hlist;
     /* global surface/node list */
@@ -221,7 +226,7 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_void     update_slice(rt_cell index, rt_cell phase);
     rt_void     render_slice(rt_cell index, rt_cell phase);
 
-    rt_void     render_fps(rt_word x, rt_word y,
+    rt_void     render_num(rt_word x, rt_word y,
                            rt_cell d, rt_word z, rt_word num);
 
     rt_word*    get_frame();
@@ -229,6 +234,7 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
 
     rt_void     set_fsaa(rt_cell fsaa);
     rt_void     set_opts(rt_cell opts);
+    rt_cell     set_simd(rt_cell simd);
 
     rt_void     next_cam();
     rt_void     save_frame(rt_cell index);

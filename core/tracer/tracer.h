@@ -84,7 +84,15 @@ struct rt_SIMD_MATERIAL;
 
 /*
  * Backend's global entry point (hence 0).
- * Update surface's backend-specific fields.
+ * Switch backend's runtime SIMD target
+ * with "mode" equal to SIMD width (4, 8).
+ */
+rt_cell switch0(rt_cell mode);
+
+/*
+ * Backend's global entry point (hence 0).
+ * Update surface's backend-specific fields
+ * from its internal state.
  */
 rt_void update0(rt_SIMD_SURFACE *s_srf);
 

@@ -470,9 +470,10 @@ rt_cell main_step()
         if (H_KEYS(XK_Right))   scene->update(cur_time, RT_CAMERA_ROTATE_RIGHT);
 
         if (T_KEYS(XK_F1))      scene->print_state();
-        if (T_KEYS(XK_F2))      fsaa = RT_FSAA_4X - fsaa;
+        if (T_KEYS(XK_F2))      fsaa = RT_FSAA_4X - fsaa; scene->set_fsaa(fsaa);
         if (T_KEYS(XK_F3))      scene->next_cam();
         if (T_KEYS(XK_F4))      scene->save_frame(scr++);
+        if (T_KEYS(XK_F8))      simd = simd%8 + 4; simd = scene->set_simd(simd);
         if (T_KEYS(XK_Escape))
         {
             return 0;
@@ -480,9 +481,10 @@ rt_cell main_step()
         memset(t_keys, 0, sizeof(t_keys));
         memset(r_keys, 0, sizeof(r_keys));
 
-        scene->set_fsaa(fsaa);
         scene->render(cur_time);
-        scene->render_fps(x_res - 10, 10, -1, 2, (rt_word)fps);
+        scene->render_num(x_res-10,       10, -1, 2, (rt_word)fps);
+        scene->render_num(      10,       10, +1, 2, (rt_word)simd * 32);
+        scene->render_num(x_res-10, y_res-24, -1, 2, (rt_word)fsaa * 4);
 
         if (depth == 16)
         {
