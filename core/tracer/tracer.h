@@ -591,6 +591,7 @@ struct rt_SIMD_CONTEXT
 
 };
 
+/* context stack step, cross-check with tracer_***.cpp */
 #define RT_STACK_STEP       (RT_SIMD_QUADS * 0x300)
 
 /******************************************************************************/

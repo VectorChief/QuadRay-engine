@@ -190,6 +190,14 @@ SOURCE=..\core\tracer\tracer.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\core\tracer\tracer_128.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\core\tracer\tracer_256.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\core\tracer\tracer.h
 # End Source File
 # End Group

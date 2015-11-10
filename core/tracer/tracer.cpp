@@ -4,14 +4,7 @@
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
 
-#include "tracer.h"
-#include "format.h"
-
-#if RT_DEBUG == 1
-
-#include "system.h"
-
-#endif /* RT_DEBUG */
+#if defined (RT_CODE_SPLIT)
 
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/
@@ -300,7 +293,7 @@
  */
 #define FETCH_PROP() /* destroys Reax, Xmm7 */                              \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
-        mulxn_ri(Reax, IB(RT_SIMD_WIDTH*4))                                 \
+        mulxn_ri(Reax, IB(S*4))                                             \
         movpx_ld(Xmm7, Iebx, srf_SBASE)                                     \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         shlxx_ri(Reax, IB(3))                                               \
@@ -540,114 +533,6 @@
         movxx_st(Reax, Mecx, ctx_LOCAL(PTR))                                \
         jmpxx_lb(to)                                                        \
     LBL(lb)
-
-/******************************************************************************/
-/*********************************   UPDATE   *********************************/
-/******************************************************************************/
-
-/*
- * Local pointer tables
- * for quick entry point resolution.
- */
-static
-rt_pntr t_ptr[3];
-
-static
-rt_pntr t_mat[3];
-
-static
-rt_pntr t_clp[3];
-
-static
-rt_pntr t_pow[6];
-
-/*
- * Update material's backend-specific fields.
- */
-static
-rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
-{
-    if (s_mat == RT_NULL || s_mat->pow_p[0] != RT_NULL)
-    {
-        return;
-    }
-
-    rt_cell i;
-    rt_word pow = s_mat->l_pow[0], exp = 0;
-
-    for (i = 0; i < 32; i++)
-    {
-        if (pow == ((rt_word)1 << i))
-        {
-            exp = i;
-            break;
-        }
-    }
-
-    if (i < 32)
-    {
-        pow = exp / 4;
-        exp = exp % 4;
-
-        if (pow > 0 && exp == 0)
-        {
-            pow--;
-            exp = 4;
-        }
-    }
-    else
-    {
-        exp = 5;
-    }
-
-    s_mat->l_pow[0] = pow;
-    s_mat->pow_p[0] = t_pow[exp];
-}
-
-/*
- * Backend's global entry point (hence 0).
- * Update surface's backend-specific fields.
- */
-rt_void update0(rt_SIMD_SURFACE *s_srf)
-{
-    rt_word tag = (rt_word)s_srf->srf_p[3];
-
-    if (tag >= RT_TAG_SURFACE_MAX)
-    {
-        return;
-    }
-
-    /* save surface's entry points from local pointer tables
-     * filled during backend's one-time initialization */
-    s_srf->srf_p[0] = t_ptr[tag > RT_TAG_PLANE ? 
-                            tag == RT_TAG_HYPERCYLINDER &&
-                            s_srf->sci_w[0] == 0.0f ?
-                            RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
-
-    s_srf->srf_p[1] = t_mat[tag > RT_TAG_PLANE ? 
-                            tag != RT_TAG_PARABOLOID &&
-                            tag != RT_TAG_PARACYLINDER &&
-                            tag != RT_TAG_HYPERPARABOLOID ?
-                            RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
-
-    s_srf->srf_p[2] = t_clp[tag > RT_TAG_PLANE ? 
-                            tag != RT_TAG_PARABOLOID &&
-                            tag != RT_TAG_PARACYLINDER &&
-                            tag != RT_TAG_HYPERPARABOLOID ?
-                            RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
-
-    s_srf->msc_p[1] =       tag == RT_TAG_CONE || 
-                            tag == RT_TAG_HYPERBOLOID &&
-                            s_srf->sci_w[0] == 0.0f ?
-                            (rt_pntr)1 :
-                            tag == RT_TAG_HYPERCYLINDER &&
-                            s_srf->sci_w[0] == 0.0f ?
-                            (rt_pntr)2 : (rt_pntr)0;
-
-    /* update surface's materials for each side */
-    update_mat((rt_SIMD_MATERIAL *)s_srf->mat_p[0]);
-    update_mat((rt_SIMD_MATERIAL *)s_srf->mat_p[2]);
-}
 
 /******************************************************************************/
 /*********************************   RENDER   *********************************/
@@ -1135,7 +1020,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_mi(Mebp, inf_Q_DBG, IB(5))
 
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
-        mulxn_ri(Reax, IB(RT_SIMD_WIDTH*4))
+        mulxn_ri(Reax, IB(S*4))
         movpx_ld(Xmm1, Iebx, srf_SBASE)
         movpx_st(Xmm1, Mebp, inf_TSIDE)
 
@@ -1235,7 +1120,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* apply signs */
         movpx_ld(Xmm4, Mecx, ctx_AMASK)         /* amask <- AMASK */
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
-        mulxn_ri(Reax, IB(RT_SIMD_WIDTH*4))
+        mulxn_ri(Reax, IB(S*4))
         movpx_ld(Xmm5, Iebx, srf_SBASE)         /* tside <- TSIDE */
 
         movxx_ld(Reax, Mebx, srf_A_MAP(RT_K*4)) /* Reax is used in Iecx */
@@ -3959,6 +3844,136 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_DEBUG */
 }
+
+#else /* defined (RT_CODE_SPLIT) */
+
+#include "tracer.h"
+#include "format.h"
+
+/******************************************************************************/
+/*********************************   UPDATE   *********************************/
+/******************************************************************************/
+
+/*
+ * Global pointer tables
+ * for quick entry point resolution.
+ */
+rt_pntr t_ptr[3];
+
+rt_pntr t_mat[3];
+
+rt_pntr t_clp[3];
+
+rt_pntr t_pow[6];
+
+/*
+ * Update material's backend-specific fields.
+ */
+static
+rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
+{
+    if (s_mat == RT_NULL || s_mat->pow_p[0] != RT_NULL)
+    {
+        return;
+    }
+
+    rt_cell i;
+    rt_word pow = s_mat->l_pow[0], exp = 0;
+
+    for (i = 0; i < 32; i++)
+    {
+        if (pow == ((rt_word)1 << i))
+        {
+            exp = i;
+            break;
+        }
+    }
+
+    if (i < 32)
+    {
+        pow = exp / 4;
+        exp = exp % 4;
+
+        if (pow > 0 && exp == 0)
+        {
+            pow--;
+            exp = 4;
+        }
+    }
+    else
+    {
+        exp = 5;
+    }
+
+    s_mat->l_pow[0] = pow;
+    s_mat->pow_p[0] = t_pow[exp];
+}
+
+/*
+ * Backend's global entry point (hence 0).
+ * Update surface's backend-specific fields.
+ */
+rt_void update0(rt_SIMD_SURFACE *s_srf)
+{
+    rt_word tag = (rt_word)s_srf->srf_p[3];
+
+    if (tag >= RT_TAG_SURFACE_MAX)
+    {
+        return;
+    }
+
+    /* save surface's entry points from local pointer tables
+     * filled during backend's one-time initialization */
+    s_srf->srf_p[0] = t_ptr[tag > RT_TAG_PLANE ?
+                            tag == RT_TAG_HYPERCYLINDER &&
+                            s_srf->sci_w[0] == 0.0f ?
+                            RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
+
+    s_srf->srf_p[1] = t_mat[tag > RT_TAG_PLANE ?
+                            tag != RT_TAG_PARABOLOID &&
+                            tag != RT_TAG_PARACYLINDER &&
+                            tag != RT_TAG_HYPERPARABOLOID ?
+                            RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
+
+    s_srf->srf_p[2] = t_clp[tag > RT_TAG_PLANE ?
+                            tag != RT_TAG_PARABOLOID &&
+                            tag != RT_TAG_PARACYLINDER &&
+                            tag != RT_TAG_HYPERPARABOLOID ?
+                            RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
+
+    s_srf->msc_p[1] =       tag == RT_TAG_CONE ||
+                            tag == RT_TAG_HYPERBOLOID &&
+                            s_srf->sci_w[0] == 0.0f ?
+                            (rt_pntr)1 :
+                            tag == RT_TAG_HYPERCYLINDER &&
+                            s_srf->sci_w[0] == 0.0f ?
+                            (rt_pntr)2 : (rt_pntr)0;
+
+    /* update surface's materials for each side */
+    update_mat((rt_SIMD_MATERIAL *)s_srf->mat_p[0]);
+    update_mat((rt_SIMD_MATERIAL *)s_srf->mat_p[2]);
+}
+
+namespace simd_128
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace simd_256
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+rt_void render0(rt_SIMD_INFOX *s_inf)
+{
+#if   defined (RT_256)
+    simd_256::render0(s_inf);
+#elif defined (RT_128)
+    simd_128::render0(s_inf);
+#endif /* RT_256, RT_128 */
+}
+
+#endif /* defined (RT_CODE_SPLIT) */
 
 /******************************************************************************/
 /******************************************************************************/
