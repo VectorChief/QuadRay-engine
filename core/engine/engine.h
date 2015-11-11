@@ -232,8 +232,8 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_word*    get_frame();
     rt_void     print_state();
 
-    rt_void     set_fsaa(rt_cell fsaa);
-    rt_void     set_opts(rt_cell opts);
+    rt_cell     set_fsaa(rt_cell fsaa);
+    rt_cell     set_opts(rt_cell opts);
     rt_cell     set_simd(rt_cell simd);
 
     rt_void     next_cam();

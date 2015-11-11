@@ -3857,6 +3857,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
 
 static
+rt_cell s_mask = 0;
+static
 rt_cell s_mode = 0;
 
 /*
@@ -3866,6 +3868,30 @@ rt_cell s_mode = 0;
  */
 rt_cell switch0(rt_cell mode)
 {
+    rt_SIMD_INFOX s_inf_loc, *s_inf = &s_inf_loc;
+    memset(s_inf, 0, sizeof(rt_SIMD_INFOX));
+
+    ASM_ENTER(s_inf)
+        verxx_xx()
+    ASM_LEAVE(s_inf)
+
+    s_mask = 0;
+
+#if defined (RT_256)
+    s_mask |= s_inf->ver & 8;
+    if (s_mode == 0)
+    {
+        s_mode = s_mask & 8;
+    }
+#endif /* RT_256 */
+    s_mask |= s_inf->ver & 4;
+    if (s_mode == 0)
+    {
+        s_mode = s_mask & 4;
+    }
+
+    mode &= s_mask;
+
     switch (mode)
     {
 #if defined (RT_256)
@@ -3876,16 +3902,12 @@ rt_cell switch0(rt_cell mode)
         break;
 
         default:
-        mode = 4;
+        mode = s_mode;
         break;
     }
 
     s_mode = mode;
-
-    rt_SIMD_INFOX s_inf;
-    memset(&s_inf, 0, sizeof(rt_SIMD_INFOX));
-    render0(&s_inf);
-
+    render0(s_inf);
     return s_mode;
 }
 

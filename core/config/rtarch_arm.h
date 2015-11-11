@@ -466,6 +466,11 @@
 #define LBL(lb)                                                             \
         ASM_BEG ASM_OP0(lb:) ASM_END
 
+/* ver */
+
+#define verxx_xx() /* destroys Reax, Recx, Rebx, Redx, Resi (in x86) */     \
+        movxx_mi(Mebp, inf_VER, IB(4)) /* <- NEON to bit2, val4 */
+
 #endif /* RT_RTARCH_ARM_H */
 
 /******************************************************************************/

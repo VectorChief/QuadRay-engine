@@ -230,8 +230,11 @@ struct rt_SIMD_INFO
     rt_word fctrl;
 #define inf_FCTRL           DP(0x000)
 
-    rt_word pad01[S-1];     /* reserved, do not use! */
-#define inf_PAD01           DP(0x004)
+    rt_word ver;
+#define inf_VER             DP(0x004)
+
+    rt_word pad01[S-2];     /* reserved, do not use! */
+#define inf_PAD01           DP(0x008)
 
     /* general purpose constants */
 

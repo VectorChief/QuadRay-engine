@@ -443,6 +443,35 @@
 #define LBL(lb)                                                             \
         ASM_BEG ASM_OP0(lb:) ASM_END
 
+/* ver */
+
+#define cpuid_xx() /* destroys Reax, Recx, Rebx, Redx, reads Reax, Recx */  \
+        EMITB(0x0F) EMITB(0xA2)     /* not portable, do not use outside */
+
+#define verxx_xx() /* destroys Reax, Recx, Rebx, Redx, Resi, Redi */        \
+        /* request cpuid:eax=1 */                                           \
+        movxx_ri(Reax, IB(1))                                               \
+        cpuid_xx()                                                          \
+        shrxx_ri(Redx, IB(24))  /* <- SSE2 to bit2, val4 */                 \
+        andxx_ri(Redx, IB(4))                                               \
+        movxx_rr(Resi, Redx)                                                \
+        /* request cpuid:eax=0 to test input value eax=7 */                 \
+        movxx_ri(Reax, IB(0))                                               \
+        cpuid_xx()                                                          \
+        subxx_ri(Reax, IB(7))                                               \
+        shrxn_ri(Reax, IB(31))                                              \
+        movxx_rr(Redi, Reax)                                                \
+        notxx_rr(Redi)                                                      \
+        /* request cpuid:eax=7:ecx=0 */                                     \
+        movxx_ri(Reax, IB(7))                                               \
+        movxx_ri(Recx, IB(0))                                               \
+        cpuid_xx()                                                          \
+        shrxx_ri(Rebx, IB(2))   /* <- AVX2 to bit3, val8 */                 \
+        andxx_ri(Rebx, IB(8))                                               \
+        andxx_rr(Rebx, Redi)                                                \
+        addxx_rr(Resi, Rebx)                                                \
+        movxx_st(Resi, Mebp, inf_VER)
+
 #endif /* RT_RTARCH_X86_H */
 
 /******************************************************************************/

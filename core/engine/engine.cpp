@@ -3096,15 +3096,17 @@ rt_void rt_Scene::print_state()
 /*
  * Set fullscreen anti-aliasing mode.
  */
-rt_void rt_Scene::set_fsaa(rt_cell fsaa)
+rt_cell rt_Scene::set_fsaa(rt_cell fsaa)
 {
     this->fsaa = fsaa;
+
+    return fsaa;
 }
 
 /*
  * Set runtime optimization flags.
  */
-rt_void rt_Scene::set_opts(rt_cell opts)
+rt_cell rt_Scene::set_opts(rt_cell opts)
 {
     this->opts = opts;
 
@@ -3112,6 +3114,8 @@ rt_void rt_Scene::set_opts(rt_cell opts)
      * safe to reset time as "rootobj" never has an animator,
      * "rootobj's" time is restored within the update */
     rootobj.time = -1;
+
+    return opts;
 }
 
 /*

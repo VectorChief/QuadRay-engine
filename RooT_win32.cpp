@@ -342,6 +342,9 @@ rt_cell main_init()
                             malloc, free,
                             init_threads, term_threads,
                             update_scene, render_scene);
+
+        fsaa = scene->set_fsaa(fsaa);
+        simd = scene->set_simd(simd);
     }
     catch (rt_Exception e)
     {
@@ -422,10 +425,12 @@ rt_cell main_step()
         if (H_KEYS(VK_RIGHT))   scene->update(cur_time, RT_CAMERA_ROTATE_RIGHT);
 
         if (T_KEYS(VK_F1))      scene->print_state();
-        if (T_KEYS(VK_F2))      fsaa = RT_FSAA_4X - fsaa; scene->set_fsaa(fsaa);
+        if (T_KEYS(VK_F2))    { fsaa = RT_FSAA_4X - fsaa;
+                                fsaa = scene->set_fsaa(fsaa); }
         if (T_KEYS(VK_F3))      scene->next_cam();
         if (T_KEYS(VK_F4))      scene->save_frame(scr++);
-        if (T_KEYS(VK_F8))      simd = simd%8 + 4; simd = scene->set_simd(simd);
+        if (T_KEYS(VK_F8))    { simd = simd % 8 + 4;
+                                simd = scene->set_simd(simd); }
         if (T_KEYS(VK_ESCAPE))
         {
             return 0;

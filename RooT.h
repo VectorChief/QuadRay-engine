@@ -25,8 +25,8 @@ rt_cell     y_res   = RT_Y_RES;
 rt_cell     x_row   = RT_X_RES;
 rt_word    *frame   = RT_NULL;
 
-rt_cell     fsaa    = RT_FSAA_NO;
-rt_cell     simd    = 4;
+rt_cell     fsaa    = RT_FSAA_NO; /* no AA */
+rt_cell     simd    = 0; /* default SIMD target will be chosen */
 
 rt_Scene   *scene   = RT_NULL;
 
