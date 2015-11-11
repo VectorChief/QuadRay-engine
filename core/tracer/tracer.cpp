@@ -3853,65 +3853,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #include "format.h"
 
 /******************************************************************************/
-/*********************************   SWITCH   *********************************/
-/******************************************************************************/
-
-static
-rt_cell s_mask = 0;
-static
-rt_cell s_mode = 0;
-
-/*
- * Backend's global entry point (hence 0).
- * Switch backend's runtime SIMD target
- * with "mode" equal to SIMD width (4, 8).
- */
-rt_cell switch0(rt_cell mode)
-{
-    rt_SIMD_INFOX s_inf_loc, *s_inf = &s_inf_loc;
-    memset(s_inf, 0, sizeof(rt_SIMD_INFOX));
-
-    ASM_ENTER(s_inf)
-        verxx_xx()
-    ASM_LEAVE(s_inf)
-
-    s_mask = 0;
-
-#if defined (RT_256)
-    s_mask |= s_inf->ver & 8;
-    if (s_mode == 0)
-    {
-        s_mode = s_mask & 8;
-    }
-#endif /* RT_256 */
-    s_mask |= s_inf->ver & 4;
-    if (s_mode == 0)
-    {
-        s_mode = s_mask & 4;
-    }
-
-    mode &= s_mask;
-
-    switch (mode)
-    {
-#if defined (RT_256)
-        case 8:
-        break;
-#endif /* RT_256 */
-        case 4:
-        break;
-
-        default:
-        mode = s_mode;
-        break;
-    }
-
-    s_mode = mode;
-    render0(s_inf);
-    return s_mode;
-}
-
-/******************************************************************************/
 /*********************************   UPDATE   *********************************/
 /******************************************************************************/
 
@@ -4017,6 +3958,69 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
 }
 
 /******************************************************************************/
+/*********************************   SWITCH   *********************************/
+/******************************************************************************/
+
+static
+rt_cell s_mask = 0;
+static
+rt_cell s_mode = 0;
+
+/*
+ * Backend's global entry point (hence 0).
+ * Switch backend's runtime SIMD target
+ * with "mode" equal to SIMD width (4, 8).
+ */
+rt_cell switch0(rt_cell mode)
+{
+    rt_SIMD_INFOX s_inf_loc, *s_inf = &s_inf_loc;
+    memset(s_inf, 0, sizeof(rt_SIMD_INFOX));
+
+    ASM_ENTER(s_inf)
+        verxx_xx()
+    ASM_LEAVE(s_inf)
+
+    s_mask = 0;
+
+#if defined (RT_256) && (RT_256 != 0)
+    s_mask |= s_inf->ver & 8;
+    if (s_mode == 0)
+    {
+        s_mode = s_mask & 8;
+    }
+#endif /* RT_256 */
+#if defined (RT_128) && (RT_128 != 0)
+    s_mask |= s_inf->ver & 4;
+    if (s_mode == 0)
+    {
+        s_mode = s_mask & 4;
+    }
+#endif /* RT_128 */
+
+    mode &= s_mask;
+
+    switch (mode)
+    {
+#if defined (RT_256) && (RT_256 != 0)
+        case 8:
+        break;
+#endif /* RT_256 */
+#if defined (RT_128) && (RT_128 != 0)
+        case 4:
+        break;
+#endif /* RT_128 */
+
+        default:
+        mode = s_mode;
+        break;
+    }
+
+    s_mode = mode;
+    render0(s_inf);
+    return s_mode;
+}
+
+/******************************************************************************/
 /*********************************   RENDER   *********************************/
 /******************************************************************************/
 
@@ -4039,14 +4043,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 {
     switch (s_mode)
     {
-#if defined (RT_256)
+#if defined (RT_256) && (RT_256 != 0)
         case 8:
         simd_256::render0(s_inf);
         break;
 #endif /* RT_256 */
+#if defined (RT_128) && (RT_128 != 0)
         case 4:
         simd_128::render0(s_inf);
         break;
+#endif /* RT_128 */
 
         default:
         break;

@@ -122,10 +122,10 @@
 #define EMITB(b)                ASM_BEG ASM_OP1(_emit, b) ASM_END
 #define label_ld(lb)/*Reax*/    ASM_BEG ASM_OP2(lea, eax, lb) ASM_END
 
-#if   defined (RT_256)
+#if   defined (RT_256) && (RT_256 != 0)
 #define S 8
 #include "rtarch_x86_256.h"
-#elif defined (RT_128)
+#elif defined (RT_128) && (RT_128 != 0)
 #define S 4
 #include "rtarch_x86_128.h"
 #endif /* RT_256, RT_128 */
@@ -164,10 +164,10 @@
 #define EMITB(b)                ASM_BEG ASM_OP1(.byte, b) ASM_END
 #define label_ld(lb)/*Reax*/    ASM_BEG ASM_OP2(leal, %%eax, lb) ASM_END
 
-#if   defined (RT_256)
+#if   defined (RT_256) && (RT_256 != 0)
 #define S 8
 #include "rtarch_x86_256.h"
-#elif defined (RT_128)
+#elif defined (RT_128) && (RT_128 != 0)
 #define S 4
 #include "rtarch_x86_128.h"
 #endif /* RT_256, RT_128 */
@@ -196,10 +196,10 @@
 #define EMITB(b)                ASM_BEG ASM_OP1(.byte, b) ASM_END
 #define label_ld(lb)/*Reax*/    ASM_BEG ASM_OP2(adr, r0, lb) ASM_END
 
-#if   defined (RT_256)
+#if   defined (RT_256) && (RT_256 != 0)
 #define S 8
 #error "ARM doesn't support SIMD wider than 4 at the moment"
-#elif defined (RT_128)
+#elif defined (RT_128) && (RT_128 != 0)
 #define S 4
 #include "rtarch_arm_128.h"
 #endif /* RT_256, RT_128 */
