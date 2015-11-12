@@ -321,6 +321,16 @@
         MRM(0x04,    MOD(RM), REG(RM))                                      \
         AUX(SIB(RM), CMD(DP), EMITB(VAL(IM) & 0x1F))
 
+#define shlxx_rx(RM)     /* reads Recx for shift value */                   \
+        EMITB(0xD3)                                                         \
+        MRM(0x04,    MOD(RM), REG(RM))                                      \
+        AUX(EMPTY,   EMPTY,   EMPTY)
+
+#define shlxx_mx(RM, DP) /* reads Recx for shift value */                   \
+        EMITB(0xD3)                                                         \
+        MRM(0x04,    MOD(RM), REG(RM))                                      \
+        AUX(SIB(RM), CMD(DP), EMPTY)
+
 /* shr */
 
 #define shrxx_ri(RM, IM)                                                    \
@@ -333,6 +343,16 @@
         MRM(0x05,    MOD(RM), REG(RM))                                      \
         AUX(SIB(RM), CMD(DP), EMITB(VAL(IM) & 0x1F))
 
+#define shrxx_rx(RM)     /* reads Recx for shift value */                   \
+        EMITB(0xD3)                                                         \
+        MRM(0x05,    MOD(RM), REG(RM))                                      \
+        AUX(EMPTY,   EMPTY,   EMPTY)
+
+#define shrxx_mx(RM, DP) /* reads Recx for shift value */                   \
+        EMITB(0xD3)                                                         \
+        MRM(0x05,    MOD(RM), REG(RM))                                      \
+        AUX(SIB(RM), CMD(DP), EMPTY)
+
 #define shrxn_ri(RM, IM)                                                    \
         EMITB(0xC1)                                                         \
         MRM(0x07,    MOD(RM), REG(RM))                                      \
@@ -342,6 +362,16 @@
         EMITB(0xC1)                                                         \
         MRM(0x07,    MOD(RM), REG(RM))                                      \
         AUX(SIB(RM), CMD(DP), EMITB(VAL(IM) & 0x1F))
+
+#define shrxn_rx(RM)     /* reads Recx for shift value */                   \
+        EMITB(0xD3)                                                         \
+        MRM(0x07,    MOD(RM), REG(RM))                                      \
+        AUX(EMPTY,   EMPTY,   EMPTY)
+
+#define shrxn_mx(RM, DP) /* reads Recx for shift value */                   \
+        EMITB(0xD3)                                                         \
+        MRM(0x07,    MOD(RM), REG(RM))                                      \
+        AUX(SIB(RM), CMD(DP), EMPTY)
 
 /* mul */
 
