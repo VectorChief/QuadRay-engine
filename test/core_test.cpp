@@ -568,6 +568,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
     rt_time tN = 0;
     rt_time tF = 0;
 
+    rt_cell simd = 0;
     rt_cell i, j;
 
     for (i = 0; i < RUN_LEVEL; i++)
@@ -578,6 +579,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
             scene = RT_NULL;
             o_test[i]();
 
+            simd = scene->set_simd(simd);
             scene->set_opts(RT_OPTS_NONE);
 
             time1 = get_time();
@@ -603,6 +605,8 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 
             scene = RT_NULL;
             o_test[i]();
+
+            simd = scene->set_simd(simd);
 
             time1 = get_time();
 
@@ -641,7 +645,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
         {
             RT_LOGE("Exception: %s\n", e.err);
         }
-        RT_LOGI("----------------------------------------------------\n");
+        RT_LOGI("--------------------------------------- simd = %d ---\n", simd);
     }
 
 #if   defined (RT_WIN32) /* Win32, MSVC ------------------------------------ */
