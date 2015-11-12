@@ -431,6 +431,7 @@ rt_cell main_step()
         if (T_KEYS(VK_F4))      scene->save_frame(scr++);
         if (T_KEYS(VK_F8))    { simd = simd % 8 + 4;
                                 simd = scene->set_simd(simd); }
+        if (T_KEYS(VK_F12))     hide_num = 1 - hide_num;
         if (T_KEYS(VK_ESCAPE))
         {
             return 0;
@@ -439,9 +440,13 @@ rt_cell main_step()
         memset(r_keys, 0, sizeof(r_keys));
 
         scene->render(cur_time);
-        scene->render_num(x_res-10,       10, -1, 2, (rt_word)fps);
-        scene->render_num(      10,       10, +1, 2, (rt_word)simd * 32);
-        scene->render_num(x_res-10, y_res-24, -1, 2, (rt_word)fsaa * 4);
+
+        if (hide_num == 0)
+        {
+            scene->render_num(x_res-10,       10, -1, 2, (rt_word)fps);
+            scene->render_num(      10,       10, +1, 2, (rt_word)simd * 32);
+            scene->render_num(x_res-10, y_res-24, -1, 2, (rt_word)fsaa * 4);
+        }
     }
     catch (rt_Exception e)
     {

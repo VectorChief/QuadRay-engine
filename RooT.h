@@ -15,20 +15,21 @@
 #include "test/scenes/scn_test13.h"
 using namespace scn_test13;
 
-#define RT_X_RES    800
-#define RT_Y_RES    480
+#define RT_X_RES        800
+#define RT_Y_RES        480
 
-rt_astr     title   = "QuadRay engine demo, (C) 2013-2015 VectorChief";
+rt_astr     title       = "QuadRay engine demo, (C) 2013-2015 VectorChief";
 
-rt_cell     x_res   = RT_X_RES;
-rt_cell     y_res   = RT_Y_RES;
-rt_cell     x_row   = RT_X_RES;
-rt_word    *frame   = RT_NULL;
+rt_cell     x_res       = RT_X_RES;
+rt_cell     y_res       = RT_Y_RES;
+rt_cell     x_row       = RT_X_RES;
+rt_word    *frame       = RT_NULL;
 
-rt_cell     fsaa    = RT_FSAA_NO; /* no AA */
-rt_cell     simd    = 0; /* default SIMD target will be chosen */
+rt_cell     fsaa        = RT_FSAA_NO; /* no AA */
+rt_cell     simd        = 0; /* default SIMD target will be chosen */
+rt_cell     hide_num    = 0; /* hide all numbers on the screen */
 
-rt_Scene   *scene   = RT_NULL;
+rt_Scene   *scene       = RT_NULL;
 
 #endif /* RT_ROOT_H */
 
