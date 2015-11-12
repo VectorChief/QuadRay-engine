@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#define RT_CODE_SPLIT /* enable SIMD instructions definitions */
+#define RT_SIMD_CODE /* enable SIMD instructions definitions */
 
 #include "rtarch.h"
 #include "rtbase.h"

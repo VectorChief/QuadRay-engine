@@ -4,7 +4,7 @@
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
 
-#if defined (RT_CODE_SPLIT)
+#if defined (RT_SIMD_CODE)
 
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/
@@ -3845,7 +3845,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #endif /* RT_DEBUG */
 }
 
-#else /* defined (RT_CODE_SPLIT) */
+#else /* RT_SIMD_CODE */
 
 #include <string.h>
 
@@ -4059,7 +4059,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     }
 }
 
-#endif /* defined (RT_CODE_SPLIT) */
+#endif /* RT_SIMD_CODE */
 
 /******************************************************************************/
 /******************************************************************************/

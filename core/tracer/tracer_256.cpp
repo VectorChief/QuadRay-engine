@@ -10,7 +10,7 @@
 #include "system.h"
 #endif /* RT_DEBUG */
 
-#define RT_CODE_SPLIT
+#define RT_SIMD_CODE /* enable SIMD instructions definitions */
 
 #undef RT_STACK_STEP /* cross-check with tracer.h */
 #define RT_STACK_STEP       (Q * 0x300)

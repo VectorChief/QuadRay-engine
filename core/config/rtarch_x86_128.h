@@ -13,7 +13,7 @@
 #define RT_SIMD_ALIGN       16
 #define RT_SIMD_SET(s, v)   s[0]=s[1]=s[2]=s[3]=v
 
-#if defined (RT_CODE_SPLIT)
+#if defined (RT_SIMD_CODE)
 
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/
@@ -435,7 +435,7 @@
 #define FCTRL_LEAVE(mode) /* destroys Reax (in ARM) */                      \
         mxcsr_ld(Mebp, inf_FCTRL)
 
-#endif /* defined (RT_CODE_SPLIT) */
+#endif /* RT_SIMD_CODE */
 
 #endif /* RT_RTARCH_X86_128_H */
 
