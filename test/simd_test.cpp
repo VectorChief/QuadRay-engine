@@ -8,6 +8,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#define RT_CODE_SPLIT /* enable SIMD instructions definitions */
+
 #include "rtarch.h"
 #include "rtbase.h"
 
@@ -2093,7 +2095,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 
         p_test[i](inf0);
 
-        RT_LOGI("----------------------------------------------------\n");
+        RT_LOGI("--------------------------------------- simd = %d ---\n", S);
     }
 
     free(info);
