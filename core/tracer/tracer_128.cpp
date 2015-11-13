@@ -10,26 +10,24 @@
 #include "system.h"
 #endif /* RT_DEBUG */
 
+#undef  RT_SIMD_WIDTH
+#undef  RT_SIMD_ALIGN
+#undef  RT_SIMD_SET
 #define RT_SIMD_CODE /* enable SIMD instructions definitions */
 
-#undef RT_STACK_STEP /* cross-check with tracer.h */
-#define RT_STACK_STEP       (Q * 0x300)
-
-#undef RT_SIMD_WIDTH
-#undef RT_SIMD_ALIGN
-#undef RT_SIMD_SET
-
 #if   defined (RT_X86)
-
 #undef RT_RTARCH_X86_128_H
 #include "rtarch_x86_128.h"
-
 #elif defined (RT_ARM)
-
 #undef RT_RTARCH_ARM_128_H
 #include "rtarch_arm_128.h"
-
 #endif /* RT_X86, RT_ARM */
+
+#if   defined (RT_128) && (RT_128 != 0)
+#define RT_RENDER_CODE
+#endif /* RT_X86, RT_ARM */
+#undef  RT_STACK_STEP /* cross-check with tracer.h */
+#define RT_STACK_STEP       (Q * 0x300)
 
 /*
  * Global pointer tables

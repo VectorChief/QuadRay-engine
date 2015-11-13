@@ -545,6 +545,7 @@
  */
 rt_void render0(rt_SIMD_INFOX *s_inf)
 {
+#if defined (RT_RENDER_CODE)
 
 #if RT_QUAD_DEBUG == 1
 
@@ -3843,6 +3844,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     */
 
 #endif /* RT_DEBUG */
+
+#endif /* RT_RENDER_CODE */
 }
 
 #else /* RT_SIMD_CODE */
