@@ -393,7 +393,9 @@ rt_cell main_init()
                             update_scene, render_scene);
 
         fsaa = scene->set_fsaa(fsaa);
-        simd = scene->set_simd(simd);
+        simd = scene->set_simd(simd | type << 8);
+        type = simd >> 8;
+        simd = simd & 0xFF;
     }
     catch (rt_Exception e)
     {
@@ -477,8 +479,10 @@ rt_cell main_step()
                                 fsaa = scene->set_fsaa(fsaa); }
         if (T_KEYS(XK_F3))      scene->next_cam();
         if (T_KEYS(XK_F4))      scene->save_frame(scr++);
+        if (T_KEYS(XK_F7))    { type = type % 2 + 1;
+                                type = scene->set_simd(simd | type<<8) >> 8; }
         if (T_KEYS(XK_F8))    { simd = simd % 8 + 4;
-                                simd = scene->set_simd(simd); }
+                                simd = scene->set_simd(simd | type<<8) & 0xFF; }
         if (T_KEYS(XK_F12))     hide_num = 1 - hide_num;
         if (T_KEYS(XK_Escape))
         {
@@ -491,9 +495,10 @@ rt_cell main_step()
 
         if (hide_num == 0)
         {
-            scene->render_num(x_res-10,       10, -1, 2, (rt_word)fps);
-            scene->render_num(      10,       10, +1, 2, (rt_word)simd * 32);
-            scene->render_num(x_res-10, y_res-24, -1, 2, (rt_word)fsaa * 4);
+            scene->render_num(x_res-10, 10, -1, 2, (rt_word)fps);
+            scene->render_num(      10, 10, +1, 2, (rt_word)simd * 32);
+            scene->render_num(x_res-10, 34, -1, 2, (rt_word)fsaa * 4);
+            scene->render_num(      10, 34, +1, 2, (rt_word)type);
         }
 
         if (depth == 16)

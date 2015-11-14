@@ -482,9 +482,12 @@
         /* request cpuid:eax=1 */                                           \
         movxx_ri(Reax, IB(1))                                               \
         cpuid_xx()                                                          \
-        shrxx_ri(Redx, IB(24))  /* <- SSE2 to bit2, val4 */                 \
-        andxx_ri(Redx, IB(4))                                               \
+        shrxx_ri(Redx, IB(25))  /* <- SSE1, SSE2 to bit0, bit1 */           \
+        andxx_ri(Redx, IB(0x03))                                            \
+        shrxx_ri(Recx, IB(20))  /* <- AVX1 to bit8 */                       \
+        andxx_ri(Recx, IH(0x0100))                                          \
         movxx_rr(Resi, Redx)                                                \
+        orrxx_rr(Resi, Recx)                                                \
         /* request cpuid:eax=0 to test input value eax=7 */                 \
         movxx_ri(Reax, IB(0))                                               \
         cpuid_xx()                                                          \
@@ -496,10 +499,10 @@
         movxx_ri(Reax, IB(7))                                               \
         movxx_ri(Recx, IB(0))                                               \
         cpuid_xx()                                                          \
-        shrxx_ri(Rebx, IB(2))   /* <- AVX2 to bit3, val8 */                 \
-        andxx_ri(Rebx, IB(8))                                               \
+        shlxx_ri(Rebx, IB(4))   /* <- AVX2 to bit9 */                       \
+        andxx_ri(Rebx, IH(0x0200))                                          \
         andxx_rr(Rebx, Redi)                                                \
-        addxx_rr(Resi, Rebx)                                                \
+        orrxx_rr(Resi, Rebx)                                                \
         movxx_st(Resi, Mebp, inf_VER)
 
 #endif /* RT_RTARCH_X86_H */

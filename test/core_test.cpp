@@ -645,7 +645,8 @@ rt_cell main(rt_cell argc, rt_char *argv[])
         {
             RT_LOGE("Exception: %s\n", e.err);
         }
-        RT_LOGI("--------------------------------------- simd = %d ---\n", simd);
+        RT_LOGI("----------------------------------- simd = %dv%d ---\n",
+                                                (simd & 0xFF) * 32, simd >> 8);
     }
 
 #if   defined (RT_WIN32) /* Win32, MSVC ------------------------------------ */

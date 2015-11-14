@@ -433,7 +433,7 @@
         cvtps_rr(Xmm1, Xmm1)                                                \
         andpx_rr(Xmm1, Xmm7)                                                \
         shlpx_ri(Xmm1, IB(0x##cl))                                          \
-        addpx_rr(Xmm0, Xmm1)
+        orrpx_rr(Xmm0, Xmm1)
 
 #define FRAME_SIMD() /* destroys Xmm0, Xmm1, Xmm2, Xmm7, reads Reax, Redx */\
         xorpx_rr(Xmm0, Xmm0)                                                \
@@ -3967,51 +3967,77 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
 static
 rt_cell s_mask = 0;
 static
+rt_cell s_type[S+1];
+static
 rt_cell s_mode = 0;
 
 /*
  * Backend's global entry point (hence 0).
- * Switch backend's runtime SIMD target
- * with "mode" equal to SIMD width (4, 8).
+ * Switch backend's runtime SIMD target with
+ * "mode" equal to SIMD width (4, 8) in lower
+ * byte and SIMD type (1, 2) in higher byte.
  */
 rt_cell switch0(rt_cell mode)
 {
     rt_SIMD_INFOX s_inf_loc, *s_inf = &s_inf_loc;
     memset(s_inf, 0, sizeof(rt_SIMD_INFOX));
+    memset(s_type, 0, sizeof(s_type));
 
     ASM_ENTER(s_inf)
         verxx_xx()
     ASM_LEAVE(s_inf)
 
-    s_mask = 0;
+    s_mask = s_inf->ver;
 
-#if defined (RT_256) && (RT_256 != 0)
-    s_mask |= s_inf->ver & 8;
+#if defined (RT_256) && (RT_256 & 2)
     if (s_mode == 0)
     {
-        s_mode = s_mask & 8;
+        s_mode = (s_mask & 0x0200) != 0 ? 0x0208 : 0x0000;
     }
-#endif /* RT_256 */
-#if defined (RT_128) && (RT_128 != 0)
-    s_mask |= s_inf->ver & 4;
+    s_type[8] |= ((s_mask << 0) & 0x0200) | 8;
+#endif /* RT_256 & 2 */
+#if defined (RT_256) && (RT_256 & 1)
     if (s_mode == 0)
     {
-        s_mode = s_mask & 4;
+        s_mode = (s_mask & 0x0100) != 0 ? 0x0108 : 0x0000;
     }
-#endif /* RT_128 */
+    s_type[8] |= ((s_mask << 0) & 0x0100) | 8;
+#endif /* RT_256 & 1 */
+#if defined (RT_128) && (RT_128 & 2)
+    if (s_mode == 0)
+    {
+        s_mode = (s_mask & 0x0002) != 0 ? 0x0204 : 0x0000;
+    }
+    s_type[4] |= ((s_mask << 8) & 0x0200) | 4;
+#endif /* RT_128 & 2 */
+#if defined (RT_128) && (RT_128 & 1)
+    if (s_mode == 0)
+    {
+        s_mode = (s_mask & 0x0001) != 0 ? 0x0104 : 0x0000;
+    }
+    s_type[4] |= ((s_mask << 8) & 0x0100) | 4;
+#endif /* RT_128 & 1 */
 
-    mode &= s_mask;
+    mode &= (mode & 0xFF) <= S ? s_type[mode & 0xFF] : 0;
 
     switch (mode)
     {
-#if defined (RT_256) && (RT_256 != 0)
-        case 8:
+#if defined (RT_256) && (RT_256 & 2)
+        case 0x0208:
         break;
-#endif /* RT_256 */
-#if defined (RT_128) && (RT_128 != 0)
-        case 4:
+#endif /* RT_256 & 2 */
+#if defined (RT_256) && (RT_256 & 1)
+        case 0x0108:
         break;
-#endif /* RT_128 */
+#endif /* RT_256 & 1 */
+#if defined (RT_128) && (RT_128 & 2)
+        case 0x0204:
+        break;
+#endif /* RT_128 & 2 */
+#if defined (RT_128) && (RT_128 & 1)
+        case 0x0104:
+        break;
+#endif /* RT_128 & 1 */
 
         default:
         mode = s_mode;
@@ -4027,12 +4053,22 @@ rt_cell switch0(rt_cell mode)
 /*********************************   RENDER   *********************************/
 /******************************************************************************/
 
-namespace simd_128
+namespace simd_128v1
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_256
+namespace simd_128v2
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace simd_256v1
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace simd_256v2
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
@@ -4046,16 +4082,26 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 {
     switch (s_mode)
     {
-#if defined (RT_256) && (RT_256 != 0)
-        case 8:
-        simd_256::render0(s_inf);
+#if defined (RT_256) && (RT_256 & 2)
+        case 0x0208:
+        simd_256v2::render0(s_inf);
         break;
-#endif /* RT_256 */
-#if defined (RT_128) && (RT_128 != 0)
-        case 4:
-        simd_128::render0(s_inf);
+#endif /* RT_256 & 2 */
+#if defined (RT_256) && (RT_256 & 1)
+        case 0x0108:
+        simd_256v1::render0(s_inf);
         break;
-#endif /* RT_128 */
+#endif /* RT_256 & 1 */
+#if defined (RT_128) && (RT_128 & 2)
+        case 0x0204:
+        simd_128v2::render0(s_inf);
+        break;
+#endif /* RT_128 & 2 */
+#if defined (RT_128) && (RT_128 & 1)
+        case 0x0104:
+        simd_128v1::render0(s_inf);
+        break;
+#endif /* RT_128 & 1 */
 
         default:
         break;

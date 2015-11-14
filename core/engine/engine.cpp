@@ -2545,7 +2545,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
 
     /* init rendering backend,
      * default SIMD runtime target will be chosen */
-    simd_width = switch0(0);
+    simd_width = switch0(0) & 0xFF;
     simd_quads = simd_width / 4;
 }
 
@@ -3119,13 +3119,15 @@ rt_cell rt_Scene::set_opts(rt_cell opts)
 }
 
 /*
- * Set current runtime SIMD target (width: 4, 8).
+ * Set current runtime SIMD target
+ * lower byte (width: 4, 8),
+ * higher byte (type: 1, 2).
  */
 rt_cell rt_Scene::set_simd(rt_cell simd)
 {
     simd = switch0(simd);
 
-    simd_width = simd;
+    simd_width = simd & 0xFF;
     simd_quads = simd_width / 4;
 
     return simd;
