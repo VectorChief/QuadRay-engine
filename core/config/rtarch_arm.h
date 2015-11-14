@@ -496,7 +496,7 @@
 /* ver */
 
 #define verxx_xx() /* destroys Reax, Recx, Rebx, Redx, Resi (in x86) */     \
-        movxx_mi(Mebp, inf_VER, IB(4)) /* <- NEON to bit2, val4 */
+        movxx_mi(Mebp, inf_VER, IB(1)) /* <- NEON to bit0 */
 
 #endif /* RT_RTARCH_ARM_H */
 
