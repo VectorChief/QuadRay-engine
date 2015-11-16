@@ -471,6 +471,13 @@
         movxx_ld(Reax, Mebp, inf_FCTRL)                                     \
         fpscr_ld(Reax)
 
+/* cvr */
+
+#define cvrps_rr(RG, RM, mode)                                              \
+        FCTRL_ENTER(mode)                                                   \
+        cvtps_rr(W(RG), W(RM))                                              \
+        FCTRL_LEAVE(mode)
+
 #endif /* RT_SIMD_CODE */
 
 #endif /* RT_RTARCH_ARM_128_H */

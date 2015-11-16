@@ -628,6 +628,17 @@
 #define FCTRL_LEAVE(mode) /* destroys Reax (in ARM) */                      \
         mxcsr_ld(Mebp, inf_FCTRL)
 
+/* cvr */
+
+#define rndps_rr(RG, RM, mode) /* not portable, do not use outside */       \
+        VX3(0      , 1, 3) EMITB(0x08)                                      \
+        MRM(REG(RG), MOD(RM), REG(RM))                                      \
+        AUX(EMPTY,   EMPTY,   EMITB(RT_SIMD_MODE_##mode))
+
+#define cvrps_rr(RG, RM, mode)                                              \
+        rndps_rr(W(RG), W(RM), mode)                                        \
+        cvtps_rr(W(RG), W(RG))
+
 #endif /* RT_256 */
 
 #endif /* RT_SIMD_CODE */
