@@ -53,11 +53,17 @@
 /********************************   INTERNAL   ********************************/
 /******************************************************************************/
 
+/* 2-byte VEX prefix with 256 mode set, leading 0x0F is implied */
 #define VEX(reg, pfx)       EMITB(0xC5)                                     \
                             EMITB(0x84 | (0x0F - (reg)) << 3 | (pfx))
 
+/* 2-byte VEX prefix with 128 mode set, leading 0x0F is implied */
 #define VLZ(reg, pfx)       EMITB(0xC5)                                     \
                             EMITB(0x80 | (0x0F - (reg)) << 3 | (pfx))
+
+/* 3-byte VEX prefix with 256 mode set, leading 0x0F is encoded */
+#define VX3(reg, pfx, aux)  EMITB(0xC4) EMITB(0xE0 | (aux))                 \
+                            EMITB(0x04 | (0x0F - (reg)) << 3 | (pfx))
 
 /******************************************************************************/
 /********************************   EXTERNAL   ********************************/
@@ -346,187 +352,175 @@
 
 #if (RT_256 < 2)
 
+#define prmpx_rr(RG, RM, IM) /* not portable, do not use outside */         \
+        VX3(REG(RG), 1, 3) EMITB(0x06)                                      \
+        MRM(REG(RG), MOD(RM), REG(RM))                                      \
+        AUX(EMPTY,   EMPTY,   EMITB(VAL(IM)))
+
+#define movlx_ld(RG, RM, DP) /* not portable, do not use outside */         \
+        VLZ(0      , 0) EMITB(0x28)                                         \
+        MRM(REG(RG), MOD(RM), REG(RM))                                      \
+        AUX(SIB(RM), CMD(DP), EMPTY)
+
+#define movlx_st(RG, RM, DP) /* not portable, do not use outside */         \
+        VLZ(0      , 0) EMITB(0x29)                                         \
+        MRM(REG(RG), MOD(RM), REG(RM))                                      \
+        AUX(SIB(RM), CMD(DP), EMPTY)
+
 /* add */
+
+#define addlx_rr(RG, RM)     /* not portable, do not use outside */         \
+        VLZ(REG(RG), 1) EMITB(0xFE)                                         \
+        MRM(REG(RG), MOD(RM), REG(RM))
 
 #define addpx_rr(RG, RM)                                                    \
         movpx_st(W(RG), Mebp, inf_SCR01(0))                                 \
-        movpx_st(W(RM), Mebp, inf_SCR02(0))                                 \
-        movxx_st(Reax,  Mebp, inf_SCR00)                                    \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x00))                              \
-        addxx_st(Reax,  Mebp, inf_SCR01(0x00))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x04))                              \
-        addxx_st(Reax,  Mebp, inf_SCR01(0x04))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x08))                              \
-        addxx_st(Reax,  Mebp, inf_SCR01(0x08))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x0C))                              \
-        addxx_st(Reax,  Mebp, inf_SCR01(0x0C))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x10))                              \
-        addxx_st(Reax,  Mebp, inf_SCR01(0x10))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x14))                              \
-        addxx_st(Reax,  Mebp, inf_SCR01(0x14))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x18))                              \
-        addxx_st(Reax,  Mebp, inf_SCR01(0x18))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x1C))                              \
-        addxx_st(Reax,  Mebp, inf_SCR01(0x1C))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR00)                                    \
+        addlx_rr(W(RG), W(RM))                                              \
+        movlx_st(W(RG), Mebp, inf_SCR01(0x00))                              \
+        movlx_ld(W(RG), Mebp, inf_SCR01(0x10))                              \
+        prmpx_rr(W(RM), W(RM), IB(1))                                       \
+        addlx_rr(W(RG), W(RM))                                              \
+        prmpx_rr(W(RM), W(RM), IB(1))                                       \
+        movlx_st(W(RG), Mebp, inf_SCR01(0x10))                              \
         movpx_ld(W(RG), Mebp, inf_SCR01(0))
+
+#define addlx_ld(RG, RM, DP)                                                \
+        VLZ(REG(RG), 1) EMITB(0xFE)                                         \
+        MRM(REG(RG), MOD(RM), REG(RM))                                      \
+        AUX(SIB(RM), CMD(DP), EMPTY)
 
 #define addpx_ld(RG, RM, DP)                                                \
         movpx_st(W(RG), Mebp, inf_SCR01(0))                                 \
         movpx_ld(W(RG), W(RM), W(DP))                                       \
         movpx_st(W(RG), Mebp, inf_SCR02(0))                                 \
-        movxx_st(Reax,  Mebp, inf_SCR00)                                    \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x00))                              \
-        addxx_st(Reax,  Mebp, inf_SCR01(0x00))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x04))                              \
-        addxx_st(Reax,  Mebp, inf_SCR01(0x04))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x08))                              \
-        addxx_st(Reax,  Mebp, inf_SCR01(0x08))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x0C))                              \
-        addxx_st(Reax,  Mebp, inf_SCR01(0x0C))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x10))                              \
-        addxx_st(Reax,  Mebp, inf_SCR01(0x10))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x14))                              \
-        addxx_st(Reax,  Mebp, inf_SCR01(0x14))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x18))                              \
-        addxx_st(Reax,  Mebp, inf_SCR01(0x18))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x1C))                              \
-        addxx_st(Reax,  Mebp, inf_SCR01(0x1C))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR00)                                    \
+        movlx_ld(W(RG), Mebp, inf_SCR01(0x00))                              \
+        addlx_ld(W(RG), Mebp, inf_SCR02(0x00))                              \
+        movlx_st(W(RG), Mebp, inf_SCR01(0x00))                              \
+        movlx_ld(W(RG), Mebp, inf_SCR01(0x10))                              \
+        addlx_ld(W(RG), Mebp, inf_SCR02(0x10))                              \
+        movlx_st(W(RG), Mebp, inf_SCR01(0x10))                              \
         movpx_ld(W(RG), Mebp, inf_SCR01(0))
 
 /* sub */
 
+#define sublx_rr(RG, RM)     /* not portable, do not use outside */         \
+        VLZ(REG(RG), 1) EMITB(0xFA)                                         \
+        MRM(REG(RG), MOD(RM), REG(RM))
+
 #define subpx_rr(RG, RM)                                                    \
         movpx_st(W(RG), Mebp, inf_SCR01(0))                                 \
-        movpx_st(W(RM), Mebp, inf_SCR02(0))                                 \
-        movxx_st(Reax,  Mebp, inf_SCR00)                                    \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x00))                              \
-        subxx_st(Reax,  Mebp, inf_SCR01(0x00))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x04))                              \
-        subxx_st(Reax,  Mebp, inf_SCR01(0x04))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x08))                              \
-        subxx_st(Reax,  Mebp, inf_SCR01(0x08))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x0C))                              \
-        subxx_st(Reax,  Mebp, inf_SCR01(0x0C))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x10))                              \
-        subxx_st(Reax,  Mebp, inf_SCR01(0x10))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x14))                              \
-        subxx_st(Reax,  Mebp, inf_SCR01(0x14))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x18))                              \
-        subxx_st(Reax,  Mebp, inf_SCR01(0x18))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x1C))                              \
-        subxx_st(Reax,  Mebp, inf_SCR01(0x1C))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR00)                                    \
+        sublx_rr(W(RG), W(RM))                                              \
+        movlx_st(W(RG), Mebp, inf_SCR01(0x00))                              \
+        movlx_ld(W(RG), Mebp, inf_SCR01(0x10))                              \
+        prmpx_rr(W(RM), W(RM), IB(1))                                       \
+        sublx_rr(W(RG), W(RM))                                              \
+        prmpx_rr(W(RM), W(RM), IB(1))                                       \
+        movlx_st(W(RG), Mebp, inf_SCR01(0x10))                              \
         movpx_ld(W(RG), Mebp, inf_SCR01(0))
+
+#define sublx_ld(RG, RM, DP)                                                \
+        VLZ(REG(RG), 1) EMITB(0xFA)                                         \
+        MRM(REG(RG), MOD(RM), REG(RM))                                      \
+        AUX(SIB(RM), CMD(DP), EMPTY)
 
 #define subpx_ld(RG, RM, DP)                                                \
         movpx_st(W(RG), Mebp, inf_SCR01(0))                                 \
         movpx_ld(W(RG), W(RM), W(DP))                                       \
         movpx_st(W(RG), Mebp, inf_SCR02(0))                                 \
-        movxx_st(Reax,  Mebp, inf_SCR00)                                    \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x00))                              \
-        subxx_st(Reax,  Mebp, inf_SCR01(0x00))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x04))                              \
-        subxx_st(Reax,  Mebp, inf_SCR01(0x04))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x08))                              \
-        subxx_st(Reax,  Mebp, inf_SCR01(0x08))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x0C))                              \
-        subxx_st(Reax,  Mebp, inf_SCR01(0x0C))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x10))                              \
-        subxx_st(Reax,  Mebp, inf_SCR01(0x10))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x14))                              \
-        subxx_st(Reax,  Mebp, inf_SCR01(0x14))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x18))                              \
-        subxx_st(Reax,  Mebp, inf_SCR01(0x18))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR02(0x1C))                              \
-        subxx_st(Reax,  Mebp, inf_SCR01(0x1C))                              \
-        movxx_ld(Reax,  Mebp, inf_SCR00)                                    \
+        movlx_ld(W(RG), Mebp, inf_SCR01(0x00))                              \
+        sublx_ld(W(RG), Mebp, inf_SCR02(0x00))                              \
+        movlx_st(W(RG), Mebp, inf_SCR01(0x00))                              \
+        movlx_ld(W(RG), Mebp, inf_SCR01(0x10))                              \
+        sublx_ld(W(RG), Mebp, inf_SCR02(0x10))                              \
+        movlx_st(W(RG), Mebp, inf_SCR01(0x10))                              \
         movpx_ld(W(RG), Mebp, inf_SCR01(0))
 
 /* shl */
 
+#define shllx_ri(RM, IM)     /* not portable, do not use outside */         \
+        VLZ(REG(RM), 1) EMITB(0x72)                                         \
+        MRM(0x06,    MOD(RM), REG(RM))                                      \
+        AUX(EMPTY,   EMPTY,   EMITB(VAL(IM) & 0x1F))
+
 #define shlpx_ri(RM, IM)                                                    \
         movpx_st(W(RM), Mebp, inf_SCR01(0))                                 \
-        shlxx_mi(Mebp,  inf_SCR01(0x00), W(IM))                             \
-        shlxx_mi(Mebp,  inf_SCR01(0x04), W(IM))                             \
-        shlxx_mi(Mebp,  inf_SCR01(0x08), W(IM))                             \
-        shlxx_mi(Mebp,  inf_SCR01(0x0C), W(IM))                             \
-        shlxx_mi(Mebp,  inf_SCR01(0x10), W(IM))                             \
-        shlxx_mi(Mebp,  inf_SCR01(0x14), W(IM))                             \
-        shlxx_mi(Mebp,  inf_SCR01(0x18), W(IM))                             \
-        shlxx_mi(Mebp,  inf_SCR01(0x1C), W(IM))                             \
+        shllx_ri(W(RM), W(IM))                                              \
+        movlx_st(W(RM), Mebp, inf_SCR01(0x00))                              \
+        movlx_ld(W(RM), Mebp, inf_SCR01(0x10))                              \
+        shllx_ri(W(RM), W(IM))                                              \
+        movlx_st(W(RM), Mebp, inf_SCR01(0x10))                              \
         movpx_ld(W(RM), Mebp, inf_SCR01(0))
+
+#define shllx_ld(RG, RM, DP)                                                \
+        VLZ(REG(RG), 1) EMITB(0xF2)                                         \
+        MRM(REG(RG), MOD(RM), REG(RM))                                      \
+        AUX(SIB(RM), CMD(DP), EMPTY)
 
 #define shlpx_ld(RG, RM, DP)                                                \
         movpx_st(W(RG), Mebp, inf_SCR01(0))                                 \
-        movxx_st(Recx,  Mebp, inf_SCR00)                                    \
-        movxx_ld(Recx,  W(RM), W(DP))                                       \
-        shlxx_mx(Mebp,  inf_SCR01(0x00))                                    \
-        shlxx_mx(Mebp,  inf_SCR01(0x04))                                    \
-        shlxx_mx(Mebp,  inf_SCR01(0x08))                                    \
-        shlxx_mx(Mebp,  inf_SCR01(0x0C))                                    \
-        shlxx_mx(Mebp,  inf_SCR01(0x10))                                    \
-        shlxx_mx(Mebp,  inf_SCR01(0x14))                                    \
-        shlxx_mx(Mebp,  inf_SCR01(0x18))                                    \
-        shlxx_mx(Mebp,  inf_SCR01(0x1C))                                    \
-        movxx_ld(Recx,  Mebp, inf_SCR00)                                    \
+        shllx_ld(W(RG), W(RM), W(DP))                                       \
+        movlx_st(W(RG), Mebp, inf_SCR01(0x00))                              \
+        movlx_ld(W(RG), Mebp, inf_SCR01(0x10))                              \
+        shllx_ld(W(RG), W(RM), W(DP))                                       \
+        movlx_st(W(RG), Mebp, inf_SCR01(0x10))                              \
         movpx_ld(W(RG), Mebp, inf_SCR01(0))
 
 /* shr */
 
+#define shrlx_ri(RM, IM)     /* not portable, do not use outside */         \
+        VLZ(REG(RM), 1) EMITB(0x72)                                         \
+        MRM(0x02,    MOD(RM), REG(RM))                                      \
+        AUX(EMPTY,   EMPTY,   EMITB(VAL(IM) & 0x1F))
+
 #define shrpx_ri(RM, IM)                                                    \
         movpx_st(W(RM), Mebp, inf_SCR01(0))                                 \
-        shrxx_mi(Mebp,  inf_SCR01(0x00), W(IM))                             \
-        shrxx_mi(Mebp,  inf_SCR01(0x04), W(IM))                             \
-        shrxx_mi(Mebp,  inf_SCR01(0x08), W(IM))                             \
-        shrxx_mi(Mebp,  inf_SCR01(0x0C), W(IM))                             \
-        shrxx_mi(Mebp,  inf_SCR01(0x10), W(IM))                             \
-        shrxx_mi(Mebp,  inf_SCR01(0x14), W(IM))                             \
-        shrxx_mi(Mebp,  inf_SCR01(0x18), W(IM))                             \
-        shrxx_mi(Mebp,  inf_SCR01(0x1C), W(IM))                             \
+        shrlx_ri(W(RM), W(IM))                                              \
+        movlx_st(W(RM), Mebp, inf_SCR01(0x00))                              \
+        movlx_ld(W(RM), Mebp, inf_SCR01(0x10))                              \
+        shrlx_ri(W(RM), W(IM))                                              \
+        movlx_st(W(RM), Mebp, inf_SCR01(0x10))                              \
         movpx_ld(W(RM), Mebp, inf_SCR01(0))
+
+#define shrlx_ld(RG, RM, DP)                                                \
+        VLZ(REG(RG), 1) EMITB(0xD2)                                         \
+        MRM(REG(RG), MOD(RM), REG(RM))                                      \
+        AUX(SIB(RM), CMD(DP), EMPTY)
 
 #define shrpx_ld(RG, RM, DP)                                                \
         movpx_st(W(RG), Mebp, inf_SCR01(0))                                 \
-        movxx_st(Recx,  Mebp, inf_SCR00)                                    \
-        movxx_ld(Recx,  W(RM), W(DP))                                       \
-        shrxx_mx(Mebp,  inf_SCR01(0x00))                                    \
-        shrxx_mx(Mebp,  inf_SCR01(0x04))                                    \
-        shrxx_mx(Mebp,  inf_SCR01(0x08))                                    \
-        shrxx_mx(Mebp,  inf_SCR01(0x0C))                                    \
-        shrxx_mx(Mebp,  inf_SCR01(0x10))                                    \
-        shrxx_mx(Mebp,  inf_SCR01(0x14))                                    \
-        shrxx_mx(Mebp,  inf_SCR01(0x18))                                    \
-        shrxx_mx(Mebp,  inf_SCR01(0x1C))                                    \
-        movxx_ld(Recx,  Mebp, inf_SCR00)                                    \
+        shrlx_ld(W(RG), W(RM), W(DP))                                       \
+        movlx_st(W(RG), Mebp, inf_SCR01(0x00))                              \
+        movlx_ld(W(RG), Mebp, inf_SCR01(0x10))                              \
+        shrlx_ld(W(RG), W(RM), W(DP))                                       \
+        movlx_st(W(RG), Mebp, inf_SCR01(0x10))                              \
         movpx_ld(W(RG), Mebp, inf_SCR01(0))
+
+#define shrln_ri(RM, IM)     /* not portable, do not use outside */         \
+        VLZ(REG(RM), 1) EMITB(0x72)                                         \
+        MRM(0x04,    MOD(RM), REG(RM))                                      \
+        AUX(EMPTY,   EMPTY,   EMITB(VAL(IM) & 0x1F))
 
 #define shrpn_ri(RM, IM)                                                    \
         movpx_st(W(RM), Mebp, inf_SCR01(0))                                 \
-        shrxn_mi(Mebp,  inf_SCR01(0x00), W(IM))                             \
-        shrxn_mi(Mebp,  inf_SCR01(0x04), W(IM))                             \
-        shrxn_mi(Mebp,  inf_SCR01(0x08), W(IM))                             \
-        shrxn_mi(Mebp,  inf_SCR01(0x0C), W(IM))                             \
-        shrxn_mi(Mebp,  inf_SCR01(0x10), W(IM))                             \
-        shrxn_mi(Mebp,  inf_SCR01(0x14), W(IM))                             \
-        shrxn_mi(Mebp,  inf_SCR01(0x18), W(IM))                             \
-        shrxn_mi(Mebp,  inf_SCR01(0x1C), W(IM))                             \
+        shrln_ri(W(RM), W(IM))                                              \
+        movlx_st(W(RM), Mebp, inf_SCR01(0x00))                              \
+        movlx_ld(W(RM), Mebp, inf_SCR01(0x10))                              \
+        shrln_ri(W(RM), W(IM))                                              \
+        movlx_st(W(RM), Mebp, inf_SCR01(0x10))                              \
         movpx_ld(W(RM), Mebp, inf_SCR01(0))
+
+#define shrln_ld(RG, RM, DP)                                                \
+        VLZ(REG(RG), 1) EMITB(0xE2)                                         \
+        MRM(REG(RG), MOD(RM), REG(RM))                                      \
+        AUX(SIB(RM), CMD(DP), EMPTY)
 
 #define shrpn_ld(RG, RM, DP)                                                \
         movpx_st(W(RG), Mebp, inf_SCR01(0))                                 \
-        movxx_st(Recx,  Mebp, inf_SCR00)                                    \
-        movxx_ld(Recx,  W(RM), W(DP))                                       \
-        shrxn_mx(Mebp,  inf_SCR01(0x00))                                    \
-        shrxn_mx(Mebp,  inf_SCR01(0x04))                                    \
-        shrxn_mx(Mebp,  inf_SCR01(0x08))                                    \
-        shrxn_mx(Mebp,  inf_SCR01(0x0C))                                    \
-        shrxn_mx(Mebp,  inf_SCR01(0x10))                                    \
-        shrxn_mx(Mebp,  inf_SCR01(0x14))                                    \
-        shrxn_mx(Mebp,  inf_SCR01(0x18))                                    \
-        shrxn_mx(Mebp,  inf_SCR01(0x1C))                                    \
-        movxx_ld(Recx,  Mebp, inf_SCR00)                                    \
+        shrln_ld(W(RG), W(RM), W(DP))                                       \
+        movlx_st(W(RG), Mebp, inf_SCR01(0x00))                              \
+        movlx_ld(W(RG), Mebp, inf_SCR01(0x10))                              \
+        shrln_ld(W(RG), W(RM), W(DP))                                       \
+        movlx_st(W(RG), Mebp, inf_SCR01(0x10))                              \
         movpx_ld(W(RG), Mebp, inf_SCR01(0))
 
 /**************************   packed integer (AVX2)   *************************/
