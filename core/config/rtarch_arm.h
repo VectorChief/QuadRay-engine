@@ -415,6 +415,8 @@
 
 /* div */
 
+#if (RT_128 < 2)
+
 #define divxn_xm(RM, DP) /* Reax is in/out, Redx is Reax-sign-extended */   \
         AUX(SIB(RM), EMPTY,   EMPTY) /* destroys Xmm0, fallback to VFP */   \
         EMITW(0xE5900000 | MRM(TMxx,    MOD(RM), 0x00) |(VAL(DP) & 0xFFF))  \
@@ -423,6 +425,15 @@
         EMITW(0xEE800A20 | MRM(Tmm0+1,  Tmm0+1,  Tmm0+1)) /* <- fp div */   \
         EMITW(0xF3BB0700 | MRM(Tmm0+0,  0x00,    Tmm0+1)) /* first 0x00 */  \
         EMITW(0xEE100B10 | MRM(0x00,    Tmm0+0,  0x00)) /* in MRM is Reax */
+
+#else /* RT_128 >= 2 */
+
+#define divxn_xm(RM, DP) /* Reax is in/out, Redx is Reax-sign-extended */   \
+        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        EMITW(0xE5900000 | MRM(TMxx,    MOD(RM), 0x00) |(VAL(DP) & 0xFFF))  \
+        EMITW(0xE710F010 | MRM(0x00,    0x00,    0x00) | TMxx << 8)
+
+#endif /* RT_128 >= 2 */
 
 /* cmp */
 
