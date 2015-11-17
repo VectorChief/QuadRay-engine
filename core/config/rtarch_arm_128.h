@@ -473,10 +473,20 @@
 
 /* cvr */
 
+#if (RT_128 < 2)
+
 #define cvrps_rr(RG, RM, mode)                                              \
         FCTRL_ENTER(mode)                                                   \
         cvtps_rr(W(RG), W(RM))                                              \
         FCTRL_LEAVE(mode)
+
+#else /* RT_128 >= 2 */
+
+#define cvrps_rr(RG, RM, mode)                                              \
+        EMITW(0xF3BB0040 | MRM(REG(RG), 0x00,    REG(RM)) |                 \
+        (RT_SIMD_MODE_##mode+1 + 3*((RT_SIMD_MODE_##mode+1) >> 2)) << 8)
+
+#endif /* RT_128 >= 2 */
 
 #endif /* RT_SIMD_CODE */
 
