@@ -1,3 +1,25 @@
+v0.6.1: Backend improvements, unified quadric solver + runtime SIMD targets
+  - implement unified quadric solver in rendering backend
+  - turn off bbox sorting and removal opts for poor scalability
+  - fix quadric roots overdraw on the edges and for mixed quads
+  - use built-in scalers in solvers instead of transform matrix
+  - add new code for scalers/trnode handling
+  - add material's entry points to rendering backend
+  - implement roots sorting for determinant around zero
+  - propagate TMASK to secondary rays
+  - check quadric roots overdraw within XMASK
+  - implement proper fix for conic singularity
+  - improve camera's reporting precision for debugging
+  - improve quadric's debug info formatting
+  - propagate local point adjustments to secondary rays
+  - use direct diff in solvers for consistency with the rest of the backend
+  - implement array's bounds highlight for debugging (primary rays only)
+  - implement scalable (elliptic) bvnodes for better space efficiency
+  - implement SIMD targets for AVX1, AVX2 and SSE1 in addition to SSE2
+  - implement SIMD target runtime selection based on CPUID (x86 only)
+  - switch SIMD target width and variant on key press (F8) and (F7)
+  - hide all numbers on the screen on key press (F12)
+
 v0.6.0: Backend improvements, full set of quadrics + numerical stability
   - implement solvers for paracylinder, hypercylinder, hyperparaboloid
   - rework bbox adjust to fully support new quadrics
