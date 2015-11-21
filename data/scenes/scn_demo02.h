@@ -327,6 +327,20 @@ rt_OBJECT ob_cube03[] =
 /*********************************   LIGHTS   *********************************/
 /******************************************************************************/
 
+rt_LIGHT lt_light02 =
+{
+    RT_LGT(PLAIN),
+
+    RT_COL(0xFFFFFFFF),
+
+    {/* amb     src */
+        0.01,   0.7
+    },
+    {/* rng     cnt     lnr     qdr */
+        0.0,    0.7,    0.5,    0.1
+    },
+};
+
 rt_OBJECT ob_light01[] =
 {
     {
@@ -343,7 +357,7 @@ rt_OBJECT ob_light01[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {    0.0,        3.0,        0.0    },
         },
-        RT_OBJ_LIGHT(&lt_light01)
+        RT_OBJ_LIGHT(&lt_light02)
     },
 };
 
@@ -359,6 +373,34 @@ rt_void an_light01(rt_time time, rt_time last_time,
         trm->rot[RT_Z] -= 360.0f;
     }
 }
+
+rt_OBJECT ob_trinity01[] =
+{
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {    0.0,        0.0,        0.0    },
+        },
+        RT_OBJ_ARRAY(&ob_light01),
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,      120.0    },
+/* pos */   {    0.0,        0.0,        0.0    },
+        },
+        RT_OBJ_ARRAY(&ob_light01),
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,      240.0    },
+/* pos */   {    0.0,        0.0,        0.0    },
+        },
+        RT_OBJ_ARRAY(&ob_light01),
+    },
+};
 
 /******************************************************************************/
 /*********************************   CAMERA   *********************************/
@@ -445,7 +487,7 @@ rt_OBJECT ob_tree[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   -6.0,        0.0,        4.5    },
         },
-        RT_OBJ_ARRAY(&ob_light01),
+        RT_OBJ_ARRAY(&ob_trinity01),
         &an_light01,
     },
     {
