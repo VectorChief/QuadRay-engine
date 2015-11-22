@@ -3964,6 +3964,8 @@ rt_cell s_type[S+1];
 static
 rt_cell s_mode = 0;
 
+rt_SIMD_INFOX s_inf_loc, *s_inf = &s_inf_loc;
+
 /*
  * Backend's global entry point (hence 0).
  * Switch backend's runtime SIMD target with
@@ -3972,7 +3974,6 @@ rt_cell s_mode = 0;
  */
 rt_cell switch0(rt_cell mode)
 {
-    rt_SIMD_INFOX s_inf_loc, *s_inf = &s_inf_loc;
     memset(s_inf, 0, sizeof(rt_SIMD_INFOX));
     memset(s_type, 0, sizeof(s_type));
 
