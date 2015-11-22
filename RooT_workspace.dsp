@@ -253,6 +253,10 @@ SOURCE=.\data\scenes\all_scn.h
 
 SOURCE=.\data\scenes\scn_demo01.h
 # End Source File
+# Begin Source File
+
+SOURCE=.\data\scenes\scn_demo02.h
+# End Source File
 # End Group
 # Begin Group "textures"
 
