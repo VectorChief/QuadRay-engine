@@ -17,7 +17,8 @@ v0.6.1: Backend improvements, unified quadric solver + runtime SIMD targets
   - implement scalable (elliptic) bvnodes for better space efficiency
   - implement SIMD targets for AVX1, AVX2 and SSE1 in addition to SSE2
   - implement SIMD target runtime selection based on CPUID (x86 only)
-  - switch SIMD target width and variant on key press (F8) and (F7)
+  - switch SIMD target variant and width on key press (F7) and (F8)
+  - add demo scene 02, implement runtime selection on key press (F11)
   - hide all numbers on the screen on key press (F12)
 
 v0.6.0: Backend improvements, full set of quadrics + numerical stability
