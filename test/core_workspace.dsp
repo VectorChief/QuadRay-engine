@@ -190,19 +190,19 @@ SOURCE=..\core\tracer\tracer.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\tracer\tracer_128v1.cpp
+SOURCE=..\core\tracer\tracer_128v1.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\tracer\tracer_128v2.cpp
+SOURCE=..\core\tracer\tracer_128v2.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\tracer\tracer_256v1.cpp
+SOURCE=..\core\tracer\tracer_256v1.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\tracer\tracer_256v2.cpp
+SOURCE=..\core\tracer\tracer_256v2.cpp
 # End Source File
 # Begin Source File
 
