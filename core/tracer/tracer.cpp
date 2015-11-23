@@ -347,7 +347,8 @@
 
 #if RT_SIMD_QUADS == 1
 
-#define STORE_SIMD(lb, pl) /* destroys Reax */                              \
+#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0 */                    \
+        movpx_st(W(RG), Mecx, ctx_C_PTR(0))                                 \
         STORE_FRAG(lb, 00, pl)                                              \
         STORE_FRAG(lb, 04, pl)                                              \
         STORE_FRAG(lb, 08, pl)                                              \
@@ -355,15 +356,9 @@
 
 #elif RT_SIMD_QUADS == 2
 
-#define STORE_SIMD(lb, pl) /* destroys Reax */                              \
-        STORE_FRAG(lb, 00, pl)                                              \
-        STORE_FRAG(lb, 04, pl)                                              \
-        STORE_FRAG(lb, 08, pl)                                              \
-        STORE_FRAG(lb, 0C, pl)                                              \
-        STORE_FRAG(lb, 10, pl)                                              \
-        STORE_FRAG(lb, 14, pl)                                              \
-        STORE_FRAG(lb, 18, pl)                                              \
-        STORE_FRAG(lb, 1C, pl)
+#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0 */                    \
+        movpx_ld(Xmm0, Mecx, ctx_TMASK(0))                                  \
+        mmvpx_st(W(RG), Mecx, ctx_##pl(0), Xmm0)
 
 #endif /* RT_SIMD_QUADS */
 
@@ -394,7 +389,8 @@
 
 #if RT_SIMD_QUADS == 1
 
-#define PAINT_SIMD(lb) /* destroys Reax, Xmm0, Xmm7 */                      \
+#define PAINT_SIMD(lb, RG) /* destroys Reax, Xmm0, Xmm7 */                  \
+        movpx_st(W(RG), Mecx, ctx_C_PTR(0))                                 \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 04)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
@@ -406,7 +402,8 @@
 
 #elif RT_SIMD_QUADS == 2
 
-#define PAINT_SIMD(lb) /* destroys Reax, Xmm0, Xmm7 */                      \
+#define PAINT_SIMD(lb, RG) /* destroys Reax, Xmm0, Xmm7 */                  \
+        movpx_st(W(RG), Mecx, ctx_C_PTR(0))                                 \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 04)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
@@ -1643,8 +1640,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_TEXTURING */
 
-        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))      /* tex_p -> C_PTR */
-        PAINT_SIMD(MT_rtx)
+        PAINT_SIMD(MT_rtx, Xmm0)
 
 /******************************************************************************/
 /*********************************   LIGHTS   *********************************/
@@ -1683,16 +1679,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #endif /* RT_FEAT_LIGHTS_COLORED */
 
         /* ambient R */
-        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_amR, COL_R)
+        STORE_SIMD(LT_amR, COL_R, Xmm1)
 
         /* ambient G */
-        movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_amG, COL_G)
+        STORE_SIMD(LT_amG, COL_G, Xmm2)
 
         /* ambient B */
-        movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_amB, COL_B)
+        STORE_SIMD(LT_amB, COL_B, Xmm3)
 
 #endif /* RT_FEAT_LIGHTS_AMBIENT */
 
@@ -2029,16 +2022,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm3, Mecx, ctx_COL_B(0))
 
         /* diffuse + "metal" specular R */
-        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_mcR, COL_R)
+        STORE_SIMD(LT_mcR, COL_R, Xmm1)
 
         /* diffuse + "metal" specular G */
-        movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_mcG, COL_G)
+        STORE_SIMD(LT_mcG, COL_G, Xmm2)
 
         /* diffuse + "metal" specular B */
-        movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_mcB, COL_B)
+        STORE_SIMD(LT_mcB, COL_B, Xmm3)
 
         jmpxx_lb(LT_amb)
 
@@ -2102,16 +2092,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm3, Mecx, ctx_COL_B(0))
 
         /* diffuse + "plain" specular R */
-        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_pcR, COL_R)
+        STORE_SIMD(LT_pcR, COL_R, Xmm1)
 
         /* diffuse + "plain" specular G */
-        movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_pcG, COL_G)
+        STORE_SIMD(LT_pcG, COL_G, Xmm2)
 
         /* diffuse + "plain" specular B */
-        movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_pcB, COL_B)
+        STORE_SIMD(LT_pcB, COL_B, Xmm3)
 
 #endif /* RT_FEAT_LIGHTS_SPECULAR */
 
@@ -2133,16 +2120,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm3, Mecx, ctx_TEX_B)
 
         /* texture R */
-        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_txR, COL_R)
+        STORE_SIMD(LT_txR, COL_R, Xmm1)
 
         /* texture G */
-        movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_txG, COL_G)
+        STORE_SIMD(LT_txG, COL_G, Xmm2)
 
         /* texture B */
-        movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(LT_txB, COL_B)
+        STORE_SIMD(LT_txB, COL_B, Xmm3)
 
     LBL(LT_end)
 
@@ -2270,16 +2254,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm3, Xmm6)
 
         /* reflection R */
-        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(RF_clR, COL_R)
+        STORE_SIMD(RF_clR, COL_R, Xmm1)
 
         /* reflection G */
-        movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(RF_clG, COL_G)
+        STORE_SIMD(RF_clG, COL_G, Xmm2)
 
         /* reflection B */
-        movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(RF_clB, COL_B)
+        STORE_SIMD(RF_clB, COL_B, Xmm3)
 
     LBL(RF_end)
 
@@ -2456,16 +2437,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm3, Xmm6)
 
         /* transparent R */
-        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(TR_clR, COL_R)
+        STORE_SIMD(TR_clR, COL_R, Xmm1)
 
         /* transparent G */
-        movpx_st(Xmm2, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(TR_clG, COL_G)
+        STORE_SIMD(TR_clG, COL_G, Xmm2)
 
         /* transparent B */
-        movpx_st(Xmm3, Mecx, ctx_C_PTR(0))
-        STORE_SIMD(TR_clB, COL_B)
+        STORE_SIMD(TR_clB, COL_B, Xmm3)
 
     LBL(TR_end)
 
