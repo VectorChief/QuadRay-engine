@@ -386,20 +386,40 @@ rt_cell main_init()
 {
     try
     {
-        scene = new rt_Scene(&sc_root,
+        sc[0] = new rt_Scene(&scn_demo01::sc_root,
                             x_res, y_res, x_row, frame,
                             malloc, free,
                             init_threads, term_threads,
                             update_scene, render_scene);
 
-        fsaa = scene->set_fsaa(fsaa);
-        simd = scene->set_simd(simd | type << 8);
+        fsaa = sc[0]->set_fsaa(fsaa);
+        simd = sc[0]->set_simd(simd | type << 8);
         type = simd >> 8;
         simd = simd & 0xFF;
     }
     catch (rt_Exception e)
     {
-        RT_LOGE("Exception: %s\n", e.err);
+        RT_LOGE("Exception in scn_demo01: %s\n", e.err);
+
+        return 0;
+    }
+
+    try
+    {
+        sc[1] = new rt_Scene(&scn_demo02::sc_root,
+                            x_res, y_res, x_row, frame,
+                            malloc, free,
+                            init_threads, term_threads,
+                            update_scene, render_scene);
+
+        fsaa = sc[1]->set_fsaa(fsaa);
+        simd = sc[1]->set_simd(simd | type << 8);
+        type = simd >> 8;
+        simd = simd & 0xFF;
+    }
+    catch (rt_Exception e)
+    {
+        RT_LOGE("Exception in scn_demo02: %s\n", e.err);
 
         return 0;
     }
@@ -438,7 +458,7 @@ static rt_byte r_keys[KEY_MASK + 1];
  */
 rt_cell main_step()
 {
-    if (scene == RT_NULL)
+    if (sc[d] == RT_NULL)
     {
         return 0;
     }
@@ -464,25 +484,26 @@ rt_cell main_step()
 
     try
     {
-        if (H_KEYS(XK_w))       scene->update(cur_time, RT_CAMERA_MOVE_FORWARD);
-        if (H_KEYS(XK_s))       scene->update(cur_time, RT_CAMERA_MOVE_BACK);
-        if (H_KEYS(XK_a))       scene->update(cur_time, RT_CAMERA_MOVE_LEFT);
-        if (H_KEYS(XK_d))       scene->update(cur_time, RT_CAMERA_MOVE_RIGHT);
+        if (H_KEYS(XK_w))       sc[d]->update(cur_time, RT_CAMERA_MOVE_FORWARD);
+        if (H_KEYS(XK_s))       sc[d]->update(cur_time, RT_CAMERA_MOVE_BACK);
+        if (H_KEYS(XK_a))       sc[d]->update(cur_time, RT_CAMERA_MOVE_LEFT);
+        if (H_KEYS(XK_d))       sc[d]->update(cur_time, RT_CAMERA_MOVE_RIGHT);
 
-        if (H_KEYS(XK_Up))      scene->update(cur_time, RT_CAMERA_ROTATE_DOWN);
-        if (H_KEYS(XK_Down))    scene->update(cur_time, RT_CAMERA_ROTATE_UP);
-        if (H_KEYS(XK_Left))    scene->update(cur_time, RT_CAMERA_ROTATE_LEFT);
-        if (H_KEYS(XK_Right))   scene->update(cur_time, RT_CAMERA_ROTATE_RIGHT);
+        if (H_KEYS(XK_Up))      sc[d]->update(cur_time, RT_CAMERA_ROTATE_DOWN);
+        if (H_KEYS(XK_Down))    sc[d]->update(cur_time, RT_CAMERA_ROTATE_UP);
+        if (H_KEYS(XK_Left))    sc[d]->update(cur_time, RT_CAMERA_ROTATE_LEFT);
+        if (H_KEYS(XK_Right))   sc[d]->update(cur_time, RT_CAMERA_ROTATE_RIGHT);
 
-        if (T_KEYS(XK_F1))      scene->print_state();
+        if (T_KEYS(XK_F1))      sc[d]->print_state();
         if (T_KEYS(XK_F2))    { fsaa = RT_FSAA_4X - fsaa;
-                                fsaa = scene->set_fsaa(fsaa); }
-        if (T_KEYS(XK_F3))      scene->next_cam();
-        if (T_KEYS(XK_F4))      scene->save_frame(scr++);
+                                fsaa = sc[d]->set_fsaa(fsaa); }
+        if (T_KEYS(XK_F3))      sc[d]->next_cam();
+        if (T_KEYS(XK_F4))      sc[d]->save_frame(scr++);
         if (T_KEYS(XK_F7))    { type = type % 2 + 1;
-                                type = scene->set_simd(simd | type<<8) >> 8; }
+                                type = sc[d]->set_simd(simd | type<<8) >> 8; }
         if (T_KEYS(XK_F8))    { simd = simd % 8 + 4;
-                                simd = scene->set_simd(simd | type<<8) & 0xFF; }
+                                simd = sc[d]->set_simd(simd | type<<8) & 0xFF; }
+        if (T_KEYS(XK_F11))     d = 1 - d;
         if (T_KEYS(XK_F12))     hide_num = 1 - hide_num;
         if (T_KEYS(XK_Escape))
         {
@@ -491,19 +512,19 @@ rt_cell main_step()
         memset(t_keys, 0, sizeof(t_keys));
         memset(r_keys, 0, sizeof(r_keys));
 
-        scene->render(cur_time);
+        sc[d]->render(cur_time);
 
         if (hide_num == 0)
         {
-            scene->render_num(x_res-10, 10, -1, 2, (rt_word)fps);
-            scene->render_num(      10, 10, +1, 2, (rt_word)simd * 32);
-            scene->render_num(x_res-10, 34, -1, 2, (rt_word)fsaa * 4);
-            scene->render_num(      10, 34, +1, 2, (rt_word)type);
+            sc[d]->render_num(x_res-10, 10, -1, 2, (rt_word)fps);
+            sc[d]->render_num(      10, 10, +1, 2, (rt_word)simd * 32);
+            sc[d]->render_num(x_res-10, 34, -1, 2, (rt_word)fsaa * 4);
+            sc[d]->render_num(      10, 34, +1, 2, (rt_word)type);
         }
 
         if (depth == 16)
         {
-            frame = scene->get_frame();
+            frame = sc[d]->get_frame();
             rt_half *idata = (rt_half *)ximage->data;
             rt_cell i = x_res * y_res;
 
@@ -548,18 +569,32 @@ rt_cell main_step()
  */
 rt_cell main_term()
 {
-    if (scene == RT_NULL)
+    if (sc[0] == RT_NULL)
     {
         return 0;
     }
-
     try
     {
-        delete scene;
+        delete sc[0];
     }
     catch (rt_Exception e)
     {
-        RT_LOGE("Exception: %s\n", e.err);
+        RT_LOGE("Exception in scn_demo01: %s\n", e.err);
+
+        return 0;
+    }
+
+    if (sc[1] == RT_NULL)
+    {
+        return 0;
+    }
+    try
+    {
+        delete sc[1];
+    }
+    catch (rt_Exception e)
+    {
+        RT_LOGE("Exception in scn_demo02: %s\n", e.err);
 
         return 0;
     }

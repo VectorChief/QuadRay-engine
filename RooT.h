@@ -8,9 +8,7 @@
 #define RT_ROOT_H
 
 #include "engine.h"
-
-#include "data/scenes/scn_demo02.h"
-using namespace scn_demo02;
+#include "data/scenes/all_scn.h"
 
 #define RT_X_RES        800
 #define RT_Y_RES        480
@@ -27,7 +25,8 @@ rt_cell     simd        = 0; /* default SIMD width will be chosen */
 rt_cell     type        = 0; /* default SIMD sub-target will be chosen */
 rt_cell     hide_num    = 0; /* hide all numbers on the screen if 1 */
 
-rt_Scene   *scene       = RT_NULL;
+rt_cell     d           = 1;    /* demo index */
+rt_Scene   *sc[2]       = {0};  /* scenes array */
 
 #endif /* RT_ROOT_H */
 
