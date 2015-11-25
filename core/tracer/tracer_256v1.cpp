@@ -20,8 +20,6 @@
 #define RT_256 1
 #define RT_RENDER_CODE /* enable contents of render0 routine */
 #endif /* RT_256 */
-#undef  RT_STACK_STEP /* cross-check with tracer.h */
-#define RT_STACK_STEP       (Q * 0x300)
 
 #if   defined (RT_X86)
 #undef RT_RTARCH_X86_256_H

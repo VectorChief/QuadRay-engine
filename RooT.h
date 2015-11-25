@@ -10,6 +10,10 @@
 #include "engine.h"
 #include "data/scenes/all_scn.h"
 
+#undef Q /* short name for RT_SIMD_QUADS */
+#undef S /* short name for RT_SIMD_WIDTH */
+#undef W /* triplet pass-through wrapper */
+
 #define RT_X_RES        800
 #define RT_Y_RES        480
 

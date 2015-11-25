@@ -664,6 +664,10 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 /**********************************   UTILS   *********************************/
 /******************************************************************************/
 
+#undef Q /* short name for RT_SIMD_QUADS */
+#undef S /* short name for RT_SIMD_WIDTH */
+#undef W /* triplet pass-through wrapper */
+
 #if   defined (RT_WIN32) /* Win32, MSVC ------------------------------------- */
 
 #include <windows.h>

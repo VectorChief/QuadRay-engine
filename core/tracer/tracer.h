@@ -600,8 +600,8 @@ struct rt_SIMD_CONTEXT
 
 };
 
-/* context stack step, cross-check with tracer_***.cpp */
-#define RT_STACK_STEP       (RT_SIMD_QUADS * 0x300)
+/* context stack step for secondary rays */
+#define RT_STACK_STEP       (Q * 0x300)
 
 /******************************************************************************/
 /*********************************   CAMERA   *********************************/
