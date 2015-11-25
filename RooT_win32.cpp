@@ -455,7 +455,11 @@ rt_cell main_step()
                                 type = sc[d]->set_simd(simd | type<<8) >> 8; }
         if (T_KEYS(VK_F8))    { simd = simd % 8 + 4;
                                 simd = sc[d]->set_simd(simd | type<<8) & 0xFF; }
-        if (T_KEYS(VK_F11))     d = 1 - d;
+        if (T_KEYS(VK_F11))   { d = 1 - d;
+                                fsaa = sc[d]->set_fsaa(fsaa);
+                                simd = sc[d]->set_simd(simd | type << 8);
+                                type = simd >> 8;
+                                simd = simd & 0xFF; }
         if (T_KEYS(VK_F12))     hide_num = 1 - hide_num;
         if (T_KEYS(VK_ESCAPE))
         {
