@@ -48,6 +48,33 @@ int APIENTRY WinMain(HINSTANCE hInstance,
                      LPSTR     lpCmdLine,
                      int       nCmdShow)
 {
+    /* fill in platform's keymap */
+    r_to_p[RK_W]        = KEY_MASK & 'W';
+    r_to_p[RK_S]        = KEY_MASK & 'S';
+    r_to_p[RK_A]        = KEY_MASK & 'A';
+    r_to_p[RK_D]        = KEY_MASK & 'D';
+
+    r_to_p[RK_UP]       = KEY_MASK & VK_UP;   
+    r_to_p[RK_DOWN]     = KEY_MASK & VK_DOWN; 
+    r_to_p[RK_LEFT]     = KEY_MASK & VK_LEFT; 
+    r_to_p[RK_RIGHT]    = KEY_MASK & VK_RIGHT;
+
+    r_to_p[RK_F1]       = KEY_MASK & VK_F1;   
+    r_to_p[RK_F2]       = KEY_MASK & VK_F2;   
+    r_to_p[RK_F3]       = KEY_MASK & VK_F3;   
+    r_to_p[RK_F4]       = KEY_MASK & VK_F4;   
+    r_to_p[RK_F5]       = KEY_MASK & VK_F5;   
+    r_to_p[RK_F6]       = KEY_MASK & VK_F6;   
+    r_to_p[RK_F7]       = KEY_MASK & VK_F7;   
+    r_to_p[RK_F8]       = KEY_MASK & VK_F8;   
+    r_to_p[RK_F9]       = KEY_MASK & VK_F9;   
+    r_to_p[RK_F10]      = KEY_MASK & VK_F10;   
+    r_to_p[RK_F11]      = KEY_MASK & VK_F11;  
+    r_to_p[RK_F12]      = KEY_MASK & VK_F12;  
+
+    r_to_p[RK_ESCAPE]   = KEY_MASK & VK_ESCAPE;
+
+    /* create window and register its class */
     MSG msg;
     hInst = hInstance;
 
@@ -108,10 +135,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 /******************************************************************************/
 /*****************************   MULTI-THREADING   ****************************/
 /******************************************************************************/
-
-/* thread's exception variables */
-static rt_cell  eout = 0, emax = 0;
-static rt_pstr *estr = RT_NULL;
 
 /* platform-specific thread */
 struct rt_THREAD
@@ -326,222 +349,30 @@ rt_void render_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
     tpool->cindex = 1 - tpool->cindex;
 }
 
+/*
+ * Get system time in milliseconds.
+ */
+rt_time get_time()
+{
+    LARGE_INTEGER fr;
+    QueryPerformanceFrequency(&fr);
+    LARGE_INTEGER tm;
+    QueryPerformanceCounter(&tm);
+    return (rt_time)(tm.QuadPart * 1000 / fr.QuadPart);
+}
+
+/*
+ * Set current frame to screen.
+ */
+rt_void frame_to_screen(rt_word *frame)
+{
+    SetDIBitsToDevice(hWndDC, 0, 0, x_res, y_res, 0, 0, 0, y_res,
+                                    frame, &DIBinfo, DIB_RGB_COLORS);
+}
+
 /******************************************************************************/
 /*******************************   EVENT-LOOP   *******************************/
 /******************************************************************************/
-
-/*
- * Initialize event loop.
- */
-rt_cell main_init()
-{
-    try
-    {
-        sc[0] = new rt_Scene(&scn_demo01::sc_root,
-                            x_res, y_res, x_row, frame,
-                            malloc, free,
-                            init_threads, term_threads,
-                            update_scene, render_scene);
-
-        fsaa = sc[0]->set_fsaa(fsaa);
-        simd = sc[0]->set_simd(simd | type << 8);
-        type = simd >> 8;
-        simd = simd & 0xFF;
-    }
-    catch (rt_Exception e)
-    {
-        RT_LOGE("Exception in scn_demo01: %s\n", e.err);
-
-        return 0;
-    }
-
-    try
-    {
-        sc[1] = new rt_Scene(&scn_demo02::sc_root,
-                            x_res, y_res, x_row, frame,
-                            malloc, free,
-                            init_threads, term_threads,
-                            update_scene, render_scene);
-
-        fsaa = sc[1]->set_fsaa(fsaa);
-        simd = sc[1]->set_simd(simd | type << 8);
-        type = simd >> 8;
-        simd = simd & 0xFF;
-    }
-    catch (rt_Exception e)
-    {
-        RT_LOGE("Exception in scn_demo02: %s\n", e.err);
-
-        return 0;
-    }
-
-    return 1;
-}
-
-/* performance variables */
-static LARGE_INTEGER tm;
-static LARGE_INTEGER fr;
-
-/* time counter variables */
-static rt_time init_time = 0;
-static rt_time last_time = 0;
-static rt_time cur_time = 0;
-
-/* frame counter variables */
-static rt_real fps = 0.0f;
-static rt_word cnt = 0;
-static rt_word scr = 0;
-
-/* virtual keys array */
-#define KEY_MASK    0x00FF
-static rt_byte h_keys[KEY_MASK + 1];
-static rt_byte t_keys[KEY_MASK + 1];
-static rt_byte r_keys[KEY_MASK + 1];
-
-/* hold keys */
-#define H_KEYS(k)   (h_keys[(k) & KEY_MASK])
-/* toggle on press */
-#define T_KEYS(k)   (t_keys[(k) & KEY_MASK])
-/* toggle on release */
-#define R_KEYS(k)   (r_keys[(k) & KEY_MASK])
-
-/*
- * Event loop's main step.
- */
-rt_cell main_step()
-{
-    if (sc[d] == RT_NULL)
-    {
-        return 0;
-    }
-
-    QueryPerformanceCounter(&tm);
-    cur_time = (rt_time)(tm.QuadPart * 1000 / fr.QuadPart);
-
-    if (init_time == 0)
-    {
-        init_time = cur_time;
-    }
-
-    cur_time = cur_time - init_time;
-    cnt++;
-
-    if (cur_time - last_time >= 500)
-    {
-        fps = (rt_real)cnt * 1000 / (cur_time - last_time);
-        RT_LOGI("FPS = %.1f\n", fps);
-        cnt = 0;
-        last_time = cur_time;
-    }
-
-    try
-    {
-        if (H_KEYS('W'))        sc[d]->update(cur_time, RT_CAMERA_MOVE_FORWARD);
-        if (H_KEYS('S'))        sc[d]->update(cur_time, RT_CAMERA_MOVE_BACK);
-        if (H_KEYS('A'))        sc[d]->update(cur_time, RT_CAMERA_MOVE_LEFT);
-        if (H_KEYS('D'))        sc[d]->update(cur_time, RT_CAMERA_MOVE_RIGHT);
-
-        if (H_KEYS(VK_UP))      sc[d]->update(cur_time, RT_CAMERA_ROTATE_DOWN);
-        if (H_KEYS(VK_DOWN))    sc[d]->update(cur_time, RT_CAMERA_ROTATE_UP);
-        if (H_KEYS(VK_LEFT))    sc[d]->update(cur_time, RT_CAMERA_ROTATE_LEFT);
-        if (H_KEYS(VK_RIGHT))   sc[d]->update(cur_time, RT_CAMERA_ROTATE_RIGHT);
-
-        if (T_KEYS(VK_F1))      sc[d]->print_state();
-        if (T_KEYS(VK_F2))    { fsaa = RT_FSAA_4X - fsaa;
-                                fsaa = sc[d]->set_fsaa(fsaa); }
-        if (T_KEYS(VK_F3))      sc[d]->next_cam();
-        if (T_KEYS(VK_F4))      sc[d]->save_frame(scr++);
-        if (T_KEYS(VK_F7))    { type = type % 2 + 1;
-                                type = sc[d]->set_simd(simd | type<<8) >> 8; }
-        if (T_KEYS(VK_F8))    { simd = simd % 8 + 4;
-                                simd = sc[d]->set_simd(simd | type<<8) & 0xFF; }
-        if (T_KEYS(VK_F11))   { d = 1 - d;
-                                fsaa = sc[d]->set_fsaa(fsaa);
-                                simd = sc[d]->set_simd(simd | type << 8);
-                                type = simd >> 8;
-                                simd = simd & 0xFF; }
-        if (T_KEYS(VK_F12))     hide_num = 1 - hide_num;
-        if (T_KEYS(VK_ESCAPE))
-        {
-            return 0;
-        }
-        memset(t_keys, 0, sizeof(t_keys));
-        memset(r_keys, 0, sizeof(r_keys));
-
-        sc[d]->render(cur_time);
-
-        if (hide_num == 0)
-        {
-            sc[d]->render_num(x_res-10, 10, -1, 2, (rt_word)fps);
-            sc[d]->render_num(      10, 10, +1, 2, (rt_word)simd * 32);
-            sc[d]->render_num(x_res-10, 34, -1, 2, (rt_word)fsaa * 4);
-            sc[d]->render_num(      10, 34, +1, 2, (rt_word)type);
-        }
-    }
-    catch (rt_Exception e)
-    {
-        RT_LOGE("Exception: %s\n", e.err);
-
-        return 0;
-    }
-
-    if (eout != 0)
-    {
-        rt_cell i;
-
-        for (i = 0; i < emax; i++)
-        {
-            if (estr[i] != RT_NULL)
-            {            
-                RT_LOGE("Exception: thread %d: %s\n", i, estr[i]);
-            }
-        }
-
-        return 0;
-    }
-
-    SetDIBitsToDevice(hWndDC, 0, 0, x_res, y_res, 0, 0, 0, y_res,
-                                    sc[d]->get_frame(), &DIBinfo, DIB_RGB_COLORS);
-    return 1;
-}
-
-/*
- * Terminate event loop.
- */
-rt_cell main_term()
-{
-    if (sc[0] == RT_NULL)
-    {
-        return 0;
-    }
-    try
-    {
-        delete sc[0];
-    }
-    catch (rt_Exception e)
-    {
-        RT_LOGE("Exception in scn_demo01: %s\n", e.err);
-
-        return 0;
-    }
-
-    if (sc[1] == RT_NULL)
-    {
-        return 0;
-    }
-    try
-    {
-        delete sc[1];
-    }
-    catch (rt_Exception e)
-    {
-        RT_LOGE("Exception in scn_demo02: %s\n", e.err);
-
-        return 0;
-    }
-
-    return 1;
-}
 
 /*
  * Implementation of the event loop.
@@ -586,8 +417,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 return -1;
             }
-
-            QueryPerformanceFrequency(&fr);
         }
         break;
 
