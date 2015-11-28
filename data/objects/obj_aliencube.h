@@ -106,7 +106,7 @@ rt_CONE cn_aliencube01cone01 =
 /* rat */   0.8,
 };
 
-rt_OBJECT ob_aliencube01[] =
+rt_OBJECT ob_aliencube01base01[] =
 {
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -156,6 +156,18 @@ rt_OBJECT ob_aliencube01[] =
         },
             RT_OBJ_PLANE(&pl_aliencube01side01)
     },
+};
+
+rt_OBJECT ob_aliencube01[] =
+{
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {    0.0,        0.0,        0.0    },
+        },
+            RT_OBJ_ARRAY(&ob_aliencube01base01)
+    },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
@@ -201,18 +213,19 @@ rt_OBJECT ob_aliencube01[] =
 rt_RELATION rl_aliencube01[] = 
 {
     {  -1,  RT_REL_BOUND_ARRAY,  -1   },
-    {   0,  RT_REL_MINUS_OUTER,   6   },
-    {   1,  RT_REL_MINUS_OUTER,   6   },
-    {   2,  RT_REL_MINUS_OUTER,   6   },
-    {   3,  RT_REL_MINUS_OUTER,   6   },
-    {   4,  RT_REL_MINUS_OUTER,   6   },
-    {   5,  RT_REL_MINUS_OUTER,   6   },
-    {   0,  RT_REL_MINUS_INNER,   7   },
-    {   1,  RT_REL_MINUS_INNER,   7   },
-    {   2,  RT_REL_MINUS_INNER,   8   },
-    {   3,  RT_REL_MINUS_INNER,   8   },
-    {   4,  RT_REL_MINUS_INNER,   9   },
-    {   5,  RT_REL_MINUS_INNER,   9   },
+    {   0,  RT_REL_MINUS_OUTER,   1   },
+    {   0,  RT_REL_INDEX_ARRAY,  -1   },
+    {   0,  RT_REL_MINUS_INNER,   2   },
+    {   0,  RT_REL_INDEX_ARRAY,  -1   },
+    {   1,  RT_REL_MINUS_INNER,   2   },
+    {   0,  RT_REL_INDEX_ARRAY,  -1   },
+    {   2,  RT_REL_MINUS_INNER,   3   },
+    {   0,  RT_REL_INDEX_ARRAY,  -1   },
+    {   3,  RT_REL_MINUS_INNER,   3   },
+    {   0,  RT_REL_INDEX_ARRAY,  -1   },
+    {   4,  RT_REL_MINUS_INNER,   4   },
+    {   0,  RT_REL_INDEX_ARRAY,  -1   },
+    {   5,  RT_REL_MINUS_INNER,   4   },
 };
 
 #endif /* RT_OBJ_ALIENCUBE_H */
