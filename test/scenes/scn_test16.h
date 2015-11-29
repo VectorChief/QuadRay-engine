@@ -284,7 +284,7 @@ rt_OBJECT ob_camera01[] =
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {  -95.0,        0.0,       90.0    },
+/* rot */   {  -90.0,        0.0,       90.0    },
 /* pos */   {   11.0,        0.0,        0.0    },
         },
         RT_OBJ_CAMERA(&cm_camera01)
