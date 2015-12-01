@@ -195,7 +195,8 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
     mp[2][1] = H * q;
     mp[2][2] = K * q;
 
-#if RT_DEBUG == 1
+#if 0 /* RT_DEBUG == 1 */
+
     rt_cell i, j, k = 0;
 
     rt_mat4 tm;
@@ -242,6 +243,7 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
     }
 
     throw rt_Exception("inverted matrix mismatch");
+
 #endif /* RT_DEBUG */
 }
 

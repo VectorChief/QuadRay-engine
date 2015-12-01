@@ -52,8 +52,8 @@
  * for respective segments of code.
  */
 #define RT_SHOW_TILES               0
-#define RT_QUAD_DEBUG               0   /* <- needs RT_DEBUG to be enabled */
-
+#define RT_QUAD_DEBUG               0   /* <- needs RT_DEBUG to be enabled
+                                               with RT_THREADS_NUM equal 1 */
 #define RT_FEAT_TILING              1
 #define RT_FEAT_ANTIALIASING        1
 #define RT_FEAT_MULTITHREADING      1
@@ -4941,9 +4941,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     t_pow[4]                        = s_inf->pow_e4;
     t_pow[5]                        = s_inf->pow_en;
 
-#if RT_DEBUG == 1
+#if 0 /* RT_DEBUG == 1 */
 
-    /*
     RT_LOGI("PL ptr = %p\n", s_inf->xpl_p[0]);
     RT_LOGI("CL ptr = %p\n", s_inf->xcl_p[0]);
     RT_LOGI("SP ptr = %p\n", s_inf->xsp_p[0]);
@@ -4980,7 +4979,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     RT_LOGI("E3 pow = %p\n", s_inf->pow_e3);
     RT_LOGI("E4 pow = %p\n", s_inf->pow_e4);
     RT_LOGI("EN pow = %p\n", s_inf->pow_en);
-    */
 
 #endif /* RT_DEBUG */
 }
