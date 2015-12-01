@@ -25,7 +25,7 @@
 #if RT_DEBUG == 1
 
 #define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
-#define RT_THREADS_NUM          1  /* number of threads for update and render */
+#define RT_THREADS_NUM          16 /* number of threads for update and render */
 
 #else  /* RT_DEBUG */
 
