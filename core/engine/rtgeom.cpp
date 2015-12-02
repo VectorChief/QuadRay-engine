@@ -59,7 +59,7 @@ rt_bool in_range(rt_real *p1, rt_cell n1, rt_real *p2, rt_cell n2)
  */
 rt_void matrix_mul_vector(rt_vec4 vp, rt_mat4 m1, rt_vec4 v1)
 {
-#if RT_DEBUG == 1
+#if RT_DEBUG >= 1
     if (in_range(vp, 4, m1[0], 16) || in_range(vp, 4, v1, 4))
     {
         throw rt_Exception("attempt to multiply vectors in place");
@@ -82,7 +82,7 @@ rt_void matrix_mul_vector(rt_vec4 vp, rt_mat4 m1, rt_vec4 v1)
  */
 rt_void matrix_mul_matrix(rt_mat4 mp, rt_mat4 m1, rt_mat4 m2)
 {
-#if RT_DEBUG == 1
+#if RT_DEBUG >= 1
     if (in_range(mp[0], 16, m1[0], 16) || in_range(mp[0], 16, m2[0], 16))
     {
         throw rt_Exception("attempt to multiply matrices in place");
@@ -195,7 +195,7 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
     mp[2][1] = H * q;
     mp[2][2] = K * q;
 
-#if 0 /* RT_DEBUG == 1 */
+#if RT_DEBUG >= 2
 
     rt_cell i, j, k = 0;
 
