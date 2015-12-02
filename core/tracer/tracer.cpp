@@ -7,7 +7,7 @@
 #include "tracer.h"
 #include "format.h"
 
-#if RT_DEBUG == 1
+#if RT_DEBUG >= 1
 
 #include "system.h"
 
@@ -4941,7 +4941,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     t_pow[4]                        = s_inf->pow_e4;
     t_pow[5]                        = s_inf->pow_en;
 
-#if 0 /* RT_DEBUG == 1 */
+#if RT_DEBUG >= 2
 
     RT_LOGI("PL ptr = %p\n", s_inf->xpl_p[0]);
     RT_LOGI("CL ptr = %p\n", s_inf->xcl_p[0]);
