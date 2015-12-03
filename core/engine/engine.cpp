@@ -421,6 +421,19 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
 /******************************************************************************/
 
 /*
+ * Allocate scene thread in custom heap.
+ */
+rt_pntr rt_SceneThread::operator new(size_t size, rt_Heap *hp)
+{
+    return hp->alloc(size, RT_ALIGN);
+}
+
+rt_void rt_SceneThread::operator delete(rt_pntr ptr)
+{
+
+}
+
+/*
  * Instantiate scene thread.
  */
 rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_cell index) :
@@ -2476,7 +2489,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
         throw rt_Exception("scene's root is not an array");
     }
 
-    root = new rt_Array(this, RT_NULL, &rootobj); /* also init "*_num" fields */
+    root = new(this) rt_Array(this, RT_NULL, &rootobj); /* also init "*_num" */
 
     if (cam_head == RT_NULL)
     {
@@ -2498,7 +2511,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
 
     for (i = 0; i < thnum; i++)
     {
-        tharr[i] = new rt_SceneThread(this, i);
+        tharr[i] = new(this) rt_SceneThread(this, i);
 
         /* estimate per-frame allocs to reduce system calls per thread */
         tharr[i]->msize =  /* upper bound per surface for tiling */
