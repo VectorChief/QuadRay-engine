@@ -266,6 +266,9 @@ class rt_Object
 
     public:
 
+    rt_pntr operator new(size_t size, rt_Heap *hp);
+    rt_void operator delete(rt_pntr ptr);
+
     virtual
    ~rt_Object();
 
@@ -956,6 +959,9 @@ class rt_Texture : public rt_List<rt_Texture>
 
     public:
 
+    rt_pntr operator new(size_t size, rt_Heap *hp);
+    rt_void operator delete(rt_pntr ptr);
+
     rt_Texture(rt_Registry *rg, rt_pstr name);
 
     virtual
@@ -990,6 +996,9 @@ class rt_Material : public rt_List<rt_Material>
 /*  methods */
 
     public:
+
+    rt_pntr operator new(size_t size, rt_Heap *hp);
+    rt_void operator delete(rt_pntr ptr);
 
     rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat);
 

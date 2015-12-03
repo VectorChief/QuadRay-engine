@@ -87,6 +87,9 @@ class rt_SceneThread : public rt_Heap
 
     rt_ELEM*    filter(rt_Object *obj, rt_ELEM **ptr);
 
+    rt_pntr operator new(size_t size, rt_Heap *hp);
+    rt_void operator delete(rt_pntr ptr);
+
     rt_SceneThread(rt_Scene *scene, rt_cell index);
 
     virtual

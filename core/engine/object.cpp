@@ -50,6 +50,19 @@
 /******************************************************************************/
 
 /*
+ * Allocate object in custom heap.
+ */
+rt_pntr rt_Object::operator new(size_t size, rt_Heap *hp)
+{
+    return hp->alloc(size, RT_ALIGN);
+}
+
+rt_void rt_Object::operator delete(rt_pntr ptr)
+{
+
+}
+
+/*
  * Instantiate object.
  */
 rt_Object::rt_Object(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj)
@@ -1246,51 +1259,51 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
         switch (arr[i].obj.tag)
         {
             case RT_TAG_CAMERA:
-            obj_arr[j] = new rt_Camera(rg, this, &arr[i]);
+            obj_arr[j] = new(rg) rt_Camera(rg, this, &arr[i]);
             break;
 
             case RT_TAG_LIGHT:
-            obj_arr[j] = new rt_Light(rg, this, &arr[i]);
+            obj_arr[j] = new(rg) rt_Light(rg, this, &arr[i]);
             break;
 
             case RT_TAG_ARRAY:
-            obj_arr[j] = new rt_Array(rg, this, &arr[i]);
+            obj_arr[j] = new(rg) rt_Array(rg, this, &arr[i]);
             break;
 
             case RT_TAG_PLANE:
-            obj_arr[j] = new rt_Plane(rg, this, &arr[i]);
+            obj_arr[j] = new(rg) rt_Plane(rg, this, &arr[i]);
             break;
 
             case RT_TAG_CYLINDER:
-            obj_arr[j] = new rt_Cylinder(rg, this, &arr[i]);
+            obj_arr[j] = new(rg) rt_Cylinder(rg, this, &arr[i]);
             break;
 
             case RT_TAG_SPHERE:
-            obj_arr[j] = new rt_Sphere(rg, this, &arr[i]);
+            obj_arr[j] = new(rg) rt_Sphere(rg, this, &arr[i]);
             break;
 
             case RT_TAG_CONE:
-            obj_arr[j] = new rt_Cone(rg, this, &arr[i]);
+            obj_arr[j] = new(rg) rt_Cone(rg, this, &arr[i]);
             break;
 
             case RT_TAG_PARABOLOID:
-            obj_arr[j] = new rt_Paraboloid(rg, this, &arr[i]);
+            obj_arr[j] = new(rg) rt_Paraboloid(rg, this, &arr[i]);
             break;
 
             case RT_TAG_HYPERBOLOID:
-            obj_arr[j] = new rt_Hyperboloid(rg, this, &arr[i]);
+            obj_arr[j] = new(rg) rt_Hyperboloid(rg, this, &arr[i]);
             break;
 
             case RT_TAG_PARACYLINDER:
-            obj_arr[j] = new rt_ParaCylinder(rg, this, &arr[i]);
+            obj_arr[j] = new(rg) rt_ParaCylinder(rg, this, &arr[i]);
             break;
 
             case RT_TAG_HYPERCYLINDER:
-            obj_arr[j] = new rt_HyperCylinder(rg, this, &arr[i]);
+            obj_arr[j] = new(rg) rt_HyperCylinder(rg, this, &arr[i]);
             break;
 
             case RT_TAG_HYPERPARABOLOID:
-            obj_arr[j] = new rt_HyperParaboloid(rg, this, &arr[i]);
+            obj_arr[j] = new(rg) rt_HyperParaboloid(rg, this, &arr[i]);
             break;
 
             default:
@@ -1514,10 +1527,10 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     }
 
     /* init outer side material */
-    outer = new rt_Material(rg, &sd_array01, &mt_glass01_array01);
+    outer = new(rg) rt_Material(rg, &sd_array01, &mt_glass01_array01);
 
     /* init inner side material */
-    inner = new rt_Material(rg, &sd_array01, &mt_glass01_array01);
+    inner = new(rg) rt_Material(rg, &sd_array01, &mt_glass01_array01);
 
     /* validate surface size */
     ssize = RT_MAX(ssize, sizeof(rt_SIMD_SURFACE));
@@ -2279,12 +2292,12 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
     srf_changed = 0;
 
     /* init outer side material */
-    outer = new rt_Material(rg, &srf->side_outer,
+    outer = new(rg) rt_Material(rg, &srf->side_outer,
                     obj->obj.pmat_outer ? obj->obj.pmat_outer :
                                           srf->side_outer.pmat);
 
     /* init inner side material */
-    inner = new rt_Material(rg, &srf->side_inner,
+    inner = new(rg) rt_Material(rg, &srf->side_inner,
                     obj->obj.pmat_inner ? obj->obj.pmat_inner :
                                           srf->side_inner.pmat);
 
@@ -3887,6 +3900,19 @@ rt_HyperParaboloid::~rt_HyperParaboloid()
 /******************************************************************************/
 
 /*
+ * Allocate texture in custom heap.
+ */
+rt_pntr rt_Texture::operator new(size_t size, rt_Heap *hp)
+{
+    return hp->alloc(size, RT_ALIGN);
+}
+
+rt_void rt_Texture::operator delete(rt_pntr ptr)
+{
+
+}
+
+/*
  * Instantiate texture to keep track of loaded textures.
  */
 rt_Texture::rt_Texture(rt_Registry *rg, rt_pstr name) :
@@ -3904,6 +3930,19 @@ rt_Texture::rt_Texture(rt_Registry *rg, rt_pstr name) :
  * Deinitialize texture.
  */
 rt_Texture::~rt_Texture()
+{
+
+}
+
+/*
+ * Allocate material in custom heap.
+ */
+rt_pntr rt_Material::operator new(size_t size, rt_Heap *hp)
+{
+    return hp->alloc(size, RT_ALIGN);
+}
+
+rt_void rt_Material::operator delete(rt_pntr ptr)
 {
 
 }
@@ -4062,7 +4101,7 @@ rt_void rt_Material::resolve_texture(rt_Registry *rg)
 
         if (tex == RT_NULL)
         {
-            tex = new rt_Texture(rg, name);
+            tex = new(rg) rt_Texture(rg, name);
         }
 
         *tx = tex->tex;
