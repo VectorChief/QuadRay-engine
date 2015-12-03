@@ -503,7 +503,7 @@ rt_time get_time();
 
 rt_cell main(rt_cell argc, rt_char *argv[])
 {
-    rt_cell k;
+    rt_cell k, r;
 
     if (argc >= 2)
     {
@@ -524,7 +524,15 @@ rt_cell main(rt_cell argc, rt_char *argv[])
         rt_Heap *hp = new rt_Heap(malloc, free);
         for (k = 2; k < argc; k++)
         {
-            convert_image(hp, argv[k]);
+            r = convert_image(hp, argv[k]);
+            if (r == 0)
+            {
+                RT_LOGI("x");
+            }
+            else
+            {
+                RT_LOGI(".");
+            }
         }
         delete hp;
         RT_LOGI("]\nDone!\n");
