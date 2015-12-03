@@ -7,6 +7,9 @@
 #ifndef RT_ROOT_H
 #define RT_ROOT_H
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "engine.h"
 
 #include "scn_demo01.h"
