@@ -7,6 +7,7 @@
 #ifndef RT_ROOT_H
 #define RT_ROOT_H
 
+#include <stdlib.h>
 #include <string.h>
 #include "engine.h"
 #include "data/scenes/all_scn.h"
