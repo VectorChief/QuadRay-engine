@@ -36,7 +36,6 @@
 rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 {
 #if RT_EMBED_FILEIO == 0
-    rt_File *f = RT_NULL;
     rt_word *p = RT_NULL;
     rt_cell i, n;
 
@@ -47,7 +46,8 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
     strcpy(fullpath, path);
     strcpy(fullpath + len, name);
 
-    f = new rt_File(fullpath, "rb");
+    rt_File fl(fullpath, "rb");
+    rt_File *f = &fl;
 
     /* release memory for temporary fullpath string,
      * would also release all allocs made after fullpath */
@@ -134,7 +134,6 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
             break;
         }
 
-        delete f;
         return;
     }
     while (0);
@@ -147,7 +146,6 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
         tx->ptex = RT_NULL;
     }
 
-    delete f;
     throw rt_Exception("failed to load image");
 #endif /* RT_EMBED_FILEIO */
 }
@@ -158,7 +156,6 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 {
 #if RT_EMBED_FILEIO == 0
-    rt_File *f = RT_NULL;
     rt_word *p = RT_NULL;
     rt_cell i, n;
 
@@ -169,7 +166,8 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
     strcpy(fullpath, path);
     strcpy(fullpath + len, name);
 
-    f = new rt_File(fullpath, "wb");
+    rt_File fl(fullpath, "wb");
+    rt_File *f = &fl;
 
     /* release memory for temporary fullpath string,
      * would also release all allocs made after fullpath */
@@ -265,12 +263,10 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
             break;
         }
 
-        delete f;
         return;
     }
     while (0);
 
-    delete f;
     throw rt_Exception("failed to save image");
 #endif /* RT_EMBED_FILEIO */
 }
@@ -278,12 +274,11 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 /*
  * Convert image from file to C static array initializer format.
  */
-rt_void convert_image(rt_Heap *hp, rt_pstr name)
+rt_cell convert_image(rt_Heap *hp, rt_pstr name)
 {
 #if RT_EMBED_FILEIO == 0
-    rt_File *f = RT_NULL;
     rt_word *p = RT_NULL;
-    rt_cell i, n;
+    rt_cell i, n, r = 0;
 
     rt_pstr path = RT_PATH_TEXTURES;
     rt_cell len = strlen(path), dot = len;
@@ -311,12 +306,9 @@ rt_void convert_image(rt_Heap *hp, rt_pstr name)
             break;
         }
 
-        f = new rt_File(fullpath, "w+");
+        rt_File fl(fullpath, "w+");
+        rt_File *f = &fl;
 
-        if (f == RT_NULL)
-        {
-            break;
-        }
         if (f->error() != 0)
         {
             break;
@@ -347,13 +339,7 @@ rt_void convert_image(rt_Heap *hp, rt_pstr name)
             break;
         }
 
-        /* release memory for temporary fullpath string,
-         * would also release all allocs made after fullpath */
-        hp->release(fullpath);
-
-        delete f;
-        RT_LOGI(".");
-        return;
+        r = 1;
     }
     while (0);
 
@@ -361,8 +347,7 @@ rt_void convert_image(rt_Heap *hp, rt_pstr name)
      * would also release all allocs made after fullpath */
     hp->release(fullpath);
 
-    delete f;
-    RT_LOGI("x");
+    return r;
 #endif /* RT_EMBED_FILEIO */
 }
 
