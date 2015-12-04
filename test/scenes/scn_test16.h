@@ -227,17 +227,17 @@ rt_OBJECT ob_frametable02[] =
 {
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.5,        1.0,        1.7    },
+/* scl */   {    1.5,        1.0,        1.5    },
 /* rot */   {   90.0,        0.0,      +90.0    },
-/* pos */   {   -2.7,        0.0,        1.5    },
+/* pos */   {   -2.8,        0.0,        1.5    },
         },
             RT_OBJ_ARRAY_REL(&ob_frametable01leg01, &rl_bound)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.5,        1.0,        1.7    },
+/* scl */   {    1.5,        1.0,        1.5    },
 /* rot */   {   90.0,        0.0,      -90.0    },
-/* pos */   {   +2.7,        0.0,        1.5    },
+/* pos */   {   +2.8,        0.0,        1.5    },
         },
             RT_OBJ_ARRAY_REL(&ob_frametable01leg01, &rl_bound)
     },
