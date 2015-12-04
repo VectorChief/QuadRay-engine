@@ -3,6 +3,7 @@ v0.6.1: Backend improvements, unified quadric solver + runtime SIMD targets
   - turn off bbox sorting and removal opts for poor scalability
   - use built-in scalers in solvers instead of transform matrix
   - add new code for scalers/trnode handling in object hierarchy
+  - add new aliencube and frametable objects
   - implement array's bounds highlight for debugging (primary rays only)
   - implement scalable (elliptic) bvnodes for better space efficiency
   - implement SIMD targets for AVX1, AVX2 and SSE1 in addition to SSE2
@@ -12,16 +13,21 @@ v0.6.1: Backend improvements, unified quadric solver + runtime SIMD targets
   - hide all numbers on the screen on key press (F12)
   - add core test for array's update bounds logic and scalers, run level 16
   - add SIMD test for shifts by runtime value & core register, run level 16
+  - reduce code duplication in platform files
   - add material's entry points to backend structs (from here backported down)
   - implement roots sorting for determinant around zero
   - fix quadric roots overdraw on the edges and for mixed quads
-  - propagate TMASK to secondary rays
+  - use direct diff in solvers for consistency with the rest of the backend
+  - propagate local point adjustments and TMASK to secondary rays
   - check quadric roots overdraw within XMASK
   - implement proper fix for conic singularity
   - improve camera's reporting precision for debugging
   - improve quadric's debug info formatting
-  - propagate local point adjustments to secondary rays
-  - use direct diff in solvers for consistency with the rest of the backend
+  - replace non-standard malloc.h with stdlib.h for malloc/free
+  - use custom new/delete for scene's internal classes
+  - allocate rtimag's file objects on the stack, clean up logging
+  - distinguish separate RT_DEBUG levels (0,1,2)
+  - enable multi-threading in debug mode, turn off inverse matrix check
 
 v0.6.0: Backend improvements, full set of quadrics + numerical stability
   - implement solvers for paracylinder, hypercylinder, hyperparaboloid
