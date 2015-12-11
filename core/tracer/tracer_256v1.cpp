@@ -24,6 +24,9 @@
 #if   defined (RT_X86)
 #undef RT_RTARCH_X86_256_H
 #include "rtarch_x86_256.h"
+#elif defined (RT_X32)
+#undef RT_RTARCH_X32_256_H
+#include "rtarch_x32_256.h"
 #elif defined (RT_ARM)
 #error "ARM doesn't support SIMD wider than 4, \
 exclude this file from compilation"

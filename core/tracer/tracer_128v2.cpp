@@ -24,6 +24,9 @@
 #if   defined (RT_X86)
 #undef RT_RTARCH_X86_128_H
 #include "rtarch_x86_128.h"
+#elif defined (RT_X32)
+#undef RT_RTARCH_X32_128_H
+#include "rtarch_x32_128.h"
 #elif defined (RT_ARM)
 #undef RT_RTARCH_ARM_128_H
 #include "rtarch_arm_128.h"
