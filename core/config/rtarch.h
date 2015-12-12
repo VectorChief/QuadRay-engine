@@ -219,23 +219,10 @@
 
 #define ASM_ENTER(info)     asm volatile                                    \
                             (                                               \
-                                "push %%rax\n"                              \
-                                "push %%rcx\n"                              \
-                                "push %%rdx\n"                              \
-                                "push %%rbx\n"                              \
-                                "push %%rbp\n"                              \
-                                "push %%rsi\n"                              \
-                                "push %%rdi\n"                              \
-                                "push %%r8\n"                               \
+                                stack_sa()                                  \
+                                "xor %%r15, %%r15\n"                        \
                                 movxx_rr(Rebp, Reax)
-#define ASM_LEAVE(info)         "pop  %%r8\n"                               \
-                                "pop  %%rdi\n"                              \
-                                "pop  %%rsi\n"                              \
-                                "pop  %%rbp\n"                              \
-                                "pop  %%rbx\n"                              \
-                                "pop  %%rdx\n"                              \
-                                "pop  %%rcx\n"                              \
-                                "pop  %%rax\n"                              \
+#define ASM_LEAVE(info)         stack_la()                                  \
                                 :                                           \
                                 : "a" (info)                                \
                                 : "cc",  "memory"                           \
