@@ -76,8 +76,8 @@
 #define ADR                                                                 \
         EMITB(0x67)
 
-#define REX(reg, rem)                                                       \
-        EMITB(0x40 | (reg) << 2 | (rem))
+#define REX(rxg, rxm)                                                       \
+        EMITB(0x40 | (rxg) << 2 | (rxm))
 
 #define MRM(reg, mod, rem)                                                  \
         EMITB((mod) << 6 | (reg) << 3 | (rem))
