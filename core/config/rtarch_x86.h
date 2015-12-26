@@ -435,7 +435,7 @@
         MRM(REG(RG), MOD(RM), REG(RM))                                      \
         AUX(SIB(RM), CMD(DP), EMPTY)
 
-#define mulxn_xm(RM, DP) /* Reax is in/out, destroys Redx */                \
+#define mulxn_xm(RM, DP) /* Reax is in/out, Redx is sign-ext-out(high) */   \
         EMITB(0xF7)                                                         \
         MRM(0x05,    MOD(RM), REG(RM))                                      \
         AUX(SIB(RM), CMD(DP), EMPTY)

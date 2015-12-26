@@ -453,10 +453,10 @@
         EMITW(0xE5900000 | MRM(TMxx,    MOD(RM), 0x00) |(VAL(DP) & 0xFFC))  \
         EMITW(0xE0000090 | REG(RG) << 16 | REG(RG) << 8| TMxx)
 
-#define mulxn_xm(RM, DP) /* Reax is in/out, destroys Redx (in x86) */       \
+#define mulxn_xm(RM, DP) /* Reax is in/out, Redx is sign-ext-out(high) */   \
         AUX(SIB(RM), EMPTY,   EMPTY)                                        \
         EMITW(0xE5900000 | MRM(TMxx,    MOD(RM), 0x00) |(VAL(DP) & 0xFFC))  \
-        EMITW(0xE0000090 | TMxx)
+        EMITW(0xE0C00090 | MRM(0x00,    0x02,    TMxx))
 
 /* div
  * set-flags: no */
