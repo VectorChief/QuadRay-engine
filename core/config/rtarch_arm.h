@@ -466,18 +466,31 @@
 #define divxn_xm(RM, DP) /* Reax is in/out, Redx is Reax-sign-extended */   \
         AUX(SIB(RM), EMPTY,   EMPTY) /* destroys Xmm0, fallback to VFP */   \
         EMITW(0xE5900000 | MRM(TMxx,    MOD(RM), 0x00) |(VAL(DP) & 0xFFC))  \
-        EMITW(0xEC400B10 | MRM(0x00,    TMxx,    Tmm0+0)) /* limited */     \
-        EMITW(0xF3BB0600 | MRM(Tmm0+1,  0x00,    Tmm0+0)) /* precision */   \
-        EMITW(0xEE800A20 | MRM(Tmm0+1,  Tmm0+1,  Tmm0+1)) /* <- fp div */   \
-        EMITW(0xF3BB0700 | MRM(Tmm0+0,  0x00,    Tmm0+1)) /* first 0x00 */  \
-        EMITW(0xEE100B10 | MRM(0x00,    Tmm0+0,  0x00)) /* in MRM is Reax */
+        EMITW(0xEC400B10 | MRM(0x00,    TMxx,    Tmm0+0))                   \
+        EMITW(0xEEB80BE0 | MRM(Tmm0+1,  0x00,    Tmm0+0))                   \
+        EMITW(0xEEB80BC0 | MRM(Tmm0+0,  0x00,    Tmm0+0)) /* full-range */  \
+        EMITW(0xEE800B00 | MRM(Tmm0+0,  Tmm0+0,  Tmm0+1)) /* <- fp64 div */ \
+        EMITW(0xEEBD0BC0 | MRM(Tmm0+0,  0x00,    Tmm0+0))                   \
+        EMITW(0xEE100B10 | MRM(0x00,    Tmm0+0,  0x00))
+
+#define divxp_xm(RM, DP) /* Reax is in/out, Redx is Reax-sign-extended */   \
+        AUX(SIB(RM), EMPTY,   EMPTY) /* destroys Xmm0, fallback to VFP */   \
+        EMITW(0xE5900000 | MRM(TMxx,    MOD(RM), 0x00) |(VAL(DP) & 0xFFC))  \
+        EMITW(0xEC400B10 | MRM(0x00,    TMxx,    Tmm0+0))                   \
+        EMITW(0xF3BB0600 | MRM(Tmm0+1,  0x00,    Tmm0+0)) /* part-range */  \
+        EMITW(0xEE800A20 | MRM(Tmm0+1,  Tmm0+1,  Tmm0+1)) /* <- fp32 div */ \
+        EMITW(0xF3BB0700 | MRM(Tmm0+0,  0x00,    Tmm0+1))                   \
+        EMITW(0xEE100B10 | MRM(0x00,    Tmm0+0,  0x00))
 
 #else /* RT_128 >= 2 */
 
 #define divxn_xm(RM, DP) /* Reax is in/out, Redx is Reax-sign-extended */   \
-        AUX(SIB(RM), EMPTY,   EMPTY)                                        \
+        AUX(SIB(RM), EMPTY,   EMPTY)       /* destroys Xmm0 (in ARMv7) */   \
         EMITW(0xE5900000 | MRM(TMxx,    MOD(RM), 0x00) |(VAL(DP) & 0xFFC))  \
         EMITW(0xE710F010 | MRM(0x00,    0x00,    0x00) | TMxx << 8)
+
+#define divxp_xm(RM, DP) /* Reax is in/out, Redx is Reax-sign-extended */   \
+        divxn_xm(W(RM), W(DP))       /* part-range fp32 div (in ARMv7) */
 
 #endif /* RT_128 >= 2 */
 

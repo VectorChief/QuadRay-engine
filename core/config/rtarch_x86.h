@@ -445,8 +445,11 @@
 
 #define divxn_xm(RM, DP) /* Reax is in/out, Redx is Reax-sign-extended */   \
         EMITB(0xF7)                        /* destroys Xmm0 (in ARMv7) */   \
-        MRM(0x07,    MOD(RM), REG(RM))     /* limited precision */          \
-        AUX(SIB(RM), CMD(DP), EMPTY)       /* fp div (in ARMv7) */
+        MRM(0x07,    MOD(RM), REG(RM))                                      \
+        AUX(SIB(RM), CMD(DP), EMPTY) /* full-range fp64 div (in ARMv7) */
+
+#define divxp_xm(RM, DP) /* Reax is in/out, Redx is Reax-sign-extended */   \
+        divxn_xm(W(RM), W(DP))       /* part-range fp32 div (in ARMv7) */
 
 /* cmp
  * set-flags: yes */
