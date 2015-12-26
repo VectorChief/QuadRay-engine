@@ -443,9 +443,14 @@
 /* div
  * set-flags: no (in ARM) */
 
+#define divxx_xm(RM, DP) /* Reax is in/out, Redx is in(zero)/out(junk) */   \
+        EMITB(0xF7)                        /* destroys Xmm0 (in ARMv7) */   \
+        MRM(0x06,    MOD(RM), REG(RM))     /* destroys Redx (out:junk) */   \
+        AUX(SIB(RM), CMD(DP), EMPTY) /* full-range fp64 div (in ARMv7) */
+
 #define divxn_xm(RM, DP) /* Reax is in/out, Redx is Reax-sign-extended */   \
         EMITB(0xF7)                        /* destroys Xmm0 (in ARMv7) */   \
-        MRM(0x07,    MOD(RM), REG(RM))                                      \
+        MRM(0x07,    MOD(RM), REG(RM))     /* destroys Redx (out:junk) */   \
         AUX(SIB(RM), CMD(DP), EMPTY) /* full-range fp64 div (in ARMv7) */
 
 #define divxp_xm(RM, DP) /* Reax is in/out, Redx is Reax-sign-extended */   \

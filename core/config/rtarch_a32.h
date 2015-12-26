@@ -514,8 +514,13 @@
 /* div
  * set-flags: no */
 
+#define divxx_xm(RM, DP) /* Reax is in/out, Redx is in(zero)/out(junk) */   \
+        AUX(SIB(RM), EMPTY,   EMPTY) /* destroys Redx, Xmm0 (in ARMv7) */   \
+        EMITW(0xB9400000 | MRM(TMxx,    MOD(RM), 0x00) |(VAL(DP)&0xFFC)<<8) \
+        EMITW(0x1AC00800 | MRM(0x00,    0x00,    TMxx))
+
 #define divxn_xm(RM, DP) /* Reax is in/out, Redx is Reax-sign-extended */   \
-        AUX(SIB(RM), EMPTY,   EMPTY)       /* destroys Xmm0 (in ARMv7) */   \
+        AUX(SIB(RM), EMPTY,   EMPTY) /* destroys Redx, Xmm0 (in ARMv7) */   \
         EMITW(0xB9400000 | MRM(TMxx,    MOD(RM), 0x00) |(VAL(DP)&0xFFC)<<8) \
         EMITW(0x1AC00C00 | MRM(0x00,    0x00,    TMxx))
 
