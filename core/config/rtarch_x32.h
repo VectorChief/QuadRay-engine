@@ -479,18 +479,32 @@
 /* mul
  * set-flags: no (in ARM) */
 
-#define mulxn_ri(RM, IM)                                                    \
+#define mulxx_ri(RM, IM)                                                    \
         REX(RXB(RM), RXB(RM)) EMITB(0x69 | TYP(IM))                         \
         MRM(REG(RM), MOD(RM), REG(RM))                                      \
         AUX(EMPTY,   EMPTY,   CMD(IM))
 
-#define mulxn_rr(RG, RM)                                                    \
+#define mulxx_rr(RG, RM)                                                    \
         REX(RXB(RG), RXB(RM)) EMITB(0x0F) EMITB(0xAF)                       \
         MRM(REG(RG), MOD(RM), REG(RM))
 
-#define mulxn_ld(RG, RM, DP)                                                \
+#define mulxx_ld(RG, RM, DP)                                                \
     ADR REX(RXB(RG), RXB(RM)) EMITB(0x0F) EMITB(0xAF)                       \
         MRM(REG(RG), MOD(RM), REG(RM))                                      \
+        AUX(SIB(RM), CMD(DP), EMPTY)
+
+#define mulxn_ri(RM, IM)                                                    \
+        mulxx_ri(W(RM), W(IM))
+
+#define mulxn_rr(RG, RM)                                                    \
+        mulxx_rr(W(RG), W(RM))
+
+#define mulxn_ld(RG, RM, DP)                                                \
+        mulxx_ld(W(RG), W(RM), W(DP))
+
+#define mulxx_xm(RM, DP) /* Reax is in/out, Redx is zero-ext-out(high) */   \
+    ADR REX(0,       RXB(RM)) EMITB(0xF7)                                   \
+        MRM(0x04,    MOD(RM), REG(RM))                                      \
         AUX(SIB(RM), CMD(DP), EMPTY)
 
 #define mulxn_xm(RM, DP) /* Reax is in/out, Redx is sign-ext-out(high) */   \
@@ -506,12 +520,12 @@
         MRM(0x06,    MOD(RM), REG(RM))     /* destroys Redx (out:junk) */   \
         AUX(SIB(RM), CMD(DP), EMPTY) /* full-range fp64 div (in ARMv7) */
 
-#define divxn_xm(RM, DP) /* Reax is in/out, Redx is Reax-sign-extended */   \
+#define divxn_xm(RM, DP) /* Reax is in/out, Redx is sign-ext-(Reax)-in */   \
     ADR REX(0,       RXB(RM)) EMITB(0xF7)  /* destroys Xmm0 (in ARMv7) */   \
         MRM(0x07,    MOD(RM), REG(RM))     /* destroys Redx (out:junk) */   \
         AUX(SIB(RM), CMD(DP), EMPTY) /* full-range fp64 div (in ARMv7) */
 
-#define divxp_xm(RM, DP) /* Reax is in/out, Redx is Reax-sign-extended */   \
+#define divxp_xm(RM, DP) /* Reax is in/out, Redx is sign-ext-(Reax)-in */   \
         divxn_xm(W(RM), W(DP))       /* part-range fp32 div (in ARMv7) */
 
 /* cmp
