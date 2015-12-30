@@ -9,9 +9,6 @@ INC_PATH =                              \
         -Idata/scenes/                  \
         -Idata/textures/
 
-LIB_PATH =
-
-
 SRC_LIST =                              \
         core/engine/engine.cpp          \
         core/engine/object.cpp          \
@@ -25,7 +22,11 @@ SRC_LIST =                              \
         core/tracer/tracer_256v2.cpp    \
         RooT_linux.cpp
 
+LIB_PATH =
+
 LIB_LIST =                              \
+        -lm                             \
+        -lstdc++                        \
         -lX11                           \
         -lXext                          \
         -lpthread
