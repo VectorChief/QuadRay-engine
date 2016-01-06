@@ -76,6 +76,24 @@ rt_time get_time();
  */
 rt_void frame_to_screen(rt_word *frame);
 
+/*
+ * Allocate memory from system heap.
+ */
+static
+rt_pntr sys_alloc(rt_word size)
+{
+    return malloc(size);
+}
+
+/*
+ * Free memory from system heap.
+ */
+static
+rt_void sys_free(rt_pntr ptr)
+{
+    free(ptr);
+}
+
 /******************************************************************************/
 /*******************************   EVENT-LOOP   *******************************/
 /******************************************************************************/
@@ -270,7 +288,7 @@ rt_cell main_init()
         {
             sc[i] = new rt_Scene(sc_rt[i],
                                 x_res, y_res, x_row, frame,
-                                malloc, free,
+                                sys_alloc, sys_free,
                                 init_threads, term_threads,
                                 update_scene, render_scene);
 
