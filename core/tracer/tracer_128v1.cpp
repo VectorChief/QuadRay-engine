@@ -30,6 +30,9 @@
 #elif defined (RT_ARM)
 #undef RT_RTARCH_ARM_128_H
 #include "rtarch_arm_128.h"
+#elif defined (RT_A32)
+#undef RT_RTARCH_A32_128_H
+#include "rtarch_a32_128.h"
 #endif /* RT_X86, RT_ARM */
 
 /*
