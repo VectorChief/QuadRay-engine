@@ -28,9 +28,15 @@
 #undef RT_RTARCH_X32_256_H
 #include "rtarch_x32_256.h"
 #elif defined (RT_ARM)
-#error "ARM doesn't support SIMD wider than 4, \
+#error "AArch32 doesn't support SIMD wider than 4, \
 exclude this file from compilation"
-#endif /* RT_X86, RT_ARM */
+#elif defined (RT_A32)
+#error "AArch64 doesn't support SIMD wider than 4, \
+exclude this file from compilation"
+#elif defined (RT_M32)
+#error "mipsMSA doesn't support SIMD wider than 4, \
+exclude this file from compilation"
+#endif /* RT_X86, RT_X32, RT_ARM, RT_A32, RT_M32 */
 
 /*
  * Global pointer tables

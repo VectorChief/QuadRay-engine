@@ -30,7 +30,13 @@
 #elif defined (RT_ARM)
 #undef RT_RTARCH_ARM_128_H
 #include "rtarch_arm_128.h"
-#endif /* RT_X86, RT_ARM */
+#elif defined (RT_A32)
+#error "AArch64 doesn't have SIMD variants, \
+exclude this file from compilation"
+#elif defined (RT_M32)
+#error "mipsMSA doesn't have SIMD variants, \
+exclude this file from compilation"
+#endif /* RT_X86, RT_X32, RT_ARM, RT_A32, RT_M32 */
 
 /*
  * Global pointer tables
