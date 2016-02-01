@@ -36,7 +36,10 @@ exclude this file from compilation"
 #elif defined (RT_M32)
 #error "mipsMSA doesn't support SIMD wider than 4, \
 exclude this file from compilation"
-#endif /* RT_X86, RT_X32, RT_ARM, RT_A32, RT_M32 */
+#elif defined (RT_P32)
+#error "AltiVec doesn't support SIMD wider than 4, \
+exclude this file from compilation"
+#endif /* RT_X86, RT_X32, RT_ARM, RT_A32, RT_M32, RT_P32 */
 
 /*
  * Global pointer tables

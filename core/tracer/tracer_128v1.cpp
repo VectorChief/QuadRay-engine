@@ -36,7 +36,10 @@
 #elif defined (RT_M32)
 #undef RT_RTARCH_M32_128_H
 #include "rtarch_m32_128.h"
-#endif /* RT_X86, RT_X32, RT_ARM, RT_A32, RT_M32 */
+#elif defined (RT_P32)
+#undef RT_RTARCH_P32_128_H
+#include "rtarch_p32_128.h"
+#endif /* RT_X86, RT_X32, RT_ARM, RT_A32, RT_M32, RT_P32 */
 
 /*
  * Global pointer tables
