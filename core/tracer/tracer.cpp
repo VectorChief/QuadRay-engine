@@ -427,7 +427,7 @@
 #define FRAME_COLX(cl, pl) /* destroys Xmm0, Xmm1 */                        \
         movpx_ld(Xmm1, Mecx, ctx_##pl(0))                                   \
         minps_rr(Xmm1, Xmm2)                                                \
-        cvtps_rr(Xmm1, Xmm1)                                                \
+        cvnps_rr(Xmm1, Xmm1)                                                \
         andpx_rr(Xmm1, Xmm7)                                                \
         shlpx_ri(Xmm1, IB(0x##cl))                                          \
         orrpx_rr(Xmm0, Xmm1)
@@ -1625,10 +1625,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm5, Medx, mat_YSCAL)         /* tex_y *= YSCAL */
 
         /* texture mapping */
-        cvrps_rr(Xmm1, Xmm4, ROUNDM)            /* tex_x ii tex_x */
+        cvmps_rr(Xmm1, Xmm4)                    /* tex_x ii tex_x */
         andpx_ld(Xmm1, Medx, mat_XMASK)         /* tex_y &= XMASK */
 
-        cvrps_rr(Xmm2, Xmm5, ROUNDM)            /* tex_y ii tex_y */
+        cvmps_rr(Xmm2, Xmm5)                    /* tex_y ii tex_y */
         andpx_ld(Xmm2, Medx, mat_YMASK)         /* tex_y &= YMASK */
         shlpx_ld(Xmm2, Medx, mat_YSHFT)         /* tex_y << YSHFT */
 
