@@ -1,29 +1,30 @@
 
-INC_PATH =                          \
-        -Icore/config/              \
-        -Icore/engine/              \
-        -Icore/system/              \
-        -Icore/tracer/              \
-        -Idata/materials/           \
-        -Idata/objects/             \
-        -Idata/scenes/              \
+INC_PATH =                              \
+        -Icore/config/                  \
+        -Icore/engine/                  \
+        -Icore/system/                  \
+        -Icore/tracer/                  \
+        -Idata/materials/               \
+        -Idata/objects/                 \
+        -Idata/scenes/                  \
         -Idata/textures/
+
+SRC_LIST =                              \
+        core/engine/engine.cpp          \
+        core/engine/object.cpp          \
+        core/engine/rtgeom.cpp          \
+        core/engine/rtimag.cpp          \
+        core/system/system.cpp          \
+        core/tracer/tracer.cpp          \
+        RooT_linux.cpp
 
 LIB_PATH =
 
-
-SRC_LIST =                          \
-        core/engine/engine.cpp      \
-        core/engine/object.cpp      \
-        core/engine/rtgeom.cpp      \
-        core/engine/rtimag.cpp      \
-        core/system/system.cpp      \
-        core/tracer/tracer.cpp      \
-        RooT_linux.cpp
-
-LIB_LIST =                          \
-        -lX11                       \
-        -lXext                      \
+LIB_LIST =                              \
+        -lm                             \
+        -lstdc++                        \
+        -lX11                           \
+        -lXext                          \
         -lpthread
 
 RooT:
