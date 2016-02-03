@@ -396,7 +396,7 @@
         movpx_ld(Xmm0, Mecx, ctx_C_BUF(0))                                  \
         shrpx_ri(Xmm0, IB(0x##cl))                                          \
         andpx_rr(Xmm0, Xmm7)                                                \
-        cvtpn_rr(Xmm0, Xmm0)                                                \
+        cvnpn_rr(Xmm0, Xmm0)                                                \
         movpx_st(Xmm0, Mecx, ctx_##pl)
 
 #if RT_SIMD_QUADS == 1
@@ -1714,10 +1714,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         CHECK_PROP(MT_tex, RT_PROP_TEXTURE)
 
-        /* enable "rounding towards minus infinity"
-         * for texture coords float-to-integer conversion */
-        FCTRL_ENTER(ROUNDM)
-
         /* transform surface's UV coords
          *        to texture's XY coords */
         INDEX_TMAP(RT_X)
@@ -1733,6 +1729,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm4, Medx, mat_XSCAL)         /* tex_x *= XSCAL */
         mulps_ld(Xmm5, Medx, mat_YSCAL)         /* tex_y *= YSCAL */
 
+        /* enable "rounding towards minus infinity"
+         * for texture coords float-to-integer conversion */
+        FCTRL_ENTER(ROUNDM)
+
         /* texture mapping */
         cvtps_rr(Xmm1, Xmm4)                    /* tex_x ii tex_x */
         andpx_ld(Xmm1, Medx, mat_XMASK)         /* tex_y &= XMASK */
@@ -1741,12 +1741,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         andpx_ld(Xmm2, Medx, mat_YMASK)         /* tex_y &= YMASK */
         shlpx_ld(Xmm2, Medx, mat_YSHFT)         /* tex_y << YSHFT */
 
+        /* restore default "rounding to nearest" */
+        FCTRL_LEAVE(ROUNDM)
+
         addpx_rr(Xmm1, Xmm2)                    /* tex_x += tex_y */
         shlpx_ri(Xmm1, IB(2))                   /* tex_x <<     2 */
         addpx_rr(Xmm0, Xmm1)                    /* tex_x += tex_p */
-
-        /* restore default "rounding to nearest" */
-        FCTRL_LEAVE(ROUNDM)
 
     LBL(MT_tex)
 
