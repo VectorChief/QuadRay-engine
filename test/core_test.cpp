@@ -141,6 +141,24 @@ rt_void frame_max(rt_word *fd)
     }
 }
 
+/*
+ * Allocate memory from system heap.
+ */
+static
+rt_pntr sys_alloc(rt_word size)
+{
+    return malloc(size);
+}
+
+/*
+ * Free memory from system heap.
+ */
+static
+rt_void sys_free(rt_pntr ptr)
+{
+    free(ptr);
+}
+
 /******************************************************************************/
 /******************************   RUN LEVEL  1   ******************************/
 /******************************************************************************/
@@ -153,7 +171,7 @@ rt_void o_test01()
 {
     scene = new rt_Scene(&scn_test01::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        malloc, free,
+                        sys_alloc, sys_free,
                         RT_NULL, RT_NULL,
                         RT_NULL, RT_NULL);
 }
@@ -172,7 +190,7 @@ rt_void o_test02()
 {
     scene = new rt_Scene(&scn_test02::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        malloc, free,
+                        sys_alloc, sys_free,
                         RT_NULL, RT_NULL,
                         RT_NULL, RT_NULL);
 }
@@ -191,7 +209,7 @@ rt_void o_test03()
 {
     scene = new rt_Scene(&scn_test03::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        malloc, free,
+                        sys_alloc, sys_free,
                         RT_NULL, RT_NULL,
                         RT_NULL, RT_NULL);
 }
@@ -210,7 +228,7 @@ rt_void o_test04()
 {
     scene = new rt_Scene(&scn_test04::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        malloc, free,
+                        sys_alloc, sys_free,
                         RT_NULL, RT_NULL,
                         RT_NULL, RT_NULL);
 }
@@ -229,7 +247,7 @@ rt_void o_test05()
 {
     scene = new rt_Scene(&scn_test05::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        malloc, free,
+                        sys_alloc, sys_free,
                         RT_NULL, RT_NULL,
                         RT_NULL, RT_NULL);
 }
@@ -248,7 +266,7 @@ rt_void o_test06()
 {
     scene = new rt_Scene(&scn_test06::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        malloc, free,
+                        sys_alloc, sys_free,
                         RT_NULL, RT_NULL,
                         RT_NULL, RT_NULL);
 }
@@ -267,7 +285,7 @@ rt_void o_test07()
 {
     scene = new rt_Scene(&scn_test07::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        malloc, free,
+                        sys_alloc, sys_free,
                         RT_NULL, RT_NULL,
                         RT_NULL, RT_NULL);
 }
@@ -286,7 +304,7 @@ rt_void o_test08()
 {
     scene = new rt_Scene(&scn_test08::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        malloc, free,
+                        sys_alloc, sys_free,
                         RT_NULL, RT_NULL,
                         RT_NULL, RT_NULL);
 }
@@ -305,7 +323,7 @@ rt_void o_test09()
 {
     scene = new rt_Scene(&scn_test09::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        malloc, free,
+                        sys_alloc, sys_free,
                         RT_NULL, RT_NULL,
                         RT_NULL, RT_NULL);
 }
@@ -324,7 +342,7 @@ rt_void o_test10()
 {
     scene = new rt_Scene(&scn_test10::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        malloc, free,
+                        sys_alloc, sys_free,
                         RT_NULL, RT_NULL,
                         RT_NULL, RT_NULL);
 }
@@ -343,7 +361,7 @@ rt_void o_test11()
 {
     scene = new rt_Scene(&scn_test11::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        malloc, free,
+                        sys_alloc, sys_free,
                         RT_NULL, RT_NULL,
                         RT_NULL, RT_NULL);
 }
@@ -362,7 +380,7 @@ rt_void o_test12()
 {
     scene = new rt_Scene(&scn_test12::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        malloc, free,
+                        sys_alloc, sys_free,
                         RT_NULL, RT_NULL,
                         RT_NULL, RT_NULL);
 }
@@ -381,7 +399,7 @@ rt_void o_test13()
 {
     scene = new rt_Scene(&scn_test13::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        malloc, free,
+                        sys_alloc, sys_free,
                         RT_NULL, RT_NULL,
                         RT_NULL, RT_NULL);
 }
@@ -400,7 +418,7 @@ rt_void o_test14()
 {
     scene = new rt_Scene(&scn_test14::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        malloc, free,
+                        sys_alloc, sys_free,
                         RT_NULL, RT_NULL,
                         RT_NULL, RT_NULL);
 }
@@ -419,7 +437,7 @@ rt_void o_test15()
 {
     scene = new rt_Scene(&scn_test15::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        malloc, free,
+                        sys_alloc, sys_free,
                         RT_NULL, RT_NULL,
                         RT_NULL, RT_NULL);
 }
@@ -521,7 +539,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
     if (argc >= 3 && strcmp(argv[1], "-t") == 0)
     {
         RT_LOGI("Converting textures:\n[");
-        rt_Heap *hp = new rt_Heap(malloc, free);
+        rt_Heap *hp = new rt_Heap(sys_alloc, sys_free);
         for (k = 2; k < argc; k++)
         {
             r = convert_image(hp, argv[k]);

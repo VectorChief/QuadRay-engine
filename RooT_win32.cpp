@@ -330,6 +330,24 @@ rt_void render_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
 /******************************************************************************/
 
 /*
+ * Allocate memory from system heap.
+ */
+static
+rt_pntr sys_alloc(rt_word size)
+{
+    return malloc(size);
+}
+
+/*
+ * Free memory from system heap.
+ */
+static
+rt_void sys_free(rt_pntr ptr)
+{
+    free(ptr);
+}
+
+/*
  * Initialize event loop.
  */
 rt_cell main_init()
@@ -338,7 +356,7 @@ rt_cell main_init()
     {
         scene = new rt_Scene(&sc_root,
                             x_res, y_res, x_row, frame,
-                            malloc, free,
+                            sys_alloc, sys_free,
                             init_threads, term_threads,
                             update_scene, render_scene);
     }
