@@ -1912,6 +1912,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* compute specular pow,
          * integers only for now */
         movxx_ld(Reax, Medx, mat_L_POW)
+        andxx_ri(Reax, IW(0x1FFFFFFF))
         jmpxx_mm(Medx, mat_POW_P)
 
     LBL(fetch_PW_ptr)
@@ -3846,15 +3847,28 @@ rt_pntr t_pow[6];
 static
 rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
 {
-    if (s_mat == RT_NULL || s_mat->pow_p[0] != RT_NULL)
+    if (s_mat == RT_NULL)
     {
         return;
     }
 
-    rt_cell i;
     rt_word pow = s_mat->l_pow[0], exp = 0;
 
-    for (i = 0; i < 32; i++)
+    if (s_mat->pow_p[0] != RT_NULL)
+    {
+        exp = pow >> 29;
+        s_mat->pow_p[0] = t_pow[exp];
+        return;
+    }
+
+    if (pow > (1 << 28))
+    {
+        pow = (1 << 28);
+    }
+
+    rt_cell i;
+
+    for (i = 0; i < 29; i++)
     {
         if (pow == ((rt_word)1 << i))
         {
@@ -3863,7 +3877,7 @@ rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
         }
     }
 
-    if (i < 32)
+    if (i < 29)
     {
         pow = exp / 4;
         exp = exp % 4;
@@ -3879,7 +3893,7 @@ rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
         exp = 5;
     }
 
-    s_mat->l_pow[0] = pow;
+    s_mat->l_pow[0] = pow | (exp << 29);
     s_mat->pow_p[0] = t_pow[exp];
 }
 
