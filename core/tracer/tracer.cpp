@@ -396,7 +396,7 @@
         movpx_ld(Xmm0, Mecx, ctx_C_BUF(0))                                  \
         shrpx_ri(Xmm0, IB(0x##cl))                                          \
         andpx_rr(Xmm0, Xmm7)                                                \
-        cvnpn_rr(Xmm0, Xmm0)                                                \
+        cvtpn_rr(Xmm0, Xmm0)                                                \
         movpx_st(Xmm0, Mecx, ctx_##pl)
 
 #if RT_SIMD_QUADS == 1
