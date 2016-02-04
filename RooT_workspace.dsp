@@ -115,14 +115,6 @@ SOURCE=.\core\config\rtarch.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\config\rtarch_arm.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\core\config\rtarch_arm_128.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\core\config\rtarch_x86.h
 # End Source File
 # Begin Source File
