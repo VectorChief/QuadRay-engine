@@ -37,8 +37,8 @@
  * thus application logic can be written and maintained in one place (here).
  *
  * At present, Intel SSE2 (32-bit x86 ISA) and ARM NEON (32-bit ARMv7 ISA)
- * are two primary targets, although wider SIMD, 64-bit addressing along with
- * more available registers, and other architectures can be supported by design.
+ * are two primary targets although wider SIMD, 64-bit addressing along with
+ * more available registers and other architectures can be supported by design.
  * Preliminary naming scheme for potential future targets as well as extended
  * core and SIMD register files can be found in core/config/rtarch.h file.
  */
