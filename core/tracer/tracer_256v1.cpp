@@ -4,6 +4,8 @@
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
 
+#undef RT_SIMD_CODE /* fix redefinition warnings on legacy Visual C++ 6.5 */
+
 #include "tracer.h"
 #include "format.h"
 #if RT_DEBUG >= 1
