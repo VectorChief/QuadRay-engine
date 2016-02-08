@@ -450,11 +450,7 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_cell index) :
 
     memset(s_inf, 0, sizeof(rt_SIMD_INFOX));
 
-    RT_SIMD_SET(s_inf->gpc01, +1.0);
-    RT_SIMD_SET(s_inf->gpc02, -0.5);
-    RT_SIMD_SET(s_inf->gpc03, +3.0);
-    RT_SIMD_SET(s_inf->gpc04, 0x7FFFFFFF);
-    RT_SIMD_SET(s_inf->gpc05, 0x3F800000);
+    ASM_INIT(s_inf)
 
     /* init framebuffer's dimensions and pointer */
     s_inf->frm_w   = scene->x_res;
@@ -2326,7 +2322,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
  */
 rt_SceneThread::~rt_SceneThread()
 {
-
+    ASM_DONE(s_inf)
 }
 
 /******************************************************************************/
