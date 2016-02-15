@@ -32,5 +32,5 @@ RooT:
 	aarch64-linux-gnu-g++ -O3 -g -mabi=ilp32 \
         -DRT_LINUX -DRT_A32 -DRT_128=1 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=1 \
-        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=1 -DRT_EMBED_TEX=1 \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a32
