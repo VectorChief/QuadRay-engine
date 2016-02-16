@@ -33,14 +33,14 @@
 /* endian-agnostic serialization from little-endian BMP format */
 
 #define RT_LOAD_H(h, p)                                                     \
-        h = (((rt_byte *)p)[0] << 0x00) |                                   \
-            (((rt_byte *)p)[1] << 0x08)
+        h = (((rt_byte *)(p))[0] << 0x00) |                                 \
+            (((rt_byte *)(p))[1] << 0x08)
 
 #define RT_LOAD_W(w, p)                                                     \
-        w = (((rt_byte *)p)[0] << 0x00) |                                   \
-            (((rt_byte *)p)[1] << 0x08) |                                   \
-            (((rt_byte *)p)[2] << 0x10) |                                   \
-            (((rt_byte *)p)[3] << 0x18)
+        w = (((rt_byte *)(p))[0] << 0x00) |                                 \
+            (((rt_byte *)(p))[1] << 0x08) |                                 \
+            (((rt_byte *)(p))[2] << 0x10) |                                 \
+            (((rt_byte *)(p))[3] << 0x18)
 
 /*
  * Load image from file to memory.
@@ -152,10 +152,11 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 
         for (i = 0, p = (rt_word *)tx->ptex; i < n; i++, p++)
         {
-            if (f->load(p, 3, 1) != 1)
+            if (f->load(&buf, 3, 1) != 1)
             {
                 break;
             }
+            RT_LOAD_W(*p, &buf);
         }
 
         if (i < n)
@@ -182,14 +183,14 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 /* endian-agnostic serialization to little-endian BMP format */
 
 #define RT_SAVE_H(h, p)                                                     \
-        ((rt_byte *)p)[0] = (h >> 0x00) & 0xFF;                             \
-        ((rt_byte *)p)[1] = (h >> 0x08) & 0xFF
+        ((rt_byte *)(p))[0] = ((h) >> 0x00) & 0xFF;                         \
+        ((rt_byte *)(p))[1] = ((h) >> 0x08) & 0xFF
 
 #define RT_SAVE_W(w, p)                                                     \
-        ((rt_byte *)p)[0] = (w >> 0x00) & 0xFF;                             \
-        ((rt_byte *)p)[1] = (w >> 0x08) & 0xFF;                             \
-        ((rt_byte *)p)[2] = (w >> 0x10) & 0xFF;                             \
-        ((rt_byte *)p)[3] = (w >> 0x18) & 0xFF
+        ((rt_byte *)(p))[0] = ((w) >> 0x00) & 0xFF;                         \
+        ((rt_byte *)(p))[1] = ((w) >> 0x08) & 0xFF;                         \
+        ((rt_byte *)(p))[2] = ((w) >> 0x10) & 0xFF;                         \
+        ((rt_byte *)(p))[3] = ((w) >> 0x18) & 0xFF
 
 /*
  * Save image from memory to file.
@@ -322,7 +323,8 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 
         for (i = 0, p = (rt_word *)tx->ptex; i < n; i++, p++)
         {
-            if (f->save(p, 3, 1) != 1)
+            RT_SAVE_W(*p, &buf);
+            if (f->save(&buf, 3, 1) != 1)
             {
                 break;
             }
