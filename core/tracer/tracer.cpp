@@ -48,6 +48,29 @@
 #define RT_SHOW_BOUND               0   /* <- needs RT_OPTS_TILING to be 0 */
 #define RT_QUAD_DEBUG               0   /* <- needs RT_DEBUG to be enabled
                                                with RT_THREADS_NUM equal 1 */
+#if RT_CUSTOM
+#define RT_FEAT_TILING              1
+#define RT_FEAT_ANTIALIASING        1
+#define RT_FEAT_MULTITHREADING      1
+#define RT_FEAT_CLIPPING_MINMAX     1
+#define RT_FEAT_CLIPPING_CUSTOM     1
+#define RT_FEAT_CLIPPING_ACCUM      1
+#define RT_FEAT_TEXTURING           1
+#define RT_FEAT_NORMALS             1
+#define RT_FEAT_LIGHTS              1
+#define RT_FEAT_LIGHTS_COLORED      1
+#define RT_FEAT_LIGHTS_AMBIENT      1
+#define RT_FEAT_LIGHTS_SHADOWS      0
+#define RT_FEAT_LIGHTS_DIFFUSE      1
+#define RT_FEAT_LIGHTS_ATTENUATION  1
+#define RT_FEAT_LIGHTS_SPECULAR     1
+#define RT_FEAT_REFLECTIONS         0
+#define RT_FEAT_TRANSPARENCY        0
+#define RT_FEAT_REFRACTIONS         0
+#define RT_FEAT_TRANSFORM           1
+#define RT_FEAT_TRANSFORM_ARRAY     1
+#define RT_FEAT_BOUND_VOL_ARRAY     1
+#else
 #define RT_FEAT_TILING              1
 #define RT_FEAT_ANTIALIASING        1
 #define RT_FEAT_MULTITHREADING      1
@@ -69,6 +92,7 @@
 #define RT_FEAT_TRANSFORM           1
 #define RT_FEAT_TRANSFORM_ARRAY     1
 #define RT_FEAT_BOUND_VOL_ARRAY     1
+#endif
 
 /*
  * Byte-offsets within SIMD-field

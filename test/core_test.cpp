@@ -14,11 +14,7 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
-#if RT_CUSTOM
-#define RUN_LEVEL           1
-#else
 #define RUN_LEVEL           16
-#endif
 #define CYC_SIZE            3
 
 #define RT_X_RES            800
