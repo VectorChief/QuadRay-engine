@@ -108,7 +108,11 @@ rt_OBJECT ob_camera01[] =
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   { -105.0,        0.0,        0.0    },
+#if RT_CUSTOM
+/* pos */   {    0.0,       -7.0,        0.0    },
+#else
 /* pos */   {    0.0,      -12.0,        0.0    },
+#endif
         },
         RT_OBJ_CAMERA(&cm_camera01)
     },
@@ -161,6 +165,7 @@ rt_OBJECT ob_tree[] =
         },
         RT_OBJ_HYPERBOLOID(&hb_frame01)
     },
+#endif
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
@@ -169,6 +174,7 @@ rt_OBJECT ob_tree[] =
         },
         RT_OBJ_SPHERE(&sp_ball01)
     },
+#if RT_CUSTOM == 0
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
