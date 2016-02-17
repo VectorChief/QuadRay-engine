@@ -29,7 +29,7 @@ LIB_LIST =                              \
         -lpthread
 
 RooT:
-	powerpc-linux-gnu-g++ -O3 -g \
+	powerpc-linux-gnu-g++ -O3 -g -DRT_CUSTOM=1 \
         -DRT_LINUX -DRT_P32 -DRT_128=1 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \

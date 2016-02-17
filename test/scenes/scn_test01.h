@@ -30,7 +30,11 @@ rt_PLANE pl_floor01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
+#if RT_CUSTOM
+/* mat */   &mt_plain01_crate01,
+#else
 /* mat */   &mt_plain01_gray01,
+#endif
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -148,6 +152,7 @@ rt_OBJECT ob_tree[] =
         },
         RT_OBJ_PLANE(&pl_floor01)
     },
+#if RT_CUSTOM == 0
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
@@ -172,6 +177,7 @@ rt_OBJECT ob_tree[] =
         },
         RT_OBJ_ARRAY(&ob_light01)
     },
+#endif
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
@@ -194,7 +200,11 @@ rt_RELATION rl_tree[] =
 
 rt_SCENE sc_root =
 {
+#if RT_CUSTOM
+    RT_OBJ_ARRAY(&ob_tree),
+#else
     RT_OBJ_ARRAY_REL(&ob_tree, &rl_tree),
+#endif
 };
 
 } /* namespace scn_test01 */

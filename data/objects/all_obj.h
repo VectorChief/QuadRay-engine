@@ -169,9 +169,15 @@ rt_CAMERA cm_camera01 =
 
     RT_COL(0xFFFFFFFF),
 
+#if RT_CUSTOM
+    {/* amb */
+        0.5
+    },
+#else
     {/* amb */
         0.05
     },
+#endif
     {/* pov */
         1.0
     },

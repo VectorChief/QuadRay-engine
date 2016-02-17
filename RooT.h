@@ -10,7 +10,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "engine.h"
+#if RT_CUSTOM
+#include "test/scenes/scn_test01.h"
+#else
 #include "data/scenes/all_scn.h"
+#endif
 
 #undef Q /* short name for RT_SIMD_QUADS */
 #undef S /* short name for RT_SIMD_WIDTH */
@@ -31,6 +35,15 @@ rt_cell     simd        = 0; /* default SIMD width will be chosen */
 rt_cell     type        = 0; /* default SIMD sub-target will be chosen */
 rt_cell     hide_num    = 0; /* hide all numbers on the screen if 1 */
 
+#if RT_CUSTOM
+rt_SCENE   *sc_rt[]     =
+{
+    &scn_test01::sc_root,
+};
+
+rt_Scene   *sc[RT_ARR_SIZE(sc_rt)]  = {0};  /* scenes array */
+rt_cell     d                       = 0;    /* demo index */
+#else
 rt_SCENE   *sc_rt[]     =
 {
     &scn_demo01::sc_root,
@@ -39,6 +52,7 @@ rt_SCENE   *sc_rt[]     =
 
 rt_Scene   *sc[RT_ARR_SIZE(sc_rt)]  = {0};  /* scenes array */
 rt_cell     d                       = 1;    /* demo index */
+#endif
 
 /******************************************************************************/
 /********************************   PLATFORM   ********************************/
