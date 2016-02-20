@@ -26,7 +26,7 @@ LIB_LIST =                              \
         -lstdc++
 
 core_test:
-	mips-mti-linux-gnu-g++ -O3 -g -EL -mips32r2 -mmsa \
+	mips-mti-linux-gnu-g++ -O3 -g -static -EL -mips32r2 -mmsa \
         -DRT_LINUX -DRT_M32 -DRT_128=1 \
         -DRT_DEBUG=1 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
