@@ -38,21 +38,28 @@ static rt_cell t_diff = 3;
 static rt_bool p_mode = RT_FALSE;
 static rt_bool v_mode = RT_FALSE;
 static rt_bool i_mode = RT_FALSE;
+static rt_bool a_mode = RT_FALSE;
 
 static rt_cell x_res = RT_X_RES;
 static rt_cell y_res = RT_Y_RES;
 static rt_cell x_row = RT_X_RES;
 static rt_word frame[RT_X_RES * RT_Y_RES];
 
-static rt_cell fsaa = RT_FSAA_NO;
+static rt_cell fsaa = RT_FSAA_4X;
 static rt_Scene *scene = RT_NULL;
 
+/*
+ * Allocate memory from system heap.
+ */
 static
 rt_pntr sys_alloc(rt_word size)
 {
     return malloc(size);
 }
 
+/*
+ * Free memory from system heap.
+ */
 static
 rt_void sys_free(rt_pntr ptr)
 {
@@ -549,6 +556,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
         RT_LOGI(" -p, enable pixhunt mode, print isolated pixels (> diff)\n");
         RT_LOGI(" -v, enable verbose mode, print all pixel spots (> diff)\n");
         RT_LOGI(" -i, enable imaging mode, save images before-after-diffs\n");
+        RT_LOGI(" -a, enable antialiasing, can be combined with last four\n");
         RT_LOGI("options -d, -p, -v, -i can be combined, -t is standalone\n");
         RT_LOGI("---------------------------------------------------------\n");
     }
@@ -604,6 +612,11 @@ rt_cell main(rt_cell argc, rt_char *argv[])
             i_mode = RT_TRUE;
             RT_LOGI("Imaging mode enabled\n");
         }
+        if (strcmp(argv[k], "-a") == 0 && !a_mode)
+        {
+            a_mode = RT_TRUE;
+            RT_LOGI("Antialiasing enabled\n");
+        }
     }
 
     rt_time time1 = 0;
@@ -621,6 +634,11 @@ rt_cell main(rt_cell argc, rt_char *argv[])
         {
             scene = RT_NULL;
             o_test[i]();
+
+            if (a_mode)
+            {
+                scene->set_fsaa(fsaa);
+            }
 
             simd = scene->set_simd(simd);
             scene->set_opts(RT_OPTS_NONE);
@@ -649,7 +667,13 @@ rt_cell main(rt_cell argc, rt_char *argv[])
             scene = RT_NULL;
             o_test[i]();
 
+            if (a_mode)
+            {
+                scene->set_fsaa(fsaa);
+            }
+
             simd = scene->set_simd(simd);
+            scene->set_opts(RT_OPTS_FULL);
 
             time1 = get_time();
 
