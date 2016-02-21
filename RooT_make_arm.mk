@@ -31,6 +31,7 @@ LIB_LIST =                              \
 RooT:
 	arm-linux-gnueabi-g++ -O3 -g \
         -DRT_LINUX -DRT_ARM -DRT_128=1 \
+        -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.arm
