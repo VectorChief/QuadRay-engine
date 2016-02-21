@@ -11,8 +11,8 @@ v0.6.1: Backend improvements, unified quadric solver + runtime SIMD targets
   - switch SIMD target variant and width on key press (F7) and (F8)
   - add demo scene 02, implement runtime selection on key press (F11)
   - hide all numbers on the screen on key press (F12)
-  - add core test for array's update bounds logic and scalers, run level 16
-  - add SIMD test for shifts by runtime value & base register, run level 16
+  - add CORE test for array's update bounds logic and scalers, run level 16
+  - add SIMD test for shifts by runtime value & BASE register, run level 16
   - reduce code duplication in platform files
   - add material's entry points to backend structs (from here backported down)
   - implement roots sorting for determinant around zero
@@ -38,7 +38,7 @@ v0.6.0: Backend improvements, full set of quadrics + numerical stability
   - speed up normals with reciprocal square root
   - optimize overdraw of inner and outer roots for all quadrics
   - configure runtime optimization flags per scene, adjust scn_test08
-  - add core test for new quadrics, run level 15
+  - add CORE test for new quadrics, run level 15
   - add SIMD test for signed shift, run level 15
   - use unfiltered hierarchical list to skip search while inserting element
   - handle element removal in ssort, lsort, insert routines
@@ -48,7 +48,7 @@ v0.6.0: Backend improvements, full set of quadrics + numerical stability
   - adjust spherical early-out to not prevent nodes removal
   - enable array's contents removal by bbox for surface's and camera's lists
   - make material types mandatory in their names (from here backported down)
-  - adjust core test to ignore isolated pixels, add pixhunt mode
+  - adjust CORE test to ignore isolated pixels, add pixhunt mode
   - reduce rounding mode's scope from global to texturing only
   - fix visual artifacts in specular highlights
   - rename lighting and bvnode feature flags in rendering backend
@@ -61,7 +61,7 @@ v0.6.0: Backend improvements, full set of quadrics + numerical stability
   - add future extensions to rtarch, update comments for existing targets
 
 v0.5.9: Performance optimizations, hierarchical lists sorting
-  - add command line options to core and SIMD test frameworks
+  - add command line options to CORE and SIMD test frameworks
   - add legends with description to all source and header files
   - add bounding box sorting routine to rtgeom, add macros for VEC3
   - make surface lists hierarchical, enable sorting to reduce overdraw
@@ -76,37 +76,37 @@ v0.5.9: Performance optimizations, hierarchical lists sorting
   - support bvnode hierarchy of arbitrary depth, allow re-bounding
   - redesign update logic in the engine for fine-grained control
   - split surface's matrix update into multi-threaded phase
-  - add imaging mode to core test, adjust scn_test12 for better coverage
+  - add imaging mode to CORE test, adjust scn_test12 for better coverage
   - fix trnode/bvnode handling in rendering backend, enable bvnodes for shadows
-  - move texture conversion to core test, fix undefined behaviour in scn_test13
+  - move texture conversion to CORE test, fix undefined behaviour in scn_test13
   - enable hierarchical traversal for surface and shadow lists
-  - add core test for complex hierarchy, run level 14
+  - add CORE test for complex hierarchy, run level 14
   - add SIMD test for mask helper macro, run level 14
 
-v0.5.8: Performance optimizations, additional core and SIMD tests
+v0.5.8: Performance optimizations, additional CORE and SIMD tests
   - add exception handling for worker threads, check for out-of-memory
   - refine exception handling, per-frame memory estimates
-  - extended core test coverage, run level 10 to 12
+  - extended CORE test coverage, run level 10 to 12
   - eliminate division in rtgeom routines to avoid corner cases
-  - fix bbox adjust optimization, add pixel equality macro to core test
+  - fix bbox adjust optimization, add pixel equality macro to CORE test
   - add border margin checks to more rtgeom routines, code clean up
   - extended SIMD test coverage, run level 10 to 12
-  - core and SIMD test framework clean up, makefiles adjustments
+  - CORE and SIMD test framework clean up, makefiles adjustments
   - add cube root instruction to SIMD test framework
   - extended SIMD test coverage, run level 13, move rtarch files to config
-  - extended core test coverage, run level 13, add credits for borrowed code
+  - extended CORE test coverage, run level 13, add credits for borrowed code
   - adjust bbox faces to have counter-clockwise verts order for front side
 
-v0.5.7: Performance optimizations, core test framework
+v0.5.7: Performance optimizations, CORE test framework
   - add runtime flags for respective optimizations
   - adjust classes access levels according to actual use
   - add new flags for bbox/cbox adjust optimization, multi-threading
   - unify runtime optimization flags with conditional compilation
-  - add core test framework, run levels 1 and 2, scene data locking
+  - add CORE test framework, run levels 1 and 2, scene data locking
   - fix matrix splitting for scaling fastpath, add new flag
-  - core test framework, run levels 3 to 7
+  - CORE test framework, run levels 3 to 7
   - fix missing condition for boundless surfaces
-  - core test framework, run levels 8 and 9
+  - CORE test framework, run levels 8 and 9
   - fix condition for bbox shadow optimization, adjust run level 6
   - handle corner cases properly in rtgeom routines, simplify logic
   - rename rtload files to rtimag for image library, update build instructions

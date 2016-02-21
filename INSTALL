@@ -52,7 +52,7 @@ convert workspace files, then exit and open newly created solution file.
 
 ================================================================================
 
-To build core test framework on Linux, open terminal window,
+To build CORE test framework on Linux, open terminal window,
 go to the project's root folder, then "test" subfolder,
 make sure necessary tools and libraries are installed
 for 32-bit systems:
@@ -70,7 +70,7 @@ users of RPM-based distributions need to figure out build-deps on their own.
 
 ================================================================================
 
-To build core test framework on Windows,
+To build CORE test framework on Windows,
 go to the project's root folder, then "test" subfolder and open:
     core_workspace.dsw
 in Visual C++ 6.0 or later, then press F5. In newer versions of VC++ agree to

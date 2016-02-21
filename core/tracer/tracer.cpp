@@ -33,7 +33,7 @@
  * are three primary targets although wider SIMD, 64-bit addressing along with
  * more available registers and other architectures can be supported by design.
  * Preliminary naming scheme for potential future targets as well as extended
- * base and SIMD register files can be found in core/config/rtarch.h file.
+ * BASE and SIMD register files can be found in core/config/rtarch.h file.
  */
 
 /******************************************************************************/
