@@ -32,7 +32,7 @@ LIB_LIST =                              \
         -lpthread
 
 RooT:
-	g++ -O3 -g -mx32 \
+	x86_64-linux-gnu-g++ -O3 -g -mx32 \
         -DRT_LINUX -DRT_X32 -DRT_128=1+2 -DRT_256=1+2 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
