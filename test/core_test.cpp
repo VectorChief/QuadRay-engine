@@ -735,6 +735,10 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 #undef S /* short name for RT_SIMD_WIDTH */
 #undef W /* triplet pass-through wrapper */
 
+#undef P /* short name for RT_POINTER/32 */
+#undef A /* short name for RT_ADDRESS/32 */
+#undef E /* short name for RT_ENDIAN*(P-A)*4 */
+
 #if   defined (RT_WIN32) /* Win32, MSVC ------------------------------------- */
 
 #include <windows.h>

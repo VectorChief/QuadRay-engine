@@ -16,6 +16,10 @@
 #undef S /* short name for RT_SIMD_WIDTH */
 #undef W /* triplet pass-through wrapper */
 
+#undef P /* short name for RT_POINTER/32 */
+#undef A /* short name for RT_ADDRESS/32 */
+#undef E /* short name for RT_ENDIAN*(P-A)*4 */
+
 #define RT_X_RES        800
 #define RT_Y_RES        480
 
