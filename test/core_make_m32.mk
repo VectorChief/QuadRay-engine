@@ -32,3 +32,12 @@ core_test:
         -DRT_DEBUG=1 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m32
+
+# Prerequisites for the build:
+# (cross-)compiler for MIPS+MSA is installed and in the PATH variable.
+# Prerequisites for emulation:
+# latest QEMU(-2.5) is built from source and in the PATH variable.
+#
+# make -f core_make_m32.mk
+# qemu-mipsel -cpu P5600 core_test.m32 -i -a
+# (should produce antialiased (-a) images (-i) in the ../dump subfolder)

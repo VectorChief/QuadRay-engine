@@ -32,3 +32,12 @@ core_test:
         -DRT_DEBUG=1 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p32
+
+# Prerequisites for the build:
+# (cross-)compiler for PowerPC is installed and in the PATH variable.
+# Prerequisites for emulation:
+# latest QEMU(-2.5) is built from source and in the PATH variable.
+#
+# make -f core_make_p32.mk
+# qemu-ppc -cpu G4 core_test.p32 -i -a
+# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
