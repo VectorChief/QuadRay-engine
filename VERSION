@@ -1,5 +1,6 @@
 v0.6.1: Backend improvements, unified quadric solver + runtime SIMD targets
   - implement unified quadric solver in rendering backend
+  - switch to UniSIMD-assembler version 0.6 for additional SIMD targets
   - turn off bbox sorting and removal opts for poor scalability
   - use built-in scalers in solvers instead of transform matrix
   - add new code for scalers/trnode handling in object hierarchy
