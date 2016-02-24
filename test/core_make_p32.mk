@@ -17,6 +17,7 @@ SRC_LIST =                              \
         ../core/system/system.cpp       \
         ../core/tracer/tracer.cpp       \
         ../core/tracer/tracer_128v1.cpp \
+        ../core/tracer/tracer_128v2.cpp \
         core_test.cpp
 
 LIB_PATH =
@@ -40,4 +41,8 @@ core_test:
 #
 # make -f core_make_p32.mk
 # qemu-ppc -cpu G4 core_test.p32 -i -a
+# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+
+# For 32-bit Power(7,7+,8) VSX target use (replace): -DRT_128=1+2
+# qemu-ppc64abi32 -cpu POWER7 core_test.p32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)

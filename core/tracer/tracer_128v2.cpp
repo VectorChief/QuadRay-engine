@@ -39,8 +39,8 @@ exclude this file from compilation"
 #error "mipsMSA doesn't have SIMD variants, \
 exclude this file from compilation"
 #elif defined (RT_P32)
-#error "AltiVec doesn't have SIMD variants, \
-exclude this file from compilation"
+#undef RT_RTARCH_P32_128_H
+#include "rtarch_p32_128.h"
 #endif /* RT_X86, RT_X32, RT_ARM, RT_A32, RT_M32, RT_P32 */
 
 /*
