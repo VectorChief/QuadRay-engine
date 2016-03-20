@@ -200,7 +200,7 @@
  * jump to "lb" otherwise.
  */
 #define CHECK_CLIP(lb, pl, nx)                                              \
-        cmjxx_mi(Mebx, srf_##pl(nx*4), IB(0),                               \
+        cmjxx_mz(Mebx, srf_##pl(nx*4),                                      \
                  EQ_x, lb)
 
 /*
@@ -210,7 +210,7 @@
  */
 #define APPLY_CLIP(lb, RG, RM) /* destroys Reax */                          \
         movxx_ld(Reax, Medi, elm_DATA)                                      \
-        cmjxx_ri(Reax, IB(0),                                               \
+        cmjxx_rz(Reax,                                                      \
                  LT_n, lb##_cs1)                /* signed comparison */     \
         cleps_rr(W(RG), W(RM))                                              \
         jmpxx_lb(lb##_cs2)                                                  \
@@ -241,7 +241,7 @@
 #define CHECK_FLAG(lb, pl, fl) /* destroys Reax */                          \
         movxx_ld(Reax, Mecx, ctx_##pl(FLG))                                 \
         andxx_ri(Reax, IB(fl))                                              \
-        cmjxx_ri(Reax, IB(0),                                               \
+        cmjxx_rz(Reax,                                                      \
                  EQ_x, lb)
 
 /*
@@ -308,7 +308,7 @@
 #define CHECK_PROP(lb, pr) /* destroys Reax */                              \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         andxx_ri(Reax, IH(pr))                                              \
-        cmjxx_ri(Reax, IB(0),                                               \
+        cmjxx_rz(Reax,                                                      \
                  EQ_x, lb)
 
 /*
@@ -339,7 +339,7 @@
  * based on the current SIMD-mask.
  */
 #define STORE_FRAG(lb, pn, pl) /* destroys Reax */                          \
-        cmjxx_mi(Mecx, ctx_TMASK(0x##pn), IB(0),                            \
+        cmjxx_mz(Mecx, ctx_TMASK(0x##pn),                                   \
                  EQ_x, lb##pn)                                              \
         movxx_ld(Reax, Mecx, ctx_C_PTR(0x##pn))                             \
         movxx_st(Reax, Mecx, ctx_##pl(0x##pn))                              \
@@ -371,7 +371,7 @@
  * pointer dereferencing for color fetching.
  */
 #define PAINT_FRAG(lb, pn) /* destroys Reax */                              \
-        cmjxx_mi(Mecx, ctx_TMASK(0x##pn), IB(0),                            \
+        cmjxx_mz(Mecx, ctx_TMASK(0x##pn),                                   \
                  EQ_x, lb##pn)                                              \
         movxx_ld(Reax, Mecx, ctx_T_VAL(0x##pn))                             \
         movxx_st(Reax, Mecx, ctx_T_BUF(0x##pn))                             \
@@ -560,7 +560,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* if CTX is NULL fetch surface entry points
          * into the local pointer tables
          * as a part of backend's one-time initialization */
-        cmjxx_mi(Mebp, inf_CTX, IB(0),
+        cmjxx_mz(Mebp, inf_CTX,
                  EQ_x, fetch_ptr)
 
         movxx_ld(Recx, Mebp, inf_CTX)
@@ -661,7 +661,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(OO_cyc)
 
-        cmjxx_ri(Resi, IB(0),
+        cmjxx_rz(Resi,
                  EQ_x, OO_out)
 
         movxx_ld(Rebx, Mesi, elm_SIMD)
@@ -693,13 +693,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM_ARRAY
 
-        cmjxx_mi(Mebx, srf_SRF_P(TAG), IB(0),
+        cmjxx_mz(Mebx, srf_SRF_P(TAG),
                  LT_n, OO_dff)                  /* signed comparison */
 
         /* ctx_LOCAL(OBJ) holds trnode's
          * last element for transform caching,
          * caching is not applied if NULL */
-        cmjxx_mi(Mecx, ctx_LOCAL(OBJ), IB(0),
+        cmjxx_mz(Mecx, ctx_LOCAL(OBJ),
                  EQ_x, OO_dff)
 
         /* bypass computation for local diff
@@ -758,7 +758,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM
 
-        cmjxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0),
+        cmjxx_mz(Mebx, srf_A_MAP(RT_L*4),
                  EQ_x, OO_trm)
 
         /* transform diff */
@@ -799,7 +799,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM_ARRAY
 
-        cmjxx_mi(Mebx, srf_SRF_P(TAG), IB(0),
+        cmjxx_mz(Mebx, srf_SRF_P(TAG),
                  GE_n, OO_srf)                  /* signed comparison */
 
         movpx_st(Xmm4, Mecx, ctx_DFF_X)
@@ -885,7 +885,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #if RT_FEAT_TRANSFORM_ARRAY
 
         /* skip trnode elements from the list */
-        cmjxx_mi(Mebx, srf_SRF_P(PTR), IB(0),
+        cmjxx_mz(Mebx, srf_SRF_P(PTR),
                  EQ_x, OO_end)
 
 #endif /* RT_FEAT_TRANSFORM_ARRAY */
@@ -958,7 +958,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM
 
-        cmjxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0),
+        cmjxx_mz(Mebx, srf_A_MAP(RT_L*4),
                  EQ_x, CC_loc)
 
         /* "x" section */
@@ -1033,11 +1033,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
 
         /* conic singularity solver */
-        cmjxx_mi(Mebx, srf_MSC_P(FLG), IB(0),
+        cmjxx_mz(Mebx, srf_MSC_P(FLG),
                  EQ_x, CC_adj)
 
         /* check near-zero determinant */
-        cmjxx_mi(Mecx, ctx_XMISC(PTR), IB(0),
+        cmjxx_mz(Mecx, ctx_XMISC(PTR),
                  EQ_x, CC_adj)
 
         /* load local point */
@@ -1267,17 +1267,17 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CC_cyc)
 
-        cmjxx_ri(Redi, IB(0),
+        cmjxx_rz(Redi,
                  EQ_x, CC_out)
 
         movxx_ld(Rebx, Medi, elm_SIMD)
 
 #if RT_FEAT_CLIPPING_ACCUM
 
-        cmjxx_ri(Rebx, IB(0),
+        cmjxx_rz(Rebx,
                  NE_x, CC_acc)                  /* check accum marker */
 
-        cmjxx_mi(Medi, elm_DATA, IB(0),         /* check accum enter/leave */
+        cmjxx_mz(Medi, elm_DATA,                /* check accum enter/leave */
                  GT_n, CC_acl)                  /* signed comparison */
 
         movpx_st(Xmm7, Mecx, ctx_C_ACC)         /* save current clip mask */
@@ -1296,13 +1296,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM_ARRAY
 
-        cmjxx_mi(Mebx, srf_SRF_P(TAG), IB(0),
+        cmjxx_mz(Mebx, srf_SRF_P(TAG),
                  LT_n, CC_arr)                  /* signed comparison */
 
         /* Redx holds trnode's
          * last element for transform caching,
          * caching is not applied if NULL */
-        cmjxx_ri(Redx, IB(0),
+        cmjxx_rz(Redx,
                  EQ_x, CC_dff)
 
         movpx_ld(Xmm1, Mecx, ctx_NRM_X)
@@ -1386,7 +1386,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM
 
-        cmjxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0),
+        cmjxx_mz(Mebx, srf_A_MAP(RT_L*4),
                  EQ_x, CC_trm)
 
         /* transform clip */
@@ -1427,7 +1427,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM_ARRAY
 
-        cmjxx_mi(Mebx, srf_SRF_P(TAG), IB(0),
+        cmjxx_mz(Mebx, srf_SRF_P(TAG),
                  GE_n, CC_srf)                  /* signed comparison */
 
         movpx_st(Xmm4, Mecx, ctx_NRM_X)
@@ -1498,7 +1498,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM
 
-        cmjxx_mi(Mebx, srf_A_MAP(RT_L*4), IB(0),
+        cmjxx_mz(Mebx, srf_A_MAP(RT_L*4),
                  EQ_x, MT_mat)
 
         movxx_ld(Rebx, Mebx, srf_MSC_P(OBJ))    /* load trnode's simd ptr */
@@ -1699,8 +1699,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(LT_cyc)
 
-        cmjxx_ri(Redi, IB(0),
+        cmjxx_rz(Redi,
                  EQ_x, LT_end)
+
         movxx_ld(Redx, Medi, elm_SIMD)
 
         /* compute common */
@@ -1957,8 +1958,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         mulps_rr(Xmm1, Xmm1)
 
-        cmjxx_ri(Reax, IB(0),
+        cmjxx_rz(Reax,
                  EQ_x, LT_pwe)
+
         subxx_ri(Reax, IB(1))
         jmpxx_lb(LT_pw4)
 
@@ -1976,14 +1978,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ri(Resi, IB(1))
         andxx_rr(Resi, Reax)
         shrxx_ri(Reax, IB(1))
-        cmjxx_ri(Resi, IB(0),
+        cmjxx_rz(Resi,
                  EQ_x, LT_pws)
+
         mulps_rr(Xmm1, Xmm2)
 
     LBL(LT_pws)
 
         mulps_rr(Xmm2, Xmm2)
-        cmjxx_ri(Reax, IB(0),
+        cmjxx_rz(Reax,
                  NE_x, LT_pwc)
 
     LBL(LT_pwe)
@@ -2188,7 +2191,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 /************************************ ENTER ***********************************/
 
-        cmjxx_mi(Mebp, inf_DEPTH, IB(0),
+        cmjxx_mz(Mebp, inf_DEPTH,
                  EQ_x, RF_mix)
 
         FETCH_XPTR(Resi, LST_P(SRF))
@@ -2361,7 +2364,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 /************************************ ENTER ***********************************/
 
-        cmjxx_mi(Mebp, inf_DEPTH, IB(0),
+        cmjxx_mz(Mebp, inf_DEPTH,
                  EQ_x, TR_mix)
 
         FETCH_IPTR(Resi, LST_P(SRF))
@@ -2370,6 +2373,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         cmjxx_mi(Mebx, srf_SRF_P(TAG), IB(RT_TAG_SURFACE_MAX),
                  NE_x, TR_arr)
+
         movxx_ld(Resi, Mebp, inf_LST)
 
     LBL(TR_arr)
@@ -2530,7 +2534,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #if RT_SHOW_BOUND
 
         movxx_ld(Redx, Mecx, ctx_PARAM(OBJ))
-        cmjxx_ri(Redx, IB(0),
+        cmjxx_rz(Redx,
                  EQ_x, AR_shb)
 
         cmjxx_mi(Medx, srf_SRF_P(TAG), IB(RT_TAG_SURFACE_MAX),
@@ -3247,7 +3251,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(QD_rt1)
 
         /* side count check */
-        cmjxx_mi(Mecx, ctx_XMISC(FLG), IB(0),
+        cmjxx_mz(Mecx, ctx_XMISC(FLG),
                  EQ_x, OO_end)
 
     LBL(QD_rc1)
@@ -3258,7 +3262,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_SIDE(QD_sd1, QD_rt2, RT_FLAG_SIDE_OUTER)
 
         /* division check */
-        cmjxx_mi(Mecx, ctx_XMISC(PTR), IB(0),
+        cmjxx_mz(Mecx, ctx_XMISC(PTR),
                  NE_x, QD_rd1)
 
         /* "t1" section */
@@ -3285,11 +3289,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         SUBROUTINE(QD_mt1, QD_mtr)
 
         /* side count check */
-        cmjxx_mi(Mecx, ctx_XMISC(FLG), IB(0),
+        cmjxx_mz(Mecx, ctx_XMISC(FLG),
                  EQ_x, OO_end)
 
         /* overdraw check */
-        cmjxx_mi(Mecx, ctx_XMISC(TAG), IB(0),
+        cmjxx_mz(Mecx, ctx_XMISC(TAG),
                  NE_x, QD_rs2)
 
         /* optimize overdraw */
@@ -3329,7 +3333,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(QD_rt2)
 
         /* side count check */
-        cmjxx_mi(Mecx, ctx_XMISC(FLG), IB(0),
+        cmjxx_mz(Mecx, ctx_XMISC(FLG),
                  EQ_x, OO_end)
 
     LBL(QD_rc2)
@@ -3340,7 +3344,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_SIDE(QD_sd2, QD_rt1, RT_FLAG_SIDE_INNER)
 
         /* division check */
-        cmjxx_mi(Mecx, ctx_XMISC(PTR), IB(0),
+        cmjxx_mz(Mecx, ctx_XMISC(PTR),
                  NE_x, QD_rd2)
 
         /* "t2" section */
@@ -3367,11 +3371,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         SUBROUTINE(QD_mt2, QD_mtr)
 
         /* side count check */
-        cmjxx_mi(Mecx, ctx_XMISC(FLG), IB(0),
+        cmjxx_mz(Mecx, ctx_XMISC(FLG),
                  EQ_x, OO_end)
 
         /* overdraw check */
-        cmjxx_mi(Mecx, ctx_XMISC(TAG), IB(0),
+        cmjxx_mz(Mecx, ctx_XMISC(TAG),
                  NE_x, QD_rs1)
 
         /* optimize overdraw */
@@ -3544,7 +3548,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_ANTIALIASING
 
-        cmjxx_mi(Mebp, inf_FSAA, IB(0),
+        cmjxx_mz(Mebp, inf_FSAA,
                  EQ_x, FF_put)
 
         adrpx_ld(Reax, Mecx, ctx_C_BUF(0))
