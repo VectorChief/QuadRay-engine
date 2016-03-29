@@ -4017,34 +4017,62 @@ rt_cell switch0(rt_cell mode)
     s_type[4] |= ((s_mask << 8) & 0x0100) | 4;
 #endif /* RT_128 & 1 */
 
-    mode &= (mode & 0xFF) <= S ? s_type[mode & 0xFF] : 0;
+    rt_cell i = mode >> 8;
+    rt_cell k = mode & 0xFF;
 
-    switch (mode)
+    if (mode == 0)
     {
-#if defined (RT_256) && (RT_256 & 2)
-        case 0x0208:
-        break;
-#endif /* RT_256 & 2 */
-#if defined (RT_256) && (RT_256 & 1)
-        case 0x0108:
-        break;
-#endif /* RT_256 & 1 */
-#if defined (RT_128) && (RT_128 & 4)
-        case 0x0404:
-        break;
-#endif /* RT_128 & 4 */
-#if defined (RT_128) && (RT_128 & 2)
-        case 0x0204:
-        break;
-#endif /* RT_128 & 2 */
-#if defined (RT_128) && (RT_128 & 1)
-        case 0x0104:
-        break;
-#endif /* RT_128 & 1 */
+        k = S;
 
-        default:
+        while (k > 0 && s_type[k] == 0)
+        {
+            k = k >> 1;
+        }
+
+        i = 4;
+
+        while (i > 0 && (s_type[k] & (i << 8)) == 0)
+        {
+            i = i >> 1;
+        }
+
+        mode = (i << 8) | k;
+    }
+    else
+    if (k != 0 && k <= S && s_type[k] != 0 && i == 0)
+    {
+        i = 4;
+
+        while (i > 0 && (s_type[k] & (i << 8)) == 0)
+        {
+            i = i >> 1;
+        }
+
+        mode |= (i << 8);
+    }
+    else
+    if (k != 0 && k <= S && s_type[k] != 0 && i != 0)
+    {
+        rt_cell j = 4;
+
+        while (j > 0)
+        {
+            if (i == j && (s_type[k] & (j << 8)) != 0)
+            {
+                break;
+            }
+
+            j = j >> 1;
+        }
+
+        if (j == 0)
+        {
+            mode = s_mode;
+        }
+    }
+    else
+    {
         mode = s_mode;
-        break;
     }
 
     s_mode = mode;

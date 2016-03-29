@@ -232,17 +232,14 @@ rt_cell main_step()
                 snew = sc[d]->set_simd(simd | type << 8) & 0xFF;
                 if (simd != snew)
                 {
-                    rt_cell tnew = type;
-                    do
+                    rt_cell tnew = 0;
+                    snew = sc[d]->set_simd(simd | tnew << 8);
+                    tnew = snew >> 8;
+                    snew = snew & 0xFF;
+                    if (simd == snew)
                     {
-                        tnew = tnew % 4 + tnew % 3; /* 1, 2, 4 */
-                        snew = sc[d]->set_simd(simd | tnew << 8) & 0xFF;
-                        if (simd == snew)
-                        {
-                            type = tnew;
-                        }
+                        type = tnew;
                     }
-                    while (type != tnew);
                 }
             }
             while (simd != snew);
