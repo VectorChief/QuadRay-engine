@@ -215,13 +215,37 @@ rt_cell main_step()
         }
         if (T_KEYS(RK_F7))
         {
-            type = type % 2 + 1;
-            type = sc[d]->set_simd(simd | type << 8) >> 8;
+            rt_cell tnew;
+            do
+            {
+                type = type % 4 + type % 3; /* 1, 2, 4 */
+                tnew = sc[d]->set_simd(simd | type << 8) >> 8;
+            }
+            while (type != tnew);
         }
         if (T_KEYS(RK_F8))
         {
-            simd = simd % 8 + 4;
-            simd = sc[d]->set_simd(simd | type << 8) & 0xFF;
+            rt_cell snew;
+            do
+            {
+                simd = simd % 8 + 4;        /* 4, 8 */
+                snew = sc[d]->set_simd(simd | type << 8) & 0xFF;
+                if (simd != snew)
+                {
+                    rt_cell tnew = type;
+                    do
+                    {
+                        tnew = tnew % 4 + tnew % 3; /* 1, 2, 4 */
+                        snew = sc[d]->set_simd(simd | tnew << 8) & 0xFF;
+                        if (simd == snew)
+                        {
+                            type = tnew;
+                        }
+                    }
+                    while (type != tnew);
+                }
+            }
+            while (simd != snew);
         }
         if (T_KEYS(RK_F11))
         {
