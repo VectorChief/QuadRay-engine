@@ -86,7 +86,7 @@ struct rt_SIMD_MATERIAL;
  * Backend's global entry point (hence 0).
  * Switch backend's runtime SIMD target with
  * "mode" equal to SIMD width (4, 8) in lower
- * byte and SIMD type (1, 2) in higher byte.
+ * byte and SIMD type (1, 2, 4) in higher byte.
  */
 rt_cell switch0(rt_cell mode);
 

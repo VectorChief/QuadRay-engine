@@ -3966,7 +3966,7 @@ rt_cell s_mode = 0;
  * Backend's global entry point (hence 0).
  * Switch backend's runtime SIMD target with
  * "mode" equal to SIMD width (4, 8) in lower
- * byte and SIMD type (1, 2) in higher byte.
+ * byte and SIMD type (1, 2, 4) in higher byte.
  */
 rt_cell switch0(rt_cell mode)
 {
@@ -3995,6 +3995,13 @@ rt_cell switch0(rt_cell mode)
     }
     s_type[8] |= ((s_mask << 0) & 0x0100) | 8;
 #endif /* RT_256 & 1 */
+#if defined (RT_128) && (RT_128 & 4)
+    if (s_mode == 0)
+    {
+        s_mode = (s_mask & 0x0004) != 0 ? 0x0404 : 0x0000;
+    }
+    s_type[4] |= ((s_mask << 8) & 0x0400) | 4;
+#endif /* RT_128 & 4 */
 #if defined (RT_128) && (RT_128 & 2)
     if (s_mode == 0)
     {
@@ -4022,6 +4029,10 @@ rt_cell switch0(rt_cell mode)
         case 0x0108:
         break;
 #endif /* RT_256 & 1 */
+#if defined (RT_128) && (RT_128 & 4)
+        case 0x0404:
+        break;
+#endif /* RT_128 & 4 */
 #if defined (RT_128) && (RT_128 & 2)
         case 0x0204:
         break;
@@ -4055,6 +4066,11 @@ namespace simd_128v2
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
+namespace simd_128v4
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
 namespace simd_256v1
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
@@ -4084,6 +4100,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         simd_256v1::render0(s_inf);
         break;
 #endif /* RT_256 & 1 */
+#if defined (RT_128) && (RT_128 & 4)
+        case 0x0404:
+        simd_128v4::render0(s_inf);
+        break;
+#endif /* RT_128 & 4 */
 #if defined (RT_128) && (RT_128 & 2)
         case 0x0204:
         simd_128v2::render0(s_inf);
