@@ -17,6 +17,7 @@ SRC_LIST =                              \
         core/system/system.cpp          \
         core/tracer/tracer.cpp          \
         core/tracer/tracer_128v1.cpp    \
+        core/tracer/tracer_128v2.cpp    \
         RooT_linux.cpp
 
 LIB_PATH =
@@ -39,4 +40,4 @@ RooT:
 # 0) Build flags above are intended for default "vanilla" ARMv7 target, while
 # settings suitable for specific hardware platform are given below (replace).
 # 1) Nokia N900, Maemo 5 scratchbox: -DRT_FULLSCREEN=1 -DRT_EMBED_FILEIO=1
-# 2) Raspberry Pi 2, Raspbian: arm-linux-gnueabihf-g++ -DRT_ARM=8
+# 2) Raspberry Pi 2, Raspbian: arm-linux-gnueabihf-g++ -DRT_128=2
