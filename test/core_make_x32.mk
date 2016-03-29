@@ -18,6 +18,7 @@ SRC_LIST =                              \
         ../core/tracer/tracer.cpp       \
         ../core/tracer/tracer_128v1.cpp \
         ../core/tracer/tracer_128v2.cpp \
+        ../core/tracer/tracer_128v4.cpp \
         ../core/tracer/tracer_256v1.cpp \
         ../core/tracer/tracer_256v2.cpp \
         core_test.cpp
@@ -30,7 +31,7 @@ LIB_LIST =                              \
 
 core_test:
 	x86_64-linux-gnu-g++ -O3 -g -static -mx32 \
-        -DRT_LINUX -DRT_X32 -DRT_128=1+2 -DRT_256=1+2 \
+        -DRT_LINUX -DRT_X32 -DRT_128=1+2+4 -DRT_256=1+2 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=1 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \

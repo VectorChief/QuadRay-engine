@@ -17,6 +17,7 @@ SRC_LIST =                              \
         core/system/system.cpp          \
         core/tracer/tracer.cpp          \
         core/tracer/tracer_128v1.cpp    \
+        core/tracer/tracer_128v2.cpp    \
         RooT_linux.cpp
 
 LIB_PATH =
