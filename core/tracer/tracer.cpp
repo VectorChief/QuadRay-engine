@@ -4017,29 +4017,23 @@ rt_cell switch0(rt_cell mode)
     s_type[4] |= ((s_mask << 8) & 0x0100) | 4;
 #endif /* RT_128 & 1 */
 
-    rt_cell i = mode >> 8;
+    rt_cell i = 0;
+    rt_cell j = mode >> 8;
     rt_cell k = mode & 0xFF;
 
-    if (mode == 0)
+    if (k == 0)
     {
         k = S;
 
-        while (k > 0 && s_type[k] == 0)
+        while (k > 0 && (s_type[k] >> 8) == 0)
         {
             k = k >> 1;
         }
 
-        i = 4;
-
-        while (i > 0 && (s_type[k] & (i << 8)) == 0)
-        {
-            i = i >> 1;
-        }
-
-        mode = (i << 8) | k;
+        mode |= k;
     }
-    else
-    if (k != 0 && k <= S && s_type[k] != 0 && i == 0)
+
+    if (k != 0 && k <= S && (s_type[k] >> 8) != 0 && j == 0)
     {
         i = 4;
 
@@ -4051,26 +4045,22 @@ rt_cell switch0(rt_cell mode)
         mode |= (i << 8);
     }
     else
-    if (k != 0 && k <= S && s_type[k] != 0 && i != 0)
+    if (k != 0 && k <= S && (s_type[k] >> 8) != 0 && j != 0)
     {
-        rt_cell j = 4;
+        i = 4;
 
-        while (j > 0)
+        while (i > 0)
         {
-            if (i == j && (s_type[k] & (j << 8)) != 0)
+            if (i == j && (s_type[k] & (i << 8)) != 0)
             {
                 break;
             }
 
-            j = j >> 1;
-        }
-
-        if (j == 0)
-        {
-            mode = s_mode;
+            i = i >> 1;
         }
     }
-    else
+
+    if (i == 0)
     {
         mode = s_mode;
     }
