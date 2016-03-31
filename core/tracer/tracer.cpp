@@ -1624,17 +1624,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm4, Medx, mat_XSCAL)         /* tex_x *= XSCAL */
         mulps_ld(Xmm5, Medx, mat_YSCAL)         /* tex_y *= YSCAL */
 
-        FCTRL_ENTER(ROUNDM)
-
         /* texture mapping */
-        cvtps_rr(Xmm1, Xmm4)                    /* tex_x ii tex_x */
+        cvmps_rr(Xmm1, Xmm4)                    /* tex_x ii tex_x */
         andpx_ld(Xmm1, Medx, mat_XMASK)         /* tex_y &= XMASK */
 
-        cvtps_rr(Xmm2, Xmm5)                    /* tex_y ii tex_y */
+        cvmps_rr(Xmm2, Xmm5)                    /* tex_y ii tex_y */
         andpx_ld(Xmm2, Medx, mat_YMASK)         /* tex_y &= YMASK */
         shlpx_ld(Xmm2, Medx, mat_YSHFT)         /* tex_y << YSHFT */
-
-        FCTRL_LEAVE(ROUNDM)
 
         addpx_rr(Xmm1, Xmm2)                    /* tex_x += tex_y */
         shlpx_ri(Xmm1, IB(2))                   /* tex_x <<     2 */
