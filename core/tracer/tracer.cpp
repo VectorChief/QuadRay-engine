@@ -354,11 +354,24 @@
         STORE_FRAG(lb, 08, pl)                                              \
         STORE_FRAG(lb, 0C, pl)
 
-#elif RT_SIMD_QUADS == 2
+#elif RT_SIMD_QUADS == 2 && (defined RT_X86 || defined RT_X32)
 
 #define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0 */                    \
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))                                  \
         mmvpx_st(W(RG), Mecx, ctx_##pl(0), Xmm0)
+
+#elif RT_SIMD_QUADS == 2
+
+#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0 */                    \
+        movpx_st(W(RG), Mecx, ctx_C_PTR(0))                                 \
+        STORE_FRAG(lb, 00, pl)                                              \
+        STORE_FRAG(lb, 04, pl)                                              \
+        STORE_FRAG(lb, 08, pl)                                              \
+        STORE_FRAG(lb, 0C, pl)                                              \
+        STORE_FRAG(lb, 10, pl)                                              \
+        STORE_FRAG(lb, 14, pl)                                              \
+        STORE_FRAG(lb, 18, pl)                                              \
+        STORE_FRAG(lb, 1C, pl)
 
 #endif /* RT_SIMD_QUADS */
 
