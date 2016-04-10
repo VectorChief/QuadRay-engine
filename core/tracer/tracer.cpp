@@ -345,9 +345,17 @@
         movxx_st(Reax, Mecx, ctx_##pl(0x##pn))                              \
     LBL(lb##pn)
 
-#if RT_SIMD_QUADS == 1
+#if RT_SIMD_QUADS == 1 && (defined RT_X86 || defined RT_X32) && RT_128 == 4
 
-#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0 */                    \
+#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0, RG */                \
+        movpx_ld(Xmm0, Mecx, ctx_TMASK(0))                                  \
+        xorpx_ld(Xmm0, Mebp, inf_GPC02) /* invert Xmm0's sign bit */        \
+        mmvpx_ld(W(RG), Mecx, ctx_##pl(0))                                  \
+        movpx_st(W(RG), Mecx, ctx_##pl(0))
+
+#elif RT_SIMD_QUADS == 1
+
+#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0, RG */                \
         movpx_st(W(RG), Mecx, ctx_C_PTR(0))                                 \
         STORE_FRAG(lb, 00, pl)                                              \
         STORE_FRAG(lb, 04, pl)                                              \
@@ -356,13 +364,13 @@
 
 #elif RT_SIMD_QUADS == 2 && (defined RT_X86 || defined RT_X32)
 
-#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0 */                    \
+#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0, RG */                \
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))                                  \
         mmvpx_st(W(RG), Mecx, ctx_##pl(0), Xmm0)
 
 #elif RT_SIMD_QUADS == 2
 
-#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0 */                    \
+#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0, RG */                \
         movpx_st(W(RG), Mecx, ctx_C_PTR(0))                                 \
         STORE_FRAG(lb, 00, pl)                                              \
         STORE_FRAG(lb, 04, pl)                                              \
