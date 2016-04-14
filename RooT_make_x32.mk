@@ -39,3 +39,6 @@ RooT:
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x32
+
+# The x32 ABI hasn't yet been tested due to lack of available toolchains/libs.
+# The (default) x64 ABI isn't yet supported by the ./core.

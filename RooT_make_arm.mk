@@ -38,6 +38,11 @@ RooT:
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.arm
 
+# Prerequisites for the build:
+# (cross-)compiler for ARMv7 is installed and in the PATH variable.
+#
+# make -f RooT_make_arm.mk
+
 # 0) Build flags above are intended for default "vanilla" ARMv7 target, while
 # settings suitable for specific hardware platform are given below (replace).
 # 1) Nokia N900, Maemo 5 scratchbox: -DRT_FULLSCREEN=1 -DRT_EMBED_FILEIO=1

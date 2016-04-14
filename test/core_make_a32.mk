@@ -42,5 +42,5 @@ core_test:
 # qemu-aarch64 -cpu cortex-a57 core_test.a32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
-# The ilp32 ABI hasn't yet been tested due to lack of available toolchain/libs.
+# The ilp32 ABI hasn't yet been tested due to lack of available toolchains/libs.
 # The (default) lp64 ABI isn't yet supported by the ../core.
