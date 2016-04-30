@@ -2398,7 +2398,7 @@ rt_void render_scene(rt_void *tdata, rt_cell thnum, rt_cell phase)
  * Can only be called from single (main) thread.
  */
 rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
-                   rt_cell x_res, rt_cell y_res, rt_cell x_row, rt_word *frame,
+                   rt_cell x_res, rt_cell y_res, rt_cell x_row, rt_ui32 *frame,
                    rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
                    rt_FUNC_INIT f_init, rt_FUNC_TERM f_term,
                    rt_FUNC_UPDATE f_update,
@@ -2436,8 +2436,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
 
     if (frame == RT_NULL)
     {
-        frame = (rt_word *)
-                alloc(RT_ABS(x_row) * y_res * sizeof(rt_word), RT_SIMD_ALIGN);
+        frame = (rt_ui32 *)
+                alloc(RT_ABS(x_row) * y_res * sizeof(rt_ui32), RT_SIMD_ALIGN);
 
         if (x_row < 0)
         {
@@ -2445,7 +2445,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
         }
     }
     else
-    if (((rt_word)frame & (RT_SIMD_ALIGN - 1)) != 0)
+    if (((rt_ui32)frame & (RT_SIMD_ALIGN - 1)) != 0)
     {
         throw rt_Exception("frame pointer is not simd-aligned in scene");
     }
@@ -3089,7 +3089,7 @@ rt_void rt_Scene::render_slice(rt_cell index, rt_cell phase)
 /*
  * Return pointer to the framebuffer.
  */
-rt_word* rt_Scene::get_frame()
+rt_ui32* rt_Scene::get_frame()
 {
     return frame;
 }
@@ -3340,7 +3340,7 @@ rt_void rt_Scene::render_num(rt_word x, rt_word y,
     d = (d + 1) / 2;
 
     rt_word xd, yd, xz, yz;
-    rt_word *src, *dst;
+    rt_ui32 *src, *dst;
 
     for (i = 0; i < c; i++)
     {

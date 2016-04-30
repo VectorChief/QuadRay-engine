@@ -134,7 +134,7 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_cell             x_res;
     rt_cell             y_res;
     rt_cell             x_row;
-    rt_word            *frame;
+    rt_ui32            *frame;
 
     /* single tile dimensions in pixels */
     rt_cell             tile_w;
@@ -209,7 +209,7 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     public:
 
     rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
-             rt_cell x_res, rt_cell y_res, rt_cell x_row, rt_word *frame,
+             rt_cell x_res, rt_cell y_res, rt_cell x_row, rt_ui32 *frame,
              rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
              rt_FUNC_INIT f_init = RT_NULL, rt_FUNC_TERM f_term = RT_NULL,
              rt_FUNC_UPDATE f_update = RT_NULL,
@@ -229,7 +229,7 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_void     render_num(rt_word x, rt_word y,
                            rt_cell d, rt_word z, rt_word num);
 
-    rt_word*    get_frame();
+    rt_ui32*    get_frame();
     rt_void     print_state();
 
     rt_cell     set_fsaa(rt_cell fsaa);

@@ -48,8 +48,8 @@
 rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 {
 #if RT_EMBED_FILEIO == 0
-    rt_word *p = RT_NULL;
-    rt_cell i, n, buf = 0;
+    rt_ui32 *p = RT_NULL;
+    rt_cell i, n;
 
     rt_pstr path = RT_PATH_TEXTURES;
     rt_cell len = strlen(path);
@@ -65,9 +65,9 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
      * would also release all allocs made after fullpath */
     hp->release(fullpath);
 
-    rt_word boffset, bzero;
-    rt_cell bwidth, bheight;
-    rt_half bdepth, bplanes, bsig;
+    rt_ui32 boffset, bzero, buf;
+    rt_si32 bwidth, bheight;
+    rt_ui16 bdepth, bplanes, bsig;
 
     tx->ptex = RT_NULL;
     tx->x_dim = 0;
@@ -142,7 +142,7 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 
         n = tx->x_dim * tx->y_dim;
 
-        tx->ptex = hp->alloc(n * sizeof(rt_word), RT_ALIGN);
+        tx->ptex = hp->alloc(n * sizeof(rt_ui32), RT_ALIGN);
         if (tx->ptex == RT_NULL)
         {
             break;
@@ -150,7 +150,7 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 
         f->seek(boffset, SEEK_SET);
 
-        for (i = 0, p = (rt_word *)tx->ptex; i < n; i++, p++)
+        for (i = 0, p = (rt_ui32 *)tx->ptex; i < n; i++, p++)
         {
             if (f->load(&buf, 3, 1) != 1)
             {
@@ -198,8 +198,8 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 {
 #if RT_EMBED_FILEIO == 0
-    rt_word *p = RT_NULL;
-    rt_cell i, n, buf = 0;
+    rt_ui32 *p = RT_NULL;
+    rt_cell i, n;
 
     rt_pstr path = RT_PATH_DUMP;
     rt_cell len = strlen(path);
@@ -215,10 +215,10 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
      * would also release all allocs made after fullpath */
     hp->release(fullpath);
 
-    rt_word boffset = 54, binfo = 40, bmeter = 4000, bzero = 0;
-    rt_cell bwidth = RT_ABS(tx->x_dim), bheight = RT_ABS(tx->y_dim);
-    rt_word bsize = boffset + bwidth * bheight * 3;
-    rt_half bdepth = 24, bplanes = 1, bsig = 0x4D42;
+    rt_ui32 boffset = 54, binfo = 40, bmeter = 4000, bzero = 0;
+    rt_si32 bwidth = RT_ABS(tx->x_dim), bheight = RT_ABS(tx->y_dim);
+    rt_ui32 bsize = boffset + bwidth * bheight * 3, buf;
+    rt_ui16 bdepth = 24, bplanes = 1, bsig = 0x4D42;
 
     do /* use "do {break} while(0)" instead of "goto label" */
     {
@@ -321,7 +321,7 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 
         n = bwidth * bheight;
 
-        for (i = 0, p = (rt_word *)tx->ptex; i < n; i++, p++)
+        for (i = 0, p = (rt_ui32 *)tx->ptex; i < n; i++, p++)
         {
             RT_SAVE_W(*p, &buf);
             if (f->save(&buf, 3, 1) != 1)
@@ -349,7 +349,7 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 rt_cell convert_image(rt_Heap *hp, rt_pstr name)
 {
 #if RT_EMBED_FILEIO == 0
-    rt_word *p = RT_NULL;
+    rt_ui32 *p = RT_NULL;
     rt_cell i, n, r = 0;
 
     rt_pstr path = RT_PATH_TEXTURES;
@@ -388,13 +388,13 @@ rt_cell convert_image(rt_Heap *hp, rt_pstr name)
 
         fullpath[dot] = 0;
 
-        f->fprint("rt_word dt_%s[%d][%d] =\n", &fullpath[len],
+        f->fprint("rt_ui32 dt_%s[%d][%d] =\n", &fullpath[len],
                                                tx->y_dim, tx->x_dim);
         f->fprint("{");
 
         n = tx->x_dim * tx->y_dim;
 
-        for (i = 0, p = (rt_word *)tx->ptex; i < n; i++, p++)
+        for (i = 0, p = (rt_ui32 *)tx->ptex; i < n; i++, p++)
         {
             if (i % 6 == 0)
             {

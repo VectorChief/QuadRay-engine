@@ -28,7 +28,7 @@ rt_astr     title       = "QuadRay engine demo, (C) 2013-2016 VectorChief";
 rt_cell     x_res       = RT_X_RES;
 rt_cell     y_res       = RT_Y_RES;
 rt_cell     x_row       = RT_X_RES;
-rt_word    *frame       = RT_NULL;
+rt_ui32    *frame       = RT_NULL;
 
 rt_cell     fsaa        = RT_FSAA_NO; /* no AA */
 rt_cell     simd        = 0; /* default SIMD width will be chosen */
@@ -78,7 +78,7 @@ rt_time get_time();
 /*
  * Set current frame to screen.
  */
-rt_void frame_to_screen(rt_word *frame);
+rt_void frame_to_screen(rt_ui32 *frame);
 
 /*
  * Allocate memory from system heap.

@@ -134,7 +134,7 @@ struct rt_TRANSFORM3D
 
 struct rt_COL
 {
-    rt_word             val;
+    rt_ui32             val;
     rt_vec4             hdr;
 };
 

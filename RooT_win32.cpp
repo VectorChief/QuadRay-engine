@@ -26,7 +26,7 @@ static BITMAPINFO  DIBinfo =
     1,                                  /* biPlanes */
     32,                                 /* biBitCount */
     BI_RGB,                             /* biCompression */
-    x_res * y_res * sizeof(rt_word),    /* biSizeImage */
+    x_res * y_res * sizeof(rt_ui32),    /* biSizeImage */
     0,                                  /* biXPelsPerMeter */
     0,                                  /* biYPelsPerMeter */
     0,                                  /* biClrUsed */
@@ -363,7 +363,7 @@ rt_time get_time()
 /*
  * Set current frame to screen.
  */
-rt_void frame_to_screen(rt_word *frame)
+rt_void frame_to_screen(rt_ui32 *frame)
 {
     SetDIBitsToDevice(hWndDC, 0, 0, x_res, y_res, 0, 0, 0, y_res,
                                     frame, &DIBinfo, DIB_RGB_COLORS);

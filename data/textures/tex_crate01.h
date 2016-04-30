@@ -8,11 +8,11 @@
 #define RT_TEX_CRATE01_H
 
 /*
- * Texture data below was converted with:
- * "test/core_test.x86 -t tex_crate01.bmp", original texture source:
+ * Texture data below was converted with (run from "test" subfolder):
+ * "core_test.x86 -t tex_crate01.bmp", original texture source:
  * http://free-texture-site.blogspot.ru/2010/10/free-wooden-crate-texture.html
  */
-rt_word dt_tex_crate01[256][256] =
+rt_ui32 dt_tex_crate01[256][256] =
 {
     0x00574D4C, 0x005D5352, 0x00594F4E, 0x005F5554, 0x005F5554, 0x005B5150,
     0x004E4744, 0x00443F3B, 0x0046413D, 0x004A4541, 0x003F3A36, 0x00514C48,

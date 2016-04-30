@@ -165,7 +165,7 @@ rt_cell main()
     /* use true-color target directly */
     if (depth > 16)
     {
-        frame = (rt_word *)ximage->data;
+        frame = (rt_ui32 *)ximage->data;
         x_row = ximage->bytes_per_line / 4;
     }
 
@@ -408,11 +408,11 @@ rt_time get_time()
 /*
  * Set current frame to screen.
  */
-rt_void frame_to_screen(rt_word *frame)
+rt_void frame_to_screen(rt_ui32 *frame)
 {
     if (depth == 16 && frame != RT_NULL)
     {
-        rt_half *idata = (rt_half *)ximage->data;
+        rt_ui16 *idata = (rt_ui16 *)ximage->data;
         rt_cell i = x_res * y_res;
 
         while (i-->0)

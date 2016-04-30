@@ -43,7 +43,7 @@ static rt_bool a_mode = RT_FALSE;
 static rt_cell x_res = RT_X_RES;
 static rt_cell y_res = RT_Y_RES;
 static rt_cell x_row = RT_X_RES;
-static rt_word frame[RT_X_RES * RT_Y_RES];
+static rt_ui32 frame[RT_X_RES * RT_Y_RES];
 
 static rt_cell fsaa = RT_FSAA_4X;
 static rt_Scene *scene = RT_NULL;
@@ -67,7 +67,7 @@ rt_void sys_free(rt_pntr ptr)
 }
 
 static
-rt_void frame_cpy(rt_word *fd, rt_word *fs)
+rt_void frame_cpy(rt_ui32 *fd, rt_ui32 *fs)
 {
     rt_cell i;
 
@@ -79,7 +79,7 @@ rt_void frame_cpy(rt_word *fd, rt_word *fs)
 }
 
 static
-rt_cell frame_cmp(rt_word *f1, rt_word *f2)
+rt_cell frame_cmp(rt_ui32 *f1, rt_ui32 *f2)
 {
     rt_cell i, j, ret = 0;
 
@@ -131,7 +131,7 @@ rt_cell frame_cmp(rt_word *f1, rt_word *f2)
 }
 
 static
-rt_void frame_dff(rt_word *fd, rt_word *fs)
+rt_void frame_dff(rt_ui32 *fd, rt_ui32 *fs)
 {
     rt_cell i;
 
@@ -149,7 +149,7 @@ rt_void frame_dff(rt_word *fd, rt_word *fs)
 }
 
 static
-rt_void frame_max(rt_word *fd)
+rt_void frame_max(rt_ui32 *fd)
 {
     rt_cell i;
 
