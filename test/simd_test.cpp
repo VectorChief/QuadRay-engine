@@ -47,7 +47,7 @@
  * Allocate memory from system heap.
  */
 static
-rt_pntr sys_alloc(rt_ui32 size)
+rt_pntr sys_alloc(rt_size size)
 {
     /* consider using mmap/munmap with MAP_32BIT to limit address range */
     rt_pntr ptr = malloc(size);

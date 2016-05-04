@@ -66,12 +66,12 @@ class rt_File
     virtual
    ~rt_File();
 
-    rt_cell seek(rt_cell offset, rt_cell origin);
-    rt_word load(rt_pntr data, rt_word size, rt_word num);
-    rt_word save(rt_pntr data, rt_word size, rt_word num);
-    rt_cell fprint(rt_pstr format, ...);
-    rt_cell vprint(rt_pstr format, va_list args);
-    rt_cell error(); /* 0 - no error */
+    rt_si32 seek(rt_cell offset, rt_si32 origin);
+    rt_size load(rt_pntr data, rt_size size, rt_size num);
+    rt_size save(rt_pntr data, rt_size size, rt_size num);
+    rt_si32 fprint(rt_pstr format, ...);
+    rt_si32 vprint(rt_pstr format, va_list args);
+    rt_si32 error(); /* 0 - no error */
 };
 
 /******************************************************************************/
@@ -85,14 +85,14 @@ struct rt_CHUNK
 {
     rt_byte            *ptr;
     rt_byte            *end;
-    rt_word             size;
+    rt_size             size;
     rt_CHUNK           *next;
 };
 
 /*
  * Memory alloc/free function types.
  */
-typedef rt_pntr (*rt_FUNC_ALLOC)(rt_word size);
+typedef rt_pntr (*rt_FUNC_ALLOC)(rt_size size);
 typedef rt_void (*rt_FUNC_FREE)(rt_pntr ptr);
 
 /*
@@ -107,7 +107,7 @@ class rt_Heap
 
     rt_CHUNK           *head;
 
-    rt_void chunk_alloc(rt_word size, rt_word align);
+    rt_void chunk_alloc(rt_size size, rt_ui32 align);
 
     protected:
 
@@ -123,8 +123,8 @@ class rt_Heap
     virtual
    ~rt_Heap();
 
-    rt_pntr alloc(rt_word size, rt_word align);
-    rt_pntr reserve(rt_word size, rt_word align);
+    rt_pntr alloc(rt_size size, rt_ui32 align);
+    rt_pntr reserve(rt_size size, rt_ui32 align);
     rt_pntr release(rt_pntr ptr);
 };
 

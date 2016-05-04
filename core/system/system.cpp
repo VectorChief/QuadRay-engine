@@ -44,7 +44,7 @@ rt_File::rt_File(rt_pstr name, rt_pstr mode)
 /*
  * Set file position to "offset" bytes from "origin".
  */
-rt_cell rt_File::seek(rt_cell offset, rt_cell origin)
+rt_si32 rt_File::seek(rt_cell offset, rt_si32 origin)
 {
     return
 #if RT_EMBED_FILEIO == 0
@@ -56,7 +56,7 @@ rt_cell rt_File::seek(rt_cell offset, rt_cell origin)
 /*
  * Load "num" elements of "size" bytes into "data" buffer.
  */
-rt_word rt_File::load(rt_pntr data, rt_word size, rt_word num)
+rt_size rt_File::load(rt_pntr data, rt_size size, rt_size num)
 {
     return
 #if RT_EMBED_FILEIO == 0
@@ -68,7 +68,7 @@ rt_word rt_File::load(rt_pntr data, rt_word size, rt_word num)
 /*
  * Save "num" elements of "size" bytes from "data" buffer.
  */
-rt_word rt_File::save(rt_pntr data, rt_word size, rt_word num)
+rt_size rt_File::save(rt_pntr data, rt_size size, rt_size num)
 {
     return
 #if RT_EMBED_FILEIO == 0
@@ -80,9 +80,9 @@ rt_word rt_File::save(rt_pntr data, rt_word size, rt_word num)
 /*
  * Print formatted string with variable number of arguments.
  */
-rt_cell rt_File::fprint(rt_pstr format, ...)
+rt_si32 rt_File::fprint(rt_pstr format, ...)
 {
-    rt_cell ret = 0;
+    rt_si32 ret = 0;
 #if RT_EMBED_FILEIO == 0
     va_list args;
     va_start(args, format);
@@ -99,9 +99,9 @@ rt_cell rt_File::fprint(rt_pstr format, ...)
 /*
  * Print formatted string with given list of arguments.
  */
-rt_cell rt_File::vprint(rt_pstr format, va_list args)
+rt_si32 rt_File::vprint(rt_pstr format, va_list args)
 {
-    rt_cell ret = 0;
+    rt_si32 ret = 0;
 #if RT_EMBED_FILEIO == 0
     if (file != RT_NULL)
     {
@@ -115,7 +115,7 @@ rt_cell rt_File::vprint(rt_pstr format, va_list args)
 /*
  * Return error code.
  */
-rt_cell rt_File::error()
+rt_si32 rt_File::error()
 {
     return 
 #if RT_EMBED_FILEIO == 0
@@ -160,11 +160,11 @@ rt_Heap::rt_Heap(rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free)
  * Allocate new chunk at least "size" bytes with given "align",
  * and link it to the list as head.
  */
-rt_void rt_Heap::chunk_alloc(rt_word size, rt_word align)
+rt_void rt_Heap::chunk_alloc(rt_size size, rt_ui32 align)
 {
     /* compute align and new chunk's size */
-    rt_word mask = align > 0 ? align - 1 : 0;
-    rt_word real_size = size + mask + sizeof(rt_CHUNK) + (RT_CHUNK_SIZE - 1);
+    rt_size mask = align > 0 ? align - 1 : 0;
+    rt_size real_size = size + mask + sizeof(rt_CHUNK) + (RT_CHUNK_SIZE - 1);
     real_size = (real_size / RT_CHUNK_SIZE) * RT_CHUNK_SIZE;
     rt_CHUNK *chunk = (rt_CHUNK *)f_alloc(real_size);
 
@@ -176,7 +176,7 @@ rt_void rt_Heap::chunk_alloc(rt_word size, rt_word align)
 
     /* prepare new chunk */
     chunk->ptr = (rt_byte *)chunk + sizeof(rt_CHUNK);
-    chunk->ptr = (rt_byte *)(((rt_word)chunk->ptr + mask) & ~mask);
+    chunk->ptr = (rt_byte *)(((rt_size)chunk->ptr + mask) & ~mask);
     chunk->end = (rt_byte *)chunk + real_size;
     chunk->size = real_size;
     chunk->next = head;
@@ -188,7 +188,7 @@ rt_void rt_Heap::chunk_alloc(rt_word size, rt_word align)
  * Reserve given "size" bytes of memory with given "align",
  * move heap pointer ahead for next alloc.
  */
-rt_pntr rt_Heap::alloc(rt_word size, rt_word align)
+rt_pntr rt_Heap::alloc(rt_size size, rt_ui32 align)
 {
     rt_byte *ptr = (rt_byte *)reserve(size, align);
 
@@ -201,11 +201,11 @@ rt_pntr rt_Heap::alloc(rt_word size, rt_word align)
  * Reserve given "size" bytes of memory with given "align",
  * don't move heap pointer. Next alloc will begin in reserved area.
  */
-rt_pntr rt_Heap::reserve(rt_word size, rt_word align)
+rt_pntr rt_Heap::reserve(rt_size size, rt_ui32 align)
 {
     /* compute align */
-    rt_word mask = align > 0 ? align - 1 : 0;
-    rt_byte *ptr = (rt_byte *)(((rt_word)head->ptr + mask) & ~mask);
+    rt_size mask = align > 0 ? align - 1 : 0;
+    rt_byte *ptr = (rt_byte *)(((rt_size)head->ptr + mask) & ~mask);
 
     /* allocate bigger chunk, if current doesn't fit */
     if (head->end < ptr + size)

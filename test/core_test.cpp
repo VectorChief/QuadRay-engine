@@ -52,7 +52,7 @@ static rt_Scene *scene = RT_NULL;
  * Allocate memory from system heap.
  */
 static
-rt_pntr sys_alloc(rt_word size)
+rt_pntr sys_alloc(rt_size size)
 {
     return malloc(size);
 }

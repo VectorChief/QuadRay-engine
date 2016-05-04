@@ -84,7 +84,7 @@ rt_void frame_to_screen(rt_ui32 *frame);
  * Allocate memory from system heap.
  */
 static
-rt_pntr sys_alloc(rt_word size)
+rt_pntr sys_alloc(rt_size size)
 {
     return malloc(size);
 }
