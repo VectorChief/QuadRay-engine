@@ -49,10 +49,10 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 {
 #if RT_EMBED_FILEIO == 0
     rt_ui32 *p = RT_NULL;
-    rt_cell i, n;
+    rt_si32 i, n;
 
     rt_pstr path = RT_PATH_TEXTURES;
-    rt_cell len = strlen(path);
+    rt_size len = strlen(path);
     rt_char *fullpath = (rt_char *)hp->alloc(len + strlen(name) + 1, 0);
 
     strcpy(fullpath, path);
@@ -199,10 +199,10 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 {
 #if RT_EMBED_FILEIO == 0
     rt_ui32 *p = RT_NULL;
-    rt_cell i, n;
+    rt_si32 i, n;
 
     rt_pstr path = RT_PATH_DUMP;
-    rt_cell len = strlen(path);
+    rt_size len = strlen(path);
     rt_char *fullpath = (rt_char *)hp->alloc(len + strlen(name) + 1, 0);
 
     strcpy(fullpath, path);
@@ -346,14 +346,14 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 /*
  * Convert image from file to C static array initializer format.
  */
-rt_cell convert_image(rt_Heap *hp, rt_pstr name)
+rt_si32 convert_image(rt_Heap *hp, rt_pstr name)
 {
 #if RT_EMBED_FILEIO == 0
     rt_ui32 *p = RT_NULL;
-    rt_cell i, n, r = 0;
+    rt_si32 i, n, r = 0;
 
     rt_pstr path = RT_PATH_TEXTURES;
-    rt_cell len = strlen(path), dot = len;
+    rt_size len = strlen(path), dot = len;
     rt_char *fullpath = (rt_char *)hp->alloc(len + strlen(name) + 3, 0);
 
     strcpy(fullpath, path);

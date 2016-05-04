@@ -44,7 +44,7 @@ rt_mat4 iden4 =
  * Check if given address ranges overlap.
  */
 static
-rt_bool in_range(rt_real *p1, rt_cell n1, rt_real *p2, rt_cell n2)
+rt_bool in_range(rt_real *p1, rt_size n1, rt_real *p2, rt_size n2)
 {
     if ((p1 >= p2 && p1 < p2 + n2) || (p2 >= p1 && p2 < p1 + n1))
     {
@@ -66,7 +66,7 @@ rt_void matrix_mul_vector(rt_vec4 vp, rt_mat4 m1, rt_vec4 v1)
     }
 #endif /* RT_DEBUG */
 
-    rt_cell i;
+    rt_si32 i;
 
     for (i = 0; i < 4; i++)
     {
@@ -89,7 +89,7 @@ rt_void matrix_mul_matrix(rt_mat4 mp, rt_mat4 m1, rt_mat4 m2)
     }
 #endif /* RT_DEBUG */
 
-    rt_cell i;
+    rt_si32 i;
 
     for (i = 0; i < 4; i++)
     {
@@ -197,7 +197,7 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
 
 #if RT_DEBUG >= 2
 
-    rt_cell i, j, k = 0;
+    rt_si32 i, j, k = 0;
 
     rt_mat4 tm;
 
@@ -312,9 +312,9 @@ rt_void matrix_inverse(rt_mat4 mp, rt_mat4 m1)
  *   4 - intersect o=q-p, to handle bbox stacking
  */
 static
-rt_cell vert_face(rt_vec4 p0, rt_vec4 p1, rt_cell th,
+rt_si32 vert_face(rt_vec4 p0, rt_vec4 p1, rt_si32 th,
                   rt_vec4 q0, rt_vec4 q1, rt_vec4 q2,
-                  rt_cell qk, rt_cell qi, rt_cell qj)
+                  rt_si32 qk, rt_si32 qi, rt_si32 qj)
 {
     rt_real d, s, t, u, v;
 
@@ -447,9 +447,9 @@ rt_cell vert_face(rt_vec4 p0, rt_vec4 p1, rt_cell th,
  *   4 - intersect o=q-p, to handle bbox stacking
  */
 static
-rt_cell edge_edge(rt_vec4 p0, rt_cell th,
-                  rt_vec4 p1, rt_vec4 p2, rt_cell pk,
-                  rt_vec4 q1, rt_vec4 q2, rt_cell qk)
+rt_si32 edge_edge(rt_vec4 p0, rt_si32 th,
+                  rt_vec4 p1, rt_vec4 p2, rt_si32 pk,
+                  rt_vec4 q1, rt_vec4 q2, rt_si32 qk)
 {
     rt_real d, s, t, u, v;
 
@@ -467,13 +467,13 @@ rt_cell edge_edge(rt_vec4 p0, rt_cell th,
 
         /* determine axis
          * orthogonal to both edges */
-        rt_cell mp[3][3] =
+        rt_si32 mp[3][3] =
         {
             {0, 2, 1},
             {2, 1, 0},
             {1, 0, 2},
         };
-        rt_cell kk = mp[pk][qk];
+        rt_si32 kk = mp[pk][qk];
 
         /* distance from origin to 1st edge
          * in common orthogonal direction */
@@ -605,9 +605,9 @@ rt_cell edge_edge(rt_vec4 p0, rt_cell th,
  *   3 - yes, both
  */
 static
-rt_cell surf_hole(rt_SHAPE *srf, rt_BOUND *ref)
+rt_si32 surf_hole(rt_SHAPE *srf, rt_BOUND *ref)
 {
-    rt_cell c = 0;
+    rt_si32 c = 0;
 
     if (RT_IS_PLANE(srf))
     {
@@ -625,7 +625,7 @@ rt_cell surf_hole(rt_SHAPE *srf, rt_BOUND *ref)
     /* init custom clippers list */
     rt_ELEM *elm = (rt_ELEM *)*srf->ptr;
 
-    rt_cell skip = 0;
+    rt_si32 skip = 0;
 
     /* run through custom clippers list */
     for (; elm != RT_NULL; elm = elm->next)
@@ -667,14 +667,14 @@ rt_cell surf_hole(rt_SHAPE *srf, rt_BOUND *ref)
  *   2 - yes, outer
  */
 static
-rt_cell surf_clip(rt_SHAPE *srf, rt_BOUND *clp)
+rt_si32 surf_clip(rt_SHAPE *srf, rt_BOUND *clp)
 {
-    rt_cell c = 0;
+    rt_si32 c = 0;
 
     /* init custom clippers list */
     rt_ELEM *elm = (rt_ELEM *)*srf->ptr;
 
-    rt_cell skip = 0;
+    rt_si32 skip = 0;
 
     /* run through custom clippers list */
     for (; elm != RT_NULL; elm = elm->next)
@@ -716,9 +716,9 @@ rt_cell surf_clip(rt_SHAPE *srf, rt_BOUND *clp)
  *   1 - concave
  */
 static
-rt_cell surf_conc(rt_SHAPE *srf)
+rt_si32 surf_conc(rt_SHAPE *srf)
 {
-    rt_cell c = 0;
+    rt_si32 c = 0;
 
     if (srf->tag == RT_TAG_CONE
     ||  srf->tag == RT_TAG_HYPERBOLOID
@@ -739,13 +739,13 @@ rt_cell surf_conc(rt_SHAPE *srf)
  *   1 - concave
  */
 static
-rt_cell clip_conc(rt_SHAPE *srf)
+rt_si32 clip_conc(rt_SHAPE *srf)
 {
-    rt_cell c = 0;
+    rt_si32 c = 0;
 
     rt_vec4  zro = {0.0f, 0.0f, 0.0f, 0.0f};
     rt_real *pps = srf->trnode == srf ? zro : srf->pos;
-    rt_cell mp_k = srf->map[RT_K];
+    rt_si32 mp_k = srf->map[RT_K];
 
     if ((srf->tag == RT_TAG_CONE
     ||   srf->tag == RT_TAG_HYPERBOLOID
@@ -797,9 +797,9 @@ rt_real *node_tran(rt_BOUND *obj, rt_vec4 pos, rt_vec4 loc)
  *   2 - yes, on the border with margin
  */
 static
-rt_cell surf_cbox(rt_SHAPE *srf, rt_vec4 pos)
+rt_si32 surf_cbox(rt_SHAPE *srf, rt_vec4 pos)
 {
-    rt_cell c = 0;
+    rt_si32 c = 0;
 
     /* transform "pos" to "srf's" trnode sub-world space,
      * where cbox is defined */
@@ -843,9 +843,9 @@ rt_cell surf_cbox(rt_SHAPE *srf, rt_vec4 pos)
  *   2 - yes, on the border with margin
  */
 static
-rt_cell node_bbox(rt_BOUND *obj, rt_vec4 pos)
+rt_si32 node_bbox(rt_BOUND *obj, rt_vec4 pos)
 {
-    rt_cell c = 0;
+    rt_si32 c = 0;
 
     /* transform "pos" to "obj's" trnode sub-world space,
      * where bbox is defined */
@@ -889,7 +889,7 @@ rt_cell node_bbox(rt_BOUND *obj, rt_vec4 pos)
  *   2 - outer
  */
 static
-rt_cell surf_side(rt_SHAPE *srf, rt_vec4 pos)
+rt_si32 surf_side(rt_SHAPE *srf, rt_vec4 pos)
 {
     /* transform "pos" to "srf's" trnode sub-world space */
     rt_vec4  loc;
@@ -934,9 +934,9 @@ rt_cell surf_side(rt_SHAPE *srf, rt_vec4 pos)
  *   3 - both, also if on the surface with margin
  */
 static
-rt_cell clip_side(rt_SHAPE *srf, rt_vec4 pos)
+rt_si32 clip_side(rt_SHAPE *srf, rt_vec4 pos)
 {
-    rt_cell k, c = 0;
+    rt_si32 k, c = 0;
 
     c = surf_side(srf, pos);
 
@@ -999,7 +999,7 @@ rt_cell clip_side(rt_SHAPE *srf, rt_vec4 pos)
  *   0 - no
  *   1 - yes
  */
-rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
+rt_si32 bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 {
     /* check if nodes differ and have bounds */
     if (nd1->rad == RT_INF || nd2->rad == RT_INF || nd1 == nd2)
@@ -1008,7 +1008,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     }
 
     rt_real *pps = obj->mid;
-    rt_cell i, j, k;
+    rt_si32 i, j, k;
 
     /* check if "nd1" and "nd2" is SURFACE
      * and clip relations for shadow optimization is enabled in runtime */
@@ -1155,9 +1155,9 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
  * Return values:
  *   flags
  */
-rt_cell bbox_flag(rt_cell *map, rt_cell flm)
+rt_si32 bbox_flag(rt_si32 *map, rt_si32 flm)
 {
-    rt_cell flf = 0;
+    rt_si32 flf = 0;
 
     flf |= ((flm & (2 << (map[RT_K] * 2))) != 0) << 0;
     flf |= ((flm & (2 << (map[RT_J] * 2))) != 0) << 1;
@@ -1178,7 +1178,7 @@ rt_cell bbox_flag(rt_cell *map, rt_cell flm)
  *   * - convex mask
  */
 static
-rt_cell bbox_conv(rt_BOUND *obj, rt_real *pos)
+rt_si32 bbox_conv(rt_BOUND *obj, rt_real *pos)
 {
     if (obj->fln == 0)
     {
@@ -1198,7 +1198,7 @@ rt_cell bbox_conv(rt_BOUND *obj, rt_real *pos)
     rt_vec4  loc;
     rt_real *pps = node_tran(obj, pos, loc);
 
-    rt_cell i, flm = 0;
+    rt_si32 i, flm = 0;
 
     /* determine which bbox's faces are visible from "pps",
      * store result in minmax data format:
@@ -1239,7 +1239,7 @@ rt_cell bbox_conv(rt_BOUND *obj, rt_real *pos)
  * 8|1 - no swap, unsortable
  * 8|2 - do swap, unsortable
  */
-rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
+rt_si32 bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
 {
     /* check if nodes differ and have bounds */
     if (nd1->rad == RT_INF || nd2->rad == RT_INF || nd1 == nd2)
@@ -1248,8 +1248,8 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
     }
 
     rt_real *pps = obj->mid;
-    rt_cell i, j, k, m, n, p, q, r = 0, s, t, u = 8, f = 0, c = 0, d;
-    rt_cell m1 = 0, m2 = 0;
+    rt_si32 i, j, k, m, n, p, q, r = 0, s, t, u = 8, f = 0, c = 0, d;
+    rt_si32 m1 = 0, m2 = 0;
 
     /* check if "nd1" and "nd2" is SURFACE
      * and clip relations for sorting optimization is enabled in runtime */
@@ -1848,7 +1848,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
  *   2 - yes, thorough - borders intersect
  */
 static
-rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
+rt_si32 bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
 {
     /* check if nodes differ and have bounds */
     if (nd1->rad == RT_INF || nd2->rad == RT_INF || nd1 == nd2)
@@ -1856,7 +1856,7 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
         return 2; /* TODO: attempt to check intersection for boundless nodes */
     }
 
-    rt_cell i, j, k;
+    rt_si32 i, j, k;
 
     /* check if bounding spheres don't intersect */
     rt_vec4 dff_vec;
@@ -1949,7 +1949,7 @@ rt_cell bbox_fuse(rt_BOUND *nd1, rt_BOUND *nd2)
  *   2 - outer
  *   3 - both, also if on the surface with margin
  */
-rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
+rt_si32 bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
 {
     /* check if "obj" is LIGHT or CAMERA */
     if (RT_IS_LIGHT(obj) || RT_IS_CAMERA(obj))
@@ -1957,7 +1957,7 @@ rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
         return clip_side(srf, obj->mid);
     }
 
-    rt_cell i, j, k, m, n, p, c = 0;
+    rt_si32 i, j, k, m, n, p, c = 0;
 
     /* TODO: consider merging "p" into "m" as a third "planar" state
      * between "convex" and "concave", adjust code below to reflect that */

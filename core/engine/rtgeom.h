@@ -226,8 +226,8 @@ struct rt_VERT
  */
 struct rt_EDGE
 {
-    rt_cell index[2];
-    rt_cell k;
+    rt_si32 index[2];
+    rt_si32 k;
 };
 
 /*
@@ -235,8 +235,8 @@ struct rt_EDGE
  */
 struct rt_FACE
 {
-    rt_cell index[4];
-    rt_cell k, i, j;
+    rt_si32 index[4];
+    rt_si32 k, i, j;
 };
 
 /*
@@ -248,10 +248,10 @@ struct rt_BOUND
 {
     /* host object's pointer and tag */
     rt_pntr             obj;
-    rt_cell             tag;
+    rt_si32             tag;
     /* host object's axis mapping */
-    rt_cell            *map;
-    rt_cell            *sgn;
+    rt_si32            *map;
+    rt_si32            *sgn;
     /* host object's matrices */
     rt_mat4            *pinv;
     rt_mat4            *pmtx;
@@ -259,7 +259,7 @@ struct rt_BOUND
     rt_real            *pos;
 
     /* runtime optimization flags */
-    rt_cell            *opts;
+    rt_si32            *opts;
 
     /* host object's trnode
      * BOUND struct pointer */
@@ -272,11 +272,11 @@ struct rt_BOUND
 
     /* bounding box geometry */
     rt_VERT            *verts;
-    rt_cell             verts_num;
+    rt_si32             verts_num;
     rt_EDGE            *edges;
-    rt_cell             edges_num;
+    rt_si32             edges_num;
     rt_FACE            *faces;
-    rt_cell             faces_num;
+    rt_si32             faces_num;
 
     /* bounding volume center */
     rt_vec4             mid;
@@ -284,11 +284,11 @@ struct rt_BOUND
     rt_real             rad;
 
     /* number of flags set for bbox's fully covered (by plane) faces */
-    rt_cell             fln;
+    rt_si32             fln;
     /* in minmax data format: (1 - min, 2 - max) << (axis_index * 2) */
-    rt_cell             flm;
+    rt_si32             flm;
     /* in faces index format as defined in bx_faces: 1 << face_index */
-    rt_cell             flf;
+    rt_si32             flf;
 };
 
 /*
@@ -319,7 +319,7 @@ struct rt_SHAPE : public rt_BOUND
  *   0 - no
  *   1 - yes
  */
-rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2);
+rt_si32 bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2);
 
 /*
  * Convert bbox flags from "flm" to "flf" format.
@@ -327,7 +327,7 @@ rt_cell bbox_shad(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2);
  * Return values:
  *   flags
  */
-rt_cell bbox_flag(rt_cell *map, rt_cell flm);
+rt_si32 bbox_flag(rt_si32 *map, rt_si32 flm);
 
 /*
  * Determine the order of "nd1's" and "nd2's" bboxes
@@ -342,7 +342,7 @@ rt_cell bbox_flag(rt_cell *map, rt_cell flm);
  * 8|1 - no swap, unsortable
  * 8|2 - do swap, unsortable
  */
-rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2);
+rt_si32 bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2);
 
 /*
  * Determine which side of clipped "srf" is seen
@@ -354,7 +354,7 @@ rt_cell bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2);
  *   2 - outer
  *   3 - both, also if on the surface with margin
  */
-rt_cell bbox_side(rt_BOUND *obj, rt_SHAPE *srf);
+rt_si32 bbox_side(rt_BOUND *obj, rt_SHAPE *srf);
 
 #endif /* RT_RTGEOM_H */
 
