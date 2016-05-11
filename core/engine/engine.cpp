@@ -436,7 +436,7 @@ rt_void rt_SceneThread::operator delete(rt_pntr ptr)
 /*
  * Instantiate scene thread.
  */
-rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_cell index) :
+rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_si32 index) :
 
     rt_Heap(scene->f_alloc, scene->f_free)
 {
@@ -485,8 +485,8 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_cell index) :
     msize = 0;
 
     /* allocate misc arrays for tiling */
-    txmin = (rt_cell *)alloc(sizeof(rt_cell) * scene->tiles_in_col, RT_ALIGN);
-    txmax = (rt_cell *)alloc(sizeof(rt_cell) * scene->tiles_in_col, RT_ALIGN);
+    txmin = (rt_si32 *)alloc(sizeof(rt_si32) * scene->tiles_in_col, RT_ALIGN);
+    txmax = (rt_si32 *)alloc(sizeof(rt_si32) * scene->tiles_in_col, RT_ALIGN);
     verts = (rt_VERT *)alloc(sizeof(rt_VERT) * 
                              (2 * RT_VERTS_LIMIT + RT_EDGES_LIMIT), RT_ALIGN);
 }
@@ -528,7 +528,7 @@ rt_void rt_SceneThread::tiling(rt_vec2 p1, rt_vec2 p2)
 {
     rt_real *pt, n1[3][2], n2[3][2];
     rt_real dx, dy, xx, yy, rt, px;
-    rt_cell x1, y1, x2, y2, i, n, t;
+    rt_si32 x1, y1, x2, y2, i, n, t;
 
     /* swap points vertically if needed */
     if (p1[RT_Y] > p2[RT_Y])
@@ -601,10 +601,10 @@ rt_void rt_SceneThread::tiling(rt_vec2 p1, rt_vec2 p2)
     }
 
     /* set inclusive bounds */
-    rt_cell xmin = 0;
-    rt_cell ymin = 0;
-    rt_cell xmax = scene->tiles_in_row - 1;
-    rt_cell ymax = scene->tiles_in_col - 1;
+    rt_si32 xmin = 0;
+    rt_si32 ymin = 0;
+    rt_si32 xmax = scene->tiles_in_row - 1;
+    rt_si32 ymax = scene->tiles_in_col - 1;
 
     for (i = 0; i < n; i++)
     {
@@ -1431,7 +1431,7 @@ rt_void rt_SceneThread::sclip(rt_Surface *srf)
 
             if (srf->trnode != RT_NULL && srf->trnode != srf)
             {
-                rt_cell acc = 0;
+                rt_si32 acc = 0;
                 rt_ELEM *nxt;
 
                 rt_Array *arr = (rt_Array *)srf->trnode;
@@ -1533,16 +1533,16 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
     }
 
     rt_ELEM *elm;
-    rt_cell i, j;
-    rt_cell k;
+    rt_si32 i, j;
+    rt_si32 k;
 
     rt_vec4 vec;
     rt_real dot;
-    rt_cell ndx[2];
+    rt_si32 ndx[2];
     rt_real tag[2], zed[2];
 
     /* "verts_num" may grow, use "srf->verts_num" if original is needed */
-    rt_cell verts_num = srf->bvbox->verts_num;
+    rt_si32 verts_num = srf->bvbox->verts_num;
     rt_VERT *vrt = srf->bvbox->verts;
 
     /* project bbox onto the tilebuffer */
@@ -1761,7 +1761,7 @@ rt_ELEM* rt_SceneThread::ssort(rt_Object *obj)
     }
     else
     {
-        rt_cell c = 0, r = 0;
+        rt_si32 c = 0, r = 0;
         rt_ELEM *elm, *cur = RT_NULL, *prv = RT_NULL;
         rt_ELEM *cuo, *cui, *pro = RT_NULL, *pri = RT_NULL;
         rt_BOUND *abx = RT_NULL;
@@ -2066,7 +2066,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
 #if RT_OPTS_2SIDED != 0
         if ((scene->opts & RT_OPTS_2SIDED) != 0 && srf != RT_NULL)
         {
-            rt_cell c = bbox_side(lgt->bvbox, srf->shape);
+            rt_si32 c = bbox_side(lgt->bvbox, srf->shape);
 
             if (c & 2)
             {
@@ -2117,7 +2117,7 @@ rt_ELEM* rt_SceneThread::lsort(rt_Object *obj)
            *psr = RT_NULL;
         }
 
-        rt_cell c = 0, s = 0;
+        rt_si32 c = 0, s = 0;
         rt_ELEM *elm, *cur = RT_NULL, *prv = RT_NULL;
         rt_ELEM *cuo, *cui, *pro = RT_NULL, *pri = RT_NULL;
 
@@ -2335,7 +2335,7 @@ rt_SceneThread::~rt_SceneThread()
  * or during state-logging.
  */
 static
-rt_void* init_threads(rt_cell thnum, rt_Scene *scn)
+rt_void* init_threads(rt_si32 thnum, rt_Scene *scn)
 {
     return scn;
 }
@@ -2346,7 +2346,7 @@ rt_void* init_threads(rt_cell thnum, rt_Scene *scn)
  * or during state-logging.
  */
 static
-rt_void term_threads(rt_void *tdata, rt_cell thnum)
+rt_void term_threads(rt_void *tdata, rt_si32 thnum)
 {
 
 }
@@ -2358,11 +2358,11 @@ rt_void term_threads(rt_void *tdata, rt_cell thnum)
  * or during state-logging. Simulate threading with sequential run.
  */
 static
-rt_void update_scene(rt_void *tdata, rt_cell thnum, rt_cell phase)
+rt_void update_scene(rt_void *tdata, rt_si32 thnum, rt_si32 phase)
 {
     rt_Scene *scn = (rt_Scene *)tdata;
 
-    rt_cell i;
+    rt_si32 i;
 
     for (i = 0; i < thnum; i++)
     {
@@ -2377,11 +2377,11 @@ rt_void update_scene(rt_void *tdata, rt_cell thnum, rt_cell phase)
  * or during state-logging. Simulate threading with sequential run.
  */
 static
-rt_void render_scene(rt_void *tdata, rt_cell thnum, rt_cell phase)
+rt_void render_scene(rt_void *tdata, rt_si32 thnum, rt_si32 phase)
 {
     rt_Scene *scn = (rt_Scene *)tdata;
 
-    rt_cell i;
+    rt_si32 i;
 
     for (i = 0; i < thnum; i++)
     {
@@ -2398,7 +2398,7 @@ rt_void render_scene(rt_void *tdata, rt_cell thnum, rt_cell phase)
  * Can only be called from single (main) thread.
  */
 rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
-                   rt_cell x_res, rt_cell y_res, rt_cell x_row, rt_ui32 *frame,
+                   rt_si32 x_res, rt_si32 y_res, rt_si32 x_row, rt_ui32 *frame,
                    rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
                    rt_FUNC_INIT f_init, rt_FUNC_TERM f_term,
                    rt_FUNC_UPDATE f_update,
@@ -2503,7 +2503,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
     tharr = (rt_SceneThread **)
             alloc(sizeof(rt_SceneThread *) * thnum, RT_ALIGN);
 
-    rt_cell i;
+    rt_si32 i;
 
     for (i = 0; i < thnum; i++)
     {
@@ -2561,7 +2561,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
 /*
  * Update current camera with given "action" for a given "time".
  */
-rt_void rt_Scene::update(rt_time time, rt_cell action)
+rt_void rt_Scene::update(rt_time time, rt_si32 action)
 {
     cam->update_action(time, action);
 }
@@ -2571,7 +2571,7 @@ rt_void rt_Scene::update(rt_time time, rt_cell action)
  */
 rt_void rt_Scene::render(rt_time time)
 {
-    rt_cell i;
+    rt_si32 i;
 
     /* reserve memory for temporary per-frame allocs */
     mpool = reserve(msize, RT_QUAD_ALIGN);
@@ -2690,7 +2690,7 @@ rt_void rt_Scene::render(rt_time time)
     }
 
     /* screen tiling */
-    rt_cell tline, j;
+    rt_si32 tline, j;
 
 #if RT_OPTS_TILING != 0
     if ((opts & RT_OPTS_TILING) != 0)
@@ -2797,7 +2797,7 @@ rt_void rt_Scene::render(rt_time time)
 
         if (g_print)
         {
-            rt_cell i = 0, j = 0;
+            rt_si32 i = 0, j = 0;
 
             tline = i * tiles_in_row;
 
@@ -2869,9 +2869,9 @@ rt_void rt_Scene::render(rt_time time)
  * Update portion of the scene with given "index"
  * as part of the multi-threaded update.
  */
-rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
+rt_void rt_Scene::update_slice(rt_si32 index, rt_si32 phase)
 {
-    rt_cell i;
+    rt_si32 i;
 
     rt_Array   *arr;
     rt_Camera  *cam;
@@ -2989,12 +2989,12 @@ rt_void rt_Scene::update_slice(rt_cell index, rt_cell phase)
  * Render portion of the frame with given "index"
  * as part of the multi-threaded render.
  */
-rt_void rt_Scene::render_slice(rt_cell index, rt_cell phase)
+rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
 {
     /* adjust ray steppers according to anti-aliasing mode */
     rt_real fdh[RT_SIMD_WIDTH], fdv[RT_SIMD_WIDTH];
     rt_real fhr, fvr;
-    rt_cell i;
+    rt_si32 i;
 
     if (fsaa == RT_FSAA_4X)
     {
@@ -3105,7 +3105,7 @@ rt_void rt_Scene::print_state()
 /*
  * Set fullscreen anti-aliasing mode.
  */
-rt_cell rt_Scene::set_fsaa(rt_cell fsaa)
+rt_si32 rt_Scene::set_fsaa(rt_si32 fsaa)
 {
     this->fsaa = fsaa;
 
@@ -3115,7 +3115,7 @@ rt_cell rt_Scene::set_fsaa(rt_cell fsaa)
 /*
  * Set runtime optimization flags.
  */
-rt_cell rt_Scene::set_opts(rt_cell opts)
+rt_si32 rt_Scene::set_opts(rt_si32 opts)
 {
     this->opts = opts;
 
@@ -3132,7 +3132,7 @@ rt_cell rt_Scene::set_opts(rt_cell opts)
  * lower byte (width: 4, 8),
  * higher byte (type: 1, 2).
  */
-rt_cell rt_Scene::set_simd(rt_cell simd)
+rt_si32 rt_Scene::set_simd(rt_si32 simd)
 {
     simd = switch0(simd);
 
@@ -3160,7 +3160,7 @@ rt_void rt_Scene::next_cam()
 /*
  * Save current frame to an image.
  */
-rt_void rt_Scene::save_frame(rt_cell index)
+rt_void rt_Scene::save_frame(rt_si32 index)
 {
     rt_char name[] = "scrXXX.bmp";
 
@@ -3189,7 +3189,7 @@ rt_Scene::~rt_Scene()
     /* destroy worker threads */
     this->f_term(tdata, thnum);
 
-    rt_cell i;
+    rt_si32 i;
 
     for (i = 0; i < thnum; i++)
     {
@@ -3221,7 +3221,7 @@ rt_Scene::~rt_Scene()
 #define dW  5
 #define dH  7
 
-rt_word digits[10][dH][dW] = 
+rt_ui32 digits[10][dH][dW] = 
 {
     {
         OO, OO, OO, OO, OO,
@@ -3319,10 +3319,10 @@ rt_word digits[10][dH][dW] =
  * Render given number "num" on the screen at given coords "x" and "y".
  * Parameters "d" and "z" specify direction and zoom respectively.
  */
-rt_void rt_Scene::render_num(rt_word x, rt_word y,
-                             rt_cell d, rt_word z, rt_word num)
+rt_void rt_Scene::render_num(rt_ui32 x, rt_ui32 y,
+                             rt_si32 d, rt_ui32 z, rt_ui32 num)
 {
-    rt_word arr[16], i, c, k;
+    rt_ui32 arr[16], i, c, k;
 
     for (i = 0, c = 0; i < 16; i++)
     {
@@ -3339,7 +3339,7 @@ rt_void rt_Scene::render_num(rt_word x, rt_word y,
     c++;
     d = (d + 1) / 2;
 
-    rt_word xd, yd, xz, yz;
+    rt_ui32 xd, yd, xz, yz;
     rt_ui32 *src, *dst;
 
     for (i = 0; i < c; i++)

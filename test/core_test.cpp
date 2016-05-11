@@ -34,18 +34,18 @@
 /***************************   VARS, FUNCS, TYPES   ***************************/
 /******************************************************************************/
 
-static rt_cell t_diff = 3;
+static rt_si32 t_diff = 3;
 static rt_bool p_mode = RT_FALSE;
 static rt_bool v_mode = RT_FALSE;
 static rt_bool i_mode = RT_FALSE;
 static rt_bool a_mode = RT_FALSE;
 
-static rt_cell x_res = RT_X_RES;
-static rt_cell y_res = RT_Y_RES;
-static rt_cell x_row = RT_X_RES;
+static rt_si32 x_res = RT_X_RES;
+static rt_si32 y_res = RT_Y_RES;
+static rt_si32 x_row = RT_X_RES;
 static rt_ui32 frame[RT_X_RES * RT_Y_RES];
 
-static rt_cell fsaa = RT_FSAA_4X;
+static rt_si32 fsaa = RT_FSAA_4X;
 static rt_Scene *scene = RT_NULL;
 
 /*
@@ -69,7 +69,7 @@ rt_void sys_free(rt_pntr ptr)
 static
 rt_void frame_cpy(rt_ui32 *fd, rt_ui32 *fs)
 {
-    rt_cell i;
+    rt_si32 i;
 
     /* copy frame */
     for (i = 0; i < y_res * x_row; i++, fd++, fs++)
@@ -79,9 +79,9 @@ rt_void frame_cpy(rt_ui32 *fd, rt_ui32 *fs)
 }
 
 static
-rt_cell frame_cmp(rt_ui32 *f1, rt_ui32 *f2)
+rt_si32 frame_cmp(rt_ui32 *f1, rt_ui32 *f2)
 {
-    rt_cell i, j, ret = 0;
+    rt_si32 i, j, ret = 0;
 
     /* print first or all (verbose) pixel spots above diff threshold,
      * ignore isolated pixels if pixhunt mode is disabled (default) */
@@ -133,7 +133,7 @@ rt_cell frame_cmp(rt_ui32 *f1, rt_ui32 *f2)
 static
 rt_void frame_dff(rt_ui32 *fd, rt_ui32 *fs)
 {
-    rt_cell i;
+    rt_si32 i;
 
     /* save diff, max all pixels above diff threshold
      * if pixhunt mode is enabled */
@@ -151,7 +151,7 @@ rt_void frame_dff(rt_ui32 *fd, rt_ui32 *fs)
 static
 rt_void frame_max(rt_ui32 *fd)
 {
-    rt_cell i;
+    rt_si32 i;
 
     /* max all pixels with non-zero diff */
     for (i = 0; i < y_res * x_row; i++, fd++)
@@ -543,9 +543,9 @@ testXX o_test[RUN_LEVEL] =
 
 rt_time get_time();
 
-rt_cell main(rt_cell argc, rt_char *argv[])
+rt_si32 main(rt_si32 argc, rt_char *argv[])
 {
-    rt_cell k, r;
+    rt_si32 k, r;
 
     if (argc >= 2)
     {
@@ -624,8 +624,8 @@ rt_cell main(rt_cell argc, rt_char *argv[])
     rt_time tN = 0;
     rt_time tF = 0;
 
-    rt_cell simd = 0;
-    rt_cell i, j;
+    rt_si32 simd = 0;
+    rt_si32 i, j;
 
     for (i = 0; i < RUN_LEVEL; i++)
     {
@@ -652,7 +652,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 
             time2 = get_time();
             tN = time2 - time1;
-            RT_LOGI("Time N = %d\n", (rt_cell)tN);
+            RT_LOGI("Time N = %d\n", (rt_si32)tN);
 
             if (i_mode)
             {
@@ -684,7 +684,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
 
             time2 = get_time();
             tF = time2 - time1;
-            RT_LOGI("Time F = %d\n", (rt_cell)tF);
+            RT_LOGI("Time F = %d\n", (rt_si32)tF);
 
             if (i_mode)
             {

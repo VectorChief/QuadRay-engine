@@ -54,12 +54,12 @@ class rt_SceneThread : public rt_Heap
 
     /* scene pointer and thread index */
     rt_Scene           *scene;
-    rt_cell             index;
+    rt_si32             index;
 
     /* x-coord boundaries for surface's
      * projected bbox in the tilebuffer */
-    rt_cell            *txmin;
-    rt_cell            *txmax;
+    rt_si32            *txmin;
+    rt_si32            *txmax;
     /* temporary bbox verts buffer */
     rt_VERT            *verts;
 
@@ -73,7 +73,7 @@ class rt_SceneThread : public rt_Heap
     /* memory pool in the heap
      * for temporary per-frame allocs */
     rt_pntr             mpool;
-    rt_word             msize;
+    rt_ui32             msize;
 
 /*  methods */
 
@@ -90,7 +90,7 @@ class rt_SceneThread : public rt_Heap
     rt_pntr operator new(size_t size, rt_Heap *hp);
     rt_void operator delete(rt_pntr ptr);
 
-    rt_SceneThread(rt_Scene *scene, rt_cell index);
+    rt_SceneThread(rt_Scene *scene, rt_si32 index);
 
     virtual
    ~rt_SceneThread();
@@ -107,10 +107,10 @@ class rt_SceneThread : public rt_Heap
 /*****************************   MULTI-THREADING   ****************************/
 /******************************************************************************/
 
-typedef rt_pntr (*rt_FUNC_INIT)(rt_cell thnum, rt_Scene *scn);
-typedef rt_void (*rt_FUNC_TERM)(rt_pntr tdata, rt_cell thnum);
-typedef rt_void (*rt_FUNC_UPDATE)(rt_pntr tdata, rt_cell thnum, rt_cell phase);
-typedef rt_void (*rt_FUNC_RENDER)(rt_pntr tdata, rt_cell thnum, rt_cell phase);
+typedef rt_pntr (*rt_FUNC_INIT)(rt_si32 thnum, rt_Scene *scn);
+typedef rt_void (*rt_FUNC_TERM)(rt_pntr tdata, rt_si32 thnum);
+typedef rt_void (*rt_FUNC_UPDATE)(rt_pntr tdata, rt_si32 thnum, rt_si32 phase);
+typedef rt_void (*rt_FUNC_RENDER)(rt_pntr tdata, rt_si32 thnum, rt_si32 phase);
 
 /******************************************************************************/
 /**********************************   SCENE   *********************************/
@@ -131,17 +131,17 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_OBJECT           rootobj;
 
     /* framebuffer's dimensions and pointer */
-    rt_cell             x_res;
-    rt_cell             y_res;
-    rt_cell             x_row;
+    rt_si32             x_res;
+    rt_si32             y_res;
+    rt_si32             x_row;
     rt_ui32            *frame;
 
     /* single tile dimensions in pixels */
-    rt_cell             tile_w;
-    rt_cell             tile_h;
+    rt_si32             tile_w;
+    rt_si32             tile_h;
     /* tilebuffer's dimensions and pointer */
-    rt_cell             tiles_in_row;
-    rt_cell             tiles_in_col;
+    rt_si32             tiles_in_row;
+    rt_si32             tiles_in_col;
     rt_ELEM           **tiles;
 
     /* aspect ratio and pixel width */
@@ -149,13 +149,13 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_real             factor;
 
     /* rays depth and anti-aliasing */
-    rt_word             depth;
-    rt_cell             fsaa;
+    rt_ui32             depth;
+    rt_si32             fsaa;
 
     /* memory pool in the heap
      * for temporary per-frame allocs */
     rt_pntr             mpool;
-    rt_word             msize;
+    rt_ui32             msize;
 
     /* threads management functions */
     rt_FUNC_INIT        f_init;
@@ -165,14 +165,14 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
 
     /* scene threads array and its
      * platform-specific handle */
-    rt_cell             thnum;
+    rt_si32             thnum;
     rt_SceneThread    **tharr;
     rt_pntr             tdata;
 
     /* width and quads parameters of the
      * currently active SIMD runtime target */
-    rt_cell             simd_width;
-    rt_cell             simd_quads;
+    rt_si32             simd_width;
+    rt_si32             simd_quads;
 
     /* global hierarchical list */
     rt_ELEM            *hlist;
@@ -209,7 +209,7 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     public:
 
     rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
-             rt_cell x_res, rt_cell y_res, rt_cell x_row, rt_ui32 *frame,
+             rt_si32 x_res, rt_si32 y_res, rt_si32 x_row, rt_ui32 *frame,
              rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
              rt_FUNC_INIT f_init = RT_NULL, rt_FUNC_TERM f_term = RT_NULL,
              rt_FUNC_UPDATE f_update = RT_NULL,
@@ -220,24 +220,24 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     virtual
    ~rt_Scene();
 
-    rt_void     update(rt_time time, rt_cell action);
+    rt_void     update(rt_time time, rt_si32 action);
     rt_void     render(rt_time time);
 
-    rt_void     update_slice(rt_cell index, rt_cell phase);
-    rt_void     render_slice(rt_cell index, rt_cell phase);
+    rt_void     update_slice(rt_si32 index, rt_si32 phase);
+    rt_void     render_slice(rt_si32 index, rt_si32 phase);
 
-    rt_void     render_num(rt_word x, rt_word y,
-                           rt_cell d, rt_word z, rt_word num);
+    rt_void     render_num(rt_ui32 x, rt_ui32 y,
+                           rt_si32 d, rt_ui32 z, rt_ui32 num);
 
     rt_ui32*    get_frame();
     rt_void     print_state();
 
-    rt_cell     set_fsaa(rt_cell fsaa);
-    rt_cell     set_opts(rt_cell opts);
-    rt_cell     set_simd(rt_cell simd);
+    rt_si32     set_fsaa(rt_si32 fsaa);
+    rt_si32     set_opts(rt_si32 opts);
+    rt_si32     set_simd(rt_si32 simd);
 
     rt_void     next_cam();
-    rt_void     save_frame(rt_cell index);
+    rt_void     save_frame(rt_si32 index);
 
     friend      class rt_SceneThread;
 };
