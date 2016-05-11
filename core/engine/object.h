@@ -107,27 +107,27 @@ class rt_Registry : public rt_Heap
     protected:
 
     rt_Camera          *cam_head;
-    rt_cell             cam_num;
+    rt_si32             cam_num;
 
     rt_Light           *lgt_head;
-    rt_cell             lgt_num;
+    rt_si32             lgt_num;
 
     rt_Array           *arr_head;
-    rt_cell             arr_num;
+    rt_si32             arr_num;
 
     rt_Surface         *srf_head;
-    rt_cell             srf_num;
+    rt_si32             srf_num;
 
     rt_Texture         *tex_head;
-    rt_cell             tex_num;
+    rt_si32             tex_num;
 
     rt_Material        *mat_head;
-    rt_cell             mat_num;
+    rt_si32             mat_num;
 
     public:
 
     /* optimization flags */
-    rt_cell             opts;
+    rt_si32             opts;
 
     /* reusable relations template
      * for clippers accum segments */
@@ -193,15 +193,15 @@ class rt_Object
     rt_mat4            *pmtx;
 
     /* axis mapping for trivial transform */
-    rt_cell             map[4];
-    rt_cell             sgn[4];
+    rt_si32             map[4];
+    rt_si32             sgn[4];
     rt_vec4             scl;
 
     /* axis mapping shorteners */
-    rt_cell             mp_i;
-    rt_cell             mp_j;
-    rt_cell             mp_k;
-    rt_cell             mp_l;
+    rt_si32             mp_i;
+    rt_si32             mp_j;
+    rt_si32             mp_k;
+    rt_si32             mp_l;
 
     public:
 
@@ -216,7 +216,7 @@ class rt_Object
 
     /* object's transform and tag */
     rt_TRANSFORM3D     *trm;
-    rt_cell             tag;
+    rt_si32             tag;
 
     /* transform matrices */
     rt_mat4             inv;
@@ -225,18 +225,18 @@ class rt_Object
 
     /* non-zero if object itself or
      * some of its parents changed */
-    rt_cell             obj_changed;
+    rt_si32             obj_changed;
 
     /* non-zero if object itself or
      * some of its parents has
      * non-trivial transform
      * (rotation or scaling after rotation) */
-    rt_cell             obj_has_trm;
+    rt_si32             obj_has_trm;
 
     /* non-zero if object's own matrix has
      * non-trivial transform
      * (rotation or scaling after rotation) */
-    rt_cell             mtx_has_trm;
+    rt_si32             mtx_has_trm;
 
     /* object's immediate parent
      * in the hierarchy */
@@ -258,7 +258,7 @@ class rt_Object
 
     protected:
 
-    rt_void update_status(rt_time time, rt_cell flags, rt_Object *trnode);
+    rt_void update_status(rt_time time, rt_si32 flags, rt_Object *trnode);
 
     rt_void update_matrix(rt_mat4 mtx);
 
@@ -278,7 +278,7 @@ class rt_Object
     rt_void update_bvnode(rt_Object *bvnode, rt_bool mode);
 
     virtual
-    rt_void update_object(rt_time time, rt_cell flags,
+    rt_void update_object(rt_time time, rt_si32 flags,
                           rt_Object *trnode, rt_mat4 mtx);
     virtual
     rt_void update_fields();
@@ -302,7 +302,7 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
     rt_real             hor_cos;
 
     /* non-zero if camera was changed by action */
-    rt_cell             cam_changed;
+    rt_si32             cam_changed;
 
     public:
 
@@ -326,12 +326,12 @@ class rt_Camera : public rt_Object, public rt_List<rt_Camera>
    ~rt_Camera();
 
     virtual
-    rt_void update_object(rt_time time, rt_cell flags,
+    rt_void update_object(rt_time time, rt_si32 flags,
                           rt_Object *trnode, rt_mat4 mtx);
     virtual
     rt_void update_fields();
 
-    rt_void update_action(rt_time time, rt_cell action);
+    rt_void update_action(rt_time time, rt_si32 action);
 };
 
 /******************************************************************************/
@@ -361,7 +361,7 @@ class rt_Light : public rt_Object, public rt_List<rt_Light>
    ~rt_Light();
 
     virtual
-    rt_void update_object(rt_time time, rt_cell flags,
+    rt_void update_object(rt_time time, rt_si32 flags,
                           rt_Object *trnode, rt_mat4 mtx);
     virtual
     rt_void update_fields();
@@ -399,14 +399,14 @@ class rt_Node : public rt_Object
 
     protected:
 
-    rt_void update_status(rt_time time, rt_cell flags, rt_Object *trnode);
+    rt_void update_status(rt_time time, rt_si32 flags, rt_Object *trnode);
 
     rt_void update_matrix(rt_mat4 mtx);
 
     rt_void update_bbgeom(rt_BOUND *box);
 
     rt_Node(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-            rt_cell ssize);
+            rt_si32 ssize);
 
     public:
 
@@ -419,7 +419,7 @@ class rt_Node : public rt_Object
     rt_void update_bvnode(rt_Object *bvnode, rt_bool mode);
 
     virtual
-    rt_void update_object(rt_time time, rt_cell flags,
+    rt_void update_object(rt_time time, rt_si32 flags,
                           rt_Object *trnode, rt_mat4 mtx);
     virtual
     rt_void update_fields();
@@ -448,11 +448,11 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
 
     /* array of objects */
     rt_Object         **obj_arr;
-    rt_cell             obj_num;
+    rt_si32             obj_num;
 
     /* non-zero if array itself or
      * some of its sub-objects changed */
-    rt_cell             arr_changed;
+    rt_si32             arr_changed;
 
     /* bounding box and volume,
      * used for trnode if present
@@ -478,14 +478,14 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
 
     protected:
 
-    rt_void update_status(rt_time time, rt_cell flags, rt_Object *trnode);
+    rt_void update_status(rt_time time, rt_si32 flags, rt_Object *trnode);
 
     rt_void update_matrix(rt_mat4 mtx);
 
     public:
 
     rt_Array(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-             rt_cell ssize = 0);
+             rt_si32 ssize = 0);
 
     virtual
    ~rt_Array();
@@ -496,7 +496,7 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
     rt_void update_bvnode(rt_Object *bvnode, rt_bool mode);
 
     virtual
-    rt_void update_object(rt_time time, rt_cell flags,
+    rt_void update_object(rt_time time, rt_si32 flags,
                           rt_Object *trnode, rt_mat4 mtx);
     virtual
     rt_void update_fields();
@@ -521,7 +521,7 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
 
     /* non-zero if surface itself or
      * some of its clippers changed */
-    rt_cell             srf_changed;
+    rt_si32             srf_changed;
 
     public:
 
@@ -559,7 +559,7 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
     rt_void update_minmax();
 
     rt_Surface(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-               rt_cell ssize);
+               rt_si32 ssize);
 
     public:
 
@@ -570,7 +570,7 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
     rt_void add_relation(rt_ELEM *lst);
 
     virtual
-    rt_void update_object(rt_time time, rt_cell flags,
+    rt_void update_object(rt_time time, rt_si32 flags,
                           rt_Object *trnode, rt_mat4 mtx);
     virtual
     rt_void update_fields();
@@ -605,7 +605,7 @@ class rt_Plane : public rt_Surface
     public:
 
     rt_Plane(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-             rt_cell ssize = 0);
+             rt_si32 ssize = 0);
 
     virtual
    ~rt_Plane();
@@ -637,7 +637,7 @@ class rt_Quadric : public rt_Surface
                           rt_vec4 cmin, rt_vec4 cmax); /* cbox */
 
     rt_Quadric(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-               rt_cell ssize);
+               rt_si32 ssize);
 
     public:
 
@@ -677,7 +677,7 @@ class rt_Cylinder : public rt_Quadric
     public:
 
     rt_Cylinder(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-                rt_cell ssize = 0);
+                rt_si32 ssize = 0);
 
     virtual
    ~rt_Cylinder();
@@ -713,7 +713,7 @@ class rt_Sphere : public rt_Quadric
     public:
 
     rt_Sphere(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-              rt_cell ssize = 0);
+              rt_si32 ssize = 0);
 
     virtual
    ~rt_Sphere();
@@ -749,7 +749,7 @@ class rt_Cone : public rt_Quadric
     public:
 
     rt_Cone(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-            rt_cell ssize = 0);
+            rt_si32 ssize = 0);
 
     virtual
    ~rt_Cone();
@@ -785,7 +785,7 @@ class rt_Paraboloid : public rt_Quadric
     public:
 
     rt_Paraboloid(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-                  rt_cell ssize = 0);
+                  rt_si32 ssize = 0);
 
     virtual
    ~rt_Paraboloid();
@@ -821,7 +821,7 @@ class rt_Hyperboloid : public rt_Quadric
     public:
 
     rt_Hyperboloid(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-                   rt_cell ssize = 0);
+                   rt_si32 ssize = 0);
 
     virtual
    ~rt_Hyperboloid();
@@ -857,7 +857,7 @@ class rt_ParaCylinder : public rt_Quadric
     public:
 
     rt_ParaCylinder(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-                    rt_cell ssize = 0);
+                    rt_si32 ssize = 0);
 
     virtual
    ~rt_ParaCylinder();
@@ -893,7 +893,7 @@ class rt_HyperCylinder : public rt_Quadric
     public:
 
     rt_HyperCylinder(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-                     rt_cell ssize = 0);
+                     rt_si32 ssize = 0);
 
     virtual
    ~rt_HyperCylinder();
@@ -929,7 +929,7 @@ class rt_HyperParaboloid : public rt_Quadric
     public:
 
     rt_HyperParaboloid(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj,
-                       rt_cell ssize = 0);
+                       rt_si32 ssize = 0);
 
     virtual
    ~rt_HyperParaboloid();
@@ -987,11 +987,11 @@ class rt_Material : public rt_List<rt_Material>
 
     rt_SIDE            *sd;
 
-    rt_cell             map[2];
+    rt_si32             map[2];
     rt_real             scl[2];
 
     rt_SIMD_MATERIAL   *s_mat;
-    rt_cell             props;
+    rt_si32             props;
 
 /*  methods */
 

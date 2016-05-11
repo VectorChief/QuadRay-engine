@@ -95,9 +95,9 @@
 
 struct rt_RELATION
 {
-    rt_cell             obj1;
-    rt_cell             rel;
-    rt_cell             obj2;
+    rt_si32             obj1;
+    rt_si32             rel;
+    rt_si32             obj2;
 };
 
 /******************************************************************************/
@@ -198,17 +198,17 @@ struct rt_COL
 
 struct rt_TEX
 {
-    rt_cell             tag;
+    rt_si32             tag;
     rt_COL              col;
 
     rt_void            *ptex;
-    rt_cell             tex_num;
+    rt_si32             tex_num;
 
     rt_RELATION        *prel;
-    rt_cell             rel_num;
+    rt_si32             rel_num;
 
-    rt_cell             x_dim;
-    rt_cell             y_dim;
+    rt_si32             x_dim;
+    rt_si32             y_dim;
 };
 
 struct rt_TEXTURE
@@ -234,7 +234,7 @@ struct rt_TEXTURE
 
 struct rt_MATERIAL
 {
-    rt_cell             tag;
+    rt_si32             tag;
     rt_TEX              tex;
 
     rt_real             lgt[4];
@@ -257,13 +257,13 @@ struct rt_SIDE
 
 struct rt_OBJ
 {
-    rt_cell             tag;
+    rt_si32             tag;
 
     rt_void            *pobj;
-    rt_cell             obj_num;
+    rt_si32             obj_num;
 
     rt_RELATION        *prel;
-    rt_cell             rel_num;
+    rt_si32             rel_num;
 
     rt_MATERIAL        *pmat_outer; /* srf material override */
     rt_MATERIAL        *pmat_inner; /* srf material override */
@@ -281,7 +281,7 @@ struct rt_OBJECT
 };
 
 static /* needed for strict typization */
-rt_cell AR_(rt_OBJECT *pobj)
+rt_si32 AR_(rt_OBJECT *pobj)
 {
     return RT_TAG_ARRAY;
 }
@@ -295,7 +295,7 @@ rt_cell AR_(rt_OBJECT *pobj)
 }
 
 static /* needed for strict typization */
-rt_cell RL_(rt_OBJECT *pobj, rt_RELATION *prel)
+rt_si32 RL_(rt_OBJECT *pobj, rt_RELATION *prel)
 {
     return RT_TAG_ARRAY;
 }
@@ -318,7 +318,7 @@ rt_cell RL_(rt_OBJECT *pobj, rt_RELATION *prel)
 
 struct rt_CAMERA
 {
-    rt_cell             tag;
+    rt_si32             tag;
     rt_COL              col;    /* global ambient color */
     rt_real             lum[1]; /* global ambient intensity */
 
@@ -328,7 +328,7 @@ struct rt_CAMERA
 };
 
 static /* needed for strict typization */
-rt_cell CM_(rt_CAMERA *pobj)
+rt_si32 CM_(rt_CAMERA *pobj)
 {
     return RT_TAG_CAMERA;
 }
@@ -351,14 +351,14 @@ rt_cell CM_(rt_CAMERA *pobj)
 
 struct rt_LIGHT
 {
-    rt_cell             tag;
+    rt_si32             tag;
     rt_COL              col;    /* light's color */
     rt_real             lum[2]; /* light's ambient and source intensity */
     rt_real             atn[4]; /* light's attenuation properties */
 };
 
 static /* needed for strict typization */
-rt_cell LT_(rt_LIGHT *pobj)
+rt_si32 LT_(rt_LIGHT *pobj)
 {
     return RT_TAG_LIGHT;
 }
@@ -394,7 +394,7 @@ struct rt_PLANE
 };
 
 static /* needed for strict typization */
-rt_cell PL_(rt_PLANE *pobj)
+rt_si32 PL_(rt_PLANE *pobj)
 {
     return RT_TAG_PLANE;
 }
@@ -426,7 +426,7 @@ struct rt_CYLINDER
 };
 
 static /* needed for strict typization */
-rt_cell CL_(rt_CYLINDER *pobj)
+rt_si32 CL_(rt_CYLINDER *pobj)
 {
     return RT_TAG_CYLINDER;
 }
@@ -458,7 +458,7 @@ struct rt_SPHERE
 };
 
 static /* needed for strict typization */
-rt_cell SP_(rt_SPHERE *pobj)
+rt_si32 SP_(rt_SPHERE *pobj)
 {
     return RT_TAG_SPHERE;
 }
@@ -490,7 +490,7 @@ struct rt_CONE
 };
 
 static /* needed for strict typization */
-rt_cell CN_(rt_CONE *pobj)
+rt_si32 CN_(rt_CONE *pobj)
 {
     return RT_TAG_CONE;
 }
@@ -522,7 +522,7 @@ struct rt_PARABOLOID
 };
 
 static /* needed for strict typization */
-rt_cell PB_(rt_PARABOLOID *pobj)
+rt_si32 PB_(rt_PARABOLOID *pobj)
 {
     return RT_TAG_PARABOLOID;
 }
@@ -555,7 +555,7 @@ struct rt_HYPERBOLOID
 };
 
 static /* needed for strict typization */
-rt_cell HB_(rt_HYPERBOLOID *pobj)
+rt_si32 HB_(rt_HYPERBOLOID *pobj)
 {
     return RT_TAG_HYPERBOLOID;
 }
@@ -587,7 +587,7 @@ struct rt_PARACYLINDER
 };
 
 static /* needed for strict typization */
-rt_cell PC_(rt_PARACYLINDER *pobj)
+rt_si32 PC_(rt_PARACYLINDER *pobj)
 {
     return RT_TAG_PARACYLINDER;
 }
@@ -620,7 +620,7 @@ struct rt_HYPERCYLINDER
 };
 
 static /* needed for strict typization */
-rt_cell HC_(rt_HYPERCYLINDER *pobj)
+rt_si32 HC_(rt_HYPERCYLINDER *pobj)
 {
     return RT_TAG_HYPERCYLINDER;
 }
@@ -653,7 +653,7 @@ struct rt_HYPERPARABOLOID
 };
 
 static /* needed for strict typization */
-rt_cell HP_(rt_HYPERPARABOLOID *pobj)
+rt_si32 HP_(rt_HYPERPARABOLOID *pobj)
 {
     return RT_TAG_HYPERPARABOLOID;
 }
@@ -681,7 +681,7 @@ rt_cell HP_(rt_HYPERPARABOLOID *pobj)
 struct rt_SCENE
 {
     rt_OBJ              root;
-    rt_word             opts; /* set flags to disable runtime opts per scene */
+    rt_ui32             opts; /* set flags to disable runtime opts per scene */
     rt_pntr             lock;
 };
 

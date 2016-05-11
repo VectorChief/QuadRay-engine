@@ -172,7 +172,7 @@ rt_void rt_Object::update_bvnode(rt_Object *bvnode, rt_bool mode)
 /*
  * Update object's status with given "time", "flags" and "trnode".
  */
-rt_void rt_Object::update_status(rt_time time, rt_cell flags,
+rt_void rt_Object::update_status(rt_time time, rt_si32 flags,
                                  rt_Object *trnode)
 {
     /* animator is called only once for object
@@ -229,7 +229,7 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
      * which allows to apply single matrix transform
      * in rendering backend to array of objects
      * with trivial transform relative to array node */
-    rt_cell i, c;
+    rt_si32 i, c;
 
     /* reset object's own transform flags */
     mtx_has_trm = 0;
@@ -273,7 +273,7 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
             obj_has_trm = 0;
         }
 
-        rt_cell i, j;
+        rt_si32 i, j;
 
         /* determine axis mapping for trivial transform
          * (multiple of 90 degree rotation, scalers),
@@ -391,7 +391,7 @@ rt_void rt_Object::update_matrix(rt_mat4 mtx)
 /*
  * Update object with given "time", "flags", "trnode" and matrix "mtx".
  */
-rt_void rt_Object::update_object(rt_time time, rt_cell flags,
+rt_void rt_Object::update_object(rt_time time, rt_si32 flags,
                                  rt_Object *trnode, rt_mat4 mtx)
 {
     update_status(time, flags, trnode);
@@ -454,7 +454,7 @@ rt_Camera::rt_Camera(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 /*
  * Update object with given "time", "flags", "trnode" and matrix "mtx".
  */
-rt_void rt_Camera::update_object(rt_time time, rt_cell flags,
+rt_void rt_Camera::update_object(rt_time time, rt_si32 flags,
                                  rt_Object *trnode, rt_mat4 mtx)
 {
     update_status(time, flags | cam_changed, trnode);
@@ -492,7 +492,7 @@ rt_void rt_Camera::update_fields()
 /*
  * Update camera with given "time" and "action".
  */
-rt_void rt_Camera::update_action(rt_time time, rt_cell action)
+rt_void rt_Camera::update_action(rt_time time, rt_si32 action)
 {
     rt_real t = (time - obj->time) / 50.0f;
 
@@ -623,7 +623,7 @@ rt_Light::rt_Light(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
 /*
  * Update object with given "time", "flags", "trnode" and matrix "mtx".
  */
-rt_void rt_Light::update_object(rt_time time, rt_cell flags,
+rt_void rt_Light::update_object(rt_time time, rt_si32 flags,
                                 rt_Object *trnode, rt_mat4 mtx)
 {
     update_status(time, flags, trnode);
@@ -700,7 +700,7 @@ rt_FACE bx_faces[] =
  * Instantiate node object.
  */
 rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
-                 rt_OBJECT *obj, rt_cell ssize) :
+                 rt_OBJECT *obj, rt_si32 ssize) :
 
     rt_Object(rg, parent, obj)
 {
@@ -763,7 +763,7 @@ rt_void rt_Node::update_bvnode(rt_Object *bvnode, rt_bool mode)
 /*
  * Update object's status with given "time", "flags" and "trnode".
  */
-rt_void rt_Node::update_status(rt_time time, rt_cell flags,
+rt_void rt_Node::update_status(rt_time time, rt_si32 flags,
                                rt_Object *trnode)
 {
     rt_Object::update_status(time, flags, trnode);
@@ -785,7 +785,7 @@ rt_void rt_Node::update_matrix(rt_mat4 mtx)
 /*
  * Update object with given "time", "flags", "trnode" and matrix "mtx".
  */
-rt_void rt_Node::update_object(rt_time time, rt_cell flags,
+rt_void rt_Node::update_object(rt_time time, rt_si32 flags,
                                rt_Object *trnode, rt_mat4 mtx)
 {
     update_status(time, flags, trnode);
@@ -1053,7 +1053,7 @@ rt_void rt_Node::update_bbgeom(rt_BOUND *box)
 
     /* this function isn't called
      * if "box->verts_num == 0" */
-    rt_cell i;
+    rt_si32 i;
     rt_real f = 1.0f / (rt_real)box->verts_num;
 
     for (i = 0; i < box->verts_num; i++)
@@ -1098,7 +1098,7 @@ rt_void rt_Node::update_bbgeom(rt_BOUND *box)
              * from minmax data format to face index format */
             box->flf = bbox_flag(box->map, box->flm);
 
-            rt_cell c = 0, i;
+            rt_si32 c = 0, i;
 
             for (i = 0; i < 6; i++)
             {
@@ -1154,7 +1154,7 @@ rt_SIDE sd_array01 =
  * Instantiate array object.
  */
 rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
-                   rt_OBJECT *obj, rt_cell ssize) :
+                   rt_OBJECT *obj, rt_si32 ssize) :
 
     rt_Node(rg, parent, obj, ssize),
     rt_List<rt_Array>(rg->get_arr())
@@ -1250,7 +1250,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     obj_num = obj->obj.obj_num;
     obj_arr = (rt_Object **)rg->alloc(obj_num * sizeof(rt_Object *), RT_ALIGN);
 
-    rt_cell i, j; /* j - for skipping unsupported object tags */
+    rt_si32 i, j; /* j - for skipping unsupported object tags */
 
     /* instantiate every object in array from scene data,
      * including sub-arrays (recursive) */
@@ -1319,13 +1319,13 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     /* maintain reusable relations template list linked via "simd"
      * used via "ptr", so that list elements are not reallocated */
     rt_ELEM *lst = RT_NULL, *prv = RT_NULL, **ptr = &rg->rel;
-    rt_cell acc  = 0;
+    rt_si32 acc  = 0;
 
     rt_Object **obj_arr_l = obj_arr; /* left  sub-array */
     rt_Object **obj_arr_r = obj_arr; /* right sub-array */
 
-    rt_cell     obj_num_l = obj_num; /* left  sub-array size */
-    rt_cell     obj_num_r = obj_num; /* right sub-array size */
+    rt_si32     obj_num_l = obj_num; /* left  sub-array size */
+    rt_si32     obj_num_r = obj_num; /* right sub-array size */
 
     /* build relations templates (custom clippers) from scene data */
     for (i = 0; i < obj->obj.rel_num; i++)
@@ -1579,7 +1579,7 @@ rt_void rt_Array::add_relation(rt_ELEM *lst)
 {
     rt_Node::add_relation(lst);
 
-    rt_cell i;
+    rt_si32 i;
 
     for (i = 0; i < obj_num; i++)
     {
@@ -1595,7 +1595,7 @@ rt_void rt_Array::update_bvnode(rt_Object *bvnode, rt_bool mode)
 {
     rt_Node::update_bvnode(bvnode, mode);
 
-    rt_cell i;
+    rt_si32 i;
 
     for (i = 0; i < obj_num; i++)
     {
@@ -1606,7 +1606,7 @@ rt_void rt_Array::update_bvnode(rt_Object *bvnode, rt_bool mode)
 /*
  * Update object's status with given "time", "flags" and "trnode".
  */
-rt_void rt_Array::update_status(rt_time time, rt_cell flags,
+rt_void rt_Array::update_status(rt_time time, rt_si32 flags,
                                 rt_Object *trnode)
 {
     /* trigger update of the whole hierarchy
@@ -1676,14 +1676,14 @@ rt_void rt_Array::update_matrix(rt_mat4 mtx)
 /*
  * Update object with given "time", "flags", "trnode" and matrix "mtx".
  */
-rt_void rt_Array::update_object(rt_time time, rt_cell flags,
+rt_void rt_Array::update_object(rt_time time, rt_si32 flags,
                                 rt_Object *trnode, rt_mat4 mtx)
 {
     update_status(time, flags, trnode);
 
     update_matrix(mtx);
 
-    rt_cell i;
+    rt_si32 i;
 
     /* update every object in array including sub-arrays (recursive),
      * pass array's own transform flags, changed status,
@@ -1709,7 +1709,7 @@ rt_void rt_Array::update_fields()
 
     /* if surface or some of its parents has non-trivial transform,
      * select aux vector fields for axis mapping in backend structures */
-    rt_cell shift = trnode != RT_NULL ? 3 : 0;
+    rt_si32 shift = trnode != RT_NULL ? 3 : 0;
 
     s_srf->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
     s_srf->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
@@ -1796,7 +1796,7 @@ rt_void rt_Array::update_bounds()
     inbox->flm = 0;
     inbox->flf = 0;
 
-    rt_cell i, j, k;
+    rt_si32 i, j, k;
     rt_BOUND *src_box, *dst_box;
 
     /* run through array's sub-objects,
@@ -1843,7 +1843,7 @@ rt_void rt_Array::update_bounds()
                 if ((rg->opts & RT_OPTS_REMOVE) != 0
                 &&  RT_IS_PLANE(src_box) && src_box->flm != 0)
                 {
-                    rt_cell b = 0, c = 0, m = 3;
+                    rt_si32 b = 0, c = 0, m = 3;
 
                     for (k = 0; k < 3; k++)
                     {
@@ -1972,7 +1972,7 @@ rt_void rt_Array::update_bounds()
                 if ((rg->opts & RT_OPTS_REMOVE) != 0
                 &&  RT_IS_PLANE(src_box) && src_box->flm != 0)
                 {
-                    rt_cell b = 0, c = 0, m = 3;
+                    rt_si32 b = 0, c = 0, m = 3;
 
                     for (k = 0; k < 3; k++)
                     {
@@ -2260,7 +2260,7 @@ rt_void rt_Array::update_bounds()
  */
 rt_Array::~rt_Array()
 {
-    rt_cell i;
+    rt_si32 i;
 
     for (i = 0; i < obj_num; i++)
     {
@@ -2279,7 +2279,7 @@ rt_Array::~rt_Array()
  * Instantiate surface object.
  */
 rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
-                       rt_OBJECT *obj, rt_cell ssize) :
+                       rt_OBJECT *obj, rt_si32 ssize) :
 
     rt_Node(rg, parent, obj, ssize),
     rt_List<rt_Surface>(rg->get_srf())
@@ -2353,7 +2353,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
         if (RT_IS_ARRAY(obj))
         {
             rt_Array *arr = (rt_Array *)obj;
-            rt_cell i;
+            rt_si32 i;
 
             /* init array's relations template
              * used to avoid unnecessary allocs */
@@ -2396,7 +2396,7 @@ rt_void rt_Surface::add_relation(rt_ELEM *lst)
 /*
  * Update object with given "time", "flags", "trnode" and matrix "mtx".
  */
-rt_void rt_Surface::update_object(rt_time time, rt_cell flags,
+rt_void rt_Surface::update_object(rt_time time, rt_si32 flags,
                                   rt_Object *trnode, rt_mat4 mtx)
 {
     update_status(time, flags, trnode);
@@ -2424,7 +2424,7 @@ rt_void rt_Surface::update_fields()
 
     /* if surface or some of its parents has non-trivial transform,
      * select aux vector fields for axis mapping in backend structures */
-    rt_cell shift = trnode != RT_NULL ? 3 : 0;
+    rt_si32 shift = trnode != RT_NULL ? 3 : 0;
 
     s_srf->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
     s_srf->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
@@ -2650,7 +2650,7 @@ rt_void rt_Surface::update_minmax()
         return;
     }
 
-    rt_cell skip = 0;
+    rt_si32 skip = 0;
 
     /* run through custom clippers list */
     for (; elm != RT_NULL; elm = elm->next)
@@ -2801,7 +2801,7 @@ rt_Surface::~rt_Surface()
  * Instantiate plane surface object.
  */
 rt_Plane::rt_Plane(rt_Registry *rg, rt_Object *parent,
-                   rt_OBJECT *obj, rt_cell ssize) :
+                   rt_OBJECT *obj, rt_si32 ssize) :
 
     rt_Surface(rg, parent, obj, ssize)
 {
@@ -2851,7 +2851,7 @@ rt_void rt_Plane::update_fields()
     isc[RT_U] = 1.0f / asc[RT_U];
     isc[RT_V] = 1.0f / asc[RT_V];
 
-    rt_cell *map;
+    rt_si32 *map;
     rt_real *scl, *pos;
     rt_SIMD_MATERIAL *s_mat;
 
@@ -2939,7 +2939,7 @@ rt_Plane::~rt_Plane()
  * Instantiate quadric surface object.
  */
 rt_Quadric::rt_Quadric(rt_Registry *rg, rt_Object *parent,
-                       rt_OBJECT *obj, rt_cell ssize) :
+                       rt_OBJECT *obj, rt_si32 ssize) :
 
     rt_Surface(rg, parent, obj, ssize)
 {
@@ -3028,7 +3028,7 @@ rt_Quadric::~rt_Quadric()
  * Instantiate cylinder surface object.
  */
 rt_Cylinder::rt_Cylinder(rt_Registry *rg, rt_Object *parent,
-                         rt_OBJECT *obj, rt_cell ssize) :
+                         rt_OBJECT *obj, rt_si32 ssize) :
 
     rt_Quadric(rg, parent, obj, ssize)
 {
@@ -3124,7 +3124,7 @@ rt_Cylinder::~rt_Cylinder()
  * Instantiate sphere surface object.
  */
 rt_Sphere::rt_Sphere(rt_Registry *rg, rt_Object *parent,
-                     rt_OBJECT *obj, rt_cell ssize) :
+                     rt_OBJECT *obj, rt_si32 ssize) :
 
     rt_Quadric(rg, parent, obj, ssize)
 {
@@ -3177,7 +3177,7 @@ rt_void rt_Sphere::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
 
     rt_real top, r = RT_FABS(xsp->rad);
     rt_real rad[3] = {r, r, r};
-    rt_cell i, j, k;
+    rt_si32 i, j, k;
 
     for (k = 0; k < 3; k++)
     {
@@ -3240,7 +3240,7 @@ rt_Sphere::~rt_Sphere()
  * Instantiate cone surface object.
  */
 rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
-                 rt_OBJECT *obj, rt_cell ssize) :
+                 rt_OBJECT *obj, rt_si32 ssize) :
 
     rt_Quadric(rg, parent, obj, ssize)
 {
@@ -3348,7 +3348,7 @@ rt_Cone::~rt_Cone()
  * Instantiate paraboloid surface object.
  */
 rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
-                             rt_OBJECT *obj, rt_cell ssize) :
+                             rt_OBJECT *obj, rt_si32 ssize) :
 
     rt_Quadric(rg, parent, obj, ssize)
 {
@@ -3467,7 +3467,7 @@ rt_Paraboloid::~rt_Paraboloid()
  * Instantiate hyperboloid surface object.
  */
 rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
-                               rt_OBJECT *obj, rt_cell ssize) :
+                               rt_OBJECT *obj, rt_si32 ssize) :
 
     rt_Quadric(rg, parent, obj, ssize)
 {
@@ -3577,7 +3577,7 @@ rt_Hyperboloid::~rt_Hyperboloid()
  * Instantiate paracylinder surface object.
  */
 rt_ParaCylinder::rt_ParaCylinder(rt_Registry *rg, rt_Object *parent,
-                                 rt_OBJECT *obj, rt_cell ssize) :
+                                 rt_OBJECT *obj, rt_si32 ssize) :
 
     rt_Quadric(rg, parent, obj, ssize)
 {
@@ -3694,7 +3694,7 @@ rt_ParaCylinder::~rt_ParaCylinder()
  * Instantiate hypercylinder surface object.
  */
 rt_HyperCylinder::rt_HyperCylinder(rt_Registry *rg, rt_Object *parent,
-                                   rt_OBJECT *obj, rt_cell ssize) :
+                                   rt_OBJECT *obj, rt_si32 ssize) :
 
     rt_Quadric(rg, parent, obj, ssize)
 {
@@ -3802,7 +3802,7 @@ rt_HyperCylinder::~rt_HyperCylinder()
  * Instantiate hyperparaboloid surface object.
  */
 rt_HyperParaboloid::rt_HyperParaboloid(rt_Registry *rg, rt_Object *parent,
-                                       rt_OBJECT *obj, rt_cell ssize) :
+                                       rt_OBJECT *obj, rt_si32 ssize) :
 
     rt_Quadric(rg, parent, obj, ssize)
 {
@@ -3988,10 +3988,10 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     mtx[1][0] = -RT_SINA(sd->rot);
     mtx[1][1] = +RT_COSA(sd->rot);
 
-    rt_cell sgn[2];
-    rt_cell match = 0;
+    rt_si32 sgn[2];
+    rt_si32 match = 0;
 
-    rt_cell i, j;
+    rt_si32 i, j;
 
     for (i = 0; i < 2; i++)
     {
@@ -4035,14 +4035,14 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     RT_SIMD_SET(s_mat->xoffs, sd->pos[map[RT_X]]);
     RT_SIMD_SET(s_mat->yoffs, sd->pos[map[RT_Y]]);
 
-    rt_word x_mask = tx->x_dim - 1;
-    rt_word y_mask = tx->y_dim - 1;
+    rt_ui32 x_mask = tx->x_dim - 1;
+    rt_ui32 y_mask = tx->y_dim - 1;
 
     RT_SIMD_SET(s_mat->xmask, x_mask);
     RT_SIMD_SET(s_mat->ymask, y_mask);
 
-    rt_cell x_dim = tx->x_dim;
-    rt_cell x_lg2 = 0;
+    rt_si32 x_dim = tx->x_dim;
+    rt_si32 x_lg2 = 0;
     while (x_dim >>= 1)
     {
         x_lg2++;
@@ -4056,7 +4056,7 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
 
     RT_SIMD_SET(s_mat->l_dff, mat->lgt[0]);
     RT_SIMD_SET(s_mat->l_spc, mat->lgt[1]);
-    RT_SIMD_SET(s_mat->l_pow, (rt_word)mat->lgt[2]);
+    RT_SIMD_SET(s_mat->l_pow, (rt_ui32)mat->lgt[2]);
     RT_SIMD_SET(s_mat->pow_p, RT_NULL);
 
     RT_SIMD_SET(s_mat->c_rfl, mat->prp[0]);
