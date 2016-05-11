@@ -139,8 +139,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 struct rt_THREAD
 {
     rt_Scene           *scene;
-    rt_cell            *cmd;
-    rt_cell             index;
+    rt_si32            *cmd;
+    rt_si32             index;
     HANDLE              pthr;
     HANDLE              pevent;
     HANDLE             *cevent;
@@ -152,7 +152,7 @@ struct rt_THREAD
 DWORD WINAPI worker_thread(rt_pntr p)
 {
     rt_THREAD *thread = (rt_THREAD *)p;
-    rt_cell i = 0;
+    rt_si32 i = 0;
 
     while (1)
     {
@@ -163,7 +163,7 @@ DWORD WINAPI worker_thread(rt_pntr p)
             break;
         }
 
-        rt_cell cmd = thread->cmd[0];
+        rt_si32 cmd = thread->cmd[0];
 
         /* if one thread throws an exception,
          * other threads are still allowed to proceed
@@ -204,18 +204,18 @@ DWORD WINAPI worker_thread(rt_pntr p)
 struct rt_THREAD_POOL
 {
     rt_Scene           *scene;
-    rt_cell             cmd;
-    rt_cell             thnum;
+    rt_si32             cmd;
+    rt_si32             thnum;
     rt_THREAD          *thread;
     HANDLE             *pevent;
     HANDLE              cevent[2];
-    rt_cell             cindex;
+    rt_si32             cindex;
 };
 
 /*
  * Initialize platform-specific pool of "thnum" threads.
  */
-rt_pntr init_threads(rt_cell thnum, rt_Scene *scn)
+rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
 {
     eout = 0; emax = thnum;
     estr = (rt_pstr *)malloc(sizeof(rt_pstr) * thnum);
@@ -231,7 +231,7 @@ rt_pntr init_threads(rt_cell thnum, rt_Scene *scn)
     HANDLE process = GetCurrentProcess();
     GetProcessAffinityMask(process, &pam, &sam);
 
-    rt_cell i, a;
+    rt_si32 i, a;
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)malloc(sizeof(rt_THREAD_POOL));
 
     if (tpool == RT_NULL)
@@ -283,9 +283,9 @@ rt_pntr init_threads(rt_cell thnum, rt_Scene *scn)
 /*
  * Terminate platform-specific pool of "thnum" threads.
  */
-rt_void term_threads(rt_pntr tdata, rt_cell thnum)
+rt_void term_threads(rt_pntr tdata, rt_si32 thnum)
 {
-    rt_cell i;
+    rt_si32 i;
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
 
     for (i = 0; i < tpool->thnum; i++)
@@ -322,7 +322,7 @@ rt_void term_threads(rt_pntr tdata, rt_cell thnum)
  * Task platform-specific pool of "thnum" threads to update scene,
  * block until finished.
  */
-rt_void update_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
+rt_void update_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
 {
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
 
@@ -337,7 +337,7 @@ rt_void update_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
  * Task platform-specific pool of "thnum" threads to render scene,
  * block until finished.
  */
-rt_void render_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
+rt_void render_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
 {
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
 
@@ -378,7 +378,7 @@ rt_void frame_to_screen(rt_ui32 *frame)
  */
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    rt_cell ret, key;
+    rt_si32 ret, key;
 
     switch (message) 
     {

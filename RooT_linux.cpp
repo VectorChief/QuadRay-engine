@@ -19,7 +19,7 @@
 
 static Display    *disp;
 static Window      win;
-static rt_word     depth;
+static rt_si32     depth;
 
 #include <sys/shm.h>
 #include <X11/extensions/XShm.h>
@@ -35,14 +35,14 @@ static XGCValues   gc_values   = {0};
 /**********************************   MAIN   **********************************/
 /******************************************************************************/
 
-rt_cell main_init();
-rt_cell main_loop();
-rt_cell main_term();
+rt_si32 main_init();
+rt_si32 main_loop();
+rt_si32 main_term();
 
 /*
  * Program's main entry point.
  */
-rt_cell main()
+rt_si32 main()
 {
     /* fill in platform's keymap */
     r_to_p[RK_W]        = KEY_MASK & XK_w;
@@ -79,7 +79,7 @@ rt_cell main()
     }
 
     /* acquire depth */
-    rt_cell screen = DefaultScreen(disp);
+    rt_si32 screen = DefaultScreen(disp);
     depth = DefaultDepth(disp, screen);
 
     /* create simple window */
@@ -198,8 +198,8 @@ rt_cell main()
 struct rt_THREAD
 {
     rt_Scene           *scene;
-    rt_cell            *cmd;
-    rt_cell             index;
+    rt_si32            *cmd;
+    rt_si32             index;
     pthread_t           pthr;
     pthread_barrier_t  *barr;
 };
@@ -220,7 +220,7 @@ rt_pntr worker_thread(rt_pntr p)
             break;
         }
 
-        rt_cell cmd = thread->cmd[0];
+        rt_si32 cmd = thread->cmd[0];
 
         /* if one thread throws an exception,
          * other threads are still allowed to proceed
@@ -261,8 +261,8 @@ rt_pntr worker_thread(rt_pntr p)
 struct rt_THREAD_POOL
 {
     rt_Scene           *scene;
-    rt_cell             cmd;
-    rt_cell             thnum;
+    rt_si32             cmd;
+    rt_si32             thnum;
     rt_THREAD          *thread;
     pthread_barrier_t   barr[2];
 };
@@ -270,7 +270,7 @@ struct rt_THREAD_POOL
 /*
  * Initialize platform-specific pool of "thnum" threads.
  */
-rt_pntr init_threads(rt_cell thnum, rt_Scene *scn)
+rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
 {
     eout = 0; emax = thnum;
     estr = (rt_pstr *)malloc(sizeof(rt_pstr) * thnum);
@@ -286,7 +286,7 @@ rt_pntr init_threads(rt_cell thnum, rt_Scene *scn)
     pthread_t pthr = pthread_self();
     pthread_getaffinity_np(pthr, sizeof(cpu_set_t), &cpuset_pr);
 
-    rt_cell i, a;
+    rt_si32 i, a;
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)malloc(sizeof(rt_THREAD_POOL));
 
     if (tpool == RT_NULL)
@@ -334,9 +334,9 @@ rt_pntr init_threads(rt_cell thnum, rt_Scene *scn)
 /*
  * Terminate platform-specific pool of "thnum" threads.
  */
-rt_void term_threads(rt_pntr tdata, rt_cell thnum)
+rt_void term_threads(rt_pntr tdata, rt_si32 thnum)
 {
-    rt_cell i;
+    rt_si32 i;
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
 
     for (i = 0; i < tpool->thnum; i++)
@@ -373,7 +373,7 @@ rt_void term_threads(rt_pntr tdata, rt_cell thnum)
  * Task platform-specific pool of "thnum" threads to update scene,
  * block until finished.
  */
-rt_void update_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
+rt_void update_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
 {
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
 
@@ -386,7 +386,7 @@ rt_void update_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
  * Task platform-specific pool of "thnum" threads to render scene,
  * block until finished.
  */
-rt_void render_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase)
+rt_void render_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
 {
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
 
@@ -413,7 +413,7 @@ rt_void frame_to_screen(rt_ui32 *frame)
     if (depth == 16 && frame != RT_NULL)
     {
         rt_ui16 *idata = (rt_ui16 *)ximage->data;
-        rt_cell i = x_res * y_res;
+        rt_si32 i = x_res * y_res;
 
         while (i-->0)
         {
@@ -434,12 +434,12 @@ rt_void frame_to_screen(rt_ui32 *frame)
 /*
  * Implementation of the event loop.
  */
-rt_cell main_loop()
+rt_si32 main_loop()
 {
     /* event loop */
     while (1)
     {
-        rt_cell ret, key;
+        rt_si32 ret, key;
 
         while (XPending(disp))
         {

@@ -25,15 +25,15 @@
 
 rt_astr     title       = "QuadRay engine demo, (C) 2013-2016 VectorChief";
 
-rt_cell     x_res       = RT_X_RES;
-rt_cell     y_res       = RT_Y_RES;
-rt_cell     x_row       = RT_X_RES;
+rt_si32     x_res       = RT_X_RES;
+rt_si32     y_res       = RT_Y_RES;
+rt_si32     x_row       = RT_X_RES;
 rt_ui32    *frame       = RT_NULL;
 
-rt_cell     fsaa        = RT_FSAA_NO; /* no AA */
-rt_cell     simd        = 0; /* default SIMD width will be chosen */
-rt_cell     type        = 0; /* default SIMD sub-target will be chosen */
-rt_cell     hide_num    = 0; /* hide all numbers on the screen if 1 */
+rt_si32     fsaa        = RT_FSAA_NO; /* no AA */
+rt_si32     simd        = 0; /* default SIMD width will be chosen */
+rt_si32     type        = 0; /* default SIMD sub-target will be chosen */
+rt_si32     hide_num    = 0; /* hide all numbers on the screen if 1 */
 
 rt_SCENE   *sc_rt[]     =
 {
@@ -42,7 +42,7 @@ rt_SCENE   *sc_rt[]     =
 };
 
 rt_Scene   *sc[RT_ARR_SIZE(sc_rt)]  = {0};  /* scenes array */
-rt_cell     d                       = 1;    /* demo index */
+rt_si32     d                       = 1;    /* demo index */
 
 /******************************************************************************/
 /********************************   PLATFORM   ********************************/
@@ -51,24 +51,24 @@ rt_cell     d                       = 1;    /* demo index */
 /*
  * Initialize platform-specific pool of "thnum" threads.
  */
-rt_pntr init_threads(rt_cell thnum, rt_Scene *scn);
+rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn);
 
 /*
  * Terminate platform-specific pool of "thnum" threads.
  */
-rt_void term_threads(rt_pntr tdata, rt_cell thnum);
+rt_void term_threads(rt_pntr tdata, rt_si32 thnum);
 
 /*
  * Task platform-specific pool of "thnum" threads to update scene,
  * block until finished.
  */
-rt_void update_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase);
+rt_void update_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase);
 
 /*
  * Task platform-specific pool of "thnum" threads to render scene,
  * block until finished.
  */
-rt_void render_scene(rt_pntr tdata, rt_cell thnum, rt_cell phase);
+rt_void render_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase);
 
 /*
  * Get system time in milliseconds.
@@ -130,7 +130,7 @@ rt_void sys_free(rt_pntr ptr)
 #define KEY_MASK            0xFF
 
 /* thread's exception variables */
-static rt_cell  eout = 0, emax = 0;
+static rt_si32  eout = 0, emax = 0;
 static rt_pstr *estr = RT_NULL;
 
 /* time counter variables */
@@ -140,8 +140,8 @@ static rt_time cur_time = 0;
 
 /* frame counter variables */
 static rt_real fps = 0.0f;
-static rt_word cnt = 0;
-static rt_word scr = 0;
+static rt_si32 cnt = 0;
+static rt_si32 scr = 0;
 
 /* virtual keys arrays */
 static rt_byte r_to_p[KEY_MASK + 1];
@@ -159,7 +159,7 @@ static rt_byte r_keys[KEY_MASK + 1];
 /*
  * Event loop's main step.
  */
-rt_cell main_step()
+rt_si32 main_step()
 {
     if (sc[d] == RT_NULL)
     {
@@ -215,7 +215,7 @@ rt_cell main_step()
         }
         if (T_KEYS(RK_F7))
         {
-            rt_cell tnew;
+            rt_si32 tnew;
             do
             {
                 type = type % 4 + type % 3; /* 1, 2, 4 */
@@ -225,14 +225,14 @@ rt_cell main_step()
         }
         if (T_KEYS(RK_F8))
         {
-            rt_cell snew;
+            rt_si32 snew;
             do
             {
                 simd = simd % 8 + 4;        /* 4, 8 */
                 snew = sc[d]->set_simd(simd | type << 8) & 0xFF;
                 if (simd != snew)
                 {
-                    rt_cell tnew = 0;
+                    rt_si32 tnew = 0;
                     snew = sc[d]->set_simd(simd | tnew << 8);
                     tnew = snew >> 8;
                     snew = snew & 0xFF;
@@ -267,10 +267,10 @@ rt_cell main_step()
 
         if (hide_num == 0)
         {
-            sc[d]->render_num(x_res-10, 10, -1, 2, (rt_word)fps);
-            sc[d]->render_num(      10, 10, +1, 2, (rt_word)simd * 32);
-            sc[d]->render_num(x_res-10, 34, -1, 2, (rt_word)fsaa * 4);
-            sc[d]->render_num(      10, 34, +1, 2, (rt_word)type);
+            sc[d]->render_num(x_res-10, 10, -1, 2, (rt_si32)fps);
+            sc[d]->render_num(      10, 10, +1, 2, (rt_si32)simd * 32);
+            sc[d]->render_num(x_res-10, 34, -1, 2, (rt_si32)fsaa * 4);
+            sc[d]->render_num(      10, 34, +1, 2, (rt_si32)type);
         }
     }
     catch (rt_Exception e)
@@ -282,7 +282,7 @@ rt_cell main_step()
 
     if (eout != 0)
     {
-        rt_cell i;
+        rt_si32 i;
 
         for (i = 0; i < emax; i++)
         {
@@ -303,9 +303,9 @@ rt_cell main_step()
 /*
  * Initialize event loop.
  */
-rt_cell main_init()
+rt_si32 main_init()
 {
-    rt_cell i, n = RT_ARR_SIZE(sc_rt);
+    rt_si32 i, n = RT_ARR_SIZE(sc_rt);
 
     for (i = 0; i < n; i++)
     {
@@ -336,9 +336,9 @@ rt_cell main_init()
 /*
  * Terminate event loop.
  */
-rt_cell main_term()
+rt_si32 main_term()
 {
-    rt_cell i, n = RT_ARR_SIZE(sc_rt);
+    rt_si32 i, n = RT_ARR_SIZE(sc_rt);
 
     for (i = 0; i < n; i++)
     {
