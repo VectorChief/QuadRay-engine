@@ -3871,12 +3871,12 @@ rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
         return;
     }
 
-    rt_word pow = s_mat->l_pow[0], exp = 0;
+    rt_ui32 pow = s_mat->l_pow[0], exp = 0;
 
-    if (s_mat->pow_p[0] != RT_NULL)
+    if (s_mat->pow_p[0] != (rt_ui32)RT_NULL)
     {
         exp = pow >> 29;
-        s_mat->pow_p[0] = t_pow[exp];
+        s_mat->pow_p[0] = (rt_ui32)t_pow[exp];
         return;
     }
 
@@ -3885,11 +3885,11 @@ rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
         pow = (1 << 28);
     }
 
-    rt_cell i;
+    rt_si32 i;
 
     for (i = 0; i < 29; i++)
     {
-        if (pow == ((rt_word)1 << i))
+        if (pow == ((rt_ui32)1 << i))
         {
             exp = i;
             break;
@@ -3913,7 +3913,7 @@ rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
     }
 
     s_mat->l_pow[0] = pow | (exp << 29);
-    s_mat->pow_p[0] = t_pow[exp];
+    s_mat->pow_p[0] = (rt_ui32)t_pow[exp];
 }
 
 /*
@@ -3923,7 +3923,7 @@ rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
  */
 rt_void update0(rt_SIMD_SURFACE *s_srf)
 {
-    rt_word tag = (rt_word)s_srf->srf_p[3];
+    rt_ui32 tag = (rt_ui32)s_srf->srf_p[3];
 
     if (tag >= RT_TAG_SURFACE_MAX)
     {
@@ -3932,18 +3932,18 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
 
     /* save surface's entry points from local pointer tables
      * filled during backend's one-time initialization */
-    s_srf->srf_p[0] = t_ptr[tag > RT_TAG_PLANE ?
+    s_srf->srf_p[0] = (rt_ui32)t_ptr[tag > RT_TAG_PLANE ?
                             tag == RT_TAG_HYPERCYLINDER &&
                             s_srf->sci_w[0] == 0.0f ?
                             RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
 
-    s_srf->srf_p[1] = t_mat[tag > RT_TAG_PLANE ?
+    s_srf->srf_p[1] = (rt_ui32)t_mat[tag > RT_TAG_PLANE ?
                             tag != RT_TAG_PARABOLOID &&
                             tag != RT_TAG_PARACYLINDER &&
                             tag != RT_TAG_HYPERPARABOLOID ?
                             RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
 
-    s_srf->srf_p[2] = t_clp[tag > RT_TAG_PLANE ?
+    s_srf->srf_p[2] = (rt_ui32)t_clp[tag > RT_TAG_PLANE ?
                             tag != RT_TAG_PARABOLOID &&
                             tag != RT_TAG_PARACYLINDER &&
                             tag != RT_TAG_HYPERPARABOLOID ?
@@ -3952,10 +3952,10 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
     s_srf->msc_p[1] =       tag == RT_TAG_CONE ||
                             tag == RT_TAG_HYPERBOLOID &&
                             s_srf->sci_w[0] == 0.0f ?
-                            (rt_pntr)1 :
+                            (rt_ui32)1 :
                             tag == RT_TAG_HYPERCYLINDER &&
                             s_srf->sci_w[0] == 0.0f ?
-                            (rt_pntr)2 : (rt_pntr)0;
+                            (rt_ui32)2 : (rt_ui32)0;
 
     /* update surface's materials for each side */
     update_mat((rt_SIMD_MATERIAL *)s_srf->mat_p[0]);
@@ -3966,12 +3966,16 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
 /*********************************   SWITCH   *********************************/
 /******************************************************************************/
 
+#include "system.h"
+
 static
-rt_cell s_mask = 0;
+rt_si32 s_mask = 0;
 static
-rt_cell s_type[S+1];
+rt_si32 s_type[S+1];
 static
-rt_cell s_mode = 0;
+rt_si32 s_mode = 0;
+static
+rt_SIMD_INFOX s_inf_loc;
 
 /*
  * Backend's global entry point (hence 0).
@@ -3979,12 +3983,14 @@ rt_cell s_mode = 0;
  * "mode" equal to SIMD width (4, 8) in lower
  * byte and SIMD type (1, 2, 4) in higher byte.
  */
-rt_cell switch0(rt_cell mode)
+rt_si32 switch0(rt_si32 mode)
 {
-    rt_SIMD_INFOX s_inf_loc, *s_inf = &s_inf_loc;
+    rt_SIMD_INFOX *s_inf = &s_inf_loc;
 
     memset(s_inf, 0, sizeof(rt_SIMD_INFOX));
     memset(s_type, 0, sizeof(s_type));
+
+    RT_LOGI("STACK PTR = %016"RT_PR64"X\n", (rt_full)s_inf);
 
     ASM_ENTER(s_inf)
         verxx_xx()
@@ -4028,9 +4034,9 @@ rt_cell switch0(rt_cell mode)
     s_type[4] |= ((s_mask << 8) & 0x0100) | 4;
 #endif /* RT_128 & 1 */
 
-    rt_cell i = 0;
-    rt_cell j = mode >> 8;
-    rt_cell k = mode & 0xFF;
+    rt_si32 i = 0;
+    rt_si32 j = mode >> 8;
+    rt_si32 k = mode & 0xFF;
 
     if (k == 0)
     {
