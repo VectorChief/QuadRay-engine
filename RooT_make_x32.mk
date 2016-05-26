@@ -33,12 +33,12 @@ LIB_LIST =                              \
         -lpthread
 
 RooT:
-	x86_64-linux-gnu-g++ -O3 -g -mx32 \
+	x86_64-linux-gnu-g++ -O3 -g -fpermissive \
         -DRT_LINUX -DRT_X32 -DRT_128=1+2+4 -DRT_256=1+2 \
-        -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x32
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x64_32
 
 # The x32 ABI hasn't yet been tested due to lack of available toolchains/libs.
 # The (default) x64 ABI isn't yet supported by the ./core.

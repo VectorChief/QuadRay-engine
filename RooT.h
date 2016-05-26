@@ -12,14 +12,6 @@
 #include "engine.h"
 #include "data/scenes/all_scn.h"
 
-#undef Q /* short name for RT_SIMD_QUADS */
-#undef S /* short name for RT_SIMD_WIDTH */
-#undef W /* triplet pass-through wrapper */
-
-#undef P /* short name for RT_POINTER/32 */
-#undef A /* short name for RT_ADDRESS/32 */
-#undef E /* short name for RT_ENDIAN*(P-A)*4 */
-
 #define RT_X_RES        800
 #define RT_Y_RES        480
 
@@ -33,7 +25,7 @@ rt_ui32    *frame       = RT_NULL;
 rt_si32     fsaa        = RT_FSAA_NO; /* no AA */
 rt_si32     simd        = 0; /* default SIMD width will be chosen */
 rt_si32     type        = 0; /* default SIMD sub-target will be chosen */
-rt_si32     hide_num    = 0; /* hide all numbers on the screen if 1 */
+rt_si32     hide_num    = 1; /* hide all numbers on the screen if 1 */
 
 rt_SCENE   *sc_rt[]     =
 {
@@ -80,13 +72,31 @@ rt_time get_time();
  */
 rt_void frame_to_screen(rt_ui32 *frame);
 
+#include <sys/mman.h>
+
 /*
  * Allocate memory from system heap.
  */
 static
 rt_pntr sys_alloc(rt_size size)
 {
-    return malloc(size);
+    /* consider using mmap/munmap with MAP_32BIT to limit address range */
+    rt_pntr ptr =  mmap(NULL, size, PROT_READ | PROT_WRITE,
+                MAP_PRIVATE | MAP_ANONYMOUS | MAP_32BIT,
+                -1, 0);
+
+    if ((P-A) != 0)
+    {
+        RT_LOGI("ALLOC PTR = %016"RT_PR64"X, size = %d\n", (rt_full)ptr, size);
+
+        if ((rt_full)ptr > (0xFFFFFFFF - size))
+        {
+            RT_LOGI("address exceeded allowed range, exiting.\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    return ptr;
 }
 
 /*
@@ -95,7 +105,12 @@ rt_pntr sys_alloc(rt_size size)
 static
 rt_void sys_free(rt_pntr ptr)
 {
-    free(ptr);
+    /* consider using mmap/munmap with MAP_32BIT to limit address range */
+
+    if ((P-A) != 0)
+    {
+        RT_LOGI("FREED PTR = %016"RT_PR64"X\n", (rt_full)ptr);
+    }
 }
 
 /******************************************************************************/
@@ -360,6 +375,14 @@ rt_si32 main_term()
 
     return 1;
 }
+
+#undef Q /* short name for RT_SIMD_QUADS */
+#undef S /* short name for RT_SIMD_WIDTH */
+#undef W /* triplet pass-through wrapper */
+
+#undef P /* short name for RT_POINTER/32 */
+#undef A /* short name for RT_ADDRESS/32 */
+#undef E /* short name for RT_ENDIAN*(P-A)*4 */
 
 #endif /* RT_ROOT_H */
 
