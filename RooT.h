@@ -25,7 +25,7 @@ rt_ui32    *frame       = RT_NULL;
 rt_si32     fsaa        = RT_FSAA_NO; /* no AA */
 rt_si32     simd        = 0; /* default SIMD width will be chosen */
 rt_si32     type        = 0; /* default SIMD sub-target will be chosen */
-rt_si32     hide_num    = 1; /* hide all numbers on the screen if 1 */
+rt_si32     hide_num    = 0; /* hide all numbers on the screen if 1 */
 
 rt_SCENE   *sc_rt[]     =
 {

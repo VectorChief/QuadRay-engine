@@ -226,8 +226,8 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_void     update_slice(rt_si32 index, rt_si32 phase);
     rt_void     render_slice(rt_si32 index, rt_si32 phase);
 
-    rt_void     render_num(rt_ui32 x, rt_ui32 y,
-                           rt_si32 d, rt_ui32 z, rt_ui32 num);
+    rt_void     render_num(rt_si32 x, rt_si32 y,
+                           rt_si32 d, rt_si32 z, rt_ui32 num);
 
     rt_ui32*    get_frame();
     rt_void     print_state();

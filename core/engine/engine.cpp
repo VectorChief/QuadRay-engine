@@ -3319,10 +3319,10 @@ rt_ui32 digits[10][dH][dW] =
  * Render given number "num" on the screen at given coords "x" and "y".
  * Parameters "d" and "z" specify direction and zoom respectively.
  */
-rt_void rt_Scene::render_num(rt_ui32 x, rt_ui32 y,
-                             rt_si32 d, rt_ui32 z, rt_ui32 num)
+rt_void rt_Scene::render_num(rt_si32 x, rt_si32 y,
+                             rt_si32 d, rt_si32 z, rt_ui32 num)
 {
-    rt_ui32 arr[16], i, c, k;
+    rt_si32 arr[16], i, c, k;
 
     for (i = 0, c = 0; i < 16; i++)
     {
@@ -3339,7 +3339,7 @@ rt_void rt_Scene::render_num(rt_ui32 x, rt_ui32 y,
     c++;
     d = (d + 1) / 2;
 
-    rt_ui32 xd, yd, xz, yz;
+    rt_si32 xd, yd, xz, yz;
     rt_ui32 *src, *dst;
 
     for (i = 0; i < c; i++)
