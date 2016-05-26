@@ -11,6 +11,7 @@
 #include <string.h>
 #include "engine.h"
 #include "data/scenes/all_scn.h"
+#include "test/scenes/scn_test01.h"
 
 #define RT_X_RES        800
 #define RT_Y_RES        480
@@ -29,12 +30,12 @@ rt_si32     hide_num    = 0; /* hide all numbers on the screen if 1 */
 
 rt_SCENE   *sc_rt[]     =
 {
-    &scn_demo01::sc_root,
+    &scn_test01::sc_root,
     &scn_demo02::sc_root,
 };
 
 rt_Scene   *sc[RT_ARR_SIZE(sc_rt)]  = {0};  /* scenes array */
-rt_si32     d                       = 1;    /* demo index */
+rt_si32     d                       = 0;    /* demo index */
 
 /******************************************************************************/
 /********************************   PLATFORM   ********************************/

@@ -42,7 +42,7 @@
 #define RT_SHOW_BOUND               0   /* <- needs RT_OPTS_TILING to be 0 */
 #define RT_QUAD_DEBUG               0   /* <- needs RT_DEBUG to be enabled
                                                with RT_THREADS_NUM equal 1 */
-#define RT_FEAT_TILING              1
+#define RT_FEAT_TILING              0
 #define RT_FEAT_ANTIALIASING        1
 #define RT_FEAT_MULTITHREADING      1
 #define RT_FEAT_CLIPPING_MINMAX     1
