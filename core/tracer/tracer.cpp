@@ -290,7 +290,7 @@
         mulxn_ri(Reax, IB(S*4))                                             \
         movpx_ld(Xmm7, Iebx, srf_SBASE)                                     \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
-        shlxx_ri(Reax, IB(3))                                               \
+        shlxx_ri(Reax, IB(2+P))                                             \
         movxx_ld(Reax, Iebx, srf_MAT_P(FLG))                                \
         orrxx_st(Reax, Mecx, ctx_LOCAL(FLG))
 
@@ -312,7 +312,7 @@
 #define FETCH_XPTR(RG, pl) /* destroys Reax */                              \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
-        shlxx_ri(Reax, IB(3))                                               \
+        shlxx_ri(Reax, IB(2+P))                                             \
         movxx_ld(W(RG), Iebx, srf_##pl)
 
 /*
@@ -323,7 +323,7 @@
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         notxx_rr(Reax)                                                      \
         andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
-        shlxx_ri(Reax, IB(3))                                               \
+        shlxx_ri(Reax, IB(2+P))                                             \
         movxx_ld(W(RG), Iebx, srf_##pl)
 
 /*
