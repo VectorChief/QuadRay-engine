@@ -3932,18 +3932,18 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
 
     /* save surface's entry points from local pointer tables
      * filled during backend's one-time initialization */
-    s_srf->srf_p[0] = (rt_ui32)t_ptr[tag > RT_TAG_PLANE ?
+    s_srf->srf_p[0] = t_ptr[tag > RT_TAG_PLANE ?
                             tag == RT_TAG_HYPERCYLINDER &&
                             s_srf->sci_w[0] == 0.0f ?
                             RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
 
-    s_srf->srf_p[1] = (rt_ui32)t_mat[tag > RT_TAG_PLANE ?
+    s_srf->srf_p[1] = t_mat[tag > RT_TAG_PLANE ?
                             tag != RT_TAG_PARABOLOID &&
                             tag != RT_TAG_PARACYLINDER &&
                             tag != RT_TAG_HYPERPARABOLOID ?
                             RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
 
-    s_srf->srf_p[2] = (rt_ui32)t_clp[tag > RT_TAG_PLANE ?
+    s_srf->srf_p[2] = t_clp[tag > RT_TAG_PLANE ?
                             tag != RT_TAG_PARABOLOID &&
                             tag != RT_TAG_PARACYLINDER &&
                             tag != RT_TAG_HYPERPARABOLOID ?
@@ -3952,10 +3952,10 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
     s_srf->msc_p[1] =       tag == RT_TAG_CONE ||
                             tag == RT_TAG_HYPERBOLOID &&
                             s_srf->sci_w[0] == 0.0f ?
-                            (rt_ui32)1 :
+                            (rt_pntr)1 :
                             tag == RT_TAG_HYPERCYLINDER &&
                             s_srf->sci_w[0] == 0.0f ?
-                            (rt_ui32)2 : (rt_ui32)0;
+                            (rt_pntr)2 : (rt_pntr)0;
 
     /* update surface's materials for each side */
     update_mat((rt_SIMD_MATERIAL *)s_srf->mat_p[0]);

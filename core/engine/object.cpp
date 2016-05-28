@@ -714,7 +714,7 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
 
     s_srf = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
     memset(s_srf, 0, ssize);
-    s_srf->srf_p[3] = (rt_ui32)tag;
+    s_srf->srf_p[3] = (rt_pntr)tag;
 
     s_srf->mat_p[0];    /* outer material */
     s_srf->mat_p[1];    /* outer material props */
@@ -1539,7 +1539,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
 
     s_inb = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
     memset(s_inb, 0, ssize);
-    s_inb->srf_p[3] = (rt_ui32)RT_TAG_SURFACE_MAX;
+    s_inb->srf_p[3] = (rt_pntr)RT_TAG_SURFACE_MAX;
 
     s_inb->mat_p[0] = (rt_pntr)outer->s_mat;
     s_inb->mat_p[1] = (rt_pntr)outer->props;
@@ -1557,7 +1557,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
 
     s_bvb = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
     memset(s_bvb, 0, ssize);
-    s_bvb->srf_p[3] = (rt_ui32)RT_TAG_SURFACE_MAX;
+    s_bvb->srf_p[3] = (rt_pntr)RT_TAG_SURFACE_MAX;
 
     s_bvb->mat_p[0] = (rt_pntr)outer->s_mat;
     s_bvb->mat_p[1] = (rt_pntr)outer->props;
@@ -1723,8 +1723,8 @@ rt_void rt_Array::update_fields()
 
     /* trnode's simd ptr is needed in rendering backend
      * to check if surface and its clippers belong to the same trnode */
-    s_srf->msc_p[3] = (rt_ui32)(trnode == RT_NULL ?
-                                RT_NULL : ((rt_Node *)trnode)->s_srf);
+    s_srf->msc_p[3] = trnode == RT_NULL ?
+                                RT_NULL : ((rt_Node *)trnode)->s_srf;
 
     s_inb->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
     s_inb->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
@@ -1738,8 +1738,8 @@ rt_void rt_Array::update_fields()
 
     /* trnode's simd ptr is needed in rendering backend
      * to check if surface and its clippers belong to the same trnode */
-    s_inb->msc_p[3] = (rt_ui32)(trnode == RT_NULL ?
-                                RT_NULL : ((rt_Node *)trnode)->s_srf);
+    s_inb->msc_p[3] = trnode == RT_NULL ?
+                                RT_NULL : ((rt_Node *)trnode)->s_srf;
 
     RT_SIMD_SET(s_inb->scj_x, 0.0f);
     RT_SIMD_SET(s_inb->scj_y, 0.0f);
@@ -2438,8 +2438,8 @@ rt_void rt_Surface::update_fields()
 
     /* trnode's simd ptr is needed in rendering backend
      * to check if surface and its clippers belong to the same trnode */
-    s_srf->msc_p[3] = (rt_ui32)(trnode == RT_NULL ?
-                                RT_NULL : ((rt_Node *)trnode)->s_srf);
+    s_srf->msc_p[3] = trnode == RT_NULL ?
+                                RT_NULL : ((rt_Node *)trnode)->s_srf;
 }
 
 /*

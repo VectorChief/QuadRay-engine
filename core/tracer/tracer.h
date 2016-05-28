@@ -809,11 +809,11 @@ struct rt_SIMD_SURFACE
     rt_pntr mat_p[S/P];
 #define srf_MAT_P(nx)       DP(Q*0x100 + nx*P)
 
-    rt_ui32 srf_p[S];
-#define srf_SRF_P(nx)       DP(Q*0x110 + nx)
+    rt_pntr srf_p[S/P];
+#define srf_SRF_P(nx)       DP(Q*0x110 + nx*P)
 
-    rt_ui32 msc_p[S];
-#define srf_MSC_P(nx)       DP(Q*0x120 + nx)
+    rt_pntr msc_p[S/P];
+#define srf_MSC_P(nx)       DP(Q*0x120 + nx*P)
 
     rt_pntr lst_p[S/P];
 #define srf_LST_P(nx)       DP(Q*0x130 + nx*P)
