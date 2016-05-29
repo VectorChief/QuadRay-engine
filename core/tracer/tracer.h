@@ -804,19 +804,18 @@ struct rt_SIMD_SURFACE
     rt_ui32 smask[S];
 #define srf_SMASK           DP(Q*0x0F0)
 
-    /* misc pointers */
+    /* roots sorting thresholds */
 
-    rt_pntr mat_p[S/P];
-#define srf_MAT_P(nx)       DP(Q*0x100 + nx*P)
+    rt_real d_eps[S];
+#define srf_D_EPS           DP(Q*0x100)
 
-    rt_pntr srf_p[S/P];
-#define srf_SRF_P(nx)       DP(Q*0x110 + nx*P)
+    rt_real t_eps[S];
+#define srf_T_EPS           DP(Q*0x110)
 
-    rt_pntr msc_p[S/P];
-#define srf_MSC_P(nx)       DP(Q*0x120 + nx*P)
+    /* reserved area 1 */
 
-    rt_pntr lst_p[S/P];
-#define srf_LST_P(nx)       DP(Q*0x130 + nx*P)
+    rt_ui32 pad01[S*2];
+#define srf_PAD01           DP(Q*0x120)
 
     /* transform coeffs */
 
@@ -875,13 +874,19 @@ struct rt_SIMD_SURFACE
     rt_real scj_z[S];
 #define srf_SCJ_Z           DP(Q*0x230)
 
-    /* roots sorting thresholds */
+    /* misc pointers */
 
-    rt_real d_eps[S];
-#define srf_D_EPS           DP(Q*0x240)
+    rt_pntr mat_p[4];
+#define srf_MAT_P(nx)       DP(Q*0x240 + (0x000 + nx)*P)
 
-    rt_real t_eps[S];
-#define srf_T_EPS           DP(Q*0x250)
+    rt_pntr srf_p[4];
+#define srf_SRF_P(nx)       DP(Q*0x240 + (0x010 + nx)*P)
+
+    rt_pntr msc_p[4];
+#define srf_MSC_P(nx)       DP(Q*0x240 + (0x020 + nx)*P)
+
+    rt_pntr lst_p[4];
+#define srf_LST_P(nx)       DP(Q*0x240 + (0x030 + nx)*P)
 
 };
 
