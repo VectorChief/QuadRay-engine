@@ -69,7 +69,7 @@
  */
 #define RT_OPTS_NONE            0
 #define RT_OPTS_THREAD          (1 << 0)
-#define RT_OPTS_TILING          (0 << 1)
+#define RT_OPTS_TILING          (1 << 1)
 #define RT_OPTS_TILING_EXT1     (1 << 2)
 #define RT_OPTS_FSCALE          (1 << 3)
 #define RT_OPTS_TARRAY          (1 << 4)

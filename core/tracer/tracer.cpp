@@ -42,7 +42,7 @@
 #define RT_SHOW_BOUND               0   /* <- needs RT_OPTS_TILING to be 0 */
 #define RT_QUAD_DEBUG               0   /* <- needs RT_DEBUG to be enabled
                                                with RT_THREADS_NUM equal 1 */
-#define RT_FEAT_TILING              0
+#define RT_FEAT_TILING              1
 #define RT_FEAT_ANTIALIASING        1
 #define RT_FEAT_MULTITHREADING      1
 #define RT_FEAT_CLIPPING_MINMAX     1
@@ -635,7 +635,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ri(Redx, IB(0))
         divxn_xm(Mebp, inf_TILE_H)
         mulxn_xm(Mebp, inf_TLS_ROW)
-        shlxx_ri(Reax, IB(2))
+        shlxx_ri(Reax, IB(1+P))
         addxx_ld(Reax, Mebp, inf_TILES)
         movxx_st(Reax, Mebp, inf_TLS)
         movxx_mi(Mebp, inf_TLS_X, IB(0))
@@ -664,7 +664,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #if RT_FEAT_TILING
 
         movxx_ld(Reax, Mebp, inf_TLS_X)
-        shlxx_ri(Reax, IB(2))
+        shlxx_ri(Reax, IB(1+P))
         addxx_ld(Reax, Mebp, inf_TLS)
         movxx_ld(Resi, Oeax, PLAIN)
 
