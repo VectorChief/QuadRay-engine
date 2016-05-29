@@ -4110,13 +4110,20 @@ rt_void rt_Material::resolve_texture(rt_Registry *rg)
 
     /* texture bind doesn't need extra validation
      * except for allowed address range for backend */
-    if ((P-A) != 0)
+#if (P-A) != 0 && RT_DEBUG >= 1
+
+    RT_LOGI("TEX_P PTR = %016"RT_PR64"X\n", (rt_full)tx->ptex);
+
+#endif /* (P-A) && RT_DEBUG */
+
+#if (P-A) != 0
+
+    if ((rt_full)tx->ptex > (0xFFFFFFFF - (tx->x_dim * tx->y_dim * 4)))
     {
-        if ((rt_full)tx->ptex > (0xFFFFFFFF - (tx->x_dim * tx->y_dim * 4)))
-        {
-            throw rt_Exception("address exceeded allowed range in material");
-        }
+        throw rt_Exception("address exceeded allowed range in material");
     }
+
+#endif /* (P-A) */
 }
 
 /*

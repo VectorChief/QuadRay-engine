@@ -40,5 +40,7 @@ RooT:
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x64_32
 
-# The x32 ABI hasn't yet been tested due to lack of available toolchains/libs.
-# The (default) x64 ABI isn't yet supported by the ./core.
+# For actual x32 target use: -mx32, -DRT_POINTER=32 (replace),
+# rename produced binary to RooT.x32 or adjust the build command above.
+# Experimental 64/32-bit hybrid support is enabled by default for compatibility
+# with wider spectrum of toolchains/libraries in the standard x64 target.

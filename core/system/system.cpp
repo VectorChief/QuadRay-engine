@@ -233,7 +233,7 @@ rt_pntr rt_Heap::release(rt_pntr ptr)
     while (head != RT_NULL && (ptr < head + 1 || ptr >= head->end))
     {
         rt_CHUNK *chunk = head->next;
-        f_free(head);
+        f_free(head, head->size);
         head = chunk;
     }
 
@@ -257,7 +257,7 @@ rt_Heap::~rt_Heap()
     while (head != RT_NULL)
     {
         rt_CHUNK *chunk = head->next;
-        f_free(head);
+        f_free(head, head->size);
         head = chunk;
     }
 }

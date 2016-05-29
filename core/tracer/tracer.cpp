@@ -3990,7 +3990,20 @@ rt_si32 switch0(rt_si32 mode)
     memset(s_inf, 0, sizeof(rt_SIMD_INFOX));
     memset(s_type, 0, sizeof(s_type));
 
-    RT_LOGI("STACK PTR = %016"RT_PR64"X\n", (rt_full)s_inf);
+#if (P-A) != 0 && RT_DEBUG >= 1
+
+    RT_LOGI("S_INF PTR = %016"RT_PR64"X\n", (rt_full)s_inf);
+
+#endif /* (P-A) && RT_DEBUG */
+
+#if (P-A) != 0
+
+    if ((rt_full)s_inf > (0xFFFFFFFF - sizeof(rt_SIMD_INFOX)))
+    {
+        throw rt_Exception("address exceeded allowed range in switch0");
+    }
+
+#endif /* (P-A) */
 
     ASM_ENTER(s_inf)
         verxx_xx()

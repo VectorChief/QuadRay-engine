@@ -48,22 +48,68 @@ static rt_ui32 frame[RT_X_RES * RT_Y_RES];
 static rt_si32 fsaa = RT_FSAA_4X;
 static rt_Scene *scene = RT_NULL;
 
+#if (P-A) != 0
+
+#include <sys/mman.h>
+
+#endif /* (P-A) */
+
 /*
  * Allocate memory from system heap.
  */
 static
 rt_pntr sys_alloc(rt_size size)
 {
-    return malloc(size);
+#if (P-A) != 0
+
+    rt_pntr ptr = mmap(NULL, size, PROT_READ | PROT_WRITE,
+                  MAP_PRIVATE | MAP_ANONYMOUS | MAP_32BIT, -1, 0);
+
+#else /* (P-A) */
+
+    rt_pntr ptr = malloc(size);
+
+#endif /* (P-A) */
+
+#if (P-A) != 0 && RT_DEBUG >= 1
+
+    RT_LOGI("ALLOC PTR = %016"RT_PR64"X, size = %ld\n", (rt_full)ptr, size);
+
+#endif /* (P-A) && RT_DEBUG */
+
+#if (P-A) != 0
+
+    if ((rt_full)ptr > (0xFFFFFFFF - size))
+    {
+        throw rt_Exception("address exceeded allowed range in sys_alloc");
+    }
+
+#endif /* (P-A) */
+
+    return ptr;
 }
 
 /*
  * Free memory from system heap.
  */
 static
-rt_void sys_free(rt_pntr ptr)
+rt_void sys_free(rt_pntr ptr, rt_size size)
 {
+#if (P-A) != 0
+
+    munmap(ptr, size);
+
+#else /* (P-A) */
+
     free(ptr);
+
+#endif /* (P-A) */
+
+#if (P-A) != 0 && RT_DEBUG >= 1
+
+    RT_LOGI("FREED PTR = %016"RT_PR64"X, size = %ld\n", (rt_full)ptr, size);
+
+#endif /* (P-A) && RT_DEBUG */
 }
 
 static

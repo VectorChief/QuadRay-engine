@@ -93,7 +93,7 @@ struct rt_CHUNK
  * Memory alloc/free function types.
  */
 typedef rt_pntr (*rt_FUNC_ALLOC)(rt_size size);
-typedef rt_void (*rt_FUNC_FREE)(rt_pntr ptr);
+typedef rt_void (*rt_FUNC_FREE)(rt_pntr ptr, rt_size size);
 
 /*
  * Heap manages fast linear allocs with the ability to release
