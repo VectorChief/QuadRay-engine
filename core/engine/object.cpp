@@ -714,7 +714,7 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
 
     s_srf = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
     memset(s_srf, 0, ssize);
-    s_srf->srf_p[3] = (rt_pntr)tag;
+    s_srf->srf_p[3] = (rt_pntr)(rt_word)tag;
 
     s_srf->mat_p[0];    /* outer material */
     s_srf->mat_p[1];    /* outer material props */
@@ -1541,10 +1541,10 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     memset(s_inb, 0, ssize);
     s_inb->srf_p[3] = (rt_pntr)RT_TAG_SURFACE_MAX;
 
-    s_inb->mat_p[0] = (rt_pntr)outer->s_mat;
-    s_inb->mat_p[1] = (rt_pntr)outer->props;
-    s_inb->mat_p[2] = (rt_pntr)inner->s_mat;
-    s_inb->mat_p[3] = (rt_pntr)inner->props;
+    s_inb->mat_p[0] = outer->s_mat;
+    s_inb->mat_p[1] = (rt_pntr)(rt_word)outer->props;
+    s_inb->mat_p[2] = inner->s_mat;
+    s_inb->mat_p[3] = (rt_pntr)(rt_word)inner->props;
 
     RT_SIMD_SET(s_inb->sbase, 0x00000000);
     RT_SIMD_SET(s_inb->smask, 0x80000000);
@@ -1559,10 +1559,10 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     memset(s_bvb, 0, ssize);
     s_bvb->srf_p[3] = (rt_pntr)RT_TAG_SURFACE_MAX;
 
-    s_bvb->mat_p[0] = (rt_pntr)outer->s_mat;
-    s_bvb->mat_p[1] = (rt_pntr)outer->props;
-    s_bvb->mat_p[2] = (rt_pntr)inner->s_mat;
-    s_bvb->mat_p[3] = (rt_pntr)inner->props;
+    s_bvb->mat_p[0] = outer->s_mat;
+    s_bvb->mat_p[1] = (rt_pntr)(rt_word)outer->props;
+    s_bvb->mat_p[2] = inner->s_mat;
+    s_bvb->mat_p[3] = (rt_pntr)(rt_word)inner->props;
 
     RT_SIMD_SET(s_bvb->sbase, 0x00000000);
     RT_SIMD_SET(s_bvb->smask, 0x80000000);
@@ -2310,10 +2310,10 @@ rt_Surface::rt_Surface(rt_Registry *rg, rt_Object *parent,
 
 /*  rt_SIMD_SURFACE */
 
-    s_srf->mat_p[0] = (rt_pntr)outer->s_mat;
-    s_srf->mat_p[1] = (rt_pntr)outer->props;
-    s_srf->mat_p[2] = (rt_pntr)inner->s_mat;
-    s_srf->mat_p[3] = (rt_pntr)inner->props;
+    s_srf->mat_p[0] = outer->s_mat;
+    s_srf->mat_p[1] = (rt_pntr)(rt_word)outer->props;
+    s_srf->mat_p[2] = inner->s_mat;
+    s_srf->mat_p[3] = (rt_pntr)(rt_word)inner->props;
 }
 
 /*
