@@ -33,7 +33,7 @@ LIB_LIST =                              \
         -lpthread
 
 RooT:
-	x86_64-linux-gnu-g++ -O3 -g -fpermissive \
+	x86_64-linux-gnu-g++ -O3 -g \
         -DRT_LINUX -DRT_X32 -DRT_128=1+2+4 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \

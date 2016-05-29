@@ -3876,7 +3876,7 @@ rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
     if (s_mat->pow_p[0] != (rt_ui32)RT_NULL)
     {
         exp = pow >> 29;
-        s_mat->pow_p[0] = (rt_ui32)t_pow[exp];
+        s_mat->pow_p[0] = (rt_ui32)(rt_word)t_pow[exp];
         return;
     }
 
@@ -3913,7 +3913,7 @@ rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
     }
 
     s_mat->l_pow[0] = pow | (exp << 29);
-    s_mat->pow_p[0] = (rt_ui32)t_pow[exp];
+    s_mat->pow_p[0] = (rt_ui32)(rt_word)t_pow[exp];
 }
 
 /*
@@ -3923,7 +3923,7 @@ rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
  */
 rt_void update0(rt_SIMD_SURFACE *s_srf)
 {
-    rt_ui32 tag = (rt_ui32)s_srf->srf_p[3];
+    rt_ui32 tag = (rt_ui32)(rt_word)s_srf->srf_p[3];
 
     if (tag >= RT_TAG_SURFACE_MAX)
     {
