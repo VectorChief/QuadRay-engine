@@ -3966,7 +3966,11 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
 /*********************************   SWITCH   *********************************/
 /******************************************************************************/
 
+#if (RT_POINTER - RT_ADDRESS) != 0
+
 #include "system.h"
+
+#endif /* (RT_POINTER - RT_ADDRESS) */
 
 static
 rt_si32 s_mask = 0;
@@ -3990,20 +3994,20 @@ rt_si32 switch0(rt_si32 mode)
     memset(s_inf, 0, sizeof(rt_SIMD_INFOX));
     memset(s_type, 0, sizeof(s_type));
 
-#if (P-A) != 0 && RT_DEBUG >= 1
+#if (RT_POINTER - RT_ADDRESS) != 0 && RT_DEBUG >= 1
 
     RT_LOGI("S_INF PTR = %016"RT_PR64"X\n", (rt_full)s_inf);
 
-#endif /* (P-A) && RT_DEBUG */
+#endif /* (RT_POINTER - RT_ADDRESS) && RT_DEBUG */
 
-#if (P-A) != 0
+#if (RT_POINTER - RT_ADDRESS) != 0
 
     if ((rt_full)s_inf > (0xFFFFFFFF - sizeof(rt_SIMD_INFOX)))
     {
         throw rt_Exception("address exceeded allowed range in switch0");
     }
 
-#endif /* (P-A) */
+#endif /* (RT_POINTER - RT_ADDRESS) */
 
     ASM_ENTER(s_inf)
         verxx_xx()

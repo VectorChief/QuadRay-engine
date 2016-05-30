@@ -169,12 +169,12 @@ rt_si32 main()
         x_row = ximage->bytes_per_line / 4;
     }
 
-#if defined (RT_X32) && RT_POINTER == 64
+#if (RT_POINTER - RT_ADDRESS) != 0
 
     frame = RT_NULL;
     x_row = RT_X_RES;
 
-#endif /* defined (RT_X32) && RT_POINTER == 64 */
+#endif /* (RT_POINTER - RT_ADDRESS) */
 
     /* run main loop */
     main_init();
@@ -430,11 +430,11 @@ rt_void frame_to_screen(rt_ui32 *frame)
         }
     }
 
-#if defined (RT_X32) && RT_POINTER == 64
+#if (RT_POINTER - RT_ADDRESS) != 0
 
     memcpy(ximage->data, frame, x_res * y_res * sizeof(rt_ui32));
 
-#endif /* defined (RT_X32) && RT_POINTER == 64 */
+#endif /* (RT_POINTER - RT_ADDRESS) */
 
     XShmPutImage(disp, win, gc, ximage, 0, 0, 0, 0, x_res, y_res, False);
     XSync(disp, False);
