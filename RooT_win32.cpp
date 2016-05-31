@@ -152,6 +152,22 @@ rt_void frame_to_screen(rt_ui32 *frame)
                                     frame, &DIBinfo, DIB_RGB_COLORS);
 }
 
+/*
+ * Allocate memory from system heap.
+ */
+rt_pntr sys_alloc(rt_size size)
+{
+    return malloc(size);
+}
+
+/*
+ * Free memory from system heap.
+ */
+rt_void sys_free(rt_pntr ptr, rt_size size)
+{
+    free(ptr);
+}
+
 /******************************************************************************/
 /*****************************   MULTI-THREADING   ****************************/
 /******************************************************************************/
