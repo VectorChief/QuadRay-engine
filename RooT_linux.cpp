@@ -31,6 +31,8 @@ static XGCValues   gc_values   = {0};
 
 #include <pthread.h>
 
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
 /******************************************************************************/
 /**********************************   MAIN   **********************************/
 /******************************************************************************/
@@ -176,10 +178,16 @@ rt_si32 main()
 
 #endif /* (RT_POINTER - RT_ADDRESS) */
 
+    /* init sys_alloc's mutex */
+    pthread_mutex_init(&mutex, NULL);
+
     /* run main loop */
     main_init();
     main_loop();
     main_term();
+
+    /* destroy sys_alloc's mutex */
+    pthread_mutex_destroy(&mutex);
 
     /* destroy image,
      * detach shared memory */
@@ -241,6 +249,9 @@ rt_void frame_to_screen(rt_ui32 *frame)
 
 #endif /* (RT_POINTER - RT_ADDRESS) */
 
+static
+rt_char *s_ptr = (rt_char *)0x0000000040000000;
+
 /*
  * Allocate memory from system heap.
  */
@@ -248,8 +259,21 @@ rt_pntr sys_alloc(rt_size size)
 {
 #if (RT_POINTER - RT_ADDRESS) != 0
 
-    rt_pntr ptr = mmap(NULL, size, PROT_READ | PROT_WRITE,
-                  MAP_PRIVATE | MAP_ANONYMOUS | MAP_32BIT, -1, 0);
+    pthread_mutex_lock(&mutex);
+
+    rt_pntr ptr = mmap(s_ptr, size, PROT_READ | PROT_WRITE,
+                  MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
+    /* advance with page-size granularity */
+    s_ptr += ((size + 4095) / 4096) * 4096;
+
+    /* loop around 1GB boundary MAP_32BIT */
+    if (s_ptr >= (rt_char *)0x0000000080000000)
+    {
+        s_ptr  = (rt_char *)0x0000000040000000;
+    }
+
+    pthread_mutex_unlock(&mutex);
 
 #else /* (RT_POINTER - RT_ADDRESS) */
 
