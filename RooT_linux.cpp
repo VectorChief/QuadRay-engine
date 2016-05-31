@@ -197,6 +197,44 @@ rt_si32 main()
     return 0;
 }
 
+/*
+ * Get system time in milliseconds.
+ */
+rt_time get_time()
+{
+    timeval tm;
+    gettimeofday(&tm, NULL);
+    return (rt_time)(tm.tv_sec * 1000 + tm.tv_usec / 1000);
+}
+
+/*
+ * Set current frame to screen.
+ */
+rt_void frame_to_screen(rt_ui32 *frame)
+{
+    if (depth == 16 && frame != RT_NULL)
+    {
+        rt_ui16 *idata = (rt_ui16 *)ximage->data;
+        rt_si32 i = x_res * y_res;
+
+        while (i-->0)
+        {
+            idata[i] = (frame[i] & 0x00F80000) >> 8 |
+                       (frame[i] & 0x0000FC00) >> 5 |
+                       (frame[i] & 0x000000F8) >> 3;
+        }
+    }
+
+#if (RT_POINTER - RT_ADDRESS) != 0
+
+    memcpy(ximage->data, frame, x_res * y_res * sizeof(rt_ui32));
+
+#endif /* (RT_POINTER - RT_ADDRESS) */
+
+    XShmPutImage(disp, win, gc, ximage, 0, 0, 0, 0, x_res, y_res, False);
+    XSync(disp, False);
+}
+
 /******************************************************************************/
 /*****************************   MULTI-THREADING   ****************************/
 /******************************************************************************/
@@ -400,44 +438,6 @@ rt_void render_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
     tpool->cmd = 2 | ((phase & 0xFF) << 2);
     pthread_barrier_wait(&tpool->barr[0]);
     pthread_barrier_wait(&tpool->barr[1]);
-}
-
-/*
- * Get system time in milliseconds.
- */
-rt_time get_time()
-{
-    timeval tm;
-    gettimeofday(&tm, NULL);
-    return (rt_time)(tm.tv_sec * 1000 + tm.tv_usec / 1000);
-}
-
-/*
- * Set current frame to screen.
- */
-rt_void frame_to_screen(rt_ui32 *frame)
-{
-    if (depth == 16 && frame != RT_NULL)
-    {
-        rt_ui16 *idata = (rt_ui16 *)ximage->data;
-        rt_si32 i = x_res * y_res;
-
-        while (i-->0)
-        {
-            idata[i] = (frame[i] & 0x00F80000) >> 8 |
-                       (frame[i] & 0x0000FC00) >> 5 |
-                       (frame[i] & 0x000000F8) >> 3;
-        }
-    }
-
-#if (RT_POINTER - RT_ADDRESS) != 0
-
-    memcpy(ximage->data, frame, x_res * y_res * sizeof(rt_ui32));
-
-#endif /* (RT_POINTER - RT_ADDRESS) */
-
-    XShmPutImage(disp, win, gc, ximage, 0, 0, 0, 0, x_res, y_res, False);
-    XSync(disp, False);
 }
 
 /******************************************************************************/

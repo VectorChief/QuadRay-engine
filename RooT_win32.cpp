@@ -131,6 +131,27 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     return msg.wParam;
 }
 
+/*
+ * Get system time in milliseconds.
+ */
+rt_time get_time()
+{
+    LARGE_INTEGER fr;
+    QueryPerformanceFrequency(&fr);
+    LARGE_INTEGER tm;
+    QueryPerformanceCounter(&tm);
+    return (rt_time)(tm.QuadPart * 1000 / fr.QuadPart);
+}
+
+/*
+ * Set current frame to screen.
+ */
+rt_void frame_to_screen(rt_ui32 *frame)
+{
+    SetDIBitsToDevice(hWndDC, 0, 0, x_res, y_res, 0, 0, 0, y_res,
+                                    frame, &DIBinfo, DIB_RGB_COLORS);
+}
+
 /******************************************************************************/
 /*****************************   MULTI-THREADING   ****************************/
 /******************************************************************************/
@@ -347,28 +368,6 @@ rt_void render_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
     ResetEvent(tpool->cevent[tpool->cindex]);
     tpool->cindex = 1 - tpool->cindex;
 }
-
-/*
- * Get system time in milliseconds.
- */
-rt_time get_time()
-{
-    LARGE_INTEGER fr;
-    QueryPerformanceFrequency(&fr);
-    LARGE_INTEGER tm;
-    QueryPerformanceCounter(&tm);
-    return (rt_time)(tm.QuadPart * 1000 / fr.QuadPart);
-}
-
-/*
- * Set current frame to screen.
- */
-rt_void frame_to_screen(rt_ui32 *frame)
-{
-    SetDIBitsToDevice(hWndDC, 0, 0, x_res, y_res, 0, 0, 0, y_res,
-                                    frame, &DIBinfo, DIB_RGB_COLORS);
-}
-
 /******************************************************************************/
 /*******************************   EVENT-LOOP   *******************************/
 /******************************************************************************/
