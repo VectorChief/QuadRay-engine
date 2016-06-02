@@ -1138,9 +1138,9 @@
 #define EMITX(w)    EMITW(w)
 #endif /* RT_SIMD_CODE */
 
-/* ---------------------------------   P32   -------------------------------- */
+/* ------------------------------   P32, P64   ------------------------------ */
 
-#elif defined (RT_P32)
+#elif defined (RT_P32) || defined (RT_P64)
 
 #define ASM_OP0(op)             #op
 #define ASM_OP1(op, p1)         #op"  "#p1
@@ -1282,7 +1282,7 @@
 #define EMITX(w)    EMITW(w)
 #endif /* RT_SIMD_CODE */
 
-#endif /* RT_X86, RT_X32, RT_ARM, RT_A32, RT_M32, RT_P32 */
+#endif /* RT_X86, RT_X32, RT_ARM, RT_A32, RT_M32, RT_P32, RT_P64 */
 
 #endif /* OS, COMPILER, ARCH */
 

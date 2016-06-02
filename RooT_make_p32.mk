@@ -43,3 +43,7 @@ RooT:
 # make -f RooT_make_p32.mk
 
 # For 32-bit Power(7,7+,8) VSX target use (replace): -DRT_128=1+2
+
+# For 64-bit Power(7,7+,8) VSX target use (replace): -DRT_128=1+2
+# powerpc64le-linux-gnu-g++ -O2 -DRT_P64 -DRT_POINTER=64 -DRT_ENDIAN=0
+# rename produced binary to RooT.p64_32 or adjust the build command above.
