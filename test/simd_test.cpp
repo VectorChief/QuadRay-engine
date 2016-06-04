@@ -43,14 +43,41 @@
 /***************************   VARS, FUNCS, TYPES   ***************************/
 /******************************************************************************/
 
+#if (RT_POINTER - RT_ADDRESS) != 0
+
+#include <sys/mman.h>
+
+#endif /* (RT_POINTER - RT_ADDRESS) */
+
+static
+rt_char *s_ptr = (rt_char *)0x0000000040000000;
+
 /*
  * Allocate memory from system heap.
+ * Not thread-safe due to common static ptr.
  */
 static
 rt_pntr sys_alloc(rt_size size)
 {
-    /* consider using mmap/munmap with MAP_32BIT to limit address range */
+#if (RT_POINTER - RT_ADDRESS) != 0
+
+    rt_pntr ptr = mmap(s_ptr, size, PROT_READ | PROT_WRITE,
+                  MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
+    /* advance with page-size granularity */
+    s_ptr += ((size + 4095) / 4096) * 4096;
+
+    /* loop around 1GB boundary MAP_32BIT */
+    if (s_ptr >= (rt_char *)0x0000000080000000)
+    {
+        s_ptr  = (rt_char *)0x0000000040000000;
+    }
+
+#else /* (RT_POINTER - RT_ADDRESS) */
+
     rt_pntr ptr = malloc(size);
+
+#endif /* (RT_POINTER - RT_ADDRESS) */
 
 #if (RT_POINTER - RT_ADDRESS) != 0 && RT_DEBUG >= 1
 
@@ -62,7 +89,7 @@ rt_pntr sys_alloc(rt_size size)
 
     if ((rt_full)ptr > (0xFFFFFFFF - size))
     {
-        RT_LOGI("address exceeded allowed range, exiting.\n");
+        RT_LOGE("address exceeded allowed range, exiting...");
         exit(EXIT_FAILURE);
     }
 
@@ -77,8 +104,15 @@ rt_pntr sys_alloc(rt_size size)
 static
 rt_void sys_free(rt_pntr ptr, rt_size size)
 {
-    /* consider using mmap/munmap with MAP_32BIT to limit address range */
+#if (RT_POINTER - RT_ADDRESS) != 0
+
+    munmap(ptr, size);
+
+#else /* (RT_POINTER - RT_ADDRESS) */
+
     free(ptr);
+
+#endif /* (RT_POINTER - RT_ADDRESS) */
 
 #if (RT_POINTER - RT_ADDRESS) != 0 && RT_DEBUG >= 1
 
