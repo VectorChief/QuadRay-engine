@@ -958,9 +958,9 @@
 
 #endif /* RT_SIMD_FAST_FCTRL */
 
-/* ---------------------------------   M32   -------------------------------- */
+/* ------------------------------   M32, M64   ------------------------------ */
 
-#elif defined (RT_M32)
+#elif defined (RT_M32) || defined (RT_M64)
 
 #define ASM_OP0(op)             #op
 #define ASM_OP1(op, p1)         #op"  "#p1
@@ -1282,7 +1282,7 @@
 #define EMITX(w)    EMITW(w)
 #endif /* RT_SIMD_CODE */
 
-#endif /* RT_X86, RT_X32, RT_ARM, RT_A32, RT_M32, RT_P32, RT_P64 */
+#endif /* RT_X86, RT_X32, RT_ARM, RT_A32, RT_M32, RT_M64, RT_P32, RT_P64 */
 
 #endif /* OS, COMPILER, ARCH */
 
