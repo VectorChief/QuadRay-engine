@@ -26,25 +26,22 @@
 #if   defined (RT_X86)
 #undef RT_RTARCH_X86_128_H
 #include "rtarch_x86_128.h"
-#elif defined (RT_X32)
+#elif defined (RT_X32) || defined (RT_X64)
 #undef RT_RTARCH_X32_128_H
 #include "rtarch_x32_128.h"
 #elif defined (RT_ARM)
 #undef RT_RTARCH_ARM_128_H
 #include "rtarch_arm_128.h"
-#elif defined (RT_A32)
+#elif defined (RT_A32) || defined (RT_A64)
 #undef RT_RTARCH_A32_128_H
 #include "rtarch_a32_128.h"
-#elif defined (RT_M32)
+#elif defined (RT_M32) || defined (RT_M64)
 #undef RT_RTARCH_M32_128_H
 #include "rtarch_m32_128.h"
-#elif defined (RT_P32)
+#elif defined (RT_P32) || defined (RT_P64)
 #undef RT_RTARCH_P32_128_H
 #include "rtarch_p32_128.h"
-#elif defined (RT_P64)
-#undef RT_RTARCH_P32_128_H
-#include "rtarch_p32_128.h"
-#endif /* RT_X86, RT_X32, RT_ARM, RT_A32, RT_M32, RT_P32, RT_P64 */
+#endif /* RT_X86, RT_X32/X64, RT_ARM, RT_A32/A64, RT_M32/M64, RT_P32/P64 */
 
 /*
  * Global pointer tables

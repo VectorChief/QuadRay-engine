@@ -26,22 +26,22 @@
 #if   defined (RT_X86)
 #undef RT_RTARCH_X86_128_H
 #include "rtarch_x86_128.h"
-#elif defined (RT_X32)
+#elif defined (RT_X32) || defined (RT_X64)
 #undef RT_RTARCH_X32_128_H
 #include "rtarch_x32_128.h"
 #elif defined (RT_ARM)
 #undef RT_RTARCH_ARM_128_H
 #include "rtarch_arm_128.h"
-#elif defined (RT_A32)
-#error "AArch64 doesn't have SIMD variants, \
+#elif defined (RT_A32) || defined (RT_A64)
+#error "AArch64 doesn't have SIMD variant 4, \
 exclude this file from compilation"
-#elif defined (RT_M32)
-#error "mipsMSA doesn't have SIMD variants, \
+#elif defined (RT_M32) || defined (RT_M64)
+#error "mipsMSA doesn't have SIMD variant 4, \
 exclude this file from compilation"
-#elif defined (RT_P32)
-#error "AltiVec doesn't have SIMD variants, \
+#elif defined (RT_P32) || defined (RT_P64)
+#error "AltiVec doesn't have SIMD variant 4, \
 exclude this file from compilation"
-#endif /* RT_X86, RT_X32, RT_ARM, RT_A32, RT_M32, RT_P32 */
+#endif /* RT_X86, RT_X32/X64, RT_ARM, RT_A32/A64, RT_M32/M64, RT_P32/P64 */
 
 /*
  * Global pointer tables

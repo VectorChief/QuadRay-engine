@@ -34,13 +34,13 @@ LIB_LIST =                              \
 
 RooT:
 	x86_64-linux-gnu-g++ -O3 -g \
-        -DRT_LINUX -DRT_X32 -DRT_128=1+2+4 -DRT_256=1+2 \
+        -DRT_LINUX -DRT_X64 -DRT_128=1+2+4 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x64_32
 
-# For actual x32 target use: -mx32, -DRT_POINTER=32 (replace),
+# For actual x32 target use: -mx32 -DRT_X32 -DRT_POINTER=32 (replace),
 # rename produced binary to RooT.x32 or adjust the build command above.
 # Experimental 64/32-bit hybrid support is enabled by default for compatibility
 # with wider spectrum of toolchains/libraries in the standard x64 target.

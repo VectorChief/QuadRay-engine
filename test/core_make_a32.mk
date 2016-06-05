@@ -27,7 +27,7 @@ LIB_LIST =                              \
 
 core_test:
 	aarch64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_A32 -DRT_128=1 \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -42,7 +42,7 @@ core_test:
 # qemu-aarch64 -cpu cortex-a57 core_test.a64_32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
-# For actual a32 target use: -mabi=ilp32, -DRT_POINTER=32 (replace),
+# For actual a32 target use: -mabi=ilp32 -DRT_A32 -DRT_POINTER=32 (replace),
 # rename produced binary to core_test.a32 or adjust the build command above.
 # Experimental 64/32-bit hybrid support is enabled by default for compatibility
 # with wider spectrum of toolchains/libraries in the standard a64 target.

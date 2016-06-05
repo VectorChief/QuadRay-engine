@@ -30,7 +30,7 @@ LIB_LIST =                              \
 
 RooT:
 	aarch64-linux-gnu-g++ -O3 -g \
-        -DRT_LINUX -DRT_A32 -DRT_128=1 \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -39,9 +39,9 @@ RooT:
 # Prerequisites for the build:
 # (cross-)compiler for AArch64 is installed and in the PATH variable.
 #
-# make -f RooT_make_a64_32.mk
+# make -f RooT_make_a32.mk
 
-# For actual a32 target use: -mabi=ilp32, -DRT_POINTER=32 (replace),
+# For actual a32 target use: -mabi=ilp32 -DRT_A32 -DRT_POINTER=32 (replace),
 # rename produced binary to RooT.a32 or adjust the build command above.
 # Experimental 64/32-bit hybrid support is enabled by default for compatibility
 # with wider spectrum of toolchains/libraries in the standard a64 target.
