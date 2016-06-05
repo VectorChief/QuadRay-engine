@@ -3873,10 +3873,10 @@ rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
 
     rt_ui32 pow = s_mat->l_pow[0], exp = 0;
 
-    if (s_mat->pow_p[0] != (rt_ui32)RT_NULL)
+    if (s_mat->pow_p[0] != RT_NULL)
     {
         exp = pow >> 29;
-        s_mat->pow_p[0] = (rt_ui32)(rt_word)t_pow[exp];
+        s_mat->pow_p[0] = t_pow[exp];
         return;
     }
 
@@ -3913,7 +3913,7 @@ rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
     }
 
     s_mat->l_pow[0] = pow | (exp << 29);
-    s_mat->pow_p[0] = (rt_ui32)(rt_word)t_pow[exp];
+    s_mat->pow_p[0] = t_pow[exp];
 }
 
 /*
