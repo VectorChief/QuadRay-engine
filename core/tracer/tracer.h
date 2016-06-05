@@ -217,36 +217,36 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     /* specular entry points */
 
     rt_pntr pow_e0;
-#define inf_POW_E0          DP(Q*0x100+0x058*P+E)
+#define inf_POW_E0          DP(Q*0x100+0x058*P)
 
     rt_pntr pow_e1;
-#define inf_POW_E1          DP(Q*0x100+0x05C*P+E)
+#define inf_POW_E1          DP(Q*0x100+0x05C*P)
 
     rt_pntr pow_e2;
-#define inf_POW_E2          DP(Q*0x100+0x060*P+E)
+#define inf_POW_E2          DP(Q*0x100+0x060*P)
 
     rt_pntr pow_e3;
-#define inf_POW_E3          DP(Q*0x100+0x064*P+E)
+#define inf_POW_E3          DP(Q*0x100+0x064*P)
 
     rt_pntr pow_e4;
-#define inf_POW_E4          DP(Q*0x100+0x068*P+E)
+#define inf_POW_E4          DP(Q*0x100+0x068*P)
 
     rt_pntr pow_en;
-#define inf_POW_EN          DP(Q*0x100+0x06C*P+E)
+#define inf_POW_EN          DP(Q*0x100+0x06C*P)
 
     /* surface entry points */
 
     rt_pntr xpl_p[4];
-#define inf_XPL_P(nx)       DP(Q*0x100+0x070*P+E + nx*P)
+#define inf_XPL_P(nx)       DP(Q*0x100+0x070*P + nx*P)
 
     rt_pntr xtp_p[4];
-#define inf_XTP_P(nx)       DP(Q*0x100+0x080*P+E + nx*P)
+#define inf_XTP_P(nx)       DP(Q*0x100+0x080*P + nx*P)
 
     rt_pntr xqd_p[4];
-#define inf_XQD_P(nx)       DP(Q*0x100+0x090*P+E + nx*P)
+#define inf_XQD_P(nx)       DP(Q*0x100+0x090*P + nx*P)
 
     rt_word pad12[4*6];
-#define inf_PAD12           DP(Q*0x100+0x0A0*P+E)
+#define inf_PAD12           DP(Q*0x100+0x0A0*P)
 
     /* quadric debug info */
 
@@ -544,10 +544,18 @@ struct rt_SIMD_CONTEXT
     rt_ui32 c_acc[S];
 #define ctx_C_ACC           DP(Q*0x2A0)
 
+    /* param/local ptr (64-bit) */
+
+    rt_ui64 par_p[S/4];
+#define ctx_PAR_P           DP(Q*0x2B0)
+
+    rt_ui64 loc_p[S/4];
+#define ctx_LOC_P           DP(Q*0x2B8)
+
     /* reserved area 1 */
 
-    rt_ui32 pad01[S*3];
-#define ctx_PAD01           DP(Q*0x2B0)
+    rt_ui32 pad01[S*2];
+#define ctx_PAD01           DP(Q*0x2C0)
 
     /* roots sorting masks */
 

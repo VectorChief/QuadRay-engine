@@ -267,16 +267,16 @@
 #define CHECK_SHAD(lb) /* destroys Reax, Xmm7 */                            \
         CHECK_FLAG(lb, PARAM, RT_FLAG_SHAD)                                 \
         CHECK_PROP(lb##_lgt, RT_PROP_LIGHT)                                 \
-        jmpxx_mm(Mecx, ctx_LOCAL(PTR))                                      \
+        jmpxx_mm(Mecx, ctx_LOC_P)                                           \
     LBL(lb##_lgt)                                                           \
         CHECK_PROP(lb##_trn, RT_PROP_TRANSP)                                \
-        jmpxx_mm(Mecx, ctx_LOCAL(PTR))                                      \
+        jmpxx_mm(Mecx, ctx_LOC_P)                                           \
     LBL(lb##_trn)                                                           \
         movpx_ld(Xmm7, Mecx, ctx_C_BUF(0))                                  \
         orrpx_ld(Xmm7, Mecx, ctx_TMASK(0))                                  \
         movpx_st(Xmm7, Mecx, ctx_C_BUF(0))                                  \
         CHECK_MASK(OO_out, FULL, Xmm7)                                      \
-        jmpxx_mm(Mecx, ctx_LOCAL(PTR))                                      \
+        jmpxx_mm(Mecx, ctx_LOC_P)                                           \
     LBL(lb)
 
 /*
@@ -541,8 +541,8 @@
  * passed via context's local FLG field.
  */
 #define SUBROUTINE(lb, to) /* destroys Reax */                              \
-        adrxx_lb(lb)     /* load lb to Reax */                              \
-        movxx_st(Reax, Mecx, ctx_LOCAL(PTR))                                \
+        label_st(lb, /* -> Reax */                                          \
+        /* Reax -> */  Mecx, ctx_LOC_P)                                     \
         jmpxx_lb(to)                                                        \
     LBL(lb)
 
@@ -1487,7 +1487,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_CLIPPING_CUSTOM */
 
-        jmpxx_mm(Mecx, ctx_LOCAL(PTR))
+        jmpxx_mm(Mecx, ctx_LOC_P)
 
 /******************************************************************************/
 /********************************   MATERIAL   ********************************/
@@ -1758,8 +1758,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
         movxx_st(Redi, Mecx, ctx_PARAM(LST))    /* save light/shadow list */
         movxx_st(Rebx, Mecx, ctx_PARAM(OBJ))    /* originating surface */
-        adrxx_lb(LT_ret)                        /* load LT_ret to Reax */
-        movxx_st(Reax, Mecx, ctx_PARAM(PTR))    /* return ptr */
+        label_st(LT_ret, /* -> Reax */
+        /* Reax -> */  Mecx, ctx_PAR_P)         /* return ptr */
         movpx_st(Xmm0, Mecx, ctx_WMASK)         /* tmask -> WMASK */
 
         movpx_ld(Xmm0, Medx, lgt_T_MAX)         /* tmp_v <- T_MAX */
@@ -1933,23 +1933,23 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_PW_ptr)
 
-        adrxx_lb(LT_pw4)                        /* load LT_pw4 to Reax */
-        movxx_st(Reax, Mebp, inf_POW_E4)
+        label_st(LT_pw4, /* -> Reax */
+        /* Reax -> */  Mebp, inf_POW_E4)
 
-        adrxx_lb(LT_pw3)                        /* load LT_pw3 to Reax */
-        movxx_st(Reax, Mebp, inf_POW_E3)
+        label_st(LT_pw3, /* -> Reax */
+        /* Reax -> */  Mebp, inf_POW_E3)
 
-        adrxx_lb(LT_pw2)                        /* load LT_pw2 to Reax */
-        movxx_st(Reax, Mebp, inf_POW_E2)
+        label_st(LT_pw2, /* -> Reax */
+        /* Reax -> */  Mebp, inf_POW_E2)
 
-        adrxx_lb(LT_pw1)                        /* load LT_pw1 to Reax */
-        movxx_st(Reax, Mebp, inf_POW_E1)
+        label_st(LT_pw1, /* -> Reax */
+        /* Reax -> */  Mebp, inf_POW_E1)
 
-        adrxx_lb(LT_pw0)                        /* load LT_pw0 to Reax */
-        movxx_st(Reax, Mebp, inf_POW_E0)
+        label_st(LT_pw0, /* -> Reax */
+        /* Reax -> */  Mebp, inf_POW_E0)
 
-        adrxx_lb(LT_pwn)                        /* load LT_pwn to Reax */
-        movxx_st(Reax, Mebp, inf_POW_EN)
+        label_st(LT_pwn, /* -> Reax */
+        /* Reax -> */  Mebp, inf_POW_EN)
 
         jmpxx_lb(fetch_end)
 
@@ -2216,8 +2216,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
         movxx_st(Redx, Mecx, ctx_PARAM(LST))    /* save material */
         movxx_st(Rebx, Mecx, ctx_PARAM(OBJ))    /* originating surface */
-        adrxx_lb(RF_ret)                        /* load RF_ret to Reax */
-        movxx_st(Reax, Mecx, ctx_PARAM(PTR))    /* return pointer */
+        label_st(RF_ret, /* -> Reax */
+        /* Reax -> */  Mecx, ctx_PAR_P)         /* return pointer */
         movpx_st(Xmm0, Mecx, ctx_WMASK)         /* tmask -> WMASK */
 
         movxx_ld(Redx, Mebp, inf_CAM)
@@ -2400,8 +2400,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
         movxx_st(Redx, Mecx, ctx_PARAM(LST))    /* save material */
         movxx_st(Rebx, Mecx, ctx_PARAM(OBJ))    /* originating surface */
-        adrxx_lb(TR_ret)                        /* load TR_ret to Reax */
-        movxx_st(Reax, Mecx, ctx_PARAM(PTR))    /* return pointer */
+        label_st(TR_ret, /* -> Reax */
+        /* Reax -> */  Mecx, ctx_PAR_P)         /* return pointer */
         movpx_st(Xmm0, Mecx, ctx_WMASK)         /* tmask -> WMASK */
 
         movxx_ld(Redx, Mebp, inf_CAM)
@@ -2475,7 +2475,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movxx_ld(Resi, Mecx, ctx_LOCAL(LST))
 
-        jmpxx_mm(Mecx, ctx_LOCAL(PTR))
+        jmpxx_mm(Mecx, ctx_LOC_P)
 
 /******************************************************************************/
 /**********************************   ARRAY   *********************************/
@@ -2592,8 +2592,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_PL_ptr)
 
-        adrxx_lb(PL_ptr)                        /* load PL_ptr to Reax */
-        movxx_st(Reax, Mebp, inf_XPL_P(PTR))
+        label_st(PL_ptr, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XPL_P(PTR))
         jmpxx_lb(fetch_TP_ptr)
 
     LBL(PL_ptr)
@@ -2675,8 +2675,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
     LBL(fetch_PL_mat)
 
-        adrxx_lb(PL_mat)                        /* load PL_mat to Reax */
-        movxx_st(Reax, Mebp, inf_XPL_P(SRF))
+        label_st(PL_mat, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XPL_P(SRF))
         jmpxx_lb(fetch_TP_mat)
 
     LBL(PL_mat)
@@ -2740,8 +2740,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_PL_clp)
 
-        adrxx_lb(PL_clp)                        /* load PL_clp to Reax */
-        movxx_st(Reax, Mebp, inf_XPL_P(CLP))
+        label_st(PL_clp, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XPL_P(CLP))
         jmpxx_lb(fetch_TP_clp)
 
     LBL(PL_clp)
@@ -2764,8 +2764,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_TP_ptr)
 
-        adrxx_lb(TP_ptr)                        /* load TP_ptr to Reax */
-        movxx_st(Reax, Mebp, inf_XTP_P(PTR))
+        label_st(TP_ptr, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XTP_P(PTR))
         jmpxx_lb(fetch_QD_ptr)
 
     LBL(TP_ptr)
@@ -2834,8 +2834,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
     LBL(fetch_TP_mat)
 
-        adrxx_lb(TP_mat)                        /* load TP_mat to Reax */
-        movxx_st(Reax, Mebp, inf_XTP_P(SRF))
+        label_st(TP_mat, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XTP_P(SRF))
         jmpxx_lb(fetch_QD_mat)
 
     LBL(TP_mat)
@@ -2901,8 +2901,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_TP_clp)
 
-        adrxx_lb(TP_clp)                        /* load TP_clp to Reax */
-        movxx_st(Reax, Mebp, inf_XTP_P(CLP))
+        label_st(TP_clp, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XTP_P(CLP))
         jmpxx_lb(fetch_QD_clp)
 
     LBL(TP_clp)
@@ -2944,8 +2944,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_QD_ptr)
 
-        adrxx_lb(QD_ptr)                        /* load QD_ptr to Reax */
-        movxx_st(Reax, Mebp, inf_XQD_P(PTR))
+        label_st(QD_ptr, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XQD_P(PTR))
         jmpxx_lb(fetch_mat)
 
     LBL(QD_ptr)
@@ -3410,8 +3410,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
     LBL(fetch_QD_mat)
 
-        adrxx_lb(QD_mat)                        /* load QD_mat to Reax */
-        movxx_st(Reax, Mebp, inf_XQD_P(SRF))
+        label_st(QD_mat, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XQD_P(SRF))
         jmpxx_lb(fetch_clp)
 
     LBL(QD_mat)
@@ -3481,8 +3481,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_QD_clp)
 
-        adrxx_lb(QD_clp)                        /* load QD_clp to Reax */
-        movxx_st(Reax, Mebp, inf_XQD_P(CLP))
+        label_st(QD_clp, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XQD_P(CLP))
         jmpxx_lb(fetch_pow)
 
     LBL(QD_clp)
@@ -3541,7 +3541,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(OO_out)
 
-        jmpxx_mm(Mecx, ctx_PARAM(PTR))
+        jmpxx_mm(Mecx, ctx_PAR_P)
 
 /******************************************************************************/
 /********************************   HOR SCAN   ********************************/
@@ -3549,8 +3549,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(XX_set)
 
-        adrxx_lb(XX_end)                        /* load XX_end to Reax */
-        movxx_st(Reax, Mecx, ctx_PARAM(PTR))
+        label_st(XX_end, /* -> Reax */
+        /* Reax -> */  Mecx, ctx_PAR_P)
         jmpxx_lb(XX_ret)
 
     LBL(XX_end)
