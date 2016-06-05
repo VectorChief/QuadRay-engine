@@ -884,14 +884,14 @@ struct rt_SIMD_SURFACE
 
     /* misc pointers */
 
-    rt_pntr mat_p[4];
-#define srf_MAT_P(nx)       DP(Q*0x240+0x000*P+E + nx*P)
-
     rt_pntr srf_p[4];
-#define srf_SRF_P(nx)       DP(Q*0x240+0x010*P+E + nx*P)
+#define srf_SRF_P(nx)       DP(Q*0x240+0x000*P+E + nx*P)
 
     rt_pntr msc_p[4];
-#define srf_MSC_P(nx)       DP(Q*0x240+0x020*P+E + nx*P)
+#define srf_MSC_P(nx)       DP(Q*0x240+0x010*P+E + nx*P)
+
+    rt_pntr mat_p[4];
+#define srf_MAT_P(nx)       DP(Q*0x240+0x020*P+E + nx*P)
 
     rt_pntr lst_p[4];
 #define srf_LST_P(nx)       DP(Q*0x240+0x030*P+E + nx*P)

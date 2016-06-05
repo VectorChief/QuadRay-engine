@@ -716,11 +716,6 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
     memset(s_srf, 0, ssize);
     s_srf->srf_p[3] = (rt_pntr)(rt_word)tag;
 
-    s_srf->mat_p[0];    /* outer material */
-    s_srf->mat_p[1];    /* outer material props */
-    s_srf->mat_p[2];    /* inner material */
-    s_srf->mat_p[3];    /* inner material props */
-
     s_srf->srf_p[0];    /* surf ptr, filled in update0 */
     s_srf->srf_p[1];    /* norm ptr, filled in update0 */
     s_srf->srf_p[2];    /* clip ptr, filled in update0 */
@@ -730,6 +725,11 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
     s_srf->msc_p[1];    /* surf flg, filled in update0 */
     s_srf->msc_p[2];    /* custom clippers */
     s_srf->msc_p[3];    /* trnode's simd ptr */
+
+    s_srf->mat_p[0];    /* outer material */
+    s_srf->mat_p[1];    /* outer material props */
+    s_srf->mat_p[2];    /* inner material */
+    s_srf->mat_p[3];    /* inner material props */
 
     s_srf->lst_p[0];    /* outer lights/shadows */
     s_srf->lst_p[1];    /* outer surfaces for rfl/rfr */
