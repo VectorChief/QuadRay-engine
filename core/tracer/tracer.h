@@ -87,7 +87,7 @@ struct rt_SIMD_MATERIAL;
  * "mode" equal to SIMD width (4, 8) in lower
  * byte and SIMD type (1, 2, 4) in higher byte.
  */
-rt_si32 switch0(rt_si32 mode);
+rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 mode);
 
 /*
  * Backend's global entry point (hence 0).

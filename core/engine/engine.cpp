@@ -2554,7 +2554,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
 
     /* init rendering backend,
      * default SIMD runtime target will be chosen */
-    simd_width = switch0(0) & 0xFF;
+    simd_width = switch0(tharr[0]->s_inf, 0) & 0xFF;
     simd_quads = simd_width / 4;
 }
 
@@ -3134,7 +3134,7 @@ rt_si32 rt_Scene::set_opts(rt_si32 opts)
  */
 rt_si32 rt_Scene::set_simd(rt_si32 simd)
 {
-    simd = switch0(simd);
+    simd = switch0(tharr[0]->s_inf, simd);
 
     simd_width = simd & 0xFF;
     simd_quads = simd_width / 4;

@@ -3978,8 +3978,6 @@ static
 rt_si32 s_type[S+1];
 static
 rt_si32 s_mode = 0;
-static
-rt_SIMD_INFOX s_inf_loc;
 
 /*
  * Backend's global entry point (hence 0).
@@ -3987,11 +3985,8 @@ rt_SIMD_INFOX s_inf_loc;
  * "mode" equal to SIMD width (4, 8) in lower
  * byte and SIMD type (1, 2, 4) in higher byte.
  */
-rt_si32 switch0(rt_si32 mode)
+rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 mode)
 {
-    rt_SIMD_INFOX *s_inf = &s_inf_loc;
-
-    memset(s_inf, 0, sizeof(rt_SIMD_INFOX));
     memset(s_type, 0, sizeof(s_type));
 
 #if (RT_POINTER - RT_ADDRESS) != 0 && RT_DEBUG >= 1
