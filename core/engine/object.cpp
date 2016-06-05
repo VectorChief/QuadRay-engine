@@ -3963,14 +3963,21 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
 
     this->sd  = sd;
     this->mat = mat;
-    otx.x_dim = otx.y_dim = -1;
-    /* save original texture data */
-    if (mat->tex.x_dim == 0 && mat->tex.y_dim == 0)
-    {
-        otx = mat->tex;
-    }
-    resolve_texture(rg);
+
     rt_TEX *tx = &mat->tex;
+    otx.x_dim = otx.y_dim = -1;
+
+    /* save original texture data */
+    if (tx->x_dim == 0 && tx->y_dim == 0
+#if (RT_POINTER - RT_ADDRESS) != 0
+    || (rt_full)tx->ptex > (0xFFFFFFFF - tx->x_dim * tx->y_dim * 4)
+#endif /* (RT_POINTER - RT_ADDRESS) */
+       )
+    {
+        otx = *tx;
+    }
+
+    resolve_texture(rg);
 
     props  = 0;
     props |= mat->tag == RT_MAT_LIGHT ? RT_PROP_LIGHT : RT_PROP_NORMAL;
@@ -4118,7 +4125,14 @@ rt_void rt_Material::resolve_texture(rt_Registry *rg)
 
 #if (RT_POINTER - RT_ADDRESS) != 0
 
-    if ((rt_full)tx->ptex > (0xFFFFFFFF - (tx->x_dim * tx->y_dim * 4)))
+    if ((rt_full)tx->ptex > (0xFFFFFFFF - tx->x_dim * tx->y_dim * 4))
+    {
+        rt_pntr pnew = rg->alloc(tx->x_dim * tx->y_dim * 4, RT_ALIGN);
+        memcpy(pnew, tx->ptex, tx->x_dim * tx->y_dim * 4);
+        tx->ptex = pnew;
+    }
+
+    if ((rt_full)tx->ptex > (0xFFFFFFFF - tx->x_dim * tx->y_dim * 4))
     {
         throw rt_Exception("address exceeded allowed range in material");
     }
@@ -4131,10 +4145,12 @@ rt_void rt_Material::resolve_texture(rt_Registry *rg)
  */
 rt_Material::~rt_Material()
 {
+    rt_TEX *tx = &mat->tex;
+
     /* restore original texture data */
-    if (otx.x_dim == 0 && otx.y_dim == 0)
+    if (otx.x_dim != -1 && otx.y_dim != -1)
     {
-        mat->tex = otx;
+        *tx = otx;
     }
 }
 
