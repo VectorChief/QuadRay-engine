@@ -154,7 +154,15 @@
 
 #define movlb_ld(lb)/*Reax*/    ASM_BEG ASM_OP2(mov, eax, lb) ASM_END
 #define movlb_st(lb)/*Reax*/    ASM_BEG ASM_OP2(mov, lb, eax) ASM_END
-#define label_ld(lb)/*Reax*/    ASM_BEG ASM_OP2(lea, eax, lb) ASM_END
+
+#define label_ld(lb)/*Reax*/                                                \
+        ASM_BEG ASM_OP2(lea, eax, lb) ASM_END
+
+#define label_st(lb, RM, DP)                                                \
+        label_ld(lb)/*Reax*/                                                \
+        EMITB(0x89)                                                         \
+        MRM(0x00,    MOD(RM), REG(RM))                                      \
+        AUX(SIB(RM), CMD(DP), EMPTY)
 
 /* RT_SIMD_FLUSH_ZERO when enabled changes the default behavior
  * of ASM_ENTER/ASM_LEAVE/ROUND* to corresponding _F version */
@@ -302,7 +310,15 @@
 
 #define movlb_ld(lb)/*Reax*/    ASM_BEG ASM_OP2(movl, %%eax, lb) ASM_END
 #define movlb_st(lb)/*Reax*/    ASM_BEG ASM_OP2(movl, lb, %%eax) ASM_END
-#define label_ld(lb)/*Reax*/    ASM_BEG ASM_OP2(leal, %%eax, lb) ASM_END
+
+#define label_ld(lb)/*Reax*/                                                \
+        ASM_BEG ASM_OP2(leal, %%eax, lb) ASM_END
+
+#define label_st(lb, RM, DP)                                                \
+        label_ld(lb)/*Reax*/                                                \
+        EMITB(0x89)                                                         \
+        MRM(0x00,    MOD(RM), REG(RM))                                      \
+        AUX(SIB(RM), CMD(DP), EMPTY)
 
 /* RT_SIMD_FLUSH_ZERO when enabled changes the default behavior
  * of ASM_ENTER/ASM_LEAVE/ROUND* to corresponding _F version */
@@ -653,7 +669,14 @@
 
 #define movlb_ld(lb)/*Reax*/    ASM_BEG ASM_OP2(mov, r0, lb) ASM_END
 #define movlb_st(lb)/*Reax*/    ASM_BEG ASM_OP2(mov, lb, r0) ASM_END
-#define label_ld(lb)/*Reax*/    ASM_BEG ASM_OP2(adr, r0, lb) ASM_END
+
+#define label_ld(lb)/*Reax*/                                                \
+        ASM_BEG ASM_OP2(adr, r0, lb) ASM_END
+
+#define label_st(lb, RM, DP)                                                \
+        label_ld(lb)/*Reax*/                                                \
+        AUW(SIB(RM),  EMPTY,  EMPTY,    MOD(RM), VAL(DP), C1(DP), EMPTY2)   \
+        EMITW(0xE5800000 | MDM(Teax,    MOD(RM), VAL(DP), B1(DP), P1(DP)))
 
 /* RT_SIMD_FLUSH_ZERO when enabled changes the default behavior
  * of ASM_ENTER/ASM_LEAVE/ROUND* to corresponding _F version */
