@@ -248,6 +248,8 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_word pad12[4*6];
 #define inf_PAD12           DP(Q*0x100+0x0A0*P)
 
+#if RT_DEBUG >= 1
+
     /* quadric debug info */
 
     rt_real wmask[S];
@@ -363,6 +365,7 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_word q_cnt;
 #define inf_Q_CNT           DP(Q*0x300+0x104*P+E)
 
+#endif /* RT_DEBUG */
 };
 
 /******************************************************************************/
