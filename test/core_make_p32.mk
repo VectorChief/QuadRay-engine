@@ -52,3 +52,9 @@ core_test:
 # rename produced binary to core_test.p64_32 or adjust the build command above.
 # qemu-ppc64le -cpu POWER7 core_test.p64_32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+
+# For 64-bit Power(7,7+,8) VSX big-endian target use (replace): -DRT_128=2
+# powerpc64-linux-gnu-g++ -O2 -DRT_P64 -DRT_POINTER=64 -DRT_ENDIAN=1
+# rename produced binary to core_test.p64_32 or adjust the build command above.
+# qemu-ppc64 -cpu POWER7 core_test.p64_32 -i -a
+# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
