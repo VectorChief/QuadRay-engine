@@ -358,10 +358,10 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
 
 
     rt_word q_dbg;
-#define inf_Q_DBG           DP(Q*0x300+0x100*P)
+#define inf_Q_DBG           DP(Q*0x300+0x100*P+E)
 
     rt_word q_cnt;
-#define inf_Q_CNT           DP(Q*0x300+0x104*P)
+#define inf_Q_CNT           DP(Q*0x300+0x104*P+E)
 
 };
 
