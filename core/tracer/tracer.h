@@ -156,30 +156,30 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
 #define inf_PAD10           DP(Q*0x100+0x00C*P+E)
 
 
-    rt_word frm_w;
-#define inf_FRM_W           DP(Q*0x100+0x010*P+E)
-
-    rt_word frm_h;
-#define inf_FRM_H           DP(Q*0x100+0x014*P+E)
-
-    rt_cell frm_row;
-#define inf_FRM_ROW         DP(Q*0x100+0x018*P+E)
-
-    rt_pntr frame;
-#define inf_FRAME           DP(Q*0x100+0x01C*P+E)
-
-
     rt_cell index;
-#define inf_INDEX           DP(Q*0x100+0x020*P+E)
+#define inf_INDEX           DP(Q*0x100+0x010*P+E)
 
     rt_word thnum;
-#define inf_THNUM           DP(Q*0x100+0x024*P+E)
+#define inf_THNUM           DP(Q*0x100+0x014*P+E)
 
     rt_word depth;
-#define inf_DEPTH           DP(Q*0x100+0x028*P+E)
+#define inf_DEPTH           DP(Q*0x100+0x018*P+E)
 
     rt_cell fsaa;
-#define inf_FSAA            DP(Q*0x100+0x02C*P+E)
+#define inf_FSAA            DP(Q*0x100+0x01C*P+E)
+
+
+    rt_word frm_w;
+#define inf_FRM_W           DP(Q*0x100+0x020*P+E)
+
+    rt_word frm_h;
+#define inf_FRM_H           DP(Q*0x100+0x024*P+E)
+
+    rt_cell frm_row;
+#define inf_FRM_ROW         DP(Q*0x100+0x028*P+E)
+
+    rt_pntr frame;
+#define inf_FRAME           DP(Q*0x100+0x02C*P+E)
 
 
     rt_word tile_w;
