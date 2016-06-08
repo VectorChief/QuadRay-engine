@@ -3970,7 +3970,7 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     /* save original texture data */
     if (tx->x_dim == 0 && tx->y_dim == 0
 #if (RT_POINTER - RT_ADDRESS) != 0
-    || (rt_full)tx->ptex > (rt_full)(0xFFFFFFFF - tx->x_dim * tx->y_dim * 4)
+    || (rt_full)tx->ptex >= (rt_full)(0x80000000 - tx->x_dim * tx->y_dim * 4)
 #endif /* (RT_POINTER - RT_ADDRESS) */
        )
     {
@@ -4125,14 +4125,14 @@ rt_void rt_Material::resolve_texture(rt_Registry *rg)
 
 #if (RT_POINTER - RT_ADDRESS) != 0
 
-    if ((rt_full)tx->ptex > (rt_full)(0xFFFFFFFF - tx->x_dim * tx->y_dim * 4))
+    if ((rt_full)tx->ptex >= (rt_full)(0x80000000 - tx->x_dim * tx->y_dim * 4))
     {
         rt_pntr pnew = rg->alloc(tx->x_dim * tx->y_dim * 4, RT_ALIGN);
         memcpy(pnew, tx->ptex, tx->x_dim * tx->y_dim * 4);
         tx->ptex = pnew;
     }
 
-    if ((rt_full)tx->ptex > (rt_full)(0xFFFFFFFF - tx->x_dim * tx->y_dim * 4))
+    if ((rt_full)tx->ptex >= (rt_full)(0x80000000 - tx->x_dim * tx->y_dim * 4))
     {
         throw rt_Exception("address exceeded allowed range in material");
     }

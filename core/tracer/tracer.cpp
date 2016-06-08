@@ -4000,7 +4000,7 @@ rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 mode)
 
 #if (RT_POINTER - RT_ADDRESS) != 0
 
-    if ((rt_full)s_inf > (rt_full)(0xFFFFFFFF - sizeof(rt_SIMD_INFOX)))
+    if ((rt_full)s_inf >= (rt_full)(0x80000000 - sizeof(rt_SIMD_INFOX)))
     {
         throw rt_Exception("address exceeded allowed range in switch0");
     }

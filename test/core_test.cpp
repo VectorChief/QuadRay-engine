@@ -92,7 +92,7 @@ rt_pntr sys_alloc(rt_size size)
 
 #if (RT_POINTER - RT_ADDRESS) != 0
 
-    if ((rt_byte *)ptr > (rt_byte *)0xFFFFFFFF - size)
+    if ((rt_byte *)ptr >= (rt_byte *)0x80000000 - size)
     {
         throw rt_Exception("address exceeded allowed range in sys_alloc");
     }
