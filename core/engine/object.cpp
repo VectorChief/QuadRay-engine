@@ -4065,7 +4065,7 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     RT_SIMD_SET(s_mat->l_dff, mat->lgt[0]);
     RT_SIMD_SET(s_mat->l_spc, mat->lgt[1]);
     RT_SIMD_SET(s_mat->l_pow, (rt_ui32)mat->lgt[2]);
-    RT_SIMD_SET(s_mat->pow_p, RT_NULL);
+    s_mat->pow_p[0] = RT_NULL;
 
     RT_SIMD_SET(s_mat->c_rfl, mat->prp[0]);
     RT_SIMD_SET(s_mat->c_trn, mat->prp[1]);
