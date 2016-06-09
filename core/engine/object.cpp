@@ -716,6 +716,8 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
     memset(s_srf, 0, ssize);
     s_srf->srf_p[3] = (rt_pntr)(rt_word)tag;
 
+#if 0 /* surface's misc pointers description */
+
     s_srf->srf_p[0];    /* surf ptr, filled in update0 */
     s_srf->srf_p[1];    /* norm ptr, filled in update0 */
     s_srf->srf_p[2];    /* clip ptr, filled in update0 */
@@ -735,6 +737,8 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
     s_srf->lst_p[1];    /* outer surfaces for rfl/rfr */
     s_srf->lst_p[2];    /* inner lights/shadows */
     s_srf->lst_p[3];    /* inner surfaces for rfl/rfr */
+
+#endif /* surface's misc pointers description */
 
     RT_SIMD_SET(s_srf->sbase, 0x00000000);
     RT_SIMD_SET(s_srf->smask, 0x80000000);
