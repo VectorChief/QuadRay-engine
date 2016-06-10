@@ -36,3 +36,8 @@ core_test:
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.x86
+
+# Prerequisites for the build:
+# native/multilib-compiler for x86/x86_64 is installed and in the PATH variable.
+#
+# make -f core_make_x86.mk

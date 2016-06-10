@@ -48,11 +48,3 @@ RooT:
 # mips-img-linux-gnu-g++ -mips32r6 -DRT_M32=6
 
 # For MIPS32 big-endian (r5 and r6) use (replace): -EB -DRT_ENDIAN=1
-
-# For MIPS64 Release 6 target use the following options (replace):
-# mips-img-linux-gnu-g++ -mabi=64 -DRT_M64=6 -DRT_POINTER=64
-# rename produced binary to RooT.m64_32 or adjust the build command above.
-
-# For MIPS64 Release 6 big-endian target use the following options (replace):
-# mips-img-linux-gnu-g++ -EB -mabi=64 -DRT_M64=6 -DRT_POINTER=64 -DRT_ENDIAN=1
-# rename produced binary to RooT.m64_32 or adjust the build command above.

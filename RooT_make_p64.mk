@@ -18,9 +18,6 @@ SRC_LIST =                              \
         core/tracer/tracer.cpp          \
         core/tracer/tracer_128v1.cpp    \
         core/tracer/tracer_128v2.cpp    \
-        core/tracer/tracer_128v4.cpp    \
-        core/tracer/tracer_256v1.cpp    \
-        core/tracer/tracer_256v2.cpp    \
         RooT_linux.cpp
 
 LIB_PATH =
@@ -33,17 +30,20 @@ LIB_LIST =                              \
         -lpthread
 
 RooT:
-	x86_64-linux-gnu-g++ -O3 -g -mx32 \
-        -DRT_LINUX -DRT_X32 -DRT_128=1+2+4 -DRT_256=1+2 \
-        -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
+	powerpc64le-linux-gnu-g++ -O2 -g \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x32
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_32
 
 # Prerequisites for the build:
-# multilib-compiler for x86_64 is installed and in the PATH variable.
+# (cross-)compiler for PowerPC is installed and in the PATH variable.
 #
-# make -f RooT_make_x32.mk
+# make -f RooT_make_p64.mk
 
-# The 32-bit ABI hasn't been fully tested yet due to lack of available libs,
-# check out an experimental 64/32-bit hybrid mode in RooT_make_x64.mk
+# For 64-bit Power(7,7+,8) VMX/VSX big-endian target use (replace):
+# powerpc64-linux-gnu-g++ -DRT_ENDIAN=1
+
+# Experimental 64/32-bit hybrid mode is enabled by default
+# until full 64-bit support is implemented in the framework.
