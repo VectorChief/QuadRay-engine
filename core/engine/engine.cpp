@@ -450,7 +450,12 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_si32 index) :
 
     memset(s_inf, 0, sizeof(rt_SIMD_INFOX));
 
-    ASM_INIT(s_inf)
+    /* allocate root SIMD structure */
+    rt_SIMD_REGS *s_reg = (rt_SIMD_REGS *)
+            alloc(sizeof(rt_SIMD_REGS),
+                            RT_SIMD_ALIGN);
+
+    ASM_INIT(s_inf, s_reg)
 
     /* init framebuffer's dimensions and pointer */
     s_inf->frm_w   = scene->x_res;
