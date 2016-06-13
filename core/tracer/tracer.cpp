@@ -339,7 +339,8 @@
         movxx_st(Reax, Mecx, ctx_##pl(0x##pn))                              \
     LBL(lb##pn)
 
-#if RT_SIMD_QUADS == 1 && (defined RT_X86 || defined RT_X32) && RT_128 == 4
+#if RT_SIMD_QUADS == 1 \
+&& (defined RT_X86 || defined RT_X32 || defined RT_X64) && RT_128 == 4
 
 #define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0, RG unmasked frags */ \
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))                                  \
@@ -356,7 +357,8 @@
         STORE_FRAG(lb, 08, pl)                                              \
         STORE_FRAG(lb, 0C, pl)
 
-#elif RT_SIMD_QUADS == 2 && (defined RT_X86 || defined RT_X32)
+#elif RT_SIMD_QUADS == 2 \
+&& (defined RT_X86 || defined RT_X32 || defined RT_X64)
 
 #define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0, RG unmasked frags */ \
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))                                  \
