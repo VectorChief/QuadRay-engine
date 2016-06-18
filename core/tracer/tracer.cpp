@@ -904,8 +904,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* skip trnode elements from the list */
         adrxx_ld(Reax, Mebx, srf_SRF_P(PTR))
-        addxx_ri(Reax, IB(E))
-        cmjxx_mz(Oeax, PLAIN,
+        addxx_ri(Reax, IB((P-1)*4))
+        movxx_ld(Reax, Oeax, PLAIN)
+        orrxx_ld(Reax, Mebx, srf_SRF_P(PTR))
+        cmjxx_rz(Reax,
                  EQ_x, OO_end)
 
 #endif /* RT_FEAT_TRANSFORM_ARRAY */
