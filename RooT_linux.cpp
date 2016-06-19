@@ -257,9 +257,9 @@ rt_byte *s_ptr = (rt_byte *)0x40000000;
  */
 rt_pntr sys_alloc(rt_size size)
 {
-#if (RT_POINTER - RT_ADDRESS) != 0
-
     pthread_mutex_lock(&mutex);
+
+#if (RT_POINTER - RT_ADDRESS) != 0
 
     /* loop around 1GB boundary MAP_32BIT */
     if (s_ptr >= (rt_byte *)0x80000000 - size)
@@ -273,8 +273,6 @@ rt_pntr sys_alloc(rt_size size)
     /* advance with page-size granularity */
     s_ptr = (rt_byte *)ptr + ((size + 4095) / 4096) * 4096;
 
-    pthread_mutex_unlock(&mutex);
-
 #else /* (RT_POINTER - RT_ADDRESS) */
 
     rt_pntr ptr = malloc(size);
@@ -286,6 +284,8 @@ rt_pntr sys_alloc(rt_size size)
     RT_LOGI("ALLOC PTR = %016"RT_PR64"X, size = %ld\n", (rt_full)ptr, size);
 
 #endif /* (RT_POINTER - RT_ADDRESS) && RT_DEBUG */
+
+    pthread_mutex_unlock(&mutex);
 
 #if (RT_POINTER - RT_ADDRESS) != 0
 
@@ -304,6 +304,8 @@ rt_pntr sys_alloc(rt_size size)
  */
 rt_void sys_free(rt_pntr ptr, rt_size size)
 {
+    pthread_mutex_lock(&mutex);
+
 #if (RT_POINTER - RT_ADDRESS) != 0
 
     munmap(ptr, size);
@@ -319,6 +321,8 @@ rt_void sys_free(rt_pntr ptr, rt_size size)
     RT_LOGI("FREED PTR = %016"RT_PR64"X, size = %ld\n", (rt_full)ptr, size);
 
 #endif /* (RT_POINTER - RT_ADDRESS) && RT_DEBUG */
+
+    pthread_mutex_unlock(&mutex);
 }
 
 /******************************************************************************/

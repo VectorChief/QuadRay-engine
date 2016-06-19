@@ -33,6 +33,8 @@ static BITMAPINFO  DIBinfo =
     0                                   /* biClrImportant */
 };
 
+static CRITICAL_SECTION critSec;
+
 /******************************************************************************/
 /**********************************   MAIN   **********************************/
 /******************************************************************************/
@@ -157,7 +159,15 @@ rt_void frame_to_screen(rt_ui32 *frame)
  */
 rt_pntr sys_alloc(rt_size size)
 {
-    return malloc(size);
+    rt_pntr ptr;
+
+    EnterCriticalSection(&critSec);
+
+    ptr = malloc(size);
+
+    LeaveCriticalSection(&critSec);
+
+    return ptr;
 }
 
 /*
@@ -165,7 +175,11 @@ rt_pntr sys_alloc(rt_size size)
  */
 rt_void sys_free(rt_pntr ptr, rt_size size)
 {
+    EnterCriticalSection(&critSec);
+
     free(ptr);
+
+    LeaveCriticalSection(&critSec);
 }
 
 /******************************************************************************/
@@ -425,6 +439,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             SelectObject(hFrmDC, hFrm);
 
+            InitializeCriticalSection(&critSec);
+
             ret = main_init();
 
             if (ret == 0)
@@ -476,6 +492,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_DESTROY:
         {
             ret = main_term();
+
+            DeleteCriticalSection(&critSec);
 
             if (hFrmDC != NULL)
             {
