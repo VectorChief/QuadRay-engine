@@ -2533,9 +2533,9 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
 
     /* in the estimates above ("arr_num" * x) depends on whether both
      * trnode/bvnode are allowed in the list or just one of them,
-     * if the estimates are not accurate the engine would still work,
+     * if the estimates are not accurate the engine should still work,
      * though not as efficient due to unnecessary allocations per frame
-     * or unused extra memory reservation */
+     * or unused extra memory reservation resulting in larger footprint */
 
     /* init threads management functions */
     if (f_init != RT_NULL && f_term != RT_NULL
