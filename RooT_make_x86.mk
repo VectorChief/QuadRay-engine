@@ -43,4 +43,5 @@ RooT:
 # Prerequisites for the build:
 # native/multilib-compiler for x86/x86_64 is installed and in the PATH variable.
 #
+# Building RooT demo:
 # make -f RooT_make_x86.mk

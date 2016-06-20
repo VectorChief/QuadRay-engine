@@ -43,6 +43,7 @@ RooT:
 # Prerequisites for the build:
 # multilib-compiler for x86_64 is installed and in the PATH variable.
 #
+# Building RooT demo:
 # make -f RooT_make_x32.mk
 
 # The 32-bit ABI hasn't been fully tested yet due to lack of available libs,

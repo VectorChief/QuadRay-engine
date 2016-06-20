@@ -40,4 +40,7 @@ core_test:
 # Prerequisites for the build:
 # native/multilib-compiler for x86/x86_64 is installed and in the PATH variable.
 #
+# Building/running CORE test:
 # make -f core_make_x86.mk
+# ./core_test.x86 -i -a
+# (should produce antialiased (-a) images (-i) in the ../dump subfolder)

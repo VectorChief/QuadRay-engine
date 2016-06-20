@@ -41,10 +41,11 @@ RooT:
 # Prerequisites for the build:
 # (cross-)compiler for ARMv7 is installed and in the PATH variable.
 #
+# Building RooT demo:
 # make -f RooT_make_arm.mk
 
 # 0) Build flags above are intended for default "vanilla" ARMv7 target, while
-# settings suitable for specific hardware platform are given below (replace).
+# settings suitable for specific hardware platforms are given below (replace).
 # 1) Nokia N900, Maemo 5 scratchbox: -DRT_FULLSCREEN=1 -DRT_EMBED_FILEIO=1
 # 2) Raspberry Pi 2, Raspbian: arm-linux-gnueabihf-g++ -DRT_128=1+2
 # 3) Raspberry Pi 3, Raspbian: arm-linux-gnueabihf-g++ -DRT_128=1+2+4

@@ -43,6 +43,7 @@ RooT:
 # Prerequisites for the build:
 # native-compiler for x86_64 is installed and in the PATH variable.
 #
+# Building RooT demo:
 # make -f RooT_make_x64.mk
 
 # Experimental 64/32-bit hybrid mode is enabled by default

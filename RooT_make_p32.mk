@@ -40,6 +40,7 @@ RooT:
 # Prerequisites for the build:
 # (cross-)compiler for PowerPC is installed and in the PATH variable.
 #
+# Building RooT demo:
 # make -f RooT_make_p32.mk
 
 # For 32-bit Power(7,7+,8) VMX/VSX target use (replace): -DRT_128=1+2

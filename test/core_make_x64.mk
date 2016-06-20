@@ -40,7 +40,10 @@ core_test:
 # Prerequisites for the build:
 # native-compiler for x86_64 is installed and in the PATH variable.
 #
+# Building/running CORE test:
 # make -f core_make_x64.mk
+# ./core_test.x64_32 -i -a
+# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
 # Experimental 64/32-bit hybrid mode is enabled by default
 # until full 64-bit support is implemented in the framework.

@@ -38,8 +38,9 @@ RooT:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_32
 
 # Prerequisites for the build:
-# (cross-)compiler for PowerPC is installed and in the PATH variable.
+# (cross-)compiler for 64-bit Power is installed and in the PATH variable.
 #
+# Building RooT demo:
 # make -f RooT_make_p64.mk
 
 # For 64-bit Power(7,7+,8) VMX/VSX big-endian target use (replace):

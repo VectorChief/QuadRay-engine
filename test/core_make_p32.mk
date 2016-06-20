@@ -34,11 +34,19 @@ core_test:
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p32
 
+# On Ubuntu 16.04 Live CD add "universe multiverse" to "main restricted"
+# in /etc/apt/sources.list (sudo gedit /etc/apt/sources.list) then run:
+# sudo apt-get update (ignoring the old database errors in the end)
+#
 # Prerequisites for the build:
 # (cross-)compiler for PowerPC is installed and in the PATH variable.
+# sudo apt-get install g++-powerpc-linux-gnu
+#
 # Prerequisites for emulation:
 # latest QEMU(-2.5) is installed or built from source and in the PATH variable.
+# sudo apt-get install qemu
 #
+# Building/running CORE test:
 # make -f core_make_p32.mk
 # qemu-ppc -cpu G4 core_test.p32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
