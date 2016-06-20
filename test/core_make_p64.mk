@@ -40,7 +40,7 @@ core_test:
 # latest QEMU(-2.5) is built from source and in the PATH variable.
 #
 # make -f core_make_p64.mk
-# qemu-ppc64le -cpu POWER7 core_test.p64_32 -i -a
+# qemu-ppc64le -cpu POWER8 core_test.p64_32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
 # For 64-bit Power(7,7+,8) VSX big-endian target use (replace):
