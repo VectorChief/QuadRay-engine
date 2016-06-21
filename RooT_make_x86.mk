@@ -41,7 +41,11 @@ RooT:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x86
 
 # Prerequisites for the build:
-# native/multilib-compiler for x86/x86_64 is installed and in the PATH variable.
+# native/multilib-compiler for x86/x86_64 is installed and in the PATH variable,
+# note that installation of g++-multilib removes any g++ cross-compilers.
+# sudo apt-get install g++ (for x86 host)
+# sudo apt-get install g++-multilib (for x86_64 host)
 #
-# Building RooT demo:
+# Building/running RooT demo:
 # make -f RooT_make_x86.mk
+# ./RooT.x86

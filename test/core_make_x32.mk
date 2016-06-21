@@ -38,7 +38,9 @@ core_test:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.x32
 
 # Prerequisites for the build:
-# multilib-compiler for x86_64 is installed and in the PATH variable.
+# multilib-compiler for x86_64 is installed and in the PATH variable,
+# note that installation of g++-multilib removes any g++ cross-compilers.
+# sudo apt-get install g++-multilib
 #
 # Building/running CORE test:
 # make -f core_make_x32.mk

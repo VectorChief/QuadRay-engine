@@ -42,9 +42,11 @@ RooT:
 
 # Prerequisites for the build:
 # native-compiler for x86_64 is installed and in the PATH variable.
+# sudo apt-get install g++
 #
-# Building RooT demo:
+# Building/running RooT demo:
 # make -f RooT_make_x64.mk
+# ./RooT.x64_32
 
 # Experimental 64/32-bit hybrid mode is enabled by default
 # until full 64-bit support is implemented in the framework.

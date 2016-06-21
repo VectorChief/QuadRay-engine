@@ -41,10 +41,13 @@ RooT:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x32
 
 # Prerequisites for the build:
-# multilib-compiler for x86_64 is installed and in the PATH variable.
+# multilib-compiler for x86_64 is installed and in the PATH variable,
+# note that installation of g++-multilib removes any g++ cross-compilers.
+# sudo apt-get install g++-multilib
 #
-# Building RooT demo:
+# Building/running RooT demo:
 # make -f RooT_make_x32.mk
+# ./RooT.x32
 
 # The 32-bit ABI hasn't been fully tested yet due to lack of available libs,
 # check out an experimental 64/32-bit hybrid mode in RooT_make_x64.mk

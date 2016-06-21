@@ -39,6 +39,7 @@ core_test:
 
 # Prerequisites for the build:
 # native-compiler for x86_64 is installed and in the PATH variable.
+# sudo apt-get install g++
 #
 # Building/running CORE test:
 # make -f core_make_x64.mk
