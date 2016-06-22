@@ -49,8 +49,9 @@ RooT:
 # make -f RooT_make_x32.mk
 # ./RooT.x32
 
-# Clang compilation is supported, but takes considerably longer, use (replace):
+# Clang compilation is supported (takes much longer prior 3.8), use (replace):
 # clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
+# sudo apt-get install clang (requires g++-multilib for non-native ABI)
 
 # The 32-bit ABI hasn't been fully tested yet due to lack of available libs,
 # check out an experimental 64/32-bit hybrid mode in RooT_make_x64.mk
