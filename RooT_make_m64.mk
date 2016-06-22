@@ -29,7 +29,7 @@ LIB_LIST =                              \
         -lpthread
 
 RooT:
-	mips64el-linux-gnu-g++ -O3 -g -mips64r6 -mabi=64 -mmsa \
+	mips64el-linux-gnuabi64-g++ -O3 -g -mips64r6 -mabi=64 -mmsa \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
