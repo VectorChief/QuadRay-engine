@@ -39,7 +39,7 @@ RooT:
 # Prerequisites for the build:
 # multilib-compiler for AArch64 is installed and in the PATH variable,
 # plus X11/Xext libs for ILP32 ABI on AArch64 host or QEMU system mode.
-# (recent upstream g++ versions for AArch64 may not fully support ILP32 ABI)
+# (recent upstream g++-5-aarch64 series may not fully support ILP32 ABI)
 #
 # Building/running RooT demo:
 # make -f RooT_make_a32.mk

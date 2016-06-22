@@ -39,7 +39,7 @@ RooT:
 # Prerequisites for the build:
 # native-compiler for MIPS+MSA is installed and in the PATH variable.
 # sudo apt-get install g++ libxext-dev (on P5600 host or QEMU system mode)
-# (recent upstream g++ versions for MIPS32 may not fully support MSA)
+# (recent upstream g++-5-mipsel series may not fully support MSA)
 #
 # Building/running RooT demo:
 # make -f RooT_make_m32.mk
