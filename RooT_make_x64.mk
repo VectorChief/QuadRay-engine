@@ -48,5 +48,8 @@ RooT:
 # make -f RooT_make_x64.mk
 # ./RooT.x64_32
 
+# Clang compilation is supported, but takes considerably longer, use (replace):
+# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
+
 # Experimental 64/32-bit hybrid mode is enabled by default
 # until full 64-bit support is implemented in the framework.

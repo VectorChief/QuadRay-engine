@@ -46,5 +46,8 @@ core_test:
 # ./core_test.x64_32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
+# Clang compilation is supported, but takes considerably longer, use (replace):
+# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
+
 # Experimental 64/32-bit hybrid mode is enabled by default
 # until full 64-bit support is implemented in the framework.

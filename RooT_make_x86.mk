@@ -49,3 +49,6 @@ RooT:
 # Building/running RooT demo:
 # make -f RooT_make_x86.mk
 # ./RooT.x86
+
+# Clang compilation is supported, but takes considerably longer, use (replace):
+# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses

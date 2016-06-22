@@ -49,5 +49,8 @@ RooT:
 # make -f RooT_make_x32.mk
 # ./RooT.x32
 
+# Clang compilation is supported, but takes considerably longer, use (replace):
+# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
+
 # The 32-bit ABI hasn't been fully tested yet due to lack of available libs,
 # check out an experimental 64/32-bit hybrid mode in RooT_make_x64.mk

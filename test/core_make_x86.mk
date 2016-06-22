@@ -47,3 +47,6 @@ core_test:
 # make -f core_make_x86.mk
 # ./core_test.x86 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+
+# Clang compilation is supported, but takes considerably longer, use (replace):
+# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
