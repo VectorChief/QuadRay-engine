@@ -39,10 +39,12 @@ RooT:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.arm
 
 # Prerequisites for the build:
-# (cross-)compiler for ARMv7 is installed and in the PATH variable.
+# native-compiler for ARMv7 is installed and in the PATH variable.
+# sudo apt-get install g++ libxext-dev (on ARMv7 host or QEMU system mode)
 #
-# Building RooT demo:
+# Building/running RooT demo:
 # make -f RooT_make_arm.mk
+# ./RooT.arm (on ARMv7 host or QEMU system mode)
 
 # 0) Build flags above are intended for default "vanilla" ARMv7 target, while
 # settings suitable for specific hardware platforms are given below (replace).

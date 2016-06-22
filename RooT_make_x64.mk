@@ -42,7 +42,7 @@ RooT:
 
 # Prerequisites for the build:
 # native-compiler for x86_64 is installed and in the PATH variable.
-# sudo apt-get install g++
+# sudo apt-get install g++ libxext-dev (on x86_64 host)
 #
 # Building/running RooT demo:
 # make -f RooT_make_x64.mk

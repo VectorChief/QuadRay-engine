@@ -38,9 +38,11 @@ RooT:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p32
 
 # Prerequisites for the build:
-# (cross-)compiler for PowerPC is installed and in the PATH variable.
+# native-compiler for PowerPC is installed and in the PATH variable.
+# sudo apt-get install g++ libxext-dev (on G4 host or QEMU system mode)
 #
-# Building RooT demo:
+# Building/running RooT demo:
 # make -f RooT_make_p32.mk
-
-# For 32-bit Power(7,7+,8) VMX/VSX target use (replace): -DRT_128=1+2
+# ./RooT.p32 (on G4 host or QEMU system mode)
+# (hasn't been verified due to lack of target host system)
+# (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)

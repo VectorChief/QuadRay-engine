@@ -37,10 +37,14 @@ RooT:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64_32
 
 # Prerequisites for the build:
-# (cross-)compiler for AArch64 is installed and in the PATH variable.
+# native-compiler for AArch64 is installed and in the PATH variable.
+# sudo apt-get install g++ libxext-dev (on AArch64 host or QEMU system mode)
 #
-# Building RooT demo:
+# Building/running RooT demo:
 # make -f RooT_make_a64.mk
+# ./RooT.a64_32 (on AArch64 host or QEMU system mode)
+# (hasn't been verified due to lack of target host system)
+# (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
 # Experimental 64/32-bit hybrid mode is enabled by default
 # until full 64-bit support is implemented in the framework.

@@ -29,23 +29,20 @@ LIB_LIST =                              \
         -lpthread
 
 RooT:
-	mips-mti-linux-gnu-g++ -O3 -g -EL -mips32r5 -mmsa \
+	mipsel-linux-gnu-g++ -O3 -g -mips32r5 -mmsa \
         -DRT_LINUX -DRT_M32 -DRT_128=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.m32
 
-# The up-to-date MIPS toolchain (g++ & QEMU) can be found here:
-# https://community.imgtec.com/developers/mips/tools/codescape-mips-sdk/
-
 # Prerequisites for the build:
-# (cross-)compiler for MIPS+MSA is installed and in the PATH variable.
+# native-compiler for MIPS+MSA is installed and in the PATH variable.
+# sudo apt-get install g++ libxext-dev (on P5600 host or QEMU system mode)
+# (recent upstream g++ versions for MIPS32 may not fully support MSA)
 #
-# Building RooT demo:
+# Building/running RooT demo:
 # make -f RooT_make_m32.mk
-
-# For MIPS32 Release 6 target use the following options (replace):
-# mips-img-linux-gnu-g++ -mips32r6 -DRT_M32=6
-
-# For MIPS32 big-endian (r5 and r6) use (replace): -EB -DRT_ENDIAN=1
+# ./RooT.m32 (on P5600 host or QEMU system mode)
+# (hasn't been verified due to lack of target host system)
+# (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
