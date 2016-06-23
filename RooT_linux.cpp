@@ -261,7 +261,9 @@ rt_pntr sys_alloc(rt_size size)
 
 #if (RT_POINTER - RT_ADDRESS) != 0
 
-    /* loop around 1GB boundary MAP_32BIT */
+    /* loop around 2GB boundary MAP_32BIT */
+    /* in 64/32-bit hybrid mode pointers mustn't have sign bit
+     * as MIPS64 sign-extends all 32-bit mem-loads by default */
     if (s_ptr >= (rt_byte *)0x80000000 - size)
     {
         s_ptr  = (rt_byte *)0x40000000;
@@ -271,6 +273,8 @@ rt_pntr sys_alloc(rt_size size)
                   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
     /* advance with page-size granularity */
+    /* in case when page-size differs from default 4096 bytes
+     * mmap should round toward closest correct page boundary */
     s_ptr = (rt_byte *)ptr + ((size + 4095) / 4096) * 4096;
 
 #else /* (RT_POINTER - RT_ADDRESS) */

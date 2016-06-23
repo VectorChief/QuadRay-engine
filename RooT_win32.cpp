@@ -163,6 +163,10 @@ rt_pntr sys_alloc(rt_size size)
 
     EnterCriticalSection(&critSec);
 
+    /* use VirtualAlloc/VirtualFree to limit address range to 32-bit
+     * in order to support 64/32-bit hybrid mode (pointer/address) */
+    /* compilation in 64-bit mode requires g++/clang-based toolchain
+     * for proper inline assembly support (hasn't been tested yet) */
     ptr = malloc(size);
 
     LeaveCriticalSection(&critSec);
@@ -177,6 +181,10 @@ rt_void sys_free(rt_pntr ptr, rt_size size)
 {
     EnterCriticalSection(&critSec);
 
+    /* use VirtualAlloc/VirtualFree to limit address range to 32-bit
+     * in order to support 64/32-bit hybrid mode (pointer/address) */
+    /* compilation in 64-bit mode requires g++/clang-based toolchain
+     * for proper inline assembly support (hasn't been tested yet) */
     free(ptr);
 
     LeaveCriticalSection(&critSec);
