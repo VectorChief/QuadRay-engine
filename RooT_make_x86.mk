@@ -50,6 +50,6 @@ RooT:
 # make -f RooT_make_x86.mk
 # ./RooT.x86
 
-# Clang compilation is supported (takes much longer prior 3.8), use (replace):
+# Clang compilation works too (takes much longer prior to 3.8), use (replace):
 # clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
 # sudo apt-get install clang (requires g++-multilib for non-native ABI)

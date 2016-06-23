@@ -46,7 +46,7 @@ core_test:
 # ./core_test.x64_32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
-# Clang compilation is supported (takes much longer prior 3.8), use (replace):
+# Clang compilation works too (takes much longer prior to 3.8), use (replace):
 # clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
 # sudo apt-get install clang
 
