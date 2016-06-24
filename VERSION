@@ -24,6 +24,8 @@ v0.6.3: Backend improvements, 64/32-bit hybrid mode for native 64-bit ABI
   - adjust natural alignment (in-heap) based on pointer size, 4/8-byte boundary
   - wrap quadric debug fields in backend's SIMD info struct with RT_DEBUG flag
   - add build instructions to makefiles for Ubuntu 16.04 LTS 64-bit Live CD
+  - fix divps_ld instruction's encoding on ARM (fixes CORE test 15 with -a)
+  - use IEEE-compatible div/sqr on legacy ARM and Power (CORE test 14 with -a)
 
 v0.6.2: Backend improvements, 32-bit MIPS and Power ISAs + big-endian support
   - implement minor adjustments in the code for big-endian support
