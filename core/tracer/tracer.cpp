@@ -634,8 +634,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #if RT_FEAT_TILING
 
         movxx_ld(Reax, Mebp, inf_FRM_Y)
-        movxx_ri(Redx, IB(0))
-        divxp_xm(Mebp, inf_TILE_H)
+        prexx_xx()
+        divxx_xm(Mebp, inf_TILE_H)
         mulxx_ld(Reax, Mebp, inf_TLS_ROW)
         shlxx_ri(Reax, IB(1+P))
         addxx_ri(Reax, IB(E))
@@ -3608,8 +3608,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #if RT_FEAT_TILING
 
         movxx_ld(Reax, Mebp, inf_FRM_X)
-        movxx_ri(Redx, IB(0))
-        divxp_xm(Mebp, inf_TILE_W)
+        prexx_xx()
+        divxx_xm(Mebp, inf_TILE_W)
         movxx_st(Reax, Mebp, inf_TLS_X)
 
 #endif /* RT_FEAT_TILING */
