@@ -136,7 +136,7 @@
 #if RT_SIMD_QUADS == 1
 
 #define SHOW_TILES(lb, cl) /* destroys Reax, Xmm0 */                        \
-        movxx_ri(Reax, IW(cl))                                              \
+        movxx_ri(Reax, IV(cl))                                              \
         movxx_st(Reax, Mecx, ctx_C_BUF(0x00))                               \
         movxx_st(Reax, Mecx, ctx_C_BUF(0x04))                               \
         movxx_st(Reax, Mecx, ctx_C_BUF(0x08))                               \
@@ -148,7 +148,7 @@
 #elif RT_SIMD_QUADS == 2
 
 #define SHOW_TILES(lb, cl) /* destroys Reax, Xmm0 */                        \
-        movxx_ri(Reax, IW(cl))                                              \
+        movxx_ri(Reax, IV(cl))                                              \
         movxx_st(Reax, Mecx, ctx_C_BUF(0x00))                               \
         movxx_st(Reax, Mecx, ctx_C_BUF(0x04))                               \
         movxx_st(Reax, Mecx, ctx_C_BUF(0x08))                               \
@@ -478,8 +478,8 @@
 #if RT_SIMD_QUADS == 1
 
 #define FRAME_FSAA() /* destroys Resi, Redi, Reax, Rebx, Redx */            \
-        movxx_ri(Resi, IW(0x00F0F0F0))                                      \
-        movxx_ri(Redi, IW(0x000F0F0F))                                      \
+        movxx_ri(Resi, IV(0x00F0F0F0))                                      \
+        movxx_ri(Redi, IV(0x000F0F0F))                                      \
         movxx_ri(Reax, IB(0))                                               \
         FRAME_CBUF(Reax, Resi, 00)                                          \
         FRAME_CBUF(Reax, Resi, 04)                                          \
@@ -499,8 +499,8 @@
 #elif RT_SIMD_QUADS == 2
 
 #define FRAME_FSAA() /* destroys Resi, Redi, Reax, Rebx, Redx */            \
-        movxx_ri(Resi, IW(0x00F0F0F0))                                      \
-        movxx_ri(Redi, IW(0x000F0F0F))                                      \
+        movxx_ri(Resi, IV(0x00F0F0F0))                                      \
+        movxx_ri(Redi, IV(0x000F0F0F))                                      \
         movxx_ri(Reax, IB(0))                                               \
         FRAME_CBUF(Reax, Resi, 00)                                          \
         FRAME_CBUF(Reax, Resi, 04)                                          \
@@ -1935,7 +1935,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* compute specular pow,
          * integers only for now */
         movxx_ld(Reax, Medx, mat_L_POW)
-        andxx_ri(Reax, IW(0x1FFFFFFF))
+        andxx_ri(Reax, IV(0x1FFFFFFF))
         jmpxx_mm(Medx, mat_POW_P)
 
     LBL(fetch_PW_ptr)
