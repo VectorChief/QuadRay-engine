@@ -4062,8 +4062,7 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     RT_SIMD_SET(s_mat->yshft, 0);
     s_mat->yshft[0] = x_lg2;
 
-    /* NOTE: only 32-bit texture addresses are accepted in backend */
-    RT_SIMD_SET(s_mat->tex_p, (rt_ui32)(rt_word)tx->ptex);
+    s_mat->tex_p[0] = tx->ptex;
     RT_SIMD_SET(s_mat->cmask, 0xFF);
 
     RT_SIMD_SET(s_mat->l_dff, mat->lgt[0]);

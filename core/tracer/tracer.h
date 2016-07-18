@@ -936,8 +936,8 @@ struct rt_SIMD_MATERIAL
     rt_ui32 yshft[S];
 #define mat_YSHFT           DP(Q*0x060)
 
-    rt_ui32 tex_p[S];
-#define mat_TEX_P           DP(Q*0x070)
+    rt_pntr tex_p[S/P];
+#define mat_TEX_P           DP(Q*0x070+E)
 
     /* texture axis mapping */
 

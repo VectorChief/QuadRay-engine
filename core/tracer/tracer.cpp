@@ -393,6 +393,7 @@
         movxx_ld(Reax, Mecx, ctx_T_VAL(0x##pn))                             \
         movxx_st(Reax, Mecx, ctx_T_BUF(0x##pn))                             \
         movxx_ld(Reax, Mecx, ctx_C_PTR(0x##pn))                             \
+        addxx_ld(Reax, Medx, mat_TEX_P)                                     \
         movxx_ld(Reax, Oeax, PLAIN)                                         \
         movxx_st(Reax, Mecx, ctx_C_BUF(0x##pn))                             \
     LBL(lb##pn)
@@ -1625,7 +1626,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_XPTR(Redx, MAT_P(PTR))
 
-        movpx_ld(Xmm0, Medx, mat_TEX_P)         /* tex_p <- TEX_P */
+        xorpx_rr(Xmm1, Xmm1)                    /* tex_p <-     0 */
 
 #if RT_FEAT_TEXTURING
 
@@ -1656,13 +1657,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         addpx_rr(Xmm1, Xmm2)                    /* tex_x += tex_y */
         shlpx_ri(Xmm1, IB(2))                   /* tex_x <<     2 */
-        addpx_rr(Xmm0, Xmm1)                    /* tex_x += tex_p */
 
     LBL(MT_tex)
 
 #endif /* RT_FEAT_TEXTURING */
 
-        PAINT_SIMD(MT_rtx, Xmm0)
+        PAINT_SIMD(MT_rtx, Xmm1)
 
 /******************************************************************************/
 /*********************************   LIGHTS   *********************************/
