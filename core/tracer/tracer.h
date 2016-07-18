@@ -488,13 +488,15 @@ struct rt_SIMD_CONTEXT
     rt_real col_b[S];
 #define ctx_COL_B(nx)       DP(Q*0x190 + nx)
 
-    /* misc */
+    /* roots sorting masks */
 
-    rt_si32 param[S];
-#define ctx_PARAM(nx)       DP(Q*0x1A0 + nx)
+    rt_ui32 amask[S];
+#define ctx_AMASK           DP(Q*0x1A0)
 
-    rt_si32 local[S];
-#define ctx_LOCAL(nx)       DP(Q*0x1B0 + nx)
+    rt_ui32 dmask[S];
+#define ctx_DMASK           DP(Q*0x1B0)
+
+    /* depth, masks, temps, misc */
 
     rt_real t_val[S];
 #define ctx_T_VAL(nx)       DP(Q*0x1C0 + nx)
@@ -517,7 +519,7 @@ struct rt_SIMD_CONTEXT
     rt_real xtmp2[S];
 #define ctx_XTMP2           DP(Q*0x220)
 
-    rt_si32 xmisc[S];
+    rt_ui32 xmisc[S];
 #define ctx_XMISC(nx)       DP(Q*0x230 + nx)
 
     /* normal */
@@ -542,31 +544,23 @@ struct rt_SIMD_CONTEXT
     rt_real nrm_k[S];
 #define ctx_NRM_K           DP(Q*0x290)
 
+    /* packed scalar fields */
+
+    rt_ui64 param[S];                           /* only for non-zero index */
+#define ctx_PARAM(nx)       DP(Q*0x2A0 + nx*2 + E*((nx>>3 & 1) | (nx>>2 & 1)))
+
+    rt_ui64 local[S];                           /* only for non-zero index */
+#define ctx_LOCAL(nx)       DP(Q*0x2C0 + nx*2 + E*((nx>>3 & 1) | (nx>>2 & 1)))
+
     /* custom clipping accum */
 
     rt_ui32 c_acc[S];
-#define ctx_C_ACC           DP(Q*0x2A0)
-
-    /* param/local ptr (64-bit) */
-
-    rt_ui64 par_p[S/4];
-#define ctx_PAR_P           DP(Q*0x2B0)
-
-    rt_ui64 loc_p[S/4];
-#define ctx_LOC_P           DP(Q*0x2B8)
+#define ctx_C_ACC           DP(Q*0x2E0)
 
     /* reserved area 1 */
 
-    rt_ui32 pad01[S*2];
-#define ctx_PAD01           DP(Q*0x2C0)
-
-    /* roots sorting masks */
-
-    rt_ui32 amask[S];
-#define ctx_AMASK           DP(Q*0x2E0)
-
-    rt_ui32 dmask[S];
-#define ctx_DMASK           DP(Q*0x2F0)
+    rt_ui32 pad01[S];
+#define ctx_PAD01           DP(Q*0x2F0)
 
     /* overlapping next context,
      * new depth min */
