@@ -313,7 +313,7 @@
         movwx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         andwx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
         shlwx_ri(Reax, IB(2+P))                                             \
-        movwx_ld(W(RG), Iebx, srf_##pl)
+        movxx_ld(W(RG), Iebx, srf_##pl)
 
 /*
  * Fetch pointer into given register "RG" from surface's field "pl"
@@ -324,7 +324,7 @@
         notwx_rr(Reax)                                                      \
         andwx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
         shlwx_ri(Reax, IB(2+P))                                             \
-        movwx_ld(W(RG), Iebx, srf_##pl)
+        movxx_ld(W(RG), Iebx, srf_##pl)
 
 /*
  * Update only relevant fragments of a given
