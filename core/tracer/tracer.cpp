@@ -233,9 +233,9 @@
  * jump to "lb" otherwise.
  */
 #define CHECK_FLAG(lb, pl, fl) /* destroys Reax */                          \
-        movwx_ld(Reax, Mecx, ctx_##pl(FLG))                                 \
-        andwx_ri(Reax, IB(fl))                                              \
-        cmjwx_rz(Reax,                                                      \
+        movxx_ld(Reax, Mecx, ctx_##pl(FLG))                                 \
+        andxx_ri(Reax, IB(fl))                                              \
+        cmjxx_rz(Reax,                                                      \
                  EQ_x, lb)
 
 /*
@@ -249,11 +249,11 @@
 #define CHECK_SIDE(lb, lo, sd) /* destroys Reax */                          \
         cmjxx_rm(Rebx, Mecx, ctx_PARAM(OBJ),                                \
                  NE_x, lb)                                                  \
-        movwx_ld(Reax, Mecx, ctx_PARAM(FLG))                                \
-        andwx_ri(Reax, IB(RT_FLAG_SIDE | RT_FLAG_PASS))                     \
-        cmjwx_ri(Reax, IB(1 - sd),                                          \
+        movxx_ld(Reax, Mecx, ctx_PARAM(FLG))                                \
+        andxx_ri(Reax, IB(RT_FLAG_SIDE | RT_FLAG_PASS))                     \
+        cmjxx_ri(Reax, IB(1 - sd),                                          \
                  EQ_x, lo)                                                  \
-        cmjwx_ri(Reax, IB(2 + sd),                                          \
+        cmjxx_ri(Reax, IB(2 + sd),                                          \
                  EQ_x, lo)                                                  \
     LBL(lb)
 
@@ -286,13 +286,13 @@
  * as sign into Xmm7 for normals.
  */
 #define FETCH_PROP() /* destroys Reax, Xmm7 */                              \
-        movwx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
-        mulwx_ri(Reax, IB(S*4))                                             \
+        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
+        mulxx_ri(Reax, IB(S*4))                                             \
         movpx_ld(Xmm7, Iebx, srf_SBASE)                                     \
-        movwx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
-        shlwx_ri(Reax, IB(2+P))                                             \
-        movwx_ld(Reax, Iebx, srf_MAT_P(FLG))                                \
-        orrwx_st(Reax, Mecx, ctx_LOCAL(FLG))
+        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
+        shlxx_ri(Reax, IB(2+P))                                             \
+        movxx_ld(Reax, Iebx, srf_MAT_P(FLG))                                \
+        orrxx_st(Reax, Mecx, ctx_LOCAL(FLG))
 
 /*
  * Check if property "pr" previously
@@ -300,9 +300,9 @@
  * jump to "lb" otherwise.
  */
 #define CHECK_PROP(lb, pr) /* destroys Reax */                              \
-        movwx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
-        andwx_ri(Reax, IH(pr))                                              \
-        cmjwx_rz(Reax,                                                      \
+        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
+        andxx_ri(Reax, IH(pr))                                              \
+        cmjxx_rz(Reax,                                                      \
                  EQ_x, lb)
 
 /*
@@ -310,9 +310,9 @@
  * based on the currently set original SIDE flag.
  */
 #define FETCH_XPTR(RG, pl) /* destroys Reax */                              \
-        movwx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
-        andwx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
-        shlwx_ri(Reax, IB(2+P))                                             \
+        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
+        andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
+        shlxx_ri(Reax, IB(2+P))                                             \
         movxx_ld(W(RG), Iebx, srf_##pl)
 
 /*
@@ -320,10 +320,10 @@
  * based on the currently set inverted SIDE flag.
  */
 #define FETCH_IPTR(RG, pl) /* destroys Reax */                              \
-        movwx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
-        notwx_rr(Reax)                                                      \
-        andwx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
-        shlwx_ri(Reax, IB(2+P))                                             \
+        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
+        notxx_rr(Reax)                                                      \
+        andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
+        shlxx_ri(Reax, IB(2+P))                                             \
         movxx_ld(W(RG), Iebx, srf_##pl)
 
 /*
