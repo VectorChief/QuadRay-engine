@@ -547,10 +547,10 @@ struct rt_SIMD_CONTEXT
     /* packed scalar fields */
 
     rt_ui64 param[S];                           /* only for non-zero index */
-#define ctx_PARAM(nx)       DP(Q*0x2A0 + nx*2 + C*((nx>>3 & 1) | (nx>>2 & 1)))
+#define ctx_PARAM(nx)       DP(Q*0x2A0 + nx*2 + F*((nx>>3 & 1) | (nx>>2 & 1)))
 
     rt_ui64 local[S];                           /* only for non-zero index */
-#define ctx_LOCAL(nx)       DP(Q*0x2C0 + nx*2 + C*((nx>>3 & 1) | (nx>>2 & 1)))
+#define ctx_LOCAL(nx)       DP(Q*0x2C0 + nx*2 + F*((nx>>3 & 1) | (nx>>2 & 1)))
 
     /* custom clipping accum */
 
