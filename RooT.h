@@ -52,6 +52,7 @@ rt_si32     d                       = 1;    /* demo index */
 #undef D /* short name for RT_ENDIAN*(P-1)*4 */
 #undef E /* short name for RT_ENDIAN*(P-A)*4 */
 #undef F /* short name for RT_ENDIAN*(A-1)*4 */
+#undef G /* short name for RT_ENDIAN*(P-2)*4 */
 
 /*
  * Get system time in milliseconds.
