@@ -234,9 +234,8 @@
  */
 #define CHECK_FLAG(lb, pl, fl) /* destroys Reax */                          \
         movxx_ld(Reax, Mecx, ctx_##pl(FLG))                                 \
-        andxx_ri(Reax, IB(fl))                                              \
-        cmjxx_rz(Reax,                                                      \
-                 EQ_x, lb)
+        arjxx_ri(Reax, IB(fl),                                              \
+        and_x,   EZ_x, lb)
 
 /*
  * Combine ray's attack side with ray's pass behavior (back or thru),
@@ -301,9 +300,8 @@
  */
 #define CHECK_PROP(lb, pr) /* destroys Reax */                              \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
-        andxx_ri(Reax, IH(pr))                                              \
-        cmjxx_rz(Reax,                                                      \
-                 EQ_x, lb)
+        arjxx_ri(Reax, IH(pr),                                              \
+        and_x,   EZ_x, lb)
 
 /*
  * Fetch pointer into given register "RG" from surface's field "pl"
