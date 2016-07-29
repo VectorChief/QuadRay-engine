@@ -911,9 +911,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         adrxx_ld(Reax, Mebx, srf_SRF_P(PTR))
         addxx_ri(Reax, IB((P-1)*4))
         movwx_ld(Reax, Oeax, PLAIN)
-        orrwx_ld(Reax, Mebx, srf_SRF_P(PTR))
-        cmjwx_rz(Reax,
-                 EQ_x, OO_end)
+        arjwx_ld(Reax, Mebx, srf_SRF_P(PTR),
+        orr_x,   EZ_x, OO_end)
 
 #endif /* RT_FEAT_TRANSFORM_ARRAY */
 
