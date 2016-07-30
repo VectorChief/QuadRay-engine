@@ -319,7 +319,7 @@
  */
 #define FETCH_IPTR(RG, pl) /* destroys Reax */                              \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
-        notxx_rr(Reax)                                                      \
+        notxx_rx(Reax)                                                      \
         andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
         shlxx_ri(Reax, IB(2+P))                                             \
         movxx_ld(W(RG), Iebx, srf_##pl)
