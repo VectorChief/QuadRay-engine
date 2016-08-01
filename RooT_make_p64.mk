@@ -32,10 +32,10 @@ LIB_LIST =                              \
 RooT:
 	powerpc64le-linux-gnu-g++ -O2 -g \
         -DRT_LINUX -DRT_P64 -DRT_128=1+2 \
-        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_32
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f32
 
 # Prerequisites for the build:
 # native-compiler for 64-bit Power is installed and in the PATH variable.
@@ -44,12 +44,13 @@ RooT:
 #
 # Building/running RooT demo:
 # make -f RooT_make_p64.mk
-# ./RooT.p64_32 (on POWER8 host or QEMU system mode)
+# ./RooT.p64f32 (on POWER8 host or QEMU system mode)
 # (hasn't been verified due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
 # For 64-bit Power(7,7+,8) VMX/VSX big-endian target use (replace):
 # powerpc64-linux-gnu-g++ -O3 -DRT_ENDIAN=1
 
-# Experimental 64/32-bit hybrid mode is enabled by default
-# until full 64-bit support is implemented in the framework.
+# Experimental 64/32-bit hybrid mode compatible with native 64-bit ABI
+# is available for the original pure 32-bit ISA using 64-bit pointers,
+# use (replace): RT_ADDRESS=32, rename the binary to RooT.p64_32

@@ -32,10 +32,10 @@ LIB_LIST =                              \
 core_test:
 	x86_64-linux-gnu-g++ -O3 -g -static \
         -DRT_LINUX -DRT_X64 -DRT_128=1+2+4 -DRT_256=1+2 \
-        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.x64_32
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.x64f32
 
 # Prerequisites for the build:
 # native-compiler for x86_64 is installed and in the PATH variable.
@@ -43,12 +43,13 @@ core_test:
 #
 # Building/running CORE test:
 # make -f core_make_x64.mk
-# ./core_test.x64_32 -i -a
+# ./core_test.x64f32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
 # Clang compilation works too (takes much longer prior to 3.8), use (replace):
 # clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
 # sudo apt-get install clang
 
-# Experimental 64/32-bit hybrid mode is enabled by default
-# until full 64-bit support is implemented in the framework.
+# Experimental 64/32-bit hybrid mode compatible with native 64-bit ABI
+# is available for the original pure 32-bit ISA using 64-bit pointers,
+# use (replace): RT_ADDRESS=32, rename the binary to core_test.x64_32
