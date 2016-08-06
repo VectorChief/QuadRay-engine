@@ -713,7 +713,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                                                 (simd & 0xFF) * 32, simd >> 8);
     }
 
-#if   defined (RT_WIN32) /* Win32, MSVC ------------------------------------ */
+#if defined (RT_WIN32) || defined (RT_WIN64) /* Win32, MSVC -- Win64, GCC --- */
 
     RT_LOGI("Type any letter and press ENTER to exit:");
     rt_char str[80];
@@ -742,7 +742,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 #undef F /* short name for RT_ENDIAN*(A-1)*4 */
 #undef G /* short name for RT_ENDIAN*(P-2)*4 */
 
-#if   defined (RT_WIN32) /* Win32, MSVC ------------------------------------- */
+#if defined (RT_WIN32) || defined (RT_WIN64) /* Win32, MSVC -- Win64, GCC --- */
 
 #include <windows.h>
 
