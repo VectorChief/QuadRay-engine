@@ -34,7 +34,7 @@
 
 #endif /* RT_DEBUG */
 
-#define RT_CHUNK_SIZE           4096 /* heap chunk size granularity */
+#define RT_CHUNK_SIZE           65536 /* heap allocation granularity (16*4k) */
 
 #define RT_PATH_STRFY(p)        #p
 #define RT_PATH_TOSTR(p)        RT_PATH_STRFY(p)

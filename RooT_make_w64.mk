@@ -31,7 +31,7 @@ LIB_LIST =                              \
         -lgdi32
 
 RooT:
-	g++ -O3 -g \
+	g++ -O3 -g -m64 \
         -DRT_WIN64 -DRT_X64 -DRT_128=1+2+4 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
@@ -49,3 +49,7 @@ RooT:
 # run RooT_make_w64.bat file or
 # mingw32-make -f RooT_make_w64.mk
 # RooT_w64f32.exe
+
+# Experimental 64/32-bit hybrid mode compatible with native 64-bit ABI
+# is available for the original pure 32-bit ISA using 64-bit pointers,
+# use (replace): RT_ADDRESS=32, rename the binary to RooT_w64_32.exe

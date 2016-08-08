@@ -30,7 +30,7 @@ LIB_LIST =                              \
         -lstdc++
 
 core_test:
-	g++ -O3 -g -static \
+	g++ -O3 -g -static -m64 \
         -DRT_WIN64 -DRT_X64 -DRT_128=1+2+4 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -49,3 +49,7 @@ core_test:
 # mingw32-make -f core_make_w64.mk
 # core_test_w64f32.exe -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+
+# Experimental 64/32-bit hybrid mode compatible with native 64-bit ABI
+# is available for the original pure 32-bit ISA using 64-bit pointers,
+# use (replace): RT_ADDRESS=32, rename the binary to core_test_w64_32.exe
