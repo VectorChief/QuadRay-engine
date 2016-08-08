@@ -154,14 +154,8 @@ rt_void frame_to_screen(rt_ui32 *frame)
                                     frame, &DIBinfo, DIB_RGB_COLORS);
 }
 
+
 #if RT_POINTER == 64
-
-static
-DWORD s_step = 0;
-
-static
-SYSTEM_INFO s_sys = {0};
-
 #if RT_ADDRESS == 32
 
 static
@@ -173,8 +167,14 @@ static
 rt_byte *s_ptr = (rt_byte *)0x0000000140000000;
 
 #endif /* RT_ADDRESS */
-
 #endif /* RT_POINTER */
+
+
+static
+DWORD s_step = 0;
+
+static
+SYSTEM_INFO s_sys = {0};
 
 /*
  * Allocate memory from system heap.
@@ -184,7 +184,6 @@ rt_pntr sys_alloc(rt_size size)
     EnterCriticalSection(&critSec);
 
 #if RT_POINTER == 64
-
 #if RT_ADDRESS == 32
 
     /* loop around 2GB boundary for 32-bit */
@@ -521,6 +520,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             SelectObject(hFrmDC, hFrm);
 
+            /* init sys_alloc's mutex */
             InitializeCriticalSection(&critSec);
 
             ret = main_init();
@@ -575,6 +575,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             ret = main_term();
 
+            /* destroy sys_alloc's mutex */
             DeleteCriticalSection(&critSec);
 
             if (hFrmDC != NULL)

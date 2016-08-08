@@ -744,7 +744,6 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
 
 #if RT_POINTER == 64
-
 #if RT_ADDRESS == 32
 
 static
@@ -756,7 +755,6 @@ static
 rt_byte *s_ptr = (rt_byte *)0x0000000140000000;
 
 #endif /* RT_ADDRESS */
-
 #endif /* RT_POINTER */
 
 
@@ -789,7 +787,6 @@ SYSTEM_INFO s_sys = {0};
 rt_pntr sys_alloc(rt_size size)
 {
 #if RT_POINTER == 64
-
 #if RT_ADDRESS == 32
 
     /* loop around 2GB boundary for 32-bit */
@@ -892,11 +889,10 @@ rt_time get_time()
 rt_pntr sys_alloc(rt_size size)
 {
 #if RT_POINTER == 64
-
 #if RT_ADDRESS == 32
 
     /* loop around 2GB boundary MAP_32BIT */
-    /* in 64/32-bit hybrid mode pointers mustn't have sign bit
+    /* in 64/32-bit hybrid mode addresses can't have sign bit
      * as MIPS64 sign-extends all 32-bit mem-loads by default */
     if (s_ptr >= (rt_byte *)0x0000000080000000 - size)
     {

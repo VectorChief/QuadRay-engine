@@ -243,10 +243,8 @@ rt_void frame_to_screen(rt_ui32 *frame)
     XSync(disp, False);
 }
 
+
 #if RT_POINTER == 64
-
-#include <sys/mman.h>
-
 #if RT_ADDRESS == 32
 
 static
@@ -258,6 +256,12 @@ static
 rt_byte *s_ptr = (rt_byte *)0x0000000140000000;
 
 #endif /* RT_ADDRESS */
+#endif /* RT_POINTER */
+
+
+#if RT_POINTER == 64
+
+#include <sys/mman.h>
 
 #endif /* RT_POINTER */
 
@@ -269,11 +273,10 @@ rt_pntr sys_alloc(rt_size size)
     pthread_mutex_lock(&mutex);
 
 #if RT_POINTER == 64
-
 #if RT_ADDRESS == 32
 
     /* loop around 2GB boundary MAP_32BIT */
-    /* in 64/32-bit hybrid mode pointers mustn't have sign bit
+    /* in 64/32-bit hybrid mode addresses can't have sign bit
      * as MIPS64 sign-extends all 32-bit mem-loads by default */
     if (s_ptr >= (rt_byte *)0x0000000080000000 - size)
     {
