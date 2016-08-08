@@ -60,11 +60,6 @@ rt_si32     d                       = 1;    /* demo index */
 rt_time get_time();
 
 /*
- * Set current frame to screen.
- */
-rt_void frame_to_screen(rt_ui32 *frame);
-
-/*
  * Allocate memory from system heap.
  */
 rt_pntr sys_alloc(rt_size size);
@@ -95,6 +90,11 @@ rt_void update_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase);
  * block until finished.
  */
 rt_void render_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase);
+
+/*
+ * Set current frame to screen.
+ */
+rt_void frame_to_screen(rt_ui32 *frame);
 
 /******************************************************************************/
 /*******************************   EVENT-LOOP   *******************************/

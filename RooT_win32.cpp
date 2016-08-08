@@ -145,15 +145,6 @@ rt_time get_time()
     return (rt_time)(tm.QuadPart * 1000 / fr.QuadPart);
 }
 
-/*
- * Set current frame to screen.
- */
-rt_void frame_to_screen(rt_ui32 *frame)
-{
-    SetDIBitsToDevice(hWndDC, 0, 0, x_res, y_res, 0, 0, 0, y_res,
-                                    frame, &DIBinfo, DIB_RGB_COLORS);
-}
-
 
 #if RT_POINTER == 64
 #if RT_ADDRESS == 32
@@ -479,9 +470,19 @@ rt_void render_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
     ResetEvent(tpool->cevent[tpool->cindex]);
     tpool->cindex = 1 - tpool->cindex;
 }
+
 /******************************************************************************/
 /*******************************   EVENT-LOOP   *******************************/
 /******************************************************************************/
+
+/*
+ * Set current frame to screen.
+ */
+rt_void frame_to_screen(rt_ui32 *frame)
+{
+    SetDIBitsToDevice(hWndDC, 0, 0, x_res, y_res, 0, 0, 0, y_res,
+                                    frame, &DIBinfo, DIB_RGB_COLORS);
+}
 
 /*
  * Implementation of the event loop.
