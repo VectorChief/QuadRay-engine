@@ -154,22 +154,68 @@ rt_void frame_to_screen(rt_ui32 *frame)
                                     frame, &DIBinfo, DIB_RGB_COLORS);
 }
 
+#if (RT_POINTER - RT_ADDRESS) != 0
+
+static
+rt_byte *s_ptr = (rt_byte *)0x0000000040000000;
+
+static
+DWORD s_step = 0;
+
+static
+SYSTEM_INFO s_sys = {0};
+
+#endif /* (RT_POINTER - RT_ADDRESS) */
+
 /*
  * Allocate memory from system heap.
  */
 rt_pntr sys_alloc(rt_size size)
 {
-    rt_pntr ptr;
-
     EnterCriticalSection(&critSec);
 
-    /* use VirtualAlloc/VirtualFree to limit address range to 32-bit
-     * in order to support 64/32-bit hybrid mode (pointer/address) */
-    /* compilation in 64-bit mode requires g++/clang-based toolchain
-     * for proper inline assembly support (hasn't been tested yet) */
-    ptr = malloc(size);
+#if (RT_POINTER - RT_ADDRESS) != 0
+
+    /* loop around 2GB boundary for 32-bit */
+    if (s_ptr >= (rt_byte *)0x0000000080000000 - size)
+    {
+        s_ptr  = (rt_byte *)0x0000000040000000;
+    }
+
+    if (s_step == 0)
+    {
+        GetSystemInfo(&s_sys);
+        s_step = s_sys.dwAllocationGranularity;
+    }
+
+    rt_pntr ptr = VirtualAlloc(s_ptr, size, MEM_COMMIT | MEM_RESERVE,
+                  PAGE_READWRITE);
+
+    /* advance with allocation granularity */
+    s_ptr = (rt_byte *)ptr + ((size + s_step - 1) / s_step) * s_step;
+
+#else /* (RT_POINTER - RT_ADDRESS) */
+
+    rt_pntr ptr = malloc(size);
+
+#endif /* (RT_POINTER - RT_ADDRESS) */
+
+#if (RT_POINTER - RT_ADDRESS) != 0 && RT_DEBUG >= 1
+
+    RT_LOGI("ALLOC PTR = %016"RT_PR64"X, size = %ld\n", (rt_full)ptr, size);
+
+#endif /* (RT_POINTER - RT_ADDRESS) && RT_DEBUG */
 
     LeaveCriticalSection(&critSec);
+
+#if (RT_POINTER - RT_ADDRESS) != 0
+
+    if ((rt_byte *)ptr >= (rt_byte *)0x0000000080000000 - size)
+    {
+        throw rt_Exception("address exceeded allowed range in sys_alloc");
+    }
+
+#endif /* (RT_POINTER - RT_ADDRESS) */
 
     return ptr;
 }
@@ -181,11 +227,21 @@ rt_void sys_free(rt_pntr ptr, rt_size size)
 {
     EnterCriticalSection(&critSec);
 
-    /* use VirtualAlloc/VirtualFree to limit address range to 32-bit
-     * in order to support 64/32-bit hybrid mode (pointer/address) */
-    /* compilation in 64-bit mode requires g++/clang-based toolchain
-     * for proper inline assembly support (hasn't been tested yet) */
+#if (RT_POINTER - RT_ADDRESS) != 0
+
+    VirtualFree(ptr, 0, MEM_RELEASE);
+
+#else /* (RT_POINTER - RT_ADDRESS) */
+
     free(ptr);
+
+#endif /* (RT_POINTER - RT_ADDRESS) */
+
+#if (RT_POINTER - RT_ADDRESS) != 0 && RT_DEBUG >= 1
+
+    RT_LOGI("FREED PTR = %016"RT_PR64"X, size = %ld\n", (rt_full)ptr, size);
+
+#endif /* (RT_POINTER - RT_ADDRESS) && RT_DEBUG */
 
     LeaveCriticalSection(&critSec);
 }
