@@ -262,7 +262,7 @@ rt_pntr sys_alloc(rt_size size)
 #if (RT_POINTER - RT_ADDRESS) != 0
 
     /* loop around 2GB boundary MAP_32BIT */
-    /* in 64/32-bit hybrid mode pointers mustn't have sign bit
+    /* in 64/32-bit hybrid mode addresses can't have sign bit
      * as MIPS64 sign-extends all 32-bit mem-loads by default */
     if (s_ptr >= (rt_byte *)0x80000000 - size)
     {
@@ -283,11 +283,11 @@ rt_pntr sys_alloc(rt_size size)
 
 #endif /* (RT_POINTER - RT_ADDRESS) */
 
-#if (RT_POINTER - RT_ADDRESS) != 0 && RT_DEBUG >= 1
+#if RT_DEBUG >= 1
 
     RT_LOGI("ALLOC PTR = %016"RT_PR64"X, size = %ld\n", (rt_full)ptr, size);
 
-#endif /* (RT_POINTER - RT_ADDRESS) && RT_DEBUG */
+#endif /* RT_DEBUG */
 
     pthread_mutex_unlock(&mutex);
 
@@ -325,11 +325,11 @@ rt_void sys_free(rt_pntr ptr, rt_size size)
 
 #endif /* (RT_POINTER - RT_ADDRESS) */
 
-#if (RT_POINTER - RT_ADDRESS) != 0 && RT_DEBUG >= 1
+#if RT_DEBUG >= 1
 
     RT_LOGI("FREED PTR = %016"RT_PR64"X, size = %ld\n", (rt_full)ptr, size);
 
-#endif /* (RT_POINTER - RT_ADDRESS) && RT_DEBUG */
+#endif /* RT_DEBUG */
 
     pthread_mutex_unlock(&mutex);
 }

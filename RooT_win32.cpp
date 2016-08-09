@@ -200,11 +200,11 @@ rt_pntr sys_alloc(rt_size size)
 
 #endif /* (RT_POINTER - RT_ADDRESS) */
 
-#if (RT_POINTER - RT_ADDRESS) != 0 && RT_DEBUG >= 1
+#if RT_DEBUG >= 1
 
     RT_LOGI("ALLOC PTR = %016"RT_PR64"X, size = %ld\n", (rt_full)ptr, size);
 
-#endif /* (RT_POINTER - RT_ADDRESS) && RT_DEBUG */
+#endif /* RT_DEBUG */
 
     LeaveCriticalSection(&critSec);
 
@@ -242,11 +242,11 @@ rt_void sys_free(rt_pntr ptr, rt_size size)
 
 #endif /* (RT_POINTER - RT_ADDRESS) */
 
-#if (RT_POINTER - RT_ADDRESS) != 0 && RT_DEBUG >= 1
+#if RT_DEBUG >= 1
 
     RT_LOGI("FREED PTR = %016"RT_PR64"X, size = %ld\n", (rt_full)ptr, size);
 
-#endif /* (RT_POINTER - RT_ADDRESS) && RT_DEBUG */
+#endif /* RT_DEBUG */
 
     LeaveCriticalSection(&critSec);
 }
@@ -508,6 +508,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             SelectObject(hFrmDC, hFrm);
 
+            /* init sys_alloc's mutex */
             InitializeCriticalSection(&critSec);
 
             ret = main_init();
@@ -562,6 +563,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             ret = main_term();
 
+            /* destroy sys_alloc's mutex */
             DeleteCriticalSection(&critSec);
 
             if (hFrmDC != NULL)
