@@ -814,6 +814,11 @@ rt_pntr sys_alloc(rt_size size)
 
 #endif /* (RT_POINTER - RT_ADDRESS) */
 
+    if (ptr == RT_NULL)
+    {
+        throw rt_Exception("alloc failed with NULL address in sys_alloc");
+    }
+
     return ptr;
 }
 
@@ -903,6 +908,11 @@ rt_pntr sys_alloc(rt_size size)
     }
 
 #endif /* (RT_POINTER - RT_ADDRESS) */
+
+    if (ptr == RT_NULL)
+    {
+        throw rt_Exception("alloc failed with NULL address in sys_alloc");
+    }
 
     return ptr;
 }
