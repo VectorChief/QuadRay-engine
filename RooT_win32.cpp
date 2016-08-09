@@ -342,7 +342,7 @@ rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
 
     memset(estr, 0, sizeof(rt_pstr) * thnum);
 
-    DWORD  pam, sam;
+    DWORD_PTR pam, sam;
     HANDLE process = GetCurrentProcess();
     GetProcessAffinityMask(process, &pam, &sam);
 
