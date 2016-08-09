@@ -149,15 +149,19 @@ rt_time get_time()
 #if RT_POINTER == 64
 #if RT_ADDRESS == 32
 
-static
-rt_byte *s_ptr = (rt_byte *)0x0000000040000000;
+#define RT_ADDRESS_MIN      ((rt_byte *)0x0000000040000000)
+#define RT_ADDRESS_MAX      ((rt_byte *)0x0000000080000000)
 
 #else /* RT_ADDRESS == 64 */
 
-static
-rt_byte *s_ptr = (rt_byte *)0x0000000140000000;
+#define RT_ADDRESS_MIN      ((rt_byte *)0x0000000140000000)
+#define RT_ADDRESS_MAX      ((rt_byte *)0x0000080000000000)
 
 #endif /* RT_ADDRESS */
+
+static
+rt_byte *s_ptr = RT_ADDRESS_MIN;
+
 #endif /* RT_POINTER */
 
 
@@ -175,15 +179,12 @@ rt_pntr sys_alloc(rt_size size)
     EnterCriticalSection(&critSec);
 
 #if RT_POINTER == 64
-#if RT_ADDRESS == 32
 
-    /* loop around 2GB boundary for 32-bit */
-    if (s_ptr >= (rt_byte *)0x0000000080000000 - size)
+    /* loop around RT_ADDRESS_MAX boundary */
+    if (s_ptr >= RT_ADDRESS_MAX - size)
     {
-        s_ptr  = (rt_byte *)0x0000000040000000;
+        s_ptr  = RT_ADDRESS_MIN;
     }
-
-#endif /* RT_ADDRESS */
 
     if (s_step == 0)
     {
@@ -213,7 +214,7 @@ rt_pntr sys_alloc(rt_size size)
 
 #if (RT_POINTER - RT_ADDRESS) != 0
 
-    if ((rt_byte *)ptr >= (rt_byte *)0x0000000080000000 - size)
+    if ((rt_byte *)ptr >= RT_ADDRESS_MAX - size)
     {
         throw rt_Exception("address exceeded allowed range in sys_alloc");
     }
