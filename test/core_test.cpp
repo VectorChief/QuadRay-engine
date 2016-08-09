@@ -825,16 +825,14 @@ rt_pntr sys_alloc(rt_size size)
 
     if ((rt_byte *)ptr >= (rt_byte *)0x0000000080000000 - size)
     {
-        RT_LOGE("address exceeded allowed range, exiting...\n");
-        exit(EXIT_FAILURE);
+        throw rt_Exception("address exceeded allowed range in sys_alloc");
     }
 
 #endif /* (RT_POINTER - RT_ADDRESS) */
 
     if (ptr == RT_NULL)
     {
-        RT_LOGE("alloc failed with NULL address, exiting...\n");
-        exit(EXIT_FAILURE);
+        throw rt_Exception("alloc failed with NULL address in sys_alloc");
     }
 
     return ptr;
@@ -925,16 +923,14 @@ rt_pntr sys_alloc(rt_size size)
 
     if ((rt_byte *)ptr >= (rt_byte *)0x0000000080000000 - size)
     {
-        RT_LOGE("address exceeded allowed range, exiting...\n");
-        exit(EXIT_FAILURE);
+        throw rt_Exception("address exceeded allowed range in sys_alloc");
     }
 
 #endif /* (RT_POINTER - RT_ADDRESS) */
 
     if (ptr == RT_NULL)
     {
-        RT_LOGE("alloc failed with NULL address, exiting...\n");
-        exit(EXIT_FAILURE);
+        throw rt_Exception("alloc failed with NULL address in sys_alloc");
     }
 
     return ptr;
