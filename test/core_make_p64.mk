@@ -29,7 +29,7 @@ LIB_LIST =                              \
 core_test:
 	powerpc64le-linux-gnu-g++ -O2 -g -static \
         -DRT_LINUX -DRT_P64 -DRT_128=2 \
-        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ENDIAN=0 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64f32

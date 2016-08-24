@@ -32,7 +32,7 @@ LIB_LIST =                              \
 RooT:
 	powerpc64le-linux-gnu-g++ -O2 -g \
         -DRT_LINUX -DRT_P64 -DRT_128=1+2 \
-        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ENDIAN=0 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f32

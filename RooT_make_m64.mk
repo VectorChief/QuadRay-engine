@@ -31,7 +31,7 @@ LIB_LIST =                              \
 RooT:
 	mips64el-linux-gnuabi64-g++ -O3 -g -mips64r6 -mabi=64 -mmsa \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 \
-        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ENDIAN=0 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.m64f32
