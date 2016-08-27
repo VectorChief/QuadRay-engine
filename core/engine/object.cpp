@@ -1745,30 +1745,30 @@ rt_void rt_Array::update_fields()
      * select aux vector fields for axis mapping in backend structures */
     rt_si32 shift = trnode != RT_NULL ? 3 : 0;
 
-    s_srf->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
-    s_srf->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
-    s_srf->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
+    s_srf->a_map[RT_I] = (mp_i + shift) * RT_SIMD_QUADS * 16;
+    s_srf->a_map[RT_J] = (mp_j + shift) * RT_SIMD_QUADS * 16;
+    s_srf->a_map[RT_K] = (mp_k + shift) * RT_SIMD_QUADS * 16;
     s_srf->a_map[RT_L] = obj_has_trm;
 
-    s_srf->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_srf->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_srf->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_srf->a_sgn[RT_L] = shift * RT_SIMD_WIDTH * 4;
+    s_srf->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_QUADS * 16;
+    s_srf->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_QUADS * 16;
+    s_srf->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_QUADS * 16;
+    s_srf->a_sgn[RT_L] = shift * RT_SIMD_QUADS * 16;
 
     /* trnode's simd ptr is needed in rendering backend
      * to check if surface and its clippers belong to the same trnode */
     s_srf->msc_p[3] = trnode == RT_NULL ?
                                 RT_NULL : ((rt_Node *)trnode)->s_srf;
 
-    s_inb->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
-    s_inb->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
-    s_inb->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
+    s_inb->a_map[RT_I] = (mp_i + shift) * RT_SIMD_QUADS * 16;
+    s_inb->a_map[RT_J] = (mp_j + shift) * RT_SIMD_QUADS * 16;
+    s_inb->a_map[RT_K] = (mp_k + shift) * RT_SIMD_QUADS * 16;
     s_inb->a_map[RT_L] = obj_has_trm;
 
-    s_inb->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_inb->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_inb->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_inb->a_sgn[RT_L] = shift * RT_SIMD_WIDTH * 4;
+    s_inb->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_QUADS * 16;
+    s_inb->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_QUADS * 16;
+    s_inb->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_QUADS * 16;
+    s_inb->a_sgn[RT_L] = shift * RT_SIMD_QUADS * 16;
 
     /* trnode's simd ptr is needed in rendering backend
      * to check if surface and its clippers belong to the same trnode */
@@ -1779,9 +1779,9 @@ rt_void rt_Array::update_fields()
     RT_SIMD_SET(s_inb->scj_y, 0.0f);
     RT_SIMD_SET(s_inb->scj_z, 0.0f);
 
-    s_bvb->a_map[RT_I] = RT_X * RT_SIMD_WIDTH * 4;
-    s_bvb->a_map[RT_J] = RT_Y * RT_SIMD_WIDTH * 4;
-    s_bvb->a_map[RT_K] = RT_Z * RT_SIMD_WIDTH * 4;
+    s_bvb->a_map[RT_I] = RT_X * RT_SIMD_QUADS * 16;
+    s_bvb->a_map[RT_J] = RT_Y * RT_SIMD_QUADS * 16;
+    s_bvb->a_map[RT_K] = RT_Z * RT_SIMD_QUADS * 16;
     s_bvb->a_map[RT_L] = 0;
 
     s_bvb->a_sgn[RT_I] = 0;
@@ -2239,9 +2239,9 @@ rt_void rt_Array::update_bounds()
         else
         if (trnode == this)
         {
-            s_inb->a_map[RT_I] = RT_X * RT_SIMD_WIDTH * 4;
-            s_inb->a_map[RT_J] = RT_Y * RT_SIMD_WIDTH * 4;
-            s_inb->a_map[RT_K] = RT_Z * RT_SIMD_WIDTH * 4;
+            s_inb->a_map[RT_I] = RT_X * RT_SIMD_QUADS * 16;
+            s_inb->a_map[RT_J] = RT_Y * RT_SIMD_QUADS * 16;
+            s_inb->a_map[RT_K] = RT_Z * RT_SIMD_QUADS * 16;
             s_inb->a_map[RT_L] = 0;
 
             s_inb->a_sgn[RT_I] = 0;
@@ -2460,15 +2460,15 @@ rt_void rt_Surface::update_fields()
      * select aux vector fields for axis mapping in backend structures */
     rt_si32 shift = trnode != RT_NULL ? 3 : 0;
 
-    s_srf->a_map[RT_I] = (mp_i + shift) * RT_SIMD_WIDTH * 4;
-    s_srf->a_map[RT_J] = (mp_j + shift) * RT_SIMD_WIDTH * 4;
-    s_srf->a_map[RT_K] = (mp_k + shift) * RT_SIMD_WIDTH * 4;
+    s_srf->a_map[RT_I] = (mp_i + shift) * RT_SIMD_QUADS * 16;
+    s_srf->a_map[RT_J] = (mp_j + shift) * RT_SIMD_QUADS * 16;
+    s_srf->a_map[RT_K] = (mp_k + shift) * RT_SIMD_QUADS * 16;
     s_srf->a_map[RT_L] = obj_has_trm;
 
-    s_srf->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_srf->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_srf->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_WIDTH * 4;
-    s_srf->a_sgn[RT_L] = shift * RT_SIMD_WIDTH * 4;
+    s_srf->a_sgn[RT_I] = (sgn[RT_I] >= 0 ? 0 : 1) * RT_SIMD_QUADS * 16;
+    s_srf->a_sgn[RT_J] = (sgn[RT_J] >= 0 ? 0 : 1) * RT_SIMD_QUADS * 16;
+    s_srf->a_sgn[RT_K] = (sgn[RT_K] >= 0 ? 0 : 1) * RT_SIMD_QUADS * 16;
+    s_srf->a_sgn[RT_L] = shift * RT_SIMD_QUADS * 16;
 
     /* trnode's simd ptr is needed in rendering backend
      * to check if surface and its clippers belong to the same trnode */
@@ -4062,8 +4062,8 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     s_mat = (rt_SIMD_MATERIAL *)
             rg->alloc(sizeof(rt_SIMD_MATERIAL), RT_SIMD_ALIGN);
 
-    s_mat->t_map[RT_X] = map[RT_X] * RT_SIMD_WIDTH * 4;
-    s_mat->t_map[RT_Y] = map[RT_Y] * RT_SIMD_WIDTH * 4;
+    s_mat->t_map[RT_X] = map[RT_X] * RT_SIMD_QUADS * 16;
+    s_mat->t_map[RT_Y] = map[RT_Y] * RT_SIMD_QUADS * 16;
     s_mat->t_map[2] = 0;
     s_mat->t_map[3] = 0;
 

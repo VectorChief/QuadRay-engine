@@ -272,8 +272,9 @@ rt_si32 main_step()
         if (hide_num == 0)
         {
             sc[d]->render_num(x_res-10, 10, -1, 2, (rt_si32)fps);
+            sc[d]->render_num(x_res-10, 34, -1, 2, (rt_si32)fsaa * 4
+                                                   / (RT_ELEMENT / 32));
             sc[d]->render_num(      10, 10, +1, 2, (rt_si32)simd * 32);
-            sc[d]->render_num(x_res-10, 34, -1, 2, (rt_si32)fsaa * 4);
             sc[d]->render_num(      10, 34, +1, 2, (rt_si32)type);
         }
     }

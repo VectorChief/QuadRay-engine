@@ -2416,7 +2416,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
 {
     this->scn = scn;
 
-    /* check for locked scene data, not thread safe! */
+    /* check for locked scene data, not thread safe! (it's ok, not a bug) */
     if (scn->lock != RT_NULL)
     {
         throw rt_Exception("scene data is locked by another instance");
@@ -2561,6 +2561,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
      * default SIMD runtime target will be chosen */
     simd_width = switch0(tharr[0]->s_inf, 0) & 0xFF;
     simd_quads = simd_width / 4;
+    simd_width = simd_width / (RT_ELEMENT / 32);
 }
 
 /*
@@ -3008,6 +3009,8 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
 
         for (i = 0; i < simd_quads; i++)
         {
+#if   RT_ELEMENT == 32
+
             fdh[i*4+0] = (-ar-as) + (rt_real)i;
             fdh[i*4+1] = (-ar+as) + (rt_real)i;
             fdh[i*4+2] = (+ar-as) + (rt_real)i;
@@ -3017,6 +3020,16 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
             fdv[i*4+1] = (-ar-as) + (rt_real)index;
             fdv[i*4+2] = (+ar+as) + (rt_real)index;
             fdv[i*4+3] = (-ar+as) + (rt_real)index;
+
+#elif RT_ELEMENT == 64
+
+            fdh[i*2+0] = (-ar-as) + (rt_real)i;
+            fdh[i*2+1] = (+ar+as) + (rt_real)i;
+
+            fdv[i*2+0] = (+ar-as) + (rt_real)index;
+            fdv[i*2+1] = (-ar+as) + (rt_real)index;
+
+#endif /* RT_ELEMENT */
         }
 
         fhr = (rt_real)simd_quads;
@@ -3143,6 +3156,7 @@ rt_si32 rt_Scene::set_simd(rt_si32 simd)
 
     simd_width = simd & 0xFF;
     simd_quads = simd_width / 4;
+    simd_width = simd_width / (RT_ELEMENT / 32);
 
     return simd;
 }
