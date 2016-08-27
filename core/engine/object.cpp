@@ -740,9 +740,19 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
 
 #endif /* surface's misc pointers description */
 
+#if   RT_ELEMENT == 32
+
     RT_SIMD_SET(s_srf->sbase, 0x00000000);
     RT_SIMD_SET(s_srf->smask, 0x80000000);
     RT_SIMD_SET(s_srf->c_def, 0xFFFFFFFF);
+
+#elif RT_ELEMENT == 64
+
+    RT_SIMD_SET(s_srf->sbase, 0x0000000000000000);
+    RT_SIMD_SET(s_srf->smask, 0x8000000000000000);
+    RT_SIMD_SET(s_srf->c_def, 0xFFFFFFFFFFFFFFFF);
+
+#endif /* RT_ELEMENT */
 
     RT_SIMD_SET(s_srf->d_eps, RT_DEPS_THRESHOLD);
     RT_SIMD_SET(s_srf->t_eps, RT_TEPS_THRESHOLD);
@@ -1550,9 +1560,19 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     s_inb->mat_p[2] = inner->s_mat;
     s_inb->mat_p[3] = (rt_pntr)(rt_word)inner->props;
 
+#if   RT_ELEMENT == 32
+
     RT_SIMD_SET(s_inb->sbase, 0x00000000);
     RT_SIMD_SET(s_inb->smask, 0x80000000);
     RT_SIMD_SET(s_inb->c_def, 0xFFFFFFFF);
+
+#elif RT_ELEMENT == 64
+
+    RT_SIMD_SET(s_inb->sbase, 0x0000000000000000);
+    RT_SIMD_SET(s_inb->smask, 0x8000000000000000);
+    RT_SIMD_SET(s_inb->c_def, 0xFFFFFFFFFFFFFFFF);
+
+#endif /* RT_ELEMENT */
 
     RT_SIMD_SET(s_inb->d_eps, RT_DEPS_THRESHOLD);
     RT_SIMD_SET(s_inb->t_eps, RT_TEPS_THRESHOLD);
@@ -1568,9 +1588,19 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     s_bvb->mat_p[2] = inner->s_mat;
     s_bvb->mat_p[3] = (rt_pntr)(rt_word)inner->props;
 
+#if   RT_ELEMENT == 32
+
     RT_SIMD_SET(s_bvb->sbase, 0x00000000);
     RT_SIMD_SET(s_bvb->smask, 0x80000000);
     RT_SIMD_SET(s_bvb->c_def, 0xFFFFFFFF);
+
+#elif RT_ELEMENT == 64
+
+    RT_SIMD_SET(s_bvb->sbase, 0x0000000000000000);
+    RT_SIMD_SET(s_bvb->smask, 0x8000000000000000);
+    RT_SIMD_SET(s_bvb->c_def, 0xFFFFFFFFFFFFFFFF);
+
+#endif /* RT_ELEMENT */
 
     RT_SIMD_SET(s_bvb->d_eps, RT_DEPS_THRESHOLD);
     RT_SIMD_SET(s_bvb->t_eps, RT_TEPS_THRESHOLD);
