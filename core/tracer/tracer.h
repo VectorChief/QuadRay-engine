@@ -460,10 +460,10 @@ struct rt_SIMD_CONTEXT
 
     /* color buffer */
 
-    rt_ui32 c_ptr[S];
+    rt_elem c_ptr[S];
 #define ctx_C_PTR(nx)       DP(Q*0x120 + nx)
 
-    rt_ui32 c_buf[S];
+    rt_elem c_buf[S];
 #define ctx_C_BUF(nx)       DP(Q*0x130 + nx)
 
     /* texture color */
@@ -490,10 +490,10 @@ struct rt_SIMD_CONTEXT
 
     /* roots sorting masks */
 
-    rt_ui32 amask[S];
+    rt_elem amask[S];
 #define ctx_AMASK           DP(Q*0x1A0)
 
-    rt_ui32 dmask[S];
+    rt_elem dmask[S];
 #define ctx_DMASK           DP(Q*0x1B0)
 
     /* depth, masks, temps, misc */
@@ -507,10 +507,10 @@ struct rt_SIMD_CONTEXT
     rt_real tmask[S];
 #define ctx_TMASK(nx)       DP(Q*0x1E0 + nx)
 
-    rt_ui32 wmask[S];
+    rt_elem wmask[S];
 #define ctx_WMASK           DP(Q*0x1F0)
 
-    rt_ui32 xmask[S];
+    rt_elem xmask[S];
 #define ctx_XMASK           DP(Q*0x200)
 
     rt_real xtmp1[S];
@@ -519,7 +519,7 @@ struct rt_SIMD_CONTEXT
     rt_real xtmp2[S];
 #define ctx_XTMP2           DP(Q*0x220)
 
-    rt_ui32 xmisc[S];
+    rt_ui32 xmisc[R];
 #define ctx_XMISC(nx)       DP(Q*0x230 + nx)
 
     /* normal */
@@ -546,20 +546,20 @@ struct rt_SIMD_CONTEXT
 
     /* packed scalar fields */
 
-    rt_ui64 param[S];
+    rt_ui64 param[R];
 #define ctx_PARAM(nx)       DP(Q*0x2A0 + nx*2)
 
-    rt_ui64 local[S];
+    rt_ui64 local[R];
 #define ctx_LOCAL(nx)       DP(Q*0x2C0 + nx*2)
 
     /* custom clipping accum */
 
-    rt_ui32 c_acc[S];
+    rt_elem c_acc[S];
 #define ctx_C_ACC           DP(Q*0x2E0)
 
     /* reserved area 1 */
 
-    rt_ui32 pad01[S];
+    rt_elem pad01[S];
 #define ctx_PAD01           DP(Q*0x2F0)
 
     /* overlapping next context,
@@ -676,7 +676,7 @@ struct rt_SIMD_CAMERA
     rt_real clamp[S];
 #define cam_CLAMP           DP(Q*0x0E0)
 
-    rt_ui32 cmask[S];
+    rt_elem cmask[S];
 #define cam_CMASK           DP(Q*0x0F0)
 
 };
@@ -749,7 +749,7 @@ struct rt_SIMD_SURFACE
 {
     /* clipping accum default */
 
-    rt_ui32 c_def[S];
+    rt_elem c_def[S];
 #define srf_C_DEF           DP(Q*0x000)
 
     /* surface position */
@@ -787,26 +787,26 @@ struct rt_SIMD_SURFACE
 
     /* axis clippers toggles (on/off) */
 
-    rt_si32 min_t[S];
+    rt_si32 min_t[R];
 #define srf_MIN_T(nx)       DP(Q*0x0A0 + nx)
 
-    rt_si32 max_t[S];
+    rt_si32 max_t[R];
 #define srf_MAX_T(nx)       DP(Q*0x0B0 + nx)
 
     /* surface axis mapping */
 
-    rt_si32 a_map[S];
+    rt_si32 a_map[R];
 #define srf_A_MAP(nx)       DP(Q*0x0C0 + nx)
 
-    rt_si32 a_sgn[S];
+    rt_si32 a_sgn[R];
 #define srf_A_SGN(nx)       DP(Q*0x0D0 + nx)
 
     /* sign masks */
 
-    rt_ui32 sbase[S];
+    rt_elem sbase[S];
 #define srf_SBASE           DP(Q*0x0E0)
 
-    rt_ui32 smask[S];
+    rt_elem smask[S];
 #define srf_SMASK           DP(Q*0x0F0)
 
     /* roots sorting thresholds */
@@ -819,7 +819,7 @@ struct rt_SIMD_SURFACE
 
     /* reserved area 1 */
 
-    rt_ui32 pad01[S*2];
+    rt_elem pad01[S*2];
 #define srf_PAD01           DP(Q*0x120)
 
     /* transform coeffs */
@@ -921,26 +921,26 @@ struct rt_SIMD_MATERIAL
 
     /* texture mapping */
 
-    rt_ui32 xmask[S];
+    rt_elem xmask[S];
 #define mat_XMASK           DP(Q*0x040)
 
-    rt_ui32 ymask[S];
+    rt_elem ymask[S];
 #define mat_YMASK           DP(Q*0x050)
 
-    rt_ui32 yshft[S];
+    rt_elem yshft[S];
 #define mat_YSHFT           DP(Q*0x060)
 
-    rt_pntr tex_p[S/P];
+    rt_pntr tex_p[R/P];
 #define mat_TEX_P           DP(Q*0x070+E)
 
     /* texture axis mapping */
 
-    rt_si32 t_map[S];
+    rt_si32 t_map[R];
 #define mat_T_MAP(nx)       DP(Q*0x080 + nx)
 
     /* color mask */
 
-    rt_ui32 cmask[S];
+    rt_elem cmask[S];
 #define mat_CMASK           DP(Q*0x090)
 
     /* properties */
@@ -951,10 +951,10 @@ struct rt_SIMD_MATERIAL
     rt_real l_spc[S];
 #define mat_L_SPC           DP(Q*0x0B0)
 
-    rt_ui32 l_pow[S];
+    rt_elem l_pow[S];
 #define mat_L_POW           DP(Q*0x0C0)
 
-    rt_pntr pow_p[S/P];
+    rt_pntr pow_p[R/P];
 #define mat_POW_P           DP(Q*0x0D0)
 
 
