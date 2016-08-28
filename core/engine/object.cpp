@@ -4152,7 +4152,7 @@ rt_void rt_Material::resolve_texture(rt_Registry *rg)
      * except for allowed address range for backend */
 #if (RT_POINTER - RT_ADDRESS) != 0 && RT_DEBUG >= 1
 
-    RT_LOGI("TEX_P PTR = %016"RT_PR64"X\n", (rt_full)tx->ptex);
+    RT_LOGI("TEX_P PTR = %016"PR64"X\n", (rt_full)tx->ptex);
 
 #endif /* (RT_POINTER - RT_ADDRESS) && RT_DEBUG */
 
