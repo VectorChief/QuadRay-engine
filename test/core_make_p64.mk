@@ -16,7 +16,6 @@ SRC_LIST =                              \
         ../core/engine/rtimag.cpp       \
         ../core/system/system.cpp       \
         ../core/tracer/tracer.cpp       \
-        ../core/tracer/tracer_128v1.cpp \
         ../core/tracer/tracer_128v2.cpp \
         core_test.cpp
 
