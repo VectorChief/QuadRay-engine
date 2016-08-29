@@ -631,11 +631,11 @@
         movyx_ri(Reax, IB(0))                                               \
         FRAME_CBUF(Reax, Resi, 00)                                          \
         FRAME_CBUF(Reax, Resi, 08)                                          \
-        shryx_ri(Reax, IB(2))                                               \
+        shryx_ri(Reax, IB(1))                                               \
         movyx_ri(Redx, IB(0))                                               \
         FRAME_CBUF(Redx, Redi, 00)                                          \
         FRAME_CBUF(Redx, Redi, 08)                                          \
-        shryx_ri(Redx, IB(2))                                               \
+        shryx_ri(Redx, IB(1))                                               \
         andyx_rr(Redx, Redi)                                                \
         addyx_rr(Redx, Reax)                                                \
         FRAME_FRAG()
@@ -688,22 +688,22 @@
         movyx_ri(Reax, IB(0))                                               \
         FRAME_CBUF(Reax, Resi, 00)                                          \
         FRAME_CBUF(Reax, Resi, 08)                                          \
-        shryx_ri(Reax, IB(2))                                               \
+        shryx_ri(Reax, IB(1))                                               \
         movyx_ri(Redx, IB(0))                                               \
         FRAME_CBUF(Redx, Redi, 00)                                          \
         FRAME_CBUF(Redx, Redi, 08)                                          \
-        shryx_ri(Redx, IB(2))                                               \
+        shryx_ri(Redx, IB(1))                                               \
         andyx_rr(Redx, Redi)                                                \
         addyx_rr(Redx, Reax)                                                \
         FRAME_FRAG()                                                        \
         movyx_ri(Reax, IB(0))                                               \
         FRAME_CBUF(Reax, Resi, 10)                                          \
         FRAME_CBUF(Reax, Resi, 18)                                          \
-        shryx_ri(Reax, IB(2))                                               \
+        shryx_ri(Reax, IB(1))                                               \
         movyx_ri(Redx, IB(0))                                               \
         FRAME_CBUF(Redx, Redi, 10)                                          \
         FRAME_CBUF(Redx, Redi, 18)                                          \
-        shryx_ri(Redx, IB(2))                                               \
+        shryx_ri(Redx, IB(1))                                               \
         andyx_rr(Redx, Redi)                                                \
         addyx_rr(Redx, Reax)                                                \
         FRAME_FRAG()
