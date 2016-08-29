@@ -446,7 +446,7 @@
         movyx_st(Reax, Mecx, ctx_T_BUF(0x##pn))                             \
         movyx_ld(Reax, Mecx, ctx_C_PTR(0x##pn))                             \
         addxx_ld(Reax, Medx, mat_TEX_P)                                     \
-        movyx_ld(Reax, Oeax, PLAIN)                                         \
+        movwx_ld(Reax, Oeax, PLAIN)                                         \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x##pn))                             \
     LBL(lb##pn)
 
@@ -2161,10 +2161,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         mulps_rr(Xmm1, Xmm1)
 
-        cmjxx_rz(Reax,
+        cmjwx_rz(Reax,
                  EQ_x, LT_pwe)
 
-        subxx_ri(Reax, IB(1))
+        subwx_ri(Reax, IB(1))
         jmpxx_lb(LT_pw4)
 
     LBL(LT_pw0)
@@ -2178,10 +2178,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(LT_pwc)
 
-        movxx_ri(Resi, IB(1))
-        andxx_rr(Resi, Reax)
-        shrxx_ri(Reax, IB(1))
-        cmjxx_rz(Resi,
+        movwx_ri(Resi, IB(1))
+        andwx_rr(Resi, Reax)
+        shrwx_ri(Reax, IB(1))
+        cmjwx_rz(Resi,
                  EQ_x, LT_pws)
 
         mulps_rr(Xmm1, Xmm2)
@@ -2189,7 +2189,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(LT_pws)
 
         mulps_rr(Xmm2, Xmm2)
-        cmjxx_rz(Reax,
+        cmjwx_rz(Reax,
                  NE_x, LT_pwc)
 
     LBL(LT_pwe)

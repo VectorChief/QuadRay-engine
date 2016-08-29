@@ -951,7 +951,7 @@ struct rt_SIMD_MATERIAL
     rt_real l_spc[S];
 #define mat_L_SPC           DP(Q*0x0B0)
 
-    rt_elem l_pow[S];
+    rt_ui32 l_pow[R];
 #define mat_L_POW           DP(Q*0x0C0)
 
     rt_pntr pow_p[R/P];
