@@ -614,10 +614,10 @@ rt_void rt_SceneThread::tiling(rt_vec2 p1, rt_vec2 p2)
     for (i = 0; i < n; i++)
     {
         /* calculate points floor */
-        x1 = RT_FLOOR(n1[i][RT_X]);
-        y1 = RT_FLOOR(n1[i][RT_Y]);
-        x2 = RT_FLOOR(n2[i][RT_X]);
-        y2 = RT_FLOOR(n2[i][RT_Y]);
+        x1 = (rt_si32)RT_FLOOR(n1[i][RT_X]);
+        y1 = (rt_si32)RT_FLOOR(n1[i][RT_Y]);
+        x2 = (rt_si32)RT_FLOOR(n2[i][RT_X]);
+        y2 = (rt_si32)RT_FLOOR(n2[i][RT_Y]);
 
         /* reject y-outer lines */
         if (y1 > ymax || y2 < ymin)
@@ -651,7 +651,7 @@ rt_void rt_SceneThread::tiling(rt_vec2 p1, rt_vec2 p2)
         y2 = y2 > ymax ? ymax : y2 - 1;
 
         px = n1[i][RT_X] + (y1 - n1[i][RT_Y]) * rt;
-        x2 = RT_FLOOR(px);
+        x2 = (rt_si32)RT_FLOOR(px);
 
         if (y1 > ymin)
         {
@@ -663,14 +663,14 @@ rt_void rt_SceneThread::tiling(rt_vec2 p1, rt_vec2 p2)
         for (t = y1; t <= y2; t++)
         {
             px = px + rt;
-            x2 = RT_FLOOR(px);
+            x2 = (rt_si32)RT_FLOOR(px);
             RT_UPDATE_TILES_BOUNDS(t, x1, x2);
             x1 = x2;
         }
 
         if (y2 < ymax)
         {
-            x2 = RT_FLOOR(n2[i][RT_X]);
+            x2 = (rt_si32)RT_FLOOR(n2[i][RT_X]);
             RT_UPDATE_TILES_BOUNDS(y2 + 1, x1, x2);
         }
     }
