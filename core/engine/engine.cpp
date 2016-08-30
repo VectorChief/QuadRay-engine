@@ -3068,8 +3068,8 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
     RT_SIMD_SET(s_cam->ver_y, ver[RT_Y] * fvr);
     RT_SIMD_SET(s_cam->ver_z, ver[RT_Z] * fvr);
 
-    RT_SIMD_SET(s_cam->clamp, 255.0f);
-    RT_SIMD_SET(s_cam->cmask, 0xFF);
+    RT_SIMD_SET(s_cam->clamp, (rt_real)255);
+    RT_SIMD_SET(s_cam->cmask, (rt_elem)255);
 
     RT_SIMD_SET(s_cam->col_r, amb[RT_R]);
     RT_SIMD_SET(s_cam->col_g, amb[RT_G]);
@@ -3081,16 +3081,7 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
     rt_SIMD_CONTEXT *s_ctx = tharr[index]->s_ctx;
 
     RT_SIMD_SET(s_ctx->t_min, cam->pov);
-
-#if   RT_ELEMENT == 32
-
-    RT_SIMD_SET(s_ctx->wmask, 0xFFFFFFFF);
-
-#elif RT_ELEMENT == 64
-
-    RT_SIMD_SET(s_ctx->wmask, 0xFFFFFFFFFFFFFFFF);
-
-#endif /* RT_ELEMENT */
+    RT_SIMD_SET(s_ctx->wmask, -1);
 
     RT_SIMD_SET(s_ctx->org_x, pos[RT_X]);
     RT_SIMD_SET(s_ctx->org_y, pos[RT_Y]);
