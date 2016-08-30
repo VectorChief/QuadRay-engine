@@ -51,11 +51,16 @@ core_test:
 # qemu-ppc64le -cpu POWER8 core_test.p64f32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
-# For 64-bit Power(7,7+,8) VSX big-endian target use (replace):
+# For big-endian 64-bit POWER(7,7+,8) VSX target use (replace):
 # powerpc64-linux-gnu-g++ -O3 -DRT_ENDIAN=1
+# (enable RT_SIMD_COMPAT_I64 in core/config/rtarch.h for POWER7 64-bit SIMD)
 # qemu-ppc64 -cpu POWER7 core_test.p64f32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
-# Experimental 64/32-bit hybrid mode compatible with native 64-bit ABI
+# 64/32-bit (ptr/adr) hybrid mode compatible with native 64-bit ABI
 # is available for the original pure 32-bit ISA using 64-bit pointers,
 # use (replace): RT_ADDRESS=32, rename the binary to core_test.p64_32
+
+# 64-bit packed SIMD mode (fp64/int64) is supported on 64-bit targets,
+# but currently requires addresses to be 64-bit as well (RT_ADDRESS=64),
+# use (replace): RT_ELEMENT=64, rename the binary to core_test.p64f64

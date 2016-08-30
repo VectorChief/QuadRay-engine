@@ -61,7 +61,7 @@ core_test:
 # qemu-mipsel -cpu mips32r6-generic core_test.m32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
-# For MIPS32 big-endian (r5 and r6) use (replace): -EB -DRT_ENDIAN=1
+# For big-endian MIPS32 (r5 and r6) use (replace): -EB -DRT_ENDIAN=1
 # qemu-mips -cpu *** core_test.m32 -i -a
 # where *** is P5600 for r5 build and mips32r6-generic for r6 build.
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)

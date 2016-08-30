@@ -51,6 +51,6 @@ core_test:
 # qemu-ppc -cpu G4 core_test.p32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
-# For 32-bit Power(7,7+,8) VSX target use (replace): -DRT_128=2
+# For 32-bit POWER(7,7+,8) VSX target use (replace): -DRT_128=2
 # qemu-ppc64abi32 -cpu POWER7 core_test.p32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)

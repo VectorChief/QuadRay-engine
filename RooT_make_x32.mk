@@ -53,5 +53,5 @@ RooT:
 # clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
 # sudo apt-get install clang (requires g++-multilib for non-native ABI)
 
-# The 32-bit ABI hasn't been fully tested yet due to lack of available libs,
+# 32-bit ABI hasn't been fully tested yet due to lack of available libs,
 # check out an experimental 64/32-bit hybrid mode in RooT_make_x64.mk

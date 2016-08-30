@@ -46,5 +46,5 @@ RooT:
 # ./RooT.a32 (on AArch64 host or QEMU system mode with ILP32 X11/Xext libs)
 # (hasn't been verified due to lack of target host system)
 
-# The 32-bit ABI hasn't been fully tested yet due to lack of available libs,
+# 32-bit ABI hasn't been fully tested yet due to lack of available libs,
 # check out an experimental 64/32-bit hybrid mode in RooT_make_a64.mk
