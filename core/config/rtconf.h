@@ -51,9 +51,14 @@
 #define RT_EDGES_LIMIT          12 /* maximum number of edges for bbox */
 #define RT_FACES_LIMIT          6  /* maximum number of faces for bbox */
 
-#define RT_TILE_W               8  /* screen tile width  in pixels (%4 == 0) */
+#define RT_TILE_W               8  /* screen tile width  in pixels (%S == 0) */
 #define RT_TILE_H               8  /* screen tile height in pixels */
 
+/*
+ * Floating point thresholds,
+ * values have been roughly selected for single precision,
+ * double precision mode may or may not require adjustments.
+ */
 #define RT_TILE_THRESHOLD       0.2f
 #define RT_LINE_THRESHOLD       0.01f
 #define RT_CLIP_THRESHOLD       0.01f
@@ -87,6 +92,9 @@
 #define RT_OPTS_INSERT_EXT1     (0 << 17)
 #define RT_OPTS_INSERT_EXT2     (0 << 18)
 #define RT_OPTS_REMOVE          (0 << 19)
+
+/* bbox sorting (RT_OPTS_INSERT) and hidden surfaces removal (RT_OPTS_REMOVE)
+ * optimizations have been turned off for poor scalability with larger scenes */
 
 #define RT_OPTS_FULL            (                                           \
         RT_OPTS_THREAD          |                                           \
