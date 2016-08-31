@@ -30,7 +30,7 @@ LIB_LIST =                              \
         -lgdi32
 
 RooT:
-	g++ -O3 -g -m64 \
+	g++ -O3 -g -static -m64 \
         -DRT_WIN64 -DRT_X64 -DRT_128=2+4 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
@@ -41,11 +41,9 @@ RooT:
 # TDM64-GCC compiler for Win32/64 is installed and in the PATH variable.
 # Download tdm64-gcc-5.1.0-2.exe from sourceforge and run the installer.
 #
-# Use "MinGW Command Prompt" from "Windows Start Menu" under "TDM-GCC-64".
-# Works with regular "cmd" command prompt too after TDM64-GCC installation.
-#
 # Building/running CORE test:
-# run RooT_make_w64.bat file or
+# run RooT_make_w64.bat from Windows UI or
+# run the following from Command Prompt "cmd":
 # mingw32-make -f RooT_make_w64.mk
 # RooT_w64f32.exe
 

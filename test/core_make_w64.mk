@@ -40,11 +40,9 @@ core_test:
 # TDM64-GCC compiler for Win32/64 is installed and in the PATH variable.
 # Download tdm64-gcc-5.1.0-2.exe from sourceforge and run the installer.
 #
-# Use "MinGW Command Prompt" from "Windows Start Menu" under "TDM-GCC-64".
-# Works with regular "cmd" command prompt too after TDM64-GCC installation.
-#
 # Building/running CORE test:
-# run core_make_w64.bat file or
+# run core_make_w64.bat from Windows UI or
+# run the following from Command Prompt "cmd":
 # mingw32-make -f core_make_w64.mk
 # core_test_w64f32.exe -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
