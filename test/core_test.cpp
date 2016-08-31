@@ -22,15 +22,15 @@
 
 #define CHN(px, sh)         ((px) & (0xFF << (sh)))
 
-#define PEQ(p1, p2)         (RT_ABS(CHN(p1,24)-CHN(p2,24))<=(t_diff<<24) && \
-                             RT_ABS(CHN(p1,16)-CHN(p2,16))<=(t_diff<<16) && \
-                             RT_ABS(CHN(p1, 8)-CHN(p2, 8))<=(t_diff<< 8) && \
-                             RT_ABS(CHN(p1, 0)-CHN(p2, 0))<=(t_diff<< 0))
+#define PEQ(p1, p2)         (ABS32(CHN(p1,24)-CHN(p2,24))<=(t_diff<<24) &&  \
+                             ABS32(CHN(p1,16)-CHN(p2,16))<=(t_diff<<16) &&  \
+                             ABS32(CHN(p1, 8)-CHN(p2, 8))<=(t_diff<< 8) &&  \
+                             ABS32(CHN(p1, 0)-CHN(p2, 0))<=(t_diff<< 0))
 
-#define PDF(p1, p2)         (RT_ABS(CHN(p1,24)-CHN(p2,24)) +                \
-                             RT_ABS(CHN(p1,16)-CHN(p2,16)) +                \
-                             RT_ABS(CHN(p1, 8)-CHN(p2, 8)) +                \
-                             RT_ABS(CHN(p1, 0)-CHN(p2, 0)))
+#define PDF(p1, p2)         (ABS32(CHN(p1,24)-CHN(p2,24)) +                 \
+                             ABS32(CHN(p1,16)-CHN(p2,16)) +                 \
+                             ABS32(CHN(p1, 8)-CHN(p2, 8)) +                 \
+                             ABS32(CHN(p1, 0)-CHN(p2, 0)))
 
 /******************************************************************************/
 /***************************   VARS, FUNCS, TYPES   ***************************/
