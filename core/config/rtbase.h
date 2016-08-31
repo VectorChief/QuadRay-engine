@@ -287,7 +287,7 @@ typedef const char         *rt_pstr;
  */
 #if   RT_ELEMENT == 32
 
-#define RT_ABS(a)           (abs((rt_si32)a))
+#define RT_ABS(a)           (abs((rt_si32)(a)))
 
 #define RT_FABS(a)          (fabsf(a))
 
@@ -332,7 +332,7 @@ typedef const char         *rt_pstr;
 
 #elif RT_ELEMENT == 64
 
-#define RT_ABS(a)           (llabs((rt_si64)a))
+#define RT_ABS(a)           (llabs((rt_si64)(a)))
 
 #define RT_FABS(a)          (fabs(a))
 
