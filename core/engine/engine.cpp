@@ -2428,8 +2428,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
      * or negative, in which case frame starts at the last line
      * and consecutive lines are located backwards in memory,
      * "x_row" must contain the whole number of SIMD widths */
-    if (x_res == 0 || ABS32(x_row) < x_res
-    ||  y_res == 0 || ABS32(x_row) & (RT_SIMD_WIDTH - 1))
+    if (x_res == 0 || RT_ABS32(x_row) < x_res
+    ||  y_res == 0 || RT_ABS32(x_row) & (RT_SIMD_WIDTH - 1))
     {
         throw rt_Exception("frambuffer's dimensions are not valid");
     }
@@ -2442,11 +2442,11 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
     if (frame == RT_NULL)
     {
         frame = (rt_ui32 *)
-                alloc(ABS32(x_row) * y_res * sizeof(rt_ui32), RT_SIMD_ALIGN);
+                alloc(RT_ABS32(x_row) * y_res * sizeof(rt_ui32), RT_SIMD_ALIGN);
 
         if (x_row < 0)
         {
-            frame += ABS32(x_row) * (y_res - 1);
+            frame += RT_ABS32(x_row) * (y_res - 1);
         }
     }
     else

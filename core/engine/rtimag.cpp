@@ -137,8 +137,8 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
             break;
         }
 
-        tx->x_dim = ABS32(bwidth);
-        tx->y_dim = ABS32(bheight);
+        tx->x_dim = RT_ABS32(bwidth);
+        tx->y_dim = RT_ABS32(bheight);
 
         n = tx->x_dim * tx->y_dim;
 
@@ -216,7 +216,7 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
     hp->release(fullpath);
 
     rt_ui32 boffset = 54, binfo = 40, bmeter = 4000, bzero = 0;
-    rt_si32 bwidth = ABS32(tx->x_dim), bheight = ABS32(tx->y_dim);
+    rt_si32 bwidth = RT_ABS32(tx->x_dim), bheight = RT_ABS32(tx->y_dim);
     rt_ui32 bsize = boffset + bwidth * bheight * 3, buf;
     rt_ui16 bdepth = 24, bplanes = 1, bsig = 0x4D42;
 
