@@ -56,8 +56,8 @@
 
 /*
  * Floating point thresholds,
- * values have been roughly selected for single precision,
- * double precision mode may or may not require adjustments.
+ * values have been roughly selected for single-precision,
+ * double-precision mode may or may not require adjustments.
  */
 #define RT_TILE_THRESHOLD       0.2f
 #define RT_LINE_THRESHOLD       0.01f
