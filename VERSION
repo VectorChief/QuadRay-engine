@@ -1,3 +1,18 @@
+v0.6.5: Backend improvements, full 64-bit fp/int SIMD compute elements
+  - adjust rendering backend/structures to work with 64-bit SIMD elements
+  - switch to UniSIMD-assembler version 0.8.1 for 64-bit SIMD support
+  - add element-sized BASE ISA subset to fixed-32-bit and address-sized subsets
+  - new instruction mnemonics introduced for element-sized BASE subset (cmdy*)
+  - add new rtarch headers to house element-sized SIMD subset for 64-bit targets
+  - support for 64-bit SIMD elements currently requires 64-bit addresses as well
+  - enable full-precision SIMD rcpps/rsqps and rceps/rseps instructions
+  - add new offset corrections for endianness related to element-sized subset
+  - add new SIMD width short names for fixed and element-sized SIMD fields
+  - add new custom-sized integer types (address, element) with printf mods
+  - make current adjustable fp types follow SIMD element size (RT_ELEMENT)
+  - adjust math macros and definitions to support double-precision arithmetic
+  - fix non-setting-flags instructions to not interfere with cmp on MIPS, Power
+
 v0.6.4: Backend improvements, full 64-bit addressing for BASE and SIMD
   - adjust rendering backend/structures to work with 64-bit addresses
   - switch to UniSIMD-assembler version 0.8.0 for full 64-bit addressing
