@@ -277,10 +277,12 @@ rt_File g_err_file(RT_PATH_DUMP_ERR, "w+");
 rt_void print_log(rt_pstr format, ...)
 {
     va_list args;
-    va_start(args, format);
 #if RT_EMBED_STDOUT == 0
+    va_start(args, format);
     vprintf(format, args);
+    va_end(args);
 #endif /* RT_EMBED_STDOUT */
+    va_start(args, format);
     g_log_file.vprint(format, args);
     va_end(args);
 }
@@ -291,10 +293,12 @@ rt_void print_log(rt_pstr format, ...)
 rt_void print_err(rt_pstr format, ...)
 {
     va_list args;
-    va_start(args, format);
 #if RT_EMBED_STDOUT == 0
+    va_start(args, format);
     vprintf(format, args);
+    va_end(args);
 #endif /* RT_EMBED_STDOUT */
+    va_start(args, format);
     g_err_file.vprint(format, args);
     va_end(args);
 }
