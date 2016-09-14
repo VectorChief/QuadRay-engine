@@ -12,9 +12,12 @@
 #include "system.h"
 #endif /* RT_DEBUG */
 
-#undef  RT_SIMD_WIDTH
+#undef  RT_SIMD_REGS
 #undef  RT_SIMD_ALIGN
-#undef  RT_SIMD_SET
+#undef  RT_SIMD_WIDTH32
+#undef  RT_SIMD_SET32
+#undef  RT_SIMD_WIDTH64
+#undef  RT_SIMD_SET64
 #define RT_SIMD_CODE /* enable SIMD instructions definitions */
 
 #if   defined (RT_128) && (RT_128 & 2)
@@ -36,10 +39,12 @@ exclude this file from compilation"
 exclude this file from compilation"
 #elif defined (RT_P32) || defined (RT_P64)
 #undef RT_RTARCH_P32_128_H
-#include "rtarch_p32_128.h"
+#undef RT_RTARCH_P64_128_H
+#include "rtarch_p64_128.h"
 #elif defined (RT_X32) || defined (RT_X64)
 #undef RT_RTARCH_X32_128_H
-#include "rtarch_x32_128.h"
+#undef RT_RTARCH_X64_128_H
+#include "rtarch_x64_128.h"
 #elif defined (RT_X86)
 #undef RT_RTARCH_X86_128_H
 #include "rtarch_x86_128.h"
@@ -57,9 +62,11 @@ exclude this file from compilation"
 #error "mipsMSA doesn't have SIMD variant 2, \
 exclude this file from compilation"
 #elif defined (RT_P32) || defined (RT_P64)
+#undef RT_RTARCH_P32_128_H
 #undef RT_RTARCH_P64_128_H
 #include "rtarch_p64_128.h"
 #elif defined (RT_X32) || defined (RT_X64)
+#undef RT_RTARCH_X32_128_H
 #undef RT_RTARCH_X64_128_H
 #include "rtarch_x64_128.h"
 #elif defined (RT_X86)

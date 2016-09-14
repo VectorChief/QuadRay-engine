@@ -12,9 +12,12 @@
 #include "system.h"
 #endif /* RT_DEBUG */
 
-#undef  RT_SIMD_WIDTH
+#undef  RT_SIMD_REGS
 #undef  RT_SIMD_ALIGN
-#undef  RT_SIMD_SET
+#undef  RT_SIMD_WIDTH32
+#undef  RT_SIMD_SET32
+#undef  RT_SIMD_WIDTH64
+#undef  RT_SIMD_SET64
 #define RT_SIMD_CODE /* enable SIMD instructions definitions */
 
 #if   defined (RT_256) && (RT_256 & 1)
@@ -39,7 +42,8 @@ exclude this file from compilation"
 exclude this file from compilation"
 #elif defined (RT_X32) || defined (RT_X64)
 #undef RT_RTARCH_X32_256_H
-#include "rtarch_x32_256.h"
+#undef RT_RTARCH_X64_256_H
+#include "rtarch_x64_256.h"
 #elif defined (RT_X86)
 #undef RT_RTARCH_X86_256_H
 #include "rtarch_x86_256.h"
@@ -60,6 +64,7 @@ exclude this file from compilation"
 #error "AltiVec doesn't support SIMD wider than 128-bit, \
 exclude this file from compilation"
 #elif defined (RT_X32) || defined (RT_X64)
+#undef RT_RTARCH_X32_256_H
 #undef RT_RTARCH_X64_256_H
 #include "rtarch_x64_256.h"
 #elif defined (RT_X86)

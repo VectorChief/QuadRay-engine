@@ -12,9 +12,12 @@
 #include "system.h"
 #endif /* RT_DEBUG */
 
-#undef  RT_SIMD_WIDTH
+#undef  RT_SIMD_REGS
 #undef  RT_SIMD_ALIGN
-#undef  RT_SIMD_SET
+#undef  RT_SIMD_WIDTH32
+#undef  RT_SIMD_SET32
+#undef  RT_SIMD_WIDTH64
+#undef  RT_SIMD_SET64
 #define RT_SIMD_CODE /* enable SIMD instructions definitions */
 
 #if   defined (RT_128) && (RT_128 & 1)
@@ -30,16 +33,20 @@
 #include "rtarch_arm_128.h"
 #elif defined (RT_A32) || defined (RT_A64)
 #undef RT_RTARCH_A32_128_H
-#include "rtarch_a32_128.h"
+#undef RT_RTARCH_A64_128_H
+#include "rtarch_a64_128.h"
 #elif defined (RT_M32) || defined (RT_M64)
 #undef RT_RTARCH_M32_128_H
-#include "rtarch_m32_128.h"
+#undef RT_RTARCH_M64_128_H
+#include "rtarch_m64_128.h"
 #elif defined (RT_P32) || defined (RT_P64)
 #undef RT_RTARCH_P32_128_H
-#include "rtarch_p32_128.h"
+#undef RT_RTARCH_P64_128_H
+#include "rtarch_p64_128.h"
 #elif defined (RT_X32) || defined (RT_X64)
 #undef RT_RTARCH_X32_128_H
-#include "rtarch_x32_128.h"
+#undef RT_RTARCH_X64_128_H
+#include "rtarch_x64_128.h"
 #elif defined (RT_X86)
 #undef RT_RTARCH_X86_128_H
 #include "rtarch_x86_128.h"
@@ -51,9 +58,11 @@
 #error "UniSIMD doesn't support 64-bit SIMD elements in 32-bit mode, \
 adjust RT_ELEMENT build flag to be equal to 32"
 #elif defined (RT_A32) || defined (RT_A64)
+#undef RT_RTARCH_A32_128_H
 #undef RT_RTARCH_A64_128_H
 #include "rtarch_a64_128.h"
 #elif defined (RT_M32) || defined (RT_M64)
+#undef RT_RTARCH_M32_128_H
 #undef RT_RTARCH_M64_128_H
 #include "rtarch_m64_128.h"
 #elif defined (RT_P32) || defined (RT_P64)
