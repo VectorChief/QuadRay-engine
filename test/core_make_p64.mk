@@ -25,13 +25,40 @@ LIB_LIST =                              \
         -lm                             \
         -lstdc++
 
-core_test:
+
+build: core_test_p64_32 core_test_p64f32 core_test_p64f64
+
+strip:
+	powerpc64le-linux-gnu-strip core_test.p64*
+
+clean:
+	rm core_test.p64*
+
+
+core_test_p64_32:
+	powerpc64le-linux-gnu-g++ -O2 -g -static \
+        -DRT_LINUX -DRT_P64 -DRT_128=2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64_32
+
+core_test_p64f32:
 	powerpc64le-linux-gnu-g++ -O2 -g -static \
         -DRT_LINUX -DRT_P64 -DRT_128=2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64f32
+
+core_test_p64f64:
+	powerpc64le-linux-gnu-g++ -O2 -g -static \
+        -DRT_LINUX -DRT_P64 -DRT_128=2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64f64
+
 
 # On Ubuntu 16.04 Live CD add "universe multiverse" to "main restricted"
 # in /etc/apt/sources.list (sudo gedit /etc/apt/sources.list) then run:
