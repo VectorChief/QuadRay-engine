@@ -28,13 +28,24 @@ LIB_LIST =                              \
         -lXext                          \
         -lpthread
 
-RooT:
+
+build: RooT_a32
+
+strip:
+	aarch64-linux-gnu-strip RooT.a32
+
+clean:
+	rm RooT.a32
+
+
+RooT_a32:
 	aarch64-linux-gnu-g++ -O3 -g -mabi=ilp32 \
         -DRT_LINUX -DRT_A32 -DRT_128=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a32
+
 
 # Prerequisites for the build:
 # multilib-compiler for AArch64 is installed and in the PATH variable,
@@ -47,4 +58,4 @@ RooT:
 # (hasn't been verified due to lack of target host system)
 
 # 32-bit ABI hasn't been fully tested yet due to lack of available libs,
-# check out an experimental 64/32-bit hybrid mode in RooT_make_a64.mk
+# check out 64/32-bit (ptr/adr) hybrid mode for 64-bit ABI in RooT_make_a64.mk

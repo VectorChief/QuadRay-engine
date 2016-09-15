@@ -25,13 +25,24 @@ LIB_LIST =                              \
         -lm                             \
         -lstdc++
 
-core_test:
+
+build: core_test_m32
+
+strip:
+	mips-mti-linux-gnu-strip core_test.m32
+
+clean:
+	rm core_test.m32
+
+
+core_test_m32:
 	mips-mti-linux-gnu-g++ -O3 -g -static -EL -mips32r5 -mmsa \
         -DRT_LINUX -DRT_M32 -DRT_128=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m32
+
 
 # The up-to-date MIPS toolchain (g++ & QEMU) can be found here:
 # https://community.imgtec.com/developers/mips/tools/codescape-mips-sdk/
