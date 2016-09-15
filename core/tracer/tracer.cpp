@@ -4114,7 +4114,10 @@ rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 mode)
     }
 
     s_mode = mode;
-    render0(s_inf);
+
+    s_inf->ctx = RT_NULL; /* <- force internal entry points re-fetching */
+    render0(s_inf); /* <- perform internal entry points re-fetching */
+
     return s_mode;
 }
 
