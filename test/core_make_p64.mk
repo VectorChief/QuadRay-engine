@@ -26,38 +26,68 @@ LIB_LIST =                              \
         -lstdc++
 
 
-build: core_test_p64_32 core_test_p64f32 core_test_p64f64
+build: build_le build_be
 
 strip:
-	powerpc64le-linux-gnu-strip core_test.p64*
+	powerpc64le-linux-gnu-strip core_test.p64???L*
+	powerpc64-linux-gnu-strip core_test.p64???B*
 
 clean:
 	rm core_test.p64*
 
 
-core_test_p64_32:
+build_le: core_test_p64_32Lp8 core_test_p64f32Lp8 core_test_p64f64Lp8
+
+core_test_p64_32Lp8:
 	powerpc64le-linux-gnu-g++ -O2 -g -static \
         -DRT_LINUX -DRT_P64 -DRT_128=2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64_32
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64_32Lp8
 
-core_test_p64f32:
+core_test_p64f32Lp8:
 	powerpc64le-linux-gnu-g++ -O2 -g -static \
         -DRT_LINUX -DRT_P64 -DRT_128=2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64f32
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64f32Lp8
 
-core_test_p64f64:
+core_test_p64f64Lp8:
 	powerpc64le-linux-gnu-g++ -O2 -g -static \
         -DRT_LINUX -DRT_P64 -DRT_128=2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64f64
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64f64Lp8
+
+
+build_be: core_test_p64_32Bp7 core_test_p64f32Bp7 core_test_p64f64Bp8
+
+core_test_p64_32Bp7:
+	powerpc64-linux-gnu-g++ -O3 -g -static \
+        -DRT_LINUX -DRT_P64 -DRT_128=2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64_32Bp7
+
+core_test_p64f32Bp7:
+	powerpc64-linux-gnu-g++ -O3 -g -static \
+        -DRT_LINUX -DRT_P64 -DRT_128=2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64f32Bp7
+
+core_test_p64f64Bp8:
+	powerpc64-linux-gnu-g++ -O3 -g -static \
+        -DRT_LINUX -DRT_P64 -DRT_128=2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=1 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64f64Bp8
 
 
 # On Ubuntu 16.04 Live CD add "universe multiverse" to "main restricted"
@@ -75,13 +105,13 @@ core_test_p64f64:
 #
 # Building/running CORE test:
 # make -f core_make_p64.mk
-# qemu-ppc64le -cpu POWER8 core_test.p64f32 -i -a
+# qemu-ppc64le -cpu POWER8 core_test.p64f32Lp8 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
 # For big-endian 64-bit POWER(7,7+,8) VSX target use (replace):
 # powerpc64-linux-gnu-g++ -O3 -DRT_ENDIAN=1
 # (enable RT_SIMD_COMPAT_I64 in core/config/rtarch.h for POWER7 64-bit SIMD)
-# qemu-ppc64 -cpu POWER7 core_test.p64f32 -i -a
+# qemu-ppc64 -cpu POWER7 core_test.p64f32Bp7 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
 # 64/32-bit (ptr/adr) hybrid mode compatible with native 64-bit ABI

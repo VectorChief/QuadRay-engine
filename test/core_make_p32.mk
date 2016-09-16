@@ -27,22 +27,30 @@ LIB_LIST =                              \
         -lstdc++
 
 
-build: core_test_p32
+build: core_test_p32Bg4 core_test_p32Bp7
 
 strip:
-	powerpc-linux-gnu-strip core_test.p32
+	powerpc-linux-gnu-strip core_test.p32*
 
 clean:
-	rm core_test.p32
+	rm core_test.p32*
 
 
-core_test_p32:
+core_test_p32Bg4:
 	powerpc-linux-gnu-g++ -O3 -g -static \
         -DRT_LINUX -DRT_P32 -DRT_128=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p32
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p32Bg4
+
+core_test_p32Bp7:
+	powerpc-linux-gnu-g++ -O3 -g -static \
+        -DRT_LINUX -DRT_P32 -DRT_128=2 \
+        -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p32Bp7
 
 
 # On Ubuntu 16.04 Live CD add "universe multiverse" to "main restricted"
@@ -59,9 +67,9 @@ core_test_p32:
 #
 # Building/running CORE test:
 # make -f core_make_p32.mk
-# qemu-ppc -cpu G4 core_test.p32 -i -a
+# qemu-ppc -cpu G4 core_test.p32Bg4 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
 # For 32-bit POWER(7,7+,8) VSX target use (replace): -DRT_128=2
-# qemu-ppc64abi32 -cpu POWER7 core_test.p32 -i -a
+# qemu-ppc64abi32 -cpu POWER7 core_test.p32Bp7 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
