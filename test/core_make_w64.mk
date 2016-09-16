@@ -28,13 +28,40 @@ LIB_LIST =                              \
         -lm                             \
         -lstdc++
 
-core_test:
+
+build: core_test_w64_32 core_test_w64f32 core_test_w64f64
+
+strip:
+	strip core_test_w64*.exe
+
+clean:
+	rm core_test_w64*.exe
+
+
+core_test_w64_32:
+	g++ -O3 -g -static -m64 \
+        -DRT_WIN64 -DRT_X64 -DRT_128=2+4 -DRT_256=1+2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test_w64_32.exe
+
+core_test_w64f32:
 	g++ -O3 -g -static -m64 \
         -DRT_WIN64 -DRT_X64 -DRT_128=2+4 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test_w64f32.exe
+
+core_test_w64f64:
+	g++ -O3 -g -static -m64 \
+        -DRT_WIN64 -DRT_X64 -DRT_128=2+4 -DRT_256=1+2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test_w64f64.exe
+
 
 # Prerequisites for the build:
 # TDM64-GCC compiler for Win32/64 is installed and in the PATH variable.
