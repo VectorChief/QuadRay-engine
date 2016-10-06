@@ -28,22 +28,30 @@ LIB_LIST =                              \
         -lstdc++
 
 
-build: core_test_arm
+build: core_test_arm_v1 core_test_arm_v2
 
 strip:
-	arm-linux-gnueabi-strip core_test.arm
+	arm-linux-gnueabi-strip core_test.arm_v*
 
 clean:
-	rm core_test.arm
+	rm core_test.arm_v*
 
 
-core_test_arm:
+core_test_arm_v1:
 	arm-linux-gnueabi-g++ -O3 -g -static \
         -DRT_LINUX -DRT_ARM -DRT_128=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.arm
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.arm_v1
+
+core_test_arm_v2:
+	arm-linux-gnueabi-g++ -O3 -g -static \
+        -DRT_LINUX -DRT_ARM -DRT_128=2 \
+        -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.arm_v2
 
 
 build_n900: core_test_arm_n900
@@ -104,7 +112,9 @@ core_test_arm_rpi3:
 #
 # Building/running CORE test:
 # make -f core_make_arm.mk
-# qemu-arm -cpu cortex-a8 core_test.arm -i -a
+# qemu-arm -cpu cortex-a8  core_test.arm_v1 -i -a
+# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+# qemu-arm -cpu cortex-a15 core_test.arm_v2 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
 # 0) Build flags above are intended for default "vanilla" ARMv7 target, while
