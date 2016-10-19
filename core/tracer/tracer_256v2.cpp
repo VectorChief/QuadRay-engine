@@ -26,6 +26,21 @@
 #define RT_RENDER_CODE /* enable contents of render0 routine */
 #endif /* RT_256 */
 
+#if defined (RT_X86)
+#undef  RT_X86
+#define RT_X86 2 /* automatically enable BMI1+BMI2 for AVX2 target on x86 */
+#endif /* RT_X86 */
+
+#if defined (RT_X32)
+#undef  RT_X32
+#define RT_X32 2 /* automatically enable BMI1+BMI2 for AVX2 target on x32 */
+#endif /* RT_X32 */
+
+#if defined (RT_X64)
+#undef  RT_X64
+#define RT_X64 2 /* automatically enable BMI1+BMI2 for AVX2 target on x64 */
+#endif /* RT_X64 */
+
 #if   RT_ELEMENT == 32
 
 #if   defined (RT_ARM)
@@ -73,21 +88,6 @@ adjust RT_ELEMENT build flag to be equal to 32"
 #endif /* RT_ARM, RT_A32/A64, RT_M32/M64, RT_P32/P64, RT_X32/X64, RT_X86 */
 
 #endif /* RT_ELEMENT */
-
-#if defined (RT_X86)
-#undef  RT_X86
-#define RT_X86 2 /* automatically enable BMI1+BMI2 for AVX2 target on x86 */
-#endif /* RT_X86 */
-
-#if defined (RT_X32)
-#undef  RT_X32
-#define RT_X32 2 /* automatically enable BMI1+BMI2 for AVX2 target on x32 */
-#endif /* RT_X32 */
-
-#if defined (RT_X64)
-#undef  RT_X64
-#define RT_X64 2 /* automatically enable BMI1+BMI2 for AVX2 target on x64 */
-#endif /* RT_X64 */
 
 /*
  * Global pointer tables

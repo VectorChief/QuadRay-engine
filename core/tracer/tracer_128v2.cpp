@@ -26,6 +26,11 @@
 #define RT_RENDER_CODE /* enable contents of render0 routine */
 #endif /* RT_128 */
 
+#if defined (RT_ARM)
+#undef  RT_ARM
+#define RT_ARM 2 /* automatically enable int-div for ASIMDv2 target on ARM */
+#endif /* RT_ARM */
+
 #if   RT_ELEMENT == 32
 
 #if   defined (RT_ARM)
@@ -75,11 +80,6 @@ adjust RT_ELEMENT build flag to be equal to 32"
 #endif /* RT_ARM, RT_A32/A64, RT_M32/M64, RT_P32/P64, RT_X32/X64, RT_X86 */
 
 #endif /* RT_ELEMENT */
-
-#if defined (RT_ARM)
-#undef  RT_ARM
-#define RT_ARM 2 /* automatically enable int-div for ASIMDv2 target on ARM */
-#endif /* RT_ARM */
 
 /*
  * Global pointer tables
