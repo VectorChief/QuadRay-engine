@@ -76,6 +76,11 @@ adjust RT_ELEMENT build flag to be equal to 32"
 
 #endif /* RT_ELEMENT */
 
+#if defined (RT_ARM)
+#undef  RT_ARM
+#define RT_ARM 2 /* automatically enable int-div for ASIMDv2 target on ARM */
+#endif /* RT_ARM */
+
 /*
  * Global pointer tables
  * for quick entry point resolution.

@@ -74,6 +74,21 @@ adjust RT_ELEMENT build flag to be equal to 32"
 
 #endif /* RT_ELEMENT */
 
+#if defined (RT_X86)
+#undef  RT_X86
+#define RT_X86 2 /* automatically enable BMI1+BMI2 for AVX2 target on x86 */
+#endif /* RT_X86 */
+
+#if defined (RT_X32)
+#undef  RT_X32
+#define RT_X32 2 /* automatically enable BMI1+BMI2 for AVX2 target on x32 */
+#endif /* RT_X32 */
+
+#if defined (RT_X64)
+#undef  RT_X64
+#define RT_X64 2 /* automatically enable BMI1+BMI2 for AVX2 target on x64 */
+#endif /* RT_X64 */
+
 /*
  * Global pointer tables
  * for quick entry point resolution.
