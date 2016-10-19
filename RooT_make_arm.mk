@@ -78,7 +78,7 @@ clean_rpiX:
 
 RooT_arm_rpi2:
 	arm-linux-gnueabihf-g++ -O3 -g \
-        -DRT_LINUX -DRT_ARM -DRT_128=1+2 \
+        -DRT_LINUX -DRT_ARM=2 -DRT_128=1+2 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -86,7 +86,7 @@ RooT_arm_rpi2:
 
 RooT_arm_rpi3:
 	arm-linux-gnueabihf-g++ -O3 -g \
-        -DRT_LINUX -DRT_ARM -DRT_128=1+2+4 \
+        -DRT_LINUX -DRT_ARM=2 -DRT_128=1+2+4 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -104,5 +104,5 @@ RooT_arm_rpi3:
 # 0) Build flags above are intended for default "vanilla" ARMv7 target, while
 # settings suitable for specific hardware platforms are given below (replace).
 # 1) Nokia N900, Maemo 5 scratchbox: -DRT_FULLSCREEN=1 -DRT_EMBED_FILEIO=1
-# 2) Raspberry Pi 2, Raspbian: arm-linux-gnueabihf-g++ -DRT_128=1+2
-# 3) Raspberry Pi 3, Raspbian: arm-linux-gnueabihf-g++ -DRT_128=1+2+4
+# 2) Raspberry Pi 2, Raspbian: arm-linux-gnueabihf-g++ -DRT_ARM=2 -DRT_128=1+2
+# 3) Raspberry Pi 3, Raspbian: arm-linux-gnueabihf-g++ -DRT_ARM=2 -DRT_128=1+2+4
