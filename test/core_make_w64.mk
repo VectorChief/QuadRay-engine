@@ -29,7 +29,7 @@ LIB_LIST =                              \
         -lstdc++
 
 
-build: core_test_w64_32 core_test_w64f32 core_test_w64f64
+build: core_test_w64_32 core_test_w64_64 core_test_w64f32 core_test_w64f64
 
 strip:
 	strip core_test_w64*.exe
@@ -45,6 +45,14 @@ core_test_w64_32:
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test_w64_32.exe
+
+core_test_w64_64:
+	g++ -O3 -g -static -m64 \
+        -DRT_WIN64 -DRT_X64 -DRT_128=2+4 -DRT_256=1+2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test_w64_64.exe
 
 core_test_w64f32:
 	g++ -O3 -g -static -m64 \
@@ -74,10 +82,8 @@ core_test_w64f64:
 # core_test_w64f32.exe -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
-# 64/32-bit (ptr/adr) hybrid mode compatible with native 64-bit ABI
-# is available for the original pure 32-bit ISA using 64-bit pointers,
-# use (replace): RT_ADDRESS=32, rename the binary to core_test_w64_32.exe
+# 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
+# use (replace): RT_ADDRESS=32, rename the binary to core_test_w64_**.exe
 
 # 64-bit packed SIMD mode (fp64/int64) is supported on 64-bit targets,
-# but currently requires addresses to be 64-bit as well (RT_ADDRESS=64),
-# use (replace): RT_ELEMENT=64, rename the binary to core_test_w64f64.exe
+# use (replace): RT_ELEMENT=64, rename the binary to core_test_w64*64.exe

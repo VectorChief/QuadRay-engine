@@ -30,7 +30,7 @@ LIB_LIST =                              \
         -lpthread
 
 
-build: RooT_p64_32 RooT_p64f32 RooT_p64f64
+build: RooT_p64_32 RooT_p64_64 RooT_p64f32 RooT_p64f64
 
 strip:
 	powerpc64le-linux-gnu-strip RooT.p64*
@@ -46,6 +46,14 @@ RooT_p64_32:
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_32
+
+RooT_p64_64:
+	powerpc64le-linux-gnu-g++ -O2 -g \
+        -DRT_LINUX -DRT_P64 -DRT_128=2+4 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_64
 
 RooT_p64f32:
 	powerpc64le-linux-gnu-g++ -O2 -g \
@@ -78,10 +86,8 @@ RooT_p64f64:
 # For big-endian 64-bit POWER(7,7+,8) VSX target use (replace):
 # powerpc64-linux-gnu-g++ -O3 -DRT_128=2 -DRT_ENDIAN=1
 
-# 64/32-bit (ptr/adr) hybrid mode compatible with native 64-bit ABI
-# is available for the original pure 32-bit ISA using 64-bit pointers,
-# use (replace): RT_ADDRESS=32, rename the binary to RooT.p64_32
+# 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
+# use (replace): RT_ADDRESS=32, rename the binary to RooT.p64_**
 
 # 64-bit packed SIMD mode (fp64/int64) is supported on 64-bit targets,
-# but currently requires addresses to be 64-bit as well (RT_ADDRESS=64),
-# use (replace): RT_ELEMENT=64, rename the binary to RooT.p64f64
+# use (replace): RT_ELEMENT=64, rename the binary to RooT.p64*64

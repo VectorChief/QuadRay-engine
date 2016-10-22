@@ -29,7 +29,7 @@ LIB_LIST =                              \
         -lpthread
 
 
-build: RooT_m64_32 RooT_m64f32 RooT_m64f64
+build: RooT_m64_32 RooT_m64_64 RooT_m64f32 RooT_m64f64
 
 strip:
 	mips64el-linux-gnuabi64-strip RooT.m64*
@@ -45,6 +45,14 @@ RooT_m64_32:
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.m64_32
+
+RooT_m64_64:
+	mips64el-linux-gnuabi64-g++ -O3 -g -mips64r6 -mabi=64 -mmsa \
+        -DRT_LINUX -DRT_M64=6 -DRT_128=1 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.m64_64
 
 RooT_m64f32:
 	mips64el-linux-gnuabi64-g++ -O3 -g -mips64r6 -mabi=64 -mmsa \
@@ -74,10 +82,8 @@ RooT_m64f64:
 # (hasn't been verified due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
-# 64/32-bit (ptr/adr) hybrid mode compatible with native 64-bit ABI
-# is available for the original pure 32-bit ISA using 64-bit pointers,
-# use (replace): RT_ADDRESS=32, rename the binary to RooT.m64_32
+# 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
+# use (replace): RT_ADDRESS=32, rename the binary to RooT.m64_**
 
 # 64-bit packed SIMD mode (fp64/int64) is supported on 64-bit targets,
-# but currently requires addresses to be 64-bit as well (RT_ADDRESS=64),
-# use (replace): RT_ELEMENT=64, rename the binary to RooT.m64f64
+# use (replace): RT_ELEMENT=64, rename the binary to RooT.m64*64

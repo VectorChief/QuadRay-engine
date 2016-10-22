@@ -26,7 +26,7 @@ LIB_LIST =                              \
         -lstdc++
 
 
-build: core_test_a64_32 core_test_a64f32 core_test_a64f64
+build: core_test_a64_32 core_test_a64_64 core_test_a64f32 core_test_a64f64
 
 strip:
 	aarch64-linux-gnu-strip core_test.a64*
@@ -42,6 +42,14 @@ core_test_a64_32:
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a64_32
+
+core_test_a64_64:
+	aarch64-linux-gnu-g++ -O3 -g -static \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a64_64
 
 core_test_a64f32:
 	aarch64-linux-gnu-g++ -O3 -g -static \
@@ -77,10 +85,8 @@ core_test_a64f64:
 # qemu-aarch64 -cpu cortex-a57 core_test.a64f32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
-# 64/32-bit (ptr/adr) hybrid mode compatible with native 64-bit ABI
-# is available for the original pure 32-bit ISA using 64-bit pointers,
-# use (replace): RT_ADDRESS=32, rename the binary to core_test.a64_32
+# 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
+# use (replace): RT_ADDRESS=32, rename the binary to core_test.a64_**
 
 # 64-bit packed SIMD mode (fp64/int64) is supported on 64-bit targets,
-# but currently requires addresses to be 64-bit as well (RT_ADDRESS=64),
-# use (replace): RT_ELEMENT=64, rename the binary to core_test.a64f64
+# use (replace): RT_ELEMENT=64, rename the binary to core_test.a64*64

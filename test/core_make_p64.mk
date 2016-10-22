@@ -37,7 +37,7 @@ clean:
 	rm core_test.p64*
 
 
-build_le: core_test_p64_32Lp8 core_test_p64f32Lp8 core_test_p64f64Lp8
+build_le: core_test_p64_32Lp8 core_test_p64_64Lp8 core_test_p64f32Lp8 core_test_p64f64Lp8
 
 core_test_p64_32Lp8:
 	powerpc64le-linux-gnu-g++ -O2 -g -static \
@@ -46,6 +46,14 @@ core_test_p64_32Lp8:
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64_32Lp8
+
+core_test_p64_64Lp8:
+	powerpc64le-linux-gnu-g++ -O2 -g -static \
+        -DRT_LINUX -DRT_P64 -DRT_128=4 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64_64Lp8
 
 core_test_p64f32Lp8:
 	powerpc64le-linux-gnu-g++ -O2 -g -static \
@@ -64,7 +72,7 @@ core_test_p64f64Lp8:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64f64Lp8
 
 
-build_be: core_test_p64_32Bp7 core_test_p64f32Bp7 core_test_p64f64Bp7
+build_be: core_test_p64_32Bp7 core_test_p64_64Bp7 core_test_p64f32Bp7 core_test_p64f64Bp7
 
 core_test_p64_32Bp7:
 	powerpc64-linux-gnu-g++ -O3 -g -static \
@@ -73,6 +81,14 @@ core_test_p64_32Bp7:
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64_32Bp7
+
+core_test_p64_64Bp7:
+	powerpc64-linux-gnu-g++ -O3 -g -static \
+        -DRT_LINUX -DRT_P64 -DRT_128=2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=1 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64_64Bp7
 
 core_test_p64f32Bp7:
 	powerpc64-linux-gnu-g++ -O3 -g -static \
@@ -114,10 +130,8 @@ core_test_p64f64Bp7:
 # qemu-ppc64 -cpu POWER7 core_test.p64f32Bp7 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
-# 64/32-bit (ptr/adr) hybrid mode compatible with native 64-bit ABI
-# is available for the original pure 32-bit ISA using 64-bit pointers,
-# use (replace): RT_ADDRESS=32, rename the binary to core_test.p64_32
+# 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
+# use (replace): RT_ADDRESS=32, rename the binary to core_test.p64_**
 
 # 64-bit packed SIMD mode (fp64/int64) is supported on 64-bit targets,
-# but currently requires addresses to be 64-bit as well (RT_ADDRESS=64),
-# use (replace): RT_ELEMENT=64, rename the binary to core_test.p64f64
+# use (replace): RT_ELEMENT=64, rename the binary to core_test.p64*64
