@@ -133,7 +133,7 @@ struct rt_ELEM
 };
 
 /*
- * Extended SIMD info structure for asm enter/leave
+ * Extended SIMD info structure for ASM_ENTER/ASM_LEAVE
  * serves as a container for all other SIMD structures passed to backend,
  * contains backend's internal variables as well as local entry points.
  * Note that DP offsets below start where rt_SIMD_INFO ends (at Q*0x100).
