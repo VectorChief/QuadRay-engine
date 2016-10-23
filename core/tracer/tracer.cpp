@@ -367,7 +367,14 @@
         movyx_st(Reax, Mecx, ctx_##pl(0x##pn))                              \
     LBL(lb##pn)
 
-#if   RT_SIMD_QUADS == 1 /* x86-specific optimization (SSE4.1) */           \
+#if   RT_SIMD_QUADS == 1 /* x86-specific optimization (AVX1,2) */           \
+&& (defined RT_X86 || defined RT_X32 || defined RT_X64) && RT_128 == 8
+
+#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0, RG unmasked frags */ \
+        movpx_ld(Xmm0, Mecx, ctx_TMASK(0))                                  \
+        mmvpx_st(W(RG), Mecx, ctx_##pl(0))
+
+#elif RT_SIMD_QUADS == 1 /* x86-specific optimization (SSE4.1) */           \
 && (defined RT_X86 || defined RT_X32 || defined RT_X64) && RT_128 == 4
 
 #define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0, RG unmasked frags */ \
@@ -4175,9 +4182,9 @@ rt_si32 s_mode = 0;
 
 /*
  * Backend's global entry point (hence 0).
- * Switch backend's runtime SIMD target with
- * "mode" equal to SIMD width (4, 8) in lower
- * byte and SIMD type (1, 2, 4) in higher byte.
+ * Switch backend's runtime SIMD target with "mode"
+ * equal to SIMD width (4, 8) in 0th (lowest) byte
+ * and SIMD type (1, 2, 4, 8) in 1st (higher) byte.
  */
 rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 mode)
 {
@@ -4218,6 +4225,13 @@ rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 mode)
     }
     s_type[8] |= ((s_mask << 0) & 0x0100) | 8;
 #endif /* RT_256 & 1 */
+#if defined (RT_128) && (RT_128 & 8)
+    if (s_mode == 0)
+    {
+        s_mode = (s_mask & 0x0008) != 0 ? 0x0804 : 0x0000;
+    }
+    s_type[4] |= ((s_mask << 8) & 0x0800) | 4;
+#endif /* RT_128 & 8 */
 #if defined (RT_128) && (RT_128 & 4)
     if (s_mode == 0)
     {
@@ -4258,7 +4272,7 @@ rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 mode)
 
     if (k != 0 && k <= R && (s_type[k] >> 8) != 0 && j == 0)
     {
-        i = 4;
+        i = 8;
 
         while (i > 0 && (s_type[k] & (i << 8)) == 0)
         {
@@ -4270,7 +4284,7 @@ rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 mode)
     else
     if (k != 0 && k <= R && (s_type[k] >> 8) != 0 && j != 0)
     {
-        i = 4;
+        i = 8;
 
         while (i > 0)
         {
@@ -4315,6 +4329,11 @@ namespace simd_128v4
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
+namespace simd_128v8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
 namespace simd_256v1
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
@@ -4344,6 +4363,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         simd_256v1::render0(s_inf);
         break;
 #endif /* RT_256 & 1 */
+#if defined (RT_128) && (RT_128 & 8)
+        case 0x0804:
+        simd_128v8::render0(s_inf);
+        break;
+#endif /* RT_128 & 8 */
 #if defined (RT_128) && (RT_128 & 4)
         case 0x0404:
         simd_128v4::render0(s_inf);

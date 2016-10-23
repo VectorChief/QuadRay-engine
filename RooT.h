@@ -204,7 +204,7 @@ rt_si32 main_step()
             rt_si32 tnew;
             do
             {
-                type = type % 4 + type % 3; /* 1, 2, 4 */
+                type = type % 8 + type % 7; /* 1, 2, 4, 8 */
                 tnew = sc[d]->set_simd(simd | type << 8) >> 8;
             }
             while (type != tnew);
