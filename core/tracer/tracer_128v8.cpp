@@ -21,11 +21,25 @@
 #define RT_SIMD_CODE /* enable SIMD instructions definitions */
 
 #if   defined (RT_128) && (RT_128 & 8)
-#undef  RT_256
 #undef  RT_128
 #define RT_128 8
 #define RT_RENDER_CODE /* enable contents of render0 routine */
 #endif /* RT_128 */
+
+#if defined (RT_X86)
+#undef  RT_X86
+#define RT_X86 2 /* enable BMI1+BMI2 for 128-bit AVX2 target on x86 */
+#endif /* RT_X86 */
+
+#if defined (RT_X32)
+#undef  RT_X32
+#define RT_X32 2 /* enable BMI1+BMI2 for 128-bit AVX2 target on x32 */
+#endif /* RT_X32 */
+
+#if defined (RT_X64)
+#undef  RT_X64
+#define RT_X64 2 /* enable BMI1+BMI2 for 128-bit AVX2 target on x64 */
+#endif /* RT_X64 */
 
 #if   RT_ELEMENT == 32
 
@@ -42,12 +56,12 @@ exclude this file from compilation"
 #error "AltiVec doesn't have SIMD variant 8, \
 exclude this file from compilation"
 #elif defined (RT_X32) || defined (RT_X64)
-#undef RT_RTARCH_X32_256_H
-#undef RT_RTARCH_X64_256_H
-#include "rtarch_x64_256.h"
+#undef RT_RTARCH_X32_128_H
+#undef RT_RTARCH_X64_128_H
+#include "rtarch_x64_128.h"
 #elif defined (RT_X86)
-#undef RT_RTARCH_X86_256_H
-#include "rtarch_x86_256.h"
+#undef RT_RTARCH_X86_128_H
+#include "rtarch_x86_128.h"
 #endif /* RT_ARM, RT_A32/A64, RT_M32/M64, RT_P32/P64, RT_X32/X64, RT_X86 */
 
 #elif RT_ELEMENT == 64
@@ -65,9 +79,9 @@ exclude this file from compilation"
 #error "AltiVec doesn't have SIMD variant 8, \
 exclude this file from compilation"
 #elif defined (RT_X32) || defined (RT_X64)
-#undef RT_RTARCH_X32_256_H
-#undef RT_RTARCH_X64_256_H
-#include "rtarch_x64_256.h"
+#undef RT_RTARCH_X32_128_H
+#undef RT_RTARCH_X64_128_H
+#include "rtarch_x64_128.h"
 #elif defined (RT_X86)
 #error "UniSIMD doesn't support 64-bit SIMD elements in 32-bit mode, \
 adjust RT_ELEMENT build flag to be equal to 32"

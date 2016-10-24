@@ -28,7 +28,7 @@
 
 #if defined (RT_ARM)
 #undef  RT_ARM
-#define RT_ARM 2 /* automatically enable int-div for ASIMDv2 target on ARM */
+#define RT_ARM 2 /* enable int-div for ASIMDv2 target on ARM */
 #endif /* RT_ARM */
 
 #if   RT_ELEMENT == 32
