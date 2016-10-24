@@ -20,7 +20,7 @@
 #undef  RT_SIMD_SET64
 #define RT_SIMD_CODE /* enable SIMD instructions definitions */
 
-#if   defined (RT_256) && (RT_256 & 1)
+#if defined (RT_256) && (RT_256 & 1)
 #undef  RT_256
 #define RT_256 1
 #define RT_RENDER_CODE /* enable contents of render0 routine */
