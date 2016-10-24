@@ -379,7 +379,7 @@
 
 #define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0, RG unmasked frags */ \
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))                                  \
-        xorpx_ld(Xmm0, Mebp, inf_GPC02) /* invert Xmm0's sign bit */        \
+        notpx_rx(Xmm0)                                                      \
         mmvpx_ld(W(RG), Mecx, ctx_##pl(0))                                  \
         movpx_st(W(RG), Mecx, ctx_##pl(0))
 

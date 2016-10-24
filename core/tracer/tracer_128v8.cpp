@@ -4,7 +4,7 @@
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
 
-#undef RT_SIMD_CODE /* fix redefinition warnings on legacy Visual C++ 6.5 */
+#undef RT_SIMD_CODE /* fix redefinition warnings on legacy Visual C++ 6.0 */
 
 #include "tracer.h"
 #include "format.h"
@@ -18,7 +18,7 @@
 #undef  RT_SIMD_SET32
 #undef  RT_SIMD_WIDTH64
 #undef  RT_SIMD_SET64
-#define RT_SIMD_CODE /* enable SIMD instructions definitions */
+#define RT_SIMD_CODE /* enable SIMD instruction definitions */
 
 #if defined (RT_128) && (RT_128 & 8)
 #undef  RT_128
