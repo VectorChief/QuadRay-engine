@@ -1,4 +1,4 @@
-QuadRay engine is a realtime raytracer project aimed at full SIMD utilization
+QuadRay engine is a realtime raytracing project aimed at full SIMD utilization
 on ARM, MIPS, Power and x86 architectures. The efficient use of SIMD is achieved
 by processing four rays at a time to match SIMD register width (hence the name).
 The rendering core of the engine is written on a unified SIMD assembler,
