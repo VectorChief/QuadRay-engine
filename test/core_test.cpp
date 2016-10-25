@@ -41,6 +41,8 @@ static rt_bool p_mode = RT_FALSE;
 static rt_bool v_mode = RT_FALSE;
 static rt_bool i_mode = RT_FALSE;
 static rt_bool a_mode = RT_FALSE;
+static rt_si32 q_simd = 0;
+static rt_si32 s_type = 0;
 
 static rt_si32 x_res = RT_X_RES;
 static rt_si32 y_res = RT_Y_RES;
@@ -553,8 +555,10 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -p, enable pixhunt mode, print isolated pixels (> diff)\n");
         RT_LOGI(" -v, enable verbose mode, print all pixel spots (> diff)\n");
         RT_LOGI(" -i, enable imaging mode, save images before-after-diffs\n");
-        RT_LOGI(" -a, enable antialiasing, can be combined with last four\n");
-        RT_LOGI("options -d, -p, -v, -i can be combined, -t is standalone\n");
+        RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
+        RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..2\n");
+        RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
+        RT_LOGI("options -d, .., .., -s can be combined, -t is standalone\n");
         RT_LOGI("---------------------------------------------------------\n");
     }
 
@@ -586,7 +590,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             t_diff = argv[k][0] - '0';
             if (strlen(argv[k]) == 1 && t_diff >= 0 && t_diff <= 9)
             {
-                RT_LOGI("Diff threshold overriden: %d\n", t_diff);
+                RT_LOGI("Diff threshold overridden: %d\n", t_diff);
             }
             else
             {
@@ -614,6 +618,32 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             a_mode = RT_TRUE;
             RT_LOGI("Antialiasing enabled\n");
         }
+        if (strcmp(argv[k], "-q") == 0 && ++k < argc)
+        {
+            q_simd = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1 && q_simd >= 1 && q_simd <= 2)
+            {
+                RT_LOGI("SIMD quad-factor overridden: %d\n", q_simd);
+            }
+            else
+            {
+                RT_LOGI("SIMD quad-factor value out of range\n");
+                return 0;
+            }
+        }
+        if (strcmp(argv[k], "-s") == 0 && ++k < argc)
+        {
+            s_type = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1 && s_type >= 1 && s_type <= 8)
+            {
+                RT_LOGI("SIMD sub-variant overridden: %d\n", s_type);
+            }
+            else
+            {
+                RT_LOGI("SIMD sub-variant value out of range\n");
+                return 0;
+            }
+        }
     }
 
     rt_time time1 = 0;
@@ -621,7 +651,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     rt_time tN = 0;
     rt_time tF = 0;
 
-    rt_si32 simd = 0;
+    rt_si32 simd = (s_type << 8) | (q_simd << 2);
     rt_si32 i, j;
 
     for (i = 0; i < RUN_LEVEL; i++)

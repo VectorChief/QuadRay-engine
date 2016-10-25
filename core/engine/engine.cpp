@@ -3146,9 +3146,9 @@ rt_si32 rt_Scene::set_opts(rt_si32 opts)
 }
 
 /*
- * Set current runtime SIMD target
- * lower byte (width: 4, 8),
- * higher byte (type: 1, 2).
+ * Set current runtime SIMD target with "simd"
+ * equal to SIMD width (4, 8) in 0th (lowest) byte
+ * and SIMD type (1, 2, 4, 8) in 1st (higher) byte.
  */
 rt_si32 rt_Scene::set_simd(rt_si32 simd)
 {
