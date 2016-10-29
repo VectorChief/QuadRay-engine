@@ -203,17 +203,17 @@
         movpx_ld(Xmm0, Iebx, srf_SBASE)                                     \
         movwx_ld(Reax, Mebx, srf_A_MAP(nx*4))
 
-#define MOVXR_LD(RG, RM, DP) /* reads Xmm0 */                               \
-        movpx_ld(W(RG), W(RM), W(DP))                                       \
-        xorpx_rr(W(RG), Xmm0)
+#define MOVXR_LD(XD, MS, DS) /* reads Xmm0 */                               \
+        movpx_ld(W(XD), W(MS), W(DS))                                       \
+        xorpx_rr(W(XD), Xmm0)
 
-#define MOVXR_ST(RG, RM, DP) /* reads Xmm0 */                               \
-        xorpx_rr(W(RG), Xmm0)                                               \
-        movpx_st(W(RG), W(RM), W(DP))
+#define MOVXR_ST(XG, MD, DD) /* reads Xmm0, XG, destroys XG */              \
+        xorpx_rr(W(XG), Xmm0)                                               \
+        movpx_st(W(XG), W(MD), W(DD))
 
-#define MOVZR_ST(RG, RM, DP)                                                \
-        xorpx_rr(W(RG), W(RG))                                              \
-        movpx_st(W(RG), W(RM), W(DP))
+#define MOVZR_ST(XG, MD, DD) /* destroys XG */                              \
+        xorpx_rr(W(XG), W(XG))                                              \
+        movpx_st(W(XG), W(MD), W(DD))
 
 #define INDEX_TMAP(nx) /* destroys Reax */                                  \
         movwx_ld(Reax, Medx, mat_T_MAP(nx*4))
@@ -232,14 +232,14 @@
  * Apply custom clipping (by surface) to ray's hit point
  * based on the side of the clipping surface.
  */
-#define APPLY_CLIP(lb, RG, RM) /* destroys Reax */                          \
+#define APPLY_CLIP(lb, XG, XS) /* destroys Reax, XG */                      \
         movxx_ld(Reax, Medi, elm_DATA)                                      \
         cmjxx_rz(Reax,                                                      \
                  LT_n, lb##_cs1)                /* signed comparison */     \
-        cleps_rr(W(RG), W(RM))                                              \
+        cleps_rr(W(XG), W(XS))                                              \
         jmpxx_lb(lb##_cs2)                                                  \
     LBL(lb##_cs1)                                                           \
-        cgeps_rr(W(RG), W(RM))                                              \
+        cgeps_rr(W(XG), W(XS))                                              \
     LBL(lb##_cs2)
 
 /*
@@ -334,25 +334,25 @@
         and_x,   EZ_x, lb)
 
 /*
- * Fetch pointer into given register "RG" from surface's field "pl"
+ * Fetch pointer into given register "RD" from surface's field "pl"
  * based on the currently set original SIDE flag.
  */
-#define FETCH_XPTR(RG, pl) /* destroys Reax */                              \
+#define FETCH_XPTR(RD, pl) /* destroys Reax */                              \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
         shlxx_ri(Reax, IB(2+P))                                             \
-        movxx_ld(W(RG), Iebx, srf_##pl)
+        movxx_ld(W(RD), Iebx, srf_##pl)
 
 /*
- * Fetch pointer into given register "RG" from surface's field "pl"
+ * Fetch pointer into given register "RD" from surface's field "pl"
  * based on the currently set inverted SIDE flag.
  */
-#define FETCH_IPTR(RG, pl) /* destroys Reax */                              \
+#define FETCH_IPTR(RD, pl) /* destroys Reax */                              \
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))                                \
         notxx_rx(Reax)                                                      \
         andxx_ri(Reax, IB(RT_FLAG_SIDE))                                    \
         shlxx_ri(Reax, IB(2+P))                                             \
-        movxx_ld(W(RG), Iebx, srf_##pl)
+        movxx_ld(W(RD), Iebx, srf_##pl)
 
 /*
  * Update only relevant fragments of a given
@@ -360,83 +360,9 @@
  * from the temporary SIMD-field in the context
  * based on the current SIMD-mask.
  */
-#define STORE_FRAG(lb, pn, pl) /* destroys Reax */                          \
-        cmjyx_mz(Mecx, ctx_TMASK(0x##pn),                                   \
-                 EQ_x, lb##pn)                                              \
-        movyx_ld(Reax, Mecx, ctx_C_PTR(0x##pn))                             \
-        movyx_st(Reax, Mecx, ctx_##pl(0x##pn))                              \
-    LBL(lb##pn)
-
-#if   RT_SIMD_QUADS == 1 /* x86-specific optimization (AVX1,2) */           \
-&& (defined RT_X86 || defined RT_X32 || defined RT_X64) && RT_128 == 8
-
-#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0, RG unmasked frags */ \
+#define STORE_SIMD(lb, pl, XS) /* destroys Xmm0, XS unmasked frags */       \
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))                                  \
-        mmvpx_st(W(RG), Mecx, ctx_##pl(0))
-
-#elif RT_SIMD_QUADS == 1 /* x86-specific optimization (SSE4.1) */           \
-&& (defined RT_X86 || defined RT_X32 || defined RT_X64) && RT_128 == 4
-
-#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0, RG unmasked frags */ \
-        movpx_ld(Xmm0, Mecx, ctx_TMASK(0))                                  \
-        notpx_rx(Xmm0)                                                      \
-        mmvpx_ld(W(RG), Mecx, ctx_##pl(0))                                  \
-        movpx_st(W(RG), Mecx, ctx_##pl(0))
-
-#elif RT_SIMD_QUADS == 1 /* generic code-path */
-
-#if   RT_ELEMENT == 32
-
-#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0, RG unmasked frags */ \
-        movpx_st(W(RG), Mecx, ctx_C_PTR(0))                                 \
-        STORE_FRAG(lb, 00, pl)                                              \
-        STORE_FRAG(lb, 04, pl)                                              \
-        STORE_FRAG(lb, 08, pl)                                              \
-        STORE_FRAG(lb, 0C, pl)
-
-#elif RT_ELEMENT == 64
-
-#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0, RG unmasked frags */ \
-        movpx_st(W(RG), Mecx, ctx_C_PTR(0))                                 \
-        STORE_FRAG(lb, 00, pl)                                              \
-        STORE_FRAG(lb, 08, pl)                                              \
-
-#endif /* RT_ELEMENT */
-
-#elif RT_SIMD_QUADS == 2 /* x86-specific optimization (AVX1,2) */           \
-&& (defined RT_X86 || defined RT_X32 || defined RT_X64)
-
-#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0, RG unmasked frags */ \
-        movpx_ld(Xmm0, Mecx, ctx_TMASK(0))                                  \
-        mmvpx_st(W(RG), Mecx, ctx_##pl(0))
-
-#elif RT_SIMD_QUADS == 2 /* generic code-path */
-
-#if   RT_ELEMENT == 32
-
-#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0, RG unmasked frags */ \
-        movpx_st(W(RG), Mecx, ctx_C_PTR(0))                                 \
-        STORE_FRAG(lb, 00, pl)                                              \
-        STORE_FRAG(lb, 04, pl)                                              \
-        STORE_FRAG(lb, 08, pl)                                              \
-        STORE_FRAG(lb, 0C, pl)                                              \
-        STORE_FRAG(lb, 10, pl)                                              \
-        STORE_FRAG(lb, 14, pl)                                              \
-        STORE_FRAG(lb, 18, pl)                                              \
-        STORE_FRAG(lb, 1C, pl)
-
-#elif RT_ELEMENT == 64
-
-#define STORE_SIMD(lb, pl, RG) /* destroys Reax, Xmm0, RG unmasked frags */ \
-        movpx_st(W(RG), Mecx, ctx_C_PTR(0))                                 \
-        STORE_FRAG(lb, 00, pl)                                              \
-        STORE_FRAG(lb, 08, pl)                                              \
-        STORE_FRAG(lb, 10, pl)                                              \
-        STORE_FRAG(lb, 18, pl)                                              \
-
-#endif /* RT_ELEMENT */
-
-#endif /* RT_SIMD_QUADS */
+        mmvpx_st(W(XS), Mecx, ctx_##pl(0))
 
 /*
  * Update relevant fragments of the
@@ -468,8 +394,8 @@
 
 #if   RT_ELEMENT == 32
 
-#define PAINT_SIMD(lb, RG) /* destroys Reax, Xmm0, Xmm7 */                  \
-        movpx_st(W(RG), Mecx, ctx_C_PTR(0))                                 \
+#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm7 */                  \
+        movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 04)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
@@ -481,8 +407,8 @@
 
 #elif RT_ELEMENT == 64
 
-#define PAINT_SIMD(lb, RG) /* destroys Reax, Xmm0, Xmm7 */                  \
-        movpx_st(W(RG), Mecx, ctx_C_PTR(0))                                 \
+#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm7 */                  \
+        movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
@@ -496,8 +422,8 @@
 
 #if   RT_ELEMENT == 32
 
-#define PAINT_SIMD(lb, RG) /* destroys Reax, Xmm0, Xmm7 */                  \
-        movpx_st(W(RG), Mecx, ctx_C_PTR(0))                                 \
+#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm7 */                  \
+        movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 04)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
@@ -513,8 +439,8 @@
 
 #elif RT_ELEMENT == 64
 
-#define PAINT_SIMD(lb, RG) /* destroys Reax, Xmm0, Xmm7 */                  \
-        movpx_st(W(RG), Mecx, ctx_C_PTR(0))                                 \
+#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm7 */                  \
+        movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
         PAINT_FRAG(lb, 10)                                                  \
@@ -602,9 +528,9 @@
  * in order to obtain the resulting color of antialiased pixel,
  * which is then written into the framebuffer.
  */
-#define FRAME_CBUF(RG, RM, pn) /* destroys Rebx */                          \
+#define FRAME_CBUF(RG, RS, pn) /* destroys Rebx */                          \
         movyx_ld(Rebx, Mecx, ctx_C_BUF(0x##pn))                             \
-        andyx_rr(Rebx, W(RM))                                               \
+        andyx_rr(Rebx, W(RS))                                               \
         addyx_rr(W(RG), Rebx)
 
 #if   RT_SIMD_QUADS == 1
