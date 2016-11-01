@@ -17,6 +17,7 @@ SRC_LIST =                              \
         ../core/system/system.cpp       \
         ../core/tracer/tracer.cpp       \
         ../core/tracer/tracer_128v1.cpp \
+        ../core/tracer/tracer_256v1.cpp \
         core_test.cpp
 
 LIB_PATH =
@@ -37,7 +38,7 @@ clean:
 
 core_test_a64_32:
 	aarch64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_A64 -DRT_128=1 \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -45,7 +46,7 @@ core_test_a64_32:
 
 core_test_a64_64:
 	aarch64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_A64 -DRT_128=1 \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -53,7 +54,7 @@ core_test_a64_64:
 
 core_test_a64f32:
 	aarch64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_A64 -DRT_128=1 \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -61,7 +62,7 @@ core_test_a64f32:
 
 core_test_a64f64:
 	aarch64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_A64 -DRT_128=1 \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -84,6 +85,8 @@ core_test_a64f64:
 # make -f core_make_a64.mk
 # qemu-aarch64 -cpu cortex-a57 core_test.a64f32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+
+# For 256-bit NEON build use (replace): RT_256=1 (uses pairs of regs/ops)
 
 # 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
 # use (replace): RT_ADDRESS=32, rename the binary to core_test.a64_**

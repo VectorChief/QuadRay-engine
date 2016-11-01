@@ -32,8 +32,9 @@
 #error "AArch32 doesn't support SIMD wider than 128-bit, \
 exclude this file from compilation"
 #elif defined (RT_A32) || defined (RT_A64)
-#error "AArch64 doesn't support SIMD wider than 128-bit, \
-exclude this file from compilation"
+#undef RT_RTARCH_A32_256_H
+#undef RT_RTARCH_A64_256_H
+#include "rtarch_a64_256.h"
 #elif defined (RT_M32) || defined (RT_M64)
 #error "mipsMSA doesn't support SIMD wider than 128-bit, \
 exclude this file from compilation"
@@ -55,8 +56,9 @@ exclude this file from compilation"
 #error "UniSIMD doesn't support 64-bit SIMD elements in 32-bit mode, \
 adjust RT_ELEMENT build flag to be equal to 32"
 #elif defined (RT_A32) || defined (RT_A64)
-#error "AArch64 doesn't support SIMD wider than 128-bit, \
-exclude this file from compilation"
+#undef RT_RTARCH_A32_256_H
+#undef RT_RTARCH_A64_256_H
+#include "rtarch_a64_256.h"
 #elif defined (RT_M32) || defined (RT_M64)
 #error "mipsMSA doesn't support SIMD wider than 128-bit, \
 exclude this file from compilation"
