@@ -17,6 +17,7 @@ SRC_LIST =                              \
         core/system/system.cpp          \
         core/tracer/tracer.cpp          \
         core/tracer/tracer_128v1.cpp    \
+        core/tracer/tracer_256v1.cpp    \
         RooT_linux.cpp
 
 LIB_PATH =
@@ -40,7 +41,7 @@ clean:
 
 RooT_a64_32:
 	aarch64-linux-gnu-g++ -O3 -g \
-        -DRT_LINUX -DRT_A64 -DRT_128=1 \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -48,7 +49,7 @@ RooT_a64_32:
 
 RooT_a64_64:
 	aarch64-linux-gnu-g++ -O3 -g \
-        -DRT_LINUX -DRT_A64 -DRT_128=1 \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -56,7 +57,7 @@ RooT_a64_64:
 
 RooT_a64f32:
 	aarch64-linux-gnu-g++ -O3 -g \
-        -DRT_LINUX -DRT_A64 -DRT_128=1 \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -64,7 +65,7 @@ RooT_a64f32:
 
 RooT_a64f64:
 	aarch64-linux-gnu-g++ -O3 -g \
-        -DRT_LINUX -DRT_A64 -DRT_128=1 \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -80,6 +81,8 @@ RooT_a64f64:
 # ./RooT.a64f32 (on AArch64 host or QEMU system mode)
 # (hasn't been verified due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
+
+# For 256-bit NEON build use (replace): RT_256=1 (uses pairs of regs/ops)
 
 # 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
 # use (replace): RT_ADDRESS=32, rename the binary to RooT.a64_**

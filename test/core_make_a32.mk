@@ -17,6 +17,7 @@ SRC_LIST =                              \
         ../core/system/system.cpp       \
         ../core/tracer/tracer.cpp       \
         ../core/tracer/tracer_128v1.cpp \
+        ../core/tracer/tracer_256v1.cpp \
         core_test.cpp
 
 LIB_PATH =
@@ -37,7 +38,7 @@ clean:
 
 core_test_a32:
 	aarch64-linux-gnu-g++ -O3 -g -static -mabi=ilp32 \
-        -DRT_LINUX -DRT_A32 -DRT_128=1 \
+        -DRT_LINUX -DRT_A32 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -56,6 +57,8 @@ core_test_a32:
 # Building/running CORE test:
 # make -f core_make_a32.mk
 # (recent upstream QEMU(-2.6) doesn't currently support AArch64 ILP32 ABI)
+
+# For 256-bit NEON build use (replace): RT_256=1 (uses pairs of regs/ops)
 
 # 32-bit ABI hasn't been fully tested yet due to lack of available libs,
 # check out 64/32-bit (ptr/adr) hybrid mode for 64-bit ABI in core_make_a64.mk
