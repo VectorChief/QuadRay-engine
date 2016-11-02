@@ -17,6 +17,7 @@ SRC_LIST =                              \
         ../core/system/system.cpp       \
         ../core/tracer/tracer.cpp       \
         ../core/tracer/tracer_128v1.cpp \
+        ../core/tracer/tracer_256v1.cpp \
         core_test.cpp
 
 LIB_PATH =
@@ -38,7 +39,7 @@ clean:
 
 core_test_m32Lr5:
 	mips-mti-linux-gnu-g++ -O3 -g -static -EL -mips32r5 -mmsa \
-        -DRT_LINUX -DRT_M32 -DRT_128=1 \
+        -DRT_LINUX -DRT_M32 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -46,7 +47,7 @@ core_test_m32Lr5:
 
 core_test_m32Br5:
 	mips-mti-linux-gnu-g++ -O3 -g -static -EB -mips32r5 -mmsa \
-        -DRT_LINUX -DRT_M32 -DRT_128=1 \
+        -DRT_LINUX -DRT_M32 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -54,7 +55,7 @@ core_test_m32Br5:
 
 core_test_m32Lr6:
 	mips-img-linux-gnu-g++ -O3 -g -static -EL -mips32r6 -mmsa \
-        -DRT_LINUX -DRT_M32=6 -DRT_128=1 \
+        -DRT_LINUX -DRT_M32=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -62,7 +63,7 @@ core_test_m32Lr6:
 
 core_test_m32Br6:
 	mips-img-linux-gnu-g++ -O3 -g -static -EB -mips32r6 -mmsa \
-        -DRT_LINUX -DRT_M32=6 -DRT_128=1 \
+        -DRT_LINUX -DRT_M32=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -94,6 +95,8 @@ core_test_m32Br6:
 # make -f core_make_m32.mk
 # qemu-mipsel -cpu P5600 core_test.m32Lr5 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+
+# For 256-bit NEON build use (replace): RT_256=1 (uses pairs of regs/ops)
 
 # For MIPS32 Release 6 target use the following options (replace):
 # mips-img-linux-gnu-g++ -mips32r6 -DRT_M32=6

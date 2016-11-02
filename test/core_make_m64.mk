@@ -17,6 +17,7 @@ SRC_LIST =                              \
         ../core/system/system.cpp       \
         ../core/tracer/tracer.cpp       \
         ../core/tracer/tracer_128v1.cpp \
+        ../core/tracer/tracer_256v1.cpp \
         core_test.cpp
 
 LIB_PATH =
@@ -39,7 +40,7 @@ build_le: core_test_m64_32Lr6 core_test_m64_64Lr6 core_test_m64f32Lr6 core_test_
 
 core_test_m64_32Lr6:
 	mips-img-linux-gnu-g++ -O3 -g -static -EL -mabi=64 -mmsa \
-        -DRT_LINUX -DRT_M64=6 -DRT_128=1 \
+        -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -47,7 +48,7 @@ core_test_m64_32Lr6:
 
 core_test_m64_64Lr6:
 	mips-img-linux-gnu-g++ -O3 -g -static -EL -mabi=64 -mmsa \
-        -DRT_LINUX -DRT_M64=6 -DRT_128=1 \
+        -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -55,7 +56,7 @@ core_test_m64_64Lr6:
 
 core_test_m64f32Lr6:
 	mips-img-linux-gnu-g++ -O3 -g -static -EL -mabi=64 -mmsa \
-        -DRT_LINUX -DRT_M64=6 -DRT_128=1 \
+        -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -63,7 +64,7 @@ core_test_m64f32Lr6:
 
 core_test_m64f64Lr6:
 	mips-img-linux-gnu-g++ -O3 -g -static -EL -mabi=64 -mmsa \
-        -DRT_LINUX -DRT_M64=6 -DRT_128=1 \
+        -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -74,7 +75,7 @@ build_be: core_test_m64_32Br6 core_test_m64_64Br6 core_test_m64f32Br6 core_test_
 
 core_test_m64_32Br6:
 	mips-img-linux-gnu-g++ -O3 -g -static -EB -mabi=64 -mmsa \
-        -DRT_LINUX -DRT_M64=6 -DRT_128=1 \
+        -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -82,7 +83,7 @@ core_test_m64_32Br6:
 
 core_test_m64_64Br6:
 	mips-img-linux-gnu-g++ -O3 -g -static -EB -mabi=64 -mmsa \
-        -DRT_LINUX -DRT_M64=6 -DRT_128=1 \
+        -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -90,7 +91,7 @@ core_test_m64_64Br6:
 
 core_test_m64f32Br6:
 	mips-img-linux-gnu-g++ -O3 -g -static -EB -mabi=64 -mmsa \
-        -DRT_LINUX -DRT_M64=6 -DRT_128=1 \
+        -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -98,7 +99,7 @@ core_test_m64f32Br6:
 
 core_test_m64f64Br6:
 	mips-img-linux-gnu-g++ -O3 -g -static -EB -mabi=64 -mmsa \
-        -DRT_LINUX -DRT_M64=6 -DRT_128=1 \
+        -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -131,6 +132,8 @@ core_test_m64f64Br6:
 # make -f core_make_m64.mk
 # qemu-mips64el -cpu I6400 core_test.m64f32Lr6 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+
+# For 256-bit NEON build use (replace): RT_256=1 (uses pairs of regs/ops)
 
 # For big-endian MIPS64 target use (replace): -EB -DRT_ENDIAN=1
 # qemu-mips64 -cpu I6400 core_test.m64f32Br6 -i -a

@@ -17,6 +17,7 @@ SRC_LIST =                              \
         core/system/system.cpp          \
         core/tracer/tracer.cpp          \
         core/tracer/tracer_128v1.cpp    \
+        core/tracer/tracer_256v1.cpp    \
         RooT_linux.cpp
 
 LIB_PATH =
@@ -40,7 +41,7 @@ clean:
 
 RooT_m32:
 	mipsel-linux-gnu-g++ -O3 -g -mips32r5 -mmsa \
-        -DRT_LINUX -DRT_M32 -DRT_128=1 \
+        -DRT_LINUX -DRT_M32 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -57,3 +58,5 @@ RooT_m32:
 # ./RooT.m32 (on P5600 host or QEMU system mode)
 # (hasn't been verified due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
+
+# For 256-bit NEON build use (replace): RT_256=1 (uses pairs of regs/ops)
