@@ -82,7 +82,9 @@ RooT_a64f64:
 # (hasn't been verified due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
-# For 256-bit NEON build use (replace): RT_256=1 (uses pairs of regs/ops)
+# RooT demo uses runtime SIMD target selection, multiple can be specified above
+# on RISC targets top hardcoded value is chosen by default, use appropriate binary
+# 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 
 # 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
 # use (replace): RT_ADDRESS=32, rename the binary to RooT.a64_**

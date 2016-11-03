@@ -58,7 +58,9 @@ RooT_a32:
 # ./RooT.a32 (on AArch64 host or QEMU system mode with ILP32 X11/Xext libs)
 # (hasn't been verified due to lack of target host system)
 
-# For 256-bit NEON build use (replace): RT_256=1 (uses pairs of regs/ops)
+# RooT demo uses runtime SIMD target selection, multiple can be specified above
+# on RISC targets top hardcoded value is chosen by default, use appropriate binary
+# 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 
 # 32-bit ABI hasn't been fully tested yet due to lack of available libs,
 # check out 64/32-bit (ptr/adr) hybrid mode for 64-bit ABI in RooT_make_a64.mk

@@ -60,7 +60,7 @@ RooT_p32:
 # (hasn't been verified due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
-# For 256-bit VSX1 build use (replace): RT_256=1 (uses pairs of regs/ops)
-# For 256-bit VSX2 build use (replace): RT_256=2 (uses pairs of regs/ops)
+# RooT demo uses runtime SIMD target selection, multiple can be specified above
+# on RISC targets top hardcoded value is chosen by default, use appropriate binary
 
 # For 128-bit VSX1 POWER(7,7+,8) target use (replace): -DRT_128=2

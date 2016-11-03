@@ -62,6 +62,8 @@ RooT_x86:
 # make -f RooT_make_x86.mk
 # ./RooT.x86
 
+# RooT demo uses runtime SIMD target selection, multiple can be specified above
+
 # Clang compilation works too (takes much longer prior to 3.8), use (replace):
 # clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
 # sudo apt-get install clang (requires g++-multilib for non-native ABI)

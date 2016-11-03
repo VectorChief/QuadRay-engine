@@ -117,6 +117,9 @@ core_test_arm_rpi3:
 # qemu-arm -cpu cortex-a15 core_test.arm_v2 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
+# core_test uses runtime SIMD target selection, multiple can be specified above
+# on RISC targets top hardcoded value is chosen by default, use -q/-s to override
+
 # 0) Build flags above are intended for default "vanilla" ARMv7 target, while
 # settings suitable for specific hardware platforms are given below (replace).
 # 1) Nokia N900, Maemo 5 scratchbox: -DRT_EMBED_FILEIO=1

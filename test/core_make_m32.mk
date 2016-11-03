@@ -96,7 +96,9 @@ core_test_m32Br6:
 # qemu-mipsel -cpu P5600 core_test.m32Lr5 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
-# For 256-bit SIMD build use (replace): RT_256=1 (uses pairs of regs/ops)
+# core_test uses runtime SIMD target selection, multiple can be specified above
+# on RISC targets top hardcoded value is chosen by default, use -q/-s to override
+# 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 
 # For MIPS32 Release 6 target use the following options (replace):
 # mips-img-linux-gnu-g++ -mips32r6 -DRT_M32=6

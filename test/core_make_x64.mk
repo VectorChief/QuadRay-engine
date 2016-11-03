@@ -81,6 +81,8 @@ core_test_x64f64:
 # ./core_test.x64f32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
+# core_test uses runtime SIMD target selection, multiple can be specified above
+
 # Clang compilation works too (takes much longer prior to 3.8), use (replace):
 # clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
 # sudo apt-get install clang

@@ -58,7 +58,9 @@ core_test_a32:
 # make -f core_make_a32.mk
 # (recent upstream QEMU(-2.6) doesn't currently support AArch64 ILP32 ABI)
 
-# For 256-bit NEON build use (replace): RT_256=1 (uses pairs of regs/ops)
+# core_test uses runtime SIMD target selection, multiple can be specified above
+# on RISC targets top hardcoded value is chosen by default, use -q/-s to override
+# 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 
 # 32-bit ABI hasn't been fully tested yet due to lack of available libs,
 # check out 64/32-bit (ptr/adr) hybrid mode for 64-bit ABI in core_make_a64.mk

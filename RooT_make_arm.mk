@@ -101,6 +101,9 @@ RooT_arm_rpi3:
 # make -f RooT_make_arm.mk
 # ./RooT.arm (on ARMv7 host or QEMU system mode)
 
+# RooT demo uses runtime SIMD target selection, multiple can be specified above
+# on RISC targets top hardcoded value is chosen by default, use appropriate binary
+
 # 0) Build flags above are intended for default "vanilla" ARMv7 target, while
 # settings suitable for specific hardware platforms are given below (replace).
 # 1) Nokia N900, Maemo 5 scratchbox: -DRT_FULLSCREEN=1 -DRT_EMBED_FILEIO=1
