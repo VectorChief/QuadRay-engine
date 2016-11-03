@@ -18,6 +18,8 @@ SRC_LIST =                              \
         ../core/tracer/tracer.cpp       \
         ../core/tracer/tracer_128v1.cpp \
         ../core/tracer/tracer_128v2.cpp \
+        ../core/tracer/tracer_256v1.cpp \
+        ../core/tracer/tracer_256v2.cpp \
         core_test.cpp
 
 LIB_PATH =
@@ -46,7 +48,7 @@ core_test_p32Bg4:
 
 core_test_p32Bp7:
 	powerpc-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_P32 -DRT_128=2 \
+        -DRT_LINUX -DRT_P32 -DRT_128=2 -DRT_256=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -70,6 +72,9 @@ core_test_p32Bp7:
 # qemu-ppc -cpu G4 core_test.p32Bg4 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
-# For 32-bit POWER(7,7+,8) VSX target use (replace): -DRT_128=2
+# For 256-bit VSX1 build use (replace): RT_256=1 (uses pairs of regs/ops)
+# For 256-bit VSX2 build use (replace): RT_256=2 (uses pairs of regs/ops)
+
+# For 128-bit VSX1 POWER(7,7+,8) target use (replace): -DRT_128=2
 # qemu-ppc64abi32 -cpu POWER7 core_test.p32Bp7 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)

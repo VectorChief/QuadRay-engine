@@ -18,6 +18,8 @@ SRC_LIST =                              \
         core/tracer/tracer.cpp          \
         core/tracer/tracer_128v1.cpp    \
         core/tracer/tracer_128v2.cpp    \
+        core/tracer/tracer_256v1.cpp    \
+        core/tracer/tracer_256v2.cpp    \
         RooT_linux.cpp
 
 LIB_PATH =
@@ -57,3 +59,8 @@ RooT_p32:
 # ./RooT.p32 (on G4 host or QEMU system mode)
 # (hasn't been verified due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
+
+# For 256-bit VSX1 build use (replace): RT_256=1 (uses pairs of regs/ops)
+# For 256-bit VSX2 build use (replace): RT_256=2 (uses pairs of regs/ops)
+
+# For 128-bit VSX1 POWER(7,7+,8) target use (replace): -DRT_128=2

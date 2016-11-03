@@ -18,6 +18,8 @@ SRC_LIST =                              \
         core/tracer/tracer.cpp          \
         core/tracer/tracer_128v2.cpp    \
         core/tracer/tracer_128v4.cpp    \
+        core/tracer/tracer_256v1.cpp    \
+        core/tracer/tracer_256v2.cpp    \
         RooT_linux.cpp
 
 LIB_PATH =
@@ -41,7 +43,7 @@ clean:
 
 RooT_p64_32:
 	powerpc64le-linux-gnu-g++ -O2 -g \
-        -DRT_LINUX -DRT_P64 -DRT_128=2+4 \
+        -DRT_LINUX -DRT_P64 -DRT_128=2+4 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -49,7 +51,7 @@ RooT_p64_32:
 
 RooT_p64_64:
 	powerpc64le-linux-gnu-g++ -O2 -g \
-        -DRT_LINUX -DRT_P64 -DRT_128=2+4 \
+        -DRT_LINUX -DRT_P64 -DRT_128=2+4 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -57,7 +59,7 @@ RooT_p64_64:
 
 RooT_p64f32:
 	powerpc64le-linux-gnu-g++ -O2 -g \
-        -DRT_LINUX -DRT_P64 -DRT_128=2+4 \
+        -DRT_LINUX -DRT_P64 -DRT_128=2+4 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -65,7 +67,7 @@ RooT_p64f32:
 
 RooT_p64f64:
 	powerpc64le-linux-gnu-g++ -O2 -g \
-        -DRT_LINUX -DRT_P64 -DRT_128=2+4 \
+        -DRT_LINUX -DRT_P64 -DRT_128=2+4 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -83,7 +85,10 @@ RooT_p64f64:
 # (hasn't been verified due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
-# For big-endian 64-bit POWER(7,7+,8) VSX target use (replace):
+# For 256-bit VSX1 build use (replace): RT_256=1 (uses pairs of regs/ops)
+# For 256-bit VSX2 build use (replace): RT_256=2 (uses pairs of regs/ops)
+
+# For 128-bit VSX1 POWER(7,7+,8) big-endian target use (replace):
 # powerpc64-linux-gnu-g++ -O3 -DRT_128=2 -DRT_ENDIAN=1
 
 # 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,

@@ -53,8 +53,9 @@ exclude this file from compilation"
 #error "mipsMSA doesn't support SIMD wider than 128-bit, \
 exclude this file from compilation"
 #elif defined (RT_P32) || defined (RT_P64)
-#error "AltiVec doesn't support SIMD wider than 128-bit, \
-exclude this file from compilation"
+#undef RT_RTARCH_P32_256_H
+#undef RT_RTARCH_P64_256_H
+#include "rtarch_p64_256.h"
 #elif defined (RT_X32) || defined (RT_X64)
 #undef RT_RTARCH_X32_256_H
 #undef RT_RTARCH_X64_256_H
@@ -76,8 +77,9 @@ exclude this file from compilation"
 #error "mipsMSA doesn't support SIMD wider than 128-bit, \
 exclude this file from compilation"
 #elif defined (RT_P32) || defined (RT_P64)
-#error "AltiVec doesn't support SIMD wider than 128-bit, \
-exclude this file from compilation"
+#undef RT_RTARCH_P32_256_H
+#undef RT_RTARCH_P64_256_H
+#include "rtarch_p64_256.h"
 #elif defined (RT_X32) || defined (RT_X64)
 #undef RT_RTARCH_X32_256_H
 #undef RT_RTARCH_X64_256_H
