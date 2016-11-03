@@ -133,7 +133,7 @@ core_test_m64f64Br6:
 # qemu-mips64el -cpu I6400 core_test.m64f32Lr6 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
-# For 256-bit NEON build use (replace): RT_256=1 (uses pairs of regs/ops)
+# For 256-bit SIMD build use (replace): RT_256=1 (uses pairs of regs/ops)
 
 # For big-endian MIPS64 target use (replace): -EB -DRT_ENDIAN=1
 # qemu-mips64 -cpu I6400 core_test.m64f32Br6 -i -a

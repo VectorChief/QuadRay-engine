@@ -59,4 +59,4 @@ RooT_m32:
 # (hasn't been verified due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
-# For 256-bit NEON build use (replace): RT_256=1 (uses pairs of regs/ops)
+# For 256-bit SIMD build use (replace): RT_256=1 (uses pairs of regs/ops)

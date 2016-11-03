@@ -83,7 +83,7 @@ RooT_m64f64:
 # (hasn't been verified due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
-# For 256-bit NEON build use (replace): RT_256=1 (uses pairs of regs/ops)
+# For 256-bit SIMD build use (replace): RT_256=1 (uses pairs of regs/ops)
 
 # 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
 # use (replace): RT_ADDRESS=32, rename the binary to RooT.m64_**

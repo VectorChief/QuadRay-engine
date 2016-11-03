@@ -96,7 +96,7 @@ core_test_m32Br6:
 # qemu-mipsel -cpu P5600 core_test.m32Lr5 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
-# For 256-bit NEON build use (replace): RT_256=1 (uses pairs of regs/ops)
+# For 256-bit SIMD build use (replace): RT_256=1 (uses pairs of regs/ops)
 
 # For MIPS32 Release 6 target use the following options (replace):
 # mips-img-linux-gnu-g++ -mips32r6 -DRT_M32=6
