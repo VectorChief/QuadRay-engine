@@ -214,7 +214,7 @@ rt_si32 main_step()
             rt_si32 snew;
             do
             {
-                simd = simd % 8 + 4;        /* 4, 8 */
+                simd = simd % 16 + simd % 12; /* 4, 8, 16 */
                 snew = sc[d]->set_simd(simd | type << 8) & 0xFF;
                 if (simd != snew)
                 {

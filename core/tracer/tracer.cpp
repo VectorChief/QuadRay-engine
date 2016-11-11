@@ -191,6 +191,50 @@
 
 #endif /* RT_ELEMENT */
 
+#elif RT_SIMD_QUADS == 4
+
+#if   RT_ELEMENT == 32
+
+#define SHOW_TILES(lb, cl) /* destroys Reax, Xmm0 */                        \
+        movyx_ri(Reax, IV(cl))                                              \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x00))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x04))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x08))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x0C))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x10))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x14))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x18))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x1C))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x20))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x24))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x28))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x2C))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x30))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x34))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x38))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x3C))                               \
+        PAINT_COLX(10, COL_R(0))                                            \
+        PAINT_COLX(08, COL_G(0))                                            \
+        PAINT_COLX(00, COL_B(0))
+
+#elif RT_ELEMENT == 64
+
+#define SHOW_TILES(lb, cl) /* destroys Reax, Xmm0 */                        \
+        movyx_ri(Reax, IV(cl))                                              \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x00))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x08))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x10))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x18))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x20))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x28))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x30))                               \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x38))                               \
+        PAINT_COLX(10, COL_R(0))                                            \
+        PAINT_COLX(08, COL_G(0))                                            \
+        PAINT_COLX(00, COL_B(0))
+
+#endif /* RT_ELEMENT */
+
 #endif /* RT_SIMD_QUADS */
 
 /*
@@ -452,6 +496,52 @@
 
 #endif /* RT_ELEMENT */
 
+#elif RT_SIMD_QUADS == 4
+
+#if   RT_ELEMENT == 32
+
+#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm7 */                  \
+        movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
+        PAINT_FRAG(lb, 00)                                                  \
+        PAINT_FRAG(lb, 04)                                                  \
+        PAINT_FRAG(lb, 08)                                                  \
+        PAINT_FRAG(lb, 0C)                                                  \
+        PAINT_FRAG(lb, 10)                                                  \
+        PAINT_FRAG(lb, 14)                                                  \
+        PAINT_FRAG(lb, 18)                                                  \
+        PAINT_FRAG(lb, 1C)                                                  \
+        PAINT_FRAG(lb, 20)                                                  \
+        PAINT_FRAG(lb, 24)                                                  \
+        PAINT_FRAG(lb, 28)                                                  \
+        PAINT_FRAG(lb, 2C)                                                  \
+        PAINT_FRAG(lb, 30)                                                  \
+        PAINT_FRAG(lb, 34)                                                  \
+        PAINT_FRAG(lb, 38)                                                  \
+        PAINT_FRAG(lb, 3C)                                                  \
+        movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
+        PAINT_COLX(10, TEX_R)                                               \
+        PAINT_COLX(08, TEX_G)                                               \
+        PAINT_COLX(00, TEX_B)
+
+#elif RT_ELEMENT == 64
+
+#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm7 */                  \
+        movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
+        PAINT_FRAG(lb, 00)                                                  \
+        PAINT_FRAG(lb, 08)                                                  \
+        PAINT_FRAG(lb, 10)                                                  \
+        PAINT_FRAG(lb, 18)                                                  \
+        PAINT_FRAG(lb, 20)                                                  \
+        PAINT_FRAG(lb, 28)                                                  \
+        PAINT_FRAG(lb, 30)                                                  \
+        PAINT_FRAG(lb, 38)                                                  \
+        movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
+        PAINT_COLX(10, TEX_R)                                               \
+        PAINT_COLX(08, TEX_G)                                               \
+        PAINT_COLX(00, TEX_B)
+
+#endif /* RT_ELEMENT */
+
 #endif /* RT_SIMD_QUADS */
 
 /*
@@ -517,6 +607,26 @@
         movyx_ld(Redx, Mecx, ctx_C_BUF(0x10))                               \
         FRAME_FRAG()                                                        \
         movyx_ld(Redx, Mecx, ctx_C_BUF(0x18))                               \
+        FRAME_FRAG()
+
+#elif RT_SIMD_QUADS == 4
+
+#define FRAME_FBUF() /* destroys Xmm0, Reax, Redx */                        \
+        movyx_ld(Redx, Mecx, ctx_C_BUF(0x00))                               \
+        FRAME_FRAG()                                                        \
+        movyx_ld(Redx, Mecx, ctx_C_BUF(0x08))                               \
+        FRAME_FRAG()                                                        \
+        movyx_ld(Redx, Mecx, ctx_C_BUF(0x10))                               \
+        FRAME_FRAG()                                                        \
+        movyx_ld(Redx, Mecx, ctx_C_BUF(0x18))                               \
+        FRAME_FRAG()                                                        \
+        movyx_ld(Redx, Mecx, ctx_C_BUF(0x20))                               \
+        FRAME_FRAG()                                                        \
+        movyx_ld(Redx, Mecx, ctx_C_BUF(0x28))                               \
+        FRAME_FRAG()                                                        \
+        movyx_ld(Redx, Mecx, ctx_C_BUF(0x30))                               \
+        FRAME_FRAG()                                                        \
+        movyx_ld(Redx, Mecx, ctx_C_BUF(0x38))                               \
         FRAME_FRAG()
 
 #endif /* RT_SIMD_QUADS */
@@ -636,6 +746,126 @@
         movyx_ri(Redx, IB(0))                                               \
         FRAME_CBUF(Redx, Redi, 10)                                          \
         FRAME_CBUF(Redx, Redi, 18)                                          \
+        shryx_ri(Redx, IB(1))                                               \
+        andyx_rr(Redx, Redi)                                                \
+        addyx_rr(Redx, Reax)                                                \
+        FRAME_FRAG()
+
+#endif /* RT_ELEMENT */
+
+#elif RT_SIMD_QUADS == 4
+
+#if   RT_ELEMENT == 32
+
+#define FRAME_FSAA() /* destroys Resi, Redi, Reax, Rebx, Redx */            \
+        movyx_ri(Resi, IV(0x00F0F0F0))                                      \
+        movyx_ri(Redi, IV(0x000F0F0F))                                      \
+        movyx_ri(Reax, IB(0))                                               \
+        FRAME_CBUF(Reax, Resi, 00)                                          \
+        FRAME_CBUF(Reax, Resi, 04)                                          \
+        FRAME_CBUF(Reax, Resi, 08)                                          \
+        FRAME_CBUF(Reax, Resi, 0C)                                          \
+        shryx_ri(Reax, IB(2))                                               \
+        movyx_ri(Redx, IB(0))                                               \
+        FRAME_CBUF(Redx, Redi, 00)                                          \
+        FRAME_CBUF(Redx, Redi, 04)                                          \
+        FRAME_CBUF(Redx, Redi, 08)                                          \
+        FRAME_CBUF(Redx, Redi, 0C)                                          \
+        shryx_ri(Redx, IB(2))                                               \
+        andyx_rr(Redx, Redi)                                                \
+        addyx_rr(Redx, Reax)                                                \
+        FRAME_FRAG()                                                        \
+        movyx_ri(Reax, IB(0))                                               \
+        FRAME_CBUF(Reax, Resi, 10)                                          \
+        FRAME_CBUF(Reax, Resi, 14)                                          \
+        FRAME_CBUF(Reax, Resi, 18)                                          \
+        FRAME_CBUF(Reax, Resi, 1C)                                          \
+        shryx_ri(Reax, IB(2))                                               \
+        movyx_ri(Redx, IB(0))                                               \
+        FRAME_CBUF(Redx, Redi, 10)                                          \
+        FRAME_CBUF(Redx, Redi, 14)                                          \
+        FRAME_CBUF(Redx, Redi, 18)                                          \
+        FRAME_CBUF(Redx, Redi, 1C)                                          \
+        shryx_ri(Redx, IB(2))                                               \
+        andyx_rr(Redx, Redi)                                                \
+        addyx_rr(Redx, Reax)                                                \
+        FRAME_FRAG()                                                        \
+        movyx_ri(Reax, IB(0))                                               \
+        FRAME_CBUF(Reax, Resi, 20)                                          \
+        FRAME_CBUF(Reax, Resi, 24)                                          \
+        FRAME_CBUF(Reax, Resi, 28)                                          \
+        FRAME_CBUF(Reax, Resi, 2C)                                          \
+        shryx_ri(Reax, IB(2))                                               \
+        movyx_ri(Redx, IB(0))                                               \
+        FRAME_CBUF(Redx, Redi, 20)                                          \
+        FRAME_CBUF(Redx, Redi, 24)                                          \
+        FRAME_CBUF(Redx, Redi, 28)                                          \
+        FRAME_CBUF(Redx, Redi, 2C)                                          \
+        shryx_ri(Redx, IB(2))                                               \
+        andyx_rr(Redx, Redi)                                                \
+        addyx_rr(Redx, Reax)                                                \
+        FRAME_FRAG()                                                        \
+        movyx_ri(Reax, IB(0))                                               \
+        FRAME_CBUF(Reax, Resi, 30)                                          \
+        FRAME_CBUF(Reax, Resi, 34)                                          \
+        FRAME_CBUF(Reax, Resi, 38)                                          \
+        FRAME_CBUF(Reax, Resi, 3C)                                          \
+        shryx_ri(Reax, IB(2))                                               \
+        movyx_ri(Redx, IB(0))                                               \
+        FRAME_CBUF(Redx, Redi, 30)                                          \
+        FRAME_CBUF(Redx, Redi, 34)                                          \
+        FRAME_CBUF(Redx, Redi, 38)                                          \
+        FRAME_CBUF(Redx, Redi, 3C)                                          \
+        shryx_ri(Redx, IB(2))                                               \
+        andyx_rr(Redx, Redi)                                                \
+        addyx_rr(Redx, Reax)                                                \
+        FRAME_FRAG()
+
+#elif RT_ELEMENT == 64
+
+#define FRAME_FSAA() /* destroys Resi, Redi, Reax, Rebx, Redx */            \
+        movyx_ri(Resi, IV(0x00F0F0F0))                                      \
+        movyx_ri(Redi, IV(0x000F0F0F))                                      \
+        movyx_ri(Reax, IB(0))                                               \
+        FRAME_CBUF(Reax, Resi, 00)                                          \
+        FRAME_CBUF(Reax, Resi, 08)                                          \
+        shryx_ri(Reax, IB(1))                                               \
+        movyx_ri(Redx, IB(0))                                               \
+        FRAME_CBUF(Redx, Redi, 00)                                          \
+        FRAME_CBUF(Redx, Redi, 08)                                          \
+        shryx_ri(Redx, IB(1))                                               \
+        andyx_rr(Redx, Redi)                                                \
+        addyx_rr(Redx, Reax)                                                \
+        FRAME_FRAG()                                                        \
+        movyx_ri(Reax, IB(0))                                               \
+        FRAME_CBUF(Reax, Resi, 10)                                          \
+        FRAME_CBUF(Reax, Resi, 18)                                          \
+        shryx_ri(Reax, IB(1))                                               \
+        movyx_ri(Redx, IB(0))                                               \
+        FRAME_CBUF(Redx, Redi, 10)                                          \
+        FRAME_CBUF(Redx, Redi, 18)                                          \
+        shryx_ri(Redx, IB(1))                                               \
+        andyx_rr(Redx, Redi)                                                \
+        addyx_rr(Redx, Reax)                                                \
+        FRAME_FRAG()                                                        \
+        movyx_ri(Reax, IB(0))                                               \
+        FRAME_CBUF(Reax, Resi, 20)                                          \
+        FRAME_CBUF(Reax, Resi, 28)                                          \
+        shryx_ri(Reax, IB(1))                                               \
+        movyx_ri(Redx, IB(0))                                               \
+        FRAME_CBUF(Redx, Redi, 20)                                          \
+        FRAME_CBUF(Redx, Redi, 28)                                          \
+        shryx_ri(Redx, IB(1))                                               \
+        andyx_rr(Redx, Redi)                                                \
+        addyx_rr(Redx, Reax)                                                \
+        FRAME_FRAG()                                                        \
+        movyx_ri(Reax, IB(0))                                               \
+        FRAME_CBUF(Reax, Resi, 30)                                          \
+        FRAME_CBUF(Reax, Resi, 38)                                          \
+        shryx_ri(Reax, IB(1))                                               \
+        movyx_ri(Redx, IB(0))                                               \
+        FRAME_CBUF(Redx, Redi, 30)                                          \
+        FRAME_CBUF(Redx, Redi, 38)                                          \
         shryx_ri(Redx, IB(1))                                               \
         andyx_rr(Redx, Redi)                                                \
         addyx_rr(Redx, Reax)                                                \
@@ -4109,7 +4339,7 @@ rt_si32 s_mode = 0;
 /*
  * Backend's global entry point (hence 0).
  * Switch backend's runtime SIMD target with "mode"
- * equal to SIMD width (4, 8) in 0th (lowest) byte
+ * equal to SIMD width (4, 8, 16) in 0th (lowest) byte
  * and SIMD type (1, 2, 4, 8) in 1st (higher) byte.
  */
 rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 mode)
@@ -4137,45 +4367,59 @@ rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 mode)
 
     s_mask = s_inf->ver;
 
+#if defined (RT_512) && (RT_512 & 2)
+    if (s_mode == 0)
+    {
+        s_mode = (s_mask & 0x020000) != 0 ? 0x0210 : 0x0000;
+    }
+    s_type[16] |= ((s_mask >> 8) & 0x0200) | 16;
+#endif /* RT_512 & 2 */
+#if defined (RT_512) && (RT_512 & 1)
+    if (s_mode == 0)
+    {
+        s_mode = (s_mask & 0x010000) != 0 ? 0x0110 : 0x0000;
+    }
+    s_type[16] |= ((s_mask >> 8) & 0x0100) | 16;
+#endif /* RT_512 & 1 */
 #if defined (RT_256) && (RT_256 & 2)
     if (s_mode == 0)
     {
-        s_mode = (s_mask & 0x0200) != 0 ? 0x0208 : 0x0000;
+        s_mode = (s_mask & 0x000200) != 0 ? 0x0208 : 0x0000;
     }
     s_type[8] |= ((s_mask << 0) & 0x0200) | 8;
 #endif /* RT_256 & 2 */
 #if defined (RT_256) && (RT_256 & 1)
     if (s_mode == 0)
     {
-        s_mode = (s_mask & 0x0100) != 0 ? 0x0108 : 0x0000;
+        s_mode = (s_mask & 0x000100) != 0 ? 0x0108 : 0x0000;
     }
     s_type[8] |= ((s_mask << 0) & 0x0100) | 8;
 #endif /* RT_256 & 1 */
 #if defined (RT_128) && (RT_128 & 8)
     if (s_mode == 0)
     {
-        s_mode = (s_mask & 0x0008) != 0 ? 0x0804 : 0x0000;
+        s_mode = (s_mask & 0x000008) != 0 ? 0x0804 : 0x0000;
     }
     s_type[4] |= ((s_mask << 8) & 0x0800) | 4;
 #endif /* RT_128 & 8 */
 #if defined (RT_128) && (RT_128 & 4)
     if (s_mode == 0)
     {
-        s_mode = (s_mask & 0x0004) != 0 ? 0x0404 : 0x0000;
+        s_mode = (s_mask & 0x000004) != 0 ? 0x0404 : 0x0000;
     }
     s_type[4] |= ((s_mask << 8) & 0x0400) | 4;
 #endif /* RT_128 & 4 */
 #if defined (RT_128) && (RT_128 & 2)
     if (s_mode == 0)
     {
-        s_mode = (s_mask & 0x0002) != 0 ? 0x0204 : 0x0000;
+        s_mode = (s_mask & 0x000002) != 0 ? 0x0204 : 0x0000;
     }
     s_type[4] |= ((s_mask << 8) & 0x0200) | 4;
 #endif /* RT_128 & 2 */
 #if defined (RT_128) && (RT_128 & 1)
     if (s_mode == 0)
     {
-        s_mode = (s_mask & 0x0001) != 0 ? 0x0104 : 0x0000;
+        s_mode = (s_mask & 0x000001) != 0 ? 0x0104 : 0x0000;
     }
     s_type[4] |= ((s_mask << 8) & 0x0100) | 4;
 #endif /* RT_128 & 1 */
@@ -4270,6 +4514,16 @@ namespace simd_256v2
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
+namespace simd_512v1
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace simd_512v2
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
 /*
  * Backend's global entry point (hence 0).
  * Render frame based on the data structures
@@ -4279,6 +4533,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 {
     switch (s_mode)
     {
+#if defined (RT_512) && (RT_512 & 2)
+        case 0x0210:
+        simd_512v2::render0(s_inf);
+        break;
+#endif /* RT_512 & 2 */
+#if defined (RT_512) && (RT_512 & 1)
+        case 0x0110:
+        simd_512v1::render0(s_inf);
+        break;
+#endif /* RT_512 & 1 */
 #if defined (RT_256) && (RT_256 & 2)
         case 0x0208:
         simd_256v2::render0(s_inf);
