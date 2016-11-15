@@ -20,6 +20,8 @@ SRC_LIST =                              \
         ../core/tracer/tracer_128v2.cpp \
         ../core/tracer/tracer_256v1.cpp \
         ../core/tracer/tracer_256v2.cpp \
+        ../core/tracer/tracer_512v1.cpp \
+        ../core/tracer/tracer_512v2.cpp \
         core_test.cpp
 
 LIB_PATH =
@@ -48,7 +50,7 @@ core_test_p32Bg4:
 
 core_test_p32Bp7:
 	powerpc-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_P32 -DRT_128=2 -DRT_256=1 \
+        -DRT_LINUX -DRT_P32 -DRT_128=2 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -75,6 +77,7 @@ core_test_p32Bp7:
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top hardcoded value is chosen by default, use -q/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
+# 512-bit SIMD is achieved by combining quads of 128-bit registers/instructions
 
 # For 128-bit VSX1 POWER(7,7+,8) target use (replace): -DRT_128=2
 # qemu-ppc64abi32 -cpu POWER7 core_test.p32Bp7 -i -a

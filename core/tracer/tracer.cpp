@@ -1027,7 +1027,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(OO_cyc)
 
         cmjxx_rz(Resi,
-                 EQ_x, OO_out)
+                 NE_x, OO_ini)
+
+        jmpxx_lb(OO_out)
+
+    LBL(OO_ini)
 
         movxx_ld(Rebx, Mesi, elm_SIMD)
 
@@ -2707,7 +2711,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm3, Xmm6)
         movpx_st(Xmm3, Mecx, ctx_NEW_Z)
 
-        jmpxx_lb(TR_beg)
+        jmpxx_lb(TR_ini)
 
     LBL(TR_rfr)
 
@@ -2725,7 +2729,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm2, Mecx, ctx_NEW_Y)
         movpx_st(Xmm3, Mecx, ctx_NEW_Z)
 
-    LBL(TR_beg)
+    LBL(TR_ini)
 
         xorpx_rr(Xmm1, Xmm1)
         xorpx_rr(Xmm2, Xmm2)
@@ -4002,7 +4006,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movxx_ld(Reax, Mebp, inf_FRM_Y)
         cmjxx_rm(Reax, Mebp, inf_FRM_H,
-                 LT_x, YY_cyc)
+                 GE_x, fetch_end)
+
+        jmpxx_lb(YY_cyc)
 
     LBL(fetch_end)
 
