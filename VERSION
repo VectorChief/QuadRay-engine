@@ -21,6 +21,9 @@ v0.6.6: Backend improvements, 256-bit SIMD on RISCs, basic AVX-512 support
   - implement 512-bit SIMD support (1x512-bit, 16 regs) on future x86 targets
   - AVX1/AVX2 256-bit SIMD for x86 (1x256-bit, 16 regs) remains supported
   - 256-bit SIMD with 15 regs becomes new common baseline for modern hardware
+  - improve test coverage for BASE and SIMD load-op instructions
+  - add tests for new rotate, logic, shifts, fma/fms instructions, run level 24
+  - add command line options to CORE test for SIMD width/variant override
   - add rtzero header file to clean up assembler definitions after use
   - rename instruction parameters to better reflect their use as source/dest
   - add formulas for all BASE and SIMD instructions for better clarity
