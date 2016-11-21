@@ -351,7 +351,11 @@ rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
 
     memset(estr, 0, sizeof(rt_pstr) * thnum);
 
+#if defined (RT_WIN32)
+    DWORD pam, sam;
+#else /* RT_WIN64 */
     DWORD_PTR pam, sam;
+#endif /* RT_WIN64 */
     HANDLE process = GetCurrentProcess();
     GetProcessAffinityMask(process, &pam, &sam);
 
