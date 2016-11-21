@@ -28,6 +28,8 @@ v0.6.6: Backend improvements, 256-bit SIMD on RISCs, basic AVX-512 support
   - rename instruction parameters to better reflect their use as source/dest
   - add formulas for all BASE and SIMD instructions for better clarity
   - reserve the whole alphabet for future BASE and SIMD instruction subsets
+  - fix discrepancy in VMX/VSX vector-loads on Power (from here backported down)
+  - fix AVX-version of mmvpx_ld from zeroing to merging on x86
 
 v0.6.5: Backend improvements, full 64-bit fp/int SIMD compute elements
   - adjust rendering backend/structures to work with 64-bit SIMD elements
