@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "../core/config/" /I "../core/engine/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/textures/" /I "scenes/" /D "RT_WIN32" /D "RT_X86" /D RT_128=1+2+4 /D RT_256=1+2 /D RT_POINTER=32 /D RT_ADDRESS=32 /D RT_ELEMENT=32 /D RT_ENDIAN=0 /D RT_DEBUG=0 /D RT_PATH="../" /D RT_EMBED_STDOUT=0 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /Zm500 /c
+# ADD CPP /nologo /W3 /GX /O2 /I "../core/config/" /I "../core/engine/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/textures/" /I "scenes/" /D "RT_WIN32" /D "RT_X86" /D RT_128=1+2+4+8 /D RT_256=1+2 /D RT_512=1+2 /D RT_POINTER=32 /D RT_ADDRESS=32 /D RT_ELEMENT=32 /D RT_ENDIAN=0 /D RT_DEBUG=0 /D RT_PATH="../" /D RT_EMBED_STDOUT=0 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /Zm500 /c
 # ADD BASE RSC /l 0x419 /d "NDEBUG"
 # ADD RSC /l 0x419 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -66,7 +66,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "../core/config/" /I "../core/engine/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/textures/" /I "scenes/" /D "RT_WIN32" /D "RT_X86" /D RT_128=1+2+4 /D RT_256=1+2 /D RT_POINTER=32 /D RT_ADDRESS=32 /D RT_ELEMENT=32 /D RT_ENDIAN=0 /D RT_DEBUG=1 /D RT_PATH="../" /D RT_EMBED_STDOUT=0 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /Zm500 /c
+# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "../core/config/" /I "../core/engine/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/textures/" /I "scenes/" /D "RT_WIN32" /D "RT_X86" /D RT_128=1+2+4+8 /D RT_256=1+2 /D RT_512=1+2 /D RT_POINTER=32 /D RT_ADDRESS=32 /D RT_ELEMENT=32 /D RT_ENDIAN=0 /D RT_DEBUG=1 /D RT_PATH="../" /D RT_EMBED_STDOUT=0 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /Zm500 /c
 # ADD BASE RSC /l 0x419 /d "_DEBUG"
 # ADD RSC /l 0x419 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -114,11 +114,19 @@ SOURCE=..\core\config\rtarch_x86_256.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\core\config\rtarch_x86_512.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\core\config\rtbase.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\core\config\rtconf.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\core\config\rtzero.h
 # End Source File
 # End Group
 # Begin Group "engine"
@@ -194,11 +202,23 @@ SOURCE=..\core\tracer\tracer_128v4.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\core\tracer\tracer_128v8.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\core\tracer\tracer_256v1.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=..\core\tracer\tracer_256v2.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\core\tracer\tracer_512v1.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\core\tracer\tracer_512v2.cpp
 # End Source File
 # Begin Source File
 
