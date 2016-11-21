@@ -28,6 +28,9 @@ v0.6.6: Backend improvements, 256-bit SIMD on RISCs, basic AVX-512 support
   - rename instruction parameters to better reflect their use as source/dest
   - add formulas for all BASE and SIMD instructions for better clarity
   - reserve the whole alphabet for future BASE and SIMD instruction subsets
+  - add new SIMD compatibility flags for 128-bit AVX1/2, FMA/FMS/FMR, XMM regs
+  - adjust two conditional jumps in tracer to accommodate 512-bit Power VSX
+  - fix label_ld/label_st range on ARMv7/AArch64 to be on par with other targets
   - fix discrepancy in VMX/VSX vector-loads on Power (from here backported down)
   - fix AVX-version of mmvpx_ld from zeroing to merging on x86
 
