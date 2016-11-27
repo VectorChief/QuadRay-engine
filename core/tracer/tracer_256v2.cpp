@@ -53,16 +53,16 @@ exclude this file from compilation"
 #error "mipsMSA doesn't have SIMD variant 2 for 256-bit, \
 exclude this file from compilation"
 #elif defined (RT_P32) || defined (RT_P64)
-#undef RT_RTARCH_P32_256_H
-#undef RT_RTARCH_P64_256_H
-#include "rtarch_p64_256.h"
+#undef RT_RTARCH_P32_256V2_H
+#undef RT_RTARCH_P64_256V2_H
+#include "rtarch_p64_256v2.h"
 #elif defined (RT_X32) || defined (RT_X64)
-#undef RT_RTARCH_X32_256_H
-#undef RT_RTARCH_X64_256_H
-#include "rtarch_x64_256.h"
+#undef RT_RTARCH_X32_256V2_H
+#undef RT_RTARCH_X64_256V2_H
+#include "rtarch_x64_256v2.h"
 #elif defined (RT_X86)
-#undef RT_RTARCH_X86_256_H
-#include "rtarch_x86_256.h"
+#undef RT_RTARCH_X86_256V2_H
+#include "rtarch_x86_256v2.h"
 #endif /* RT_ARM, RT_A32/A64, RT_M32/M64, RT_P32/P64, RT_X32/X64, RT_X86 */
 
 #elif RT_ELEMENT == 64
@@ -77,13 +77,13 @@ exclude this file from compilation"
 #error "mipsMSA doesn't have SIMD variant 2 for 256-bit, \
 exclude this file from compilation"
 #elif defined (RT_P32) || defined (RT_P64)
-#undef RT_RTARCH_P32_256_H
-#undef RT_RTARCH_P64_256_H
-#include "rtarch_p64_256.h"
+#undef RT_RTARCH_P32_256V2_H
+#undef RT_RTARCH_P64_256V2_H
+#include "rtarch_p64_256v2.h"
 #elif defined (RT_X32) || defined (RT_X64)
-#undef RT_RTARCH_X32_256_H
-#undef RT_RTARCH_X64_256_H
-#include "rtarch_x64_256.h"
+#undef RT_RTARCH_X32_256V2_H
+#undef RT_RTARCH_X64_256V2_H
+#include "rtarch_x64_256v2.h"
 #elif defined (RT_X86)
 #error "UniSIMD doesn't support 64-bit SIMD elements in 32-bit mode, \
 adjust RT_ELEMENT build flag to be equal to 32"

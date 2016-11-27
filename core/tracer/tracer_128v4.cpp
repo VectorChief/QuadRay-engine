@@ -34,8 +34,8 @@
 #if   RT_ELEMENT == 32
 
 #if   defined (RT_ARM)
-#undef RT_RTARCH_ARM_128_H
-#include "rtarch_arm_128.h"
+#undef RT_RTARCH_ARM_128V4_H
+#include "rtarch_arm_128v4.h"
 #elif defined (RT_A32) || defined (RT_A64)
 #error "AArch64 doesn't have SIMD variant 4, \
 exclude this file from compilation"
@@ -43,16 +43,16 @@ exclude this file from compilation"
 #error "mipsMSA doesn't have SIMD variant 4, \
 exclude this file from compilation"
 #elif defined (RT_P32) || defined (RT_P64)
-#undef RT_RTARCH_P32_128_H
-#undef RT_RTARCH_P64_128_H
-#include "rtarch_p64_128.h"
+#undef RT_RTARCH_P32_128V4_H
+#undef RT_RTARCH_P64_128V4_H
+#include "rtarch_p64_128v4.h"
 #elif defined (RT_X32) || defined (RT_X64)
-#undef RT_RTARCH_X32_128_H
-#undef RT_RTARCH_X64_128_H
-#include "rtarch_x64_128.h"
+#undef RT_RTARCH_X32_128V4_H
+#undef RT_RTARCH_X64_128V4_H
+#include "rtarch_x64_128v4.h"
 #elif defined (RT_X86)
-#undef RT_RTARCH_X86_128_H
-#include "rtarch_x86_128.h"
+#undef RT_RTARCH_X86_128V4_H
+#include "rtarch_x86_128v4.h"
 #endif /* RT_ARM, RT_A32/A64, RT_M32/M64, RT_P32/P64, RT_X32/X64, RT_X86 */
 
 #elif RT_ELEMENT == 64
@@ -67,13 +67,13 @@ exclude this file from compilation"
 #error "mipsMSA doesn't have SIMD variant 4, \
 exclude this file from compilation"
 #elif defined (RT_P32) || defined (RT_P64)
-#undef RT_RTARCH_P32_128_H
-#undef RT_RTARCH_P64_128_H
-#include "rtarch_p64_128.h"
+#undef RT_RTARCH_P32_128V4_H
+#undef RT_RTARCH_P64_128V4_H
+#include "rtarch_p64_128v4.h"
 #elif defined (RT_X32) || defined (RT_X64)
-#undef RT_RTARCH_X32_128_H
-#undef RT_RTARCH_X64_128_H
-#include "rtarch_x64_128.h"
+#undef RT_RTARCH_X32_128V4_H
+#undef RT_RTARCH_X64_128V4_H
+#include "rtarch_x64_128v4.h"
 #elif defined (RT_X86)
 #error "UniSIMD doesn't support 64-bit SIMD elements in 32-bit mode, \
 adjust RT_ELEMENT build flag to be equal to 32"
