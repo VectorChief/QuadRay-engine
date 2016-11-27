@@ -56,12 +56,12 @@ exclude this file from compilation"
 #error "AltiVec doesn't have SIMD variant 8, \
 exclude this file from compilation"
 #elif defined (RT_X32) || defined (RT_X64)
-#undef RT_RTARCH_X32_128V4_H
-#undef RT_RTARCH_X64_128V4_H
-#include "rtarch_x64_128v4.h"
+#undef RT_RTARCH_X32_128V8_H
+#undef RT_RTARCH_X64_128V8_H
+#include "rtarch_x64_128v8.h"
 #elif defined (RT_X86)
-#undef RT_RTARCH_X86_128V4_H
-#include "rtarch_x86_128v4.h"
+#undef RT_RTARCH_X86_128V8_H
+#include "rtarch_x86_128v8.h"
 #endif /* RT_ARM, RT_A32/A64, RT_M32/M64, RT_P32/P64, RT_X32/X64, RT_X86 */
 
 #elif RT_ELEMENT == 64
@@ -79,9 +79,9 @@ exclude this file from compilation"
 #error "AltiVec doesn't have SIMD variant 8, \
 exclude this file from compilation"
 #elif defined (RT_X32) || defined (RT_X64)
-#undef RT_RTARCH_X32_128V4_H
-#undef RT_RTARCH_X64_128V4_H
-#include "rtarch_x64_128v4.h"
+#undef RT_RTARCH_X32_128V8_H
+#undef RT_RTARCH_X64_128V8_H
+#include "rtarch_x64_128v8.h"
 #elif defined (RT_X86)
 #error "UniSIMD doesn't support 64-bit SIMD elements in 32-bit mode, \
 adjust RT_ELEMENT build flag to be equal to 32"

@@ -106,15 +106,19 @@ SOURCE=..\core\config\rtarch_x86.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\core\config\rtarch_x86_128.h
+SOURCE=..\core\config\rtarch_x86_128v4.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\core\config\rtarch_x86_256.h
+SOURCE=..\core\config\rtarch_x86_128v8.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\core\config\rtarch_x86_512.h
+SOURCE=..\core\config\rtarch_x86_256v2.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\core\config\rtarch_x86_512v2.h
 # End Source File
 # Begin Source File
 

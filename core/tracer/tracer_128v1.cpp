@@ -40,8 +40,8 @@
 #undef RT_RTARCH_M64_128V1_H
 #include "rtarch_m64_128v1.h"
 #elif defined (RT_P32) || defined (RT_P64)
-#undef RT_RTARCH_P32_128V4_H
-#include "rtarch_p32_128v4.h"
+#undef RT_RTARCH_P32_128V1_H
+#include "rtarch_p32_128v1.h"
 #elif defined (RT_X32) || defined (RT_X64)
 #undef RT_RTARCH_X32_128V4_H
 #include "rtarch_x32_128v4.h"
