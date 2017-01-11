@@ -1,5 +1,5 @@
 /******************************************************************************/
-/* Copyright (c) 2013-2016 VectorChief (at github, bitbucket, sourceforge)    */
+/* Copyright (c) 2013-2017 VectorChief (at github, bitbucket, sourceforge)    */
 /* Distributed under the MIT software license, see the accompanying           */
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
@@ -15,7 +15,7 @@
 #define RT_X_RES        800
 #define RT_Y_RES        480
 
-rt_astr     title       = "QuadRay engine demo, (C) 2013-2016 VectorChief";
+rt_astr     title       = "QuadRay engine demo, (C) 2013-2017 VectorChief";
 
 rt_si32     x_res       = RT_X_RES;
 rt_si32     y_res       = RT_Y_RES;
