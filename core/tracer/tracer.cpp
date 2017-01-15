@@ -4387,6 +4387,13 @@ rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 mode)
     }
     s_type[16] |= ((s_mask >> 8) & 0x0100) | 16;
 #endif /* RT_512 & 1 */
+#if defined (RT_256) && (RT_256 & 8)
+    if (s_mode == 0)
+    {
+        s_mode = (s_mask & 0x000800) != 0 ? 0x0808 : 0x0000;
+    }
+    s_type[8] |= ((s_mask << 0) & 0x0800) | 8;
+#endif /* RT_256 & 8 */
 #if defined (RT_256) && (RT_256 & 2)
     if (s_mode == 0)
     {
@@ -4448,11 +4455,16 @@ rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 mode)
 
     if (k != 0 && k <= R && (s_type[k] >> 8) != 0 && j == 0)
     {
-        i = 8;
+        i = 4;
 
         while (i > 0 && (s_type[k] & (i << 8)) == 0)
         {
             i = i >> 1;
+        }
+
+        if (i == 0 && (s_type[k] & (8 << 8)) != 0)
+        {
+            i = 8;
         }
 
         mode |= (i << 8);
@@ -4520,6 +4532,11 @@ namespace simd_256v2
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
+namespace simd_256v8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
 namespace simd_512v1
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
@@ -4549,6 +4566,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         simd_512v1::render0(s_inf);
         break;
 #endif /* RT_512 & 1 */
+#if defined (RT_256) && (RT_256 & 8)
+        case 0x0808:
+        simd_256v8::render0(s_inf);
+        break;
+#endif /* RT_256 & 8 */
 #if defined (RT_256) && (RT_256 & 2)
         case 0x0208:
         simd_256v2::render0(s_inf);

@@ -21,6 +21,7 @@ SRC_LIST =                              \
         ../core/tracer/tracer_128v8.cpp \
         ../core/tracer/tracer_256v1.cpp \
         ../core/tracer/tracer_256v2.cpp \
+        ../core/tracer/tracer_256v8.cpp \
         ../core/tracer/tracer_512v1.cpp \
         ../core/tracer/tracer_512v2.cpp \
         core_test.cpp
@@ -43,7 +44,7 @@ clean:
 
 core_test_x64_32:
 	x86_64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_X64 -DRT_128=2+4+8 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_LINUX -DRT_X64 -DRT_128=2+4+8 -DRT_256=1+2+8 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -51,7 +52,7 @@ core_test_x64_32:
 
 core_test_x64_64:
 	x86_64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_X64 -DRT_128=2+4+8 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_LINUX -DRT_X64 -DRT_128=2+4+8 -DRT_256=1+2+8 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -59,7 +60,7 @@ core_test_x64_64:
 
 core_test_x64f32:
 	x86_64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_X64 -DRT_128=2+4+8 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_LINUX -DRT_X64 -DRT_128=2+4+8 -DRT_256=1+2+8 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -67,7 +68,7 @@ core_test_x64f32:
 
 core_test_x64f64:
 	x86_64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_X64 -DRT_128=2+4+8 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_LINUX -DRT_X64 -DRT_128=2+4+8 -DRT_256=1+2+8 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
