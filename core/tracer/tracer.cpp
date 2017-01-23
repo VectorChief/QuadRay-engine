@@ -4373,6 +4373,13 @@ rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 mode)
 
     s_mask = s_inf->ver;
 
+#if defined (RT_512) && (RT_512 & 8)
+    if (s_mode == 0)
+    {
+        s_mode = (s_mask & 0x080000) != 0 ? 0x0810 : 0x0000;
+    }
+    s_type[16] |= ((s_mask >> 8) & 0x0800) | 16;
+#endif /* RT_512 & 8 */
 #if defined (RT_512) && (RT_512 & 2)
     if (s_mode == 0)
     {
@@ -4547,6 +4554,11 @@ namespace simd_512v2
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
+namespace simd_512v8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
 /*
  * Backend's global entry point (hence 0).
  * Render frame based on the data structures
@@ -4556,6 +4568,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 {
     switch (s_mode)
     {
+#if defined (RT_512) && (RT_512 & 8)
+        case 0x0810:
+        simd_512v8::render0(s_inf);
+        break;
+#endif /* RT_512 & 8 */
 #if defined (RT_512) && (RT_512 & 2)
         case 0x0210:
         simd_512v2::render0(s_inf);
