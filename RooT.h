@@ -31,10 +31,11 @@ rt_SCENE   *sc_rt[]     =
 {
     &scn_demo01::sc_root,
     &scn_demo02::sc_root,
+    &scn_demo03::sc_root,
 };
 
 rt_Scene   *sc[RT_ARR_SIZE(sc_rt)]  = {0};  /* scenes array */
-rt_si32     d                       = 1;    /* demo index */
+rt_si32     d                       = 2;    /* demo index */
 
 /******************************************************************************/
 /********************************   PLATFORM   ********************************/

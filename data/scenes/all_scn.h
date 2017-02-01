@@ -38,6 +38,7 @@
 
 #include "scn_demo01.h"
 #include "scn_demo02.h"
+#include "scn_demo03.h"
 
 #endif /* RT_ALL_SCN_H */
 
