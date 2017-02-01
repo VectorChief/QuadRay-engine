@@ -425,6 +425,30 @@ rt_OBJECT ob_hyperframe01[] =
 /*********************************   CAMERA   *********************************/
 /******************************************************************************/
 
+rt_OBJECT ob_camera03[] =
+{
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {  -95.0,        0.0,      -90.0    },
+/* pos */   {   +4.0,        5.0,        0.0    },
+        },
+        RT_OBJ_CAMERA(&cm_camera01)
+    },
+};
+
+rt_OBJECT ob_camera02[] =
+{
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {  -95.0,        0.0,      +90.0    },
+/* pos */   {   -4.0,        5.0,        0.0    },
+        },
+        RT_OBJ_CAMERA(&cm_camera01)
+    },
+};
+
 rt_OBJECT ob_camera01[] =
 {
     {
@@ -436,6 +460,14 @@ rt_OBJECT ob_camera01[] =
         RT_OBJ_CAMERA(&cm_camera01)
     },
 };
+
+rt_void an_camera01(rt_time time, rt_time last_time,
+                    rt_TRANSFORM3D *trm, rt_pntr pobj)
+{
+    rt_real t = time / 1500.0f;
+
+    trm->rot[RT_Z] = 15 * sin(t);
+}
 
 /******************************************************************************/
 /*********************************   LIGHTS   *********************************/
@@ -521,7 +553,24 @@ rt_OBJECT ob_tree[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {    0.0,        0.0,        5.0    },
         },
-        RT_OBJ_ARRAY(&ob_camera01)
+        RT_OBJ_ARRAY(&ob_camera03)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {    0.0,        0.0,        5.0    },
+        },
+        RT_OBJ_ARRAY(&ob_camera02)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {    0.0,        0.0,        5.0    },
+        },
+        RT_OBJ_ARRAY(&ob_camera01),
+        &an_camera01
     },
 };
 
