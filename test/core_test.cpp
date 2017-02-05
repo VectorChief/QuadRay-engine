@@ -739,7 +739,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         {
             RT_LOGE("Exception: %s\n", e.err);
         }
-        RT_LOGI("----------------------------------- simd = %dv%d ---\n",
+        RT_LOGI("---------------------------------- simd = %4dv%d ---\n",
                                                 (simd & 0xFF) * 32, simd >> 8);
     }
 

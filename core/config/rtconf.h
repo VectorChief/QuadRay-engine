@@ -51,8 +51,8 @@
 #define RT_EDGES_LIMIT          12 /* maximum number of edges for bbox */
 #define RT_FACES_LIMIT          6  /* maximum number of faces for bbox */
 
-#define RT_TILE_W               16  /* screen tile width  in pixels (%S == 0) */
-#define RT_TILE_H               16  /* screen tile height in pixels */
+#define RT_TILE_W               8  /* screen tile width  in pixels (%S == 0) */
+#define RT_TILE_H               8  /* screen tile height in pixels */
 
 /*
  * Floating point thresholds,
