@@ -12,8 +12,8 @@
 #include "engine.h"
 #include "data/scenes/all_scn.h"
 
-#define RT_X_RES        1600
-#define RT_Y_RES        960
+#define RT_X_RES        800
+#define RT_Y_RES        480
 
 rt_astr     title       = "QuadRay engine demo, (C) 2013-2017 VectorChief";
 
