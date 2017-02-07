@@ -12,8 +12,8 @@
 #include "engine.h"
 #include "data/scenes/all_scn.h"
 
-#define RT_X_RES        800
-#define RT_Y_RES        480
+#define RT_X_RES        1600
+#define RT_Y_RES        960
 
 rt_astr     title       = "QuadRay engine demo, (C) 2013-2017 VectorChief";
 
@@ -215,7 +215,7 @@ rt_si32 main_step()
             rt_si32 snew;
             do
             {
-                simd = simd % 32 + simd % 28; /* 4, 8, 16, 32 */
+                simd = simd % 64 + simd % 60; /* 4, 8, 16, 32, 64 */
                 snew = sc[d]->set_simd(simd | type << 8) & 0xFF;
                 if (simd != snew)
                 {
