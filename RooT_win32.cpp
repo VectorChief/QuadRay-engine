@@ -483,10 +483,27 @@ rt_void render_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
 /*
  * Set current frame to screen.
  */
-rt_void frame_to_screen(rt_ui32 *frame)
+rt_void frame_to_screen(rt_ui32 *frame, rt_si32 x_row)
 {
+    if (frame == RT_NULL)
+    {
+        return;
+    }
+
+    if (frame != ::frame)
+    {
+        rt_si32 i;
+
+        for (i = 0; i < y_res; i++)
+        {
+            rt_ui32 *idata = ::frame + i * x_res;
+
+            memcpy(idata, frame + i * x_row, x_res * sizeof(rt_ui32));
+        }
+    }
+
     SetDIBitsToDevice(hWndDC, 0, 0, x_res, y_res, 0, 0, 0, y_res,
-                                    frame, &DIBinfo, DIB_RGB_COLORS);
+                                  ::frame, &DIBinfo, DIB_RGB_COLORS);
 }
 
 /*

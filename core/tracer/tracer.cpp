@@ -5078,7 +5078,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movxx_ld(Reax, Mebp, inf_FRM_X)
         cmjxx_rm(Reax, Mebp, inf_FRM_W,
-                 EQ_x, YY_end)
+                 GE_x, YY_end)
 
         movxx_ld(Redx, Mebp, inf_CAM)
 

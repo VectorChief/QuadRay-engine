@@ -2428,33 +2428,36 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
      * or negative, in which case frame starts at the last line
      * and consecutive lines are located backwards in memory,
      * "x_row" must contain the whole number of SIMD widths */
-    if (x_res == 0 || RT_ABS32(x_row) < x_res
-    ||  y_res == 0 || RT_ABS32(x_row) & (RT_SIMD_WIDTH - 1))
+    if (x_res == 0 || y_res == 0 || RT_ABS32(x_row) < x_res)
     {
         throw rt_Exception("frambuffer's dimensions are not valid");
     }
 
-    /* init framebuffer's dimensions and pointer */
-    this->x_res = x_res;
-    this->y_res = y_res;
-    this->x_row = x_row;
-
-    if (frame == RT_NULL)
+    if (((rt_word)frame & (RT_SIMD_ALIGN - 1)) != 0 || frame == RT_NULL
+    || (RT_ABS32(x_row) & (RT_SIMD_WIDTH - 1)) != 0)
     {
+        rt_si32 y_sgn = RT_SIGN(x_row);
+
+        x_row = RT_ABS32(x_row);
+        x_row = ((x_row + RT_SIMD_WIDTH - 1) / RT_SIMD_WIDTH) * RT_SIMD_WIDTH;
+
+        RT_LOGI("row = %d\n", x_row);
+
         frame = (rt_ui32 *)
-                alloc(RT_ABS32(x_row) * y_res * sizeof(rt_ui32), RT_SIMD_ALIGN);
+                alloc(x_row * y_res * sizeof(rt_ui32), RT_SIMD_ALIGN);
+
+        x_row *= y_sgn;
 
         if (x_row < 0)
         {
             frame += RT_ABS32(x_row) * (y_res - 1);
         }
     }
-    else
-    if (((rt_word)frame & (RT_SIMD_ALIGN - 1)) != 0)
-    {
-        throw rt_Exception("frame pointer is not simd-aligned in scene");
-    }
 
+    /* init framebuffer's dimensions and pointer */
+    this->x_res = x_res;
+    this->y_res = y_res;
+    this->x_row = x_row;
     this->frame = frame;
 
     /* init tilebuffer's dimensions and pointer */
@@ -3110,6 +3113,14 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
 rt_ui32* rt_Scene::get_frame()
 {
     return frame;
+}
+
+/*
+ * Return framebuffer's stride in 32-bit pixels.
+ */
+rt_si32 rt_Scene::get_x_row()
+{
+    return x_row;
 }
 
 /*

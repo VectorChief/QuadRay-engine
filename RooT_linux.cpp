@@ -535,26 +535,43 @@ rt_void render_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
 /*
  * Set current frame to screen.
  */
-rt_void frame_to_screen(rt_ui32 *frame)
+rt_void frame_to_screen(rt_ui32 *frame, rt_si32 x_row)
 {
-    if (depth == 16 && frame != RT_NULL)
+    if (frame == RT_NULL)
     {
-        rt_ui16 *idata = (rt_ui16 *)ximage->data;
-        rt_si32 i = x_res * y_res;
-
-        while (i-->0)
-        {
-            idata[i] = (frame[i] & 0x00F80000) >> 8 |
-                       (frame[i] & 0x0000FC00) >> 5 |
-                       (frame[i] & 0x000000F8) >> 3;
-        }
+        return;
     }
 
-#if (RT_POINTER - RT_ADDRESS) != 0
+    if (depth == 16)
+    {
+        rt_si32 i, j;
 
-    memcpy(ximage->data, frame, x_res * y_res * sizeof(rt_ui32));
+        for (i = 0; i < y_res; i++)
+        {
+            rt_ui16 *idata = (rt_ui16 *)ximage->data +
+                             i * (ximage->bytes_per_line / 2);
 
-#endif /* (RT_POINTER - RT_ADDRESS) */
+            for (j = 0; j < x_res; j++)
+            {
+                idata[j] = (frame[i * x_row + j] & 0x00F80000) >> 8 |
+                           (frame[i * x_row + j] & 0x0000FC00) >> 5 |
+                           (frame[i * x_row + j] & 0x000000F8) >> 3;
+            }
+        }
+    }
+    else
+    if (frame != ::frame)
+    {
+        rt_si32 i;
+
+        for (i = 0; i < y_res; i++)
+        {
+            rt_ui32 *idata = (rt_ui32 *)ximage->data +
+                             i * (ximage->bytes_per_line / 4);
+
+            memcpy(idata, frame + i * x_row, x_res * sizeof(rt_ui32));
+        }
+    }
 
     XShmPutImage(disp, win, gc, ximage, 0, 0, 0, 0, x_res, y_res, False);
     XSync(disp, False);

@@ -230,6 +230,7 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
                            rt_si32 d, rt_si32 z, rt_ui32 num);
 
     rt_ui32*    get_frame();
+    rt_si32     get_x_row();
     rt_void     print_state();
 
     rt_si32     set_fsaa(rt_si32 fsaa);

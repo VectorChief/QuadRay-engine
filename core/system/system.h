@@ -192,8 +192,8 @@ typedef rt_void (*rt_FUNC_PRINT_ERR)(rt_pstr format, ...);
 extern rt_FUNC_PRINT_LOG    f_print_log;
 extern rt_FUNC_PRINT_ERR    f_print_err;
 
-#define RT_LOGI             f_print_log
-#define RT_LOGE             f_print_err
+#define RT_LOGI           ::f_print_log
+#define RT_LOGE           ::f_print_err
 
 /*
  * LogRedirect is an interface for scene manager

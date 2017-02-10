@@ -83,7 +83,7 @@ rt_void render_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase);
 /*
  * Set current frame to screen.
  */
-rt_void frame_to_screen(rt_ui32 *frame);
+rt_void frame_to_screen(rt_ui32 *frame, rt_si32 x_row);
 
 /******************************************************************************/
 /*******************************   EVENT-LOOP   *******************************/
@@ -283,7 +283,7 @@ rt_si32 main_step()
         return 0;
     }
 
-    frame_to_screen(sc[d]->get_frame());
+    frame_to_screen(sc[d]->get_frame(), sc[d]->get_x_row());
 
     return 1;
 }
