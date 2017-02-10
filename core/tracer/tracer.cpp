@@ -2101,6 +2101,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(YY_cyc)
 
         movxx_ld(Reax, Mebp, inf_FRM_Y)
+        cmjxx_rm(Reax, Mebp, inf_FRM_H,
+                 GE_x, fetch_end)
+
         mulxx_ld(Reax, Mebp, inf_FRM_ROW)
         shlxx_ri(Reax, IB(2))
         addxx_ld(Reax, Mebp, inf_FRAME)
@@ -5135,10 +5138,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addxx_mi(Mebp, inf_FRM_Y, IB(1))
 
 #endif /* RT_FEAT_MULTITHREADING */
-
-        movxx_ld(Reax, Mebp, inf_FRM_Y)
-        cmjxx_rm(Reax, Mebp, inf_FRM_H,
-                 GE_x, fetch_end)
 
         jmpxx_lb(YY_cyc)
 
