@@ -171,13 +171,6 @@ rt_si32 main()
         x_row = ximage->bytes_per_line / 4;
     }
 
-#if (RT_POINTER - RT_ADDRESS) != 0
-
-    frame = RT_NULL;
-    x_row = RT_X_RES;
-
-#endif /* (RT_POINTER - RT_ADDRESS) */
-
     /* init sys_alloc's mutex */
     pthread_mutex_init(&mutex, NULL);
 

@@ -2433,6 +2433,14 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
         throw rt_Exception("frambuffer's dimensions are not valid");
     }
 
+#if (RT_POINTER - RT_ADDRESS) != 0
+
+    /* always reallocate frame in custom heap for 64-bit
+     * if 32-bit address range is enabled in makefiles */
+    frame = RT_NULL;
+
+#endif /* (RT_POINTER - RT_ADDRESS) */
+
     if (((rt_word)frame & (RT_SIMD_ALIGN - 1)) != 0 || frame == RT_NULL
     || (RT_ABS32(x_row) & (RT_SIMD_WIDTH - 1)) != 0)
     {
@@ -3242,7 +3250,7 @@ rt_Scene::~rt_Scene()
 }
 
 /******************************************************************************/
-/******************************   FPS RENDERING   *****************************/
+/******************************   NUM RENDERING   *****************************/
 /******************************************************************************/
 
 #define II  0xFF000000
@@ -3386,7 +3394,10 @@ rt_void rt_Scene::render_num(rt_si32 x, rt_si32 y,
                 {
                     for (xz = 0; xz < z; xz++)
                     {
-                       *dst++ = *src;
+                        if (dst >= frame && dst < frame + y_res * x_row)
+                        {
+                           *dst++ = *src;
+                        }
                     }
                     src++;
                 }
