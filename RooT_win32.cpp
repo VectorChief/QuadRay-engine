@@ -400,7 +400,7 @@ rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
         while (((pam & (1 << a)) == 0))
         {
             a++;
-            if (a == 32) a = 0;
+            if (a == 64) a = 0;
         }
         SetThreadAffinityMask(thread[i].pthr, 1 << a);
     }
