@@ -19,7 +19,7 @@ rt_astr     title       = "QuadRay engine demo, (C) 2013-2017 VectorChief";
 
 rt_si32     x_res       = RT_X_RES;
 rt_si32     y_res       = RT_Y_RES;
-rt_si32     x_row       = RT_X_RES;
+rt_si32     x_row       = (RT_X_RES+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
 rt_ui32    *frame       = RT_NULL;
 
 rt_si32     fsaa        = RT_FSAA_NO; /* no AA */

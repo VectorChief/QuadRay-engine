@@ -125,7 +125,7 @@ rt_si32 main()
                              DefaultVisual(disp, screen),
                              depth,
                              ZPixmap,  NULL, &shminfo,
-                             x_res, y_res);
+                             x_row, y_res);
     if (ximage == NULL)
     {
         RT_LOGE("Cannot create XShm image\n");

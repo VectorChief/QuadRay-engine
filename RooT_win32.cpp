@@ -21,12 +21,12 @@ static HDC         hFrmDC;
 static BITMAPINFO  DIBinfo = 
 {
     sizeof(BITMAPINFOHEADER),           /* biSize */
-   +x_res,                              /* biWidth */
+   +x_row,                              /* biWidth */
    -y_res,                              /* biHeight */
     1,                                  /* biPlanes */
     32,                                 /* biBitCount */
     BI_RGB,                             /* biCompression */
-    x_res * y_res * sizeof(rt_ui32),    /* biSizeImage */
+    x_row * y_res * sizeof(rt_ui32),    /* biSizeImage */
     0,                                  /* biXPelsPerMeter */
     0,                                  /* biYPelsPerMeter */
     0,                                  /* biClrUsed */
