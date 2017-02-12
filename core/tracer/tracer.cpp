@@ -2102,7 +2102,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movxx_ld(Reax, Mebp, inf_FRM_Y)
         cmjxx_rm(Reax, Mebp, inf_FRM_H,
-                 GE_x, fetch_end)
+                 LT_x, YY_ini)
+
+        jmpxx_lb(fetch_end)
+
+    LBL(YY_ini)
 
         mulxx_ld(Reax, Mebp, inf_FRM_ROW)
         shlxx_ri(Reax, IB(2))
