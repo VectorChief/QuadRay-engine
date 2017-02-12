@@ -2449,8 +2449,6 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
         x_row = RT_ABS32(x_row);
         x_row = ((x_row + RT_SIMD_WIDTH - 1) / RT_SIMD_WIDTH) * RT_SIMD_WIDTH;
 
-        RT_LOGI("row = %d\n", x_row);
-
         frame = (rt_ui32 *)
                 alloc(x_row * y_res * sizeof(rt_ui32), RT_SIMD_ALIGN);
 
