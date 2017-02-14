@@ -46,8 +46,8 @@ static rt_si32 s_type = 0;
 
 static rt_si32 x_res = RT_X_RES;
 static rt_si32 y_res = RT_Y_RES;
-static rt_si32 x_row = RT_X_RES;
-static rt_ui32 frame[RT_X_RES * RT_Y_RES];
+static rt_si32 x_row = (RT_X_RES+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
+static rt_ui32 frame[((RT_X_RES+RT_SIMD_WIDTH-1)&~(RT_SIMD_WIDTH-1))*RT_Y_RES];
 
 static rt_si32 fsaa = RT_FSAA_4X;
 static rt_Scene *scene = RT_NULL;
