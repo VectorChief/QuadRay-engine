@@ -3210,7 +3210,7 @@ rt_void rt_Scene::save_frame(rt_si32 index)
     /* prepare frame's image */
     rt_TEX tex;
     tex.ptex = get_frame();
-    tex.x_dim = +x_res;
+    tex.x_dim = +x_row;
     tex.y_dim = -y_res;
 
     /* save frame's image */
