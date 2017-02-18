@@ -551,7 +551,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI("---------------------------------------------------------\n");
         RT_LOGI("Usage options are given below:\n");
         RT_LOGI(" -t tex1 tex2 texn, convert images in data/textures/tex*\n");
-        RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..2\n");
+        RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
         RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
         RT_LOGI(" -d n, override diff threshold, where n is new diff 0..9\n");
         RT_LOGI(" -p, enable pixhunt mode, print isolated pixels (> diff)\n");
@@ -588,7 +588,8 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         if (strcmp(argv[k], "-q") == 0 && ++k < argc)
         {
             q_simd = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1 && q_simd >= 1 && q_simd <= 2)
+            if (strlen(argv[k]) == 1
+            && (q_simd == 1 || q_simd == 2 || q_simd == 4 || q_simd == 8))
             {
                 RT_LOGI("SIMD quad-factor overridden: %d\n", q_simd);
             }
@@ -601,7 +602,8 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         if (strcmp(argv[k], "-s") == 0 && ++k < argc)
         {
             s_type = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1 && s_type >= 1 && s_type <= 8)
+            if (strlen(argv[k]) == 1
+            && (s_type == 1 || s_type == 2 || s_type == 4 || s_type == 8))
             {
                 RT_LOGI("SIMD sub-variant overridden: %d\n", s_type);
             }
@@ -653,6 +655,18 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
     rt_si32 simd = (s_type << 8) | (q_simd << 2);
     rt_si32 i, j;
+
+    scene = RT_NULL;
+    o_test[0]();
+    simd = scene->set_simd(simd);
+    delete scene;
+
+    if ((s_type != 0 && s_type != ((simd >> 8) & 0x0F))
+    ||  (q_simd != 0 && q_simd != ((simd >> 2) & 0x0F)))
+    {
+        RT_LOGI("Chosen SIMD target is not supported, check -q/-s options\n");
+        return 0;
+    }
 
     for (i = 0; i < RUN_LEVEL; i++)
     {

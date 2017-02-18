@@ -26,7 +26,8 @@ SRC_LIST =                              \
         ../core/tracer/tracer_512v1.cpp \
         ../core/tracer/tracer_512v2.cpp \
         ../core/tracer/tracer_512v8.cpp \
-        ../core/tracer/tracer_1K4v8.cpp \
+        ../core/tracer/tracer_1K4v1.cpp \
+        ../core/tracer/tracer_1K4v2.cpp \
         ../core/tracer/tracer_2K8v8.cpp \
         core_test.cpp
 
@@ -49,7 +50,7 @@ clean:
 core_test_x32:
 	x86_64-linux-gnu-g++ -O3 -g -static -mx32 \
         -DRT_LINUX -DRT_X32 \
-        -DRT_128=1+2+4+8 -DRT_256=1+2+8 -DRT_512=1+2+8 -DRT_1K4=8 -DRT_2K8=0 \
+        -DRT_128=1+2+4+8 -DRT_256=1+2+8 -DRT_512=1+2+8 -DRT_1K4=1+2 -DRT_2K8=0 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \

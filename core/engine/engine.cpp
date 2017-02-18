@@ -3163,8 +3163,8 @@ rt_si32 rt_Scene::set_opts(rt_si32 opts)
 }
 
 /*
- * Set current runtime SIMD target with "simd"
- * equal to SIMD width (4, 8, 16) in 0th (lowest) byte
+ * Set current runtime SIMD target with "simd" equal to
+ * SIMD width (4, 8, 16, 32, 64) in 0th (lowest) byte
  * and SIMD type (1, 2, 4, 8) in 1st (higher) byte.
  */
 rt_si32 rt_Scene::set_simd(rt_si32 simd)
@@ -3210,7 +3210,7 @@ rt_void rt_Scene::save_frame(rt_si32 index)
     /* prepare frame's image */
     rt_TEX tex;
     tex.ptex = get_frame();
-    tex.x_dim = +x_row;
+    tex.x_dim = +x_row; /* <- temp fix for frame's stride */
     tex.y_dim = -y_res;
 
     /* save frame's image */

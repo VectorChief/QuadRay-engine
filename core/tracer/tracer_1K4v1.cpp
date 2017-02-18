@@ -8,9 +8,9 @@
 #define RT_SIMD 1024 /* map vector-length-agnostic SIMD subsets to 1024-bit */
 #define RT_SIMD_CODE /* enable SIMD instruction definitions */
 
-#if defined (RT_1K4) && (RT_1K4 & 8)
+#if defined (RT_1K4) && (RT_1K4 & 1)
 #undef  RT_1K4
-#define RT_1K4 8
+#define RT_1K4 1
 #define RT_RENDER_CODE /* enable contents of render0 routine */
 #endif /* RT_1K4 */
 
@@ -43,7 +43,7 @@ rt_pntr t_clp[3];
 extern
 rt_pntr t_pow[6];
 
-namespace simd_1K4v8
+namespace simd_1K4v1
 {
 #include "tracer.cpp"
 }
