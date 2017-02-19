@@ -17,7 +17,7 @@ SRC_LIST =                              \
         core/system/system.cpp          \
         core/tracer/tracer.cpp          \
         core/tracer/tracer_128v1.cpp    \
-        core/tracer/tracer_128v2.cpp    \
+        core/tracer/tracer_256v8.cpp    \
         RooT_linux.cpp
 
 LIB_PATH =
@@ -41,7 +41,7 @@ clean:
 
 RooT_p32:
 	powerpc-linux-gnu-g++ -O3 -g \
-        -DRT_LINUX -DRT_P32 -DRT_128=1 \
+        -DRT_LINUX -DRT_P32 -DRT_128=1 -DRT_256=8 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -60,5 +60,3 @@ RooT_p32:
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top hardcoded value is chosen by default, use appropriate binary
-
-# For 128-bit VSX1 POWER(7,7+,8) target use (replace): -DRT_128=2
