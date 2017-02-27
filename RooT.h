@@ -311,7 +311,7 @@ rt_si32 main_init(rt_si32 argc, rt_char *argv[])
 
     for (k = 1; k < argc; k++)
     {
-        if (strcmp(argv[k], "-d") == 0 && ++k < argc)
+        if (k < argc && strcmp(argv[k], "-d") == 0 && ++k < argc)
         {
             d = argv[k][0] - '0';
             if (strlen(argv[k]) == 1 && d >= 0 && d <= 9)
@@ -324,7 +324,7 @@ rt_si32 main_init(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (strcmp(argv[k], "-c") == 0 && ++k < argc)
+        if (k < argc && strcmp(argv[k], "-c") == 0 && ++k < argc)
         {
             c = argv[k][0] - '0';
             if (strlen(argv[k]) == 1 && c >= 0 && c <= 9)
@@ -337,7 +337,7 @@ rt_si32 main_init(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (strcmp(argv[k], "-q") == 0 && ++k < argc)
+        if (k < argc && strcmp(argv[k], "-q") == 0 && ++k < argc)
         {
             simd = argv[k][0] - '0';
             if (strlen(argv[k]) == 1
@@ -352,7 +352,7 @@ rt_si32 main_init(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (strcmp(argv[k], "-s") == 0 && ++k < argc)
+        if (k < argc && strcmp(argv[k], "-s") == 0 && ++k < argc)
         {
             type = argv[k][0] - '0';
             if (strlen(argv[k]) == 1
@@ -366,7 +366,7 @@ rt_si32 main_init(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (strcmp(argv[k], "-a") == 0 && !fsaa)
+        if (k < argc && strcmp(argv[k], "-a") == 0 && !fsaa)
         {
             fsaa = RT_FSAA_4X;
             RT_LOGI("Antialiasing enabled\n");

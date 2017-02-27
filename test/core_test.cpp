@@ -585,7 +585,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
     for (k = 1; k < argc; k++)
     {
-        if (strcmp(argv[k], "-q") == 0 && ++k < argc)
+        if (k < argc && strcmp(argv[k], "-q") == 0 && ++k < argc)
         {
             q_simd = argv[k][0] - '0';
             if (strlen(argv[k]) == 1
@@ -599,7 +599,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (strcmp(argv[k], "-s") == 0 && ++k < argc)
+        if (k < argc && strcmp(argv[k], "-s") == 0 && ++k < argc)
         {
             s_type = argv[k][0] - '0';
             if (strlen(argv[k]) == 1
@@ -613,7 +613,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (strcmp(argv[k], "-d") == 0 && ++k < argc)
+        if (k < argc && strcmp(argv[k], "-d") == 0 && ++k < argc)
         {
             t_diff = argv[k][0] - '0';
             if (strlen(argv[k]) == 1 && t_diff >= 0 && t_diff <= 9)
@@ -626,22 +626,22 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (strcmp(argv[k], "-p") == 0 && !p_mode)
+        if (k < argc && strcmp(argv[k], "-p") == 0 && !p_mode)
         {
             p_mode = RT_TRUE;
             RT_LOGI("Pixhunt mode enabled\n");
         }
-        if (strcmp(argv[k], "-v") == 0 && !v_mode)
+        if (k < argc && strcmp(argv[k], "-v") == 0 && !v_mode)
         {
             v_mode = RT_TRUE;
             RT_LOGI("Verbose mode enabled\n");
         }
-        if (strcmp(argv[k], "-i") == 0 && !i_mode)
+        if (k < argc && strcmp(argv[k], "-i") == 0 && !i_mode)
         {
             i_mode = RT_TRUE;
             RT_LOGI("Imaging mode enabled\n");
         }
-        if (strcmp(argv[k], "-a") == 0 && !a_mode)
+        if (k < argc && strcmp(argv[k], "-a") == 0 && !a_mode)
         {
             a_mode = RT_TRUE;
             RT_LOGI("Antialiasing enabled\n");
