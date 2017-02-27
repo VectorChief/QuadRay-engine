@@ -28,13 +28,14 @@ SRC_LIST =                              \
         core/tracer/tracer_1K4v1.cpp    \
         core/tracer/tracer_1K4v2.cpp    \
         core/tracer/tracer_2K8v8.cpp    \
-        RooT_win32.cpp
+        RooT_win64.cpp
 
 LIB_PATH =
 
 LIB_LIST =                              \
         -lm                             \
         -lstdc++                        \
+        -lpthread                       \
         -lgdi32
 
 
@@ -48,7 +49,7 @@ clean:
 
 
 RooT_w64_32:
-	g++ -O3 -g -static -m64 \
+	g++ -O3 -g -pthread -static -m64 \
         -DRT_WIN64 -DRT_X64 \
         -DRT_128=2+4+8 -DRT_256=1+2+8 -DRT_512=1+2+8 -DRT_1K4=1+2 -DRT_2K8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
@@ -57,7 +58,7 @@ RooT_w64_32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT_w64_32.exe
 
 RooT_w64_64:
-	g++ -O3 -g -static -m64 \
+	g++ -O3 -g -pthread -static -m64 \
         -DRT_WIN64 -DRT_X64 \
         -DRT_128=2+4+8 -DRT_256=1+2+8 -DRT_512=1+2+8 -DRT_1K4=1+2 -DRT_2K8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
@@ -66,7 +67,7 @@ RooT_w64_64:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT_w64_64.exe
 
 RooT_w64f32:
-	g++ -O3 -g -static -m64 \
+	g++ -O3 -g -pthread -static -m64 \
         -DRT_WIN64 -DRT_X64 \
         -DRT_128=2+4+8 -DRT_256=1+2+8 -DRT_512=1+2+8 -DRT_1K4=1+2 -DRT_2K8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
@@ -75,7 +76,7 @@ RooT_w64f32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT_w64f32.exe
 
 RooT_w64f64:
-	g++ -O3 -g -static -m64 \
+	g++ -O3 -g -pthread -static -m64 \
         -DRT_WIN64 -DRT_X64 \
         -DRT_128=2+4+8 -DRT_256=1+2+8 -DRT_512=1+2+8 -DRT_1K4=1+2 -DRT_2K8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
