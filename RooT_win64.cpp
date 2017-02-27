@@ -33,7 +33,6 @@ BITMAPINFO  DIBinfo =
     0                                   /* biClrImportant */
 };
 
-#define _GNU_SOURCE
 #include <pthread.h>
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;

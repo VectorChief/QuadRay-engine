@@ -29,7 +29,6 @@ XImage     *ximage      = NULL;
 GC          gc;
 XGCValues   gc_values   = {0};
 
-#define _GNU_SOURCE
 #include <pthread.h>
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
