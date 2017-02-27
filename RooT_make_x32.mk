@@ -51,7 +51,7 @@ clean:
 
 
 RooT_x32:
-	x86_64-linux-gnu-g++ -O3 -g -mx32 \
+	x86_64-linux-gnu-g++ -O3 -g -pthread -mx32 \
         -DRT_LINUX -DRT_X32 \
         -DRT_128=1+2+4+8 -DRT_256=1+2+8 -DRT_512=1+2+8 -DRT_1K4=1+2 -DRT_2K8=0 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \

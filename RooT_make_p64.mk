@@ -44,7 +44,7 @@ clean:
 
 
 RooT_p64_32:
-	powerpc64le-linux-gnu-g++ -O2 -g \
+	powerpc64le-linux-gnu-g++ -O2 -g -pthread \
         -DRT_LINUX -DRT_P64 -DRT_128=2+4 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
@@ -52,7 +52,7 @@ RooT_p64_32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_32
 
 RooT_p64_64:
-	powerpc64le-linux-gnu-g++ -O2 -g \
+	powerpc64le-linux-gnu-g++ -O2 -g -pthread \
         -DRT_LINUX -DRT_P64 -DRT_128=2+4 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
@@ -60,7 +60,7 @@ RooT_p64_64:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_64
 
 RooT_p64f32:
-	powerpc64le-linux-gnu-g++ -O2 -g \
+	powerpc64le-linux-gnu-g++ -O2 -g -pthread \
         -DRT_LINUX -DRT_P64 -DRT_128=2+4 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
@@ -68,7 +68,7 @@ RooT_p64f32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f32
 
 RooT_p64f64:
-	powerpc64le-linux-gnu-g++ -O2 -g \
+	powerpc64le-linux-gnu-g++ -O2 -g -pthread \
         -DRT_LINUX -DRT_P64 -DRT_128=2+4 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \

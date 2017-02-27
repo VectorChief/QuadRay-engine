@@ -40,7 +40,7 @@ clean:
 
 
 RooT_a64_32:
-	aarch64-linux-gnu-g++ -O3 -g \
+	aarch64-linux-gnu-g++ -O3 -g -pthread \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
@@ -48,7 +48,7 @@ RooT_a64_32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64_32
 
 RooT_a64_64:
-	aarch64-linux-gnu-g++ -O3 -g \
+	aarch64-linux-gnu-g++ -O3 -g -pthread \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
@@ -56,7 +56,7 @@ RooT_a64_64:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64_64
 
 RooT_a64f32:
-	aarch64-linux-gnu-g++ -O3 -g \
+	aarch64-linux-gnu-g++ -O3 -g -pthread \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
@@ -64,7 +64,7 @@ RooT_a64f32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64f32
 
 RooT_a64f64:
-	aarch64-linux-gnu-g++ -O3 -g \
+	aarch64-linux-gnu-g++ -O3 -g -pthread \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \

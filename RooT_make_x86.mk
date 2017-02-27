@@ -46,7 +46,7 @@ clean:
 
 
 RooT_x86:
-	g++ -O3 -g -m32 \
+	g++ -O3 -g -pthread -m32 \
         -DRT_LINUX -DRT_X86 -DRT_128=1+2+4+8 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \

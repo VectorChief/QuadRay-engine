@@ -50,7 +50,7 @@ clean:
 
 
 RooT_x64_32:
-	x86_64-linux-gnu-g++ -O3 -g \
+	x86_64-linux-gnu-g++ -O3 -g -pthread \
         -DRT_LINUX -DRT_X64 \
         -DRT_128=2+4+8 -DRT_256=1+2+8 -DRT_512=1+2+8 -DRT_1K4=1+2 -DRT_2K8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
@@ -59,7 +59,7 @@ RooT_x64_32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x64_32
 
 RooT_x64_64:
-	x86_64-linux-gnu-g++ -O3 -g \
+	x86_64-linux-gnu-g++ -O3 -g -pthread \
         -DRT_LINUX -DRT_X64 \
         -DRT_128=2+4+8 -DRT_256=1+2+8 -DRT_512=1+2+8 -DRT_1K4=1+2 -DRT_2K8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
@@ -68,7 +68,7 @@ RooT_x64_64:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x64_64
 
 RooT_x64f32:
-	x86_64-linux-gnu-g++ -O3 -g \
+	x86_64-linux-gnu-g++ -O3 -g -pthread \
         -DRT_LINUX -DRT_X64 \
         -DRT_128=2+4+8 -DRT_256=1+2+8 -DRT_512=1+2+8 -DRT_1K4=1+2 -DRT_2K8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
@@ -77,7 +77,7 @@ RooT_x64f32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x64f32
 
 RooT_x64f64:
-	x86_64-linux-gnu-g++ -O3 -g \
+	x86_64-linux-gnu-g++ -O3 -g -pthread \
         -DRT_LINUX -DRT_X64 \
         -DRT_128=2+4+8 -DRT_256=1+2+8 -DRT_512=1+2+8 -DRT_1K4=1+2 -DRT_2K8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \

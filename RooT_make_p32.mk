@@ -40,7 +40,7 @@ clean:
 
 
 RooT_p32:
-	powerpc-linux-gnu-g++ -O3 -g \
+	powerpc-linux-gnu-g++ -O3 -g -pthread \
         -DRT_LINUX -DRT_P32 -DRT_128=1 -DRT_256=8 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
