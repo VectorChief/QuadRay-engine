@@ -22,10 +22,14 @@ rt_si32     y_res       = RT_Y_RES;
 rt_si32     x_row       = (RT_X_RES+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
 rt_ui32    *frame       = RT_NULL;
 
-rt_si32     fsaa        = RT_FSAA_NO; /* no AA */
-rt_si32     simd        = 0; /* default SIMD width will be chosen */
-rt_si32     type        = 0; /* default SIMD sub-target will be chosen */
-rt_si32     hide_num    = 0; /* hide all numbers on the screen if 1 */
+rt_si32     q_simd      = 0; /* SIMD quad-factor from command-line */
+rt_si32     s_type      = 0; /* SIMD sub-variant from command-line */
+rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
+
+rt_si32     fsaa        = RT_FSAA_NO; /* no FSAA by default, -a enables */
+rt_si32     simd        = 0; /* default SIMD width will be chosen (q*4) */
+rt_si32     type        = 0; /* default SIMD sub-variant will be chosen */
+rt_si32     hide        = 0; /* hide all numbers on the screen if set 1 */
 
 rt_SCENE   *sc_rt[]     =
 {
@@ -118,24 +122,24 @@ rt_void frame_to_screen(rt_ui32 *frame, rt_si32 x_row);
 #define KEY_MASK            0xFF
 
 /* thread's exception variables */
-static rt_si32  eout = 0, emax = 0;
-static rt_pstr *estr = RT_NULL;
+rt_si32  eout = 0, emax = 0;
+rt_pstr *estr = RT_NULL;
 
 /* time counter variables */
-static rt_time init_time = 0;
-static rt_time last_time = 0;
-static rt_time cur_time = 0;
+rt_time init_time = 0;
+rt_time last_time = 0;
+rt_time cur_time = 0;
 
 /* frame counter variables */
-static rt_real fps = 0.0f;
-static rt_si32 cnt = 0;
-static rt_si32 scr = 0;
+rt_real fps = 0.0f;
+rt_si32 cnt = 0;
+rt_si32 scr = 0;
 
 /* virtual keys arrays */
-static rt_byte r_to_p[KEY_MASK + 1];
-static rt_byte h_keys[KEY_MASK + 1];
-static rt_byte t_keys[KEY_MASK + 1];
-static rt_byte r_keys[KEY_MASK + 1];
+rt_byte r_to_p[KEY_MASK + 1];
+rt_byte h_keys[KEY_MASK + 1];
+rt_byte t_keys[KEY_MASK + 1];
+rt_byte r_keys[KEY_MASK + 1];
 
 /* hold keys */
 #define H_KEYS(k)   (h_keys[r_to_p[(k) & KEY_MASK]])
@@ -242,7 +246,7 @@ rt_si32 main_step()
         }
         if (T_KEYS(RK_F12))
         {
-            hide_num = 1 - hide_num;
+            hide = 1 - hide;
         }
         if (T_KEYS(RK_ESCAPE))
         {
@@ -253,7 +257,7 @@ rt_si32 main_step()
 
         sc[d]->render(cur_time);
 
-        if (hide_num == 0)
+        if (hide == 0)
         {
             sc[d]->render_num(x_res-10, 10, -1, 2, (rt_si32)fps);
             sc[d]->render_num(x_res-10, 34, -1, 2, (rt_si32)fsaa * 4
@@ -265,7 +269,6 @@ rt_si32 main_step()
     catch (rt_Exception e)
     {
         RT_LOGE("Exception: %s\n", e.err);
-
         return 0;
     }
 
@@ -290,11 +293,11 @@ rt_si32 main_step()
 }
 
 /*
- * Initialize event loop.
+ * Initialize internal variables from command-line arguments.
  */
-rt_si32 main_init(rt_si32 argc, rt_char *argv[])
+rt_si32 args_init(rt_si32 argc, rt_char *argv[])
 {
-    rt_si32 k, r;
+    rt_si32 k;
 
     if (argc >= 2)
     {
@@ -305,7 +308,7 @@ rt_si32 main_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
         RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
         RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
-        RT_LOGI("options -d n, -c n, -q n, -s n. ... , -a can be combined\n");
+        RT_LOGI("options -d n, -c n, -q n, -s n, ... , -a can be combined\n");
         RT_LOGI("---------------------------------------------------------\n");
     }
 
@@ -339,12 +342,11 @@ rt_si32 main_init(rt_si32 argc, rt_char *argv[])
         }
         if (k < argc && strcmp(argv[k], "-q") == 0 && ++k < argc)
         {
-            simd = argv[k][0] - '0';
+            q_simd = argv[k][0] - '0';
             if (strlen(argv[k]) == 1
-            && (simd == 1 || simd == 2 || simd == 4 || simd == 8))
+            && (q_simd == 1 || q_simd == 2 || q_simd == 4 || q_simd == 8))
             {
-                RT_LOGI("SIMD quad-factor overridden: %d\n", simd);
-                simd = simd << 2;
+                RT_LOGI("SIMD quad-factor overridden: %d\n", q_simd);
             }
             else
             {
@@ -354,11 +356,11 @@ rt_si32 main_init(rt_si32 argc, rt_char *argv[])
         }
         if (k < argc && strcmp(argv[k], "-s") == 0 && ++k < argc)
         {
-            type = argv[k][0] - '0';
+            s_type = argv[k][0] - '0';
             if (strlen(argv[k]) == 1
-            && (type == 1 || type == 2 || type == 4 || type == 8))
+            && (s_type == 1 || s_type == 2 || s_type == 4 || s_type == 8))
             {
-                RT_LOGI("SIMD sub-variant overridden: %d\n", type);
+                RT_LOGI("SIMD sub-variant overridden: %d\n", s_type);
             }
             else
             {
@@ -366,13 +368,25 @@ rt_si32 main_init(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (k < argc && strcmp(argv[k], "-a") == 0 && !fsaa)
+        if (k < argc && strcmp(argv[k], "-a") == 0 && !a_mode)
         {
-            fsaa = RT_FSAA_4X;
+            a_mode = RT_TRUE;
             RT_LOGI("Antialiasing enabled\n");
         }
     }
 
+    simd = q_simd * 4;
+    type = s_type * 1;
+    fsaa = a_mode ? RT_FSAA_4X : RT_FSAA_NO;
+
+    return 1;
+}
+
+/*
+ * Initialize event loop.
+ */
+rt_si32 main_init()
+{
     rt_si32 i, n = RT_ARR_SIZE(sc_rt);
 
     for (i = 0; i < n; i++)
@@ -393,9 +407,15 @@ rt_si32 main_init(rt_si32 argc, rt_char *argv[])
         catch (rt_Exception e)
         {
             RT_LOGE("Exception in scene %d: %s\n", i+1, e.err);
-
             return 0;
         }
+    }
+
+    if ((s_type != 0 && s_type != ((type / 1) & 0x0F))
+    ||  (q_simd != 0 && q_simd != ((simd / 4) & 0x0F)))
+    {
+        RT_LOGI("Chosen SIMD target is not supported, check -q/-s options\n");
+        return 0;
     }
 
     for (; c > 0; c--)
@@ -426,7 +446,6 @@ rt_si32 main_term()
         catch (rt_Exception e)
         {
             RT_LOGE("Exception in scene %d: %s\n", i+1, e.err);
-
             return 0;
         }
     }

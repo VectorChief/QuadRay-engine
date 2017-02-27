@@ -36,21 +36,25 @@
 /***************************   VARS, FUNCS, TYPES   ***************************/
 /******************************************************************************/
 
-static rt_si32 t_diff = 3;
-static rt_bool p_mode = RT_FALSE;
-static rt_bool v_mode = RT_FALSE;
-static rt_bool i_mode = RT_FALSE;
-static rt_bool a_mode = RT_FALSE;
-static rt_si32 q_simd = 0;
-static rt_si32 s_type = 0;
+rt_si32     x_res       = RT_X_RES;
+rt_si32     y_res       = RT_Y_RES;
+rt_si32     x_row       = (RT_X_RES+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
+rt_ui32    *frame       = RT_NULL;
 
-static rt_si32 x_res = RT_X_RES;
-static rt_si32 y_res = RT_Y_RES;
-static rt_si32 x_row = (RT_X_RES+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
-static rt_ui32 frame[((RT_X_RES+RT_SIMD_WIDTH-1)&~(RT_SIMD_WIDTH-1))*RT_Y_RES];
+rt_si32     q_simd      = 0; /* SIMD quad-factor from command-line */
+rt_si32     s_type      = 0; /* SIMD sub-variant from command-line */
+rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
 
-static rt_si32 fsaa = RT_FSAA_4X;
-static rt_Scene *scene = RT_NULL;
+rt_bool     i_mode      = RT_FALSE; /* imaging mode from command-line */
+rt_bool     p_mode      = RT_FALSE; /* pixhunt mode from command-line */
+rt_bool     v_mode      = RT_FALSE; /* verbose mode from command-line */
+rt_si32     t_diff      = 3;      /* diff-threshold from command-line */
+
+rt_si32     fsaa        = RT_FSAA_NO; /* no FSAA by default, -a enables */
+rt_si32     simd        = 0; /* default SIMD width will be chosen (q*4) */
+rt_si32     type        = 0; /* default SIMD sub-variant will be chosen */
+
+rt_Scene   *scene       = RT_NULL;
 
 /*
  * Get system time in milliseconds.
@@ -67,7 +71,9 @@ rt_pntr sys_alloc(rt_size size);
  */
 rt_void sys_free(rt_pntr ptr, rt_size size);
 
-static
+/*
+ * Copy frames.
+ */
 rt_void frame_cpy(rt_ui32 *fd, rt_ui32 *fs)
 {
     rt_si32 i;
@@ -79,7 +85,9 @@ rt_void frame_cpy(rt_ui32 *fd, rt_ui32 *fs)
     }
 }
 
-static
+/*
+ * Compare frames.
+ */
 rt_si32 frame_cmp(rt_ui32 *f1, rt_ui32 *f2)
 {
     rt_si32 i, j, ret = 0;
@@ -131,7 +139,9 @@ rt_si32 frame_cmp(rt_ui32 *f1, rt_ui32 *f2)
     return ret;
 }
 
-static
+/*
+ * Write plain diff between frames.
+ */
 rt_void frame_dff(rt_ui32 *fd, rt_ui32 *fs)
 {
     rt_si32 i;
@@ -149,7 +159,9 @@ rt_void frame_dff(rt_ui32 *fd, rt_ui32 *fs)
     }
 }
 
-static
+/*
+ * Write maximized diff between frames.
+ */
 rt_void frame_max(rt_ui32 *fd)
 {
     rt_si32 i;
@@ -653,20 +665,27 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     rt_time tN = 0;
     rt_time tF = 0;
 
-    rt_si32 simd = (s_type << 8) | (q_simd << 2);
-    rt_si32 i, j;
+    simd = q_simd * 4;
+    type = s_type * 1;
+    fsaa = a_mode ? RT_FSAA_4X : RT_FSAA_NO;
 
     scene = RT_NULL;
     o_test[0]();
-    simd = scene->set_simd(simd);
+    simd = scene->set_simd(simd | type << 8);
+    type = simd >> 8;
+    simd = simd & 0xFF;
     delete scene;
 
-    if ((s_type != 0 && s_type != ((simd >> 8) & 0x0F))
-    ||  (q_simd != 0 && q_simd != ((simd >> 2) & 0x0F)))
+    if ((s_type != 0 && s_type != ((type / 1) & 0x0F))
+    ||  (q_simd != 0 && q_simd != ((simd / 4) & 0x0F)))
     {
         RT_LOGI("Chosen SIMD target is not supported, check -q/-s options\n");
         return 0;
     }
+
+    frame = (rt_ui32 *)sys_alloc(x_row * y_res * sizeof(rt_ui32));
+
+    rt_si32 i, j;
 
     for (i = 0; i < RUN_LEVEL; i++)
     {
@@ -676,12 +695,11 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             scene = RT_NULL;
             o_test[i]();
 
-            if (a_mode)
-            {
-                scene->set_fsaa(fsaa);
-            }
+            scene->set_fsaa(fsaa);
+            simd = scene->set_simd(simd | type << 8);
+            type = simd >> 8;
+            simd = simd & 0xFF;
 
-            simd = scene->set_simd(simd);
             scene->set_opts(RT_OPTS_NONE);
 
             time1 = get_time();
@@ -708,12 +726,11 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             scene = RT_NULL;
             o_test[i]();
 
-            if (a_mode)
-            {
-                scene->set_fsaa(fsaa);
-            }
+            scene->set_fsaa(fsaa);
+            simd = scene->set_simd(simd | type << 8);
+            type = simd >> 8;
+            simd = simd & 0xFF;
 
-            simd = scene->set_simd(simd);
             scene->set_opts(RT_OPTS_FULL);
 
             time1 = get_time();
@@ -754,8 +771,10 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             RT_LOGE("Exception: %s\n", e.err);
         }
         RT_LOGI("---------------------------------- simd = %4dv%d ---\n",
-                                                (simd & 0xFF) * 32, simd >> 8);
+                                                    simd * 32, type);
     }
+
+    sys_free(frame, x_row * y_res * sizeof(rt_ui32));
 
 #if defined (RT_WIN32) || defined (RT_WIN64) /* Win32, MSVC -- Win64, GCC --- */
 
@@ -787,7 +806,6 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
 #endif /* RT_ADDRESS */
 
-static
 rt_byte *s_ptr = RT_ADDRESS_MIN;
 
 #endif /* RT_POINTER */
@@ -809,10 +827,8 @@ rt_time get_time()
     return (rt_time)(tm.QuadPart * 1000 / fr.QuadPart);
 }
 
-static
 DWORD s_step = 0;
 
-static
 SYSTEM_INFO s_sys = {0};
 
 /*

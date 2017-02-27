@@ -12,13 +12,13 @@
 
 #include <windows.h>
 
-static HINSTANCE   hInst;
-static HWND        hWnd;
-static HDC         hWndDC;
+HINSTANCE   hInst;
+HWND        hWnd;
+HDC         hWndDC;
 
-static HBITMAP     hFrm;
-static HDC         hFrmDC;
-static BITMAPINFO  DIBinfo = 
+HBITMAP     hFrm;
+HDC         hFrmDC;
+BITMAPINFO  DIBinfo = 
 {
     sizeof(BITMAPINFOHEADER),           /* biSize */
    +x_row,                              /* biWidth */
@@ -33,7 +33,7 @@ static BITMAPINFO  DIBinfo =
     0                                   /* biClrImportant */
 };
 
-static CRITICAL_SECTION critSec;
+CRITICAL_SECTION critSec;
 
 /******************************************************************************/
 /**********************************   MAIN   **********************************/
@@ -74,6 +74,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     r_to_p[RK_F12]      = KEY_MASK & VK_F12;  
 
     r_to_p[RK_ESCAPE]   = KEY_MASK & VK_ESCAPE;
+
+    /* init internal variables from command-line args */
+    args_init(__argc, __argv);
 
     /* create window and register its class */
     MSG msg;
@@ -159,16 +162,13 @@ rt_time get_time()
 
 #endif /* RT_ADDRESS */
 
-static
 rt_byte *s_ptr = RT_ADDRESS_MIN;
 
 #endif /* RT_POINTER */
 
 
-static
 DWORD s_step = 0;
 
-static
 SYSTEM_INFO s_sys = {0};
 
 /*
@@ -546,7 +546,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             /* init sys_alloc's mutex */
             InitializeCriticalSection(&critSec);
 
-            ret = main_init(__argc, __argv);
+            ret = main_init();
 
             if (ret == 0)
             {

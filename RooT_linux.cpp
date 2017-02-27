@@ -17,21 +17,21 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 
-static Display    *disp;
-static Window      win;
-static rt_si32     depth;
+Display    *disp;
+Window      win;
+rt_si32     depth;
 
 #include <sys/shm.h>
 #include <X11/extensions/XShm.h>
 
-static XShmSegmentInfo shminfo;
-static XImage     *ximage      = NULL;
-static GC          gc;
-static XGCValues   gc_values   = {0};
+XShmSegmentInfo shminfo;
+XImage     *ximage      = NULL;
+GC          gc;
+XGCValues   gc_values   = {0};
 
 #include <pthread.h>
 
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /******************************************************************************/
 /**********************************   MAIN   **********************************/
@@ -71,6 +71,9 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     r_to_p[RK_F12]      = KEY_MASK & XK_F12;  
 
     r_to_p[RK_ESCAPE]   = KEY_MASK & XK_Escape;
+
+    /* init internal variables from command-line args */
+    args_init(argc, argv);
 
     /* open connection to X server */
     disp = XOpenDisplay(NULL);
@@ -175,7 +178,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     pthread_mutex_init(&mutex, NULL);
 
     /* run main loop */
-    main_init(argc, argv);
+    main_init();
     main_loop();
     main_term();
 
