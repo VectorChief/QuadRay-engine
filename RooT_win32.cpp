@@ -78,6 +78,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     /* init internal variables from command-line args */
     args_init(__argc, __argv);
 
+    DIBinfo.bmiHeader.biWidth     = +x_row;
+    DIBinfo.bmiHeader.biHeight    = -y_res;
+    DIBinfo.bmiHeader.biSizeImage = (x_row * y_res * sizeof(rt_ui32));
+
     /* create window and register its class */
     MSG msg;
     hInst = hInstance;

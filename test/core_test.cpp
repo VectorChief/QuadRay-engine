@@ -43,6 +43,7 @@ rt_ui32    *frame       = RT_NULL;
 
 rt_si32     q_simd      = 0; /* SIMD quad-factor from command-line */
 rt_si32     s_type      = 0; /* SIMD sub-variant from command-line */
+rt_si32     w_size      = 1; /* Window rect-size from command-line */
 rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
 
 rt_bool     i_mode      = RT_FALSE; /* imaging mode from command-line */
@@ -565,6 +566,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -t tex1 tex2 texn, convert images in data/textures/tex*\n");
         RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
         RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
+        RT_LOGI(" -w n, override window rect-size, where new size is 1..8\n");
         RT_LOGI(" -d n, override diff threshold, where n is new diff 0..9\n");
         RT_LOGI(" -p, enable pixhunt mode, print isolated pixels (> diff)\n");
         RT_LOGI(" -v, enable verbose mode, print all pixel spots (> diff)\n");
@@ -625,6 +627,20 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
+        if (k < argc && strcmp(argv[k], "-w") == 0 && ++k < argc)
+        {
+            w_size = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1
+            && (w_size == 1 || w_size == 2 || w_size == 4 || w_size == 8))
+            {
+                RT_LOGI("Window rect-size overridden: %d\n", w_size);
+            }
+            else
+            {
+                RT_LOGI("Window rect-size value out of range\n");
+                return 0;
+            }
+        }
         if (k < argc && strcmp(argv[k], "-d") == 0 && ++k < argc)
         {
             t_diff = argv[k][0] - '0';
@@ -668,6 +684,10 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     simd = q_simd * 4;
     type = s_type * 1;
     fsaa = a_mode ? RT_FSAA_4X : RT_FSAA_NO;
+
+    x_res = x_res * w_size;
+    y_res = y_res * w_size;
+    x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
 
     scene = RT_NULL;
     o_test[0]();

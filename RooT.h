@@ -24,6 +24,7 @@ rt_ui32    *frame       = RT_NULL;
 
 rt_si32     q_simd      = 0; /* SIMD quad-factor from command-line */
 rt_si32     s_type      = 0; /* SIMD sub-variant from command-line */
+rt_si32     w_size      = 1; /* Window rect-size from command-line */
 rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
 
 rt_si32     fsaa        = RT_FSAA_NO; /* no FSAA by default, -a enables */
@@ -307,6 +308,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -c n, setup camera in current scene, where n is 1 digit\n");
         RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
         RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
+        RT_LOGI(" -w n, override window rect-size, where new size is 1..8\n");
         RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
         RT_LOGI("options -d n, -c n, -q n, -s n, ... , -a can be combined\n");
         RT_LOGI("---------------------------------------------------------\n");
@@ -368,6 +370,20 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
+        if (k < argc && strcmp(argv[k], "-w") == 0 && ++k < argc)
+        {
+            w_size = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1
+            && (w_size == 1 || w_size == 2 || w_size == 4 || w_size == 8))
+            {
+                RT_LOGI("Window rect-size overridden: %d\n", w_size);
+            }
+            else
+            {
+                RT_LOGI("Window rect-size value out of range\n");
+                return 0;
+            }
+        }
         if (k < argc && strcmp(argv[k], "-a") == 0 && !a_mode)
         {
             a_mode = RT_TRUE;
@@ -378,6 +394,10 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
     simd = q_simd * 4;
     type = s_type * 1;
     fsaa = a_mode ? RT_FSAA_4X : RT_FSAA_NO;
+
+    x_res = x_res * w_size;
+    y_res = y_res * w_size;
+    x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
 
     return 1;
 }
