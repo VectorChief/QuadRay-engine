@@ -18,7 +18,7 @@ HDC         hWndDC;
 
 HBITMAP     hFrm;
 HDC         hFrmDC;
-BITMAPINFO  DIBinfo = 
+BITMAPINFO  DIBinfo =
 {
     sizeof(BITMAPINFOHEADER),           /* biSize */
    +x_row,                              /* biWidth */
@@ -55,23 +55,23 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     r_to_p[RK_A]        = KEY_MASK & 'A';
     r_to_p[RK_D]        = KEY_MASK & 'D';
 
-    r_to_p[RK_UP]       = KEY_MASK & VK_UP;   
-    r_to_p[RK_DOWN]     = KEY_MASK & VK_DOWN; 
-    r_to_p[RK_LEFT]     = KEY_MASK & VK_LEFT; 
+    r_to_p[RK_UP]       = KEY_MASK & VK_UP;
+    r_to_p[RK_DOWN]     = KEY_MASK & VK_DOWN;
+    r_to_p[RK_LEFT]     = KEY_MASK & VK_LEFT;
     r_to_p[RK_RIGHT]    = KEY_MASK & VK_RIGHT;
 
-    r_to_p[RK_F1]       = KEY_MASK & VK_F1;   
-    r_to_p[RK_F2]       = KEY_MASK & VK_F2;   
-    r_to_p[RK_F3]       = KEY_MASK & VK_F3;   
-    r_to_p[RK_F4]       = KEY_MASK & VK_F4;   
-    r_to_p[RK_F5]       = KEY_MASK & VK_F5;   
-    r_to_p[RK_F6]       = KEY_MASK & VK_F6;   
-    r_to_p[RK_F7]       = KEY_MASK & VK_F7;   
-    r_to_p[RK_F8]       = KEY_MASK & VK_F8;   
-    r_to_p[RK_F9]       = KEY_MASK & VK_F9;   
-    r_to_p[RK_F10]      = KEY_MASK & VK_F10;   
-    r_to_p[RK_F11]      = KEY_MASK & VK_F11;  
-    r_to_p[RK_F12]      = KEY_MASK & VK_F12;  
+    r_to_p[RK_F1]       = KEY_MASK & VK_F1;
+    r_to_p[RK_F2]       = KEY_MASK & VK_F2;
+    r_to_p[RK_F3]       = KEY_MASK & VK_F3;
+    r_to_p[RK_F4]       = KEY_MASK & VK_F4;
+    r_to_p[RK_F5]       = KEY_MASK & VK_F5;
+    r_to_p[RK_F6]       = KEY_MASK & VK_F6;
+    r_to_p[RK_F7]       = KEY_MASK & VK_F7;
+    r_to_p[RK_F8]       = KEY_MASK & VK_F8;
+    r_to_p[RK_F9]       = KEY_MASK & VK_F9;
+    r_to_p[RK_F10]      = KEY_MASK & VK_F10;
+    r_to_p[RK_F11]      = KEY_MASK & VK_F11;
+    r_to_p[RK_F12]      = KEY_MASK & VK_F12;
 
     r_to_p[RK_ESCAPE]   = KEY_MASK & VK_ESCAPE;
 
@@ -90,7 +90,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
     WNDCLASSEX wcex;
 
-    wcex.cbSize         = sizeof(WNDCLASSEX); 
+    wcex.cbSize         = sizeof(WNDCLASSEX);
     wcex.lpszClassName  = wnd_class;
     wcex.style          = CS_OWNDC;
     wcex.lpfnWndProc    = (WNDPROC)WndProc;
@@ -131,7 +131,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
 
-    while (GetMessage(&msg, NULL, 0, 0)) 
+    while (GetMessage(&msg, NULL, 0, 0))
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
@@ -526,7 +526,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     rt_si32 ret, key;
 
-    switch (message) 
+    switch (message)
     {
         case WM_CREATE:
         {
@@ -540,7 +540,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
 
             hFrm = CreateDIBSection(NULL, &DIBinfo, DIB_RGB_COLORS,
-                                            (rt_pntr *)&frame, NULL, 0); 
+                                            (rt_pntr *)&frame, NULL, 0);
 
             if (hFrm == NULL || frame == NULL)
             {
