@@ -43,7 +43,7 @@ strip:
 	strip core_test_w64*.exe
 
 clean:
-	rm core_test_w64*.exe
+	del core_test_w64*.exe
 
 
 core_test_w64_32:

@@ -44,7 +44,7 @@ strip:
 	strip RooT_w64*.exe
 
 clean:
-	rm RooT_w64*.exe
+	del RooT_w64*.exe
 
 
 RooT_w64_32:
