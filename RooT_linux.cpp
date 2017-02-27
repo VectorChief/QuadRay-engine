@@ -29,6 +29,7 @@ XImage     *ximage      = NULL;
 GC          gc;
 XGCValues   gc_values   = {0};
 
+#define _GNU_SOURCE
 #include <pthread.h>
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -411,11 +412,14 @@ rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
 
     memset(estr, 0, sizeof(rt_pstr) * thnum);
 
+#if RT_SETAFFINITY
+
     cpu_set_t cpuset_pr, cpuset_th;
     pthread_t pthr = pthread_self();
     pthread_getaffinity_np(pthr, sizeof(cpu_set_t), &cpuset_pr);
 
-    rt_si32 i, a;
+#endif /* RT_SETAFFINITY */
+
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)malloc(sizeof(rt_THREAD_POOL));
 
     if (tpool == RT_NULL)
@@ -436,6 +440,8 @@ rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
     pthread_barrier_init(&tpool->barr[0], NULL, thnum + 1);
     pthread_barrier_init(&tpool->barr[1], NULL, thnum + 1);
 
+    rt_si32 i, a;
+
     for (i = 0, a = 0; i < thnum; i++, a++)
     {
         rt_THREAD *thread = tpool->thread;
@@ -447,6 +453,8 @@ rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
 
         pthread_create(&thread[i].pthr, NULL, worker_thread, &thread[i]);
 
+#if RT_SETAFFINITY
+
         while (!CPU_ISSET(a, &cpuset_pr))
         {
             a++;
@@ -455,6 +463,8 @@ rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
         CPU_ZERO(&cpuset_th);
         CPU_SET(a, &cpuset_th);
         pthread_setaffinity_np(thread[i].pthr, sizeof(cpu_set_t), &cpuset_th);
+
+#endif /* RT_SETAFFINITY */
     }
 
     return tpool;

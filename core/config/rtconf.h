@@ -26,23 +26,27 @@
 
 #define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
 #define RT_THREADS_NUM          16 /* number of threads for update and render */
+#define RT_SETAFFINITY          1
 
 #elif defined (RT_WIN32)
 
 #define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
 #define RT_THREADS_NUM          30 /* number of threads for update and render */
+#define RT_SETAFFINITY          1
 
 #elif defined (RT_WIN64)
 
 #define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
 #define RT_THREADS_NUM          60 /* number of threads for update and render */
+#define RT_SETAFFINITY          1
 
-#else /* RT_DEBUG == 0 && defined (RT_LINUX) */
+#else /* defined (RT_LINUX) */
 
 #define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
 #define RT_THREADS_NUM          120/* number of threads for update and render */
+#define RT_SETAFFINITY          1
 
-#endif /* RT_DEBUG, system-specific */
+#endif /* system-specific */
 
 #define RT_CHUNK_SIZE           65536 /* heap allocation granularity (16*4k) */
 

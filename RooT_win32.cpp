@@ -355,6 +355,8 @@ rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
 
     memset(estr, 0, sizeof(rt_pstr) * thnum);
 
+#if RT_SETAFFINITY
+
 #if defined (RT_WIN32)
     DWORD pam, sam;
 #else /* RT_WIN64 */
@@ -363,7 +365,8 @@ rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
     HANDLE process = GetCurrentProcess();
     GetProcessAffinityMask(process, &pam, &sam);
 
-    rt_si32 i, a;
+#endif /* RT_SETAFFINITY */
+
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)malloc(sizeof(rt_THREAD_POOL));
 
     if (tpool == RT_NULL)
@@ -387,6 +390,8 @@ rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
     tpool->cevent[1] = CreateEvent(NULL, TRUE, FALSE, NULL);
     tpool->cindex = 0;
 
+    rt_si32 i, a;
+
     for (i = 0, a = 0; i < thnum; i++, a++)
     {
         rt_THREAD *thread = tpool->thread;
@@ -401,6 +406,8 @@ rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
         thread[i].pthr   = CreateThread(NULL, 0, worker_thread,
                                         &thread[i], 0, NULL);
 
+#if RT_SETAFFINITY
+
         while (((pam & (1 << a)) == 0))
         {
             a++;
@@ -408,6 +415,8 @@ rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
         }
         SetThreadAffinityMask(thread[i].pthr, 1 << a);
     }
+
+#endif /* RT_SETAFFINITY */
 
     return tpool;
 }
