@@ -546,7 +546,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             /* init sys_alloc's mutex */
             InitializeCriticalSection(&critSec);
 
-            ret = main_init();
+            ret = main_init(__argc, __argv);
 
             if (ret == 0)
             {

@@ -44,7 +44,7 @@ rt_si32 main_term();
 /*
  * Program's main entry point.
  */
-rt_si32 main()
+rt_si32 main(rt_si32 argc, rt_char *argv[])
 {
     /* fill in platform's keymap */
     r_to_p[RK_W]        = KEY_MASK & XK_w;
@@ -175,7 +175,7 @@ rt_si32 main()
     pthread_mutex_init(&mutex, NULL);
 
     /* run main loop */
-    main_init();
+    main_init(argc, argv);
     main_loop();
     main_term();
 

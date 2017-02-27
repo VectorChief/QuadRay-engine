@@ -34,8 +34,9 @@ rt_SCENE   *sc_rt[]     =
     &scn_demo03::sc_root,
 };
 
-rt_Scene   *sc[RT_ARR_SIZE(sc_rt)]  = {0};  /* scenes array */
-rt_si32     d                       = 2;    /* demo index */
+rt_Scene   *sc[RT_ARR_SIZE(sc_rt)]  = {0};  /* scene array */
+rt_si32     d                       = 2;    /* demo-index */
+rt_si32     c                       = 0;    /* camera-num */
 
 /******************************************************************************/
 /********************************   PLATFORM   ********************************/
@@ -291,8 +292,87 @@ rt_si32 main_step()
 /*
  * Initialize event loop.
  */
-rt_si32 main_init()
+rt_si32 main_init(rt_si32 argc, rt_char *argv[])
 {
+    rt_si32 k, r;
+
+    if (argc >= 2)
+    {
+        RT_LOGI("---------------------------------------------------------\n");
+        RT_LOGI("Usage options are given below:\n");
+        RT_LOGI(" -d n, setup default demo scene, where n is single digit\n");
+        RT_LOGI(" -c n, setup camera in current scene, where n is 1 digit\n");
+        RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
+        RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
+        RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
+        RT_LOGI("options -d n, -c n, -q n, -s n. ... , -a can be combined\n");
+        RT_LOGI("---------------------------------------------------------\n");
+    }
+
+    for (k = 1; k < argc; k++)
+    {
+        if (strcmp(argv[k], "-d") == 0 && ++k < argc)
+        {
+            d = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1 && d >= 0 && d <= 9)
+            {
+                RT_LOGI("Demo-index overridden: %d\n", d);
+            }
+            else
+            {
+                RT_LOGI("Demo-index value out of range\n");
+                return 0;
+            }
+        }
+        if (strcmp(argv[k], "-c") == 0 && ++k < argc)
+        {
+            c = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1 && c >= 0 && c <= 9)
+            {
+                RT_LOGI("Camera-num overridden: %d\n", c);
+            }
+            else
+            {
+                RT_LOGI("Camera-num value out of range\n");
+                return 0;
+            }
+        }
+        if (strcmp(argv[k], "-q") == 0 && ++k < argc)
+        {
+            simd = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1
+            && (simd == 1 || simd == 2 || simd == 4 || simd == 8))
+            {
+                RT_LOGI("SIMD quad-factor overridden: %d\n", simd);
+                simd = simd << 2;
+            }
+            else
+            {
+                RT_LOGI("SIMD quad-factor value out of range\n");
+                return 0;
+            }
+        }
+        if (strcmp(argv[k], "-s") == 0 && ++k < argc)
+        {
+            type = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1
+            && (type == 1 || type == 2 || type == 4 || type == 8))
+            {
+                RT_LOGI("SIMD sub-variant overridden: %d\n", type);
+            }
+            else
+            {
+                RT_LOGI("SIMD sub-variant value out of range\n");
+                return 0;
+            }
+        }
+        if (strcmp(argv[k], "-a") == 0 && !fsaa)
+        {
+            fsaa = RT_FSAA_4X;
+            RT_LOGI("Antialiasing enabled\n");
+        }
+    }
+
     rt_si32 i, n = RT_ARR_SIZE(sc_rt);
 
     for (i = 0; i < n; i++)
@@ -316,6 +396,11 @@ rt_si32 main_init()
 
             return 0;
         }
+    }
+
+    for (; c > 0; c--)
+    {
+        sc[d]->next_cam();
     }
 
     return 1;
