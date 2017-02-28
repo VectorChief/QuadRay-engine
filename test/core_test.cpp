@@ -186,9 +186,7 @@ rt_void o_test01()
 {
     scene = new rt_Scene(&scn_test01::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        sys_alloc, sys_free,
-                        RT_NULL, RT_NULL,
-                        RT_NULL, RT_NULL);
+                        sys_alloc, sys_free);
 }
 
 #endif /* RUN_LEVEL  1 */
@@ -205,9 +203,7 @@ rt_void o_test02()
 {
     scene = new rt_Scene(&scn_test02::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        sys_alloc, sys_free,
-                        RT_NULL, RT_NULL,
-                        RT_NULL, RT_NULL);
+                        sys_alloc, sys_free);
 }
 
 #endif /* RUN_LEVEL  2 */
@@ -224,9 +220,7 @@ rt_void o_test03()
 {
     scene = new rt_Scene(&scn_test03::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        sys_alloc, sys_free,
-                        RT_NULL, RT_NULL,
-                        RT_NULL, RT_NULL);
+                        sys_alloc, sys_free);
 }
 
 #endif /* RUN_LEVEL  3 */
@@ -243,9 +237,7 @@ rt_void o_test04()
 {
     scene = new rt_Scene(&scn_test04::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        sys_alloc, sys_free,
-                        RT_NULL, RT_NULL,
-                        RT_NULL, RT_NULL);
+                        sys_alloc, sys_free);
 }
 
 #endif /* RUN_LEVEL  4 */
@@ -262,9 +254,7 @@ rt_void o_test05()
 {
     scene = new rt_Scene(&scn_test05::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        sys_alloc, sys_free,
-                        RT_NULL, RT_NULL,
-                        RT_NULL, RT_NULL);
+                        sys_alloc, sys_free);
 }
 
 #endif /* RUN_LEVEL  5 */
@@ -281,9 +271,7 @@ rt_void o_test06()
 {
     scene = new rt_Scene(&scn_test06::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        sys_alloc, sys_free,
-                        RT_NULL, RT_NULL,
-                        RT_NULL, RT_NULL);
+                        sys_alloc, sys_free);
 }
 
 #endif /* RUN_LEVEL  6 */
@@ -300,9 +288,7 @@ rt_void o_test07()
 {
     scene = new rt_Scene(&scn_test07::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        sys_alloc, sys_free,
-                        RT_NULL, RT_NULL,
-                        RT_NULL, RT_NULL);
+                        sys_alloc, sys_free);
 }
 
 #endif /* RUN_LEVEL  7 */
@@ -319,9 +305,7 @@ rt_void o_test08()
 {
     scene = new rt_Scene(&scn_test08::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        sys_alloc, sys_free,
-                        RT_NULL, RT_NULL,
-                        RT_NULL, RT_NULL);
+                        sys_alloc, sys_free);
 }
 
 #endif /* RUN_LEVEL  8 */
@@ -338,9 +322,7 @@ rt_void o_test09()
 {
     scene = new rt_Scene(&scn_test09::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        sys_alloc, sys_free,
-                        RT_NULL, RT_NULL,
-                        RT_NULL, RT_NULL);
+                        sys_alloc, sys_free);
 }
 
 #endif /* RUN_LEVEL  9 */
@@ -357,9 +339,7 @@ rt_void o_test10()
 {
     scene = new rt_Scene(&scn_test10::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        sys_alloc, sys_free,
-                        RT_NULL, RT_NULL,
-                        RT_NULL, RT_NULL);
+                        sys_alloc, sys_free);
 }
 
 #endif /* RUN_LEVEL 10 */
@@ -376,9 +356,7 @@ rt_void o_test11()
 {
     scene = new rt_Scene(&scn_test11::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        sys_alloc, sys_free,
-                        RT_NULL, RT_NULL,
-                        RT_NULL, RT_NULL);
+                        sys_alloc, sys_free);
 }
 
 #endif /* RUN_LEVEL 11 */
@@ -395,9 +373,7 @@ rt_void o_test12()
 {
     scene = new rt_Scene(&scn_test12::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        sys_alloc, sys_free,
-                        RT_NULL, RT_NULL,
-                        RT_NULL, RT_NULL);
+                        sys_alloc, sys_free);
 }
 
 #endif /* RUN_LEVEL 12 */
@@ -414,9 +390,7 @@ rt_void o_test13()
 {
     scene = new rt_Scene(&scn_test13::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        sys_alloc, sys_free,
-                        RT_NULL, RT_NULL,
-                        RT_NULL, RT_NULL);
+                        sys_alloc, sys_free);
 }
 
 #endif /* RUN_LEVEL 13 */
@@ -433,9 +407,7 @@ rt_void o_test14()
 {
     scene = new rt_Scene(&scn_test14::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        sys_alloc, sys_free,
-                        RT_NULL, RT_NULL,
-                        RT_NULL, RT_NULL);
+                        sys_alloc, sys_free);
 }
 
 #endif /* RUN_LEVEL 14 */
@@ -452,9 +424,7 @@ rt_void o_test15()
 {
     scene = new rt_Scene(&scn_test15::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        sys_alloc, sys_free,
-                        RT_NULL, RT_NULL,
-                        RT_NULL, RT_NULL);
+                        sys_alloc, sys_free);
 }
 
 #endif /* RUN_LEVEL 15 */
@@ -471,9 +441,7 @@ rt_void o_test16()
 {
     scene = new rt_Scene(&scn_test16::sc_root,
                         x_res, y_res, x_row, RT_NULL,
-                        sys_alloc, sys_free,
-                        RT_NULL, RT_NULL,
-                        RT_NULL, RT_NULL);
+                        sys_alloc, sys_free);
 }
 
 #endif /* RUN_LEVEL 16 */

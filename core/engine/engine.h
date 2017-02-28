@@ -210,7 +210,7 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
 
     rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
              rt_si32 x_res, rt_si32 y_res, rt_si32 x_row, rt_ui32 *frame,
-             rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
+             rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free, rt_si32 thnum = 0,
              rt_FUNC_INIT f_init = RT_NULL, rt_FUNC_TERM f_term = RT_NULL,
              rt_FUNC_UPDATE f_update = RT_NULL,
              rt_FUNC_RENDER f_render = RT_NULL,

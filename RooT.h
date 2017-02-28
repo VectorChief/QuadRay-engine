@@ -16,15 +16,16 @@
 #define RT_Y_RES        480
 
 rt_astr     title       = "QuadRay engine demo, (C) 2013-2017 VectorChief";
-
 rt_si32     x_res       = RT_X_RES;
 rt_si32     y_res       = RT_Y_RES;
 rt_si32     x_row       = (RT_X_RES+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
 rt_ui32    *frame       = RT_NULL;
+rt_si32     thnum       = RT_THREADS_NUM;
 
 rt_si32     q_simd      = 0; /* SIMD quad-factor from command-line */
 rt_si32     s_type      = 0; /* SIMD sub-variant from command-line */
 rt_si32     w_size      = 1; /* Window rect-size from command-line */
+rt_si32     t_pool      = 0; /* Thread pool-size from command-line */
 rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
 
 rt_si32     fsaa        = RT_FSAA_NO; /* no FSAA by default, -a enables */
@@ -298,7 +299,7 @@ rt_si32 main_step()
  */
 rt_si32 args_init(rt_si32 argc, rt_char *argv[])
 {
-    rt_si32 k;
+    rt_si32 k, l, r;
 
     if (argc >= 2)
     {
@@ -309,6 +310,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
         RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
         RT_LOGI(" -w n, override window rect-size, where new size is 1..8\n");
+        RT_LOGI(" -t n, override thread pool-size, where new size <= 1000\n");
         RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
         RT_LOGI("options -d n, -c n, -q n, -s n, ... , -a can be combined\n");
         RT_LOGI("---------------------------------------------------------\n");
@@ -384,6 +386,22 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
+        if (k < argc && strcmp(argv[k], "-t") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1; l > 0; l--, r *= 10)
+            {
+                t_pool += (argv[k][l-1] - '0') * r;
+            }
+            if (t_pool >= 0 && t_pool <= 1000)
+            {
+                RT_LOGI("Thread pool-size overridden: %d\n", t_pool);
+            }
+            else
+            {
+                RT_LOGI("Thread pool-size value out of range\n");
+                return 0;
+            }
+        }
         if (k < argc && strcmp(argv[k], "-a") == 0 && !a_mode)
         {
             a_mode = RT_TRUE;
@@ -398,6 +416,8 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
     x_res = x_res * w_size;
     y_res = y_res * w_size;
     x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
+
+    thnum = t_pool != 0 ? t_pool : thnum;
 
     return 1;
 }
@@ -415,7 +435,7 @@ rt_si32 main_init()
         {
             sc[i] = new rt_Scene(sc_rt[i],
                                 x_res, y_res, x_row, frame,
-                                sys_alloc, sys_free,
+                                sys_alloc, sys_free, thnum,
                                 init_threads, term_threads,
                                 update_scene, render_scene);
 

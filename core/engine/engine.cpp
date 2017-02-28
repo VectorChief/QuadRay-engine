@@ -2404,7 +2404,7 @@ rt_void render_scene(rt_void *tdata, rt_si32 thnum, rt_si32 phase)
  */
 rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
                    rt_si32 x_res, rt_si32 y_res, rt_si32 x_row, rt_ui32 *frame,
-                   rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
+                   rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free, rt_si32 thnum,
                    rt_FUNC_INIT f_init, rt_FUNC_TERM f_term,
                    rt_FUNC_UPDATE f_update,
                    rt_FUNC_RENDER f_render,
@@ -2512,7 +2512,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
     scn->lock = this;
 
     /* create scene threads array */
-    thnum = RT_MAX(RT_THREADS_NUM, 1);
+    thnum = RT_MAX(thnum, 1);
+    this->thnum = thnum;
 
     tharr = (rt_SceneThread **)
             alloc(sizeof(rt_SceneThread *) * thnum, RT_ALIGN);
