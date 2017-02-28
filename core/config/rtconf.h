@@ -107,6 +107,8 @@
 #define RT_OPTS_INSERT_EXT2     (0 << 18)
 #define RT_OPTS_REMOVE          (0 << 19)
 
+#define RT_OPTS_STATIC          (1 << 31) /* update scene only once (debug) */
+
 /* bbox sorting (RT_OPTS_INSERT) and hidden surfaces removal (RT_OPTS_REMOVE)
  * optimizations have been turned off for poor scalability with larger scenes */
 

@@ -2591,6 +2591,11 @@ rt_void rt_Scene::render(rt_time time)
 {
     rt_si32 i;
 
+#if RT_OPTS_STATIC != 0
+    if ((opts & RT_OPTS_STATIC) == 0 || time == 0)
+    { /* -->---->-- skip update1 -->---->-- */
+#endif /* RT_OPTS_STATIC */
+
     /* reserve memory for temporary per-frame allocs */
     mpool = reserve(msize, RT_QUAD_ALIGN);
 
@@ -2855,6 +2860,10 @@ rt_void rt_Scene::render(rt_time time)
         amb[RT_A] += lgt->lgt->lum[0];
     }
 
+#if RT_OPTS_STATIC != 0
+    } /* --<----<-- skip update1 --<----<-- */
+#endif /* RT_OPTS_STATIC */
+
     /* multi-threaded render */
 #if RT_OPTS_THREAD != 0
     if ((opts & RT_OPTS_THREAD) != 0)
@@ -2866,6 +2875,11 @@ rt_void rt_Scene::render(rt_time time)
     {
         render_scene(this, thnum, 0);
     }
+
+#if RT_OPTS_STATIC != 0
+    if ((opts & RT_OPTS_STATIC) == 0)
+    { /* -->---->-- skip update2 -->---->-- */
+#endif /* RT_OPTS_STATIC */
 
     /* print state done */
     if (g_print)
@@ -2881,6 +2895,10 @@ rt_void rt_Scene::render(rt_time time)
     }
 
     release(mpool);
+
+#if RT_OPTS_STATIC != 0
+    } /* --<----<-- skip update2 --<----<-- */
+#endif /* RT_OPTS_STATIC */
 }
 
 /*
@@ -3172,6 +3190,21 @@ rt_si32 rt_Scene::set_simd(rt_si32 simd)
 rt_si32 rt_Scene::set_opts(rt_si32 opts)
 {
     this->opts = opts;
+
+    /* trigger update of the whole hierarchy,
+     * safe to reset time as "rootobj" never has an animator,
+     * "rootobj's" time is restored within the update */
+    rootobj.time = -1;
+
+    return opts;
+}
+
+/*
+ * Add runtime optimization flags.
+ */
+rt_si32 rt_Scene::add_opts(rt_si32 opts)
+{
+    this->opts |= opts;
 
     /* trigger update of the whole hierarchy,
      * safe to reset time as "rootobj" never has an animator,

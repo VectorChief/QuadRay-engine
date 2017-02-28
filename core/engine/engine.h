@@ -236,6 +236,7 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_si32     set_fsaa(rt_si32 fsaa);
     rt_si32     set_simd(rt_si32 simd);
     rt_si32     set_opts(rt_si32 opts);
+    rt_si32     add_opts(rt_si32 opts);
 
     rt_void     next_cam();
     rt_void     save_frame(rt_si32 index);

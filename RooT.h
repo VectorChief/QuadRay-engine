@@ -26,6 +26,7 @@ rt_si32     q_simd      = 0; /* SIMD quad-factor from command-line */
 rt_si32     s_type      = 0; /* SIMD sub-variant from command-line */
 rt_si32     w_size      = 1; /* Window-rect size from command-line */
 rt_si32     t_pool      = 0; /* Thread-pool size from command-line */
+rt_bool     u_mode      = RT_FALSE; /* updateoff from command-line */
 rt_bool     o_mode      = RT_FALSE; /* offscreen from command-line */
 rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
 
@@ -181,6 +182,11 @@ rt_si32 main_step()
 
     try
     {
+#if RT_OPTS_STATIC != 0
+        if (!u_mode)
+        { /* -->---->-- skip update0 -->---->-- */
+#endif /* RT_OPTS_STATIC */
+
         if (H_KEYS(RK_W))       sc[d]->update(cur_time, RT_CAMERA_MOVE_FORWARD);
         if (H_KEYS(RK_S))       sc[d]->update(cur_time, RT_CAMERA_MOVE_BACK);
         if (H_KEYS(RK_A))       sc[d]->update(cur_time, RT_CAMERA_MOVE_LEFT);
@@ -207,6 +213,10 @@ rt_si32 main_step()
             type = simd >> 8;
             simd = simd & 0xFF;
         }
+
+#if RT_OPTS_STATIC != 0
+        } /* --<----<-- skip update0 --<----<-- */
+#endif /* RT_OPTS_STATIC */
 
         if (T_KEYS(RK_F2))
         {
@@ -316,6 +326,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
         RT_LOGI(" -w n, override window-rect size, where new size is 1..8\n");
         RT_LOGI(" -t n, override thread-pool size, where new size <= 1000\n");
+        RT_LOGI(" -u, multi-threaded scene updates are turned off, static\n");
         RT_LOGI(" -o, offscreen frame mode, turns off window-rect updates\n");
         RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
         RT_LOGI("options -d n, -c n, -q n, -s n, ... , -a can be combined\n");
@@ -409,6 +420,11 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
+        if (k < argc && strcmp(argv[k], "-u") == 0 && !u_mode)
+        {
+            u_mode = RT_TRUE;
+            RT_LOGI("Threaded update once\n");
+        }
         if (k < argc && strcmp(argv[k], "-o") == 0 && !o_mode)
         {
             o_mode = RT_TRUE;
@@ -440,6 +456,14 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
 rt_si32 main_init()
 {
     rt_si32 i, n = RT_ARR_SIZE(sc_rt);
+
+#if RT_OPTS_STATIC != 0
+    if (u_mode)
+    {
+        i = d;
+        n = i + 1;
+    }
+#endif /* RT_OPTS_STATIC */
 
     for (i = 0; i < n; i++)
     {
@@ -474,6 +498,13 @@ rt_si32 main_init()
     {
         sc[d]->next_cam();
     }
+
+#if RT_OPTS_STATIC != 0
+    if (u_mode)
+    {
+        sc[d]->add_opts(RT_OPTS_STATIC);
+    }
+#endif /* RT_OPTS_STATIC */
 
     /* always draw empty frame before rendering any scenes */
     frame_to_screen(sc[d]->get_frame(), sc[d]->get_x_row());
