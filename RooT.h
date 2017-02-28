@@ -26,8 +26,8 @@ rt_si32     q_simd      = 0; /* SIMD quad-factor from command-line */
 rt_si32     s_type      = 0; /* SIMD sub-variant from command-line */
 rt_si32     w_size      = 1; /* Window-rect size from command-line */
 rt_si32     t_pool      = 0; /* Thread-pool size from command-line */
-rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
 rt_bool     o_mode      = RT_FALSE; /* offscreen from command-line */
+rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
 
 rt_si32     fsaa        = RT_FSAA_NO; /* no FSAA by default, -a enables */
 rt_si32     simd        = 0; /* default SIMD width (q*4) will be chosen */
@@ -41,9 +41,9 @@ rt_SCENE   *sc_rt[]     =
     &scn_demo03::sc_root,
 };
 
-rt_Scene   *sc[RT_ARR_SIZE(sc_rt)]  = {0};  /* scene array */
-rt_si32     d                       = 2;    /* demo-index */
-rt_si32     c                       = 0;    /* camera-num */
+rt_Scene   *sc[RT_ARR_SIZE(sc_rt)]  = {0};                  /* scene array */
+rt_si32     d                       = RT_ARR_SIZE(sc_rt)-1; /* demo-index */
+rt_si32     c                       = 0;                    /* camera-num */
 
 /******************************************************************************/
 /********************************   PLATFORM   ********************************/
@@ -195,14 +195,23 @@ rt_si32 main_step()
         {
             sc[d]->print_state();
         }
+        if (T_KEYS(RK_F3))
+        {
+            sc[d]->next_cam();
+        }
+        if (T_KEYS(RK_F11))
+        {
+            d = (d + 1) % RT_ARR_SIZE(sc_rt);
+            fsaa = sc[d]->set_fsaa(fsaa);
+            simd = sc[d]->set_simd(simd | type << 8);
+            type = simd >> 8;
+            simd = simd & 0xFF;
+        }
+
         if (T_KEYS(RK_F2))
         {
             fsaa = RT_FSAA_4X - fsaa;
             fsaa = sc[d]->set_fsaa(fsaa);
-        }
-        if (T_KEYS(RK_F3))
-        {
-            sc[d]->next_cam();
         }
         if (T_KEYS(RK_F4))
         {
@@ -238,14 +247,6 @@ rt_si32 main_step()
                 }
             }
             while (simd != snew);
-        }
-        if (T_KEYS(RK_F11))
-        {
-            d = (d + 1) % RT_ARR_SIZE(sc_rt);
-            fsaa = sc[d]->set_fsaa(fsaa);
-            simd = sc[d]->set_simd(simd | type << 8);
-            type = simd >> 8;
-            simd = simd & 0xFF;
         }
         if (T_KEYS(RK_F12))
         {
@@ -315,6 +316,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
         RT_LOGI(" -w n, override window-rect size, where new size is 1..8\n");
         RT_LOGI(" -t n, override thread-pool size, where new size <= 1000\n");
+        RT_LOGI(" -o, offscreen frame mode, turns off window-rect updates\n");
         RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
         RT_LOGI("options -d n, -c n, -q n, -s n, ... , -a can be combined\n");
         RT_LOGI("---------------------------------------------------------\n");
@@ -325,7 +327,8 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         if (k < argc && strcmp(argv[k], "-d") == 0 && ++k < argc)
         {
             d = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1 && d >= 0 && d <= 9)
+            if (strlen(argv[k]) == 1 && d >= 0 && d <= 9
+            && d < RT_ARR_SIZE(sc_rt))
             {
                 RT_LOGI("Demo-index overridden: %d\n", d);
             }
@@ -406,15 +409,15 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (k < argc && strcmp(argv[k], "-a") == 0 && !a_mode)
-        {
-            a_mode = RT_TRUE;
-            RT_LOGI("Antialiasing enabled\n");
-        }
         if (k < argc && strcmp(argv[k], "-o") == 0 && !o_mode)
         {
             o_mode = RT_TRUE;
             RT_LOGI("Offscreen frame mode\n");
+        }
+        if (k < argc && strcmp(argv[k], "-a") == 0 && !a_mode)
+        {
+            a_mode = RT_TRUE;
+            RT_LOGI("Antialiasing enabled\n");
         }
     }
 

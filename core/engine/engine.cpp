@@ -3151,21 +3151,6 @@ rt_si32 rt_Scene::set_fsaa(rt_si32 fsaa)
 }
 
 /*
- * Set runtime optimization flags.
- */
-rt_si32 rt_Scene::set_opts(rt_si32 opts)
-{
-    this->opts = opts;
-
-    /* trigger update of the whole hierarchy,
-     * safe to reset time as "rootobj" never has an animator,
-     * "rootobj's" time is restored within the update */
-    rootobj.time = -1;
-
-    return opts;
-}
-
-/*
  * Set current runtime SIMD target with "simd" equal to
  * SIMD width (4, 8, 16, 32, 64) in 0th (lowest) byte
  * and SIMD type (1, 2, 4, 8) in 1st (higher) byte.
@@ -3179,6 +3164,21 @@ rt_si32 rt_Scene::set_simd(rt_si32 simd)
     simd_width = simd_width / (RT_ELEMENT / 32);
 
     return simd;
+}
+
+/*
+ * Set runtime optimization flags.
+ */
+rt_si32 rt_Scene::set_opts(rt_si32 opts)
+{
+    this->opts = opts;
+
+    /* trigger update of the whole hierarchy,
+     * safe to reset time as "rootobj" never has an animator,
+     * "rootobj's" time is restored within the update */
+    rootobj.time = -1;
+
+    return opts;
 }
 
 /*
