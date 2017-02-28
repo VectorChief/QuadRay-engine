@@ -24,12 +24,12 @@ rt_si32     thnum       = RT_THREADS_NUM;
 
 rt_si32     q_simd      = 0; /* SIMD quad-factor from command-line */
 rt_si32     s_type      = 0; /* SIMD sub-variant from command-line */
-rt_si32     w_size      = 1; /* Window rect-size from command-line */
-rt_si32     t_pool      = 0; /* Thread pool-size from command-line */
+rt_si32     w_size      = 1; /* Window-rect size from command-line */
+rt_si32     t_pool      = 0; /* Thread-pool size from command-line */
 rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
 
 rt_si32     fsaa        = RT_FSAA_NO; /* no FSAA by default, -a enables */
-rt_si32     simd        = 0; /* default SIMD width will be chosen (q*4) */
+rt_si32     simd        = 0; /* default SIMD width (q*4) will be chosen */
 rt_si32     type        = 0; /* default SIMD sub-variant will be chosen */
 rt_si32     hide        = 0; /* hide all numbers on the screen if set 1 */
 
@@ -309,8 +309,8 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -c n, setup camera in current scene, where n is 1 digit\n");
         RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
         RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
-        RT_LOGI(" -w n, override window rect-size, where new size is 1..8\n");
-        RT_LOGI(" -t n, override thread pool-size, where new size <= 1000\n");
+        RT_LOGI(" -w n, override window-rect size, where new size is 1..8\n");
+        RT_LOGI(" -t n, override thread-pool size, where new size <= 1000\n");
         RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
         RT_LOGI("options -d n, -c n, -q n, -s n, ... , -a can be combined\n");
         RT_LOGI("---------------------------------------------------------\n");
@@ -378,11 +378,11 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             if (strlen(argv[k]) == 1
             && (w_size == 1 || w_size == 2 || w_size == 4 || w_size == 8))
             {
-                RT_LOGI("Window rect-size overridden: %d\n", w_size);
+                RT_LOGI("Window-rect size overridden: %d\n", w_size);
             }
             else
             {
-                RT_LOGI("Window rect-size value out of range\n");
+                RT_LOGI("Window-rect size value out of range\n");
                 return 0;
             }
         }
@@ -394,11 +394,11 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             }
             if (t_pool >= 0 && t_pool <= 1000)
             {
-                RT_LOGI("Thread pool-size overridden: %d\n", t_pool);
+                RT_LOGI("Thread-pool size overridden: %d\n", t_pool);
             }
             else
             {
-                RT_LOGI("Thread pool-size value out of range\n");
+                RT_LOGI("Thread-pool size value out of range\n");
                 return 0;
             }
         }

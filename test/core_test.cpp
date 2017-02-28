@@ -43,7 +43,7 @@ rt_ui32    *frame       = RT_NULL;
 
 rt_si32     q_simd      = 0; /* SIMD quad-factor from command-line */
 rt_si32     s_type      = 0; /* SIMD sub-variant from command-line */
-rt_si32     w_size      = 1; /* Window rect-size from command-line */
+rt_si32     w_size      = 1; /* Window-rect size from command-line */
 rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
 
 rt_bool     i_mode      = RT_FALSE; /* imaging mode from command-line */
@@ -52,7 +52,7 @@ rt_bool     v_mode      = RT_FALSE; /* verbose mode from command-line */
 rt_si32     t_diff      = 3;      /* diff-threshold from command-line */
 
 rt_si32     fsaa        = RT_FSAA_NO; /* no FSAA by default, -a enables */
-rt_si32     simd        = 0; /* default SIMD width will be chosen (q*4) */
+rt_si32     simd        = 0; /* default SIMD width (q*4) will be chosen */
 rt_si32     type        = 0; /* default SIMD sub-variant will be chosen */
 
 rt_Scene   *scene       = RT_NULL;
@@ -93,7 +93,7 @@ rt_si32 frame_cmp(rt_ui32 *f1, rt_ui32 *f2)
 {
     rt_si32 i, j, ret = 0;
 
-    /* print first or all (verbose) pixel spots above diff threshold,
+    /* print first or all (verbose) pixel spots above diff-threshold,
      * ignore isolated pixels if pixhunt mode is disabled (default) */
     for (j = 0; j < y_res; j++)
     {
@@ -147,7 +147,7 @@ rt_void frame_dff(rt_ui32 *fd, rt_ui32 *fs)
 {
     rt_si32 i;
 
-    /* save diff, max all pixels above diff threshold
+    /* save diff, max all pixels above diff-threshold
      * if pixhunt mode is enabled */
     for (i = 0; i < y_res * x_row; i++, fd++, fs++)
     {
@@ -534,8 +534,8 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -t tex1 tex2 texn, convert images in data/textures/tex*\n");
         RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
         RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
-        RT_LOGI(" -w n, override window rect-size, where new size is 1..8\n");
-        RT_LOGI(" -d n, override diff threshold, where n is new diff 0..9\n");
+        RT_LOGI(" -w n, override window-rect size, where new size is 1..8\n");
+        RT_LOGI(" -d n, override diff-threshold, where n is new diff 0..9\n");
         RT_LOGI(" -p, enable pixhunt mode, print isolated pixels (> diff)\n");
         RT_LOGI(" -v, enable verbose mode, print all pixel spots (> diff)\n");
         RT_LOGI(" -i, enable imaging mode, save images before-after-diffs\n");
@@ -601,11 +601,11 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             if (strlen(argv[k]) == 1
             && (w_size == 1 || w_size == 2 || w_size == 4 || w_size == 8))
             {
-                RT_LOGI("Window rect-size overridden: %d\n", w_size);
+                RT_LOGI("Window-rect size overridden: %d\n", w_size);
             }
             else
             {
-                RT_LOGI("Window rect-size value out of range\n");
+                RT_LOGI("Window-rect size value out of range\n");
                 return 0;
             }
         }
@@ -614,11 +614,11 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             t_diff = argv[k][0] - '0';
             if (strlen(argv[k]) == 1 && t_diff >= 0 && t_diff <= 9)
             {
-                RT_LOGI("Diff threshold overridden: %d\n", t_diff);
+                RT_LOGI("Diff-threshold overridden: %d\n", t_diff);
             }
             else
             {
-                RT_LOGI("Diff threshold value out of range\n");
+                RT_LOGI("Diff-threshold value out of range\n");
                 return 0;
             }
         }
