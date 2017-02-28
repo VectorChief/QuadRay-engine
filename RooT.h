@@ -27,6 +27,7 @@ rt_si32     s_type      = 0; /* SIMD sub-variant from command-line */
 rt_si32     w_size      = 1; /* Window-rect size from command-line */
 rt_si32     t_pool      = 0; /* Thread-pool size from command-line */
 rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
+rt_bool     o_mode      = RT_FALSE; /* offscreen from command-line */
 
 rt_si32     fsaa        = RT_FSAA_NO; /* no FSAA by default, -a enables */
 rt_si32     simd        = 0; /* default SIMD width (q*4) will be chosen */
@@ -289,7 +290,10 @@ rt_si32 main_step()
         return 0;
     }
 
-    frame_to_screen(sc[d]->get_frame(), sc[d]->get_x_row());
+    if (!o_mode)
+    {
+        frame_to_screen(sc[d]->get_frame(), sc[d]->get_x_row());
+    }
 
     return 1;
 }
@@ -407,6 +411,11 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             a_mode = RT_TRUE;
             RT_LOGI("Antialiasing enabled\n");
         }
+        if (k < argc && strcmp(argv[k], "-o") == 0 && !o_mode)
+        {
+            o_mode = RT_TRUE;
+            RT_LOGI("Offscreen frame mode\n");
+        }
     }
 
     simd = q_simd * 4;
@@ -462,6 +471,9 @@ rt_si32 main_init()
     {
         sc[d]->next_cam();
     }
+
+    /* always draw empty frame before rendering any scenes */
+    frame_to_screen(sc[d]->get_frame(), sc[d]->get_x_row());
 
     return 1;
 }

@@ -2460,6 +2460,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
         }
     }
 
+    memset(frame, 0, x_row * y_res * sizeof(rt_ui32));
+
     /* init framebuffer's dimensions and pointer */
     this->x_res = x_res;
     this->y_res = y_res;
