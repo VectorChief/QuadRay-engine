@@ -25,7 +25,11 @@ rt_si32     thnum       = RT_THREADS_NUM;
 rt_si32     q_simd      = 0; /* SIMD quad-factor from command-line */
 rt_si32     s_type      = 0; /* SIMD sub-variant from command-line */
 rt_si32     t_pool      = 0; /* Thread-pool size from command-line */
+#if RT_FULLSCREEN == 1
+rt_si32     w_size      = 0; /* Window-rect size from command-line */
+#else  /* RT_FULLSCREEN */
 rt_si32     w_size      = 1; /* Window-rect size from command-line */
+#endif /* RT_FULLSCREEN */
 rt_si32     x_new       = 0; /* New x-resolution from command-line */
 rt_si32     y_new       = 0; /* New y-resolution from command-line */
 
@@ -328,7 +332,8 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
         RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
         RT_LOGI(" -t n, override thread-pool size, where new size <= 1000\n");
-        RT_LOGI(" -w n, override window-rect size, where new size is 1..8\n");
+        RT_LOGI(" -w n, override window-rect size, where new size is 1..9\n");
+        RT_LOGI(" -w 0, activate window-less mode, full native resolution\n");
         RT_LOGI(" -x n, override x-resolution, where new x-value <= 65535\n");
         RT_LOGI(" -y n, override y-resolution, where new y-value <= 65535\n");
         RT_LOGI(" -u, multi-threaded scene updates are turned off, static\n");
@@ -414,8 +419,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         if (k < argc && strcmp(argv[k], "-w") == 0 && ++k < argc)
         {
             w_size = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1
-            && (w_size == 1 || w_size == 2 || w_size == 4 || w_size == 8))
+            if (strlen(argv[k]) == 1 && w_size >= 0 && w_size <= 9)
             {
                 RT_LOGI("Window-rect size overridden: %d\n", w_size);
             }
@@ -480,8 +484,8 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
     type = s_type * 1;
     fsaa = a_mode ? RT_FSAA_4X : RT_FSAA_NO;
 
-    x_res = x_res * w_size;
-    y_res = y_res * w_size;
+    x_res = x_res * (w_size != 0 ? w_size : 1);
+    y_res = y_res * (w_size != 0 ? w_size : 1);
     x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
 
     thnum = t_pool != 0 ? t_pool : thnum;

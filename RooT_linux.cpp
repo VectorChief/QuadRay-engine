@@ -83,12 +83,21 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         return 1;
     }
 
-    /* acquire depth */
-    rt_si32 screen = DefaultScreen(disp);
-    depth = DefaultDepth(disp, screen);
+    /* acquire screen depth */
+    rt_si32 scr_id = DefaultScreen(disp);
+    depth = DefaultDepth(disp, scr_id);
+
+    if (w_size == 0)
+    {
+        /* acquire fullscreen dimensions */
+        Screen *screen = ScreenOfDisplay(disp, scr_id);
+        x_res = WidthOfScreen(screen);
+        y_res = HeightOfScreen(screen);
+        x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
+    }
 
     /* create simple window */
-    win = XCreateSimpleWindow(disp, RootWindow(disp, screen),
+    win = XCreateSimpleWindow(disp, RootWindow(disp, scr_id),
                                     10, 10, x_res, y_res, 1, 0, 0);
     if ((rt_pntr)win == NULL)
     {
@@ -104,15 +113,15 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     sh.min_height = sh.max_height = y_res;
     XSetWMNormalHints(disp, win, &sh);
 
-#if RT_FULLSCREEN == 1
-
-    /* activate fullscreen */
-    Atom atom  = XInternAtom(disp, "_NET_WM_STATE", False);
-    Atom state = XInternAtom(disp, "_NET_WM_STATE_FULLSCREEN", False);
-    XChangeProperty(disp, win, atom, XA_ATOM, 32,
-                    PropModeReplace, (rt_byte *)&state, 1);
-
-#endif /* RT_FULLSCREEN */
+    if (w_size == 0)
+    {
+        /* activate fullscreen */
+        Atom atom  = XInternAtom(disp, "_NET_WM_STATE", False);
+        Atom state = XInternAtom(disp, "_NET_WM_STATE_FULLSCREEN", False);
+        XChangeProperty(disp, win, atom, XA_ATOM, 32,
+                        PropModeReplace, (rt_byte *)&state, 1);
+        RT_LOGI("Window-less mode on!\n");
+    }
 
     /* set title and events */
     XStoreName(disp, win, title);
@@ -121,11 +130,23 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     XMapWindow(disp, win);
     XSync(disp, False);
 
+    RT_LOGI("Window-rect X-res = %4d, Y-res = %4d\n", x_res, y_res);
+
+    if (w_size == 0)
+    {
+        /* override frame resolution in fullscreen mode */
+        x_res = x_new != 0 ? x_new : x_res;
+        y_res = y_new != 0 ? y_new : y_res;
+        x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
+    }
+
+    RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d\n", x_res, y_res);
+
     /* create image,
      * use preconfigured x_res, y_res for rendering,
      * window resizing in runtime is not supported for now */
     ximage = XShmCreateImage(disp,
-                             DefaultVisual(disp, screen),
+                             DefaultVisual(disp, scr_id),
                              depth,
                              ZPixmap,  NULL, &shminfo,
                              x_row, y_res);
