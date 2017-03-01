@@ -24,8 +24,9 @@ rt_si32     thnum       = RT_THREADS_NUM;
 
 rt_si32     q_simd      = 0; /* SIMD quad-factor from command-line */
 rt_si32     s_type      = 0; /* SIMD sub-variant from command-line */
-rt_si32     w_size      = 1; /* Window-rect size from command-line */
 rt_si32     t_pool      = 0; /* Thread-pool size from command-line */
+rt_si32     w_size      = 1; /* Window-rect size from command-line */
+
 rt_bool     u_mode      = RT_FALSE; /* updateoff from command-line */
 rt_bool     o_mode      = RT_FALSE; /* offscreen from command-line */
 rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
@@ -324,8 +325,8 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -c n, setup camera in current scene, where n is 1 digit\n");
         RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
         RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
-        RT_LOGI(" -w n, override window-rect size, where new size is 1..8\n");
         RT_LOGI(" -t n, override thread-pool size, where new size <= 1000\n");
+        RT_LOGI(" -w n, override window-rect size, where new size is 1..8\n");
         RT_LOGI(" -u, multi-threaded scene updates are turned off, static\n");
         RT_LOGI(" -o, offscreen frame mode, turns off window-rect updates\n");
         RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
@@ -390,20 +391,6 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (k < argc && strcmp(argv[k], "-w") == 0 && ++k < argc)
-        {
-            w_size = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1
-            && (w_size == 1 || w_size == 2 || w_size == 4 || w_size == 8))
-            {
-                RT_LOGI("Window-rect size overridden: %d\n", w_size);
-            }
-            else
-            {
-                RT_LOGI("Window-rect size value out of range\n");
-                return 0;
-            }
-        }
         if (k < argc && strcmp(argv[k], "-t") == 0 && ++k < argc)
         {
             for (l = strlen(argv[k]), r = 1; l > 0; l--, r *= 10)
@@ -420,10 +407,24 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
+        if (k < argc && strcmp(argv[k], "-w") == 0 && ++k < argc)
+        {
+            w_size = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1
+            && (w_size == 1 || w_size == 2 || w_size == 4 || w_size == 8))
+            {
+                RT_LOGI("Window-rect size overridden: %d\n", w_size);
+            }
+            else
+            {
+                RT_LOGI("Window-rect size value out of range\n");
+                return 0;
+            }
+        }
         if (k < argc && strcmp(argv[k], "-u") == 0 && !u_mode)
         {
             u_mode = RT_TRUE;
-            RT_LOGI("Threaded update once\n");
+            RT_LOGI("Threaded updates off\n");
         }
         if (k < argc && strcmp(argv[k], "-o") == 0 && !o_mode)
         {
