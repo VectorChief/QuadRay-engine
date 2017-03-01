@@ -80,13 +80,12 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     /* init internal variables from command-line args */
     args_init(__argc, __argv);
 
-    RT_LOGI("Window-rect X-res = %4d, Y-res = %4d\n", x_res, y_res);
-
     DIBinfo.bmiHeader.biWidth     = +x_row;
     DIBinfo.bmiHeader.biHeight    = -y_res;
     DIBinfo.bmiHeader.biSizeImage = (x_row * y_res * sizeof(rt_ui32));
 
-    RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d\n", x_res, y_res);
+    RT_LOGI("-------------------  WINDOW CONFIG  --------------------\n");
+    RT_LOGI("Window-rect X-res = %4d, Y-res = %4d\n", x_res, y_res);
 
     /* create window and register its class */
     MSG msg;

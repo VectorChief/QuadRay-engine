@@ -96,6 +96,9 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
     }
 
+    RT_LOGI("-------------------  WINDOW CONFIG  --------------------\n");
+    RT_LOGI("Window-rect X-res = %4d, Y-res = %4d\n", x_res, y_res);
+
     /* create simple window */
     win = XCreateSimpleWindow(disp, RootWindow(disp, scr_id),
                                     10, 10, x_res, y_res, 1, 0, 0);
@@ -120,7 +123,8 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         Atom state = XInternAtom(disp, "_NET_WM_STATE_FULLSCREEN", False);
         XChangeProperty(disp, win, atom, XA_ATOM, 32,
                         PropModeReplace, (rt_byte *)&state, 1);
-        RT_LOGI("Window-less mode on!\n");
+
+        RT_LOGI("Window-less mode on! (fullscreen)\n");
 
         /* create empty cursor from pixmap */
         static rt_char bitmap[8] = {0};
@@ -142,8 +146,6 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     XMapWindow(disp, win);
     XSync(disp, False);
 
-    RT_LOGI("Window-rect X-res = %4d, Y-res = %4d\n", x_res, y_res);
-
     if (w_size == 0)
     {
         /* override frame resolution in fullscreen mode */
@@ -151,8 +153,6 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         y_res = y_new != 0 ? y_new : y_res;
         x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
     }
-
-    RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d\n", x_res, y_res);
 
     /* create image,
      * use preconfigured x_res, y_res for rendering,

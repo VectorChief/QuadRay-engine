@@ -531,7 +531,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
     if (argc >= 2)
     {
-        RT_LOGI("---------------------------------------------------------\n");
+        RT_LOGI("--------------------------------------------------------\n");
         RT_LOGI("Usage options are given below:\n");
         RT_LOGI(" -b n, specify subtest-num at which testing begins, n>=1\n");
         RT_LOGI(" -e n, specify subtest-num at which testing ends, n<=max\n");
@@ -547,7 +547,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
         RT_LOGI(" -t tex1 tex2 texn, convert images in data/textures/tex*\n");
         RT_LOGI("options -b, -e, .., -a can be combined, -t is standalone\n");
-        RT_LOGI("---------------------------------------------------------\n");
+        RT_LOGI("--------------------------------------------------------\n");
     }
 
     if (argc >= 3 && strcmp(argv[1], "-t") == 0)
@@ -750,11 +750,18 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
     frame = (rt_ui32 *)sys_alloc(x_row * y_res * sizeof(rt_ui32));
 
+    RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
+    RT_LOGI("SIMD width/type = %4dv%d, FSAA = %dx\n", simd*32, type, fsaa*4);
+    RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d\n", x_res, y_res);
+    RT_LOGI("Framebuffer X-row = %4d, ptr = %016"PR_Z"X\n",
+                                                      x_row, (rt_full)frame);
+
     rt_si32 i, j;
 
     for (i = n_init; i <= n_done; i++)
     {
-        RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n", i+1);
+        RT_LOGI("-------------------  RUN LEVEL = %2d  -------------------\n",
+                                                                          i+1);
         try
         {
             scene = RT_NULL;
@@ -835,8 +842,8 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         {
             RT_LOGE("Exception: %s\n", e.err);
         }
-        RT_LOGI("---------------------------------- simd = %4dv%d ---\n",
-                                                    simd * 32, type);
+        RT_LOGI("-------------------------------------- simd = %4dv%d ---\n",
+                                                        simd * 32, type);
     }
 
     sys_free(frame, x_row * y_res * sizeof(rt_ui32));

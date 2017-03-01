@@ -142,9 +142,11 @@ rt_time last_time = 0;
 rt_time cur_time = 0;
 
 /* frame counter variables */
+rt_si32 scr = 0;
 rt_real fps = 0.0f;
 rt_si32 cnt = 0;
-rt_si32 scr = 0;
+rt_real avg = 0.0f;
+rt_si32 glb = 0;
 
 /* virtual keys arrays */
 rt_byte r_to_p[KEY_MASK + 1];
@@ -183,6 +185,7 @@ rt_si32 main_step()
     {
         fps = (rt_real)cnt * 1000 / (cur_time - last_time);
         RT_LOGI("FPS = %.1f\n", fps);
+        glb += cnt;
         cnt = 0;
         last_time = cur_time;
     }
@@ -325,7 +328,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
 
     if (argc >= 2)
     {
-        RT_LOGI("---------------------------------------------------------\n");
+        RT_LOGI("--------------------------------------------------------\n");
         RT_LOGI("Usage options are given below:\n");
         RT_LOGI(" -d n, specify default demo scene, where 1 <= n <= limit\n");
         RT_LOGI(" -c n, specify camera in current scene, where n <= 65535\n");
@@ -340,7 +343,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -o, offscreen frame mode, turns off window-rect updates\n");
         RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
         RT_LOGI("options -d n, -c n, -q n, -s n, ... , -a can be combined\n");
-        RT_LOGI("---------------------------------------------------------\n");
+        RT_LOGI("--------------------------------------------------------\n");
     }
 
     for (k = 1; k < argc; k++)
@@ -559,6 +562,16 @@ rt_si32 main_init()
     /* always draw empty frame before rendering any scenes */
     frame_to_screen(sc[d]->get_frame(), sc[d]->get_x_row());
 
+    RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
+    RT_LOGI("SIMD width/type = %4dv%d, FSAA = %dx\n", simd*32, type, fsaa*4);
+    RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d\n", x_res, y_res);
+    RT_LOGI("Framebuffer X-row = %4d, ptr = %016"PR_Z"X\n",
+                            sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
+    RT_LOGI("Number-of-threads = %4d, offscr = %d, updoff = %d\n",
+                                                      thnum, o_mode, u_mode);
+
+    RT_LOGI("----------------------  FPS LOG  -----------------------\n");
+
     return 1;
 }
 
@@ -585,6 +598,11 @@ rt_si32 main_term()
             return 0;
         }
     }
+
+    RT_LOGI("----------------------  FPS AVG  -----------------------\n");
+
+    avg = (rt_real)(glb + cnt) * 1000 / cur_time;
+    RT_LOGI("AVG = %.1f\n", avg);
 
     return 1;
 }
