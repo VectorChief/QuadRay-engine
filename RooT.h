@@ -142,6 +142,8 @@ rt_pstr *estr = RT_NULL;
 rt_time init_time = 0;
 rt_time last_time = 0;
 rt_time cur_time = 0;
+rt_time run_time = 0;
+rt_bool switched = 0;
 
 /* frame counter variables */
 rt_si32 scr = 0;
@@ -221,6 +223,7 @@ rt_si32 main_step()
         if (T_KEYS(RK_F3))
         {
             sc[d]->next_cam();
+            switched = 1;
         }
         if (T_KEYS(RK_F11))
         {
@@ -229,6 +232,7 @@ rt_si32 main_step()
             simd = sc[d]->set_simd(simd | type << 8);
             type = simd >> 8;
             simd = simd & 0xFF;
+            switched = 1;
         }
 
 #if RT_OPTS_STATIC != 0
@@ -239,6 +243,7 @@ rt_si32 main_step()
         {
             fsaa = RT_FSAA_4X - fsaa;
             fsaa = sc[d]->set_fsaa(fsaa);
+            switched = 1;
         }
         if (T_KEYS(RK_F4))
         {
@@ -253,6 +258,7 @@ rt_si32 main_step()
                 tnew = sc[d]->set_simd(simd | type << 8) >> 8;
             }
             while (type != tnew);
+            switched = 1;
         }
         if (T_KEYS(RK_F8))
         {
@@ -274,6 +280,7 @@ rt_si32 main_step()
                 }
             }
             while (simd != snew);
+            switched = 1;
         }
         if (T_KEYS(RK_F12))
         {
@@ -316,6 +323,39 @@ rt_si32 main_step()
         }
 
         return 0;
+    }
+
+    if (switched)
+    {
+        switched = 0;
+
+        RT_LOGI("----------------------  FPS AVG  -----------------------\n");
+        if (last_time - run_time)
+        {
+            avg = (rt_real)glb * 1000 / (last_time - run_time);
+        }
+        else
+        {
+            avg = (rt_real)0;
+        }
+        RT_LOGI("AVG = %.1f\n", avg);
+
+        RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
+        RT_LOGI("SIMD width/type = %4dv%d, AAmode = %d, numoff = %d\n",
+                                           simd*32, type, fsaa*4, hide);
+        RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d\n", x_res, y_res);
+        RT_LOGI("Framebuffer X-row = %4d, ptr = %016"PR_Z"X\n",
+                       sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
+        RT_LOGI("Number-of-threads = %4d, offscr = %d, updoff = %d\n",
+                                                 thnum, o_mode, u_mode);
+
+        RT_LOGI("----------------------  FPS LOG  -----------------------\n");
+
+        glb = 0;
+        run_time = cur_time;
+
+        cnt = 0;
+        last_time = cur_time;
     }
 
     if (!o_mode)
@@ -621,7 +661,14 @@ rt_si32 main_term()
     }
 
     RT_LOGI("----------------------  FPS AVG  -----------------------\n");
-    avg = (rt_real)(glb + cnt) * 1000 / cur_time;
+    if (last_time - run_time)
+    {
+        avg = (rt_real)glb * 1000 / (last_time - run_time);
+    }
+    else
+    {
+        avg = (rt_real)0;
+    }
     RT_LOGI("AVG = %.1f\n", avg);
 
     return 1;
