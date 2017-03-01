@@ -35,6 +35,7 @@ rt_si32     y_new       = 0; /* New y-resolution from command-line */
 
 rt_bool     u_mode      = RT_FALSE; /* updateoff from command-line */
 rt_bool     o_mode      = RT_FALSE; /* offscreen from command-line */
+rt_bool     h_mode      = RT_FALSE; /* hide mode from command-line */
 rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
 
 rt_si32     fsaa        = RT_FSAA_NO; /* no FSAA by default, -a enables */
@@ -340,7 +341,8 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -x n, override x-resolution, where new x-value <= 65535\n");
         RT_LOGI(" -y n, override y-resolution, where new y-value <= 65535\n");
         RT_LOGI(" -u, multi-threaded scene updates are turned off, static\n");
-        RT_LOGI(" -o, offscreen frame mode, turns off window-rect updates\n");
+        RT_LOGI(" -o, offscreen-frame mode, turns off window-rect updates\n");
+        RT_LOGI(" -h, hide-screen-num mode, turns off info-number drawing\n");
         RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
         RT_LOGI("options -d n, -c n, -q n, -s n, ... , -a can be combined\n");
         RT_LOGI("--------------------------------------------------------\n");
@@ -481,7 +483,12 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         if (k < argc && strcmp(argv[k], "-o") == 0 && !o_mode)
         {
             o_mode = RT_TRUE;
-            RT_LOGI("Offscreen frame mode\n");
+            RT_LOGI("Offscreen-frame mode\n");
+        }
+        if (k < argc && strcmp(argv[k], "-h") == 0 && !h_mode)
+        {
+            h_mode = RT_TRUE;
+            RT_LOGI("Hide-screen-num mode\n");
         }
         if (k < argc && strcmp(argv[k], "-a") == 0 && !a_mode)
         {
@@ -493,6 +500,8 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
     simd = q_simd * 4;
     type = s_type * 1;
     fsaa = a_mode ? RT_FSAA_4X : RT_FSAA_NO;
+
+    hide = h_mode;
 
     x_res = x_res * (w_size != 0 ? w_size : 1);
     y_res = y_res * (w_size != 0 ? w_size : 1);
@@ -562,13 +571,13 @@ rt_si32 main_init()
     /* always draw empty frame before rendering any scenes */
     frame_to_screen(sc[d]->get_frame(), sc[d]->get_x_row());
 
-    RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-    RT_LOGI("SIMD width/type = %4dv%d, FSAA = %dx\n", simd*32, type, fsaa*4);
+    RT_LOGI("SIMD width/type = %4dv%d, AAmode = %d, numoff = %d\n",
+                                       simd*32, type, fsaa*4, hide);
     RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d\n", x_res, y_res);
     RT_LOGI("Framebuffer X-row = %4d, ptr = %016"PR_Z"X\n",
-                            sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
+                   sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
     RT_LOGI("Number-of-threads = %4d, offscr = %d, updoff = %d\n",
-                                                      thnum, o_mode, u_mode);
+                                             thnum, o_mode, u_mode);
 
     RT_LOGI("----------------------  FPS LOG  -----------------------\n");
 

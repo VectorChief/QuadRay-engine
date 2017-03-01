@@ -96,7 +96,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
     }
 
-    RT_LOGI("-------------------  WINDOW CONFIG  --------------------\n");
+    RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
     RT_LOGI("Window-rect X-res = %4d, Y-res = %4d\n", x_res, y_res);
 
     /* create simple window */

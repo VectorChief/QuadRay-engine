@@ -44,6 +44,7 @@ rt_ui32    *frame       = RT_NULL;
 rt_si32     q_simd      = 0; /* SIMD quad-factor from command-line */
 rt_si32     s_type      = 0; /* SIMD sub-variant from command-line */
 rt_si32     w_size      = 1; /* Window-rect size from command-line */
+rt_bool     h_mode      = RT_FALSE; /* show mode from command-line */
 rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
 
 rt_bool     i_mode      = RT_FALSE;     /* imaging mode from command-line */
@@ -544,6 +545,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -v, enable verbose mode, print all pixel spots (> diff)\n");
         RT_LOGI(" -p, enable pixhunt mode, print isolated pixels (> diff)\n");
         RT_LOGI(" -i, enable imaging mode, save images before-after-diffs\n");
+        RT_LOGI(" -h, show-screen-num mode, activates info-number drawing\n");
         RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
         RT_LOGI(" -t tex1 tex2 texn, convert images in data/textures/tex*\n");
         RT_LOGI("options -b, -e, .., -a can be combined, -t is standalone\n");
@@ -714,6 +716,11 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             i_mode = RT_TRUE;
             RT_LOGI("Imaging mode enabled\n");
         }
+        if (k < argc && strcmp(argv[k], "-h") == 0 && !h_mode)
+        {
+            h_mode = RT_TRUE;
+            RT_LOGI("Show-screen-num mode\n");
+        }
         if (k < argc && strcmp(argv[k], "-a") == 0 && !a_mode)
         {
             a_mode = RT_TRUE;
@@ -751,10 +758,11 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     frame = (rt_ui32 *)sys_alloc(x_row * y_res * sizeof(rt_ui32));
 
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-    RT_LOGI("SIMD width/type = %4dv%d, FSAA = %dx\n", simd*32, type, fsaa*4);
+    RT_LOGI("SIMD width/type = %4dv%d, AAmode = %d, numoff = %d\n",
+                                    simd*32, type, fsaa*4, !h_mode);
     RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d\n", x_res, y_res);
     RT_LOGI("Framebuffer X-row = %4d, ptr = %016"PR_Z"X\n",
-                                                      x_row, (rt_full)frame);
+                                             x_row, (rt_full)frame);
 
     rt_si32 i, j;
 
@@ -784,6 +792,15 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             time2 = get_time();
             tN = time2 - time1;
             RT_LOGI("Time N = %d\n", (rt_si32)tN);
+
+            if (h_mode)
+            {
+                scene->render_num(x_res-10, 10, -1, 2, (rt_si32)0);
+                scene->render_num(x_res-10, 34, -1, 2, (rt_si32)fsaa * 4
+                                                       / (RT_ELEMENT / 32));
+                scene->render_num(      10, 10, +1, 2, (rt_si32)simd * 32);
+                scene->render_num(      10, 34, +1, 2, (rt_si32)type);
+            }
 
             if (i_mode)
             {
@@ -815,6 +832,15 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             time2 = get_time();
             tF = time2 - time1;
             RT_LOGI("Time F = %d\n", (rt_si32)tF);
+
+            if (h_mode)
+            {
+                scene->render_num(x_res-10, 10, -1, 2, (rt_si32)0);
+                scene->render_num(x_res-10, 34, -1, 2, (rt_si32)fsaa * 4
+                                                       / (RT_ELEMENT / 32));
+                scene->render_num(      10, 10, +1, 2, (rt_si32)simd * 32);
+                scene->render_num(      10, 34, +1, 2, (rt_si32)type);
+            }
 
             if (i_mode)
             {
