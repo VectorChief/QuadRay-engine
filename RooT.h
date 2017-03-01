@@ -35,6 +35,7 @@ rt_si32     y_new       = 0; /* New y-resolution from command-line */
 
 rt_bool     u_mode      = RT_FALSE; /* updateoff from command-line */
 rt_bool     o_mode      = RT_FALSE; /* offscreen from command-line */
+rt_bool     l_mode      = RT_FALSE; /* fpslogoff from command-line */
 rt_bool     h_mode      = RT_FALSE; /* hide mode from command-line */
 rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
 
@@ -185,10 +186,15 @@ rt_si32 main_step()
     if (cur_time - last_time >= 500)
     {
         fps = (rt_real)cnt * 1000 / (cur_time - last_time);
-        RT_LOGI("FPS = %.1f\n", fps);
+
         glb += cnt;
         cnt = 0;
         last_time = cur_time;
+
+        if (!l_mode)
+        {
+            RT_LOGI("FPS = %.1f\n", fps);
+        }
     }
 
     try
@@ -342,6 +348,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -y n, override y-resolution, where new y-value <= 65535\n");
         RT_LOGI(" -u, multi-threaded scene updates are turned off, static\n");
         RT_LOGI(" -o, offscreen-frame mode, turns off window-rect updates\n");
+        RT_LOGI(" -l, fps-logging-off mode, turns off fps-logging updates\n");
         RT_LOGI(" -h, hide-screen-num mode, turns off info-number drawing\n");
         RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
         RT_LOGI("options -d n, -c n, -q n, -s n, ... , -a can be combined\n");
@@ -485,6 +492,11 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             o_mode = RT_TRUE;
             RT_LOGI("Offscreen-frame mode\n");
         }
+        if (k < argc && strcmp(argv[k], "-l") == 0 && !l_mode)
+        {
+            l_mode = RT_TRUE;
+            RT_LOGI("fps-logging-off mode\n");
+        }
         if (k < argc && strcmp(argv[k], "-h") == 0 && !h_mode)
         {
             h_mode = RT_TRUE;
@@ -609,7 +621,6 @@ rt_si32 main_term()
     }
 
     RT_LOGI("----------------------  FPS AVG  -----------------------\n");
-
     avg = (rt_real)(glb + cnt) * 1000 / cur_time;
     RT_LOGI("AVG = %.1f\n", avg);
 
