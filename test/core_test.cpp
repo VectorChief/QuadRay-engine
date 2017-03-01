@@ -46,10 +46,12 @@ rt_si32     s_type      = 0; /* SIMD sub-variant from command-line */
 rt_si32     w_size      = 1; /* Window-rect size from command-line */
 rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
 
-rt_bool     i_mode      = RT_FALSE; /* imaging mode from command-line */
-rt_bool     p_mode      = RT_FALSE; /* pixhunt mode from command-line */
-rt_bool     v_mode      = RT_FALSE; /* verbose mode from command-line */
-rt_si32     t_diff      = 3;      /* diff-threshold from command-line */
+rt_bool     i_mode      = RT_FALSE;     /* imaging mode from command-line */
+rt_bool     p_mode      = RT_FALSE;     /* pixhunt mode from command-line */
+rt_bool     v_mode      = RT_FALSE;     /* verbose mode from command-line */
+rt_si32     t_diff      = 3;          /* diff-threshold from command-line */
+rt_si32     n_init      = 0;            /* subtest-init from command-line */
+rt_si32     n_done      = RUN_LEVEL-1;  /* subtest-done from command-line */
 
 rt_si32     fsaa        = RT_FSAA_NO; /* no FSAA by default, -a enables */
 rt_si32     simd        = 0; /* default SIMD width (q*4) will be chosen */
@@ -525,22 +527,26 @@ testXX o_test[RUN_LEVEL] =
 
 rt_si32 main(rt_si32 argc, rt_char *argv[])
 {
-    rt_si32 k, r;
+    rt_si32 k, l, r, t;
 
     if (argc >= 2)
     {
         RT_LOGI("---------------------------------------------------------\n");
         RT_LOGI("Usage options are given below:\n");
-        RT_LOGI(" -t tex1 tex2 texn, convert images in data/textures/tex*\n");
+        RT_LOGI(" -b n, specify subtest-num at which testing begins, n>=1\n");
+        RT_LOGI(" -e n, specify subtest-num at which testing ends, n<=max\n");
         RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
         RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
-        RT_LOGI(" -w n, override window-rect size, where new size is 1..8\n");
-        RT_LOGI(" -d n, override diff-threshold, where n is new diff 0..9\n");
-        RT_LOGI(" -p, enable pixhunt mode, print isolated pixels (> diff)\n");
+        RT_LOGI(" -w n, override window-rect size, where new size is 0..9\n");
+        RT_LOGI(" -x n, override x-resolution, where new x-value <= 65535\n");
+        RT_LOGI(" -y n, override y-resolution, where new y-value <= 65535\n");
+        RT_LOGI(" -d n, override diff-threshold used for acceptance, n>=0\n");
         RT_LOGI(" -v, enable verbose mode, print all pixel spots (> diff)\n");
+        RT_LOGI(" -p, enable pixhunt mode, print isolated pixels (> diff)\n");
         RT_LOGI(" -i, enable imaging mode, save images before-after-diffs\n");
         RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
-        RT_LOGI("options -q, .., .., -a can be combined, -t is standalone\n");
+        RT_LOGI(" -t tex1 tex2 texn, convert images in data/textures/tex*\n");
+        RT_LOGI("options -b, -e, .., -a can be combined, -t is standalone\n");
         RT_LOGI("---------------------------------------------------------\n");
     }
 
@@ -567,6 +573,40 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
     for (k = 1; k < argc; k++)
     {
+        if (k < argc && strcmp(argv[k], "-b") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 1 && t <= RUN_LEVEL)
+            {
+                RT_LOGI("Subtest-index-init overridden: %d\n", t);
+                n_init = t-1;
+            }
+            else
+            {
+                RT_LOGI("Subtest-index-init out of range\n");
+                return 0;
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-e") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 1 && t <= RUN_LEVEL)
+            {
+                RT_LOGI("Subtest-index-done overridden: %d\n", t);
+                n_done = t-1;
+            }
+            else
+            {
+                RT_LOGI("Subtest-index-done value out of range\n");
+                return 0;
+            }
+        }
         if (k < argc && strcmp(argv[k], "-q") == 0 && ++k < argc)
         {
             q_simd = argv[k][0] - '0';
@@ -598,8 +638,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         if (k < argc && strcmp(argv[k], "-w") == 0 && ++k < argc)
         {
             w_size = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1
-            && (w_size == 1 || w_size == 2 || w_size == 4 || w_size == 8))
+            if (strlen(argv[k]) == 1 && w_size >= 0 && w_size <= 9)
             {
                 RT_LOGI("Window-rect size overridden: %d\n", w_size);
             }
@@ -609,12 +648,50 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
+        if (k < argc && strcmp(argv[k], "-x") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 1 && t <= 65535)
+            {
+                RT_LOGI("X-resolution overridden: %d\n", t);
+                x_res = t;
+            }
+            else
+            {
+                RT_LOGI("X-resolution value out of range\n");
+                return 0;
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-y") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 1 && t <= 65535)
+            {
+                RT_LOGI("Y-resolution overridden: %d\n", t);
+                y_res = t;
+            }
+            else
+            {
+                RT_LOGI("Y-resolution value out of range\n");
+                return 0;
+            }
+        }
         if (k < argc && strcmp(argv[k], "-d") == 0 && ++k < argc)
         {
-            t_diff = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1 && t_diff >= 0 && t_diff <= 9)
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
             {
-                RT_LOGI("Diff-threshold overridden: %d\n", t_diff);
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 0)
+            {
+                RT_LOGI("Diff-threshold overridden: %d\n", t);
+                t_diff = t;
             }
             else
             {
@@ -653,8 +730,8 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     type = s_type * 1;
     fsaa = a_mode ? RT_FSAA_4X : RT_FSAA_NO;
 
-    x_res = x_res * w_size;
-    y_res = y_res * w_size;
+    x_res = x_res * (w_size != 0 ? w_size : 1);
+    y_res = y_res * (w_size != 0 ? w_size : 1);
     x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
 
     scene = RT_NULL;
@@ -675,7 +752,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
     rt_si32 i, j;
 
-    for (i = 0; i < RUN_LEVEL; i++)
+    for (i = n_init; i <= n_done; i++)
     {
         RT_LOGI("-----------------  RUN LEVEL = %2d  -----------------\n", i+1);
         try

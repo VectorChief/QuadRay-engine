@@ -321,18 +321,18 @@ rt_si32 main_step()
  */
 rt_si32 args_init(rt_si32 argc, rt_char *argv[])
 {
-    rt_si32 k, l, r;
+    rt_si32 k, l, r, t;
 
     if (argc >= 2)
     {
         RT_LOGI("---------------------------------------------------------\n");
         RT_LOGI("Usage options are given below:\n");
-        RT_LOGI(" -d n, setup default demo scene, where n is single digit\n");
-        RT_LOGI(" -c n, setup camera in current scene, where n is 1 digit\n");
+        RT_LOGI(" -d n, specify default demo scene, where 1 <= n <= limit\n");
+        RT_LOGI(" -c n, specify camera in current scene, where n <= 65535\n");
         RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
         RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
         RT_LOGI(" -t n, override thread-pool size, where new size <= 1000\n");
-        RT_LOGI(" -w n, override window-rect size, where new size is 1..9\n");
+        RT_LOGI(" -w n, override window-rect size, where new size is 0..9\n");
         RT_LOGI(" -w 0, activate window-less mode, full native resolution\n");
         RT_LOGI(" -x n, override x-resolution, where new x-value <= 65535\n");
         RT_LOGI(" -y n, override y-resolution, where new y-value <= 65535\n");
@@ -347,11 +347,14 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
     {
         if (k < argc && strcmp(argv[k], "-d") == 0 && ++k < argc)
         {
-            d = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1 && d >= 0 && d <= 9
-            && d < RT_ARR_SIZE(sc_rt))
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
             {
-                RT_LOGI("Demo-index overridden: %d\n", d);
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 1 && t <= RT_ARR_SIZE(sc_rt))
+            {
+                RT_LOGI("Demo-index overridden: %d\n", t);
+                d = t-1;
             }
             else
             {
@@ -361,10 +364,14 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         }
         if (k < argc && strcmp(argv[k], "-c") == 0 && ++k < argc)
         {
-            c = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1 && c >= 0 && c <= 9)
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
             {
-                RT_LOGI("Camera-num overridden: %d\n", c);
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 1 && t <= 65535)
+            {
+                RT_LOGI("Camera-num overridden: %d\n", t);
+                c = t;
             }
             else
             {
