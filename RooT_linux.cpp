@@ -121,6 +121,18 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         XChangeProperty(disp, win, atom, XA_ATOM, 32,
                         PropModeReplace, (rt_byte *)&state, 1);
         RT_LOGI("Window-less mode on!\n");
+
+        /* create empty cursor from pixmap */
+        static rt_char bitmap[8] = {0};
+        Pixmap pixmap = XCreateBitmapFromData(disp,  win, bitmap, 8, 8);
+        XColor color;   color.red = color.green = color.blue = 0;
+        Cursor cursor = XCreatePixmapCursor(disp, pixmap, pixmap,
+                                                  &color, &color, 0, 0);
+
+        /* set empty cursor in fullscreen */
+        XDefineCursor(disp, win, cursor);
+        XFreeCursor(disp, cursor);
+        XFreePixmap(disp, pixmap);
     }
 
     /* set title and events */
@@ -205,6 +217,12 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
     /* destroy sys_alloc's mutex */
     pthread_mutex_destroy(&mutex);
+
+    if (w_size == 0)
+    {
+        /* restore original cursor */
+        XDefineCursor(disp, win, None);
+    }
 
     /* destroy image,
      * detach shared memory */
