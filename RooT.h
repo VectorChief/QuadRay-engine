@@ -56,7 +56,7 @@ rt_SCENE   *sc_rt[]     =
 
 rt_Scene   *sc[RT_ARR_SIZE(sc_rt)]  = {0};                  /* scene array */
 rt_si32     d                       = RT_ARR_SIZE(sc_rt)-1; /* demo-index */
-rt_si32     c                       = 0;                    /* camera-num */
+rt_si32     c                       = 0;                    /* camera-idx */
 
 /******************************************************************************/
 /********************************   PLATFORM   ********************************/
@@ -225,12 +225,13 @@ rt_si32 main_step()
         }
         if (T_KEYS(RK_F3))
         {
-            sc[d]->next_cam();
+            c = sc[d]->next_cam();
             switched = 1;
         }
         if (T_KEYS(RK_F11))
         {
             d = (d + 1) % RT_ARR_SIZE(sc_rt);
+            c = sc[d]->get_cam_idx();
             fsaa = sc[d]->set_fsaa(fsaa);
             simd = sc[d]->set_simd(simd | type << 8);
             type = simd >> 8;
@@ -344,7 +345,8 @@ rt_si32 main_step()
         RT_LOGI("AVG = %.1f\n", avg);
 
         RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-        RT_LOGI("Window-rect X-res = %4d, Y-res = %4d\n", x_win, y_win);
+        RT_LOGI("Window-rect X-res = %4d, Y-res = %4d, d%2d, c%2d\n",
+                                            x_win, y_win, d+1, c+1);
         RT_LOGI("SIMD width/type = %4dv%d, logoff = %d, numoff = %d\n",
                                            simd*32, type, l_mode, hide);
         RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d, FSAA = %d\n",
@@ -382,8 +384,8 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
     {
         RT_LOGI("--------------------------------------------------------\n");
         RT_LOGI("Usage options are given below:\n");
-        RT_LOGI(" -d n, specify default demo scene, where 1 <= n <= limit\n");
-        RT_LOGI(" -c n, specify camera in current scene, where n <= 65535\n");
+        RT_LOGI(" -d n, specify default demo-scene, where 1 <= n <= d_num\n");
+        RT_LOGI(" -c n, specify default camera-idx, where 1 <= n <= c_num\n");
         RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
         RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
         RT_LOGI(" -t n, override thread-pool size, where new size <= 1000\n");
@@ -410,12 +412,12 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             }
             if (t >= 1 && t <= RT_ARR_SIZE(sc_rt))
             {
-                RT_LOGI("Demo-index overridden: %d\n", t);
+                RT_LOGI("Demo-scene overridden: %d\n", t);
                 d = t-1;
             }
             else
             {
-                RT_LOGI("Demo-index value out of range\n");
+                RT_LOGI("Demo-scene value out of range\n");
                 return 0;
             }
         }
@@ -427,12 +429,12 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             }
             if (t >= 1 && t <= 65535)
             {
-                RT_LOGI("Camera-num overridden: %d\n", t);
-                c = t;
+                RT_LOGI("Camera-idx overridden: %d\n", t);
+                c = t-1;
             }
             else
             {
-                RT_LOGI("Camera-num value out of range\n");
+                RT_LOGI("Camera-idx value out of range\n");
                 return 0;
             }
         }
@@ -540,7 +542,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         if (k < argc && strcmp(argv[k], "-l") == 0 && !l_mode)
         {
             l_mode = RT_TRUE;
-            RT_LOGI("fps-logging-off mode\n");
+            RT_LOGI("FPS-logging-off mode\n");
         }
         if (k < argc && strcmp(argv[k], "-h") == 0 && !h_mode)
         {
@@ -618,6 +620,8 @@ rt_si32 main_init()
         sc[d]->next_cam();
     }
 
+    c = sc[d]->get_cam_idx();
+
 #if RT_OPTS_STATIC != 0
     if (u_mode)
     {
@@ -629,7 +633,8 @@ rt_si32 main_init()
     frame_to_screen(sc[d]->get_frame(), sc[d]->get_x_row());
 
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-    RT_LOGI("Window-rect X-res = %4d, Y-res = %4d\n", x_win, y_win);
+    RT_LOGI("Window-rect X-res = %4d, Y-res = %4d, d%2d, c%2d\n",
+                                            x_win, y_win, d+1, c+1);
     RT_LOGI("SIMD width/type = %4dv%d, logoff = %d, numoff = %d\n",
                                        simd*32, type, l_mode, hide);
     RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d, FSAA = %d\n",

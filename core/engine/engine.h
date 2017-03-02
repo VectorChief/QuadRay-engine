@@ -203,6 +203,7 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_Array           *root;
     /* current camera */
     rt_Camera          *cam;
+    rt_si32             cam_idx;
 
 /*  methods */
 
@@ -238,7 +239,8 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_si32     set_opts(rt_si32 opts);
     rt_si32     add_opts(rt_si32 opts);
 
-    rt_void     next_cam();
+    rt_si32     get_cam_idx();
+    rt_si32     next_cam();
     rt_void     save_frame(rt_si32 index);
 
     friend      class rt_SceneThread;

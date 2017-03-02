@@ -2509,6 +2509,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
     }
 
     cam = cam_head;
+    cam_idx = 0;
 
     /* lock scene data, when scene's constructor can no longer fail */
     scn->lock = this;
@@ -3215,18 +3216,30 @@ rt_si32 rt_Scene::add_opts(rt_si32 opts)
 }
 
 /*
- * Select next camera in the list.
+ * Return current camera index.
  */
-rt_void rt_Scene::next_cam()
+rt_si32 rt_Scene::get_cam_idx()
+{
+    return cam_idx;
+}
+
+/*
+ * Select next camera in the list, return its index.
+ */
+rt_si32 rt_Scene::next_cam()
 {
     if (cam->next != RT_NULL)
     {
         cam = cam->next;
+        cam_idx++;
     }
     else
     {
         cam = cam_head;
+        cam_idx = 0;
     }
+
+    return cam_idx;
 }
 
 /*
