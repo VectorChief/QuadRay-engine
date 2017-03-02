@@ -341,9 +341,10 @@ rt_si32 main_step()
         RT_LOGI("AVG = %.1f\n", avg);
 
         RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-        RT_LOGI("SIMD width/type = %4dv%d, AAmode = %d, numoff = %d\n",
-                                           simd*32, type, fsaa*4, hide);
-        RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d\n", x_res, y_res);
+        RT_LOGI("SIMD width/type = %4dv%d, logoff = %d, numoff = %d\n",
+                                           simd*32, type, l_mode, hide);
+        RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d, FSAA = %d\n",
+                                  x_res, y_res, fsaa*4/(RT_ELEMENT/32));
         RT_LOGI("Framebuffer X-row = %4d, ptr = %016"PR_Z"X\n",
                        sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
         RT_LOGI("Number-of-threads = %4d, offscr = %d, updoff = %d\n",
@@ -623,9 +624,10 @@ rt_si32 main_init()
     /* always draw empty frame before rendering any scenes */
     frame_to_screen(sc[d]->get_frame(), sc[d]->get_x_row());
 
-    RT_LOGI("SIMD width/type = %4dv%d, AAmode = %d, numoff = %d\n",
-                                       simd*32, type, fsaa*4, hide);
-    RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d\n", x_res, y_res);
+    RT_LOGI("SIMD width/type = %4dv%d, logoff = %d, numoff = %d\n",
+                                       simd*32, type, l_mode, hide);
+    RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d, FSAA = %d\n",
+                              x_res, y_res, fsaa*4/(RT_ELEMENT/32));
     RT_LOGI("Framebuffer X-row = %4d, ptr = %016"PR_Z"X\n",
                    sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
     RT_LOGI("Number-of-threads = %4d, offscr = %d, updoff = %d\n",

@@ -758,9 +758,10 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     frame = (rt_ui32 *)sys_alloc(x_row * y_res * sizeof(rt_ui32));
 
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-    RT_LOGI("SIMD width/type = %4dv%d, AAmode = %d, numoff = %d\n",
-                                    simd*32, type, fsaa*4, !h_mode);
-    RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d\n", x_res, y_res);
+    RT_LOGI("SIMD width/type = %4dv%d, logoff = %d, numoff = %d\n",
+                                         simd*32, type, 0, !h_mode);
+    RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d, FSAA = %d\n",
+                              x_res, y_res, fsaa*4/(RT_ELEMENT/32));
     RT_LOGI("Framebuffer X-row = %4d, ptr = %016"PR_Z"X\n",
                                              x_row, (rt_full)frame);
 
