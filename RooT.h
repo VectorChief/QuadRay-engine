@@ -225,18 +225,20 @@ rt_si32 main_step()
         }
         if (T_KEYS(RK_F3))
         {
+            rt_si32 cold = c;
             c = sc[d]->next_cam();
-            switched = 1;
+            switched = cold != c ? 1 : switched;
         }
         if (T_KEYS(RK_F11))
         {
+            rt_si32 dold = d;
             d = (d + 1) % RT_ARR_SIZE(sc_rt);
             c = sc[d]->get_cam_idx();
             fsaa = sc[d]->set_fsaa(fsaa);
             simd = sc[d]->set_simd(simd | type << 8);
             type = simd >> 8;
             simd = simd & 0xFF;
-            switched = 1;
+            switched = dold != d ? 1 : switched;
         }
 
 #if RT_OPTS_STATIC != 0
@@ -245,16 +247,19 @@ rt_si32 main_step()
 
         if (T_KEYS(RK_F2))
         {
+            rt_si32 fold = fsaa;
             fsaa = RT_FSAA_4X - fsaa;
             fsaa = sc[d]->set_fsaa(fsaa);
-            switched = 1;
+            switched = fold != fsaa ? 1 : switched;
         }
         if (T_KEYS(RK_F4))
         {
             sc[d]->save_frame(scr++);
+            switched = 1;
         }
         if (T_KEYS(RK_F7))
         {
+            rt_si32 told = type;
             rt_si32 tnew;
             do
             {
@@ -262,10 +267,11 @@ rt_si32 main_step()
                 tnew = sc[d]->set_simd(simd | type << 8) >> 8;
             }
             while (type != tnew);
-            switched = 1;
+            switched = told != type ? 1 : switched;
         }
         if (T_KEYS(RK_F8))
         {
+            rt_si32 sold = simd;
             rt_si32 snew;
             do
             {
@@ -284,7 +290,7 @@ rt_si32 main_step()
                 }
             }
             while (simd != snew);
-            switched = 1;
+            switched = sold != simd ? 1 : switched;
         }
         if (T_KEYS(RK_F12))
         {
@@ -560,7 +566,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
     type = s_type * 1;
     fsaa = a_mode ? RT_FSAA_4X : RT_FSAA_NO;
 
-    hide = h_mode;
+    hide = h_mode ? 1 : 0;
 
     x_res = x_res * (w_size != 0 ? w_size : 1);
     y_res = y_res * (w_size != 0 ? w_size : 1);
