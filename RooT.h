@@ -257,6 +257,11 @@ rt_si32 main_step()
             sc[d]->save_frame(scr++);
             switched = 1;
         }
+        if (T_KEYS(RK_F5))
+        {
+            l_mode = RT_TRUE - l_mode;
+            switched = 1;
+        }
         if (T_KEYS(RK_F7))
         {
             rt_si32 told = type;
@@ -291,6 +296,11 @@ rt_si32 main_step()
             }
             while (simd != snew);
             switched = sold != simd ? 1 : switched;
+        }
+        if (T_KEYS(RK_F9))
+        {
+            o_mode = RT_TRUE - o_mode;
+            switched = 1;
         }
         if (T_KEYS(RK_F12))
         {
