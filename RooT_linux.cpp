@@ -91,17 +91,19 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     {
         /* acquire fullscreen dimensions */
         Screen *screen = ScreenOfDisplay(disp, scr_id);
-        x_res = WidthOfScreen(screen);
-        y_res = HeightOfScreen(screen);
-        x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
+        x_win = WidthOfScreen(screen);
+        y_win = HeightOfScreen(screen);
     }
-
-    RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-    RT_LOGI("Window-rect X-res = %4d, Y-res = %4d\n", x_res, y_res);
+    else
+    {
+        /* inherit framebuffer's dimensions */
+        x_win = x_res;
+        y_win = y_res;
+    }
 
     /* create simple window */
     win = XCreateSimpleWindow(disp, RootWindow(disp, scr_id),
-                                    10, 10, x_res, y_res, 1, 0, 0);
+                                    10, 10, x_win, y_win, 1, 0, 0);
     if ((rt_pntr)win == NULL)
     {
         RT_LOGE("Cannot create X window\n");
@@ -112,8 +114,8 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     /* disable window resize (only a hint) */
     XSizeHints sh;
     sh.flags = PMinSize | PMaxSize;
-    sh.min_width  = sh.max_width  = x_res;
-    sh.min_height = sh.max_height = y_res;
+    sh.min_width  = sh.max_width  = x_win;
+    sh.min_height = sh.max_height = y_win;
     XSetWMNormalHints(disp, win, &sh);
 
     if (w_size == 0)
@@ -148,9 +150,9 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
     if (w_size == 0)
     {
-        /* override frame resolution in fullscreen mode */
-        x_res = x_new != 0 ? x_new : x_res;
-        y_res = y_new != 0 ? y_new : y_res;
+        /* override framebuffer's dimensions in fullscreen mode */
+        x_res = x_new != 0 ? x_new : x_win;
+        y_res = y_new != 0 ? y_new : y_win;
         x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
     }
 

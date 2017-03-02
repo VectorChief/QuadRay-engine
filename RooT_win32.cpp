@@ -78,12 +78,14 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     /* init internal variables from command-line args */
     args_init(__argc, __argv);
 
+    /* init framebuffer's dimensions */
     DIBinfo.bmiHeader.biWidth     = +x_row;
     DIBinfo.bmiHeader.biHeight    = -y_res;
     DIBinfo.bmiHeader.biSizeImage = (x_row * y_res * sizeof(rt_ui32));
 
-    RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-    RT_LOGI("Window-rect X-res = %4d, Y-res = %4d\n", x_res, y_res);
+    /* inherit framebuffer's dimensions */
+    x_win = x_res;
+    y_win = y_res;
 
     /* create window and register its class */
     MSG msg;
@@ -117,7 +119,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
     hWnd = CreateWindow(wnd_class, title,
                 WS_OVERLAPPED | WS_SYSMENU | WS_MINIMIZEBOX,
-                CW_USEDEFAULT, CW_USEDEFAULT, x_res, y_res,
+                CW_USEDEFAULT, CW_USEDEFAULT, x_win, y_win,
                 NULL, NULL, hInst, NULL);
 
     if (!hWnd)
@@ -128,8 +130,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
     GetWindowRect(hWnd, &wRect);
     GetClientRect(hWnd, &cRect);
-    MoveWindow(hWnd, 100, 50, 2 * x_res - cRect.right,
-                              2 * y_res - cRect.bottom, FALSE);
+    MoveWindow(hWnd, 100, 50, 2 * x_win - cRect.right,
+                              2 * y_win - cRect.bottom, FALSE);
 
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);

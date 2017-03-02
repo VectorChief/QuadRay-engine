@@ -16,6 +16,9 @@
 #define RT_Y_RES        480
 
 rt_astr     title       = "QuadRay engine demo, (C) 2013-2017 VectorChief";
+rt_si32     x_win       = RT_X_RES; /* window-rect (client) x-resolution */
+rt_si32     y_win       = RT_Y_RES; /* window-rect (client) y-resolution */
+
 rt_si32     x_res       = RT_X_RES;
 rt_si32     y_res       = RT_Y_RES;
 rt_si32     x_row       = (RT_X_RES+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
@@ -341,6 +344,7 @@ rt_si32 main_step()
         RT_LOGI("AVG = %.1f\n", avg);
 
         RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
+        RT_LOGI("Window-rect X-res = %4d, Y-res = %4d\n", x_win, y_win);
         RT_LOGI("SIMD width/type = %4dv%d, logoff = %d, numoff = %d\n",
                                            simd*32, type, l_mode, hide);
         RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d, FSAA = %d\n",
@@ -624,6 +628,8 @@ rt_si32 main_init()
     /* always draw empty frame before rendering any scenes */
     frame_to_screen(sc[d]->get_frame(), sc[d]->get_x_row());
 
+    RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
+    RT_LOGI("Window-rect X-res = %4d, Y-res = %4d\n", x_win, y_win);
     RT_LOGI("SIMD width/type = %4dv%d, logoff = %d, numoff = %d\n",
                                        simd*32, type, l_mode, hide);
     RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d, FSAA = %d\n",
