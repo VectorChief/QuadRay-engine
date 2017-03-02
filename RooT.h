@@ -229,39 +229,6 @@ rt_si32 main_step()
             c = sc[d]->next_cam();
             switched = cold != c ? 1 : switched;
         }
-        if (T_KEYS(RK_F11))
-        {
-            rt_si32 dold = d;
-            d = (d + 1) % RT_ARR_SIZE(sc_rt);
-            c = sc[d]->get_cam_idx();
-            fsaa = sc[d]->set_fsaa(fsaa);
-            simd = sc[d]->set_simd(simd | type << 8);
-            type = simd >> 8;
-            simd = simd & 0xFF;
-            switched = dold != d ? 1 : switched;
-        }
-
-#if RT_OPTS_STATIC != 0
-        } /* --<----<-- skip update0 --<----<-- */
-#endif /* RT_OPTS_STATIC */
-
-        if (T_KEYS(RK_F2))
-        {
-            rt_si32 fold = fsaa;
-            fsaa = RT_FSAA_4X - fsaa;
-            fsaa = sc[d]->set_fsaa(fsaa);
-            switched = fold != fsaa ? 1 : switched;
-        }
-        if (T_KEYS(RK_F4))
-        {
-            sc[d]->save_frame(scr++);
-            switched = 1;
-        }
-        if (T_KEYS(RK_F5))
-        {
-            l_mode = RT_TRUE - l_mode;
-            switched = 1;
-        }
         if (T_KEYS(RK_F7))
         {
             rt_si32 told = type;
@@ -296,6 +263,39 @@ rt_si32 main_step()
             }
             while (simd != snew);
             switched = sold != simd ? 1 : switched;
+        }
+        if (T_KEYS(RK_F11))
+        {
+            rt_si32 dold = d;
+            d = (d + 1) % RT_ARR_SIZE(sc_rt);
+            c = sc[d]->get_cam_idx();
+            fsaa = sc[d]->set_fsaa(fsaa);
+            simd = sc[d]->set_simd(simd | type << 8);
+            type = simd >> 8;
+            simd = simd & 0xFF;
+            switched = dold != d ? 1 : switched;
+        }
+
+#if RT_OPTS_STATIC != 0
+        } /* --<----<-- skip update0 --<----<-- */
+#endif /* RT_OPTS_STATIC */
+
+        if (T_KEYS(RK_F2))
+        {
+            rt_si32 fold = fsaa;
+            fsaa = RT_FSAA_4X - fsaa;
+            fsaa = sc[d]->set_fsaa(fsaa);
+            switched = fold != fsaa ? 1 : switched;
+        }
+        if (T_KEYS(RK_F4))
+        {
+            sc[d]->save_frame(scr++);
+            switched = 1;
+        }
+        if (T_KEYS(RK_F5))
+        {
+            l_mode = RT_TRUE - l_mode;
+            switched = 1;
         }
         if (T_KEYS(RK_F9))
         {
