@@ -302,6 +302,21 @@ rt_si32 main_step()
             o_mode = RT_TRUE - o_mode;
             switched = 1;
         }
+        if (T_KEYS(RK_F10))
+        {
+            rt_si32 opts = sc[d]->get_opts();
+            u_mode = RT_TRUE - u_mode;
+            if (u_mode)
+            {
+                opts |= +RT_OPTS_STATIC;
+            }
+            else
+            {
+                opts &= ~RT_OPTS_STATIC;
+            }
+            sc[d]->set_opts(opts);
+            switched = 1;
+        }
         if (T_KEYS(RK_F12))
         {
             hide = 1 - hide;
@@ -548,7 +563,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         if (k < argc && strcmp(argv[k], "-u") == 0 && !u_mode)
         {
             u_mode = RT_TRUE;
-            RT_LOGI("Threaded updates off\n");
+            RT_LOGI("Threaded-updates-off\n");
         }
         if (k < argc && strcmp(argv[k], "-o") == 0 && !o_mode)
         {
@@ -641,7 +656,9 @@ rt_si32 main_init()
 #if RT_OPTS_STATIC != 0
     if (u_mode)
     {
-        sc[d]->add_opts(RT_OPTS_STATIC);
+        rt_si32 opts = sc[d]->get_opts();
+        opts |= RT_OPTS_STATIC;
+        sc[d]->set_opts(opts);
     }
 #endif /* RT_OPTS_STATIC */
 

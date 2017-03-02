@@ -1618,7 +1618,7 @@ rt_void rt_Array::update_status(rt_time time, rt_si32 flags,
      * requested explicitly via "time == -1" */
 #if RT_OPTS_UPDATE != 0
     if ((rg->opts & RT_OPTS_UPDATE) == 0
-    ||  obj->time == -1 && parent == RT_NULL)
+    || (obj->time == -1 && parent == RT_NULL))
 #endif /* RT_OPTS_UPDATE */
     {
         flags |= RT_UPDATE_FLAG_OBJ;

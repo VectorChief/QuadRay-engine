@@ -2536,6 +2536,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
             sizeof(rt_ELEM) * (srf_num + thnum - 1) / thnum; /* per thread */
     }
 
+    pending = 0;
+
     /* init memory pool in the heap for temporary per-frame allocs */
     mpool = RT_NULL; /* rough estimate for surface relations/templates */
     msize = ((srf_num + 1) * (srf_num + 1) * 2 + /* plus two surface lists */
@@ -2593,9 +2595,22 @@ rt_void rt_Scene::render(rt_time time)
     rt_si32 i;
 
 #if RT_OPTS_STATIC != 0
-    if ((opts & RT_OPTS_STATIC) == 0 || time == 0)
+    if ((opts & RT_OPTS_STATIC) == 0 || rootobj.time == -1)
     { /* -->---->-- skip update1 -->---->-- */
 #endif /* RT_OPTS_STATIC */
+
+    if (pending)
+    {
+        pending = 0;
+
+        /* release memory for temporary per-frame allocs */
+        for (i = 0; i < thnum; i++)
+        {
+            tharr[i]->release(tharr[i]->mpool);
+        }
+
+        release(mpool);
+    }
 
     /* reserve memory for temporary per-frame allocs */
     mpool = reserve(msize, RT_QUAD_ALIGN);
@@ -2899,6 +2914,10 @@ rt_void rt_Scene::render(rt_time time)
 
 #if RT_OPTS_STATIC != 0
     } /* --<----<-- skip update2 --<----<-- */
+    else
+    {
+        pending = 1;
+    }
 #endif /* RT_OPTS_STATIC */
 }
 
@@ -3201,17 +3220,10 @@ rt_si32 rt_Scene::set_opts(rt_si32 opts)
 }
 
 /*
- * Add runtime optimization flags.
+ * Get runtime optimization flags.
  */
-rt_si32 rt_Scene::add_opts(rt_si32 opts)
+rt_si32 rt_Scene::get_opts()
 {
-    this->opts |= opts;
-
-    /* trigger update of the whole hierarchy,
-     * safe to reset time as "rootobj" never has an animator,
-     * "rootobj's" time is restored within the update */
-    rootobj.time = -1;
-
     return opts;
 }
 
