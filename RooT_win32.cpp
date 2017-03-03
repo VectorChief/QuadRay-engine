@@ -419,9 +419,9 @@ rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
             if (a == 64) a = 0;
         }
         SetThreadAffinityMask(thread[i].pthr, 1 << a);
-    }
 
 #endif /* RT_SETAFFINITY */
+    }
 
     return tpool;
 }
