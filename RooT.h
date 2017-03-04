@@ -372,9 +372,9 @@ rt_si32 main_step()
         switched = 0;
 
         RT_LOGI("----------------------  FPS AVG  -----------------------\n");
-        if (last_time - run_time)
+        if (cur_time - run_time)
         {
-            avg = (rt_real)glb * 1000 / (last_time - run_time);
+            avg = (rt_real)(glb + cnt) * 1000 / (cur_time - run_time);
         }
         else
         {
@@ -747,9 +747,9 @@ rt_si32 main_init()
 rt_si32 main_term()
 {
     RT_LOGI("----------------------  FPS AVG  -----------------------\n");
-    if (last_time - run_time)
+    if (cur_time - run_time)
     {
-        avg = (rt_real)glb * 1000 / (last_time - run_time);
+        avg = (rt_real)(glb + cnt) * 1000 / (cur_time - run_time);
     }
     else
     {
