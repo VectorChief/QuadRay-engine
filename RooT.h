@@ -36,6 +36,7 @@ rt_si32     w_size      = 1; /* Window-rect size from command-line */
 #endif /* RT_FULLSCREEN */
 rt_si32     x_new       = 0; /* New x-resolution from command-line */
 rt_si32     y_new       = 0; /* New y-resolution from command-line */
+rt_time     l_time      = 500; /* fpslogupd (ms) from command-line */
 
 rt_bool     l_mode      = RT_FALSE; /* fpslogoff from command-line */
 rt_bool     h_mode      = RT_FALSE; /* hide mode from command-line */
@@ -347,7 +348,7 @@ rt_si32 main_step()
     cur_time = cur_time - init_time;
     cnt++;
 
-    if (cur_time - last_time >= 500)
+    if (cur_time - last_time >= l_time)
     {
         fps = (rt_real)cnt * 1000 / (cur_time - last_time);
 
@@ -427,6 +428,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -w 0, activate window-less mode, full native resolution\n");
         RT_LOGI(" -x n, override x-resolution, where new x-value <= 65535\n");
         RT_LOGI(" -y n, override y-resolution, where new y-value <= 65535\n");
+        RT_LOGI(" -r n, fps-logging update rate, where n is interval (ms)\n");
         RT_LOGI(" -l, fps-logging-off mode, turns off fps-logging updates\n");
         RT_LOGI(" -h, hide-screen-num mode, turns off info-number drawing\n");
         RT_LOGI(" -o, offscreen-frame mode, turns off window-rect updates\n");
@@ -594,6 +596,23 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             else
             {
                 RT_LOGI("Y-resolution value out of range\n");
+                return 0;
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-r") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 0)
+            {
+                RT_LOGI("FPS-logging interval (ms): %d\n", t);
+                l_time = t;
+            }
+            else
+            {
+                RT_LOGI("FPS-logging interval out of range\n");
                 return 0;
             }
         }
