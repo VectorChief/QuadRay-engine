@@ -356,7 +356,7 @@ rt_si32 main_step()
 
         if (!l_mode)
         {
-            RT_LOGI("FPS = %.1f\n", fps);
+            RT_LOGI("FPS = %.2f\n", fps);
         }
     }
 
@@ -373,7 +373,7 @@ rt_si32 main_step()
         {
             avg = (rt_real)0;
         }
-        RT_LOGI("AVG = %.1f\n", avg);
+        RT_LOGI("AVG = %.2f\n", avg);
 
         RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
         RT_LOGI("Window-rect X-res = %4d, Y-res = %4d, d%2d, c%2d\n",
@@ -712,7 +712,7 @@ rt_si32 main_term()
     {
         avg = (rt_real)0;
     }
-    RT_LOGI("AVG = %.1f\n", avg);
+    RT_LOGI("AVG = %.2f\n", avg);
 
     return 1;
 }
