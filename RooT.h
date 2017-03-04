@@ -182,6 +182,37 @@ rt_si32 main_step()
         return 0;
     }
 
+    /* update time variables */
+    cur_time = get_time();
+    if (init_time == 0)
+    {
+        init_time = cur_time - b_time;
+        last_time = run_time = b_time;
+    }
+    cur_time = cur_time - init_time;
+
+    if (cur_time - last_time >= l_time)
+    {
+        fps = (rt_real)cnt * 1000 / (cur_time - last_time);
+
+        glb += cnt;
+        cnt = 0;
+        last_time = cur_time;
+
+        if (!l_mode)
+        {
+            RT_LOGI("FPS = %.2f\n", fps);
+        }
+    }
+    if (e_time >= 0 && cur_time >= e_time)
+    {
+        return 0;
+    }
+    if (f_num >= 0 && ttl >= f_num)
+    {
+        return 0;
+    }
+
     try
     {
 #if RT_OPTS_STATIC != 0
@@ -345,36 +376,6 @@ rt_si32 main_step()
         frame_to_screen(sc[d]->get_frame(), sc[d]->get_x_row());
     }
 
-    /* check time variables */
-    cur_time = get_time();
-    cur_time = cur_time - init_time;
-    cnt++;
-    ttl++;
-
-    if (cur_time - last_time >= l_time)
-    {
-        fps = (rt_real)cnt * 1000 / (cur_time - last_time);
-
-        glb += cnt;
-        cnt = 0;
-        last_time = cur_time;
-
-        if (!l_mode)
-        {
-            RT_LOGI("FPS = %.2f\n", fps);
-        }
-    }
-
-    if (e_time >= 0 && cur_time >= e_time)
-    {
-        return 0;
-    }
-
-    if (f_num >= 0 && ttl >= f_num)
-    {
-        return 0;
-    }
-
     if (switched)
     {
         switched = 0;
@@ -410,6 +411,10 @@ rt_si32 main_step()
         cnt = 0;
         last_time = cur_time;
     }
+
+    /* update frame counters */
+    cnt++;
+    ttl++;
 
     return 1;
 }
@@ -541,7 +546,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             {
                 t += (argv[k][l-1] - '0') * r;
             }
-            if (t >= 0)
+            if (t >= 1)
             {
                 RT_LOGI("Closing test-time (ms): %d\n", t);
                 e_time = t;
@@ -773,12 +778,6 @@ rt_si32 main_init()
                                              thnum, o_mode, u_mode);
 
     RT_LOGI("----------------------  FPS LOG  -----------------------\n");
-
-    /* init time variables */
-    cur_time = get_time();
-    init_time = cur_time - b_time;
-    last_time = run_time = b_time;
-    cur_time = cur_time - init_time;
 
     return 1;
 }
