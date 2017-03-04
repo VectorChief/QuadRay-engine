@@ -41,6 +41,7 @@ rt_si32     c                       = 0;                    /* camera-idx */
 
 rt_si32     f_num       =-1; /* number-of-frames (from command-line) */
 rt_time     f_time      =-1; /* frame-delta (ms) (from command-line) */
+rt_time     img_id      =-1; /* save-image-index (from command-line) */
 rt_time     b_time      = 0; /* time (ms) begins (from command-line) */
 rt_time     e_time      =-1; /* time (ms) ending (from command-line) */
 rt_si32     q_simd      = 0; /* SIMD quad-factor (from command-line) */
@@ -213,6 +214,8 @@ rt_si32 main_step()
         return 0;
     }
 
+    rt_si32 g = d;
+
     try
     {
 #if RT_OPTS_STATIC != 0
@@ -340,6 +343,11 @@ rt_si32 main_step()
         memset(t_keys, 0, sizeof(t_keys));
         memset(r_keys, 0, sizeof(r_keys));
 
+        if (switched && img_id >= 0 && img_id <= 999)
+        {
+            sc[g]->save_frame(img_id++);
+        }
+
         sc[d]->render(f_time >= 0 ? b_time + f_time * ttl : cur_time);
 
         if (!h_mode)
@@ -435,6 +443,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -c n, specify default camera-idx, where 1 <= n <= c_num\n");
         RT_LOGI(" -f n, specify # of consecutive frames to render, n >= 1\n");
         RT_LOGI(" -g n, specify delta (ms) for consecutive frames, n >= 0\n");
+        RT_LOGI(" -i n, save image at the end of each run, n is image-idx\n");
         RT_LOGI(" -b n, specify time (ms) at which testing begins, n >= 0\n");
         RT_LOGI(" -e n, specify time (ms) at which testing ends, n >= min\n");
         RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
@@ -521,6 +530,23 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             else
             {
                 RT_LOGI("Frame-delta (ms) out of range\n");
+                return 0;
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-i") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 0 && t <= 999)
+            {
+                RT_LOGI("Save-image-index: %d\n", t);
+                img_id = t;
+            }
+            else
+            {
+                RT_LOGI("Save-image-index out of range\n");
                 return 0;
             }
         }
@@ -788,6 +814,11 @@ rt_si32 main_init()
  */
 rt_si32 main_term()
 {
+    if (img_id >= 0 && img_id <= 999)
+    {
+        sc[d]->save_frame(img_id++);
+    }
+
     RT_LOGI("----------------------  FPS AVG  -----------------------\n");
     if (cur_time - run_time)
     {
