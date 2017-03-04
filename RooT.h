@@ -24,6 +24,21 @@ rt_si32     x_row       = (RT_X_RES+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
 rt_ui32    *frame       = RT_NULL;
 rt_si32     thnum       = RT_THREADS_NUM;
 
+rt_si32     fsaa        = RT_FSAA_NO; /* no FSAA by default, -a enables */
+rt_si32     simd        = 0; /* default SIMD width (q*4) will be chosen */
+rt_si32     type        = 0; /* default SIMD sub-variant will be chosen */
+
+rt_SCENE   *sc_rt[]     =
+{
+    &scn_demo01::sc_root,
+    &scn_demo02::sc_root,
+    &scn_demo03::sc_root,
+};
+
+rt_Scene   *sc[RT_ARR_SIZE(sc_rt)]  = {0};                  /* scene array */
+rt_si32     d                       = RT_ARR_SIZE(sc_rt)-1; /* demo-scene */
+rt_si32     c                       = 0;                    /* camera-idx */
+
 rt_time     b_time      = 0; /* time (ms) begins from command-line */
 rt_time     e_time      =-1; /* time (ms) ending from command-line */
 rt_si32     q_simd      = 0; /* SIMD quad-factor from command-line */
@@ -36,29 +51,13 @@ rt_si32     w_size      = 1; /* Window-rect size from command-line */
 #endif /* RT_FULLSCREEN */
 rt_si32     x_new       = 0; /* New x-resolution from command-line */
 rt_si32     y_new       = 0; /* New y-resolution from command-line */
-rt_time     l_time      = 500; /* fpslogupd (ms) from command-line */
 
+rt_time     l_time      = 500; /* fpslogupd (ms) from command-line */
 rt_bool     l_mode      = RT_FALSE; /* fpslogoff from command-line */
-rt_bool     h_mode      = RT_FALSE; /* hide mode from command-line */
+rt_bool     h_mode      = RT_FALSE; /* hide-mode from command-line */
 rt_bool     o_mode      = RT_FALSE; /* offscreen from command-line */
 rt_bool     u_mode      = RT_FALSE; /* updateoff from command-line */
-rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
-
-rt_si32     fsaa        = RT_FSAA_NO; /* no FSAA by default, -a enables */
-rt_si32     simd        = 0; /* default SIMD width (q*4) will be chosen */
-rt_si32     type        = 0; /* default SIMD sub-variant will be chosen */
-rt_si32     hide        = 0; /* hide all numbers on the screen if set 1 */
-
-rt_SCENE   *sc_rt[]     =
-{
-    &scn_demo01::sc_root,
-    &scn_demo02::sc_root,
-    &scn_demo03::sc_root,
-};
-
-rt_Scene   *sc[RT_ARR_SIZE(sc_rt)]  = {0};                  /* scene array */
-rt_si32     d                       = RT_ARR_SIZE(sc_rt)-1; /* demo-scene */
-rt_si32     c                       = 0;                    /* camera-idx */
+rt_bool     a_mode      = RT_FALSE; /* FSAA-mode from command-line */
 
 /******************************************************************************/
 /********************************   PLATFORM   ********************************/
@@ -297,7 +296,7 @@ rt_si32 main_step()
         }
         if (T_KEYS(RK_F12))
         {
-            hide = 1 - hide;
+            h_mode = 1 - h_mode;
         }
         if (T_KEYS(RK_ESCAPE))
         {
@@ -308,7 +307,7 @@ rt_si32 main_step()
 
         sc[d]->render(cur_time);
 
-        if (hide == 0)
+        if (!h_mode)
         {
             sc[d]->render_num(x_res-10, 10, -1, 2, (rt_si32)fps);
             sc[d]->render_num(x_res-10, 34, -1, 2, (rt_si32)fsaa * 4
@@ -386,7 +385,7 @@ rt_si32 main_step()
         RT_LOGI("Window-rect X-res = %4d, Y-res = %4d, d%2d, c%2d\n",
                                                 x_win, y_win, d+1, c+1);
         RT_LOGI("SIMD width/type = %4dv%d, logoff = %d, numoff = %d\n",
-                                           simd*32, type, l_mode, hide);
+                                         simd*32, type, l_mode, h_mode);
         RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d, FSAA = %d\n",
                                   x_res, y_res, fsaa*4/(RT_ELEMENT/32));
         RT_LOGI("Framebuffer X-row = %4d, ptr = %016"PR_Z"X\n",
@@ -647,8 +646,6 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
     type = s_type * 1;
     fsaa = a_mode ? RT_FSAA_4X : RT_FSAA_NO;
 
-    hide = h_mode ? 1 : 0;
-
     x_res = x_res * (w_size != 0 ? w_size : 1);
     y_res = y_res * (w_size != 0 ? w_size : 1);
     x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
@@ -722,7 +719,7 @@ rt_si32 main_init()
     RT_LOGI("Window-rect X-res = %4d, Y-res = %4d, d%2d, c%2d\n",
                                             x_win, y_win, d+1, c+1);
     RT_LOGI("SIMD width/type = %4dv%d, logoff = %d, numoff = %d\n",
-                                       simd*32, type, l_mode, hide);
+                                     simd*32, type, l_mode, h_mode);
     RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d, FSAA = %d\n",
                               x_res, y_res, fsaa*4/(RT_ELEMENT/32));
     RT_LOGI("Framebuffer X-row = %4d, ptr = %016"PR_Z"X\n",
