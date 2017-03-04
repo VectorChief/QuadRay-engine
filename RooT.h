@@ -178,30 +178,6 @@ rt_si32 main_step()
         return 0;
     }
 
-    cur_time = get_time();
-
-    if (init_time == 0)
-    {
-        init_time = cur_time;
-    }
-
-    cur_time = cur_time - init_time;
-    cnt++;
-
-    if (cur_time - last_time >= 500)
-    {
-        fps = (rt_real)cnt * 1000 / (cur_time - last_time);
-
-        glb += cnt;
-        cnt = 0;
-        last_time = cur_time;
-
-        if (!l_mode)
-        {
-            RT_LOGI("FPS = %.1f\n", fps);
-        }
-    }
-
     try
     {
 #if RT_OPTS_STATIC != 0
@@ -360,6 +336,30 @@ rt_si32 main_step()
         return 0;
     }
 
+    if (!o_mode)
+    {
+        frame_to_screen(sc[d]->get_frame(), sc[d]->get_x_row());
+    }
+
+    /* check time variables */
+    cur_time = get_time();
+    cur_time = cur_time - init_time;
+    cnt++;
+
+    if (cur_time - last_time >= 500)
+    {
+        fps = (rt_real)cnt * 1000 / (cur_time - last_time);
+
+        glb += cnt;
+        cnt = 0;
+        last_time = cur_time;
+
+        if (!l_mode)
+        {
+            RT_LOGI("FPS = %.1f\n", fps);
+        }
+    }
+
     if (switched)
     {
         switched = 0;
@@ -394,11 +394,6 @@ rt_si32 main_step()
 
         cnt = 0;
         last_time = cur_time;
-    }
-
-    if (!o_mode)
-    {
-        frame_to_screen(sc[d]->get_frame(), sc[d]->get_x_row());
     }
 
     return 1;
@@ -662,9 +657,6 @@ rt_si32 main_init()
     }
 #endif /* RT_OPTS_STATIC */
 
-    /* always draw empty frame before rendering any scenes */
-    frame_to_screen(sc[d]->get_frame(), sc[d]->get_x_row());
-
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
     RT_LOGI("Window-rect X-res = %4d, Y-res = %4d, d%2d, c%2d\n",
                                             x_win, y_win, d+1, c+1);
@@ -678,6 +670,11 @@ rt_si32 main_init()
                                              thnum, o_mode, u_mode);
 
     RT_LOGI("----------------------  FPS LOG  -----------------------\n");
+
+    /* init time variables */
+    cur_time = get_time();
+    init_time = cur_time;
+    cur_time = cur_time - init_time;
 
     return 1;
 }
