@@ -534,14 +534,14 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     {
         RT_LOGI("--------------------------------------------------------\n");
         RT_LOGI("Usage options are given below:\n");
-        RT_LOGI(" -b n, specify subtest-num at which testing begins, n>=1\n");
-        RT_LOGI(" -e n, specify subtest-num at which testing ends, n<=max\n");
+        RT_LOGI(" -b n, specify subtest # at which testing begins, n >= 1\n");
+        RT_LOGI(" -e n, specify subtest # at which testing ends, n <= max\n");
         RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
         RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
         RT_LOGI(" -w n, override window-rect size, where new size is 0..9\n");
         RT_LOGI(" -x n, override x-resolution, where new x-value <= 65535\n");
         RT_LOGI(" -y n, override y-resolution, where new y-value <= 65535\n");
-        RT_LOGI(" -d n, override diff-threshold used for acceptance, n>=0\n");
+        RT_LOGI(" -d n, override diff-threshold for qualification, n >= 0\n");
         RT_LOGI(" -v, enable verbose mode, print all pixel spots (> diff)\n");
         RT_LOGI(" -p, enable pixhunt mode, print isolated pixels (> diff)\n");
         RT_LOGI(" -i, enable imaging mode, save images before-after-diffs\n");

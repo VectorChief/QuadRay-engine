@@ -55,7 +55,7 @@ rt_SCENE   *sc_rt[]     =
 };
 
 rt_Scene   *sc[RT_ARR_SIZE(sc_rt)]  = {0};                  /* scene array */
-rt_si32     d                       = RT_ARR_SIZE(sc_rt)-1; /* demo-index */
+rt_si32     d                       = RT_ARR_SIZE(sc_rt)-1; /* demo-scene */
 rt_si32     c                       = 0;                    /* camera-idx */
 
 /******************************************************************************/
@@ -155,7 +155,7 @@ rt_si32 cnt = 0;
 rt_real avg = 0.0f;
 rt_si32 glb = 0;
 
-/* virtual keys arrays */
+/* virtual key arrays */
 rt_byte r_to_p[KEY_MASK + 1];
 rt_byte h_keys[KEY_MASK + 1];
 rt_byte t_keys[KEY_MASK + 1];
@@ -377,7 +377,7 @@ rt_si32 main_step()
 
         RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
         RT_LOGI("Window-rect X-res = %4d, Y-res = %4d, d%2d, c%2d\n",
-                                            x_win, y_win, d+1, c+1);
+                                                x_win, y_win, d+1, c+1);
         RT_LOGI("SIMD width/type = %4dv%d, logoff = %d, numoff = %d\n",
                                            simd*32, type, l_mode, hide);
         RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d, FSAA = %d\n",
@@ -424,7 +424,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -l, fps-logging-off mode, turns off fps-logging updates\n");
         RT_LOGI(" -h, hide-screen-num mode, turns off info-number drawing\n");
         RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
-        RT_LOGI("options -d n, -c n, -q n, -s n, ... , -a can be combined\n");
+        RT_LOGI("options -d n, -c n, ... , ... , ... , -a can be combined\n");
         RT_LOGI("--------------------------------------------------------\n");
     }
 
@@ -684,6 +684,17 @@ rt_si32 main_init()
  */
 rt_si32 main_term()
 {
+    RT_LOGI("----------------------  FPS AVG  -----------------------\n");
+    if (last_time - run_time)
+    {
+        avg = (rt_real)glb * 1000 / (last_time - run_time);
+    }
+    else
+    {
+        avg = (rt_real)0;
+    }
+    RT_LOGI("AVG = %.2f\n", avg);
+
     rt_si32 i, n = RT_ARR_SIZE(sc_rt);
 
     for (i = 0; i < n; i++)
@@ -702,17 +713,6 @@ rt_si32 main_term()
             return 0;
         }
     }
-
-    RT_LOGI("----------------------  FPS AVG  -----------------------\n");
-    if (last_time - run_time)
-    {
-        avg = (rt_real)glb * 1000 / (last_time - run_time);
-    }
-    else
-    {
-        avg = (rt_real)0;
-    }
-    RT_LOGI("AVG = %.2f\n", avg);
 
     return 1;
 }
