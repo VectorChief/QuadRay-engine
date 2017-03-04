@@ -18,13 +18,14 @@
 rt_astr     title       = "QuadRay engine demo, (C) 2013-2017 VectorChief";
 rt_si32     x_win       = RT_X_RES; /* window-rect (client) x-resolution */
 rt_si32     y_win       = RT_Y_RES; /* window-rect (client) y-resolution */
-
 rt_si32     x_res       = RT_X_RES;
 rt_si32     y_res       = RT_Y_RES;
 rt_si32     x_row       = (RT_X_RES+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
 rt_ui32    *frame       = RT_NULL;
 rt_si32     thnum       = RT_THREADS_NUM;
 
+rt_time     b_time      = 0; /* time (ms) begins from command-line */
+rt_time     e_time      =-1; /* time (ms) ending from command-line */
 rt_si32     q_simd      = 0; /* SIMD quad-factor from command-line */
 rt_si32     s_type      = 0; /* SIMD sub-variant from command-line */
 rt_si32     t_pool      = 0; /* Thread-pool size from command-line */
@@ -360,6 +361,11 @@ rt_si32 main_step()
         }
     }
 
+    if (e_time >= 0 && cur_time >= e_time)
+    {
+        return 0;
+    }
+
     if (switched)
     {
         switched = 0;
@@ -412,6 +418,8 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI("Usage options are given below:\n");
         RT_LOGI(" -d n, specify default demo-scene, where 1 <= n <= d_num\n");
         RT_LOGI(" -c n, specify default camera-idx, where 1 <= n <= c_num\n");
+        RT_LOGI(" -b n, specify time (ms) at which testing begins, n >= 0\n");
+        RT_LOGI(" -e n, specify time (ms) at which testing ends, n >= min\n");
         RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
         RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
         RT_LOGI(" -t n, override thread-pool size, where new size <= 1000\n");
@@ -461,6 +469,40 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             else
             {
                 RT_LOGI("Camera-idx value out of range\n");
+                return 0;
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-b") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 0)
+            {
+                RT_LOGI("Initial test-time (ms): %d\n", t);
+                b_time = t;
+            }
+            else
+            {
+                RT_LOGI("Initial test-time out of range\n");
+                return 0;
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-e") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 0)
+            {
+                RT_LOGI("Closing test-time (ms): %d\n", t);
+                e_time = t;
+            }
+            else
+            {
+                RT_LOGI("Closing test-time out of range\n");
                 return 0;
             }
         }
@@ -673,7 +715,8 @@ rt_si32 main_init()
 
     /* init time variables */
     cur_time = get_time();
-    init_time = cur_time;
+    init_time = cur_time - b_time;
+    last_time = run_time = b_time;
     cur_time = cur_time - init_time;
 
     return 1;
