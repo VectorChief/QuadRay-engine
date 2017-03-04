@@ -39,6 +39,8 @@ rt_Scene   *sc[RT_ARR_SIZE(sc_rt)]  = {0};                  /* scene array */
 rt_si32     d                       = RT_ARR_SIZE(sc_rt)-1; /* demo-scene */
 rt_si32     c                       = 0;                    /* camera-idx */
 
+rt_si32     f_num       =-1; /* number-of-frames from command-line */
+rt_time     f_time      =-1; /* frame-delta (ms) from command-line */
 rt_time     b_time      = 0; /* time (ms) begins from command-line */
 rt_time     e_time      =-1; /* time (ms) ending from command-line */
 rt_si32     q_simd      = 0; /* SIMD quad-factor from command-line */
@@ -155,6 +157,7 @@ rt_real fps = 0.0f;
 rt_si32 cnt = 0;
 rt_real avg = 0.0f;
 rt_si32 glb = 0;
+rt_si32 ttl = 0;
 
 /* virtual key arrays */
 rt_byte r_to_p[KEY_MASK + 1];
@@ -305,7 +308,7 @@ rt_si32 main_step()
         memset(t_keys, 0, sizeof(t_keys));
         memset(r_keys, 0, sizeof(r_keys));
 
-        sc[d]->render(cur_time);
+        sc[d]->render(f_time >= 0 ? b_time + f_time * ttl : cur_time);
 
         if (!h_mode)
         {
@@ -346,6 +349,7 @@ rt_si32 main_step()
     cur_time = get_time();
     cur_time = cur_time - init_time;
     cnt++;
+    ttl++;
 
     if (cur_time - last_time >= l_time)
     {
@@ -362,6 +366,11 @@ rt_si32 main_step()
     }
 
     if (e_time >= 0 && cur_time >= e_time)
+    {
+        return 0;
+    }
+
+    if (f_num >= 0 && ttl >= f_num)
     {
         return 0;
     }
@@ -418,6 +427,8 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI("Usage options are given below:\n");
         RT_LOGI(" -d n, specify default demo-scene, where 1 <= n <= d_num\n");
         RT_LOGI(" -c n, specify default camera-idx, where 1 <= n <= c_num\n");
+        RT_LOGI(" -f n, specify # of consecutive frames to render, n >= 1\n");
+        RT_LOGI(" -g n, specify delta (ms) for consecutive frames, n >= 0\n");
         RT_LOGI(" -b n, specify time (ms) at which testing begins, n >= 0\n");
         RT_LOGI(" -e n, specify time (ms) at which testing ends, n >= min\n");
         RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
@@ -470,6 +481,40 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             else
             {
                 RT_LOGI("Camera-idx value out of range\n");
+                return 0;
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-f") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 1)
+            {
+                RT_LOGI("Number-of-frames: %d\n", t);
+                f_num = t;
+            }
+            else
+            {
+                RT_LOGI("Number-of-frames out of range\n");
+                return 0;
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-g") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 0)
+            {
+                RT_LOGI("Frame-delta (ms): %d\n", t);
+                f_time = t;
+            }
+            else
+            {
+                RT_LOGI("Frame-delta (ms) out of range\n");
                 return 0;
             }
         }
