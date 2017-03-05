@@ -509,8 +509,8 @@ rt_si32 from_simd(rt_si32 simd)
     }
 #endif /* all targets */
 
-    /* ------ v_size ------- s_type ------- q_simd ------ */
-    return (size << 16) | (type << 8) | (simd / (4 * size));
+    /* ------ v_size ------- s_type ------- q_simd ---------- format-tag */
+    return (size << 16) | (type << 8) | (simd / (4 * size)) | (1 << 31);
 }
 
 /*
@@ -887,7 +887,7 @@ rt_si32 main_init()
 
     /* temporarily convert internal SIMD variables to new command-line format */
     simd = from_simd(simd | type << 8);
-    size = simd >> 16;
+    size = (simd >> 16) & 0xFF;
     type = (simd >> 8) & 0xFF;
     simd = simd & 0xFF;
 
