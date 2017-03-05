@@ -213,9 +213,14 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     pthread_mutex_init(&mutex, NULL);
 
     /* run main loop */
-    main_init();
-    main_loop();
-    main_term();
+    rt_si32 ret;
+    ret = main_init();
+    if (ret == 0)
+    {
+        return 1;
+    }
+    ret = main_loop();
+    ret = main_term();
 
     /* destroy sys_alloc's mutex */
     pthread_mutex_destroy(&mutex);
