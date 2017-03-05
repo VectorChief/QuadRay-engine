@@ -41,24 +41,24 @@ rt_si32     y_res       = RT_Y_RES;
 rt_si32     x_row       = (RT_X_RES+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
 rt_ui32    *frame       = RT_NULL;
 
-rt_si32     q_simd      = 0; /* SIMD quad-factor from command-line */
-rt_si32     s_type      = 0; /* SIMD sub-variant from command-line */
-rt_si32     w_size      = 1; /* Window-rect size from command-line */
-rt_bool     h_mode      = RT_FALSE; /* show mode from command-line */
-rt_bool     a_mode      = RT_FALSE; /* FSAA mode from command-line */
-
-rt_bool     i_mode      = RT_FALSE;     /* imaging mode from command-line */
-rt_bool     p_mode      = RT_FALSE;     /* pixhunt mode from command-line */
-rt_bool     v_mode      = RT_FALSE;     /* verbose mode from command-line */
-rt_si32     t_diff      = 3;          /* diff-threshold from command-line */
-rt_si32     n_init      = 0;            /* subtest-init from command-line */
-rt_si32     n_done      = RUN_LEVEL-1;  /* subtest-done from command-line */
-
 rt_si32     fsaa        = RT_FSAA_NO; /* no FSAA by default, -a enables */
 rt_si32     simd        = 0; /* default SIMD width (q*4) will be chosen */
 rt_si32     type        = 0; /* default SIMD sub-variant will be chosen */
 
 rt_Scene   *scene       = RT_NULL;
+
+rt_si32     q_simd      = 0; /* SIMD quad-factor (from command-line) */
+rt_si32     s_type      = 0; /* SIMD sub-variant (from command-line) */
+rt_si32     w_size      = 1; /* Window-rect size (from command-line) */
+rt_bool     h_mode      = RT_FALSE; /* show mode (from command-line) */
+rt_bool     a_mode      = RT_FALSE; /* FSAA mode (from command-line) */
+
+rt_bool     i_mode      = RT_FALSE;     /* imaging mode (from command-line) */
+rt_bool     p_mode      = RT_FALSE;     /* pixhunt mode (from command-line) */
+rt_bool     v_mode      = RT_FALSE;     /* verbose mode (from command-line) */
+rt_si32     t_diff      = 3;          /* diff-threshold (from command-line) */
+rt_si32     n_init      = 0;            /* subtest-init (from command-line) */
+rt_si32     n_done      = RUN_LEVEL-1;  /* subtest-done (from command-line) */
 
 /*
  * Get system time in milliseconds.
@@ -735,6 +735,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
     simd = q_simd * 4;
     type = s_type * 1;
+
     fsaa = a_mode ? RT_FSAA_4X : RT_FSAA_NO;
 
     x_res = x_res * (w_size != 0 ? w_size : 1);
