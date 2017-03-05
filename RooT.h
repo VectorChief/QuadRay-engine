@@ -531,11 +531,11 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -i n, save image at the end of each run, n is image-idx\n");
         RT_LOGI(" -b n, specify time (ms) at which testing begins, n >= 0\n");
         RT_LOGI(" -e n, specify time (ms) at which testing ends, n >= min\n");
-        RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
-        RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
-        RT_LOGI(" -v n, override SIMD vector-size, where new size is 1..8\n");
-        RT_LOGI(" -t n, override thread-pool size, where new size <= 1000\n");
-        RT_LOGI(" -w n, override window-rect size, where new size is 0..9\n");
+        RT_LOGI(" -q n, override SIMD-quad-factor, where new quad is 1..8\n");
+        RT_LOGI(" -s n, override SIMD-sub-variant, where new type is 1..8\n");
+        RT_LOGI(" -v n, override SIMD-vector-size, where new size is 1..8\n");
+        RT_LOGI(" -t n, override thread-pool-size, where new size <= 1000\n");
+        RT_LOGI(" -w n, override window-rect-size, where new size is 0..9\n");
         RT_LOGI(" -w 0, activate window-less mode, full native resolution\n");
         RT_LOGI(" -x n, override x-resolution, where new x-value <= 65535\n");
         RT_LOGI(" -y n, override y-resolution, where new y-value <= 65535\n");
@@ -615,7 +615,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             }
             else
             {
-                RT_LOGI("Frame-delta (ms) out of range\n");
+                RT_LOGI("Frame-delta (ms) value out of range\n");
                 return 0;
             }
         }
@@ -632,7 +632,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             }
             else
             {
-                RT_LOGI("Save-image-index out of range\n");
+                RT_LOGI("Save-image-index value out of range\n");
                 return 0;
             }
         }
@@ -644,12 +644,12 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             }
             if (t >= 0)
             {
-                RT_LOGI("Initial test-time (ms): %d\n", t);
+                RT_LOGI("Initial-test-time (ms): %d\n", t);
                 b_time = t;
             }
             else
             {
-                RT_LOGI("Initial test-time out of range\n");
+                RT_LOGI("Initial-test-time value out of range\n");
                 return 0;
             }
         }
@@ -661,54 +661,57 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             }
             if (t >= 1)
             {
-                RT_LOGI("Closing test-time (ms): %d\n", t);
+                RT_LOGI("Closing-test-time (ms): %d\n", t);
                 e_time = t;
             }
             else
             {
-                RT_LOGI("Closing test-time out of range\n");
+                RT_LOGI("Closing-test-time value out of range\n");
                 return 0;
             }
         }
         if (k < argc && strcmp(argv[k], "-q") == 0 && ++k < argc)
         {
-            q_simd = argv[k][0] - '0';
+            t = argv[k][0] - '0';
             if (strlen(argv[k]) == 1
-            && (q_simd == 1 || q_simd == 2 || q_simd == 4 || q_simd == 8))
+            && (t == 1 || t == 2 || t == 4 || t == 8))
             {
-                RT_LOGI("SIMD quad-factor overridden: %d\n", q_simd);
+                RT_LOGI("SIMD-quad-factor overridden: %d\n", t);
+                q_simd = t;
             }
             else
             {
-                RT_LOGI("SIMD quad-factor value out of range\n");
+                RT_LOGI("SIMD-quad-factor value out of range\n");
                 return 0;
             }
         }
         if (k < argc && strcmp(argv[k], "-s") == 0 && ++k < argc)
         {
-            s_type = argv[k][0] - '0';
+            t = argv[k][0] - '0';
             if (strlen(argv[k]) == 1
-            && (s_type == 1 || s_type == 2 || s_type == 4 || s_type == 8))
+            && (t == 1 || t == 2 || t == 4 || t == 8))
             {
-                RT_LOGI("SIMD sub-variant overridden: %d\n", s_type);
+                RT_LOGI("SIMD-sub-variant overridden: %d\n", t);
+                s_type = t;
             }
             else
             {
-                RT_LOGI("SIMD sub-variant value out of range\n");
+                RT_LOGI("SIMD-sub-variant value out of range\n");
                 return 0;
             }
         }
         if (k < argc && strcmp(argv[k], "-v") == 0 && ++k < argc)
         {
-            v_size = argv[k][0] - '0';
+            t = argv[k][0] - '0';
             if (strlen(argv[k]) == 1
-            && (v_size == 1 || v_size == 2 || v_size == 4 || v_size == 8))
+            && (t == 1 || t == 2 || t == 4 || t == 8))
             {
-                RT_LOGI("SIMD vector-size overridden: %d\n", v_size);
+                RT_LOGI("SIMD-vector-size overridden: %d\n", t);
+                v_size = t;
             }
             else
             {
-                RT_LOGI("SIMD vector-size value out of range\n");
+                RT_LOGI("SIMD-vector-size value out of range\n");
                 return 0;
             }
         }
@@ -716,41 +719,43 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         {
             for (l = strlen(argv[k]), r = 1; l > 0; l--, r *= 10)
             {
-                t_pool += (argv[k][l-1] - '0') * r;
+                t += (argv[k][l-1] - '0') * r;
             }
-            if (t_pool >= 0 && t_pool <= 1000)
+            if (t >= 0 && t <= 1000)
             {
-                RT_LOGI("Thread-pool size overridden: %d\n", t_pool);
+                RT_LOGI("Thread-pool-size overridden: %d\n", t);
+                t_pool = t;
             }
             else
             {
-                RT_LOGI("Thread-pool size value out of range\n");
+                RT_LOGI("Thread-pool-size value out of range\n");
                 return 0;
             }
         }
         if (k < argc && strcmp(argv[k], "-w") == 0 && ++k < argc)
         {
-            w_size = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1 && w_size >= 0 && w_size <= 9)
+            t = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1 && t >= 0 && t <= 9)
             {
-                RT_LOGI("Window-rect size overridden: %d\n", w_size);
+                RT_LOGI("Window-rect-size overridden: %d\n", t);
+                w_size = t;
             }
             else
             {
-                RT_LOGI("Window-rect size value out of range\n");
+                RT_LOGI("Window-rect-size value out of range\n");
                 return 0;
             }
         }
         if (k < argc && strcmp(argv[k], "-x") == 0 && ++k < argc)
         {
-            for (l = strlen(argv[k]), r = 1; l > 0; l--, r *= 10)
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
             {
-                x_new += (argv[k][l-1] - '0') * r;
+                t += (argv[k][l-1] - '0') * r;
             }
-            if (x_new >= 1 && x_new <= 65535)
+            if (t >= 1 && t <= 65535)
             {
-                RT_LOGI("X-resolution overridden: %d\n", x_new);
-                x_res = x_new;
+                RT_LOGI("X-resolution overridden: %d\n", t);
+                x_res = x_new = t;
             }
             else
             {
@@ -760,14 +765,14 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         }
         if (k < argc && strcmp(argv[k], "-y") == 0 && ++k < argc)
         {
-            for (l = strlen(argv[k]), r = 1; l > 0; l--, r *= 10)
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
             {
-                y_new += (argv[k][l-1] - '0') * r;
+                t += (argv[k][l-1] - '0') * r;
             }
-            if (y_new >= 1 && y_new <= 65535)
+            if (t >= 1 && t <= 65535)
             {
-                RT_LOGI("Y-resolution overridden: %d\n", y_new);
-                y_res = y_new;
+                RT_LOGI("Y-resolution overridden: %d\n", t);
+                y_res = y_new = t;
             }
             else
             {
@@ -783,12 +788,12 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             }
             if (t >= 0)
             {
-                RT_LOGI("FPS-logging interval (ms): %d\n", t);
+                RT_LOGI("FPS-logging-interval (ms): %d\n", t);
                 l_time = t;
             }
             else
             {
-                RT_LOGI("FPS-logging interval out of range\n");
+                RT_LOGI("FPS-logging-interval value out of range\n");
                 return 0;
             }
         }
@@ -819,6 +824,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         }
     }
 
+    /* init internal SIMD variables in scene format (from command-line) */
     simd = simd_init(q_simd, s_type, v_size);
     type = simd >> 8;
     simd = simd & 0xFF;
@@ -871,6 +877,7 @@ rt_si32 main_init()
         }
     }
 
+    /* test internal SIMD variables against original command-line format */
     if ((s_type != 0 && s_type != ((type / 1) & 0x0F) && v_size == 0)
     ||  (q_simd != 0 && q_simd != ((simd / 4) & 0x0F) && v_size == 0))
     {
@@ -878,11 +885,13 @@ rt_si32 main_init()
         return 0;
     }
 
+    /* temporarily convert internal SIMD variables to new command-line format */
     simd = from_simd(simd | type << 8);
     size = simd >> 16;
     type = (simd >> 8) & 0xFF;
     simd = simd & 0xFF;
 
+    /* test converted internal SIMD variables against new command-line format */
     if ((v_size != 0 && v_size != size)
     ||  (s_type != 0 && s_type != type && v_size != 0)
     ||  (q_simd != 0 && q_simd != simd && v_size != 0))
@@ -891,6 +900,7 @@ rt_si32 main_init()
         return 0;
     }
 
+    /* keep internal SIMD variables in scene format */
     simd = simd_init(simd, type, size);
     type = simd >> 8;
     simd = simd & 0xFF;

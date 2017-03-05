@@ -621,10 +621,10 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI("Usage options are given below:\n");
         RT_LOGI(" -b n, specify subtest # at which testing begins, n >= 1\n");
         RT_LOGI(" -e n, specify subtest # at which testing ends, n <= max\n");
-        RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
-        RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
-        RT_LOGI(" -v n, override SIMD vector-size, where new size is 1..8\n");
-        RT_LOGI(" -w n, override window-rect size, where new size is 0..9\n");
+        RT_LOGI(" -q n, override SIMD-quad-factor, where new quad is 1..8\n");
+        RT_LOGI(" -s n, override SIMD-sub-variant, where new type is 1..8\n");
+        RT_LOGI(" -v n, override SIMD-vector-size, where new size is 1..8\n");
+        RT_LOGI(" -w n, override window-rect-size, where new size is 0..9\n");
         RT_LOGI(" -x n, override x-resolution, where new x-value <= 65535\n");
         RT_LOGI(" -y n, override y-resolution, where new y-value <= 65535\n");
         RT_LOGI(" -d n, override diff-threshold for qualification, n >= 0\n");
@@ -674,7 +674,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             }
             else
             {
-                RT_LOGI("Subtest-index-init out of range\n");
+                RT_LOGI("Subtest-index-init value out of range\n");
                 return 0;
             }
         }
@@ -697,56 +697,60 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         }
         if (k < argc && strcmp(argv[k], "-q") == 0 && ++k < argc)
         {
-            q_simd = argv[k][0] - '0';
+            t = argv[k][0] - '0';
             if (strlen(argv[k]) == 1
-            && (q_simd == 1 || q_simd == 2 || q_simd == 4 || q_simd == 8))
+            && (t == 1 || t == 2 || t == 4 || t == 8))
             {
-                RT_LOGI("SIMD quad-factor overridden: %d\n", q_simd);
+                RT_LOGI("SIMD-quad-factor overridden: %d\n", t);
+                q_simd = t;
             }
             else
             {
-                RT_LOGI("SIMD quad-factor value out of range\n");
+                RT_LOGI("SIMD-quad-factor value out of range\n");
                 return 0;
             }
         }
         if (k < argc && strcmp(argv[k], "-s") == 0 && ++k < argc)
         {
-            s_type = argv[k][0] - '0';
+            t = argv[k][0] - '0';
             if (strlen(argv[k]) == 1
-            && (s_type == 1 || s_type == 2 || s_type == 4 || s_type == 8))
+            && (t == 1 || t == 2 || t == 4 || t == 8))
             {
-                RT_LOGI("SIMD sub-variant overridden: %d\n", s_type);
+                RT_LOGI("SIMD-sub-variant overridden: %d\n", t);
+                s_type = t;
             }
             else
             {
-                RT_LOGI("SIMD sub-variant value out of range\n");
+                RT_LOGI("SIMD-sub-variant value out of range\n");
                 return 0;
             }
         }
         if (k < argc && strcmp(argv[k], "-v") == 0 && ++k < argc)
         {
-            v_size = argv[k][0] - '0';
+            t = argv[k][0] - '0';
             if (strlen(argv[k]) == 1
-            && (v_size == 1 || v_size == 2 || v_size == 4 || v_size == 8))
+            && (t == 1 || t == 2 || t == 4 || t == 8))
             {
-                RT_LOGI("SIMD vector-size overridden: %d\n", v_size);
+                RT_LOGI("SIMD-vector-size overridden: %d\n", t);
+                v_size = t;
             }
             else
             {
-                RT_LOGI("SIMD vector-size value out of range\n");
+                RT_LOGI("SIMD-vector-size value out of range\n");
                 return 0;
             }
         }
         if (k < argc && strcmp(argv[k], "-w") == 0 && ++k < argc)
         {
-            w_size = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1 && w_size >= 0 && w_size <= 9)
+            t = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1 && t >= 0 && t <= 9)
             {
-                RT_LOGI("Window-rect size overridden: %d\n", w_size);
+                RT_LOGI("Window-rect-size overridden: %d\n", t);
+                w_size = t;
             }
             else
             {
-                RT_LOGI("Window-rect size value out of range\n");
+                RT_LOGI("Window-rect-size value out of range\n");
                 return 0;
             }
         }
