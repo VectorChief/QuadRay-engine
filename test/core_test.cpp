@@ -42,16 +42,16 @@ rt_si32     x_row       = (RT_X_RES+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
 rt_ui32    *frame       = RT_NULL;
 
 rt_si32     fsaa        = RT_FSAA_NO; /* no FSAA by default, -a enables */
-rt_si32     simd        = 0; /* default SIMD width (q*4) will be chosen */
-rt_si32     type        = 0; /* default SIMD sub-variant will be chosen */
-rt_si32     size        = 0; /* default SIMD vector-size will be chosen */
+rt_si32     simd        = 0; /* default SIMD-width-(q*4) will be chosen */
+rt_si32     type        = 0; /* default SIMD-sub-variant will be chosen */
+rt_si32     size        = 0; /* default SIMD-vector-size will be chosen */
 
 rt_Scene   *scene       = RT_NULL;
 
-rt_si32     q_simd      = 0; /* SIMD quad-factor (from command-line) */
-rt_si32     s_type      = 0; /* SIMD sub-variant (from command-line) */
-rt_si32     v_size      = 0; /* SIMD vector-size (from command-line) */
-rt_si32     w_size      = 1; /* Window-rect size (from command-line) */
+rt_si32     q_simd      = 0; /* SIMD-quad-factor (from command-line) */
+rt_si32     s_type      = 0; /* SIMD-sub-variant (from command-line) */
+rt_si32     v_size      = 0; /* SIMD-vector-size (from command-line) */
+rt_si32     w_size      = 1; /* Window-rect-size (from command-line) */
 rt_bool     h_mode      = RT_FALSE; /* show mode (from command-line) */
 rt_bool     a_mode      = RT_FALSE; /* FSAA mode (from command-line) */
 
