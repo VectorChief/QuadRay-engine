@@ -44,11 +44,13 @@ rt_ui32    *frame       = RT_NULL;
 rt_si32     fsaa        = RT_FSAA_NO; /* no FSAA by default, -a enables */
 rt_si32     simd        = 0; /* default SIMD width (q*4) will be chosen */
 rt_si32     type        = 0; /* default SIMD sub-variant will be chosen */
+rt_si32     size        = 0; /* default SIMD vector-size will be chosen */
 
 rt_Scene   *scene       = RT_NULL;
 
 rt_si32     q_simd      = 0; /* SIMD quad-factor (from command-line) */
 rt_si32     s_type      = 0; /* SIMD sub-variant (from command-line) */
+rt_si32     v_size      = 0; /* SIMD vector-size (from command-line) */
 rt_si32     w_size      = 1; /* Window-rect size (from command-line) */
 rt_bool     h_mode      = RT_FALSE; /* show mode (from command-line) */
 rt_bool     a_mode      = RT_FALSE; /* FSAA mode (from command-line) */
@@ -526,6 +528,89 @@ testXX o_test[RUN_LEVEL] =
 /**********************************   MAIN   **********************************/
 /******************************************************************************/
 
+/*
+ * Initialize SIMD target-selection variable from parameters.
+ */
+rt_si32 simd_init(rt_si32 q_simd, rt_si32 s_type, rt_si32 v_size)
+{
+    rt_si32 simd = 0;
+
+    /* original interpretation */
+    if (v_size == 0 || v_size == 1)
+    {
+        simd = (q_simd << 2) | (s_type << 8);
+    }
+
+/* temporary compatibility layer, will be unified in the next version */
+#if   defined (RT_X32) || defined (RT_X64)
+    if (v_size == 2 || v_size == 4)
+    {
+        simd = (q_simd * 4 * v_size) | (8 << 8);
+    }
+#elif defined (RT_P32) || defined (RT_P64)
+    if (v_size == 2 && s_type == 1)
+    {
+        simd = (q_simd * 4 * v_size) | (8 << 8);
+    }
+    else
+    if (v_size == 2 || v_size == 4)
+    {
+        simd = (q_simd * 4 * v_size) | (s_type << 7);
+    }
+#else /* other RISC targets */
+    if (v_size == 2 || v_size == 4)
+    {
+        simd = (q_simd * 4 * v_size) | (s_type << 8);
+    }
+#endif /* all targets */
+
+    return simd;
+}
+
+/*
+ * Initialize SIMD parameters from target-selection variable.
+ */
+rt_si32 from_simd(rt_si32 simd)
+{
+    rt_si32 type = 0;
+    rt_si32 size = 1;
+
+    /* original interpretation */
+    type = simd >> 8;
+    simd = simd & 0xFF;
+
+/* temporary compatibility layer, will be unified in the next version */
+#if   defined (RT_X32) || defined (RT_X64)
+    if (simd >= 8 && type == 8)
+    {
+        size = simd <= 16 ? 2 : 4;
+        type = simd ==  8 ? RT_SIMD_COMPAT_256 :
+               simd == 16 ? RT_SIMD_COMPAT_512 :
+               simd == 64 ? RT_SIMD_COMPAT_2K8 : 0;
+    }
+#elif defined (RT_P32) || defined (RT_P64)
+    if (simd == 8 && type == 8)
+    {
+        size = 2;
+        type = 1;
+    }
+    else
+    if (simd >= 8 && type <= 4)
+    {
+        size = simd >> 2;
+        type = type << 1;
+    }
+#else /* other RISC targets */
+    if (simd >= 8 && type <= 4)
+    {
+        size = simd >> 2;
+    }
+#endif /* all targets */
+
+    /* ------ v_size ------- s_type ------- q_simd ------ */
+    return (size << 16) | (type << 8) | (simd / (4 * size));
+}
+
 rt_si32 main(rt_si32 argc, rt_char *argv[])
 {
     rt_si32 k, l, r, t;
@@ -538,6 +623,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -e n, specify subtest # at which testing ends, n <= max\n");
         RT_LOGI(" -q n, override SIMD quad-factor, where new quad is 1..8\n");
         RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1..8\n");
+        RT_LOGI(" -v n, override SIMD vector-size, where new size is 1..8\n");
         RT_LOGI(" -w n, override window-rect size, where new size is 0..9\n");
         RT_LOGI(" -x n, override x-resolution, where new x-value <= 65535\n");
         RT_LOGI(" -y n, override y-resolution, where new y-value <= 65535\n");
@@ -637,6 +723,20 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
+        if (k < argc && strcmp(argv[k], "-v") == 0 && ++k < argc)
+        {
+            v_size = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1
+            && (v_size == 1 || v_size == 2 || v_size == 4 || v_size == 8))
+            {
+                RT_LOGI("SIMD vector-size overridden: %d\n", v_size);
+            }
+            else
+            {
+                RT_LOGI("SIMD vector-size value out of range\n");
+                return 0;
+            }
+        }
         if (k < argc && strcmp(argv[k], "-w") == 0 && ++k < argc)
         {
             w_size = argv[k][0] - '0';
@@ -733,8 +833,9 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     rt_time tN = 0;
     rt_time tF = 0;
 
-    simd = q_simd * 4;
-    type = s_type * 1;
+    simd = simd_init(q_simd, s_type, v_size);
+    type = simd >> 8;
+    simd = simd & 0xFF;
 
     fsaa = a_mode ? RT_FSAA_4X : RT_FSAA_NO;
 
@@ -749,12 +850,22 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     simd = simd & 0xFF;
     delete scene;
 
-    if ((s_type != 0 && s_type != ((type / 1) & 0x0F))
-    ||  (q_simd != 0 && q_simd != ((simd / 4) & 0x0F)))
+    simd = from_simd(simd | type << 8);
+    size = simd >> 16;
+    type = (simd >> 8) & 0xFF;
+    simd = simd & 0xFF;
+
+    if ((v_size != 0 && v_size != size)
+    ||  (s_type != 0 && s_type != type)
+    ||  (q_simd != 0 && q_simd != simd))
     {
         RT_LOGI("Chosen SIMD target is not supported, check -q/-s options\n");
         return 0;
     }
+
+    simd = simd_init(simd, type, size);
+    type = simd >> 8;
+    simd = simd & 0xFF;
 
     frame = (rt_ui32 *)sys_alloc(x_row * y_res * sizeof(rt_ui32));
 
