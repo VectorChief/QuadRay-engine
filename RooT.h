@@ -149,9 +149,9 @@ rt_pstr *estr = RT_NULL;
 
 /* time counter variables */
 rt_time init_time = 0;
-rt_time last_time = 0;
-rt_time cur_time = 0;
 rt_time run_time = 0;
+rt_time log_time = 0;
+rt_time cur_time = 0;
 rt_bool switched = 0;
 
 /* frame counter variables */
@@ -190,17 +190,17 @@ rt_si32 main_step()
     if (init_time == 0)
     {
         init_time = cur_time - b_time;
-        last_time = run_time = b_time;
+        log_time = run_time = b_time;
     }
     cur_time = cur_time - init_time;
 
-    if (cur_time - last_time >= l_time)
+    if (cur_time - log_time >= l_time)
     {
-        fps = (rt_real)cnt * 1000 / (cur_time - last_time);
+        fps = (rt_real)cnt * 1000 / (cur_time - log_time);
 
         glb += cnt;
         cnt = 0;
-        last_time = cur_time;
+        log_time = cur_time;
 
         if (!l_mode)
         {
@@ -420,7 +420,7 @@ rt_si32 main_step()
         run_time = cur_time;
 
         cnt = 0;
-        last_time = cur_time;
+        log_time = cur_time;
     }
 
     /* update frame counters */
