@@ -871,14 +871,21 @@ rt_si32 main_init()
         }
     }
 
+    if ((s_type != 0 && s_type != ((type / 1) & 0x0F) && v_size == 0)
+    ||  (q_simd != 0 && q_simd != ((simd / 4) & 0x0F) && v_size == 0))
+    {
+        RT_LOGI("Chosen SIMD target is not supported, check -q/-s options\n");
+        return 0;
+    }
+
     simd = from_simd(simd | type << 8);
     size = simd >> 16;
     type = (simd >> 8) & 0xFF;
     simd = simd & 0xFF;
 
     if ((v_size != 0 && v_size != size)
-    ||  (s_type != 0 && s_type != type)
-    ||  (q_simd != 0 && q_simd != simd))
+    ||  (s_type != 0 && s_type != type && v_size != 0)
+    ||  (q_simd != 0 && q_simd != simd && v_size != 0))
     {
         RT_LOGI("Chosen SIMD target is not supported, check -q/-s options\n");
         return 0;
