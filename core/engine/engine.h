@@ -248,6 +248,10 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     friend      class rt_SceneThread;
 };
 
+/* internal SIMD format converters */
+rt_si32 simd_init(rt_si32 q_simd, rt_si32 s_type, rt_si32 v_size);
+rt_si32 from_simd(rt_si32 simd);
+
 #endif /* RT_ENGINE_H */
 
 /******************************************************************************/

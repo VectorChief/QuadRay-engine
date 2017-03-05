@@ -3189,17 +3189,120 @@ rt_si32 rt_Scene::set_fsaa(rt_si32 fsaa)
 }
 
 /*
+ * Initialize SIMD target-selection variable from parameters.
+ */
+rt_si32 simd_init(rt_si32 q_simd, rt_si32 s_type, rt_si32 v_size)
+{
+    rt_si32 simd = 0;
+
+    /* original interpretation */
+    if (v_size == 0 || v_size == 1)
+    {
+        simd = (q_simd << 2) | (s_type << 8);
+    }
+
+/* temporary compatibility layer, will be unified in the next version */
+#if   defined (RT_X32) || defined (RT_X64)
+    if (v_size == 2 || v_size == 4)
+    {
+        simd = (q_simd * 4 * v_size) | (8 << 8);
+    }
+#elif defined (RT_P32) || defined (RT_P64)
+    if (v_size == 2 && s_type == 1)
+    {
+        simd = (q_simd * 4 * v_size) | (8 << 8);
+    }
+    else
+    if (v_size == 2 || v_size == 4)
+    {
+        simd = (q_simd * 4 * v_size) | (s_type << 7);
+    }
+#else /* other RISC targets */
+    if (v_size == 2 || v_size == 4)
+    {
+        simd = (q_simd * 4 * v_size) | (s_type << 8);
+    }
+#endif /* all targets */
+
+    return simd;
+}
+
+/*
+ * Initialize SIMD parameters from target-selection variable.
+ */
+rt_si32 from_simd(rt_si32 simd)
+{
+    rt_si32 type = 0;
+    rt_si32 size = 1;
+
+    /* original interpretation */
+    type = simd >> 8;
+    simd = simd & 0xFF;
+
+/* temporary compatibility layer, will be unified in the next version */
+#if   defined (RT_X32) || defined (RT_X64)
+    if (simd >= 8 && type == 8)
+    {
+        size = simd <= 16 ? 2 : 4;
+        type = simd ==  8 ? RT_SIMD_COMPAT_256 :
+               simd == 16 ? RT_SIMD_COMPAT_512 :
+               simd == 64 ? RT_SIMD_COMPAT_2K8 : 0;
+    }
+#elif defined (RT_P32) || defined (RT_P64)
+    if (simd == 8 && type == 8)
+    {
+        size = 2;
+        type = 1;
+    }
+    else
+    if (simd >= 8 && type <= 4)
+    {
+        size = simd >> 2;
+        type = type << 1;
+    }
+#else /* other RISC targets */
+    if (simd >= 8 && type <= 4)
+    {
+        size = simd >> 2;
+    }
+#endif /* all targets */
+
+    /* ------ v_size ------- s_type ------- q_simd ---------- format-tag */
+    return (size << 16) | (type << 8) | (simd / (4 * size)) | (1 << 31);
+}
+
+/*
  * Set current runtime SIMD target with "simd" equal to
+ * (in the old format:--------------------------------)
  * SIMD width (4, 8, 16, 32, 64) in 0th (lowest) byte
- * and SIMD type (1, 2, 4, 8) in 1st (higher) byte.
+ * and SIMD type (1, 2, 4, 8) in 1st (higher) byte or
+ * (in the new format:--------------------------------)
+ * SIMD quad-factor (1, 2, 4) in 0th (lowest) byte
+ * SIMD type (1, 2, 4, 8) in 1st (higher) byte and
+ * SIMD vector-size (1, 2, 4) in 2nd (higher) byte
+ * (depending on the sign bit:--- 0 - old, 1 - new ---)
  */
 rt_si32 rt_Scene::set_simd(rt_si32 simd)
 {
+    rt_si32 sign = 0;
+
+    if (simd < 0) /* converting simd from new to old format */
+    {
+        simd = simd_init(simd & 0xFF, (simd >> 8) & 0xFF, (simd >> 16) & 0xFF);
+        sign = 1;
+    }
+
+    /* working with simd in the old format */
     simd = switch0(tharr[0]->s_inf, simd);
 
     simd_width = simd & 0xFF;
     simd_quads = simd_width / 4;
     simd_width = simd_width / (RT_ELEMENT / 32);
+
+    if (sign > 0) /* converting simd from old to new format */
+    {
+        simd = from_simd(simd);
+    }
 
     return simd;
 }
