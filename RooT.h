@@ -40,8 +40,8 @@ rt_time     e_time      =-1;        /* time-ending-(ms) (from command-line) */
 rt_si32     f_num       =-1;        /* number-of-frames (from command-line) */
 rt_time     f_time      =-1;        /* frame-delta-(ms) (from command-line) */
 rt_si32     n_simd      = 0;        /* SIMD-native-size (from command-line) */
-rt_si32     s_type      = 0;        /* SIMD-sub-variant (from command-line) */
 rt_si32     k_size      = 0;        /* SIMD-size-factor (from command-line) */
+rt_si32     s_type      = 0;        /* SIMD-sub-variant (from command-line) */
 rt_si32     t_pool      = 0;        /* Thread-pool-size (from command-line) */
 #if RT_FULLSCREEN == 1
 rt_si32     w_size      = 0;        /* Window-rect-size (from command-line) */
@@ -432,8 +432,8 @@ rt_si32 main_step()
         RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
         RT_LOGI("Window-rect X-res = %5d, Y-res = %4d, d%2d, c%2d\n",
                                                     x_win, y_win, d+1, c+1);
-        RT_LOGI("SIMD width/type = %dx%3dv%d, logoff = %d, numoff = %d\n",
-                              k_size, n_simd * 128, s_type, l_mode, h_mode);
+        RT_LOGI("SIMD width/type = %3dx%dv%d, logoff = %d, numoff = %d\n",
+                              n_simd * 128, k_size, s_type, l_mode, h_mode);
         RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, FSAA = %d\n",
                               x_res, y_res, a_mode * 4 / (RT_ELEMENT / 32));
         RT_LOGI("Framebuffer X-row = %5d, ptr = %016"PR_Z"X\n",
@@ -475,8 +475,8 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -f n, specify # of consecutive frames to render, n >= 0\n");
         RT_LOGI(" -g n, specify delta (ms) for consecutive frames, n >= 0\n");
         RT_LOGI(" -n n, override SIMD-native-size, where new simd is 1..4\n");
-        RT_LOGI(" -s n, override SIMD-sub-variant, where new type is 1..8\n");
         RT_LOGI(" -k n, override SIMD-size-factor, where new size is 1..4\n");
+        RT_LOGI(" -s n, override SIMD-sub-variant, where new type is 1..8\n");
         RT_LOGI(" -t n, override thread-pool-size, where new size <= 1000\n");
         RT_LOGI(" -w n, override window-rect-size, where new size is 0..9\n");
         RT_LOGI(" -w 0, activate window-less mode, full native resolution\n");
@@ -612,21 +612,6 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (k < argc && strcmp(argv[k], "-s") == 0 && ++k < argc)
-        {
-            t = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1
-            && (t == 1 || t == 2 || t == 4 || t == 8))
-            {
-                RT_LOGI("SIMD-sub-variant overridden: %d\n", t);
-                s_type = t;
-            }
-            else
-            {
-                RT_LOGI("SIMD-sub-variant value out of range\n");
-                return 0;
-            }
-        }
         if (k < argc && strcmp(argv[k], "-k") == 0 && ++k < argc)
         {
             t = argv[k][0] - '0';
@@ -639,6 +624,21 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             else
             {
                 RT_LOGI("SIMD-size-factor value out of range\n");
+                return 0;
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-s") == 0 && ++k < argc)
+        {
+            t = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1
+            && (t == 1 || t == 2 || t == 4 || t == 8))
+            {
+                RT_LOGI("SIMD-sub-variant overridden: %d\n", t);
+                s_type = t;
+            }
+            else
+            {
+                RT_LOGI("SIMD-sub-variant value out of range\n");
                 return 0;
             }
         }
@@ -817,7 +817,7 @@ rt_si32 main_init()
     if ((s_type != 0 && s_type != ((simd >> 8) & 0x0F) && k_size == 0)
     ||  (n_simd != 0 && n_simd != ((simd >> 2) & 0x0F) && k_size == 0))
     {
-        RT_LOGI("Chosen SIMD target is not supported, check -q/-s options\n");
+        RT_LOGI("Chosen SIMD target not supported, check -n/-k/-s options\n");
         return 0;
     }
 
@@ -832,7 +832,7 @@ rt_si32 main_init()
     ||  (s_type != 0 && s_type != type && k_size != 0)
     ||  (n_simd != 0 && n_simd != simd && k_size != 0))
     {
-        RT_LOGI("Chosen SIMD target is not supported, check -q/-s options\n");
+        RT_LOGI("Chosen SIMD target not supported, check -n/-k/-s options\n");
         return 0;
     }
 
@@ -860,8 +860,8 @@ rt_si32 main_init()
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
     RT_LOGI("Window-rect X-res = %5d, Y-res = %4d, d%2d, c%2d\n",
                                                 x_win, y_win, d+1, c+1);
-    RT_LOGI("SIMD width/type = %dx%3dv%d, logoff = %d, numoff = %d\n",
-                          k_size, n_simd * 128, s_type, l_mode, h_mode);
+    RT_LOGI("SIMD width/type = %3dx%dv%d, logoff = %d, numoff = %d\n",
+                          n_simd * 128, k_size, s_type, l_mode, h_mode);
     RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, FSAA = %d\n",
                           x_res, y_res, a_mode * 4 / (RT_ELEMENT / 32));
     RT_LOGI("Framebuffer X-row = %5d, ptr = %016"PR_Z"X\n",

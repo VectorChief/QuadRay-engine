@@ -130,7 +130,7 @@ core_test_p64f64Bp7:
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
-# on RISC targets top hardcoded value is chosen by default, use -q/-s to override
+# on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 # 512-bit SIMD is achieved by combining quads of 128-bit registers/instructions
 
