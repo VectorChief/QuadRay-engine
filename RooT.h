@@ -40,11 +40,10 @@ rt_Scene   *sc[RT_ARR_SIZE(sc_rt)]  = {0};                  /* scene array */
 rt_si32     d                       = RT_ARR_SIZE(sc_rt)-1; /* demo-scene */
 rt_si32     c                       = 0;                    /* camera-idx */
 
-rt_si32     f_num       =-1; /* number-of-frames (from command-line) */
-rt_time     f_time      =-1; /* frame-delta-(ms) (from command-line) */
-rt_time     img_id      =-1; /* save-image-index (from command-line) */
 rt_time     b_time      = 0; /* time-begins-(ms) (from command-line) */
 rt_time     e_time      =-1; /* time-ending-(ms) (from command-line) */
+rt_si32     f_num       =-1; /* number-of-frames (from command-line) */
+rt_time     f_time      =-1; /* frame-delta-(ms) (from command-line) */
 rt_si32     q_simd      = 0; /* SIMD-quad-factor (from command-line) */
 rt_si32     s_type      = 0; /* SIMD-sub-variant (from command-line) */
 rt_si32     v_size      = 0; /* SIMD-vector-size (from command-line) */
@@ -57,6 +56,7 @@ rt_si32     w_size      = 1; /* Window-rect-size (from command-line) */
 rt_si32     x_new       = 0; /* New x-resolution (from command-line) */
 rt_si32     y_new       = 0; /* New y-resolution (from command-line) */
 
+rt_time     img_id      =-1; /* save-image-index (from command-line) */
 rt_time     l_time      = 500; /* fpslogupd-(ms) (from command-line) */
 rt_bool     l_mode      = RT_FALSE; /* fpslogoff (from command-line) */
 rt_bool     h_mode      = RT_FALSE; /* hide mode (from command-line) */
@@ -443,11 +443,10 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI("Usage options are given below:\n");
         RT_LOGI(" -d n, specify default demo-scene, where 1 <= n <= d_num\n");
         RT_LOGI(" -c n, specify default camera-idx, where 1 <= n <= c_num\n");
-        RT_LOGI(" -f n, specify # of consecutive frames to render, n >= 1\n");
-        RT_LOGI(" -g n, specify delta (ms) for consecutive frames, n >= 0\n");
-        RT_LOGI(" -i n, save image at the end of each run, n is image-idx\n");
         RT_LOGI(" -b n, specify time (ms) at which testing begins, n >= 0\n");
         RT_LOGI(" -e n, specify time (ms) at which testing ends, n >= min\n");
+        RT_LOGI(" -f n, specify # of consecutive frames to render, n >= 0\n");
+        RT_LOGI(" -g n, specify delta (ms) for consecutive frames, n >= 0\n");
         RT_LOGI(" -q n, override SIMD-quad-factor, where new quad is 1..8\n");
         RT_LOGI(" -s n, override SIMD-sub-variant, where new type is 1..8\n");
         RT_LOGI(" -v n, override SIMD-vector-size, where new size is 1..8\n");
@@ -456,6 +455,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -w 0, activate window-less mode, full native resolution\n");
         RT_LOGI(" -x n, override x-resolution, where new x-value <= 65535\n");
         RT_LOGI(" -y n, override y-resolution, where new y-value <= 65535\n");
+        RT_LOGI(" -i n, save image at the end of each run, n is image-idx\n");
         RT_LOGI(" -r n, fps-logging update rate, where n is interval (ms)\n");
         RT_LOGI(" -l, fps-logging-off mode, turns off fps-logging updates\n");
         RT_LOGI(" -h, hide-screen-num mode, turns off info-number drawing\n");
@@ -502,57 +502,6 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (k < argc && strcmp(argv[k], "-f") == 0 && ++k < argc)
-        {
-            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
-            {
-                t += (argv[k][l-1] - '0') * r;
-            }
-            if (t >= 1)
-            {
-                RT_LOGI("Number-of-frames: %d\n", t);
-                f_num = t;
-            }
-            else
-            {
-                RT_LOGI("Number-of-frames out of range\n");
-                return 0;
-            }
-        }
-        if (k < argc && strcmp(argv[k], "-g") == 0 && ++k < argc)
-        {
-            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
-            {
-                t += (argv[k][l-1] - '0') * r;
-            }
-            if (t >= 0)
-            {
-                RT_LOGI("Frame-delta (ms): %d\n", t);
-                f_time = t;
-            }
-            else
-            {
-                RT_LOGI("Frame-delta (ms) value out of range\n");
-                return 0;
-            }
-        }
-        if (k < argc && strcmp(argv[k], "-i") == 0 && ++k < argc)
-        {
-            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
-            {
-                t += (argv[k][l-1] - '0') * r;
-            }
-            if (t >= 0 && t <= 999)
-            {
-                RT_LOGI("Save-image-index: %d\n", t);
-                img_id = t;
-            }
-            else
-            {
-                RT_LOGI("Save-image-index value out of range\n");
-                return 0;
-            }
-        }
         if (k < argc && strcmp(argv[k], "-b") == 0 && ++k < argc)
         {
             for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
@@ -584,6 +533,40 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             else
             {
                 RT_LOGI("Closing-test-time value out of range\n");
+                return 0;
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-f") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 0)
+            {
+                RT_LOGI("Number-of-frames: %d\n", t);
+                f_num = t;
+            }
+            else
+            {
+                RT_LOGI("Number-of-frames value out of range\n");
+                return 0;
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-g") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 0)
+            {
+                RT_LOGI("Frame-delta (ms): %d\n", t);
+                f_time = t;
+            }
+            else
+            {
+                RT_LOGI("Frame-delta (ms) value out of range\n");
                 return 0;
             }
         }
@@ -694,6 +677,23 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             else
             {
                 RT_LOGI("Y-resolution value out of range\n");
+                return 0;
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-i") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 0 && t <= 999)
+            {
+                RT_LOGI("Save-image-index: %d\n", t);
+                img_id = t;
+            }
+            else
+            {
+                RT_LOGI("Save-image-index value out of range\n");
                 return 0;
             }
         }

@@ -48,19 +48,20 @@ rt_si32     size        = 0; /* default SIMD-vector-size will be chosen */
 
 rt_Scene   *scene       = RT_NULL;
 
-rt_si32     q_simd      = 0; /* SIMD-quad-factor (from command-line) */
-rt_si32     s_type      = 0; /* SIMD-sub-variant (from command-line) */
-rt_si32     v_size      = 0; /* SIMD-vector-size (from command-line) */
-rt_si32     w_size      = 1; /* Window-rect-size (from command-line) */
-rt_bool     h_mode      = RT_FALSE; /* show mode (from command-line) */
-rt_bool     a_mode      = RT_FALSE; /* FSAA mode (from command-line) */
-
-rt_bool     i_mode      = RT_FALSE;     /* imaging mode (from command-line) */
-rt_bool     p_mode      = RT_FALSE;     /* pixhunt mode (from command-line) */
-rt_bool     v_mode      = RT_FALSE;     /* verbose mode (from command-line) */
-rt_si32     t_diff      = 3;          /* diff-threshold (from command-line) */
 rt_si32     n_init      = 0;            /* subtest-init (from command-line) */
 rt_si32     n_done      = RUN_LEVEL-1;  /* subtest-done (from command-line) */
+rt_si32     f_num       = CYC_SIZE; /* number-of-frames (from command-line) */
+rt_time     f_time      = 16;       /* frame-delta-(ms) (from command-line) */
+rt_si32     q_simd      = 0;        /* SIMD-quad-factor (from command-line) */
+rt_si32     s_type      = 0;        /* SIMD-sub-variant (from command-line) */
+rt_si32     v_size      = 0;        /* SIMD-vector-size (from command-line) */
+rt_si32     w_size      = 1;        /* Window-rect-size (from command-line) */
+rt_si32     t_diff      = 3;          /* diff-threshold (from command-line) */
+rt_bool     v_mode      = RT_FALSE;     /* verbose mode (from command-line) */
+rt_bool     p_mode      = RT_FALSE;     /* pixhunt mode (from command-line) */
+rt_bool     i_mode      = RT_FALSE;     /* imaging mode (from command-line) */
+rt_bool     h_mode      = RT_FALSE;     /* shownum mode (from command-line) */
+rt_bool     a_mode      = RT_FALSE;     /* antialiasing (from command-line) */
 
 /*
  * Get system time in milliseconds.
@@ -538,6 +539,8 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI("Usage options are given below:\n");
         RT_LOGI(" -b n, specify subtest # at which testing begins, n >= 1\n");
         RT_LOGI(" -e n, specify subtest # at which testing ends, n <= max\n");
+        RT_LOGI(" -f n, specify # of consecutive frames to render, n >= 0\n");
+        RT_LOGI(" -g n, specify delta (ms) for consecutive frames, n >= 0\n");
         RT_LOGI(" -q n, override SIMD-quad-factor, where new quad is 1..8\n");
         RT_LOGI(" -s n, override SIMD-sub-variant, where new type is 1..8\n");
         RT_LOGI(" -v n, override SIMD-vector-size, where new size is 1..8\n");
@@ -609,6 +612,40 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             else
             {
                 RT_LOGI("Subtest-index-done value out of range\n");
+                return 0;
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-f") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 0)
+            {
+                RT_LOGI("Number-of-frames: %d\n", t);
+                f_num = t;
+            }
+            else
+            {
+                RT_LOGI("Number-of-frames value out of range\n");
+                return 0;
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-g") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 0)
+            {
+                RT_LOGI("Frame-delta (ms): %d\n", t);
+                f_time = t;
+            }
+            else
+            {
+                RT_LOGI("Frame-delta (ms) value out of range\n");
                 return 0;
             }
         }
@@ -722,15 +759,15 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (k < argc && strcmp(argv[k], "-p") == 0 && !p_mode)
-        {
-            p_mode = RT_TRUE;
-            RT_LOGI("Pixhunt mode enabled\n");
-        }
         if (k < argc && strcmp(argv[k], "-v") == 0 && !v_mode)
         {
             v_mode = RT_TRUE;
             RT_LOGI("Verbose mode enabled\n");
+        }
+        if (k < argc && strcmp(argv[k], "-p") == 0 && !p_mode)
+        {
+            p_mode = RT_TRUE;
+            RT_LOGI("Pixhunt mode enabled\n");
         }
         if (k < argc && strcmp(argv[k], "-i") == 0 && !i_mode)
         {
@@ -825,9 +862,9 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
             time1 = get_time();
 
-            for (j = 0; j < CYC_SIZE; j++)
+            for (j = 0; j < f_num; j++)
             {
-                scene->render(j * 16);
+                scene->render(j * f_time);
             }
 
             time2 = get_time();
