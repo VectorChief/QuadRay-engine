@@ -24,11 +24,6 @@ rt_si32     x_row       = (RT_X_RES+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
 rt_ui32    *frame       = RT_NULL;
 rt_si32     thnum       = RT_THREADS_NUM;
 
-rt_si32     fsaa        = RT_FSAA_NO; /* no FSAA by default, -a enables */
-rt_si32     simd        = 0; /* default SIMD-width-(q*4) will be chosen */
-rt_si32     type        = 0; /* default SIMD-sub-variant will be chosen */
-rt_si32     size        = 0; /* default SIMD-vector-size will be chosen */
-
 rt_SCENE   *sc_rt[]     =
 {
     &scn_demo01::sc_root,
@@ -216,7 +211,7 @@ rt_si32 main_step()
         return 0;
     }
 
-    rt_si32 g = d;
+    rt_si32 g = d; /* current scene for save_frame at the end of each run */
 
     try
     {
@@ -245,50 +240,82 @@ rt_si32 main_step()
             c = sc[d]->next_cam();
             switched = cold != c ? 1 : switched;
         }
-        if (T_KEYS(RK_F7))
+        if (T_KEYS(RK_F6))
         {
-            rt_si32 told = type;
-            rt_si32 tnew;
+            rt_si32 vold = v_size;
+            rt_si32 size, type, simd;
             do
             {
-                type = type % 8 + type % 7; /* 1, 2, 4, 8 */
-                tnew = sc[d]->set_simd(simd | type << 8) >> 8;
+                v_size = v_size % 4 + v_size % 3; /* 1, 2, 4 */
+                simd = sc[d]->set_simd(simd_init(q_simd, s_type, v_size));
+                simd = from_simd(simd);
+                size = (simd >> 16) & 0xFF;
+                type = (simd >> 8) & 0xFF;
+                simd = simd & 0xFF;
+                if (simd != q_simd || type != s_type)
+                {
+                    size = 0;
+                }
             }
-            while (type != tnew);
-            switched = told != type ? 1 : switched;
+            while (size != v_size);
+            switched = vold != v_size ? 1 : switched;
+        }
+        if (T_KEYS(RK_F7))
+        {
+            rt_si32 told = s_type;
+            rt_si32 size, type, simd;
+            do
+            {
+                s_type = s_type % 8 + s_type % 7; /* 1, 2, 4, 8 */
+                simd = sc[d]->set_simd(simd_init(q_simd, s_type, v_size));
+                simd = from_simd(simd);
+                size = (simd >> 16) & 0xFF;
+                type = (simd >> 8) & 0xFF;
+                simd = simd & 0xFF;
+                if (simd != q_simd || size != v_size)
+                {
+                    type = 0;
+                }
+            }
+            while (type != s_type);
+            switched = told != s_type ? 1 : switched;
         }
         if (T_KEYS(RK_F8))
         {
-            rt_si32 sold = simd;
-            rt_si32 snew;
+            rt_si32 sold = q_simd;
+            rt_si32 size, type, simd;
             do
             {
-                simd = simd % 64 + simd % 60; /* 4, 8, 16, 32, 64 */
-                snew = sc[d]->set_simd(simd | type << 8) & 0xFF;
-                if (simd != snew)
+                q_simd = q_simd % 4 + q_simd % 3; /* 1, 2, 4 */
+                simd = sc[d]->set_simd(simd_init(q_simd, s_type, v_size));
+                simd = from_simd(simd);
+                size = (simd >> 16) & 0xFF;
+                type = (simd >> 8) & 0xFF;
+                simd = simd & 0xFF;
+                if (simd != q_simd)
                 {
-                    rt_si32 tnew = 0;
-                    snew = sc[d]->set_simd(simd | tnew << 8);
-                    tnew = snew >> 8;
-                    snew = snew & 0xFF;
-                    if (simd == snew)
-                    {
-                        type = tnew;
-                    }
+                    simd = sc[d]->set_simd(simd_init(q_simd, 0, 0));
+                    simd = from_simd(simd);
+                    size = (simd >> 16) & 0xFF;
+                    type = (simd >> 8) & 0xFF;
+                    simd = simd & 0xFF;
+                }
+                if (simd == q_simd)
+                {
+                    v_size = size;
+                    s_type = type;
                 }
             }
-            while (simd != snew);
-            switched = sold != simd ? 1 : switched;
+            while (simd != q_simd);
+            switched = sold != q_simd ? 1 : switched;
         }
         if (T_KEYS(RK_F11))
         {
             rt_si32 dold = d;
             d = (d + 1) % RT_ARR_SIZE(sc_rt);
             c = sc[d]->get_cam_idx();
-            fsaa = sc[d]->set_fsaa(fsaa);
-            simd = sc[d]->set_simd(simd | type << 8);
-            type = simd >> 8;
-            simd = simd & 0xFF;
+            sc[d]->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
+            sc[d]->set_simd(simd_init(q_simd, s_type, v_size));
             switched = dold != d ? 1 : switched;
         }
 
@@ -298,10 +325,9 @@ rt_si32 main_step()
 
         if (T_KEYS(RK_F2))
         {
-            rt_si32 fold = fsaa;
-            fsaa = RT_FSAA_4X - fsaa;
-            fsaa = sc[d]->set_fsaa(fsaa);
-            switched = fold != fsaa ? 1 : switched;
+            a_mode = !a_mode;
+            sc[d]->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
+            switched = 1;
         }
         if (T_KEYS(RK_F4))
         {
@@ -310,18 +336,18 @@ rt_si32 main_step()
         }
         if (T_KEYS(RK_F5))
         {
-            l_mode = RT_TRUE - l_mode;
+            l_mode = !l_mode;
             switched = 1;
         }
         if (T_KEYS(RK_F9))
         {
-            o_mode = RT_TRUE - o_mode;
+            o_mode = !o_mode;
             switched = 1;
         }
         if (T_KEYS(RK_F10))
         {
             rt_si32 opts = sc[d]->get_opts();
-            u_mode = RT_TRUE - u_mode;
+            u_mode = !u_mode;
             if (u_mode)
             {
                 opts |= +RT_OPTS_STATIC;
@@ -355,10 +381,11 @@ rt_si32 main_step()
         if (!h_mode)
         {
             sc[d]->render_num(x_res-10, 10, -1, 2, (rt_si32)fps);
-            sc[d]->render_num(x_res-10, 34, -1, 2, (rt_si32)fsaa * 4
-                                                   / (RT_ELEMENT / 32));
-            sc[d]->render_num(      10, 10, +1, 2, (rt_si32)simd * 32);
-            sc[d]->render_num(      10, 34, +1, 2, (rt_si32)type);
+            sc[d]->render_num(x_res-10, 34, -1, 2, (rt_si32)a_mode * 4
+                                                     / (RT_ELEMENT / 32));
+            sc[d]->render_num(      10, 10, +1, 2, (rt_si32)q_simd * 128);
+            sc[d]->render_num(      10, 34, +1, 2, (rt_si32)v_size);
+            sc[d]->render_num(      30, 34, +1, 2, (rt_si32)s_type);
         }
     }
     catch (rt_Exception e)
@@ -403,16 +430,16 @@ rt_si32 main_step()
         RT_LOGI("AVG = %.2f\n", avg);
 
         RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-        RT_LOGI("Window-rect X-res = %4d, Y-res = %4d, d%2d, c%2d\n",
-                                                x_win, y_win, d+1, c+1);
-        RT_LOGI("SIMD width/type = %4dv%d, logoff = %d, numoff = %d\n",
-                                         simd*32, type, l_mode, h_mode);
-        RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d, FSAA = %d\n",
-                                  x_res, y_res, fsaa*4/(RT_ELEMENT/32));
-        RT_LOGI("Framebuffer X-row = %4d, ptr = %016"PR_Z"X\n",
-                       sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
-        RT_LOGI("Number-of-threads = %4d, offscr = %d, updoff = %d\n",
-                                                 thnum, o_mode, u_mode);
+        RT_LOGI("Window-rect X-res = %5d, Y-res = %4d, d%2d, c%2d\n",
+                                                    x_win, y_win, d+1, c+1);
+        RT_LOGI("SIMD width/type = %dx%3dv%d, logoff = %d, numoff = %d\n",
+                              v_size, q_simd * 128, s_type, l_mode, h_mode);
+        RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, FSAA = %d\n",
+                              x_res, y_res, a_mode * 4 / (RT_ELEMENT / 32));
+        RT_LOGI("Framebuffer X-row = %5d, ptr = %016"PR_Z"X\n",
+                           sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
+        RT_LOGI("Number-of-threads = %5d, offscr = %d, updoff = %d\n",
+                                                     thnum, o_mode, u_mode);
 
         RT_LOGI("----------------------  FPS LOG  -----------------------\n");
 
@@ -741,13 +768,6 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         }
     }
 
-    /* init internal SIMD variables in scene format (from command-line) */
-    simd = simd_init(q_simd, s_type, v_size);
-    type = simd >> 8;
-    simd = simd & 0xFF;
-
-    fsaa = a_mode ? RT_FSAA_4X : RT_FSAA_NO;
-
     x_res = x_res * (w_size != 0 ? w_size : 1);
     y_res = y_res * (w_size != 0 ? w_size : 1);
     x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
@@ -762,6 +782,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
  */
 rt_si32 main_init()
 {
+    rt_si32 size, type, simd = 0;
     rt_si32 i, n = RT_ARR_SIZE(sc_rt);
 
 #if RT_OPTS_STATIC != 0
@@ -782,10 +803,8 @@ rt_si32 main_init()
                                 init_threads, term_threads,
                                 update_scene, render_scene);
 
-            fsaa = sc[i]->set_fsaa(fsaa);
-            simd = sc[i]->set_simd(simd | type << 8);
-            type = simd >> 8;
-            simd = simd & 0xFF;
+            sc[i]->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
+            simd = sc[i]->set_simd(simd_init(q_simd, s_type, v_size));
         }
         catch (rt_Exception e)
         {
@@ -794,16 +813,16 @@ rt_si32 main_init()
         }
     }
 
-    /* test internal SIMD variables against original command-line format */
-    if ((s_type != 0 && s_type != ((type / 1) & 0x0F) && v_size == 0)
-    ||  (q_simd != 0 && q_simd != ((simd / 4) & 0x0F) && v_size == 0))
+    /* test SIMD variables in original command-line format */
+    if ((s_type != 0 && s_type != ((simd >> 8) & 0x0F) && v_size == 0)
+    ||  (q_simd != 0 && q_simd != ((simd >> 2) & 0x0F) && v_size == 0))
     {
         RT_LOGI("Chosen SIMD target is not supported, check -q/-s options\n");
         return 0;
     }
 
     /* temporarily convert internal SIMD variables to new command-line format */
-    simd = from_simd(simd | type << 8);
+    simd = from_simd(simd);
     size = (simd >> 16) & 0xFF;
     type = (simd >> 8) & 0xFF;
     simd = simd & 0xFF;
@@ -817,10 +836,10 @@ rt_si32 main_init()
         return 0;
     }
 
-    /* keep internal SIMD variables in scene format */
-    simd = simd_init(simd, type, size);
-    type = simd >> 8;
-    simd = simd & 0xFF;
+    /* update state-tracking SIMD variables from currently chosen SIMD target */
+    v_size = size;
+    s_type = type;
+    q_simd = simd;
 
     for (; c > 0; c--)
     {
@@ -839,16 +858,16 @@ rt_si32 main_init()
 #endif /* RT_OPTS_STATIC */
 
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-    RT_LOGI("Window-rect X-res = %4d, Y-res = %4d, d%2d, c%2d\n",
-                                            x_win, y_win, d+1, c+1);
-    RT_LOGI("SIMD width/type = %4dv%d, logoff = %d, numoff = %d\n",
-                                     simd*32, type, l_mode, h_mode);
-    RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d, FSAA = %d\n",
-                              x_res, y_res, fsaa*4/(RT_ELEMENT/32));
-    RT_LOGI("Framebuffer X-row = %4d, ptr = %016"PR_Z"X\n",
-                   sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
-    RT_LOGI("Number-of-threads = %4d, offscr = %d, updoff = %d\n",
-                                             thnum, o_mode, u_mode);
+    RT_LOGI("Window-rect X-res = %5d, Y-res = %4d, d%2d, c%2d\n",
+                                                x_win, y_win, d+1, c+1);
+    RT_LOGI("SIMD width/type = %dx%3dv%d, logoff = %d, numoff = %d\n",
+                          v_size, q_simd * 128, s_type, l_mode, h_mode);
+    RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, FSAA = %d\n",
+                          x_res, y_res, a_mode * 4 / (RT_ELEMENT / 32));
+    RT_LOGI("Framebuffer X-row = %5d, ptr = %016"PR_Z"X\n",
+                       sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
+    RT_LOGI("Number-of-threads = %5d, offscr = %d, updoff = %d\n",
+                                                 thnum, o_mode, u_mode);
 
     RT_LOGI("----------------------  FPS LOG  -----------------------\n");
 

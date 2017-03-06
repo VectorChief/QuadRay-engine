@@ -41,11 +41,6 @@ rt_si32     y_res       = RT_Y_RES;
 rt_si32     x_row       = (RT_X_RES+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
 rt_ui32    *frame       = RT_NULL;
 
-rt_si32     fsaa        = RT_FSAA_NO; /* no FSAA by default, -a enables */
-rt_si32     simd        = 0; /* default SIMD-width-(q*4) will be chosen */
-rt_si32     type        = 0; /* default SIMD-sub-variant will be chosen */
-rt_si32     size        = 0; /* default SIMD-vector-size will be chosen */
-
 rt_Scene   *scene       = RT_NULL;
 
 rt_si32     n_init      = 0;            /* subtest-init (from command-line) */
@@ -791,35 +786,40 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     rt_time tN = 0;
     rt_time tF = 0;
 
-    simd = simd_init(q_simd, s_type, v_size);
-    type = simd >> 8;
-    simd = simd & 0xFF;
-
-    fsaa = a_mode ? RT_FSAA_4X : RT_FSAA_NO;
-
     x_res = x_res * (w_size != 0 ? w_size : 1);
     y_res = y_res * (w_size != 0 ? w_size : 1);
     x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
 
-    scene = RT_NULL;
-    o_test[0]();
-    simd = scene->set_simd(simd | type << 8);
-    type = simd >> 8;
-    simd = simd & 0xFF;
-    delete scene;
+    rt_si32 size, type, simd = 0;
 
-    if ((s_type != 0 && s_type != ((type / 1) & 0x0F) && v_size == 0)
-    ||  (q_simd != 0 && q_simd != ((simd / 4) & 0x0F) && v_size == 0))
+    try
+    {
+        scene = RT_NULL;
+        o_test[0]();
+        simd = scene->set_simd(simd_init(q_simd, s_type, v_size));
+        delete scene;
+    }
+    catch (rt_Exception e)
+    {
+        RT_LOGE("Exception in scene %d: %s\n", 1, e.err);
+        return 0;
+    }
+
+    /* test SIMD variables in original command-line format */
+    if ((s_type != 0 && s_type != ((simd >> 8) & 0x0F) && v_size == 0)
+    ||  (q_simd != 0 && q_simd != ((simd >> 2) & 0x0F) && v_size == 0))
     {
         RT_LOGI("Chosen SIMD target is not supported, check -q/-s options\n");
         return 0;
     }
 
-    simd = from_simd(simd | type << 8);
+    /* temporarily convert internal SIMD variables to new command-line format */
+    simd = from_simd(simd);
     size = (simd >> 16) & 0xFF;
     type = (simd >> 8) & 0xFF;
     simd = simd & 0xFF;
 
+    /* test converted internal SIMD variables against new command-line format */
     if ((v_size != 0 && v_size != size)
     ||  (s_type != 0 && s_type != type && v_size != 0)
     ||  (q_simd != 0 && q_simd != simd && v_size != 0))
@@ -828,19 +828,20 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         return 0;
     }
 
-    simd = simd_init(simd, type, size);
-    type = simd >> 8;
-    simd = simd & 0xFF;
+    /* update state-tracking SIMD variables from currently chosen SIMD target */
+    v_size = size;
+    s_type = type;
+    q_simd = simd;
 
     frame = (rt_ui32 *)sys_alloc(x_row * y_res * sizeof(rt_ui32));
 
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-    RT_LOGI("SIMD width/type = %4dv%d, logoff = %d, numoff = %d\n",
-                                         simd*32, type, 0, !h_mode);
-    RT_LOGI("Framebuffer X-res = %4d, Y-res = %4d, FSAA = %d\n",
-                              x_res, y_res, fsaa*4/(RT_ELEMENT/32));
-    RT_LOGI("Framebuffer X-row = %4d, ptr = %016"PR_Z"X\n",
-                                             x_row, (rt_full)frame);
+    RT_LOGI("SIMD width/type = %dx%3dv%d, logoff = %d, numoff = %d\n",
+                              v_size, q_simd * 128, s_type, 0, !h_mode);
+    RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, FSAA = %d\n",
+                          x_res, y_res, a_mode * 4 / (RT_ELEMENT / 32));
+    RT_LOGI("Framebuffer X-row = %5d, ptr = %016"PR_Z"X\n",
+                                                 x_row, (rt_full)frame);
 
     rt_si32 i, j;
 
@@ -853,11 +854,8 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             scene = RT_NULL;
             o_test[i]();
 
-            scene->set_fsaa(fsaa);
-            simd = scene->set_simd(simd | type << 8);
-            type = simd >> 8;
-            simd = simd & 0xFF;
-
+            scene->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
+            scene->set_simd(simd_init(q_simd, s_type, v_size));
             scene->set_opts(RT_OPTS_NONE);
 
             time1 = get_time();
@@ -874,10 +872,11 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             if (h_mode)
             {
                 scene->render_num(x_res-10, 10, -1, 2, (rt_si32)0);
-                scene->render_num(x_res-10, 34, -1, 2, (rt_si32)fsaa * 4
-                                                       / (RT_ELEMENT / 32));
-                scene->render_num(      10, 10, +1, 2, (rt_si32)simd * 32);
-                scene->render_num(      10, 34, +1, 2, (rt_si32)type);
+                scene->render_num(x_res-10, 34, -1, 2, (rt_si32)a_mode * 4
+                                                         / (RT_ELEMENT / 32));
+                scene->render_num(      10, 10, +1, 2, (rt_si32)q_simd * 128);
+                scene->render_num(      10, 34, +1, 2, (rt_si32)v_size);
+                scene->render_num(      30, 34, +1, 2, (rt_si32)s_type);
             }
 
             if (i_mode)
@@ -893,11 +892,8 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             scene = RT_NULL;
             o_test[i]();
 
-            scene->set_fsaa(fsaa);
-            simd = scene->set_simd(simd | type << 8);
-            type = simd >> 8;
-            simd = simd & 0xFF;
-
+            scene->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
+            scene->set_simd(simd_init(q_simd, s_type, v_size));
             scene->set_opts(RT_OPTS_FULL);
 
             time1 = get_time();
@@ -914,10 +910,11 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             if (h_mode)
             {
                 scene->render_num(x_res-10, 10, -1, 2, (rt_si32)0);
-                scene->render_num(x_res-10, 34, -1, 2, (rt_si32)fsaa * 4
-                                                       / (RT_ELEMENT / 32));
-                scene->render_num(      10, 10, +1, 2, (rt_si32)simd * 32);
-                scene->render_num(      10, 34, +1, 2, (rt_si32)type);
+                scene->render_num(x_res-10, 34, -1, 2, (rt_si32)a_mode * 4
+                                                         / (RT_ELEMENT / 32));
+                scene->render_num(      10, 10, +1, 2, (rt_si32)q_simd * 128);
+                scene->render_num(      10, 34, +1, 2, (rt_si32)v_size);
+                scene->render_num(      30, 34, +1, 2, (rt_si32)s_type);
             }
 
             if (i_mode)
@@ -944,10 +941,10 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         }
         catch (rt_Exception e)
         {
-            RT_LOGE("Exception: %s\n", e.err);
+            RT_LOGE("Exception in test %d: %s\n", i+1, e.err);
         }
-        RT_LOGI("-------------------------------------- simd = %4dv%d ---\n",
-                                                        simd * 32, type);
+        RT_LOGI("------------------------------------- simd = %dx%3dv%d ---\n",
+                                                v_size, q_simd * 128, s_type);
     }
 
     sys_free(frame, x_row * y_res * sizeof(rt_ui32));
