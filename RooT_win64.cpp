@@ -78,7 +78,14 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     r_to_p[RK_ESCAPE]   = KEY_MASK & VK_ESCAPE;
 
     /* init internal variables from command-line args */
-    args_init(__argc, __argv);
+    rt_si32 ret;
+
+    ret = args_init(__argc, __argv);
+
+    if (ret == 0)
+    {
+        return FALSE;
+    }
 
     /* init framebuffer's dimensions */
     DIBinfo.bmiHeader.biWidth     = +x_row;

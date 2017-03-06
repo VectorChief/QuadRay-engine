@@ -73,7 +73,12 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     r_to_p[RK_ESCAPE]   = KEY_MASK & XK_Escape;
 
     /* init internal variables from command-line args */
-    args_init(argc, argv);
+    rt_si32 ret;
+    ret = args_init(argc, argv);
+    if (ret == 0)
+    {
+        return 1;
+    }
 
     /* open connection to X server */
     disp = XOpenDisplay(NULL);
@@ -213,7 +218,6 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     pthread_mutex_init(&mutex, NULL);
 
     /* run main loop */
-    rt_si32 ret;
     ret = main_init();
     if (ret == 0)
     {
