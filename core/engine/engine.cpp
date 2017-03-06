@@ -3203,6 +3203,11 @@ rt_si32 simd_init(rt_si32 q_simd, rt_si32 s_type, rt_si32 v_size)
 
 /* temporary compatibility layer, will be unified in the next version */
 #if   defined (RT_X32) || defined (RT_X64)
+    if (v_size == 2 && q_simd == 4)
+    {
+        simd = (q_simd * 4 * v_size) | (s_type << 8);
+    }
+    else
     if (v_size == 2 || v_size == 4)
     {
         simd = (q_simd * 4 * v_size) | (8 << 8);
@@ -3247,6 +3252,11 @@ rt_si32 from_simd(rt_si32 simd)
         type = simd ==  8 ? RT_SIMD_COMPAT_256 :
                simd == 16 ? RT_SIMD_COMPAT_512 :
                simd == 64 ? RT_SIMD_COMPAT_2K8 : 0;
+    }
+    else
+    if (simd == 32)
+    {
+        size = 2;
     }
 #elif defined (RT_P32) || defined (RT_P64)
     if (simd == 8 && type == 8)
