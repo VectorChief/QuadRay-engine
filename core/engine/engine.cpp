@@ -3289,7 +3289,7 @@ rt_si32 from_simd(rt_si32 simd)
  * (in the new format:--------------------------------)
  * SIMD native-size (1, 2, 4) in 0th (lowest) byte
  * SIMD type (1, 2, 4, 8) in 1st (higher) byte and
- * SIMD vector-size (1, 2, 4) in 2nd (higher) byte
+ * SIMD size-factor (1, 2, 4) in 2nd (higher) byte
  * (depending on the sign bit:--- 0 - old, 1 - new ---)
  */
 rt_si32 rt_Scene::set_simd(rt_si32 simd)

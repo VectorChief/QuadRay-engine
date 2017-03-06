@@ -49,7 +49,7 @@ rt_si32     f_num       = CYC_SIZE; /* number-of-frames (from command-line) */
 rt_time     f_time      = 16;       /* frame-delta-(ms) (from command-line) */
 rt_si32     n_simd      = 0;        /* SIMD-native-size (from command-line) */
 rt_si32     s_type      = 0;        /* SIMD-sub-variant (from command-line) */
-rt_si32     v_size      = 0;        /* SIMD-vector-size (from command-line) */
+rt_si32     k_size      = 0;        /* SIMD-size-factor (from command-line) */
 rt_si32     w_size      = 1;        /* Window-rect-size (from command-line) */
 rt_si32     t_diff      = 3;          /* diff-threshold (from command-line) */
 rt_bool     v_mode      = RT_FALSE;     /* verbose mode (from command-line) */
@@ -538,7 +538,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -g n, specify delta (ms) for consecutive frames, n >= 0\n");
         RT_LOGI(" -n n, override SIMD-native-size, where new simd is 1..4\n");
         RT_LOGI(" -s n, override SIMD-sub-variant, where new type is 1..8\n");
-        RT_LOGI(" -v n, override SIMD-vector-size, where new size is 1..8\n");
+        RT_LOGI(" -k n, override SIMD-size-factor, where new size is 1..4\n");
         RT_LOGI(" -w n, override window-rect-size, where new size is 0..9\n");
         RT_LOGI(" -x n, override x-resolution, where new x-value <= 65535\n");
         RT_LOGI(" -y n, override y-resolution, where new y-value <= 65535\n");
@@ -674,18 +674,18 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (k < argc && strcmp(argv[k], "-z") == 0 && ++k < argc)
+        if (k < argc && strcmp(argv[k], "-k") == 0 && ++k < argc)
         {
             t = argv[k][0] - '0';
             if (strlen(argv[k]) == 1
-            && (t == 1 || t == 2 || t == 4 || t == 8))
+            && (t == 1 || t == 2 || t == 4))
             {
-                RT_LOGI("SIMD-vector-size overridden: %d\n", t);
-                v_size = t;
+                RT_LOGI("SIMD-size-factor overridden: %d\n", t);
+                k_size = t;
             }
             else
             {
-                RT_LOGI("SIMD-vector-size value out of range\n");
+                RT_LOGI("SIMD-size-factor value out of range\n");
                 return 0;
             }
         }
@@ -796,7 +796,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     {
         scene = RT_NULL;
         o_test[0]();
-        simd = scene->set_simd(simd_init(n_simd, s_type, v_size));
+        simd = scene->set_simd(simd_init(n_simd, s_type, k_size));
         delete scene;
     }
     catch (rt_Exception e)
@@ -806,8 +806,8 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     }
 
     /* test SIMD variables in original command-line format */
-    if ((s_type != 0 && s_type != ((simd >> 8) & 0x0F) && v_size == 0)
-    ||  (n_simd != 0 && n_simd != ((simd >> 2) & 0x0F) && v_size == 0))
+    if ((s_type != 0 && s_type != ((simd >> 8) & 0x0F) && k_size == 0)
+    ||  (n_simd != 0 && n_simd != ((simd >> 2) & 0x0F) && k_size == 0))
     {
         RT_LOGI("Chosen SIMD target is not supported, check -q/-s options\n");
         return 0;
@@ -820,16 +820,16 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     simd = simd & 0xFF;
 
     /* test converted internal SIMD variables against new command-line format */
-    if ((v_size != 0 && v_size != size)
-    ||  (s_type != 0 && s_type != type && v_size != 0)
-    ||  (n_simd != 0 && n_simd != simd && v_size != 0))
+    if ((k_size != 0 && k_size != size)
+    ||  (s_type != 0 && s_type != type && k_size != 0)
+    ||  (n_simd != 0 && n_simd != simd && k_size != 0))
     {
         RT_LOGI("Chosen SIMD target is not supported, check -q/-s options\n");
         return 0;
     }
 
     /* update state-tracking SIMD variables from currently chosen SIMD target */
-    v_size = size;
+    k_size = size;
     s_type = type;
     n_simd = simd;
 
@@ -837,7 +837,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
     RT_LOGI("SIMD width/type = %dx%3dv%d, logoff = %d, numoff = %d\n",
-                              v_size, n_simd * 128, s_type, 0, !h_mode);
+                              k_size, n_simd * 128, s_type, 0, !h_mode);
     RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, FSAA = %d\n",
                           x_res, y_res, a_mode * 4 / (RT_ELEMENT / 32));
     RT_LOGI("Framebuffer X-row = %5d, ptr = %016"PR_Z"X\n",
@@ -855,7 +855,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             o_test[i]();
 
             scene->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
-            scene->set_simd(simd_init(n_simd, s_type, v_size));
+            scene->set_simd(simd_init(n_simd, s_type, k_size));
             scene->set_opts(RT_OPTS_NONE);
 
             time1 = get_time();
@@ -875,7 +875,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                 scene->render_num(x_res-10, 34, -1, 2, (rt_si32)a_mode * 4
                                                          / (RT_ELEMENT / 32));
                 scene->render_num(      10, 10, +1, 2, (rt_si32)n_simd * 128);
-                scene->render_num(      10, 34, +1, 2, (rt_si32)v_size);
+                scene->render_num(      10, 34, +1, 2, (rt_si32)k_size);
                 scene->render_num(      30, 34, +1, 2, (rt_si32)s_type);
             }
 
@@ -893,7 +893,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             o_test[i]();
 
             scene->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
-            scene->set_simd(simd_init(n_simd, s_type, v_size));
+            scene->set_simd(simd_init(n_simd, s_type, k_size));
             scene->set_opts(RT_OPTS_FULL);
 
             time1 = get_time();
@@ -913,7 +913,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                 scene->render_num(x_res-10, 34, -1, 2, (rt_si32)a_mode * 4
                                                          / (RT_ELEMENT / 32));
                 scene->render_num(      10, 10, +1, 2, (rt_si32)n_simd * 128);
-                scene->render_num(      10, 34, +1, 2, (rt_si32)v_size);
+                scene->render_num(      10, 34, +1, 2, (rt_si32)k_size);
                 scene->render_num(      30, 34, +1, 2, (rt_si32)s_type);
             }
 
@@ -944,7 +944,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             RT_LOGE("Exception in test %d: %s\n", i+1, e.err);
         }
         RT_LOGI("------------------------------------- simd = %dx%3dv%d ---\n",
-                                                v_size, n_simd * 128, s_type);
+                                                k_size, n_simd * 128, s_type);
     }
 
     sys_free(frame, x_row * y_res * sizeof(rt_ui32));
