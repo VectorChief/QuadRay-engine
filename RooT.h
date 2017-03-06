@@ -600,7 +600,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (k < argc && strcmp(argv[k], "-v") == 0 && ++k < argc)
+        if (k < argc && strcmp(argv[k], "-z") == 0 && ++k < argc)
         {
             t = argv[k][0] - '0';
             if (strlen(argv[k]) == 1
