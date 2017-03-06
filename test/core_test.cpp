@@ -902,9 +902,9 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
             time1 = get_time();
 
-            for (j = 0; j < CYC_SIZE; j++)
+            for (j = 0; j < f_num; j++)
             {
-                scene->render(j * 16);
+                scene->render(j * f_time);
             }
 
             time2 = get_time();
