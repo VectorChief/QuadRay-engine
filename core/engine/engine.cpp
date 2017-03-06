@@ -3287,7 +3287,7 @@ rt_si32 from_simd(rt_si32 simd)
  * SIMD width (4, 8, 16, 32, 64) in 0th (lowest) byte
  * and SIMD type (1, 2, 4, 8) in 1st (higher) byte or
  * (in the new format:--------------------------------)
- * SIMD quad-factor (1, 2, 4) in 0th (lowest) byte
+ * SIMD native-size (1, 2, 4) in 0th (lowest) byte
  * SIMD type (1, 2, 4, 8) in 1st (higher) byte and
  * SIMD vector-size (1, 2, 4) in 2nd (higher) byte
  * (depending on the sign bit:--- 0 - old, 1 - new ---)
