@@ -434,8 +434,10 @@ rt_si32 main_step()
         RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
         RT_LOGI("Window-rect X-res = %5d, Y-res = %4d, d%2d, c%2d\n",
                                                     x_win, y_win, d+1, c+1);
-        RT_LOGI("SIMD width/type = %3dx%dv%d, logoff = %d, numoff = %d\n",
-                              n_simd * 128, k_size, s_type, l_mode, h_mode);
+        RT_LOGI("SIMD factor*width = %dx%3d, logoff = %d, numoff = %d\n",
+                                      k_size, n_simd * 128, l_mode, h_mode);
+        RT_LOGI("SIMD type/variant = %d,     reserved %d,   tile = %d\n",
+                                        s_type, 0, sc[d]->get_tile_w() / 8);
         RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, FSAA = %d\n",
                               x_res, y_res, a_mode * 4 / (RT_ELEMENT / 32));
         RT_LOGI("Framebuffer X-row = %5d, ptr = %016"PR_Z"X\n",
@@ -862,8 +864,10 @@ rt_si32 main_init()
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
     RT_LOGI("Window-rect X-res = %5d, Y-res = %4d, d%2d, c%2d\n",
                                                 x_win, y_win, d+1, c+1);
-    RT_LOGI("SIMD width/type = %3dx%dv%d, logoff = %d, numoff = %d\n",
-                          n_simd * 128, k_size, s_type, l_mode, h_mode);
+    RT_LOGI("SIMD factor*width = %dx%3d, logoff = %d, numoff = %d\n",
+                                  k_size, n_simd * 128, l_mode, h_mode);
+    RT_LOGI("SIMD type/variant = %d,     reserved %d,   tile = %d\n",
+                                    s_type, 0, sc[d]->get_tile_w() / 8);
     RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, FSAA = %d\n",
                           x_res, y_res, a_mode * 4 / (RT_ELEMENT / 32));
     RT_LOGI("Framebuffer X-row = %5d, ptr = %016"PR_Z"X\n",

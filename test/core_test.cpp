@@ -790,6 +790,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     y_res = y_res * (w_size != 0 ? w_size : 1);
     x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
 
+    rt_si32 tile_w = 0;
     rt_si32 size, type, simd = 0;
 
     try
@@ -797,6 +798,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         scene = RT_NULL;
         o_test[0]();
         simd = scene->set_simd(simd_init(n_simd, s_type, k_size));
+        tile_w = scene->get_tile_w();
         delete scene;
     }
     catch (rt_Exception e)
@@ -836,8 +838,10 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     frame = (rt_ui32 *)sys_alloc(x_row * y_res * sizeof(rt_ui32));
 
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-    RT_LOGI("SIMD width/type = %3dx%dv%d, logoff = %d, numoff = %d\n",
-                              n_simd * 128, k_size, s_type, 0, !h_mode);
+    RT_LOGI("SIMD factor*width = %dx%3d, logoff = %d, numoff = %d\n",
+                                      k_size, n_simd * 128, 0, !h_mode);
+    RT_LOGI("SIMD type/variant = %d,     reserved %d,   tile = %d\n",
+                                                 s_type, 0, tile_w / 8);
     RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, FSAA = %d\n",
                           x_res, y_res, a_mode * 4 / (RT_ELEMENT / 32));
     RT_LOGI("Framebuffer X-row = %5d, ptr = %016"PR_Z"X\n",
