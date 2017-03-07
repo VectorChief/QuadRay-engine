@@ -341,11 +341,6 @@ rt_si32 main_step()
         }
         if (T_KEYS(RK_F9))
         {
-            o_mode = !o_mode;
-            switched = 1;
-        }
-        if (T_KEYS(RK_F10))
-        {
             rt_si32 opts = sc[d]->get_opts();
             u_mode = !u_mode;
             if (u_mode)
@@ -357,6 +352,11 @@ rt_si32 main_step()
                 opts &= ~RT_OPTS_STATIC;
             }
             sc[d]->set_opts(opts);
+            switched = 1;
+        }
+        if (T_KEYS(RK_F10))
+        {
+            o_mode = !o_mode;
             switched = 1;
         }
         if (T_KEYS(RK_F12))
