@@ -59,7 +59,7 @@ core_test_a32:
 # (recent upstream QEMU(-2.6) doesn't currently support AArch64 ILP32 ABI)
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
-# on RISC targets top value above is chosen by default, use -k/-n/-s to override
+# on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 
 # 32-bit ABI hasn't been fully tested yet due to lack of available libs,

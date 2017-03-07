@@ -118,7 +118,7 @@ core_test_arm_rpi3:
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
-# on RISC targets top value above is chosen by default, use -k/-n/-s to override
+# on RISC targets top value above is chosen by default, use -n/-k/-s to override
 
 # 0) Build flags above are intended for default "vanilla" ARMv7 target, while
 # settings suitable for specific hardware platforms are given below (replace).

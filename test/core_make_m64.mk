@@ -134,7 +134,7 @@ core_test_m64f64Br6:
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
-# on RISC targets top value above is chosen by default, use -k/-n/-s to override
+# on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 
 # For big-endian MIPS64 target use (replace): -EB -DRT_ENDIAN=1

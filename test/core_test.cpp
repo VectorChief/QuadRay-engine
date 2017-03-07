@@ -47,8 +47,8 @@ rt_si32     n_init      = 0;            /* subtest-init (from command-line) */
 rt_si32     n_done      = RUN_LEVEL-1;  /* subtest-done (from command-line) */
 rt_si32     f_num       = CYC_SIZE; /* number-of-frames (from command-line) */
 rt_time     f_time      = 16;       /* frame-delta-(ms) (from command-line) */
-rt_si32     k_size      = 0;        /* SIMD-size-factor (from command-line) */
 rt_si32     n_simd      = 0;        /* SIMD-native-size (from command-line) */
+rt_si32     k_size      = 0;        /* SIMD-size-factor (from command-line) */
 rt_si32     s_type      = 0;        /* SIMD-sub-variant (from command-line) */
 rt_si32     w_size      = 1;        /* Window-rect-size (from command-line) */
 rt_si32     t_diff      = 3;          /* diff-threshold (from command-line) */
@@ -536,8 +536,8 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -e n, specify subtest # at which testing ends, n <= max\n");
         RT_LOGI(" -f n, specify # of consecutive frames to render, n >= 0\n");
         RT_LOGI(" -g n, specify delta (ms) for consecutive frames, n >= 0\n");
-        RT_LOGI(" -k n, override SIMD-size-factor, where new size is 1..4\n");
         RT_LOGI(" -n n, override SIMD-native-size, where new simd is 1..4\n");
+        RT_LOGI(" -k n, override SIMD-size-factor, where new size is 1..4\n");
         RT_LOGI(" -s n, override SIMD-sub-variant, where new type is 1..8\n");
         RT_LOGI(" -w n, override window-rect-size, where new size is 0..9\n");
         RT_LOGI(" -x n, override x-resolution, where new x-value <= 65535\n");
@@ -644,21 +644,6 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (k < argc && strcmp(argv[k], "-k") == 0 && ++k < argc)
-        {
-            t = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1
-            && (t == 1 || t == 2 || t == 4))
-            {
-                RT_LOGI("SIMD-size-factor overridden: %d\n", t);
-                k_size = t;
-            }
-            else
-            {
-                RT_LOGI("SIMD-size-factor value out of range\n");
-                return 0;
-            }
-        }
         if (k < argc && strcmp(argv[k], "-n") == 0 && ++k < argc)
         {
             t = argv[k][0] - '0';
@@ -671,6 +656,21 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             else
             {
                 RT_LOGI("SIMD-native-size value out of range\n");
+                return 0;
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-k") == 0 && ++k < argc)
+        {
+            t = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1
+            && (t == 1 || t == 2 || t == 4))
+            {
+                RT_LOGI("SIMD-size-factor overridden: %d\n", t);
+                k_size = t;
+            }
+            else
+            {
+                RT_LOGI("SIMD-size-factor value out of range\n");
                 return 0;
             }
         }

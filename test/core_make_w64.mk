@@ -95,7 +95,7 @@ core_test_w64f64:
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
-# on x86 targets top cpuid-value is chosen by default, use -k/-n/-s to override
+# on x86 targets top cpuid-value is chosen by default, use -n/-k/-s to override
 
 # 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
 # use (replace): RT_ADDRESS=32, rename the binary to core_test_w64_**.exe

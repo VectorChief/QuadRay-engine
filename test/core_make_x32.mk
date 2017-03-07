@@ -68,7 +68,7 @@ core_test_x32:
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
-# on x86 targets top cpuid-value is chosen by default, use -k/-n/-s to override
+# on x86 targets top cpuid-value is chosen by default, use -n/-k/-s to override
 
 # Clang compilation works too (takes much longer prior to 3.8), use (replace):
 # clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
