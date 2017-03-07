@@ -3155,11 +3155,19 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
 }
 
 /*
- * Return framebuffer's stride in 32-bit pixels.
+ * Return framebuffer's stride in pixels.
  */
 rt_si32 rt_Scene::get_x_row()
 {
     return x_row;
+}
+
+/*
+ * Return tile width in pixels.
+ */
+rt_si32 rt_Scene::get_tile_w()
+{
+    return tile_w;
 }
 
 /*

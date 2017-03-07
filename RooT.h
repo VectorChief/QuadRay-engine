@@ -380,7 +380,9 @@ rt_si32 main_step()
 
         if (!h_mode)
         {
-            sc[d]->render_num(x_res-10, 10, -1, 2, (rt_si32)fps);
+            sc[d]->render_num(x_res-30, 10, -1, 2, (rt_si32)fps);
+            sc[d]->render_num(x_res-10, 10, -1, 2, (rt_si32)
+                                               sc[d]->get_tile_w() / 8);
             sc[d]->render_num(x_res-10, 34, -1, 2, (rt_si32)a_mode * 4
                                                      / (RT_ELEMENT / 32));
             sc[d]->render_num(      30, 10, +1, 2, (rt_si32)n_simd * 128);

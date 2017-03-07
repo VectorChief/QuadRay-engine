@@ -233,6 +233,7 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
                            rt_si32 d, rt_si32 z, rt_ui32 num);
 
     rt_si32     get_x_row();
+    rt_si32     get_tile_w();
     rt_void     print_state();
 
     rt_si32     get_opts();

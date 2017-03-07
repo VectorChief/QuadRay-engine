@@ -871,7 +871,9 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
             if (h_mode)
             {
-                scene->render_num(x_res-10, 10, -1, 2, (rt_si32)0);
+                scene->render_num(x_res-30, 10, -1, 2, (rt_si32)0);
+                scene->render_num(x_res-10, 10, -1, 2, (rt_si32)
+                                                   scene->get_tile_w() / 8);
                 scene->render_num(x_res-10, 34, -1, 2, (rt_si32)a_mode * 4
                                                          / (RT_ELEMENT / 32));
                 scene->render_num(      30, 10, +1, 2, (rt_si32)n_simd * 128);
@@ -909,7 +911,9 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
             if (h_mode)
             {
-                scene->render_num(x_res-10, 10, -1, 2, (rt_si32)0);
+                scene->render_num(x_res-30, 10, -1, 2, (rt_si32)0);
+                scene->render_num(x_res-10, 10, -1, 2, (rt_si32)
+                                                   scene->get_tile_w() / 8);
                 scene->render_num(x_res-10, 34, -1, 2, (rt_si32)a_mode * 4
                                                          / (RT_ELEMENT / 32));
                 scene->render_num(      30, 10, +1, 2, (rt_si32)n_simd * 128);
