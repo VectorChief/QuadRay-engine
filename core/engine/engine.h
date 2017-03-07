@@ -232,17 +232,17 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_void     render_num(rt_si32 x, rt_si32 y,
                            rt_si32 d, rt_si32 z, rt_ui32 num);
 
-    rt_ui32*    get_frame();
     rt_si32     get_x_row();
     rt_void     print_state();
 
+    rt_si32     get_opts();
+    rt_si32     set_opts(rt_si32 opts);
     rt_si32     set_fsaa(rt_si32 fsaa);
     rt_si32     set_simd(rt_si32 simd);
-    rt_si32     set_opts(rt_si32 opts);
-    rt_si32     get_opts();
 
     rt_si32     get_cam_idx();
     rt_si32     next_cam();
+    rt_ui32*    get_frame();
     rt_void     save_frame(rt_si32 index);
 
     friend      class rt_SceneThread;

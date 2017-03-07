@@ -3155,14 +3155,6 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
 }
 
 /*
- * Return pointer to the framebuffer.
- */
-rt_ui32* rt_Scene::get_frame()
-{
-    return frame;
-}
-
-/*
  * Return framebuffer's stride in 32-bit pixels.
  */
 rt_si32 rt_Scene::get_x_row()
@@ -3176,6 +3168,29 @@ rt_si32 rt_Scene::get_x_row()
 rt_void rt_Scene::print_state()
 {
     g_print = RT_TRUE;
+}
+
+/*
+ * Get runtime optimization flags.
+ */
+rt_si32 rt_Scene::get_opts()
+{
+    return opts;
+}
+
+/*
+ * Set runtime optimization flags.
+ */
+rt_si32 rt_Scene::set_opts(rt_si32 opts)
+{
+    this->opts = opts;
+
+    /* trigger update of the whole hierarchy,
+     * safe to reset time as "rootobj" never has an animator,
+     * "rootobj's" time is restored within the update */
+    rootobj.time = -1;
+
+    return opts;
 }
 
 /*
@@ -3318,29 +3333,6 @@ rt_si32 rt_Scene::set_simd(rt_si32 simd)
 }
 
 /*
- * Set runtime optimization flags.
- */
-rt_si32 rt_Scene::set_opts(rt_si32 opts)
-{
-    this->opts = opts;
-
-    /* trigger update of the whole hierarchy,
-     * safe to reset time as "rootobj" never has an animator,
-     * "rootobj's" time is restored within the update */
-    rootobj.time = -1;
-
-    return opts;
-}
-
-/*
- * Get runtime optimization flags.
- */
-rt_si32 rt_Scene::get_opts()
-{
-    return opts;
-}
-
-/*
  * Return current camera index.
  */
 rt_si32 rt_Scene::get_cam_idx()
@@ -3365,6 +3357,14 @@ rt_si32 rt_Scene::next_cam()
     }
 
     return cam_idx;
+}
+
+/*
+ * Return pointer to the framebuffer.
+ */
+rt_ui32* rt_Scene::get_frame()
+{
+    return frame;
 }
 
 /*
