@@ -838,14 +838,14 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     frame = (rt_ui32 *)sys_alloc(x_row * y_res * sizeof(rt_ui32));
 
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-    RT_LOGI("SIMD factor*width = %dx%3d, logoff = %d, numoff = %d\n",
-                                      k_size, n_simd * 128, 0, !h_mode);
-    RT_LOGI("SIMD type/variant = %d,     reserved %d,   tile = %d\n",
-                                                 s_type, 0, tile_w / 8);
-    RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, FSAA = %d\n",
-                          x_res, y_res, a_mode * 4 / (RT_ELEMENT / 32));
+    RT_LOGI("SIMD factor*width = %dx%3d, reserved = %d, tile = %d\n",
+                                   k_size, n_simd * 128, 0, tile_w / 8);
+    RT_LOGI("SIMD type/variant = %d,     reserved = %d, FSAA = %d\n",
+                             s_type, 0, a_mode * 4 / (RT_ELEMENT / 32));
     RT_LOGI("Framebuffer X-row = %5d, ptr = %016"PR_Z"X\n",
                                                  x_row, (rt_full)frame);
+    RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d\n",
+                                              x_res, y_res, 0, !h_mode);
 
     rt_si32 i, j;
 
@@ -951,8 +951,8 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         {
             RT_LOGE("Exception in test %d: %s\n", i+1, e.err);
         }
-        RT_LOGI("------------------------------------- simd = %3dx%dv%d ---\n",
-                                                n_simd * 128, k_size, s_type);
+        RT_LOGI("------------------------------------- simd = %dx%3dv%d ---\n",
+                                                k_size, n_simd * 128, s_type);
     }
 
     sys_free(frame, x_row * y_res * sizeof(rt_ui32));

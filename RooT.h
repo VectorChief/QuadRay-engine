@@ -432,18 +432,18 @@ rt_si32 main_step()
         RT_LOGI("AVG = %.2f\n", avg);
 
         RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-        RT_LOGI("Window-rect X-res = %5d, Y-res = %4d, d%2d, c%2d\n",
-                                                    x_win, y_win, d+1, c+1);
-        RT_LOGI("SIMD factor*width = %dx%3d, logoff = %d, numoff = %d\n",
-                                      k_size, n_simd * 128, l_mode, h_mode);
-        RT_LOGI("SIMD type/variant = %d,     reserved %d,   tile = %d\n",
-                                        s_type, 0, sc[d]->get_tile_w() / 8);
-        RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, FSAA = %d\n",
-                              x_res, y_res, a_mode * 4 / (RT_ELEMENT / 32));
+        RT_LOGI("SIMD factor*width = %dx%3d, reserved = %d, tile = %d\n",
+                          k_size, n_simd * 128, 0, sc[d]->get_tile_w() / 8);
+        RT_LOGI("SIMD type/variant = %d,     reserved = %d, FSAA = %d\n",
+                                 s_type, 0, a_mode * 4 / (RT_ELEMENT / 32));
         RT_LOGI("Framebuffer X-row = %5d, ptr = %016"PR_Z"X\n",
                            sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
-        RT_LOGI("Number-of-threads = %5d, offscr = %d, updoff = %d\n",
-                                                     thnum, o_mode, u_mode);
+        RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d\n",
+                                              x_res, y_res, l_mode, h_mode);
+        RT_LOGI("Window-rect X-res = %5d, Y-res = %4d, u %d, o %d\n",
+                                              x_win, y_win, u_mode, o_mode);
+        RT_LOGI("Affinity #threads = %d#%3d, reserved = %d, d%2d, c%2d\n",
+                                        RT_SETAFFINITY, thnum, 0, d+1, c+1);
 
         RT_LOGI("----------------------  FPS LOG  -----------------------\n");
 
@@ -862,18 +862,18 @@ rt_si32 main_init()
 #endif /* RT_OPTS_STATIC */
 
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-    RT_LOGI("Window-rect X-res = %5d, Y-res = %4d, d%2d, c%2d\n",
-                                                x_win, y_win, d+1, c+1);
-    RT_LOGI("SIMD factor*width = %dx%3d, logoff = %d, numoff = %d\n",
-                                  k_size, n_simd * 128, l_mode, h_mode);
-    RT_LOGI("SIMD type/variant = %d,     reserved %d,   tile = %d\n",
-                                    s_type, 0, sc[d]->get_tile_w() / 8);
-    RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, FSAA = %d\n",
-                          x_res, y_res, a_mode * 4 / (RT_ELEMENT / 32));
+    RT_LOGI("SIMD factor*width = %dx%3d, reserved = %d, tile = %d\n",
+                      k_size, n_simd * 128, 0, sc[d]->get_tile_w() / 8);
+    RT_LOGI("SIMD type/variant = %d,     reserved = %d, FSAA = %d\n",
+                             s_type, 0, a_mode * 4 / (RT_ELEMENT / 32));
     RT_LOGI("Framebuffer X-row = %5d, ptr = %016"PR_Z"X\n",
                        sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
-    RT_LOGI("Number-of-threads = %5d, offscr = %d, updoff = %d\n",
-                                                 thnum, o_mode, u_mode);
+    RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d\n",
+                                          x_res, y_res, l_mode, h_mode);
+    RT_LOGI("Window-rect X-res = %5d, Y-res = %4d, u %d, o %d\n",
+                                          x_win, y_win, u_mode, o_mode);
+    RT_LOGI("Affinity #threads = %d#%3d, reserved = %d, d%2d, c%2d\n",
+                                    RT_SETAFFINITY, thnum, 0, d+1, c+1);
 
     RT_LOGI("----------------------  FPS LOG  -----------------------\n");
 
