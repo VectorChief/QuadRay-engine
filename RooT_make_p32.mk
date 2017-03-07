@@ -59,4 +59,4 @@ RooT_p32:
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
-# on RISC targets top value above is chosen by default, use -n/-k/-s to override
+# on RISC targets top value above is chosen by default, use -k/-n/-s to override
