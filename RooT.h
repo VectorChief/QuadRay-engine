@@ -383,9 +383,9 @@ rt_si32 main_step()
             sc[d]->render_num(x_res-10, 10, -1, 2, (rt_si32)fps);
             sc[d]->render_num(x_res-10, 34, -1, 2, (rt_si32)a_mode * 4
                                                      / (RT_ELEMENT / 32));
-            sc[d]->render_num(      10, 10, +1, 2, (rt_si32)n_simd * 128);
-            sc[d]->render_num(      10, 34, +1, 2, (rt_si32)k_size);
-            sc[d]->render_num(      30, 34, +1, 2, (rt_si32)s_type);
+            sc[d]->render_num(      30, 10, +1, 2, (rt_si32)n_simd * 128);
+            sc[d]->render_num(      10, 10, +1, 2, (rt_si32)k_size);
+            sc[d]->render_num(      10, 34, +1, 2, (rt_si32)s_type);
         }
     }
     catch (rt_Exception e)
