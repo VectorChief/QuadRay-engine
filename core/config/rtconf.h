@@ -107,8 +107,14 @@
 #define RT_OPTS_INSERT_EXT2     (0 << 18)
 #define RT_OPTS_REMOVE          (0 << 19)
 
-#define RT_OPTS_SERIAL          (1 << 30) /* update scene single-threadedly */
-#define RT_OPTS_STATIC          (1 << 31) /* update scene only once (debug) */
+/* extra options (update) */
+#define RT_OPTS_UPDATE_EXT0     (1 << 26) /* update phases off */
+#define RT_OPTS_UPDATE_EXT1     (1 << 27) /* update phase1 single-threadedly */
+#define RT_OPTS_UPDATE_EXT2     (1 << 28) /* update phase2 single-threadedly */
+#define RT_OPTS_UPDATE_EXT3     (1 << 29) /* update phase3 single-threadedly */
+/* extra options (render) */
+#define RT_OPTS_RENDER_EXT0     (1 << 30) /* render scene off */
+#define RT_OPTS_RENDER_EXT1     (1 << 31) /* render scene single-threadedly */
 
 /* bbox sorting (RT_OPTS_INSERT) and hidden surfaces removal (RT_OPTS_REMOVE)
  * optimizations have been turned off for poor scalability with larger scenes */

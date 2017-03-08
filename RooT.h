@@ -55,7 +55,7 @@ rt_si32     img_id      =-1;        /* save-image-index (from command-line) */
 rt_time     l_time      = 500;        /* fpslogupd-(ms) (from command-line) */
 rt_bool     l_mode      = RT_FALSE;        /* fpslogoff (from command-line) */
 rt_bool     h_mode      = RT_FALSE;        /* hide mode (from command-line) */
-rt_si32     u_mode      = 0;               /* updateoff (from command-line) */
+rt_si32     u_mode      = 0; /* update/render threadoff (from command-line) */
 rt_bool     o_mode      = RT_FALSE;        /* offscreen (from command-line) */
 rt_bool     a_mode      = RT_FALSE;        /* FSAA mode (from command-line) */
 
@@ -215,10 +215,10 @@ rt_si32 main_step()
 
     try
     {
-#if RT_OPTS_STATIC != 0
-        if (u_mode == 2)
+#if RT_OPTS_UPDATE_EXT0 != 0
+        if (u_mode <= 4)
         { /* -->---->-- skip update0 -->---->-- */
-#endif /* RT_OPTS_STATIC */
+#endif /* RT_OPTS_UPDATE_EXT0 */
 
         if (H_KEYS(RK_W))       sc[d]->update(cur_time, RT_CAMERA_MOVE_FORWARD);
         if (H_KEYS(RK_S))       sc[d]->update(cur_time, RT_CAMERA_MOVE_BACK);
@@ -319,9 +319,9 @@ rt_si32 main_step()
             switched = dold != d ? 1 : switched;
         }
 
-#if RT_OPTS_STATIC != 0
+#if RT_OPTS_UPDATE_EXT0 != 0
         } /* --<----<-- skip update0 --<----<-- */
-#endif /* RT_OPTS_STATIC */
+#endif /* RT_OPTS_UPDATE_EXT0 */
 
         if (T_KEYS(RK_F2))
         {
@@ -342,10 +342,31 @@ rt_si32 main_step()
         if (T_KEYS(RK_F9))
         {
             rt_si32 opts = sc[d]->get_opts();
-            u_mode = (u_mode + 1) % 3;
-            opts &= ~RT_OPTS_SERIAL & ~RT_OPTS_STATIC;
-            opts |= u_mode == 1 ? RT_OPTS_SERIAL :
-                    u_mode == 2 ? RT_OPTS_STATIC : 0;
+            u_mode = (u_mode + 1) % 7;
+            opts &= ~RT_OPTS_UPDATE_EXT0 & ~RT_OPTS_UPDATE_EXT1 &
+                    ~RT_OPTS_UPDATE_EXT2 & ~RT_OPTS_UPDATE_EXT3 &
+                    ~RT_OPTS_RENDER_EXT0 & ~RT_OPTS_RENDER_EXT1;
+            switch (u_mode)
+            {
+                case 6:
+                opts |= RT_OPTS_RENDER_EXT0;
+                case 5:
+                opts |= RT_OPTS_UPDATE_EXT0;
+                break;
+
+                case 4:
+                opts |= RT_OPTS_RENDER_EXT1;
+                case 3:
+                opts |= RT_OPTS_UPDATE_EXT3;
+                case 2:
+                opts |= RT_OPTS_UPDATE_EXT2;
+                case 1:
+                opts |= RT_OPTS_UPDATE_EXT1;
+                break;
+
+                default:
+                break;
+            }
             sc[d]->set_opts(opts);
             switched = 1;
         }
@@ -484,7 +505,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -r n, fps-logging update rate, where n is interval (ms)\n");
         RT_LOGI(" -l, fps-logging-off mode, turns off fps-logging updates\n");
         RT_LOGI(" -h, hide-screen-num mode, turns off info-number drawing\n");
-        RT_LOGI(" -u, threaded-updates-off, once - serial, twice - static\n");
+        RT_LOGI(" -u n, 1-3/4 serial update/render, 5/6 update/render off\n");
         RT_LOGI(" -o, offscreen-frame mode, turns off window-rect updates\n");
         RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
         RT_LOGI("options -d n, -c n, ... , ... , ... , -a can be combined\n");
@@ -730,7 +751,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             }
             if (t >= 0)
             {
-                RT_LOGI("FPS-logging-interval (ms): %d\n", t);
+                RT_LOGI("FPS-logging-interval (ms) overridden: %d\n", t);
                 l_time = t;
             }
             else
@@ -749,11 +770,19 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             h_mode = RT_TRUE;
             RT_LOGI("Hide-screen-num mode\n");
         }
-        if (k < argc && strcmp(argv[k], "-u") == 0 && u_mode < 2)
+        if (k < argc && strcmp(argv[k], "-u") == 0 && ++k < argc)
         {
-            u_mode++;
-            RT_LOGI("Threaded-updates-off: %s\n",
-                                    u_mode == 1 ? "serial" : "static");
+            t = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1 && t >= 0 && t <= 6)
+            {
+                RT_LOGI("Threaded-updates-off phases-up-to: %d\n", t);
+                u_mode = t;
+            }
+            else
+            {
+                RT_LOGI("Threaded-updates-off value out of range\n");
+                return 0;
+            }
         }
         if (k < argc && strcmp(argv[k], "-o") == 0 && !o_mode)
         {
@@ -840,8 +869,27 @@ rt_si32 main_init()
     c = sc[d]->get_cam_idx();
 
     rt_si32 opts = sc[d]->get_opts();
-    opts |= u_mode == 1 ? RT_OPTS_SERIAL :
-            u_mode == 2 ? RT_OPTS_STATIC : 0;
+    switch (u_mode)
+    {
+        case 6:
+        opts |= RT_OPTS_RENDER_EXT0;
+        case 5:
+        opts |= RT_OPTS_UPDATE_EXT0;
+        break;
+
+        case 4:
+        opts |= RT_OPTS_RENDER_EXT1;
+        case 3:
+        opts |= RT_OPTS_UPDATE_EXT3;
+        case 2:
+        opts |= RT_OPTS_UPDATE_EXT2;
+        case 1:
+        opts |= RT_OPTS_UPDATE_EXT1;
+        break;
+
+        default:
+        break;
+    }
     sc[d]->set_opts(opts);
 
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");

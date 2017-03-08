@@ -2594,10 +2594,10 @@ rt_void rt_Scene::render(rt_time time)
 {
     rt_si32 i;
 
-#if RT_OPTS_STATIC != 0
-    if ((opts & RT_OPTS_STATIC) == 0 || rootobj.time == -1)
+#if RT_OPTS_UPDATE_EXT0 != 0
+    if ((opts & RT_OPTS_UPDATE_EXT0) == 0 || rootobj.time == -1)
     { /* -->---->-- skip update1 -->---->-- */
-#endif /* RT_OPTS_STATIC */
+#endif /* RT_OPTS_UPDATE_EXT0 */
 
     if (pending)
     {
@@ -2633,9 +2633,9 @@ rt_void rt_Scene::render(rt_time time)
     /* 1st phase of multi-threaded update */
 #if RT_OPTS_THREAD != 0
     if ((opts & RT_OPTS_THREAD) != 0 && !g_print
-#if RT_OPTS_SERIAL != 0
-    &&  (opts & RT_OPTS_SERIAL) == 0
-#endif /* RT_OPTS_SERIAL */
+#if RT_OPTS_UPDATE_EXT1 != 0
+    &&  (opts & RT_OPTS_UPDATE_EXT1) == 0
+#endif /* RT_OPTS_UPDATE_EXT1 */
        )
     {
         this->f_update(tdata, thnum, 1);
@@ -2674,9 +2674,9 @@ rt_void rt_Scene::render(rt_time time)
     /* 2nd phase of multi-threaded update */
 #if RT_OPTS_THREAD != 0
     if ((opts & RT_OPTS_THREAD) != 0 && !g_print
-#if RT_OPTS_SERIAL != 0
-    &&  (opts & RT_OPTS_SERIAL) == 0
-#endif /* RT_OPTS_SERIAL */
+#if RT_OPTS_UPDATE_EXT2 != 0
+    &&  (opts & RT_OPTS_UPDATE_EXT2) == 0
+#endif /* RT_OPTS_UPDATE_EXT2 */
        )
     {
         this->f_update(tdata, thnum, 2);
@@ -2727,9 +2727,9 @@ rt_void rt_Scene::render(rt_time time)
     /* 3rd phase of multi-threaded update */
 #if RT_OPTS_THREAD != 0
     if ((opts & RT_OPTS_THREAD) != 0 && !g_print
-#if RT_OPTS_SERIAL != 0
-    &&  (opts & RT_OPTS_SERIAL) == 0
-#endif /* RT_OPTS_SERIAL */
+#if RT_OPTS_UPDATE_EXT3 != 0
+    &&  (opts & RT_OPTS_UPDATE_EXT3) == 0
+#endif /* RT_OPTS_UPDATE_EXT3 */
        )
     {
         this->f_update(tdata, thnum, 3);
@@ -2888,13 +2888,23 @@ rt_void rt_Scene::render(rt_time time)
         amb[RT_A] += lgt->lgt->lum[0];
     }
 
-#if RT_OPTS_STATIC != 0
+#if RT_OPTS_UPDATE_EXT0 != 0
     } /* --<----<-- skip update1 --<----<-- */
-#endif /* RT_OPTS_STATIC */
+#endif /* RT_OPTS_UPDATE_EXT0 */
+
+
+#if RT_OPTS_RENDER_EXT0 != 0
+    if ((opts & RT_OPTS_RENDER_EXT0) == 0)
+    { /* -->---->-- skip render0 -->---->-- */
+#endif /* RT_OPTS_RENDER_EXT0 */
 
     /* multi-threaded render */
 #if RT_OPTS_THREAD != 0
-    if ((opts & RT_OPTS_THREAD) != 0)
+    if ((opts & RT_OPTS_THREAD) != 0
+#if RT_OPTS_RENDER_EXT1 != 0
+    &&  (opts & RT_OPTS_RENDER_EXT1) == 0
+#endif /* RT_OPTS_RENDER_EXT1 */
+       )
     {
         this->f_render(tdata, thnum, 0);
     }
@@ -2904,10 +2914,15 @@ rt_void rt_Scene::render(rt_time time)
         render_scene(this, thnum, 0);
     }
 
-#if RT_OPTS_STATIC != 0
-    if ((opts & RT_OPTS_STATIC) == 0)
+#if RT_OPTS_RENDER_EXT0 != 0
+    } /* --<----<-- skip render0 --<----<-- */
+#endif /* RT_OPTS_RENDER_EXT0 */
+
+
+#if RT_OPTS_UPDATE_EXT0 != 0
+    if ((opts & RT_OPTS_UPDATE_EXT0) == 0)
     { /* -->---->-- skip update2 -->---->-- */
-#endif /* RT_OPTS_STATIC */
+#endif /* RT_OPTS_UPDATE_EXT0 */
 
     /* print state done */
     if (g_print)
@@ -2924,13 +2939,13 @@ rt_void rt_Scene::render(rt_time time)
 
     release(mpool);
 
-#if RT_OPTS_STATIC != 0
+#if RT_OPTS_UPDATE_EXT0 != 0
     } /* --<----<-- skip update2 --<----<-- */
     else
     {
         pending = 1;
     }
-#endif /* RT_OPTS_STATIC */
+#endif /* RT_OPTS_UPDATE_EXT0 */
 }
 
 /*
