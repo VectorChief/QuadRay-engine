@@ -51,12 +51,12 @@ rt_si32     w_size      = 1;        /* Window-rect-size (from command-line) */
 rt_si32     x_new       = 0;        /* New x-resolution (from command-line) */
 rt_si32     y_new       = 0;        /* New y-resolution (from command-line) */
 
-rt_time     img_id      =-1;        /* save-image-index (from command-line) */
+rt_si32     img_id      =-1;        /* save-image-index (from command-line) */
 rt_time     l_time      = 500;        /* fpslogupd-(ms) (from command-line) */
 rt_bool     l_mode      = RT_FALSE;        /* fpslogoff (from command-line) */
 rt_bool     h_mode      = RT_FALSE;        /* hide mode (from command-line) */
+rt_si32     u_mode      = 0;               /* updateoff (from command-line) */
 rt_bool     o_mode      = RT_FALSE;        /* offscreen (from command-line) */
-rt_bool     u_mode      = RT_FALSE;        /* updateoff (from command-line) */
 rt_bool     a_mode      = RT_FALSE;        /* FSAA mode (from command-line) */
 
 /******************************************************************************/
@@ -216,7 +216,7 @@ rt_si32 main_step()
     try
     {
 #if RT_OPTS_STATIC != 0
-        if (!u_mode)
+        if (u_mode == 2)
         { /* -->---->-- skip update0 -->---->-- */
 #endif /* RT_OPTS_STATIC */
 
@@ -342,15 +342,10 @@ rt_si32 main_step()
         if (T_KEYS(RK_F9))
         {
             rt_si32 opts = sc[d]->get_opts();
-            u_mode = !u_mode;
-            if (u_mode)
-            {
-                opts |= +RT_OPTS_STATIC;
-            }
-            else
-            {
-                opts &= ~RT_OPTS_STATIC;
-            }
+            u_mode = (u_mode + 1) % 3;
+            opts &= ~RT_OPTS_SERIAL & ~RT_OPTS_STATIC;
+            opts |= u_mode == 1 ? RT_OPTS_SERIAL :
+                    u_mode == 2 ? RT_OPTS_STATIC : 0;
             sc[d]->set_opts(opts);
             switched = 1;
         }
@@ -361,7 +356,7 @@ rt_si32 main_step()
         }
         if (T_KEYS(RK_F12))
         {
-            h_mode = 1 - h_mode;
+            h_mode = !h_mode;
             switched = 1;
         }
         if (T_KEYS(RK_ESCAPE))
@@ -489,8 +484,8 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -r n, fps-logging update rate, where n is interval (ms)\n");
         RT_LOGI(" -l, fps-logging-off mode, turns off fps-logging updates\n");
         RT_LOGI(" -h, hide-screen-num mode, turns off info-number drawing\n");
+        RT_LOGI(" -u, threaded-updates-off, once - serial, twice - static\n");
         RT_LOGI(" -o, offscreen-frame mode, turns off window-rect updates\n");
-        RT_LOGI(" -u, multi-threaded scene updates are turned off, static\n");
         RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
         RT_LOGI("options -d n, -c n, ... , ... , ... , -a can be combined\n");
         RT_LOGI("--------------------------------------------------------\n");
@@ -754,15 +749,16 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             h_mode = RT_TRUE;
             RT_LOGI("Hide-screen-num mode\n");
         }
+        if (k < argc && strcmp(argv[k], "-u") == 0 && u_mode < 2)
+        {
+            u_mode++;
+            RT_LOGI("Threaded-updates-off: %s\n",
+                                    u_mode == 1 ? "serial" : "static");
+        }
         if (k < argc && strcmp(argv[k], "-o") == 0 && !o_mode)
         {
             o_mode = RT_TRUE;
             RT_LOGI("Offscreen-frame mode\n");
-        }
-        if (k < argc && strcmp(argv[k], "-u") == 0 && !u_mode)
-        {
-            u_mode = RT_TRUE;
-            RT_LOGI("Threaded-updates-off\n");
         }
         if (k < argc && strcmp(argv[k], "-a") == 0 && !a_mode)
         {
@@ -787,14 +783,6 @@ rt_si32 main_init()
 {
     rt_si32 size, type, simd = 0;
     rt_si32 i, n = RT_ARR_SIZE(sc_rt);
-
-#if RT_OPTS_STATIC != 0
-    if (u_mode)
-    {
-        i = d;
-        n = i + 1;
-    }
-#endif /* RT_OPTS_STATIC */
 
     for (i = 0; i < n; i++)
     {
@@ -851,14 +839,10 @@ rt_si32 main_init()
 
     c = sc[d]->get_cam_idx();
 
-#if RT_OPTS_STATIC != 0
-    if (u_mode)
-    {
-        rt_si32 opts = sc[d]->get_opts();
-        opts |= RT_OPTS_STATIC;
-        sc[d]->set_opts(opts);
-    }
-#endif /* RT_OPTS_STATIC */
+    rt_si32 opts = sc[d]->get_opts();
+    opts |= u_mode == 1 ? RT_OPTS_SERIAL :
+            u_mode == 2 ? RT_OPTS_STATIC : 0;
+    sc[d]->set_opts(opts);
 
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
     RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d\n",

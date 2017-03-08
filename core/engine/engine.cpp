@@ -2632,7 +2632,11 @@ rt_void rt_Scene::render(rt_time time)
 
     /* 1st phase of multi-threaded update */
 #if RT_OPTS_THREAD != 0
-    if ((opts & RT_OPTS_THREAD) != 0 && !g_print)
+    if ((opts & RT_OPTS_THREAD) != 0 && !g_print
+#if RT_OPTS_SERIAL != 0
+    &&  (opts & RT_OPTS_SERIAL) == 0
+#endif /* RT_OPTS_SERIAL */
+       )
     {
         this->f_update(tdata, thnum, 1);
     }
@@ -2669,7 +2673,11 @@ rt_void rt_Scene::render(rt_time time)
 
     /* 2nd phase of multi-threaded update */
 #if RT_OPTS_THREAD != 0
-    if ((opts & RT_OPTS_THREAD) != 0 && !g_print)
+    if ((opts & RT_OPTS_THREAD) != 0 && !g_print
+#if RT_OPTS_SERIAL != 0
+    &&  (opts & RT_OPTS_SERIAL) == 0
+#endif /* RT_OPTS_SERIAL */
+       )
     {
         this->f_update(tdata, thnum, 2);
     }
@@ -2718,7 +2726,11 @@ rt_void rt_Scene::render(rt_time time)
 
     /* 3rd phase of multi-threaded update */
 #if RT_OPTS_THREAD != 0
-    if ((opts & RT_OPTS_THREAD) != 0 && !g_print)
+    if ((opts & RT_OPTS_THREAD) != 0 && !g_print
+#if RT_OPTS_SERIAL != 0
+    &&  (opts & RT_OPTS_SERIAL) == 0
+#endif /* RT_OPTS_SERIAL */
+       )
     {
         this->f_update(tdata, thnum, 3);
     }
