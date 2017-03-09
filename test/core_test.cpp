@@ -538,6 +538,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -g n, specify delta (ms) for consecutive frames, n >= 0\n");
         RT_LOGI(" -n n, override SIMD-native-size, where new simd is 1..4\n");
         RT_LOGI(" -k n, override SIMD-size-factor, where new size is 1..4\n");
+        RT_LOGI(" -q n, override SIMD-total-quads, where new size is 1..8\n");
         RT_LOGI(" -s n, override SIMD-sub-variant, where new type is 1..8\n");
         RT_LOGI(" -w n, override window-rect-size, where new size is 0..9\n");
         RT_LOGI(" -x n, override x-resolution, where new x-value <= 65535\n");
@@ -671,6 +672,21 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             else
             {
                 RT_LOGI("SIMD-size-factor value out of range\n");
+                return 0;
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-q") == 0 && ++k < argc)
+        {
+            t = argv[k][0] - '0';
+            if (strlen(argv[k]) == 1
+            && (t == 1 || t == 2 || t == 4 || t == 8))
+            {
+                RT_LOGI("SIMD-total-quads overridden: %d\n", t);
+                n_simd = t;
+            }
+            else
+            {
+                RT_LOGI("SIMD-total-quads value out of range\n");
                 return 0;
             }
         }
