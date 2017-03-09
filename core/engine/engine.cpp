@@ -3320,7 +3320,7 @@ rt_si32 from_simd(rt_si32 simd)
         size = simd >> 2;
         type = type << 1;
     }
-#else /* other RISC targets */
+#elif !defined (RT_X86) /* other RISC targets */
     if (simd >= 8 && type <= 4)
     {
         size = simd >> 2;
