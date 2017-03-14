@@ -1,38 +1,38 @@
 
-INC_PATH =                              \
-        -Icore/config/                  \
-        -Icore/engine/                  \
-        -Icore/system/                  \
-        -Icore/tracer/                  \
-        -Idata/materials/               \
-        -Idata/objects/                 \
-        -Idata/scenes/                  \
+INC_PATH =                                  \
+        -Icore/config/                      \
+        -Icore/engine/                      \
+        -Icore/system/                      \
+        -Icore/tracer/                      \
+        -Idata/materials/                   \
+        -Idata/objects/                     \
+        -Idata/scenes/                      \
         -Idata/textures/
 
-SRC_LIST =                              \
-        core/engine/engine.cpp          \
-        core/engine/object.cpp          \
-        core/engine/rtgeom.cpp          \
-        core/engine/rtimag.cpp          \
-        core/system/system.cpp          \
-        core/tracer/tracer.cpp          \
-        core/tracer/tracer_128v1.cpp    \
-        core/tracer/tracer_128v2.cpp    \
-        core/tracer/tracer_128v4.cpp    \
-        core/tracer/tracer_128v8.cpp    \
-        core/tracer/tracer_256v1.cpp    \
-        core/tracer/tracer_256v2.cpp    \
-        core/tracer/tracer_512v1.cpp    \
-        core/tracer/tracer_512v2.cpp    \
+SRC_LIST =                                  \
+        core/engine/engine.cpp              \
+        core/engine/object.cpp              \
+        core/engine/rtgeom.cpp              \
+        core/engine/rtimag.cpp              \
+        core/system/system.cpp              \
+        core/tracer/tracer.cpp              \
+        core/tracer/tracer_128v1.cpp        \
+        core/tracer/tracer_128v2.cpp        \
+        core/tracer/tracer_128v4.cpp        \
+        core/tracer/tracer_128v8.cpp        \
+        core/tracer/tracer_256v1.cpp        \
+        core/tracer/tracer_256v2.cpp        \
+        core/tracer/tracer_512v1.cpp        \
+        core/tracer/tracer_512v2.cpp        \
         RooT_linux.cpp
 
 LIB_PATH =
 
-LIB_LIST =                              \
-        -lm                             \
-        -lstdc++                        \
-        -lX11                           \
-        -lXext                          \
+LIB_LIST =                                  \
+        -lm                                 \
+        -lstdc++                            \
+        -lX11                               \
+        -lXext                              \
         -lpthread
 
 
@@ -66,6 +66,8 @@ RooT_x86:
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on x86 targets top cpuid-value is chosen by default, use -n/-k/-s to override
+
+# For interpretation of SIMD build flags check compatibility layer in rtzero.h
 
 # Clang compilation works too (takes much longer prior to 3.8), use (replace):
 # clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses

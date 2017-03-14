@@ -5473,20 +5473,111 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
 static
 rt_si32 s_mask = 0;
 static
-rt_si32 s_type[R+1];
-static
 rt_si32 s_mode = 0;
 
 /*
- * Backend's global entry point (hence 0).
- * Switch backend's runtime SIMD target with "mode" equal to
- * SIMD width (4, 8, 16, 32, 64) in 0th (lowest) byte
- * and SIMD type (1, 2, 4, 8) in 1st (higher) byte.
+ * Initialize SIMD target-selection mask (rt_SIMD_INFO:ver) from parameters.
  */
-rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 mode)
+rt_si32 mask_init(rt_si32 simd)
 {
-    memset(s_type, 0, sizeof(s_type));
+    rt_si32 n_simd = (simd >> 0) & 0xFF;
+    rt_si32 s_type = (simd >> 8) & 0xFF;
+    rt_si32 k_size = (simd >> 16) & 0xFF;
 
+    rt_si32 mask = 0;
+    rt_si32 n = n_simd, k = k_size;
+
+    s_type = s_type == 0 ? 0xF : s_type;
+    n_simd = n_simd == 0 ? 4 : n_simd;
+    k_size = k_size == 0 ? 4 : k_size;
+
+    for (; n_simd >= n && n_simd > 0; n_simd /= 2)
+    {
+        for (; k_size >= k && k_size > 0; k_size /= 2)
+        {
+#if   defined (RT_X86)
+            if (k_size == 1 && n_simd <= 4)
+            {
+                mask |= s_type << (8*(n_simd/2));
+            }
+#elif defined (RT_X32) || defined (RT_X64)
+            if (k_size >= 2 && n_simd == 4)
+            {
+                mask |= s_type << (20 + k_size*2);
+            }
+            else
+            if (k_size <= 2 && n_simd <= 4)
+            {
+                mask |= s_type << (8*(n_simd/2) + 4*(k_size/2));
+            }
+#elif defined (RT_P32) || defined (RT_P64)
+            if (k_size <= 4 && n_simd == 1)
+            {
+                mask |= s_type << (8*(k_size/2) - 4*(k_size>1));
+                mask |= s_type << (8*(k_size/2) - 1*(k_size>1));
+            }
+#else /* other RISC targets */
+            if (k_size <= 2 && n_simd == 1)
+            {
+                mask |= s_type << (8*(k_size/2) - 4*(k_size>1));
+                mask |= s_type << (8*(k_size/2));
+            }
+#endif /* all targets */
+        }
+
+        k_size = k == 0 ? 4 : k;
+    }
+
+    return mask;
+}
+
+/*
+ * Initialize SIMD parameters from target-selection mask (rt_SIMD_INFO:ver).
+ */
+rt_si32 from_mask(rt_si32 mask)
+{
+    rt_si32 n_simd, s_type, k_size;
+
+    n_simd = mask >= 0x01000000 ? 6 : mask >= 0x00010000 ? 4 :
+             mask >= 0x00000100 ? 2 : mask >= 0x00000001 ? 1 : 0;
+
+    s_type = mask >> (8*(n_simd/2));
+    k_size = s_type >= 0x10 ? 2 : 1;
+    s_type = s_type >> 4*(k_size-1);
+
+#if   defined (RT_X32) || defined (RT_X64) || defined (RT_X86)
+    if (n_simd == 6)
+    {
+        k_size = k_size * 2;
+        n_simd = 4;
+    }
+#else /* other RISC targets */
+#if defined (RT_P32) || defined (RT_P64)
+    if (n_simd >= 2 && k_size == 1)
+    {
+        s_type = s_type << 1;
+    }
+#endif /* other RISC targets */
+    if (n_simd >= 2)
+    {
+        k_size = k_size * n_simd;
+        n_simd = 1;
+    }
+#endif /* all targets */
+
+    /* ------ k_size ------- s_type ------- n_simd ------ */
+    return (k_size << 16) | (s_type << 8) | (n_simd);
+}
+
+/*
+ * Backend's global entry point (hence 0).
+ * Set current runtime SIMD target with "simd" equal to
+ * SIMD native-size (1, 2, 4) in 0th (lowest) byte
+ * SIMD type (1, 2, 4, 8) in 1st (higher) byte and
+ * SIMD size-factor (1, 2, 4) in 2nd (higher) byte
+ */
+rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 simd)
+{
 #if (RT_POINTER - RT_ADDRESS) != 0 && RT_DEBUG >= 1
 
     RT_LOGI("S_INF PTR = %016"PR_Z"X\n", (rt_full)s_inf);
@@ -5508,157 +5599,37 @@ rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 mode)
 
     s_mask = s_inf->ver;
 
-#if defined (RT_2K8) && (RT_2K8 & 8)
-    if (s_mode == 0)
-    {
-        s_mode = (s_mask & 0x80000000) != 0 ? 0x0840 : 0x0000;
-    }
-    s_type[0x40] |= ((s_mask >> 0x14) & 0x0800) | 0x40;
-#endif /* RT_2K8 & 8 */
-#if defined (RT_1K4) && (RT_1K4 & 2)
-    if (s_mode == 0)
-    {
-        s_mode = (s_mask & 0x02000000) != 0 ? 0x0220 : 0x0000;
-    }
-    s_type[0x20] |= ((s_mask >> 0x10) & 0x0200) | 0x20;
-#endif /* RT_1K4 & 2 */
-#if defined (RT_1K4) && (RT_1K4 & 1)
-    if (s_mode == 0)
-    {
-        s_mode = (s_mask & 0x01000000) != 0 ? 0x0120 : 0x0000;
-    }
-    s_type[0x20] |= ((s_mask >> 0x10) & 0x0100) | 0x20;
-#endif /* RT_1K4 & 1 */
-#if defined (RT_512) && (RT_512 & 8)
-    if (s_mode == 0)
-    {
-        s_mode = (s_mask & 0x00080000) != 0 ? 0x0810 : 0x0000;
-    }
-    s_type[0x10] |= ((s_mask >> 0x08) & 0x0800) | 0x10;
-#endif /* RT_512 & 8 */
-#if defined (RT_512) && (RT_512 & 2)
-    if (s_mode == 0)
-    {
-        s_mode = (s_mask & 0x00020000) != 0 ? 0x0210 : 0x0000;
-    }
-    s_type[0x10] |= ((s_mask >> 0x08) & 0x0200) | 0x10;
-#endif /* RT_512 & 2 */
-#if defined (RT_512) && (RT_512 & 1)
-    if (s_mode == 0)
-    {
-        s_mode = (s_mask & 0x00010000) != 0 ? 0x0110 : 0x0000;
-    }
-    s_type[0x10] |= ((s_mask >> 0x08) & 0x0100) | 0x10;
-#endif /* RT_512 & 1 */
-#if defined (RT_256) && (RT_256 & 8)
-    if (s_mode == 0)
-    {
-        s_mode = (s_mask & 0x00000800) != 0 ? 0x0808 : 0x0000;
-    }
-    s_type[0x08] |= ((s_mask << 0x00) & 0x0800) | 0x08;
-#endif /* RT_256 & 8 */
-#if defined (RT_256) && (RT_256 & 2)
-    if (s_mode == 0)
-    {
-        s_mode = (s_mask & 0x00000200) != 0 ? 0x0208 : 0x0000;
-    }
-    s_type[0x08] |= ((s_mask << 0x00) & 0x0200) | 0x08;
-#endif /* RT_256 & 2 */
-#if defined (RT_256) && (RT_256 & 1)
-    if (s_mode == 0)
-    {
-        s_mode = (s_mask & 0x00000100) != 0 ? 0x0108 : 0x0000;
-    }
-    s_type[0x08] |= ((s_mask << 0x00) & 0x0100) | 0x08;
-#endif /* RT_256 & 1 */
-#if defined (RT_128) && (RT_128 & 8)
-    if (s_mode == 0)
-    {
-        s_mode = (s_mask & 0x00000008) != 0 ? 0x0804 : 0x0000;
-    }
-    s_type[0x04] |= ((s_mask << 0x08) & 0x0800) | 0x04;
-#endif /* RT_128 & 8 */
-#if defined (RT_128) && (RT_128 & 4)
-    if (s_mode == 0)
-    {
-        s_mode = (s_mask & 0x00000004) != 0 ? 0x0404 : 0x0000;
-    }
-    s_type[0x04] |= ((s_mask << 0x08) & 0x0400) | 0x04;
-#endif /* RT_128 & 4 */
-#if defined (RT_128) && (RT_128 & 2)
-    if (s_mode == 0)
-    {
-        s_mode = (s_mask & 0x00000002) != 0 ? 0x0204 : 0x0000;
-    }
-    s_type[0x04] |= ((s_mask << 0x08) & 0x0200) | 0x04;
-#endif /* RT_128 & 2 */
-#if defined (RT_128) && (RT_128 & 1)
-    if (s_mode == 0)
-    {
-        s_mode = (s_mask & 0x00000001) != 0 ? 0x0104 : 0x0000;
-    }
-    s_type[0x04] |= ((s_mask << 0x08) & 0x0100) | 0x04;
-#endif /* RT_128 & 1 */
+    s_mask &= (RT_128) | (RT_256_R8 << 4) | (RT_256 << 8) | (RT_512_R8 << 12) |
+       (RT_512 << 16) | (RT_1K4_R8 << 20) | (RT_1K4 << 24) | (RT_2K8_R8 << 28);
 
-    rt_si32 i = 0;
-    rt_si32 j = mode >> 8;
-    rt_si32 k = mode & 0xFF;
+    rt_si32 i, mask;
 
-    if (k == 0)
+    mask = mask_init(simd);
+
+    mask &= s_mask;
+
+    for (i = 31; i >= 0; i--)
     {
-        k = R;
-
-        while (k > 0 && (s_type[k] >> 8) == 0)
+        if (mask & (1 << i))
         {
-            k = k >> 1;
-        }
-
-        mode |= k;
-    }
-
-    if (k != 0 && k <= R && (s_type[k] >> 8) != 0 && j == 0)
-    {
-        i = 4;
-
-        while (i > 0 && (s_type[k] & (i << 8)) == 0)
-        {
-            i = i >> 1;
-        }
-
-        if (i == 0 && (s_type[k] & (8 << 8)) != 0)
-        {
-            i = 8;
-        }
-
-        mode |= (i << 8);
-    }
-    else
-    if (k != 0 && k <= R && (s_type[k] >> 8) != 0 && j != 0)
-    {
-        i = 8;
-
-        while (i > 0)
-        {
-            if (i == j && (s_type[k] & (i << 8)) != 0)
-            {
-                break;
-            }
-
-            i = i >> 1;
+            mask = (1 << i);
+            break;
         }
     }
 
-    if (i == 0)
+    if (i < 0)
     {
-        mode = s_mode;
+        mask = s_mode;
     }
 
-    s_mode = mode;
+    s_mode = mask;
 
     s_inf->ctx = RT_NULL; /* <- force internal entry points re-fetching */
     render0(s_inf); /* <- perform internal entry points re-fetching */
 
-    return s_mode;
+    simd = from_mask(mask);
+
+    return simd;
 }
 
 /******************************************************************************/
@@ -5685,6 +5656,21 @@ namespace simd_128v8
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
+namespace simd_256v1_r8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace simd_256v2_r8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace simd_256v4_r8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
 namespace simd_256v1
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
@@ -5695,7 +5681,12 @@ namespace simd_256v2
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_256v8
+namespace simd_512v1_r8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace simd_512v2_r8
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
@@ -5710,11 +5701,6 @@ namespace simd_512v2
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_512v8
-{
-rt_void render0(rt_SIMD_INFOX *s_inf);
-}
-
 namespace simd_1K4v1
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
@@ -5725,7 +5711,12 @@ namespace simd_1K4v2
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_2K8v8
+namespace simd_2K8v1_r8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace simd_2K8v2_r8
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
@@ -5739,68 +5730,88 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 {
     switch (s_mode)
     {
-#if defined (RT_2K8) && (RT_2K8 & 8)
-        case 0x0840:
-        simd_2K8v8::render0(s_inf);
+#if (RT_2K8_R8 & 2)
+        case 0x20000000:
+        simd_2K8v2_r8::render0(s_inf);
         break;
-#endif /* RT_2K8 & 8 */
-#if defined (RT_1K4) && (RT_1K4 & 2)
-        case 0x0220:
+#endif /* RT_2K8_R8 & 2 */
+#if (RT_2K8_R8 & 1)
+        case 0x10000000:
+        simd_2K8v1_r8::render0(s_inf);
+        break;
+#endif /* RT_2K8_R8 & 1 */
+#if (RT_1K4 & 2)
+        case 0x02000000:
         simd_1K4v2::render0(s_inf);
         break;
 #endif /* RT_1K4 & 2 */
-#if defined (RT_1K4) && (RT_1K4 & 1)
-        case 0x0120:
+#if (RT_1K4 & 1)
+        case 0x01000000:
         simd_1K4v1::render0(s_inf);
         break;
 #endif /* RT_1K4 & 1 */
-#if defined (RT_512) && (RT_512 & 8)
-        case 0x0810:
-        simd_512v8::render0(s_inf);
-        break;
-#endif /* RT_512 & 8 */
-#if defined (RT_512) && (RT_512 & 2)
-        case 0x0210:
+#if (RT_512 & 2)
+        case 0x00020000:
         simd_512v2::render0(s_inf);
         break;
 #endif /* RT_512 & 2 */
-#if defined (RT_512) && (RT_512 & 1)
-        case 0x0110:
+#if (RT_512 & 1)
+        case 0x00010000:
         simd_512v1::render0(s_inf);
         break;
 #endif /* RT_512 & 1 */
-#if defined (RT_256) && (RT_256 & 8)
-        case 0x0808:
-        simd_256v8::render0(s_inf);
+#if (RT_512_R8 & 2)
+        case 0x00002000:
+        simd_512v2_r8::render0(s_inf);
         break;
-#endif /* RT_256 & 8 */
-#if defined (RT_256) && (RT_256 & 2)
-        case 0x0208:
+#endif /* RT_512_R8 & 2 */
+#if (RT_512_R8 & 1)
+        case 0x00001000:
+        simd_512v1_r8::render0(s_inf);
+        break;
+#endif /* RT_512_R8 & 1 */
+#if (RT_256 & 2)
+        case 0x00000200:
         simd_256v2::render0(s_inf);
         break;
 #endif /* RT_256 & 2 */
-#if defined (RT_256) && (RT_256 & 1)
-        case 0x0108:
+#if (RT_256 & 1)
+        case 0x00000100:
         simd_256v1::render0(s_inf);
         break;
 #endif /* RT_256 & 1 */
-#if defined (RT_128) && (RT_128 & 8)
-        case 0x0804:
+#if (RT_256_R8 & 4)
+        case 0x00000040:
+        simd_256v4_r8::render0(s_inf);
+        break;
+#endif /* RT_256_R8 & 4 */
+#if (RT_256_R8 & 2)
+        case 0x00000020:
+        simd_256v2_r8::render0(s_inf);
+        break;
+#endif /* RT_256_R8 & 2 */
+#if (RT_256_R8 & 1)
+        case 0x00000010:
+        simd_256v1_r8::render0(s_inf);
+        break;
+#endif /* RT_256_R8 & 1 */
+#if (RT_128 & 8)
+        case 0x00000008:
         simd_128v8::render0(s_inf);
         break;
 #endif /* RT_128 & 8 */
-#if defined (RT_128) && (RT_128 & 4)
-        case 0x0404:
+#if (RT_128 & 4)
+        case 0x00000004:
         simd_128v4::render0(s_inf);
         break;
 #endif /* RT_128 & 4 */
-#if defined (RT_128) && (RT_128 & 2)
-        case 0x0204:
+#if (RT_128 & 2)
+        case 0x00000002:
         simd_128v2::render0(s_inf);
         break;
 #endif /* RT_128 & 2 */
-#if defined (RT_128) && (RT_128 & 1)
-        case 0x0104:
+#if (RT_128 & 1)
+        case 0x00000001:
         simd_128v1::render0(s_inf);
         break;
 #endif /* RT_128 & 1 */

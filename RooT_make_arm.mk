@@ -1,33 +1,33 @@
 
-INC_PATH =                              \
-        -Icore/config/                  \
-        -Icore/engine/                  \
-        -Icore/system/                  \
-        -Icore/tracer/                  \
-        -Idata/materials/               \
-        -Idata/objects/                 \
-        -Idata/scenes/                  \
+INC_PATH =                                  \
+        -Icore/config/                      \
+        -Icore/engine/                      \
+        -Icore/system/                      \
+        -Icore/tracer/                      \
+        -Idata/materials/                   \
+        -Idata/objects/                     \
+        -Idata/scenes/                      \
         -Idata/textures/
 
-SRC_LIST =                              \
-        core/engine/engine.cpp          \
-        core/engine/object.cpp          \
-        core/engine/rtgeom.cpp          \
-        core/engine/rtimag.cpp          \
-        core/system/system.cpp          \
-        core/tracer/tracer.cpp          \
-        core/tracer/tracer_128v1.cpp    \
-        core/tracer/tracer_128v2.cpp    \
-        core/tracer/tracer_128v4.cpp    \
+SRC_LIST =                                  \
+        core/engine/engine.cpp              \
+        core/engine/object.cpp              \
+        core/engine/rtgeom.cpp              \
+        core/engine/rtimag.cpp              \
+        core/system/system.cpp              \
+        core/tracer/tracer.cpp              \
+        core/tracer/tracer_128v1.cpp        \
+        core/tracer/tracer_128v2.cpp        \
+        core/tracer/tracer_128v4.cpp        \
         RooT_linux.cpp
 
 LIB_PATH =
 
-LIB_LIST =                              \
-        -lm                             \
-        -lstdc++                        \
-        -lX11                           \
-        -lXext                          \
+LIB_LIST =                                  \
+        -lm                                 \
+        -lstdc++                            \
+        -lX11                               \
+        -lXext                              \
         -lpthread
 
 
@@ -103,6 +103,8 @@ RooT_arm_rpi3:
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
+
+# For interpretation of SIMD build flags check compatibility layer in rtzero.h
 
 # 0) Build flags above are intended for default "vanilla" ARMv7 target, while
 # settings suitable for specific hardware platforms are given below (replace).

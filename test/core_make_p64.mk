@@ -1,33 +1,33 @@
 
-INC_PATH =                              \
-        -I../core/config/               \
-        -I../core/engine/               \
-        -I../core/system/               \
-        -I../core/tracer/               \
-        -I../data/materials/            \
-        -I../data/objects/              \
-        -I../data/textures/             \
+INC_PATH =                                  \
+        -I../core/config/                   \
+        -I../core/engine/                   \
+        -I../core/system/                   \
+        -I../core/tracer/                   \
+        -I../data/materials/                \
+        -I../data/objects/                  \
+        -I../data/textures/                 \
         -Iscenes/
 
-SRC_LIST =                              \
-        ../core/engine/engine.cpp       \
-        ../core/engine/object.cpp       \
-        ../core/engine/rtgeom.cpp       \
-        ../core/engine/rtimag.cpp       \
-        ../core/system/system.cpp       \
-        ../core/tracer/tracer.cpp       \
-        ../core/tracer/tracer_128v2.cpp \
-        ../core/tracer/tracer_128v4.cpp \
-        ../core/tracer/tracer_256v1.cpp \
-        ../core/tracer/tracer_256v2.cpp \
-        ../core/tracer/tracer_512v1.cpp \
-        ../core/tracer/tracer_512v2.cpp \
+SRC_LIST =                                  \
+        ../core/engine/engine.cpp           \
+        ../core/engine/object.cpp           \
+        ../core/engine/rtgeom.cpp           \
+        ../core/engine/rtimag.cpp           \
+        ../core/system/system.cpp           \
+        ../core/tracer/tracer.cpp           \
+        ../core/tracer/tracer_128v2.cpp     \
+        ../core/tracer/tracer_128v4.cpp     \
+        ../core/tracer/tracer_256v1.cpp     \
+        ../core/tracer/tracer_256v2.cpp     \
+        ../core/tracer/tracer_512v1.cpp     \
+        ../core/tracer/tracer_512v2.cpp     \
         core_test.cpp
 
 LIB_PATH =
 
-LIB_LIST =                              \
-        -lm                             \
+LIB_LIST =                                  \
+        -lm                                 \
         -lstdc++
 
 
@@ -133,6 +133,8 @@ core_test_p64f64Bp7:
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 # 512-bit SIMD is achieved by combining quads of 128-bit registers/instructions
+
+# For interpretation of SIMD build flags check compatibility layer in rtzero.h
 
 # For 128-bit VSX1 POWER(7,7+,8) big-endian target use (replace):
 # powerpc64-linux-gnu-g++ -O3 -DRT_128=2 -DRT_ENDIAN=1

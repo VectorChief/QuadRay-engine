@@ -1,35 +1,35 @@
 
-INC_PATH =                              \
-        -I../core/config/               \
-        -I../core/engine/               \
-        -I../core/system/               \
-        -I../core/tracer/               \
-        -I../data/materials/            \
-        -I../data/objects/              \
-        -I../data/textures/             \
+INC_PATH =                                  \
+        -I../core/config/                   \
+        -I../core/engine/                   \
+        -I../core/system/                   \
+        -I../core/tracer/                   \
+        -I../data/materials/                \
+        -I../data/objects/                  \
+        -I../data/textures/                 \
         -Iscenes/
 
-SRC_LIST =                              \
-        ../core/engine/engine.cpp       \
-        ../core/engine/object.cpp       \
-        ../core/engine/rtgeom.cpp       \
-        ../core/engine/rtimag.cpp       \
-        ../core/system/system.cpp       \
-        ../core/tracer/tracer.cpp       \
-        ../core/tracer/tracer_128v1.cpp \
-        ../core/tracer/tracer_128v2.cpp \
-        ../core/tracer/tracer_128v4.cpp \
-        ../core/tracer/tracer_128v8.cpp \
-        ../core/tracer/tracer_256v1.cpp \
-        ../core/tracer/tracer_256v2.cpp \
-        ../core/tracer/tracer_512v1.cpp \
-        ../core/tracer/tracer_512v2.cpp \
+SRC_LIST =                                  \
+        ../core/engine/engine.cpp           \
+        ../core/engine/object.cpp           \
+        ../core/engine/rtgeom.cpp           \
+        ../core/engine/rtimag.cpp           \
+        ../core/system/system.cpp           \
+        ../core/tracer/tracer.cpp           \
+        ../core/tracer/tracer_128v1.cpp     \
+        ../core/tracer/tracer_128v2.cpp     \
+        ../core/tracer/tracer_128v4.cpp     \
+        ../core/tracer/tracer_128v8.cpp     \
+        ../core/tracer/tracer_256v1.cpp     \
+        ../core/tracer/tracer_256v2.cpp     \
+        ../core/tracer/tracer_512v1.cpp     \
+        ../core/tracer/tracer_512v2.cpp     \
         core_test.cpp
 
 LIB_PATH =
 
-LIB_LIST =                              \
-        -lm                             \
+LIB_LIST =                                  \
+        -lm                                 \
         -lstdc++
 
 
@@ -61,6 +61,8 @@ core_test_x86:
 # make -f core_make_x86.mk
 # ./core_test.x86 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+
+# For interpretation of SIMD build flags check compatibility layer in rtzero.h
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on x86 targets top cpuid-value is chosen by default, use -n/-k/-s to override

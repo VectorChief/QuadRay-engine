@@ -5,22 +5,27 @@
 /******************************************************************************/
 
 #undef  RT_REGS
-#define RT_REGS 16 /* define maximum of available SIMD registers for code */
+#define RT_REGS 8  /* define maximum of available SIMD registers for code */
 
 #undef  RT_SIMD
-#define RT_SIMD 128 /* map vector-length-agnostic SIMD subsets to 128-bit */
+#define RT_SIMD 2048 /* map vector-length-agnostic SIMD subsets to 2048-bit */
 #define RT_SIMD_CODE /* enable SIMD instruction definitions */
 
-#if defined (RT_128) && (RT_128 & 2)
-#undef  RT_128
-#define RT_128 2
+#if defined (RT_2K8_R8) && (RT_2K8_R8 & 2)
+#undef  RT_2K8_R8
+#define RT_2K8_R8 2
 #define RT_RENDER_CODE /* enable contents of render0 routine */
-#endif /* RT_128 */
+#endif /* RT_2K8_R8 */
 
-#if defined (RT_ARM)
-#undef  RT_ARM
-#define RT_ARM 2 /* enable int-div for ASIMDv2 target on ARM */
-#endif /* RT_ARM */
+#if defined (RT_X32)
+#undef  RT_X32
+#define RT_X32 2 /* enable BMI1+BMI2 for 2K8-bit AVX3 target on x32 */
+#endif /* RT_X32 */
+
+#if defined (RT_X64)
+#undef  RT_X64
+#define RT_X64 2 /* enable BMI1+BMI2 for 2K8-bit AVX3 target on x64 */
+#endif /* RT_X64 */
 
 #include "tracer.h"
 #include "format.h"
@@ -41,7 +46,7 @@ rt_pntr t_clp[3];
 extern
 rt_pntr t_pow[6];
 
-namespace simd_128v2
+namespace simd_2K8v2_r8
 {
 #include "tracer.cpp"
 }

@@ -1,39 +1,42 @@
 
-INC_PATH =                              \
-        -I../core/config/               \
-        -I../core/engine/               \
-        -I../core/system/               \
-        -I../core/tracer/               \
-        -I../data/materials/            \
-        -I../data/objects/              \
-        -I../data/textures/             \
+INC_PATH =                                  \
+        -I../core/config/                   \
+        -I../core/engine/                   \
+        -I../core/system/                   \
+        -I../core/tracer/                   \
+        -I../data/materials/                \
+        -I../data/objects/                  \
+        -I../data/textures/                 \
         -Iscenes/
 
-SRC_LIST =                              \
-        ../core/engine/engine.cpp       \
-        ../core/engine/object.cpp       \
-        ../core/engine/rtgeom.cpp       \
-        ../core/engine/rtimag.cpp       \
-        ../core/system/system.cpp       \
-        ../core/tracer/tracer.cpp       \
-        ../core/tracer/tracer_128v2.cpp \
-        ../core/tracer/tracer_128v4.cpp \
-        ../core/tracer/tracer_128v8.cpp \
-        ../core/tracer/tracer_256v1.cpp \
-        ../core/tracer/tracer_256v2.cpp \
-        ../core/tracer/tracer_256v8.cpp \
-        ../core/tracer/tracer_512v1.cpp \
-        ../core/tracer/tracer_512v2.cpp \
-        ../core/tracer/tracer_512v8.cpp \
-        ../core/tracer/tracer_1K4v1.cpp \
-        ../core/tracer/tracer_1K4v2.cpp \
-        ../core/tracer/tracer_2K8v8.cpp \
+SRC_LIST =                                  \
+        ../core/engine/engine.cpp           \
+        ../core/engine/object.cpp           \
+        ../core/engine/rtgeom.cpp           \
+        ../core/engine/rtimag.cpp           \
+        ../core/system/system.cpp           \
+        ../core/tracer/tracer.cpp           \
+        ../core/tracer/tracer_128v2.cpp     \
+        ../core/tracer/tracer_128v4.cpp     \
+        ../core/tracer/tracer_128v8.cpp     \
+        ../core/tracer/tracer_256v2_r8.cpp  \
+        ../core/tracer/tracer_256v4_r8.cpp  \
+        ../core/tracer/tracer_256v1.cpp     \
+        ../core/tracer/tracer_256v2.cpp     \
+        ../core/tracer/tracer_512v1_r8.cpp  \
+        ../core/tracer/tracer_512v2_r8.cpp  \
+        ../core/tracer/tracer_512v1.cpp     \
+        ../core/tracer/tracer_512v2.cpp     \
+        ../core/tracer/tracer_1K4v1.cpp     \
+        ../core/tracer/tracer_1K4v2.cpp     \
+        ../core/tracer/tracer_2K8v1_r8.cpp  \
+        ../core/tracer/tracer_2K8v2_r8.cpp  \
         core_test.cpp
 
 LIB_PATH =
 
-LIB_LIST =                              \
-        -lm                             \
+LIB_LIST =                                  \
+        -lm                                 \
         -lstdc++
 
 
@@ -49,7 +52,8 @@ clean:
 core_test_x64_32:
 	x86_64-linux-gnu-g++ -O3 -g -static \
         -DRT_LINUX -DRT_X64 \
-        -DRT_128=2+4+8 -DRT_256=1+2+8 -DRT_512=1+2+8 -DRT_1K4=1+2 -DRT_2K8=0 \
+        -DRT_128=2+4+8 -DRT_256_R8=2+4 -DRT_256=1+2 \
+        -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -58,7 +62,8 @@ core_test_x64_32:
 core_test_x64_64:
 	x86_64-linux-gnu-g++ -O3 -g -static \
         -DRT_LINUX -DRT_X64 \
-        -DRT_128=2+4+8 -DRT_256=1+2+8 -DRT_512=1+2+8 -DRT_1K4=1+2 -DRT_2K8=0 \
+        -DRT_128=2+4+8 -DRT_256_R8=2+4 -DRT_256=1+2 \
+        -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -67,7 +72,8 @@ core_test_x64_64:
 core_test_x64f32:
 	x86_64-linux-gnu-g++ -O3 -g -static \
         -DRT_LINUX -DRT_X64 \
-        -DRT_128=2+4+8 -DRT_256=1+2+8 -DRT_512=1+2+8 -DRT_1K4=1+2 -DRT_2K8=0 \
+        -DRT_128=2+4+8 -DRT_256_R8=2+4 -DRT_256=1+2 \
+        -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -76,7 +82,8 @@ core_test_x64f32:
 core_test_x64f64:
 	x86_64-linux-gnu-g++ -O3 -g -static \
         -DRT_LINUX -DRT_X64 \
-        -DRT_128=2+4+8 -DRT_256=1+2+8 -DRT_512=1+2+8 -DRT_1K4=1+2 -DRT_2K8=0 \
+        -DRT_128=2+4+8 -DRT_256_R8=2+4 -DRT_256=1+2 \
+        -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -94,6 +101,8 @@ core_test_x64f64:
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on x86 targets top cpuid-value is chosen by default, use -n/-k/-s to override
+
+# For interpretation of SIMD build flags check compatibility layer in rtzero.h
 
 # Clang compilation works too (takes much longer prior to 3.8), use (replace):
 # clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses

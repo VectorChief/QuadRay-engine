@@ -823,24 +823,14 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         return 0;
     }
 
-    /* test SIMD variables in original command-line format */
-    if ((s_type != 0 && s_type != ((simd >> 8) & 0x0F) && k_size == 0)
-    ||  (n_simd != 0 && n_simd != ((simd >> 2) & 0x0F) && k_size == 0))
-    {
-        RT_LOGI("Chosen SIMD target not supported, check -n/-k/-s options\n");
-        return 0;
-    }
-
-    /* temporarily convert internal SIMD variables to new command-line format */
-    simd = from_simd(simd);
     size = (simd >> 16) & 0xFF;
     type = (simd >> 8) & 0xFF;
     simd = simd & 0xFF;
 
     /* test converted internal SIMD variables against new command-line format */
     if ((k_size != 0 && k_size != size)
-    ||  (s_type != 0 && s_type != type && k_size != 0)
-    ||  (n_simd != 0 && n_simd != simd && k_size != 0))
+    ||  (s_type != 0 && s_type != type)
+    ||  (n_simd != 0 && n_simd != simd))
     {
         RT_LOGI("Chosen SIMD target not supported, check -n/-k/-s options\n");
         return 0;

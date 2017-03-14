@@ -1,30 +1,30 @@
 
-INC_PATH =                              \
-        -I../core/config/               \
-        -I../core/engine/               \
-        -I../core/system/               \
-        -I../core/tracer/               \
-        -I../data/materials/            \
-        -I../data/objects/              \
-        -I../data/textures/             \
+INC_PATH =                                  \
+        -I../core/config/                   \
+        -I../core/engine/                   \
+        -I../core/system/                   \
+        -I../core/tracer/                   \
+        -I../data/materials/                \
+        -I../data/objects/                  \
+        -I../data/textures/                 \
         -Iscenes/
 
-SRC_LIST =                              \
-        ../core/engine/engine.cpp       \
-        ../core/engine/object.cpp       \
-        ../core/engine/rtgeom.cpp       \
-        ../core/engine/rtimag.cpp       \
-        ../core/system/system.cpp       \
-        ../core/tracer/tracer.cpp       \
-        ../core/tracer/tracer_128v1.cpp \
-        ../core/tracer/tracer_128v2.cpp \
-        ../core/tracer/tracer_128v4.cpp \
+SRC_LIST =                                  \
+        ../core/engine/engine.cpp           \
+        ../core/engine/object.cpp           \
+        ../core/engine/rtgeom.cpp           \
+        ../core/engine/rtimag.cpp           \
+        ../core/system/system.cpp           \
+        ../core/tracer/tracer.cpp           \
+        ../core/tracer/tracer_128v1.cpp     \
+        ../core/tracer/tracer_128v2.cpp     \
+        ../core/tracer/tracer_128v4.cpp     \
         core_test.cpp
 
 LIB_PATH =
 
-LIB_LIST =                              \
-        -lm                             \
+LIB_LIST =                                  \
+        -lm                                 \
         -lstdc++
 
 
@@ -119,6 +119,8 @@ core_test_arm_rpi3:
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
+
+# For interpretation of SIMD build flags check compatibility layer in rtzero.h
 
 # 0) Build flags above are intended for default "vanilla" ARMv7 target, while
 # settings suitable for specific hardware platforms are given below (replace).
