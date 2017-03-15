@@ -679,10 +679,11 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         {
             t = argv[k][0] - '0';
             if (strlen(argv[k]) == 1
-            && (t == 1 || t == 2 || t == 4 || t == 8))
+            && (t == 1 || t == 2 || t == 4 || t == 8 || t == 16))
             {
                 RT_LOGI("SIMD-total-quads overridden: %d\n", t);
-                n_simd = t;
+                n_simd = t <= 8 ? t : 8;
+                k_size = t <= 8 ? 1 : 2;
             }
             else
             {
@@ -828,9 +829,9 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     simd = simd & 0xFF;
 
     /* test converted internal SIMD variables against new command-line format */
-    if ((k_size != 0 && k_size != size)
-    ||  (s_type != 0 && s_type != type)
-    ||  (n_simd != 0 && n_simd != simd))
+    if ((k_size != 0 && k_size != size && n_simd != simd * size)
+    ||  (s_type != 0 && s_type >  type)
+    ||  (n_simd != 0 && n_simd != simd && n_simd != simd * size))
     {
         RT_LOGI("Chosen SIMD target not supported, check -n/-k/-s options\n");
         return 0;
