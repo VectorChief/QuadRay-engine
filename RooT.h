@@ -615,12 +615,14 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         }
         if (k < argc && strcmp(argv[k], "-n") == 0 && ++k < argc)
         {
-            t = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1
-            && (t == 1 || t == 2 || t == 4))
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t == 128 || t == 256 || t == 512)
             {
                 RT_LOGI("SIMD-native-size overridden: %d\n", t);
-                n_simd = t;
+                n_simd = t / 128;
             }
             else
             {
