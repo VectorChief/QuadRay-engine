@@ -651,10 +651,10 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             {
                 t += (argv[k][l-1] - '0') * r;
             }
-            if (t == 128 || t == 256 || t == 512)
+            if (t == 1 || t == 2 || t == 4 || t == 128 || t == 256 || t == 512)
             {
                 RT_LOGI("SIMD-native-size overridden: %d\n", t);
-                n_simd = t / 128;
+                n_simd = t >= 128 ? t / 128 : t;
             }
             else
             {
