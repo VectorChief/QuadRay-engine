@@ -21,10 +21,18 @@ Display    *disp;
 Window      win;
 rt_si32     depth;
 
+#ifndef RT_XSHM
+#define RT_XSHM 1
+#endif /* RT_XSHM */
+
+#if RT_XSHM
 #include <sys/shm.h>
 #include <X11/extensions/XShm.h>
 
 XShmSegmentInfo shminfo;
+#endif /* RT_XSHM */
+
+rt_bool     xshm        = RT_FALSE;
 XImage     *ximage      = NULL;
 GC          gc;
 XGCValues   gc_values   = {0};
@@ -161,49 +169,79 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
     }
 
-    /* create image,
-     * use preconfigured x_res, y_res for rendering,
-     * window resizing in runtime is not supported for now */
-    ximage = XShmCreateImage(disp,
-                             DefaultVisual(disp, scr_id),
-                             depth,
-                             ZPixmap,  NULL, &shminfo,
-                             x_row, y_res);
-    if (ximage == NULL)
+#if RT_XSHM
+    do
     {
-        RT_LOGE("Cannot create XShm image\n");
-        XDestroyWindow(disp, win);
-        XCloseDisplay(disp);
-        return 1;
+        /* create image,
+         * use preconfigured x_res, y_res for rendering,
+         * window resizing in runtime is not supported for now */
+        ximage = XShmCreateImage(disp,
+                                 DefaultVisual(disp, scr_id),
+                                 depth,
+                                 ZPixmap, NULL, &shminfo,
+                                 x_row, y_res);
+        if (ximage == NULL)
+        {
+            RT_LOGE("Cannot create XShm image\n");
+            RT_LOGE("defaulting to (slower) non-XShm fallback\n");
+            break;
+        }
+
+        /* get shared memory */
+        shminfo.shmid = shmget(IPC_PRIVATE,
+                               ximage->bytes_per_line * ximage->height,
+                               IPC_CREAT|0777);
+        if (shminfo.shmid < 0)
+        {
+            RT_LOGE("shmget failed with size = %d bytes\n",
+                                 ximage->bytes_per_line * ximage->height);
+            RT_LOGE("defaulting to (slower) non-XShm fallback\n");
+            XDestroyImage(ximage);
+            break;
+        }
+
+        /* attach shared memory */
+        shminfo.shmaddr = ximage->data = (rt_char *)shmat(shminfo.shmid, 0, 0);
+        if (shminfo.shmaddr == (rt_char *)-1)
+        {
+            RT_LOGE("shmat failed\n");
+            RT_LOGE("defaulting to (slower) non-XShm fallback\n");
+            XDestroyImage(ximage);
+            break;
+        }
+
+        shminfo.readOnly = False;
+        XShmAttach(disp, &shminfo);
+        shmctl(shminfo.shmid, IPC_RMID, 0);
+
+        xshm = RT_TRUE;
+    }
+    while (0);
+#endif /* RT_XSHM */
+
+    if (xshm == RT_FALSE)
+    {
+        rt_si32 pixel = depth > 16 ? 32 : 16;
+        /* only malloc fits XCreateImage as XDestroyImage calls free */
+        rt_pntr f_ptr = malloc(x_row * y_res * pixel / 8);
+
+        /* create image,
+         * use preconfigured x_res, y_res for rendering,
+         * window resizing in runtime is not supported for now */
+        ximage = XCreateImage(disp,
+                              DefaultVisual(disp, scr_id),
+                              depth,
+                              ZPixmap, 0, (rt_char *)f_ptr,
+                              x_res, y_res, pixel, x_row * pixel / 8);
+        if (ximage == NULL)
+        {
+            RT_LOGE("Cannot create X image\n");
+            XDestroyWindow(disp, win);
+            XCloseDisplay(disp);
+            return 1;
+        }
     }
 
-    /* get shared memory */
-    shminfo.shmid = shmget(IPC_PRIVATE,
-                           ximage->bytes_per_line * ximage->height,
-                           IPC_CREAT|0777);
-    if (shminfo.shmid < 0)
-    {
-        RT_LOGE("shmget failed!\n");
-        XDestroyImage(ximage);
-        XDestroyWindow(disp, win);
-        XCloseDisplay(disp);
-        return 1;
-    }
-
-    /* attach shared memory */
-    shminfo.shmaddr = ximage->data = (rt_char *)shmat(shminfo.shmid, 0, 0);
-    if (shminfo.shmaddr == (rt_char *)-1)
-    {
-        RT_LOGE("shmat failed!\n");
-        XDestroyImage(ximage);
-        XDestroyWindow(disp, win);
-        XCloseDisplay(disp);
-        return 1;
-    }
-
-    shminfo.readOnly = False;
-    XShmAttach(disp, &shminfo);
-    shmctl(shminfo.shmid, IPC_RMID, 0);
     gc = XCreateGC(disp, win, 0, &gc_values);
     XSync(disp, False);
 
@@ -235,11 +273,23 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         XDefineCursor(disp, win, None);
     }
 
-    /* destroy image,
-     * detach shared memory */
-    XShmDetach(disp, &shminfo);
-    XDestroyImage(ximage);
-    shmdt(shminfo.shmaddr);
+#if RT_XSHM
+    if (xshm == RT_TRUE)
+    {
+        /* destroy image,
+         * detach shared memory */
+        XShmDetach(disp, &shminfo);
+        XDestroyImage(ximage);
+        shmdt(shminfo.shmaddr);
+    }
+#endif /* RT_XSHM */
+
+    if (xshm == RT_FALSE)
+    {
+        /* destroy image */
+        XDestroyImage(ximage);
+    }
+
     XFreeGC(disp, gc);
 
     /* destroy window */
@@ -628,7 +678,20 @@ rt_void frame_to_screen(rt_ui32 *frame, rt_si32 x_row)
         }
     }
 
-    XShmPutImage(disp, win, gc, ximage, 0, 0, 0, 0, x_res, y_res, False);
+#if RT_XSHM
+    if (xshm == RT_TRUE)
+    {
+        /* put XShm image to the screen */
+        XShmPutImage(disp, win, gc, ximage, 0, 0, 0, 0, x_res, y_res, False);
+    }
+#endif /* RT_XSHM */
+
+    if (xshm == RT_FALSE)
+    {
+        /* put X image to the screen */
+        XPutImage(disp, win, gc, ximage, 0, 0, 0, 0, x_res, y_res);
+    }
+
     XSync(disp, False);
 }
 
