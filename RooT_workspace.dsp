@@ -119,19 +119,19 @@ SOURCE=.\core\config\rtarch_x86.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\config\rtarch_x86_128v4.h
+SOURCE=.\core\config\rtarch_x86_128x1v4.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\config\rtarch_x86_128v8.h
+SOURCE=.\core\config\rtarch_x86_128x1v8.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\config\rtarch_x86_256v2.h
+SOURCE=.\core\config\rtarch_x86_256x1v2.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\config\rtarch_x86_512v2.h
+SOURCE=.\core\config\rtarch_x86_512x1v2.h
 # End Source File
 # Begin Source File
 
@@ -276,6 +276,10 @@ SOURCE=.\data\scenes\scn_demo01.h
 # Begin Source File
 
 SOURCE=.\data\scenes\scn_demo02.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\data\scenes\scn_demo03.h
 # End Source File
 # End Group
 # Begin Group "textures"
