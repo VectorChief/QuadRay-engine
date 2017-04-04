@@ -17,11 +17,6 @@
 #define RT_RENDER_CODE /* enable contents of render0 routine */
 #endif /* RT_128 */
 
-#if defined (RT_ARM)
-#undef  RT_ARM
-#define RT_ARM 2 /* enable int-div for ASIMDv2 target on ARM */
-#endif /* RT_ARM */
-
 #include "tracer.h"
 #include "format.h"
 #if RT_DEBUG >= 1

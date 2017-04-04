@@ -17,16 +17,6 @@
 #define RT_RENDER_CODE /* enable contents of render0 routine */
 #endif /* RT_1K4 */
 
-#if defined (RT_X32)
-#undef  RT_X32
-#define RT_X32 2 /* enable BMI1+BMI2 for 1K4-bit AVX3 target on x32 */
-#endif /* RT_X32 */
-
-#if defined (RT_X64)
-#undef  RT_X64
-#define RT_X64 2 /* enable BMI1+BMI2 for 1K4-bit AVX3 target on x64 */
-#endif /* RT_X64 */
-
 #include "tracer.h"
 #include "format.h"
 #if RT_DEBUG >= 1
