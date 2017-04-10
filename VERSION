@@ -24,7 +24,7 @@ v0.6.7: Backend improvements, new command-line options, extra SIMD backends
   - add -i n option to save resulting image at the end of each run, on F4 also
   - add -r n option to override fps-logging update rate, n is interval (ms)
   - add -l option to turn off fps-logging updates to console/terminal, F5
-  - add -h option to toggle screen numbers drawing, RooT/on core_test/off, F12
+  - add -h option to toggle screen numbers drawing, core_test/on RooT/off, F12
   - add -u n option for serial update/render 1-3/4, 5/6 update/render off, F9
   - add -o option to enable offscreen mode in RooT demo, render-to-memory, F10
   - add -a option to enable antialiasing, 4x for fp32 / 2x for fp64 pipes, F2
@@ -53,8 +53,12 @@ v0.6.7: Backend improvements, new command-line options, extra SIMD backends
   - change SIMD target reporting to native-size x size-factor v version format
   - reserve _RX slots in SIMD target mask for predicated backends (30+8 regs)
   - clean up (drop) legacy SSE(1) support from x32 headers/makefiles
+  - move BASE sub-target selection to rtarch main header (ARM, x86)
+  - add notes for AArch64 Linux on Raspberry Pi 3 to INSTALL file
+  - add new TASKS file with description for future tasks
   - fix SIMD registers save/restore for 128-bit AVX targets (backported down)
   - fix buffer allocation in SIMD tests (for 64-bit elems)
+  - fix stack alignment (now 16 bytes) on ARMv8/AArch64 (hardware) targets
   - allow external override (from makefiles) for SIMD compatibility modes
   - minor fixes in rtarch, accelerate release builds on multi-core machines
 
