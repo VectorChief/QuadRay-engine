@@ -40,6 +40,10 @@ Task title: "add support for real-time caustics and soft-shadows (from RaVi)"
 
 ================================================================================
 
+Task title: "implement fog, tone mapping and oversaturated HDR halos"
+
+================================================================================
+
 Task title: "integrate triangle meshes into existing geometry framework"
 
 ================================================================================
