@@ -32,7 +32,15 @@ Task title: "implement UV mapping for quadrics"
 
 ================================================================================
 
-Task title: "add support for quartic (4th order) surfaces (Torus, Egg)"
+Task title: "re-assemble QuadRay from earlier/simpler branches, write docs"
+
+================================================================================
+
+Task title: "rewrite smallpt with ISPC, use ifilippov/raytracer as a base"
+
+================================================================================
+
+Task title: "add support for quartic (4th order: Torus, Egg) surfaces (RaVi)"
 
 ================================================================================
 
@@ -40,7 +48,7 @@ Task title: "add support for real-time caustics and soft-shadows (from RaVi)"
 
 ================================================================================
 
-Task title: "implement fog, tone mapping and oversaturated HDR halos"
+Task title: "implement fog, tone mapping and halos for HDR-oversaturated spots"
 
 ================================================================================
 
