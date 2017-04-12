@@ -101,14 +101,14 @@ RooT_x64f64:
 # make -f RooT_make_x64.mk
 # ./RooT.x64f32
 
+# Clang compilation works too (takes much longer prior to 3.8), use (replace):
+# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
+# sudo apt-get install clang
+
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on x86 targets top cpuid-value is chosen by default, use -n/-k/-s to override
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
-
-# Clang compilation works too (takes much longer prior to 3.8), use (replace):
-# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
-# sudo apt-get install clang
 
 # 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
 # use (replace): RT_ADDRESS=32, rename the binary to RooT.x64_**
