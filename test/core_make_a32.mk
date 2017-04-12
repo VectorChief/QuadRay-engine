@@ -58,6 +58,10 @@ core_test_a32:
 # make -f core_make_a32.mk
 # (recent upstream QEMU(-2.6) doesn't currently support AArch64 ILP32 ABI)
 
+# Clang compilation works too (takes much longer prior to 3.8), use (replace):
+# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
+# sudo apt-get install clang (requires g++-multilib for non-native ABI)
+
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions

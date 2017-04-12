@@ -82,6 +82,10 @@ RooT_a64f64:
 # (hasn't been verified due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
+# Clang compilation works too (takes much longer prior to 3.8), use (replace):
+# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
+# sudo apt-get install clang
+
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions

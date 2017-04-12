@@ -86,6 +86,10 @@ core_test_a64f64:
 # qemu-aarch64 -cpu cortex-a57 core_test.a64f32 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
+# Clang compilation works too (takes much longer prior to 3.8), use (replace):
+# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
+# sudo apt-get install clang
+
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions

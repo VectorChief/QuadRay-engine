@@ -58,6 +58,10 @@ RooT_a32:
 # ./RooT.a32 (on AArch64 host or QEMU system mode with ILP32 X11/Xext libs)
 # (hasn't been verified due to lack of target host system)
 
+# Clang compilation works too (takes much longer prior to 3.8), use (replace):
+# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
+# sudo apt-get install clang (requires g++-multilib for non-native ABI)
+
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
