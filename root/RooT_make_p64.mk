@@ -1,27 +1,27 @@
 
 INC_PATH =                                  \
-        -Icore/config/                      \
-        -Icore/engine/                      \
-        -Icore/system/                      \
-        -Icore/tracer/                      \
-        -Idata/materials/                   \
-        -Idata/objects/                     \
-        -Idata/scenes/                      \
-        -Idata/textures/
+        -I../core/config/                   \
+        -I../core/engine/                   \
+        -I../core/system/                   \
+        -I../core/tracer/                   \
+        -I../data/materials/                \
+        -I../data/objects/                  \
+        -I../data/scenes/                   \
+        -I../data/textures/
 
 SRC_LIST =                                  \
-        core/engine/engine.cpp              \
-        core/engine/object.cpp              \
-        core/engine/rtgeom.cpp              \
-        core/engine/rtimag.cpp              \
-        core/system/system.cpp              \
-        core/tracer/tracer.cpp              \
-        core/tracer/tracer_128v2.cpp        \
-        core/tracer/tracer_128v4.cpp        \
-        core/tracer/tracer_256v1.cpp        \
-        core/tracer/tracer_256v2.cpp        \
-        core/tracer/tracer_512v1.cpp        \
-        core/tracer/tracer_512v2.cpp        \
+        ../core/engine/engine.cpp           \
+        ../core/engine/object.cpp           \
+        ../core/engine/rtgeom.cpp           \
+        ../core/engine/rtimag.cpp           \
+        ../core/system/system.cpp           \
+        ../core/tracer/tracer.cpp           \
+        ../core/tracer/tracer_128v2.cpp     \
+        ../core/tracer/tracer_128v4.cpp     \
+        ../core/tracer/tracer_256v1.cpp     \
+        ../core/tracer/tracer_256v2.cpp     \
+        ../core/tracer/tracer_512v1.cpp     \
+        ../core/tracer/tracer_512v2.cpp     \
         RooT_linux.cpp
 
 LIB_PATH =
@@ -47,7 +47,7 @@ RooT_p64_32:
 	powerpc64le-linux-gnu-g++ -O2 -g -pthread \
         -DRT_LINUX -DRT_P64 -DRT_128=2+4 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
-        -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_32
 
@@ -55,7 +55,7 @@ RooT_p64_64:
 	powerpc64le-linux-gnu-g++ -O2 -g -pthread \
         -DRT_LINUX -DRT_P64 -DRT_128=2+4 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
-        -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_64
 
@@ -63,7 +63,7 @@ RooT_p64f32:
 	powerpc64le-linux-gnu-g++ -O2 -g -pthread \
         -DRT_LINUX -DRT_P64 -DRT_128=2+4 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
-        -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f32
 
@@ -71,7 +71,7 @@ RooT_p64f64:
 	powerpc64le-linux-gnu-g++ -O2 -g -pthread \
         -DRT_LINUX -DRT_P64 -DRT_128=2+4 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
-        -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f64
 
