@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "engine.h"
-#include "data/scenes/all_scn.h"
+#include "all_scn.h"
 
 #define RT_X_RES        800
 #define RT_Y_RES        480
