@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "core/config/" /I "core/engine/" /I "core/system/" /I "core/tracer/" /I "data/materials/" /I "data/objects/" /I "data/scenes/" /I "data/textures/" /D "RT_WIN32" /D "RT_X86" /D RT_128=1+2+4+8 /D RT_256=1+2 /D RT_512=1+2 /D RT_POINTER=32 /D RT_ADDRESS=32 /D RT_ELEMENT=32 /D RT_ENDIAN=0 /D RT_DEBUG=0 /D RT_PATH="./" /D RT_FULLSCREEN=0 /D RT_EMBED_STDOUT=1 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "NDEBUG" /FR /YX /FD /Zm500 /c
+# ADD CPP /nologo /W3 /GX /O2 /I "../core/config/" /I "../core/engine/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/scenes/" /I "../data/textures/" /D "RT_WIN32" /D "RT_X86" /D RT_128=1+2+4+8 /D RT_256=1+2 /D RT_512=1+2 /D RT_POINTER=32 /D RT_ADDRESS=32 /D RT_ELEMENT=32 /D RT_ENDIAN=0 /D RT_DEBUG=0 /D RT_PATH="../" /D RT_FULLSCREEN=0 /D RT_EMBED_STDOUT=1 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "NDEBUG" /FR /YX /FD /Zm500 /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x419 /d "NDEBUG"
@@ -69,7 +69,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "core/config/" /I "core/engine/" /I "core/system/" /I "core/tracer/" /I "data/materials/" /I "data/objects/" /I "data/scenes/" /I "data/textures/" /D "RT_WIN32" /D "RT_X86" /D RT_128=1+2+4+8 /D RT_256=1+2 /D RT_512=1+2 /D RT_POINTER=32 /D RT_ADDRESS=32 /D RT_ELEMENT=32 /D RT_ENDIAN=0 /D RT_DEBUG=1 /D RT_PATH="./" /D RT_FULLSCREEN=0 /D RT_EMBED_STDOUT=1 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /FR /YX /FD /GZ /Zm500 /c
+# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "../core/config/" /I "../core/engine/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/scenes/" /I "../data/textures/" /D "RT_WIN32" /D "RT_X86" /D RT_128=1+2+4+8 /D RT_256=1+2 /D RT_512=1+2 /D RT_POINTER=32 /D RT_ADDRESS=32 /D RT_ELEMENT=32 /D RT_ENDIAN=0 /D RT_DEBUG=1 /D RT_PATH="../" /D RT_FULLSCREEN=0 /D RT_EMBED_STDOUT=1 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /FR /YX /FD /GZ /Zm500 /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x419 /d "_DEBUG"
@@ -111,39 +111,39 @@ SOURCE=.\RooT.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\core\config\rtarch.h
+SOURCE=..\core\config\rtarch.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\config\rtarch_x86.h
+SOURCE=..\core\config\rtarch_x86.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\config\rtarch_x86_128x1v4.h
+SOURCE=..\core\config\rtarch_x86_128x1v4.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\config\rtarch_x86_128x1v8.h
+SOURCE=..\core\config\rtarch_x86_128x1v8.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\config\rtarch_x86_256x1v2.h
+SOURCE=..\core\config\rtarch_x86_256x1v2.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\config\rtarch_x86_512x1v2.h
+SOURCE=..\core\config\rtarch_x86_512x1v2.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\config\rtbase.h
+SOURCE=..\core\config\rtbase.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\config\rtconf.h
+SOURCE=..\core\config\rtconf.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\config\rtzero.h
+SOURCE=..\core\config\rtzero.h
 # End Source File
 # End Group
 # Begin Group "engine"
@@ -151,39 +151,39 @@ SOURCE=.\core\config\rtzero.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\core\engine\engine.cpp
+SOURCE=..\core\engine\engine.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\engine\engine.h
+SOURCE=..\core\engine\engine.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\engine\format.h
+SOURCE=..\core\engine\format.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\engine\object.cpp
+SOURCE=..\core\engine\object.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\engine\object.h
+SOURCE=..\core\engine\object.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\engine\rtgeom.cpp
+SOURCE=..\core\engine\rtgeom.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\engine\rtgeom.h
+SOURCE=..\core\engine\rtgeom.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\engine\rtimag.cpp
+SOURCE=..\core\engine\rtimag.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\engine\rtimag.h
+SOURCE=..\core\engine\rtimag.h
 # End Source File
 # End Group
 # Begin Group "system"
@@ -191,11 +191,11 @@ SOURCE=.\core\engine\rtimag.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\core\system\system.cpp
+SOURCE=..\core\system\system.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\system\system.h
+SOURCE=..\core\system\system.h
 # End Source File
 # End Group
 # Begin Group "tracer"
@@ -203,43 +203,43 @@ SOURCE=.\core\system\system.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\core\tracer\tracer.cpp
+SOURCE=..\core\tracer\tracer.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\tracer\tracer_128v1.cpp
+SOURCE=..\core\tracer\tracer_128v1.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\tracer\tracer_128v2.cpp
+SOURCE=..\core\tracer\tracer_128v2.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\tracer\tracer_128v4.cpp
+SOURCE=..\core\tracer\tracer_128v4.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\tracer\tracer_128v8.cpp
+SOURCE=..\core\tracer\tracer_128v8.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\tracer\tracer_256v1.cpp
+SOURCE=..\core\tracer\tracer_256v1.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\tracer\tracer_256v2.cpp
+SOURCE=..\core\tracer\tracer_256v2.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\tracer\tracer_512v1.cpp
+SOURCE=..\core\tracer\tracer_512v1.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\tracer\tracer_512v2.cpp
+SOURCE=..\core\tracer\tracer_512v2.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\core\tracer\tracer.h
+SOURCE=..\core\tracer\tracer.h
 # End Source File
 # End Group
 # End Group
@@ -251,7 +251,7 @@ SOURCE=.\core\tracer\tracer.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\data\materials\all_mat.h
+SOURCE=..\data\materials\all_mat.h
 # End Source File
 # End Group
 # Begin Group "objects"
@@ -259,7 +259,7 @@ SOURCE=.\data\materials\all_mat.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\data\objects\all_obj.h
+SOURCE=..\data\objects\all_obj.h
 # End Source File
 # End Group
 # Begin Group "scenes"
@@ -267,19 +267,19 @@ SOURCE=.\data\objects\all_obj.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\data\scenes\all_scn.h
+SOURCE=..\data\scenes\all_scn.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\data\scenes\scn_demo01.h
+SOURCE=..\data\scenes\scn_demo01.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\data\scenes\scn_demo02.h
+SOURCE=..\data\scenes\scn_demo02.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\data\scenes\scn_demo03.h
+SOURCE=..\data\scenes\scn_demo03.h
 # End Source File
 # End Group
 # Begin Group "textures"
@@ -287,11 +287,11 @@ SOURCE=.\data\scenes\scn_demo03.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\data\textures\all_tex.h
+SOURCE=..\data\textures\all_tex.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\data\textures\tex_crate01.h
+SOURCE=..\data\textures\tex_crate01.h
 # End Source File
 # End Group
 # End Group
