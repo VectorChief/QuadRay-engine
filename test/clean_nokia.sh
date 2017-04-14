@@ -8,8 +8,8 @@ make -f simd_make_arm.mk clean_n900
 make -f core_make_arm.mk clean_n900
 
 
-cd ../
+cd ../root
 
 make -f RooT_make_arm.mk clean_n900
 
-cd test
+cd ../test

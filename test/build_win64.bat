@@ -11,10 +11,10 @@ mingw32-make -f core_make_w64.mk build -j4
 mingw32-make -f core_make_w64.mk strip
 
 
-cd ../
+cd ../root
 
 mingw32-make -f RooT_make_w64.mk build -j4
 
 mingw32-make -f RooT_make_w64.mk strip
 
-cd test
+cd ../test

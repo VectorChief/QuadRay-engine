@@ -12,10 +12,10 @@ make -f core_make_arm.mk build_n900
 make -f core_make_arm.mk strip_n900
 
 
-cd ../
+cd ../root
 
 make -f RooT_make_arm.mk build_n900
 
 make -f RooT_make_arm.mk strip_n900
 
-cd test
+cd ../test

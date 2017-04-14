@@ -12,10 +12,10 @@ make -f core_make_arm.mk build_rpiX -j2
 make -f core_make_arm.mk strip_rpiX
 
 
-cd ../
+cd ../root
 
 make -f RooT_make_arm.mk build_rpiX -j2
 
 make -f RooT_make_arm.mk strip_rpiX
 
-cd test
+cd ../test

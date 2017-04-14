@@ -12,9 +12,9 @@ make -f core_make_x32.mk clean
 make -f core_make_x64.mk clean
 
 
-cd ../
+cd ../root
 
 make -f RooT_make_x86.mk clean
 make -f RooT_make_x64.mk clean
 
-cd test
+cd ../test

@@ -7,8 +7,8 @@ mingw32-make -f simd_make_w64.mk clean
 mingw32-make -f core_make_w64.mk clean
 
 
-cd ../
+cd ../root
 
 mingw32-make -f RooT_make_w64.mk clean
 
-cd test
+cd ../test

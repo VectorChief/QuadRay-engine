@@ -20,7 +20,7 @@ make -f core_make_x32.mk strip
 make -f core_make_x64.mk strip
 
 
-cd ../
+cd ../root
 
 make -f RooT_make_x86.mk build
 make -f RooT_make_x64.mk build -j4
@@ -28,4 +28,4 @@ make -f RooT_make_x64.mk build -j4
 make -f RooT_make_x86.mk strip
 make -f RooT_make_x64.mk strip
 
-cd test
+cd ../test
