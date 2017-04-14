@@ -1,7 +1,7 @@
 ================================================================================
 
 To build QuadRay engine demo on Linux, open terminal window,
-go to QuadRay's root folder,
+go to QuadRay's "root" folder,
 make sure necessary tools and libraries are installed
 for native builds (binary ABI matches host):
     sudo apt-get install make g++ libxext-dev
@@ -24,7 +24,7 @@ users of RPM-based distributions need to figure out build-deps on their own.
 ================================================================================
 
 To build QuadRay engine demo on Windows,
-go to QuadRay's root folder and open (in Visual C++ 6.0 or later):
+go to QuadRay's "root" folder and open (in Visual C++ 6.0 or later):
     RooT_workspace.dsw
 In newer versions of VC++ agree to convert workspace files.
 Exit and open newly created solution file for development.
@@ -32,14 +32,14 @@ Select "Release" build target in drop-down list/menus, then press F5.
 
 To build QuadRay engine demo for 64-bit Windows,
 download and install TDM64-GCC toolchain (tdm64-gcc-5.1.0-2.exe),
-then open QuadRay's root folder and run (from Windows UI):
+then open QuadRay's "root" folder and run (from Windows UI):
     RooT_make_w64.bat
 produced RooT_w64f32.exe binary file will launch upon build completion.
 
 ================================================================================
 
 To build CORE test framework on Linux, open terminal window,
-go to QuadRay's test folder,
+go to QuadRay's "test" folder,
 make sure necessary tools and libraries are installed
 for native builds (binary ABI matches host):
     sudo apt-get install make g++
@@ -62,7 +62,7 @@ users of RPM-based distributions need to figure out build-deps on their own.
 ================================================================================
 
 To build CORE test framework on Windows,
-go to QuadRay's test folder and open (in Visual C++ 6.0 or later):
+go to QuadRay's "test" folder and open (in Visual C++ 6.0 or later):
     core_workspace.dsw
 In newer versions of VC++ agree to convert workspace files.
 Exit and open newly created solution file for development.
@@ -70,14 +70,14 @@ Select "Release" build target in drop-down list/menus, then press F5.
 
 To build CORE test framework for 64-bit Windows,
 download and install TDM64-GCC toolchain (tdm64-gcc-5.1.0-2.exe),
-then open QuadRay's test folder and run (from Windows UI):
+then open QuadRay's "test" folder and run (from Windows UI):
     core_make_w64.bat
 produced core_test_w64f32.exe binary file will launch upon build completion.
 
 ================================================================================
 
 To build SIMD test framework on Linux, open terminal window,
-go to QuadRay's test folder,
+go to QuadRay's "test" folder,
 make sure necessary tools and libraries are installed
 for native builds (binary ABI matches host):
     sudo apt-get install make g++
@@ -100,7 +100,7 @@ users of RPM-based distributions need to figure out build-deps on their own.
 ================================================================================
 
 To build SIMD test framework on Windows,
-go to QuadRay's test folder and open (in Visual C++ 6.0 or later):
+go to QuadRay's "test" folder and open (in Visual C++ 6.0 or later):
     simd_workspace.dsw
 In newer versions of VC++ agree to convert workspace files.
 Exit and open newly created solution file for development.
@@ -108,7 +108,7 @@ Select "Release" build target in drop-down list/menus, then press F5.
 
 To build SIMD test framework for 64-bit Windows,
 download and install TDM64-GCC toolchain (tdm64-gcc-5.1.0-2.exe),
-then open QuadRay's test folder and run (from Windows UI):
+then open QuadRay's "test" folder and run (from Windows UI):
     simd_make_w64.bat
 produced simd_test_w64f32.exe binary file will launch upon build completion.
 
@@ -175,6 +175,6 @@ Adjust QuadRay's makefiles to use g++ instead of triplet name, remove -static
 Both images may require setting frequency scaling governor for best performance:
 echo "ondemand" | sudo tee /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
 Current frequency (600Mhz idle, 1200Mhz load) can be monitored using:
-cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
+cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq   (tested with Devuan)
 
 ================================================================================
