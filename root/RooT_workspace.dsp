@@ -261,6 +261,14 @@ SOURCE=..\data\materials\all_mat.h
 
 SOURCE=..\data\objects\all_obj.h
 # End Source File
+# Begin Source File
+
+SOURCE=..\data\objects\obj_aliencube.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\data\objects\obj_frametable.h
+# End Source File
 # End Group
 # Begin Group "scenes"
 
