@@ -1,5 +1,29 @@
 ================================================================================
 
+Task title: "add new rt_Platform class for common thread-pool, log-redirect"
+1) Use single instance of rt_Platform class in many rt_Scene class instances
+2) Move SIMD target tracking static variables from tracer-backend to rt_Scene?
+3) Make sure tracer-backend feature flags are consistent with the code (on/off)
+4) Set thread-pool size from CPU core-count, add proper Win64 threading support
+
+================================================================================
+
+Task title: "consider tile traversal for packed SIMD instead of scanline"
+1) Current rendering approach uses scanline traversal with SIMD width
+2) Current tile width must be large enough to fit maximal SIMD width
+3) Consider new approaches where tile is traversed with packed SIMD
+4) New tile area needs to be large enough to fit maximal SIMD width
+
+================================================================================
+
+Task title: "consider support for more operating systems"
+1) Implement fullscreen mode (-w 0) for Windows (use DirectX rendering)
+2) Write an Android app for RooT demo, use engine core as native/jni library
+3) Port the engine (RooT demo, CORE/SIMD tests) to MacOS, iOS, consider Tizen
+4) Test the engine with FreeBSD, NuttX, create DEB/RPM packages (+ new formats)
+
+================================================================================
+
 Task title: "implement Fresnel reflection terms for refractive surfaces"
 1) Use Schlick approximation as a base for Fresnel refelctance
 2) Account for total inner reflection below certain angles
