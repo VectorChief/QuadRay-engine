@@ -24,8 +24,16 @@ Task title: "consider support for more operating systems"
 
 ================================================================================
 
+Task title: "achieve bit-exact fp-compute across modern SIMD targets"
+1) Re-implement fp-related parts of the engine core as ASM sections
+2) Re-architect engine core to minimize ASM enter/leave overheads (in new parts)
+3) Test if deterministic order of IEEE-compatible fp produces bit-exact results
+4) Calculate test-image check-sums, compare across modern RISC and x86 targets
+
+================================================================================
+
 Task title: "implement Fresnel reflection terms for refractive surfaces"
-1) Use Schlick approximation as a base for Fresnel refelctance
+1) Use Schlick approximation as a base for Fresnel reflectance
 2) Account for total inner reflection below certain angles
 3) Split current refraction term (coeff) to refraction + Fresnel
 4) New reflectance term is a sum of reflectance (coeff) + Fresnel
