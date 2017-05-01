@@ -84,6 +84,14 @@ Task title: "implement fog, tone mapping + halos for HDR-oversaturated spots"
 
 ================================================================================
 
+Task title: "implement depth-of-field and motion-blur techniques"
+
+================================================================================
+
+Task title: "implement chromatic aberration, separate R,G,B rays"
+
+================================================================================
+
 Task title: "integrate triangle meshes into existing geometry framework"
 
 ================================================================================
