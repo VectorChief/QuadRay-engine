@@ -4,11 +4,11 @@ Task title: "add new rt_Platform class for common thread-pool, log-redirect"
 1) Use single instance of rt_Platform class in many rt_Scene class instances
 2) Move SIMD target tracking static variables from tracer-backend to rt_Scene?
 3) Make sure tracer-backend feature flags are consistent with the code (on/off)
-4) Set thread-pool size from CPU core-count, add proper Win64 threading support
+4) Set thread-pool size from CPU core-count, add native Win64 threading support
 
 ================================================================================
 
-Task title: "consider tile traversal for packed SIMD instead of scanline"
+Task title: "consider packed SIMD tile traversal (instead of scanline)"
 1) Current rendering approach uses scanline traversal with SIMD width
 2) Current tile width must be large enough to fit maximal SIMD width
 3) Consider new approaches where tile is traversed with packed SIMD
@@ -37,14 +37,14 @@ Task title: "implement Fresnel reflection terms for refractive surfaces"
 2) Account for total inner reflection below certain angles
 3) Split current refraction term (coeff) to refraction + Fresnel
 4) New reflectance term is a sum of reflectance (coeff) + Fresnel
-5) Compatibility break with current 0.6.x versions in produced images
+5) Compatibility break with current 0.6.x versions in produced images (=> 0.7.0)
 
 ================================================================================
 
 Task title: "implement Gamma correction in final color conversion"
 1) Use Gamma correction when colors are written into the framebuffer
 2) Perform antialiasing before Gamma correction
-3) Compatibility break with current 0.6.x versions in produced images
+3) Compatibility break with current 0.6.x versions in produced images (=> 0.7.0)
 
 ================================================================================
 
@@ -53,18 +53,14 @@ Task title: "implement basic unbiased path-tracer (to match smallpt code)"
 2) Implement pixel sub-sampling passes with Tent filter
 3) Implement randomization of diffuse samples over hemisphere
 4) Enable path-tracer in "pause" mode in addition to real-time ray-tracer
-5) Allow image to saturate in real-time (add new samples between updates)
+5) Allow image to converge in real-time (add new samples between updates)
 
 ================================================================================
 
 Task title: "implement UV mapping for quadrics"
-1) Implement trigonometric functions across SIMD+FMA targets (use Taylor)
+1) Implement trigonometric functions across SIMD targets (use Taylor+FMA?)
 2) Use trigonometric functions to implement UV mapping for quadrics
-3) Implement 3x3-matrix-transform for surface-UV to texture-XY coords
-
-================================================================================
-
-Task title: "re-assemble QuadRay from earlier/simpler branches, write docs"
+3) Implement 2x2-matrix-transform for surface-UV to texture-XY coords
 
 ================================================================================
 
@@ -72,7 +68,7 @@ Task title: "rewrite smallpt with ISPC, use ifilippov/raytracer as a base"
 
 ================================================================================
 
-Task title: "add support for quartic (4th order: Torus, Egg) surfaces (RaVi)"
+Task title: "re-assemble QuadRay from earlier/simpler branches, write docs"
 
 ================================================================================
 
@@ -80,7 +76,11 @@ Task title: "add support for real-time caustics and soft-shadows (from RaVi)"
 
 ================================================================================
 
-Task title: "implement fog, tone mapping and halos for HDR-oversaturated spots"
+Task title: "add support for quartic (4th order: Torus, Egg) surfaces (RaVi)"
+
+================================================================================
+
+Task title: "implement fog, tone mapping + halos for HDR-oversaturated spots"
 
 ================================================================================
 
