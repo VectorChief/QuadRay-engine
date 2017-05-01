@@ -1,4 +1,5 @@
   - renewed directory structure, move RooT demo files to a separate root folder
+  - add new fp-compatibility and feature tasks, rename TASKS file to ROADMAP
 
 v0.6.7: Backend improvements, new command-line options, extra SIMD backends
   - make new demo scene 3 (former test scene 14) default, add camera animator
