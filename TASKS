@@ -1,6 +1,6 @@
 ================================================================================
 
-Task title: "add new rt_Platform class for common thread-pool, log-redirect"
+P) Task title: "add new rt_Platform class for common thread-pool, log-redirect"
 1) Use single instance of rt_Platform class in many rt_Scene class instances
 2) Move SIMD target tracking static variables from tracer-backend to rt_Scene?
 3) Make sure tracer-backend feature flags are consistent with the code (on/off)
@@ -8,7 +8,7 @@ Task title: "add new rt_Platform class for common thread-pool, log-redirect"
 
 ================================================================================
 
-Task title: "consider packed SIMD tile traversal (instead of scanline)"
+T) Task title: "consider packed SIMD tile traversal (instead of scanline)"
 1) Current rendering approach uses scanline traversal with SIMD width
 2) Current tile width must be large enough to fit maximal SIMD width
 3) Consider new approaches where tile is traversed with packed SIMD
@@ -16,7 +16,7 @@ Task title: "consider packed SIMD tile traversal (instead of scanline)"
 
 ================================================================================
 
-Task title: "consider support for more operating systems"
+O) Task title: "consider support for more operating systems"
 1) Implement fullscreen mode (-w 0) for Windows (use DirectX rendering)
 2) Write an Android app for RooT demo, use engine core as native/jni library
 3) Port the engine (RooT demo, CORE/SIMD tests) to MacOS, iOS, consider Tizen
@@ -24,7 +24,7 @@ Task title: "consider support for more operating systems"
 
 ================================================================================
 
-Task title: "achieve bit-exact fp-compute across modern SIMD targets"
+B) Task title: "achieve bit-exact fp-compute across modern SIMD targets"
 1) Re-implement fp-related parts of the engine core as ASM sections
 2) Re-architect engine core to minimize ASM enter/leave overheads (in new parts)
 3) Test if deterministic order of IEEE-compatible fp produces bit-exact results
@@ -32,7 +32,7 @@ Task title: "achieve bit-exact fp-compute across modern SIMD targets"
 
 ================================================================================
 
-Task title: "implement Fresnel reflection terms for refractive surfaces"
+F) Task title: "implement Fresnel reflection terms for refractive surfaces"
 1) Use Schlick approximation as a base for Fresnel reflectance
 2) Account for total inner reflection below certain angles
 3) Split current refraction term (coeff) to refraction + Fresnel
@@ -41,14 +41,14 @@ Task title: "implement Fresnel reflection terms for refractive surfaces"
 
 ================================================================================
 
-Task title: "implement Gamma correction in final color conversion"
+G) Task title: "implement Gamma correction in final color conversion"
 1) Use Gamma correction when colors are written into the framebuffer
 2) Perform antialiasing before Gamma correction
 3) Compatibility break with current 0.6.x versions in produced images (=> 0.7.0)
 
 ================================================================================
 
-Task title: "implement basic unbiased path-tracer (to match smallpt code)"
+S) Task title: "implement basic unbiased path-tracer (to match smallpt code)"
 1) Implement randomizers in SIMD across all targets
 2) Implement pixel sub-sampling passes with Tent filter
 3) Implement randomization of diffuse samples over hemisphere
@@ -57,45 +57,45 @@ Task title: "implement basic unbiased path-tracer (to match smallpt code)"
 
 ================================================================================
 
-Task title: "implement UV mapping for quadrics"
+U) Task title: "implement UV mapping for quadrics"
 1) Implement trigonometric functions across SIMD targets (use Taylor+FMA?)
 2) Use trigonometric functions to implement UV mapping for quadrics
 3) Implement 2x2-matrix-transform for surface-UV to texture-XY coords
 
 ================================================================================
 
-Task title: "rewrite smallpt with ISPC, use ifilippov/raytracer as a base"
+I) Task title: "rewrite smallpt with ISPC, use ifilippov/raytracer as a base"
 
 ================================================================================
 
-Task title: "re-assemble QuadRay from earlier/simpler branches, write docs"
+R) Task title: "re-assemble QuadRay from earlier/simpler branches, write docs"
 
 ================================================================================
 
-Task title: "add support for real-time caustics and soft-shadows (from RaVi)"
+C) Task title: "add support for real-time caustics and soft-shadows (from RaVi)"
 
 ================================================================================
 
-Task title: "add support for quartic (4th order: Torus, Egg) surfaces (RaVi)"
+Q) Task title: "add support for quartic (4th order: Torus, Egg) surfaces (RaVi)"
 
 ================================================================================
 
-Task title: "implement fog, tone mapping + halos for HDR-oversaturated spots"
+H) Task title: "implement fog, tone mapping + halos for HDR-oversaturated spots"
 
 ================================================================================
 
-Task title: "implement depth-of-field and motion-blur techniques"
+D) Task title: "implement depth-of-field and motion-blur techniques"
 
 ================================================================================
 
-Task title: "implement chromatic aberration, separate R,G,B rays"
+A) Task title: "implement chromatic aberration, separate R,G,B rays"
 
 ================================================================================
 
-Task title: "integrate triangle meshes into existing geometry framework"
+M) Task title: "integrate triangle meshes into existing geometry framework"
 
 ================================================================================
 
-Task title: "consider advanced path-tracing methods (bidirectional, MLT, etc)"
+X) Task title: "consider advanced path-tracing methods (bidirectional, MLT, etc)"
 
 ================================================================================
