@@ -17,7 +17,7 @@ T) Task title: "consider packed SIMD tile traversal (instead of scanline)"
 ================================================================================
 
 O) Task title: "consider support for more operating systems"
-1) Implement fullscreen mode (-w 0) for Windows (use DirectX rendering)
+1) Implement fullscreen mode (-w 0) for Windows (use DirectDraw screen updates)
 2) Write an Android app for RooT demo, use engine core as native/jni library
 3) Port the engine (RooT demo, CORE/SIMD tests) to MacOS, iOS, consider Tizen
 4) Test the engine with FreeBSD, NuttX, create DEB/RPM packages (+ new formats)
@@ -29,6 +29,12 @@ B) Task title: "achieve bit-exact fp-compute across modern SIMD targets"
 2) Re-architect engine core to minimize ASM enter/leave overheads (in new parts)
 3) Test if deterministic order of IEEE-compatible fp produces bit-exact results
 4) Calculate test-image check-sums, compare across modern RISC and x86 targets
+
+================================================================================
+
+K) Task title: "use configuration utils (autotools, CMake, etc) for building"
+1) Use single build script for all host CPU architectures on Linux
+2) Keep cross-compilation on x86-64 Linux hosts (targeting QEMU linux-user mode)
 
 ================================================================================
 
