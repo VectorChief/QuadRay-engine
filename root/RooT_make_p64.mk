@@ -20,6 +20,8 @@ SRC_LIST =                                  \
         ../core/tracer/tracer_128v4.cpp     \
         ../core/tracer/tracer_256v1.cpp     \
         ../core/tracer/tracer_256v2.cpp     \
+        ../core/tracer/tracer_256v4.cpp     \
+        ../core/tracer/tracer_256v8.cpp     \
         ../core/tracer/tracer_512v1.cpp     \
         ../core/tracer/tracer_512v2.cpp     \
         RooT_linux.cpp
@@ -94,8 +96,7 @@ RooT_p64f64:
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 
-# For 128-bit VSX1 POWER(7,7+,8) big-endian target use (replace):
-# powerpc64-linux-gnu-g++ -O3 -DRT_128=2 -DRT_ENDIAN=1
+# For 30 256-bit VSX1/2 registers on POWER7/8 targets use (replace): RT_256=4+8
 
 # 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
 # use (replace): RT_ADDRESS=32, rename the binary to RooT.p64_**
