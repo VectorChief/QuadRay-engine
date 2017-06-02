@@ -17,7 +17,7 @@ The project comes with a test framework for Linux/GCC, Windows/VC++/TDM64-GCC.
 Instructions for resolving dependencies and building the binaries
 for supported platforms can be found in the accompanying INSTALL file.
 
-RooT (demo) features are as follows:
+RooT demo features:
  - Move/rotate camera with W,S,A,D + arrow keys
  - Print state (to dump) of all objects in the scene (on F1)
  - Runtime toggling of antialiasing (on F2)
@@ -29,7 +29,7 @@ RooT (demo) features are as follows:
  - Offscreen rendering support for benchmarking
  - Refer to VERSION file (section 0.6.7) for cli options
 
-Engine core features are as follows:
+QuadRay core features:
  - Full set of plane+(unified)quadric solvers
  - Custom clipping (by surface), boolean ops
  - Full geometry transform (hierarchical)
@@ -40,7 +40,7 @@ Engine core features are as follows:
  - Reflections/refractions+translucency, no Fresnel yet
  - Fullscreen 4x/2x (fp32/fp64) antialiasing, no Gamma yet
  - Tiled scanline rendering, custom tree-like accelerators
- - Programmable animators for all objects (below root)
  - Statically-linkable data format (C/C++ structs)
+ - Programmable animators for all objects (below root)
  - 8-registers deep SIMD rendering pipeline (core/tracer)
  - Written on UniSIMD assembler
