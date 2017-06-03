@@ -33,7 +33,7 @@ QuadRay core features:
  - Full set of plane+(unified)quadric solvers
  - Custom clipping (by surface), boolean ops
  - Full geometry transform (hierarchical)
- - Basic texturing (axis-aligned/single-layer RGB)
+ - Basic RGB texturing for planes, no UV-mapping yet
  - Ambient+diffuse+specular+attenuation lights
  - All lights are colored points with infinite range
  - Hard shadows (opaque) from all light sources
