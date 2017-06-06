@@ -2,39 +2,9 @@
 
 P) Task title: "add new rt_Platform class for common thread-pool, log-redirect"
 1) Use single instance of rt_Platform class in many rt_Scene class instances
-2) Move SIMD target tracking static variables from tracer-backend to rt_Scene?
+2) Move SIMD target-tracking static variables from tracer-backend to rt_Scene?
 3) Make sure tracer-backend feature flags are consistent with the code (on/off)
 4) Set thread-pool size from CPU core-count, add native Win64 threading support
-
-================================================================================
-
-T) Task title: "consider packed SIMD tile traversal (instead of scanline)"
-1) Current rendering approach uses scanline traversal with SIMD width
-2) Current tile width must be large enough to fit maximal SIMD width
-3) Consider new approaches where tile is traversed with packed SIMD
-4) New tile area needs to be large enough to fit maximal SIMD width
-
-================================================================================
-
-O) Task title: "consider support for more operating systems"
-1) Implement fullscreen mode (-w 0) for Windows (use DirectDraw screen updates)
-2) Write an Android app for RooT demo, use engine core as native/jni library
-3) Port the engine (RooT demo, CORE/SIMD tests) to MacOS, iOS, consider Tizen
-4) Test the engine with FreeBSD, NuttX, create DEB/RPM packages (+ new formats)
-
-================================================================================
-
-B) Task title: "achieve bit-exact fp-compute across modern SIMD targets"
-1) Re-implement fp-related parts of the engine core as ASM sections
-2) Re-architect engine core to minimize ASM enter/leave overheads (in new parts)
-3) Test if deterministic order of IEEE-compatible fp produces bit-exact results
-4) Calculate test-image check-sums, compare across modern RISC and x86 targets
-
-================================================================================
-
-K) Task title: "use configuration utils (autotools, CMake, etc) for building"
-1) Use single build script for all host CPU architectures on Linux
-2) Keep cross-compilation on x86-64 Linux hosts (targeting QEMU linux-user mode)
 
 ================================================================================
 
@@ -51,6 +21,37 @@ G) Task title: "implement Gamma correction in final color conversion"
 1) Use Gamma correction when colors are written into the framebuffer
 2) Perform antialiasing before Gamma correction
 3) Compatibility break with current 0.6.x versions in produced images (=> 0.7.0)
+
+================================================================================
+
+O) Task title: "consider support for more operating systems (2,3,4,5 tentative)"
+1) Implement fullscreen mode (-w 0) for Windows (use DirectDraw screen updates)
+2) Test the engine with FreeBSD, NuttX, create DEB/RPM packages (+ new formats)
+3) Write an Android app for RooT demo, use engine's core as native/jni library
+4) Port the engine (RooT demo, CORE/SIMD tests) to MacOS, iOS (optional)
+5) Perform feasibility study for Tizen, Sailfish OS support (optional)
+
+================================================================================
+
+K) Task title: "use configuration utils (autotools, CMake, etc) for building"
+1) Use single build script for all host CPU architectures on Linux
+2) Keep cross-compilation on x86-64 Linux hosts (targeting QEMU linux-user mode)
+
+================================================================================
+
+T) Task title: "consider packed SIMD tile traversal (instead of scanline)"
+1) Current rendering approach uses scanline traversal with SIMD width
+2) Current tile width must be large enough to fit maximal SIMD width
+3) Consider new approaches where tile is traversed with packed SIMD
+4) New tile area needs to be large enough to fit maximal SIMD width
+
+================================================================================
+
+B) Task title: "achieve bit-exact fp-compute across modern SIMD targets"
+1) Re-implement fp-related parts of the engine core as ASM sections
+2) Re-architect engine core to minimize ASM enter/leave overheads (in new parts)
+3) Test if deterministic order of IEEE-compatible-fp produces bit-exact results
+4) Calculate test image check-sums, compare across modern RISC and x86 targets
 
 ================================================================================
 
