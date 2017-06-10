@@ -19,7 +19,7 @@ SRC_LIST =                                  \
         ../core/tracer/tracer_128v1.cpp     \
         ../core/tracer/tracer_128v2.cpp     \
         ../core/tracer/tracer_128v4.cpp     \
-        ../core/tracer/tracer_256v1_r8.cpp  \
+        ../core/tracer/tracer_256v4_r8.cpp  \
         ../core/tracer/tracer_256v1.cpp     \
         ../core/tracer/tracer_256v2.cpp     \
         ../core/tracer/tracer_256v4.cpp     \
@@ -46,7 +46,7 @@ clean:
 
 core_test_p32Bg4:
 	powerpc-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_P32 -DRT_128=1 -DRT_256_R8=1 \
+        -DRT_LINUX -DRT_P32 -DRT_128=4 -DRT_256_R8=4 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -54,7 +54,7 @@ core_test_p32Bg4:
 
 core_test_p32Bp7:
 	powerpc-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_P32 -DRT_128=1+2 -DRT_256_R8=1 -DRT_256=1 -DRT_512=1 \
+        -DRT_LINUX -DRT_P32 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -62,8 +62,7 @@ core_test_p32Bp7:
 
 core_test_p32Bp8:
 	powerpc-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_P32 -DRT_128=1+2+4 -DRT_256_R8=1 \
-        -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_LINUX -DRT_P32 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \

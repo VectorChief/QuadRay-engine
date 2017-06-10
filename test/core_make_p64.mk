@@ -16,8 +16,8 @@ SRC_LIST =                                  \
         ../core/engine/rtimag.cpp           \
         ../core/system/system.cpp           \
         ../core/tracer/tracer.cpp           \
+        ../core/tracer/tracer_128v1.cpp     \
         ../core/tracer/tracer_128v2.cpp     \
-        ../core/tracer/tracer_128v4.cpp     \
         ../core/tracer/tracer_256v1.cpp     \
         ../core/tracer/tracer_256v2.cpp     \
         ../core/tracer/tracer_256v4.cpp     \
@@ -47,7 +47,7 @@ build_le: core_test_p64_32Lp8 core_test_p64_64Lp8 core_test_p64f32Lp8 core_test_
 
 core_test_p64_32Lp8:
 	powerpc64le-linux-gnu-g++ -O2 -g -static \
-        -DRT_LINUX -DRT_P64 -DRT_128=2+4 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -55,7 +55,7 @@ core_test_p64_32Lp8:
 
 core_test_p64_64Lp8:
 	powerpc64le-linux-gnu-g++ -O2 -g -static \
-        -DRT_LINUX -DRT_P64 -DRT_128=2+4 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -63,7 +63,7 @@ core_test_p64_64Lp8:
 
 core_test_p64f32Lp8:
 	powerpc64le-linux-gnu-g++ -O2 -g -static \
-        -DRT_LINUX -DRT_P64 -DRT_128=2+4 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -71,7 +71,7 @@ core_test_p64f32Lp8:
 
 core_test_p64f64Lp8:
 	powerpc64le-linux-gnu-g++ -O2 -g -static \
-        -DRT_LINUX -DRT_P64 -DRT_128=2+4 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -82,7 +82,7 @@ build_be: core_test_p64_32Bp7 core_test_p64_64Bp7 core_test_p64f32Bp7 core_test_
 
 core_test_p64_32Bp7:
 	powerpc64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_P64 -DRT_128=2 -DRT_256=1 -DRT_512=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -90,7 +90,7 @@ core_test_p64_32Bp7:
 
 core_test_p64_64Bp7:
 	powerpc64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_P64 -DRT_128=2 -DRT_256=1 -DRT_512=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -98,7 +98,7 @@ core_test_p64_64Bp7:
 
 core_test_p64f32Bp7:
 	powerpc64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_P64 -DRT_128=2 -DRT_256=1 -DRT_512=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -106,7 +106,7 @@ core_test_p64f32Bp7:
 
 core_test_p64f64Bp7:
 	powerpc64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_P64 -DRT_128=2 -DRT_256=1 -DRT_512=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \

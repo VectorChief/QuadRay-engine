@@ -16,8 +16,8 @@ SRC_LIST =                                  \
         ../core/engine/rtimag.cpp           \
         ../core/system/system.cpp           \
         ../core/tracer/tracer.cpp           \
-        ../core/tracer/tracer_128v1.cpp     \
-        ../core/tracer/tracer_256v1_r8.cpp  \
+        ../core/tracer/tracer_128v4.cpp     \
+        ../core/tracer/tracer_256v4_r8.cpp  \
         RooT_linux.cpp
 
 LIB_PATH =
@@ -41,7 +41,7 @@ clean:
 
 RooT_p32:
 	powerpc-linux-gnu-g++ -O3 -g -pthread \
-        -DRT_LINUX -DRT_P32 -DRT_128=1 -DRT_256_R8=1 \
+        -DRT_LINUX -DRT_P32 -DRT_128=4 -DRT_256_R8=4 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
