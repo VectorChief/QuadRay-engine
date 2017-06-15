@@ -5562,11 +5562,6 @@ namespace simd_128v8
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_256v2_r8
-{
-rt_void render0(rt_SIMD_INFOX *s_inf);
-}
-
 namespace simd_256v4_r8
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
@@ -5706,11 +5701,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         simd_256v4_r8::render0(s_inf);
         break;
 #endif /* RT_256_R8 & 4 */
-#if (RT_256_R8 & 2)
-        case 0x00000020:
-        simd_256v2_r8::render0(s_inf);
-        break;
-#endif /* RT_256_R8 & 2 */
 #if (RT_128 & 8)
         case 0x00000008:
         simd_128v8::render0(s_inf);
