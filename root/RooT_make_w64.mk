@@ -16,11 +16,9 @@ SRC_LIST =                                  \
         ../core/engine/rtimag.cpp           \
         ../core/system/system.cpp           \
         ../core/tracer/tracer.cpp           \
-        ../core/tracer/tracer_128v1.cpp     \
         ../core/tracer/tracer_128v2.cpp     \
         ../core/tracer/tracer_128v4.cpp     \
         ../core/tracer/tracer_128v8.cpp     \
-        ../core/tracer/tracer_256v2_r8.cpp  \
         ../core/tracer/tracer_256v4_r8.cpp  \
         ../core/tracer/tracer_256v1.cpp     \
         ../core/tracer/tracer_256v2.cpp     \
@@ -56,7 +54,7 @@ clean:
 RooT_w64_32:
 	g++ -O3 -g -pthread -static -m64 \
         -DRT_WIN64 -DRT_X64 \
-        -DRT_128=1+2+4+8 -DRT_256_R8=2+4 -DRT_256=1+2+8 \
+        -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
         -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -66,7 +64,7 @@ RooT_w64_32:
 RooT_w64_64:
 	g++ -O3 -g -pthread -static -m64 \
         -DRT_WIN64 -DRT_X64 \
-        -DRT_128=1+2+4+8 -DRT_256_R8=2+4 -DRT_256=1+2+8 \
+        -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
         -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -76,7 +74,7 @@ RooT_w64_64:
 RooT_w64f32:
 	g++ -O3 -g -pthread -static -m64 \
         -DRT_WIN64 -DRT_X64 \
-        -DRT_128=1+2+4+8 -DRT_256_R8=2+4 -DRT_256=1+2+8 \
+        -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
         -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -86,7 +84,7 @@ RooT_w64f32:
 RooT_w64f64:
 	g++ -O3 -g -pthread -static -m64 \
         -DRT_WIN64 -DRT_X64 \
-        -DRT_128=1+2+4+8 -DRT_256_R8=2+4 -DRT_256=1+2+8 \
+        -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
         -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
