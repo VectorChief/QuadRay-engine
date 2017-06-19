@@ -8,14 +8,14 @@
 #define RT_REGS 32 /* define maximum of available SIMD registers for code */
 
 #undef  RT_SIMD
-#define RT_SIMD 256 /* map vector-length-agnostic SIMD subsets to 256-bit */
+#define RT_SIMD 512 /* map vector-length-agnostic SIMD subsets to 512-bit */
 #define RT_SIMD_CODE /* enable SIMD instruction definitions */
 
-#if defined (RT_256) && (RT_256 & 4)
-#undef  RT_256
-#define RT_256 4
+#if defined (RT_512) && (RT_512 & 4)
+#undef  RT_512
+#define RT_512 4
 #define RT_RENDER_CODE /* enable contents of render0 routine */
-#endif /* RT_256 */
+#endif /* RT_512 */
 
 #include "tracer.h"
 #include "format.h"
@@ -36,7 +36,7 @@ rt_pntr t_clp[3];
 extern
 rt_pntr t_pow[6];
 
-namespace simd_256v4
+namespace simd_512v4
 {
 #include "tracer.cpp"
 }

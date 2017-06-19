@@ -5607,6 +5607,16 @@ namespace simd_512v2
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
+namespace simd_512v4
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace simd_512v8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
 namespace simd_1K4v1
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
@@ -5656,6 +5666,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         simd_1K4v1::render0(s_inf);
         break;
 #endif /* RT_1K4 & 1 */
+#if (RT_512 & 8)
+        case 0x00080000:
+        simd_512v8::render0(s_inf);
+        break;
+#endif /* RT_512 & 8 */
+#if (RT_512 & 4)
+        case 0x00040000:
+        simd_512v4::render0(s_inf);
+        break;
+#endif /* RT_512 & 4 */
 #if (RT_512 & 2)
         case 0x00020000:
         simd_512v2::render0(s_inf);

@@ -5,7 +5,7 @@
 /******************************************************************************/
 
 #undef  RT_REGS
-#define RT_REGS 16 /* define maximum of available SIMD registers for code */
+#define RT_REGS 32 /* define maximum of available SIMD registers for code */
 
 #undef  RT_SIMD
 #define RT_SIMD 256 /* map vector-length-agnostic SIMD subsets to 256-bit */
