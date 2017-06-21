@@ -369,7 +369,7 @@ rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
 
 #if RT_SETAFFINITY
 
-#if defined (RT_WIN32)
+#if (defined RT_WIN32)
     DWORD pam, sam;
 #else /* RT_WIN64 */
     DWORD_PTR pam, sam;

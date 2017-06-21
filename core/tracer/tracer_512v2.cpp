@@ -5,13 +5,13 @@
 /******************************************************************************/
 
 #undef  RT_REGS
-#define RT_REGS 16 /* define maximum of available SIMD registers for code */
+#define RT_REGS 16  /* define maximum of available SIMD registers for code */
 
 #undef  RT_SIMD
-#define RT_SIMD 512 /* map vector-length-agnostic SIMD subsets to 512-bit */
+#define RT_SIMD 512  /* map vector-length-agnostic SIMD subsets to 512-bit */
 #define RT_SIMD_CODE /* enable SIMD instruction definitions */
 
-#if defined (RT_512) && (RT_512 & 2)
+#if (defined RT_512) && (RT_512 & 2)
 #undef  RT_512
 #define RT_512 2
 #define RT_RENDER_CODE /* enable contents of render0 routine */

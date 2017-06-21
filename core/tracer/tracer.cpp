@@ -4,7 +4,7 @@
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
 
-#if defined (RT_SIMD_CODE)
+#ifdef RT_SIMD_CODE
 
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/
@@ -2032,7 +2032,7 @@
  */
 rt_void render0(rt_SIMD_INFOX *s_inf)
 {
-#if defined (RT_RENDER_CODE)
+#ifdef RT_RENDER_CODE
 
 #if RT_QUAD_DEBUG == 1
 

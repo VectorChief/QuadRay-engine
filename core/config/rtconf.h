@@ -30,7 +30,7 @@
 #endif /* _THREADS_NUM */
 #define RT_SETAFFINITY          0
 
-#elif defined (RT_X86) | defined (RT_ARM) /* <- legacy */
+#elif (defined RT_X86) || (defined RT_ARM) /* <- legacy */
 
 #define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
 #ifndef RT_THREADS_NUM
@@ -38,7 +38,7 @@
 #endif /* _THREADS_NUM */
 #define RT_SETAFFINITY          1
 
-#elif defined (RT_WIN64)
+#elif (defined RT_WIN64)
 
 #define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
 #ifndef RT_THREADS_NUM
@@ -46,7 +46,7 @@
 #endif /* _THREADS_NUM */
 #define RT_SETAFFINITY          0
 
-#else /* defined (RT_LINUX) */
+#else /* (defined RT_LINUX) */
 
 #define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
 #ifndef RT_THREADS_NUM
