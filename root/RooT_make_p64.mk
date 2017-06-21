@@ -86,17 +86,16 @@ RooT_p64f64:
 # Building/running RooT demo:
 # make -f RooT_make_p64.mk
 # ./RooT.p64f32 (on POWER8 host or QEMU system mode)
-# (hasn't been verified due to lack of target host system)
+# (hasn't been verified yet due to a lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 # 512-bit SIMD is achieved by combining quads of 128-bit registers/instructions
+# For 30 256-bit VSX1/2 registers on POWER7/8 targets use (replace): RT_256=4+8
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
-
-# For 30 256-bit VSX1/2 registers on POWER7/8 targets use (replace): RT_256=4+8
 
 # 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
 # use (replace): RT_ADDRESS=32, rename the binary to RooT.p64_**

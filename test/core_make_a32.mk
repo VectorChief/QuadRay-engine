@@ -45,7 +45,7 @@ core_test_a32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a32
 
 
-# On Ubuntu 16.04 Live CD add "universe multiverse" to "main restricted"
+# On Ubuntu 16.04 Live DVD add "universe multiverse" to "main restricted"
 # in /etc/apt/sources.list (sudo gedit /etc/apt/sources.list) then run:
 # sudo apt-get update (ignoring the old database errors in the end)
 #
@@ -68,5 +68,5 @@ core_test_a32:
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 
-# 32-bit ABI hasn't been fully tested yet due to lack of available libs,
+# 32-bit ABI hasn't been fully tested yet due to a lack of available libs,
 # check out 64/32-bit (ptr/adr) hybrid mode for 64-bit ABI in core_make_a64.mk

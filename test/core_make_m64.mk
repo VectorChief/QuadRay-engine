@@ -109,7 +109,7 @@ core_test_m64f64Br6:
 # The up-to-date MIPS toolchain (g++ & QEMU) can be found here:
 # https://community.imgtec.com/developers/mips/tools/codescape-mips-sdk/
 
-# On Ubuntu 16.04 Live CD add "universe multiverse" to "main restricted"
+# On Ubuntu 16.04 Live DVD add "universe multiverse" to "main restricted"
 # in /etc/apt/sources.list (sudo gedit /etc/apt/sources.list) then run:
 # sudo apt-get update (ignoring the old database errors in the end)
 #
@@ -132,16 +132,14 @@ core_test_m64f64Br6:
 # make -f core_make_m64.mk
 # qemu-mips64el -cpu I6400 core_test.m64f32Lr6 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+# qemu-mips64 -cpu I6400 core_test.m64f32Br6 -i -a
+# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
-
-# For big-endian MIPS64 target use (replace): -EB -DRT_ENDIAN=1
-# qemu-mips64 -cpu I6400 core_test.m64f32Br6 -i -a
-# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
 # 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
 # use (replace): RT_ADDRESS=32, rename the binary to core_test.m64_**

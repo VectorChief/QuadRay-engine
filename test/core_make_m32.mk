@@ -73,7 +73,7 @@ core_test_m32Br6:
 # The up-to-date MIPS toolchain (g++ & QEMU) can be found here:
 # https://community.imgtec.com/developers/mips/tools/codescape-mips-sdk/
 
-# On Ubuntu 16.04 Live CD add "universe multiverse" to "main restricted"
+# On Ubuntu 16.04 Live DVD add "universe multiverse" to "main restricted"
 # in /etc/apt/sources.list (sudo gedit /etc/apt/sources.list) then run:
 # sudo apt-get update (ignoring the old database errors in the end)
 #
@@ -95,20 +95,16 @@ core_test_m32Br6:
 # make -f core_make_m32.mk
 # qemu-mipsel -cpu P5600 core_test.m32Lr5 -i -a
 # (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+# qemu-mips -cpu P5600 core_test.m32Br5 -i -a
+# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+# For MIPS32 Release 6 emulation use QEMU 2.5.0.2.0 from imgtec.com:
+# qemu-mipsel -cpu mips32r6-generic core_test.m32Lr6 -i -a
+# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+# qemu-mips -cpu mips32r6-generic core_test.m32Br6 -i -a
+# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
-
-# For MIPS32 Release 6 target use the following options (replace):
-# mips-img-linux-gnu-g++ -mips32r6 -DRT_M32=6
-# For MIPS32 Release 6 emulation use QEMU 2.5.0.2.0 from imgtec.com:
-# qemu-mipsel -cpu mips32r6-generic core_test.m32Lr6 -i -a
-# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
-
-# For big-endian MIPS32 (r5 and r6) use (replace): -EB -DRT_ENDIAN=1
-# qemu-mips -cpu *** core_test.m32Br* -i -a
-# where *** is P5600 for r5 build and mips32r6-generic for r6 build.
-# (should produce antialiased (-a) images (-i) in the ../dump subfolder)

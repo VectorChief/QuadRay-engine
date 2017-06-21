@@ -110,8 +110,6 @@ RooT_arm_rpi3:
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 
-# 0) Build flags above are intended for default "vanilla" ARMv7 target, while
-# settings suitable for specific hardware platforms are given below (replace).
 # 1) Nokia N900, Maemo 5 scratchbox: -DRT_FULLSCREEN=1 -DRT_EMBED_FILEIO=1
 # 2) Raspberry Pi 2, Raspbian: arm-linux-gnueabihf-g++ -DRT_128=1+2
 # 3) Raspberry Pi 3, Raspbian: arm-linux-gnueabihf-g++ -DRT_128=1+2+4
