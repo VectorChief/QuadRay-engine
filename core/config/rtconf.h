@@ -30,7 +30,7 @@
 #endif /* _THREADS_NUM */
 #define RT_SETAFFINITY          0
 
-#elif (defined RT_X86) || (defined RT_ARM) /* <- legacy */
+#elif (defined RT_ARM) || (defined RT_X86) /* <- original legacy targets */
 
 #define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
 #ifndef RT_THREADS_NUM
