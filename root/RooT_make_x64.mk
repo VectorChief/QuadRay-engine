@@ -53,8 +53,10 @@ clean:
 
 
 RooT_x64_32:
-	x86_64-linux-gnu-g++ -O3 -g -pthread \
-        -DRT_LINUX -DRT_X64 \
+	clang++ -O3 -g -pthread \
+        -Wno-shift-negative-value -Wno-shift-op-parentheses \
+        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
+        -DRT_LINUX -DRT_X64 -Wno-unknown-warning-option \
         -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
         -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
@@ -63,8 +65,10 @@ RooT_x64_32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x64_32
 
 RooT_x64_64:
-	x86_64-linux-gnu-g++ -O3 -g -pthread \
-        -DRT_LINUX -DRT_X64 \
+	clang++ -O3 -g -pthread \
+        -Wno-shift-negative-value -Wno-shift-op-parentheses \
+        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
+        -DRT_LINUX -DRT_X64 -Wno-unknown-warning-option \
         -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
         -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
@@ -73,8 +77,10 @@ RooT_x64_64:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x64_64
 
 RooT_x64f32:
-	x86_64-linux-gnu-g++ -O3 -g -pthread \
-        -DRT_LINUX -DRT_X64 \
+	clang++ -O3 -g -pthread \
+        -Wno-shift-negative-value -Wno-shift-op-parentheses \
+        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
+        -DRT_LINUX -DRT_X64 -Wno-unknown-warning-option \
         -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
         -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
@@ -83,8 +89,10 @@ RooT_x64f32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x64f32
 
 RooT_x64f64:
-	x86_64-linux-gnu-g++ -O3 -g -pthread \
-        -DRT_LINUX -DRT_X64 \
+	clang++ -O3 -g -pthread \
+        -Wno-shift-negative-value -Wno-shift-op-parentheses \
+        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
+        -DRT_LINUX -DRT_X64 -Wno-unknown-warning-option \
         -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
         -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
@@ -95,15 +103,17 @@ RooT_x64f64:
 
 # Prerequisites for the build:
 # native-compiler for x86_64 is installed and in the PATH variable.
-# sudo apt-get install g++ libxext-dev (on x86_64 host)
+# sudo apt-get install clang libxext-dev (on x86_64 host)
+# (g++ 6.x on Ubuntu 16.10/17.04 has code relocation issues when linking: -fPIC)
+# (clang compilation takes much longer prior to 3.8: older Ubuntu 14.04/Mint 17)
 #
 # Building/running RooT demo:
 # make -f RooT_make_x64.mk
 # ./RooT.x64f32
 
-# Clang compilation works too (takes much longer prior to 3.8), use (replace):
-# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
-# sudo apt-get install clang
+# g++ compilation works on Ubuntu 16.04 with g++ 5.x and earlier, use (replace):
+# x86_64-linux-gnu-g++ (in place of clang++)
+# sudo apt-get install g++ libxext-dev (on x86_64 host)
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on x86 targets top cpuid-value is chosen by default, use -n/-k/-s to override
