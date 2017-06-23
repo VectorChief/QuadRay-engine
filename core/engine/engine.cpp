@@ -61,7 +61,7 @@
 
 #define RT_PRINT_TIME(time)                                                 \
         RT_LOGI("---------------------------------------------");           \
-        RT_LOGI("---- update time -- %020"PR_Z"d ----", time);              \
+        RT_LOGI("---- update time -- %020" PR_Z "d ----", time);            \
         RT_LOGI("---------------------------------------------");           \
         RT_LOGI("\n");                                                      \
         RT_LOGI("\n")
