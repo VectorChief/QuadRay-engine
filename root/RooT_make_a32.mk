@@ -56,7 +56,7 @@ RooT_a32:
 # Building/running RooT demo:
 # make -f RooT_make_a32.mk
 # ./RooT.a32 (on AArch64 host or QEMU system mode with ILP32 X11/Xext libs)
-# (hasn't been verified yet due to a lack of target host system)
+# (hasn't been verified yet due to lack of available libs)
 
 # Clang compilation works too (takes much longer prior to 3.8), use (replace):
 # clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
@@ -68,5 +68,5 @@ RooT_a32:
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 
-# 32-bit ABI hasn't been fully tested yet due to a lack of available libs,
+# 32-bit ABI hasn't been fully tested yet due to lack of available libs,
 # check out 64/32-bit (ptr/adr) hybrid mode for 64-bit ABI in RooT_make_a64.mk

@@ -55,10 +55,11 @@ RooT_p32:
 # Building/running RooT demo:
 # make -f RooT_make_p32.mk
 # ./RooT.p32 (on G4 host or QEMU system mode)
-# (hasn't been verified yet due to a lack of target host system)
+# (hasn't been verified yet due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
+# 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h

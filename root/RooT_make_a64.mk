@@ -79,7 +79,7 @@ RooT_a64f64:
 # Building/running RooT demo:
 # make -f RooT_make_a64.mk
 # ./RooT.a64f32 (on AArch64 host or QEMU system mode)
-# (hasn't been verified yet due to a lack of target host system)
+# (has been tested on Raspberry Pi 3 target host system with Devuan/openSUSE)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
 # Clang compilation works too (takes much longer prior to 3.8), use (replace):

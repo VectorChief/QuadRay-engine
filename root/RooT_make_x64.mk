@@ -104,8 +104,8 @@ RooT_x64f64:
 # Prerequisites for the build:
 # native-compiler for x86_64 is installed and in the PATH variable.
 # sudo apt-get install clang libxext-dev (on x86_64 host)
-# (g++ 6.x on Ubuntu 16.10/17.04 has code relocation issues when linking: -fPIC)
 # (clang compilation takes much longer prior to 3.8: older Ubuntu 14.04/Mint 17)
+# (g++ 6.x on Ubuntu 16.10/17.04 has code relocation issues when linking: -fPIC)
 #
 # Building/running RooT demo:
 # make -f RooT_make_x64.mk

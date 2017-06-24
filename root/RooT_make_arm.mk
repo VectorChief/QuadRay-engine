@@ -100,6 +100,8 @@ RooT_arm_rpi3:
 # Building/running RooT demo:
 # make -f RooT_make_arm.mk
 # ./RooT.arm (on ARMv7 host or QEMU system mode)
+# (has been tested on Raspberry Pi 2/3 target host system with Raspbian/Ubuntu)
+# (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
 # Clang compilation works too (takes much longer prior to 3.8), use (replace):
 # clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
