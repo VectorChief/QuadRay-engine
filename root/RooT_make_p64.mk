@@ -37,16 +37,17 @@ LIB_LIST =                                  \
 
 
 build: RooT_p64_32 RooT_p64_64 RooT_p64f32 RooT_p64f64
+clang: RooT.p64_32 RooT.p64_64 RooT.p64f32 RooT.p64f64
 
 strip:
-	powerpc64le-linux-gnu-strip RooT.p64*
+	strip RooT.p64*
 
 clean:
 	rm RooT.p64*
 
 
 RooT_p64_32:
-	powerpc64le-linux-gnu-g++ -O2 -g -pthread \
+	g++ -O2 -g -pthread -no-pie \
         -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -54,7 +55,7 @@ RooT_p64_32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_32
 
 RooT_p64_64:
-	powerpc64le-linux-gnu-g++ -O2 -g -pthread \
+	g++ -O2 -g -pthread -no-pie \
         -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -62,7 +63,7 @@ RooT_p64_64:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_64
 
 RooT_p64f32:
-	powerpc64le-linux-gnu-g++ -O2 -g -pthread \
+	g++ -O2 -g -pthread -no-pie \
         -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -70,7 +71,48 @@ RooT_p64f32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f32
 
 RooT_p64f64:
-	powerpc64le-linux-gnu-g++ -O2 -g -pthread \
+	g++ -O2 -g -pthread -no-pie \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f64
+
+
+RooT.p64_32:
+	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
+        -Wno-shift-negative-value -Wno-shift-op-parentheses \
+        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_32
+
+RooT.p64_64:
+	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
+        -Wno-shift-negative-value -Wno-shift-op-parentheses \
+        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_64
+
+RooT.p64f32:
+	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
+        -Wno-shift-negative-value -Wno-shift-op-parentheses \
+        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f32
+
+RooT.p64f64:
+	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
+        -Wno-shift-negative-value -Wno-shift-op-parentheses \
+        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -82,15 +124,17 @@ RooT_p64f64:
 # native-compiler for 64-bit Power is installed and in the PATH variable.
 # sudo apt-get install g++ libxext-dev (on POWER8 host or QEMU system mode)
 # (recent g++-5-powerpc64le series target POWER8 and don't work well with -O3)
-# (g++ on Ubuntu 17.10++/Debian 9 has PIE-by-default/link-errors => use clang++)
-# http://www.phoronix.com/scan.php?page=news_item&px=Ubuntu-17.10-PIE-SecureBoot
-# http://wiki.debian.org/Hardening/PIEByDefaultTransition
 #
 # Building/running RooT demo:
 # make -f RooT_make_p64.mk
 # ./RooT.p64f32 (on POWER8 host or QEMU system mode)
 # (hasn't been verified yet due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
+
+# g++ on Ubuntu 16.10++/Debian 9 has PIE-by-default/link-errors => use -no-pie
+# http://wiki.ubuntu.com/SecurityTeam/PIE
+# http://wiki.debian.org/Hardening/PIEByDefaultTransition
+# http://www.phoronix.com/scan.php?page=news_item&px=Ubuntu-17.10-PIE-SecureBoot
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override

@@ -31,21 +31,23 @@ LIB_LIST =                                  \
 
 
 build: RooT_a32
+clang: RooT.a32
 
 strip:
-	aarch64-linux-gnu-strip RooT.a32
+	strip RooT.a32
 
 clean:
 	rm RooT.a32
 
 
 RooT_a32:
-	aarch64-linux-gnu-g++ -O3 -g -pthread -mabi=ilp32 \
+	g++ -O3 -g -pthread -no-pie -mabi=ilp32 \
         -DRT_LINUX -DRT_A32 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a32
+
 
 RooT.a32:
 	clang++ -O3 -g -pthread -mabi=ilp32 -Wno-unknown-warning-option \
@@ -60,20 +62,21 @@ RooT.a32:
 
 # Prerequisites for the build:
 # multilib-compiler for AArch64 is installed and in the PATH variable,
-# plus X11/Xext libs for ILP32 ABI on AArch64 host or QEMU system mode.
+# sudo apt-get update (on AArch64 host or QEMU system mode)
+# sudo apt-get install g++-multilib (plus X11/Xext libs for ILP32 ABI)
 # (recent upstream g++-5-aarch64 series may not fully support ILP32 ABI)
-# (g++ on Ubuntu 17.10++/Debian 9 has PIE-by-default/link-errors => use clang++)
-# http://www.phoronix.com/scan.php?page=news_item&px=Ubuntu-17.10-PIE-SecureBoot
-# http://wiki.debian.org/Hardening/PIEByDefaultTransition
 #
 # Building/running RooT demo:
 # make -f RooT_make_a32.mk
 # ./RooT.a32 (on AArch64 host or QEMU system mode with ILP32 X11/Xext libs)
 # (hasn't been verified yet due to lack of available libs)
 
-# Clang compilation works too (takes much longer prior to 3.8), use (replace):
-# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
-# sudo apt-get install clang (requires g++-multilib for non-native ABI)
+# g++ compilation works on Devuan/openSUSE without PIE-mode (-no-pie >= g++-5)
+# clang compilation takes much longer prior to 3.8 (older Ubuntu 14.04/Mint 17)
+# sudo apt-get update (on Ubuntu add "universe" to "main" /etc/apt/sources.list)
+# sudo apt-get install clang g++-multilib (plus X11/Xext libs for ILP32 ABI)
+# make -f RooT_make_a32.mk clang
+# (hasn't been verified yet due to lack of available libs)
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
