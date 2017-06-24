@@ -82,6 +82,9 @@ RooT_p64f64:
 # native-compiler for 64-bit Power is installed and in the PATH variable.
 # sudo apt-get install g++ libxext-dev (on POWER8 host or QEMU system mode)
 # (recent g++-5-powerpc64le series target POWER8 and don't work well with -O3)
+# (g++ on Ubuntu 17.10++/Debian 9 has PIE-by-default/link-errors => use clang++)
+# http://www.phoronix.com/scan.php?page=news_item&px=Ubuntu-17.10-PIE-SecureBoot
+# http://wiki.debian.org/Hardening/PIEByDefaultTransition
 #
 # Building/running RooT demo:
 # make -f RooT_make_p64.mk

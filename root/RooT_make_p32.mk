@@ -51,6 +51,10 @@ RooT_p32:
 # Prerequisites for the build:
 # native-compiler for PowerPC is installed and in the PATH variable.
 # sudo apt-get install g++ libxext-dev (on G4 host or QEMU system mode)
+# (legacy 32-bit powerpc target may no longer be supported on latest distros)
+# (g++ on Ubuntu 17.10++/Debian 9 has PIE-by-default/link-errors => use clang++)
+# http://www.phoronix.com/scan.php?page=news_item&px=Ubuntu-17.10-PIE-SecureBoot
+# http://wiki.debian.org/Hardening/PIEByDefaultTransition
 #
 # Building/running RooT demo:
 # make -f RooT_make_p32.mk

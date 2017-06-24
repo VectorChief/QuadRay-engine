@@ -76,6 +76,9 @@ RooT_m64f64:
 # native-compiler for MIPS+MSA is installed and in the PATH variable.
 # sudo apt-get install g++ libxext-dev (on I6400 host or QEMU system mode)
 # (recent upstream g++-5-mips64el series may not fully support MSA)
+# (g++ on Ubuntu 17.10++/Debian 9 has PIE-by-default/link-errors => use clang++)
+# http://www.phoronix.com/scan.php?page=news_item&px=Ubuntu-17.10-PIE-SecureBoot
+# http://wiki.debian.org/Hardening/PIEByDefaultTransition
 #
 # Building/running RooT demo:
 # make -f RooT_make_m64.mk

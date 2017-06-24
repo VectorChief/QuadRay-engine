@@ -53,12 +53,25 @@ RooT_x86:
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x86
 
+RooT.x86:
+	clang++ -O3 -g -pthread -m32 -Wno-unknown-warning-option \
+        -Wno-shift-negative-value -Wno-shift-op-parentheses \
+        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
+        -DRT_LINUX -DRT_X86 -DRT_128=1+2+4+8 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x86
+
 
 # Prerequisites for the build:
 # native/multilib-compiler for x86/x86_64 is installed and in the PATH variable.
 # sudo apt-get install g++ libxext-dev (on x86 host) or if libs are present:
-# sudo apt-get install g++-multilib libxext-dev:i386 (on x86_64 host, Mint 17)
+# sudo apt-get install g++-multilib libxext-dev:i386 (on x86_64 host, Mint 18)
 # (installation of g++-multilib removes any g++ cross-compilers)
+# (g++ on Ubuntu 16.10++/Debian 9 has PIE-by-default/link-errors => use clang++)
+# http://wiki.ubuntu.com/SecurityTeam/PIE
+# http://wiki.debian.org/Hardening/PIEByDefaultTransition
 #
 # Building/running RooT demo:
 # make -f RooT_make_x86.mk
