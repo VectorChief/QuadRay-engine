@@ -5,7 +5,7 @@ P) Task title: "add new rt_Platform class for common thread-pool, log-redirect"
 2) Move SIMD target-tracking static variables from tracer-backend to rt_Scene?
 3) Make sure tracer-backend feature flags are consistent with the code (on/off)
 4) Set thread-pool size from CPU core-count, add native Win64 threading support
-5) Implement fullscreen mode (-w 0) for Windows (use DirectDraw screen updates)
+5) Implement fullscreen mode (-w 0) for Windows, use DirectDraw/OpenGL+NeHe/SDL
 
 ================================================================================
 
@@ -29,7 +29,7 @@ K) Task title: "use configuration utils (autotools, CMake, etc) for building"
 1) Use single build script for all host CPU architectures on Linux
 2) Keep cross-compilation on x86-64 Linux hosts (targeting QEMU linux-user mode)
 
-================================================================================
+=== >>> === tasks above are planned for the upcoming 0.7.0 milestone === <<< ===
 
 O) Task title: "consider support for more operating systems"
 1) Create DEB/RPM packages for Linux (consider new formats)
