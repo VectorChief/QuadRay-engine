@@ -27,6 +27,8 @@ SRC_LIST =                                  \
         ../core/tracer/tracer_512v2_r8.cpp  \
         ../core/tracer/tracer_512v1.cpp     \
         ../core/tracer/tracer_512v2.cpp     \
+        ../core/tracer/tracer_512v4.cpp     \
+        ../core/tracer/tracer_512v8.cpp     \
         ../core/tracer/tracer_1K4v1.cpp     \
         ../core/tracer/tracer_1K4v2.cpp     \
         ../core/tracer/tracer_2K8v1_r8.cpp  \
@@ -104,6 +106,9 @@ RooT_w64f64:
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on x86 targets top cpuid-value is chosen by default, use -n/-k/-s to override
+# 1K4-bit SIMD is achieved by combining pairs of 512-bit registers/instructions
+# 2K8-bit SIMD is achieved by combining quads of 512-bit registers/instructions
+# For 30 512-bit AVX3.1/.2 registers on Skylake-X use (replace): RT_512=4+8
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 
