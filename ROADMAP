@@ -35,7 +35,7 @@ O) Task title: "consider support for more operating systems"
 1) Create DEB/RPM packages for Linux (consider new formats)
 2) Test the engine (RooT demo, CORE/SIMD tests) with Free/OpenBSD, port to NuttX
 3) Write an Android app for RooT demo, use engine's core as native/jni library
-4) Port the engine (RooT demo, CORE/SIMD tests) to MacOS, iOS (optional)
+4) Port the engine (RooT demo, CORE/SIMD tests) to Apple's MacOS, iOS
 5) Perform feasibility study for Tizen, Sailfish OS support (optional)
 
 ================================================================================
@@ -65,6 +65,13 @@ S) Task title: "implement basic unbiased path-tracer (to match smallpt code)"
 
 ================================================================================
 
+I) Task title: "rewrite smallpt with ISPC, use ifilippov/raytracer as a base"
+   (https://github.com/munificent/smallpt)  <- old performance baseline (C++)
+   (https://github.com/ifilippov/raytracer) <- new performance baseline (ISPC)
+   (https://github.com/ispc/ispc)  compare with QuadRay's path-tracer (task S)
+
+================================================================================
+
 U) Task title: "implement UV mapping for quadrics"
 1) Implement trigonometric functions across SIMD targets (use Taylor+FMA?)
 2) Use trigonometric functions to implement UV mapping for quadrics
@@ -72,19 +79,28 @@ U) Task title: "implement UV mapping for quadrics"
 
 ================================================================================
 
-I) Task title: "rewrite smallpt with ISPC, use ifilippov/raytracer as a base"
-
-================================================================================
-
 R) Task title: "re-assemble QuadRay from earlier/simpler branches, write docs"
 
 ================================================================================
 
+M) Task title: "integrate triangle meshes as an external model-viewer/plug-in"
+   (http://thedreammmechanists.blogspot.ru/) <- rewrite with UniSIMD assembler
+   (https://sourceforge.net/projects/thedreammachine/) <- use this as a base
+   (https://github.com/VectorChief/UniSIMD-assembler) integrate with QuadRay
+
+================================================================================
+
 C) Task title: "add support for real-time caustics and soft-shadows (from RaVi)"
+   (http://www.winosi.onlinehome.de/Ravi.htm) <- rewrite with UniSIMD assembler
+   (https://github.com/mczero80/RaVi)       <- use this code snapshot as a base
+   (https://github.com/VectorChief/UniSIMD-assembler) integrate with QuadRay
 
 ================================================================================
 
 Q) Task title: "add support for quartic (4th order: Torus, Egg) surfaces (RaVi)"
+   (http://www.winosi.onlinehome.de/Ravi.htm) <- rewrite with UniSIMD assembler
+   (https://github.com/mczero80/RaVi)       <- use this code snapshot as a base
+   (https://github.com/VectorChief/UniSIMD-assembler) integrate with QuadRay
 
 ================================================================================
 
@@ -97,10 +113,6 @@ D) Task title: "implement depth-of-field and motion-blur techniques"
 ================================================================================
 
 A) Task title: "implement chromatic aberration, separate R,G,B rays"
-
-================================================================================
-
-M) Task title: "integrate triangle meshes into existing geometry framework"
 
 ================================================================================
 
