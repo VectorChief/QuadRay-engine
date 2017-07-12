@@ -72,17 +72,6 @@ I) Task title: "rewrite smallpt with ISPC, use ifilippov/raytracer as a base"
 
 ================================================================================
 
-U) Task title: "implement UV mapping for quadrics"
-1) Implement trigonometric functions across SIMD targets (use Taylor+FMA?)
-2) Use trigonometric functions to implement UV mapping for quadrics
-3) Implement 2x2-matrix-transform for surface-UV to texture-XY coords
-
-================================================================================
-
-R) Task title: "re-assemble QuadRay from earlier/simpler branches, write docs"
-
-================================================================================
-
 M) Task title: "integrate triangle meshes as an external model-viewer/plug-in"
    (http://thedreammmechanists.blogspot.ru/) <- rewrite with UniSIMD assembler
    (https://sourceforge.net/projects/thedreammachine/) <- use this as a base
@@ -101,6 +90,17 @@ Q) Task title: "add support for quartic (4th order: Torus, Egg) surfaces (RaVi)"
    (http://www.winosi.onlinehome.de/Ravi.htm) <- rewrite with UniSIMD assembler
    (https://github.com/mczero80/RaVi)       <- use this code snapshot as a base
    (https://github.com/VectorChief/UniSIMD-assembler) integrate with QuadRay
+
+================================================================================
+
+U) Task title: "implement UV mapping for quadrics"
+1) Implement trigonometric functions across SIMD targets (use Taylor+FMA?)
+2) Use trigonometric functions to implement UV mapping for quadrics
+3) Implement 2x2-matrix-transform for surface-UV to texture-XY coords
+
+================================================================================
+
+R) Task title: "re-assemble QuadRay from earlier/simpler branches, write docs"
 
 ================================================================================
 
