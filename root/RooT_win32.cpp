@@ -311,14 +311,16 @@ DWORD WINAPI worker_thread(rt_pntr p)
         if (eout == 0)
         try
         {
+            rt_Scene *scene = thread->scene->get_platform()->get_cur_scene();
+
             switch (cmd & 0x3)
             {
                 case 1:
-                thread->scene->update_slice(thread->index, (cmd >> 2) & 0xFF);
+                scene->update_slice(thread->index, (cmd >> 2) & 0xFF);
                 break;
 
                 case 2:
-                thread->scene->render_slice(thread->index, (cmd >> 2) & 0xFF);
+                scene->render_slice(thread->index, (cmd >> 2) & 0xFF);
                 break;
 
                 default:

@@ -31,6 +31,7 @@ rt_SCENE   *sc_rt[]     =
     &scn_demo03::sc_root,
 };
 
+rt_Platform*pfm                     = RT_NULL;              /* platformobj */
 rt_Scene   *sc[RT_ARR_SIZE(sc_rt)]  = {0};                  /* scene array */
 rt_si32     d                       = RT_ARR_SIZE(sc_rt)-1; /* demo-scene */
 rt_si32     c                       = 0;                    /* camera-idx */
@@ -312,6 +313,7 @@ rt_si32 main_step()
             c = sc[d]->get_cam_idx();
             sc[d]->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
             sc[d]->set_simd(simd_init(n_simd, s_type, k_size));
+            pfm->set_cur_scene(sc[d]);
             switched = dold != d ? 1 : switched;
         }
 
@@ -828,24 +830,29 @@ rt_si32 main_init()
     rt_si32 size, type, simd = 0;
     rt_si32 i, n = RT_ARR_SIZE(sc_rt);
 
-    for (i = 0; i < n; i++)
+    try
     {
-        try
+        i = -1;
+        pfm = new rt_Platform(sys_alloc, sys_free, thnum,
+                              init_threads, term_threads,
+                              update_scene, render_scene);
+
+        for (i = 0; i < n; i++)
         {
             sc[i] = new rt_Scene(sc_rt[i],
-                                x_res, y_res, x_row, frame,
-                                sys_alloc, sys_free, thnum,
-                                init_threads, term_threads,
-                                update_scene, render_scene);
+                                 x_res, y_res, x_row, frame, pfm);
 
             sc[i]->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
             simd = sc[i]->set_simd(simd_init(n_simd, s_type, k_size));
         }
-        catch (rt_Exception e)
-        {
-            RT_LOGE("Exception in scene %d: %s\n", i+1, e.err);
-            return 0;
-        }
+
+        pfm->set_cur_scene(sc[d]);
+    }
+    catch (rt_Exception e)
+    {
+        RT_LOGE("Exception in main_init, %s %d: %s\n",
+                i+1 ? "scene" : "platform", i+1, e.err);
+        return 0;
     }
 
     size = (simd >> 16) & 0xFF;
@@ -938,21 +945,25 @@ rt_si32 main_term()
 
     rt_si32 i, n = RT_ARR_SIZE(sc_rt);
 
-    for (i = 0; i < n; i++)
+    try
     {
-        if (sc[i] == RT_NULL)
+        for (i = 0; i < n; i++)
         {
-            continue;
-        }
-        try
-        {
+            if (sc[i] == RT_NULL)
+            {
+                continue;
+            }
             delete sc[i];
         }
-        catch (rt_Exception e)
-        {
-            RT_LOGE("Exception in scene %d: %s\n", i+1, e.err);
-            return 0;
-        }
+
+        i = -1;
+        delete pfm;
+    }
+    catch (rt_Exception e)
+    {
+        RT_LOGE("Exception in main_term, %s %d: %s\n",
+                i+1 ? "scene" : "platform", i+1, e.err);
+        return 0;
     }
 
     return 1;
