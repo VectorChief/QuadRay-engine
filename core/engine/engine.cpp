@@ -417,6 +417,193 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
         RT_LOGI("\n")
 
 /******************************************************************************/
+/*****************************   MULTI-THREADING   ****************************/
+/******************************************************************************/
+
+/*
+ * Initialize platform-specific pool of "thnum" threads.
+ * Local stub below is used when platform threading functions are not provided
+ * or during state-logging.
+ */
+static
+rt_void* init_threads(rt_si32 thnum, rt_Scene *scn)
+{
+    return scn;
+}
+
+/*
+ * Terminate platform-specific pool of "thnum" threads.
+ * Local stub below is used when platform threading functions are not provided
+ * or during state-logging.
+ */
+static
+rt_void term_threads(rt_void *tdata, rt_si32 thnum)
+{
+
+}
+
+/*
+ * Task platform-specific pool of "thnum" threads to update scene,
+ * block until finished.
+ * Local stub below is used when platform threading functions are not provided
+ * or during state-logging. Simulate threading with sequential run.
+ */
+static
+rt_void update_scene(rt_void *tdata, rt_si32 thnum, rt_si32 phase)
+{
+    rt_Scene *scn = (rt_Scene *)tdata;
+
+    rt_si32 i;
+
+    for (i = 0; i < thnum; i++)
+    {
+        scn->update_slice(i, phase);
+    }
+}
+
+/*
+ * Task platform-specific pool of "thnum" threads to render scene,
+ * block until finished.
+ * Local stub below is used when platform threading functions are not provided
+ * or during state-logging. Simulate threading with sequential run.
+ */
+static
+rt_void render_scene(rt_void *tdata, rt_si32 thnum, rt_si32 phase)
+{
+    rt_Scene *scn = (rt_Scene *)tdata;
+
+    rt_si32 i;
+
+    for (i = 0; i < thnum; i++)
+    {
+        scn->render_slice(i, phase);
+    }
+}
+
+/*
+ * Instantiate platform.
+ * Can only be called from single (main) thread.
+ */
+rt_Platform::rt_Platform(
+                   rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free, rt_si32 thnum,
+                   rt_FUNC_INIT f_init, rt_FUNC_TERM f_term,
+                   rt_FUNC_UPDATE f_update,
+                   rt_FUNC_RENDER f_render,
+                   rt_FUNC_PRINT_LOG f_print_log,
+                   rt_FUNC_PRINT_ERR f_print_err) :
+
+    rt_LogRedirect(f_print_log, f_print_err) /* must be 1st in platform init */
+{
+    /* init scene list variables */
+    head = tail = cur = RT_NULL;
+
+    /* init memory management functions */
+    this->f_alloc = f_alloc;
+    this->f_free  = f_free;
+
+    /* init thread management functions */
+    if (f_init != RT_NULL && f_term != RT_NULL
+    &&  f_update != RT_NULL && f_render != RT_NULL)
+    {
+        this->f_init = f_init;
+        this->f_term = f_term;
+        this->f_update = f_update;
+        this->f_render = f_render;
+    }
+    else
+    {
+        this->f_init = init_threads;
+        this->f_term = term_threads;
+        this->f_update = update_scene;
+        this->f_render = render_scene;
+    }
+
+    /* init thread management variables */
+    thnum = RT_MAX(thnum, 1);
+    this->thnum = thnum;
+    this->tdata = RT_NULL;
+}
+
+/*
+ * Add given scene "scn" to platform's scene list.
+ */
+rt_void rt_Platform::add_scene(rt_Scene *scn)
+{
+    if (head == RT_NULL)
+    {
+        /* create platform-specific worker threads */
+        tdata = this->f_init(thnum, scn);
+        head = tail = cur = scn;
+    }
+    else
+    {
+        tail->next = scn;
+        tail = cur = scn;
+    }
+
+    scn->next = RT_NULL;
+}
+
+/*
+ * Return current scene in the list.
+ */
+rt_Scene* rt_Platform::get_cur_scene()
+{
+    return cur;
+}
+
+/*
+ * Set and return current scene in the list.
+ */
+rt_Scene* rt_Platform::set_cur_scene(rt_Scene *scn)
+{
+    rt_Scene *cur = head;
+
+    while (cur != RT_NULL)
+    {
+        if (cur == scn)
+        {
+            this->cur = cur;
+            break;
+        }
+
+        cur = cur->next;
+    }
+
+    return cur;
+}
+
+/*
+ * Select next scene in the list as current.
+ */
+rt_void rt_Platform::next_scene()
+{
+    if (cur != RT_NULL)
+    {
+        if (cur->next != RT_NULL)
+        {
+            cur = cur->next;
+        }
+        else
+        {
+            cur = head;
+        }
+    }
+}
+
+/*
+ * Deinitialize platform.
+ */
+rt_Platform::~rt_Platform()
+{
+    if (tdata != RT_NULL)
+    {
+        /* destroy platform-specific worker threads */
+        this->f_term(tdata, thnum);
+    }
+}
+
+/******************************************************************************/
 /*********************************   THREAD   *********************************/
 /******************************************************************************/
 
@@ -2331,89 +2518,30 @@ rt_SceneThread::~rt_SceneThread()
 }
 
 /******************************************************************************/
-/*****************************   MULTI-THREADING   ****************************/
-/******************************************************************************/
-
-/*
- * Initialize platform-specific pool of "thnum" threads.
- * Local stub below is used when platform threading functions are not provided
- * or during state-logging.
- */
-static
-rt_void* init_threads(rt_si32 thnum, rt_Scene *scn)
-{
-    return scn;
-}
-
-/*
- * Terminate platform-specific pool of "thnum" threads.
- * Local stub below is used when platform threading functions are not provided
- * or during state-logging.
- */
-static
-rt_void term_threads(rt_void *tdata, rt_si32 thnum)
-{
-
-}
-
-/*
- * Task platform-specific pool of "thnum" threads to update scene,
- * block until finished.
- * Local stub below is used when platform threading functions are not provided
- * or during state-logging. Simulate threading with sequential run.
- */
-static
-rt_void update_scene(rt_void *tdata, rt_si32 thnum, rt_si32 phase)
-{
-    rt_Scene *scn = (rt_Scene *)tdata;
-
-    rt_si32 i;
-
-    for (i = 0; i < thnum; i++)
-    {
-        scn->update_slice(i, phase);
-    }
-}
-
-/*
- * Task platform-specific pool of "thnum" threads to render scene,
- * block until finished.
- * Local stub below is used when platform threading functions are not provided
- * or during state-logging. Simulate threading with sequential run.
- */
-static
-rt_void render_scene(rt_void *tdata, rt_si32 thnum, rt_si32 phase)
-{
-    rt_Scene *scn = (rt_Scene *)tdata;
-
-    rt_si32 i;
-
-    for (i = 0; i < thnum; i++)
-    {
-        scn->render_slice(i, phase);
-    }
-}
-
-/******************************************************************************/
 /**********************************   SCENE   *********************************/
 /******************************************************************************/
 
 /*
- * Instantiate scene.
+ * Initialize scene (part of the constructor).
  * Can only be called from single (main) thread.
  */
-rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
-                   rt_si32 x_res, rt_si32 y_res, rt_si32 x_row, rt_ui32 *frame,
-                   rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free, rt_si32 thnum,
-                   rt_FUNC_INIT f_init, rt_FUNC_TERM f_term,
-                   rt_FUNC_UPDATE f_update,
-                   rt_FUNC_RENDER f_render,
-                   rt_FUNC_PRINT_LOG f_print_log,
-                   rt_FUNC_PRINT_ERR f_print_err) : 
-
-    rt_LogRedirect(f_print_log, f_print_err), /* must be first in scene init */
-    rt_Registry(f_alloc, f_free)
+rt_void rt_Scene::init_scene(rt_SCENE *scn,
+                             rt_si32 x_res, rt_si32 y_res, rt_si32 x_row,
+                             rt_ui32 *frame)
 {
+    if (pfm == RT_NULL)
+    {
+        throw rt_Exception("scene's platform container is NULL");
+    }
+
+    pfm->add_scene(this);
+
+    thnum = pfm->thnum;
+    tdata = pfm->tdata;
+
+    f_update = pfm->f_update;
+    f_render = pfm->f_render;
+
     this->scn = scn;
 
     /* check for locked scene data, not thread safe! (it's ok, not a bug) */
@@ -2515,9 +2643,6 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
     scn->lock = this;
 
     /* create scene threads array */
-    thnum = RT_MAX(thnum, 1);
-    this->thnum = thnum;
-
     tharr = (rt_SceneThread **)
             alloc(sizeof(rt_SceneThread *) * thnum, RT_ALIGN);
 
@@ -2552,32 +2677,53 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
      * though not as efficient due to unnecessary allocations per frame
      * or unused extra memory reservation resulting in larger footprint */
 
-    /* init threads management functions */
-    if (f_init != RT_NULL && f_term != RT_NULL
-    &&  f_update != RT_NULL && f_render != RT_NULL)
-    {
-        this->f_init = f_init;
-        this->f_term = f_term;
-        this->f_update = f_update;
-        this->f_render = f_render;
-    }
-    else
-    {
-        this->f_init = init_threads;
-        this->f_term = term_threads;
-        this->f_update = update_scene;
-        this->f_render = render_scene;
-    }
-
-    /* create platform-specific worker threads */
-    tdata = this->f_init(thnum, this);
-
     /* init rendering backend,
      * default SIMD runtime target will be chosen */
     simd_width = switch0(tharr[0]->s_inf, 0);
 
     simd_quads = (simd_width & 0xFF) * ((simd_width >> 16) & 0xFF);
     simd_width = (simd_quads * 128) / RT_ELEMENT;
+}
+
+/*
+ * Instantiate scene.
+ * Can only be called from single (main) thread.
+ */
+rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
+                   rt_si32 x_res, rt_si32 y_res, rt_si32 x_row, rt_ui32 *frame,
+                   rt_Platform *pfm) :
+
+    rt_Registry(pfm ? pfm->f_alloc : RT_NULL, pfm ? pfm->f_free : RT_NULL),
+    rt_List<rt_Scene>(RT_NULL)
+{
+    shared = 1;
+    this->pfm = pfm;
+
+    init_scene(scn, x_res, y_res, x_row, frame);
+}
+
+/*
+ * Instantiate scene.
+ * Can only be called from single (main) thread.
+ */
+rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
+                   rt_si32 x_res, rt_si32 y_res, rt_si32 x_row, rt_ui32 *frame,
+                   rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free, rt_si32 thnum,
+                   rt_FUNC_INIT f_init, rt_FUNC_TERM f_term,
+                   rt_FUNC_UPDATE f_update,
+                   rt_FUNC_RENDER f_render,
+                   rt_FUNC_PRINT_LOG f_print_log,
+                   rt_FUNC_PRINT_ERR f_print_err) :
+
+    rt_Registry(f_alloc, f_free),
+    rt_List<rt_Scene>(RT_NULL)
+{
+    shared = 0;
+    pfm = new rt_Platform(f_alloc, f_free, thnum,
+                          f_init, f_term, f_update, f_render,
+                          f_print_log, f_print_err);
+
+    init_scene(scn, x_res, y_res, x_row, frame);
 }
 
 /*
@@ -3325,15 +3471,21 @@ rt_void rt_Scene::save_frame(rt_si32 index)
 }
 
 /*
+ * Return pointer to the platform container.
+ */
+rt_Platform* rt_Scene::get_platform()
+{
+    return pfm;
+}
+
+/*
  * Deinitialize scene.
  */
 rt_Scene::~rt_Scene()
 {
-    /* destroy worker threads */
-    this->f_term(tdata, thnum);
-
     rt_si32 i;
 
+    /* destroy scene threads array */
     for (i = 0; i < thnum; i++)
     {
         delete tharr[i];
@@ -3348,6 +3500,12 @@ rt_Scene::~rt_Scene()
         rt_Texture *tex = tex_head->next;
         delete tex_head;
         tex_head = tex;
+    }
+
+    /* destroy platform container */
+    if (!shared)
+    {
+        delete pfm;
     }
 
     /* unlock scene data */

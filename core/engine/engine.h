@@ -36,8 +36,68 @@
 
 /* Classes */
 
+class rt_Platform;
 class rt_SceneThread;
 class rt_Scene;
+
+/******************************************************************************/
+/*****************************   MULTI-THREADING   ****************************/
+/******************************************************************************/
+
+typedef rt_pntr (*rt_FUNC_INIT)(rt_si32 thnum, rt_Scene *scn);
+typedef rt_void (*rt_FUNC_TERM)(rt_pntr tdata, rt_si32 thnum);
+typedef rt_void (*rt_FUNC_UPDATE)(rt_pntr tdata, rt_si32 thnum, rt_si32 phase);
+typedef rt_void (*rt_FUNC_RENDER)(rt_pntr tdata, rt_si32 thnum, rt_si32 phase);
+
+/*
+ * Platform abstraction container.
+ */
+class rt_Platform : private rt_LogRedirect
+{
+/*  fields */
+
+    private:
+
+    /* memory management functions */
+    rt_FUNC_ALLOC      f_alloc;
+    rt_FUNC_FREE       f_free;
+
+    /* threads management functions */
+    rt_FUNC_INIT        f_init;
+    rt_FUNC_TERM        f_term;
+    rt_FUNC_UPDATE      f_update;
+    rt_FUNC_RENDER      f_render;
+
+    /* platform-specific thread-pool */
+    rt_si32             thnum;
+    rt_pntr             tdata;
+
+    /* scene-list for given platform */
+    rt_Scene           *head;
+    rt_Scene           *tail;
+    rt_Scene           *cur;
+
+/*  methods */
+
+    public:
+
+    rt_Platform(rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free, rt_si32 thnum = 0,
+                rt_FUNC_INIT f_init = RT_NULL, rt_FUNC_TERM f_term = RT_NULL,
+                rt_FUNC_UPDATE f_update = RT_NULL,
+                rt_FUNC_RENDER f_render = RT_NULL,
+                rt_FUNC_PRINT_LOG f_print_log = RT_NULL,
+                rt_FUNC_PRINT_ERR f_print_err = RT_NULL);
+
+    virtual
+   ~rt_Platform();
+
+    rt_void     add_scene(rt_Scene *scn);
+    rt_Scene*   get_cur_scene();
+    rt_Scene*   set_cur_scene(rt_Scene *scn);
+    rt_void     next_scene();
+
+    friend      class rt_Scene;
+};
 
 /******************************************************************************/
 /*********************************   THREAD   *********************************/
@@ -104,26 +164,21 @@ class rt_SceneThread : public rt_Heap
 };
 
 /******************************************************************************/
-/*****************************   MULTI-THREADING   ****************************/
-/******************************************************************************/
-
-typedef rt_pntr (*rt_FUNC_INIT)(rt_si32 thnum, rt_Scene *scn);
-typedef rt_void (*rt_FUNC_TERM)(rt_pntr tdata, rt_si32 thnum);
-typedef rt_void (*rt_FUNC_UPDATE)(rt_pntr tdata, rt_si32 thnum, rt_si32 phase);
-typedef rt_void (*rt_FUNC_RENDER)(rt_pntr tdata, rt_si32 thnum, rt_si32 phase);
-
-/******************************************************************************/
 /**********************************   SCENE   *********************************/
 /******************************************************************************/
 
 /*
  * Scene manager (or instance of the engine).
  */
-class rt_Scene : private rt_LogRedirect, private rt_Registry
+class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
 {
 /*  fields */
 
     private:
+
+    /* platform pointer and its shared flag */
+    rt_Platform        *pfm;
+    rt_si32             shared;
 
     /* root scene object from scene data */
     rt_SCENE           *scn;
@@ -160,8 +215,6 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_si32             pending;
 
     /* threads management functions */
-    rt_FUNC_INIT        f_init;
-    rt_FUNC_TERM        f_term;
     rt_FUNC_UPDATE      f_update;
     rt_FUNC_RENDER      f_render;
 
@@ -209,7 +262,15 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
 
 /*  methods */
 
+    rt_void     init_scene(rt_SCENE *scn,
+                           rt_si32 x_res, rt_si32 y_res, rt_si32 x_row,
+                           rt_ui32 *frame);
+
     public:
+
+    rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
+             rt_si32 x_res, rt_si32 y_res, rt_si32 x_row, rt_ui32 *frame,
+             rt_Platform *pfm);
 
     rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
              rt_si32 x_res, rt_si32 y_res, rt_si32 x_row, rt_ui32 *frame,
@@ -245,6 +306,8 @@ class rt_Scene : private rt_LogRedirect, private rt_Registry
     rt_si32     next_cam();
     rt_ui32*    get_frame();
     rt_void     save_frame(rt_si32 index);
+
+    rt_Platform*get_platform();
 
     friend      class rt_SceneThread;
 };
