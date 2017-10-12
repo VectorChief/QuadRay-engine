@@ -278,7 +278,7 @@ rt_void sys_free(rt_pntr ptr, rt_size size)
 /* platform-specific thread */
 struct rt_THREAD
 {
-    rt_Scene           *scene;
+    rt_Platform        *pfm;
     rt_si32            *cmd;
     rt_si32             index;
     HANDLE              pthr;
@@ -298,7 +298,7 @@ DWORD WINAPI worker_thread(rt_pntr p)
     {
         WaitForSingleObject(thread->cevent[i], INFINITE);
 
-        if (thread->scene == RT_NULL)
+        if (thread->pfm == RT_NULL)
         {
             break;
         }
@@ -311,7 +311,7 @@ DWORD WINAPI worker_thread(rt_pntr p)
         if (eout == 0)
         try
         {
-            rt_Scene *scene = thread->scene->get_platform()->get_cur_scene();
+            rt_Scene *scene = thread->pfm->get_cur_scene();
 
             switch (cmd & 0x3)
             {
@@ -345,7 +345,7 @@ DWORD WINAPI worker_thread(rt_pntr p)
  * of "thnum" threads */
 struct rt_THREAD_POOL
 {
-    rt_Scene           *scene;
+    rt_Platform        *pfm;
     rt_si32             cmd;
     rt_si32             thnum;
     rt_THREAD          *thread;
@@ -357,7 +357,7 @@ struct rt_THREAD_POOL
 /*
  * Initialize platform-specific pool of "thnum" threads.
  */
-rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
+rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
 {
     eout = 0; emax = thnum;
     estr = (rt_pstr *)malloc(sizeof(rt_pstr) * thnum);
@@ -388,7 +388,7 @@ rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
         throw rt_Exception("out of memory for tpool in init_threads");
     }
 
-    tpool->scene = scn;
+    tpool->pfm = pfm;
     tpool->cmd = 0;
     tpool->thnum = thnum;
     tpool->thread = (rt_THREAD *)malloc(sizeof(rt_THREAD) * thnum);
@@ -410,7 +410,7 @@ rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn)
     {
         rt_THREAD *thread = tpool->thread;
 
-        thread[i].scene  = scn;
+        thread[i].pfm    = pfm;
         thread[i].cmd    = &tpool->cmd;
         thread[i].index  = i;
         thread[i].pevent = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -447,7 +447,7 @@ rt_void term_threads(rt_pntr tdata, rt_si32 thnum)
     {
         rt_THREAD *thread = tpool->thread;
 
-        thread[i].scene = RT_NULL;
+        thread[i].pfm = RT_NULL;
     }
 
     SetEvent(tpool->cevent[tpool->cindex]);

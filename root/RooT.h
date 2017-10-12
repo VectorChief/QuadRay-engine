@@ -84,7 +84,7 @@ rt_void sys_free(rt_pntr ptr, rt_size size);
 /*
  * Initialize platform-specific pool of "thnum" threads.
  */
-rt_pntr init_threads(rt_si32 thnum, rt_Scene *scn);
+rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm);
 
 /*
  * Terminate platform-specific pool of "thnum" threads.

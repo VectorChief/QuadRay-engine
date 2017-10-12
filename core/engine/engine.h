@@ -44,7 +44,7 @@ class rt_Scene;
 /*****************************   MULTI-THREADING   ****************************/
 /******************************************************************************/
 
-typedef rt_pntr (*rt_FUNC_INIT)(rt_si32 thnum, rt_Scene *scn);
+typedef rt_pntr (*rt_FUNC_INIT)(rt_si32 thnum, rt_Platform *pfm);
 typedef rt_void (*rt_FUNC_TERM)(rt_pntr tdata, rt_si32 thnum);
 typedef rt_void (*rt_FUNC_UPDATE)(rt_pntr tdata, rt_si32 thnum, rt_si32 phase);
 typedef rt_void (*rt_FUNC_RENDER)(rt_pntr tdata, rt_si32 thnum, rt_si32 phase);
@@ -62,7 +62,7 @@ class rt_Platform : private rt_LogRedirect
     rt_FUNC_ALLOC      f_alloc;
     rt_FUNC_FREE       f_free;
 
-    /* threads management functions */
+    /* thread management functions */
     rt_FUNC_INIT        f_init;
     rt_FUNC_TERM        f_term;
     rt_FUNC_UPDATE      f_update;
@@ -214,7 +214,7 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
     /* pending release flag */
     rt_si32             pending;
 
-    /* threads management functions */
+    /* thread management functions */
     rt_FUNC_UPDATE      f_update;
     rt_FUNC_RENDER      f_render;
 

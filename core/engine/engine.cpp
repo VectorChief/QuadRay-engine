@@ -426,9 +426,9 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
  * or during state-logging.
  */
 static
-rt_void* init_threads(rt_si32 thnum, rt_Scene *scn)
+rt_void* init_threads(rt_si32 thnum, rt_Platform *pfm)
 {
-    return scn;
+    return pfm;
 }
 
 /*
@@ -451,7 +451,7 @@ rt_void term_threads(rt_void *tdata, rt_si32 thnum)
 static
 rt_void update_scene(rt_void *tdata, rt_si32 thnum, rt_si32 phase)
 {
-    rt_Scene *scn = (rt_Scene *)tdata;
+    rt_Scene *scn = ((rt_Platform *)tdata)->get_cur_scene();
 
     rt_si32 i;
 
@@ -470,7 +470,7 @@ rt_void update_scene(rt_void *tdata, rt_si32 thnum, rt_si32 phase)
 static
 rt_void render_scene(rt_void *tdata, rt_si32 thnum, rt_si32 phase)
 {
-    rt_Scene *scn = (rt_Scene *)tdata;
+    rt_Scene *scn = ((rt_Platform *)tdata)->get_cur_scene();
 
     rt_si32 i;
 
@@ -532,7 +532,7 @@ rt_void rt_Platform::add_scene(rt_Scene *scn)
     if (head == RT_NULL)
     {
         /* create platform-specific worker threads */
-        tdata = this->f_init(thnum, scn);
+        tdata = this->f_init(thnum, this);
         head = tail = cur = scn;
     }
     else
@@ -2790,7 +2790,7 @@ rt_void rt_Scene::render(rt_time time)
     else
 #endif /* RT_OPTS_THREAD */
     {
-        update_scene(this, thnum, 1);
+        update_scene(pfm, thnum, 1);
     }
 
     /* update rays positioning and steppers */
@@ -2831,7 +2831,7 @@ rt_void rt_Scene::render(rt_time time)
     else
 #endif /* RT_OPTS_THREAD */
     {
-        update_scene(this, thnum, 2);
+        update_scene(pfm, thnum, 2);
     }
 
     /* phase 2.5, hierarchical update of arrays' bounds from surfaces */
@@ -2884,7 +2884,7 @@ rt_void rt_Scene::render(rt_time time)
     else
 #endif /* RT_OPTS_THREAD */
     {
-        update_scene(this, thnum, 3);
+        update_scene(pfm, thnum, 3);
     }
 
     /* screen tiling */
@@ -3058,7 +3058,7 @@ rt_void rt_Scene::render(rt_time time)
     else
 #endif /* RT_OPTS_THREAD */
     {
-        render_scene(this, thnum, 0);
+        render_scene(pfm, thnum, 0);
     }
 
 #if RT_OPTS_RENDER_EXT0 != 0
