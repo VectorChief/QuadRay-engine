@@ -451,7 +451,17 @@ rt_void term_threads(rt_void *tdata, rt_si32 thnum)
 static
 rt_void update_scene(rt_void *tdata, rt_si32 thnum, rt_si32 phase)
 {
-    rt_Scene *scn = ((rt_Platform *)tdata)->get_cur_scene();
+    rt_Scene *scn;
+
+    if (thnum < 0)
+    {
+        scn = (rt_Scene *)tdata;
+        thnum = -thnum;
+    }
+    else
+    {
+        scn = ((rt_Platform *)tdata)->get_cur_scene();
+    }
 
     rt_si32 i;
 
@@ -470,7 +480,17 @@ rt_void update_scene(rt_void *tdata, rt_si32 thnum, rt_si32 phase)
 static
 rt_void render_scene(rt_void *tdata, rt_si32 thnum, rt_si32 phase)
 {
-    rt_Scene *scn = ((rt_Platform *)tdata)->get_cur_scene();
+    rt_Scene *scn;
+
+    if (thnum < 0)
+    {
+        scn = (rt_Scene *)tdata;
+        thnum = -thnum;
+    }
+    else
+    {
+        scn = ((rt_Platform *)tdata)->get_cur_scene();
+    }
 
     rt_si32 i;
 
@@ -2779,7 +2799,7 @@ rt_void rt_Scene::render(rt_time time)
 
     /* 1st phase of multi-threaded update */
 #if RT_OPTS_THREAD != 0
-    if ((opts & RT_OPTS_THREAD) != 0 && !g_print
+    if ((opts & RT_OPTS_THREAD) != 0 && this == pfm->get_cur_scene() && !g_print
 #if RT_OPTS_UPDATE_EXT1 != 0
     &&  (opts & RT_OPTS_UPDATE_EXT1) == 0
 #endif /* RT_OPTS_UPDATE_EXT1 */
@@ -2790,7 +2810,7 @@ rt_void rt_Scene::render(rt_time time)
     else
 #endif /* RT_OPTS_THREAD */
     {
-        update_scene(pfm, thnum, 1);
+        update_scene(this, -thnum, 1);
     }
 
     /* update rays positioning and steppers */
@@ -2820,7 +2840,7 @@ rt_void rt_Scene::render(rt_time time)
 
     /* 2nd phase of multi-threaded update */
 #if RT_OPTS_THREAD != 0
-    if ((opts & RT_OPTS_THREAD) != 0 && !g_print
+    if ((opts & RT_OPTS_THREAD) != 0 && this == pfm->get_cur_scene() && !g_print
 #if RT_OPTS_UPDATE_EXT2 != 0
     &&  (opts & RT_OPTS_UPDATE_EXT2) == 0
 #endif /* RT_OPTS_UPDATE_EXT2 */
@@ -2831,7 +2851,7 @@ rt_void rt_Scene::render(rt_time time)
     else
 #endif /* RT_OPTS_THREAD */
     {
-        update_scene(pfm, thnum, 2);
+        update_scene(this, -thnum, 2);
     }
 
     /* phase 2.5, hierarchical update of arrays' bounds from surfaces */
@@ -2873,7 +2893,7 @@ rt_void rt_Scene::render(rt_time time)
 
     /* 3rd phase of multi-threaded update */
 #if RT_OPTS_THREAD != 0
-    if ((opts & RT_OPTS_THREAD) != 0 && !g_print
+    if ((opts & RT_OPTS_THREAD) != 0 && this == pfm->get_cur_scene() && !g_print
 #if RT_OPTS_UPDATE_EXT3 != 0
     &&  (opts & RT_OPTS_UPDATE_EXT3) == 0
 #endif /* RT_OPTS_UPDATE_EXT3 */
@@ -2884,7 +2904,7 @@ rt_void rt_Scene::render(rt_time time)
     else
 #endif /* RT_OPTS_THREAD */
     {
-        update_scene(pfm, thnum, 3);
+        update_scene(this, -thnum, 3);
     }
 
     /* screen tiling */
@@ -3047,18 +3067,18 @@ rt_void rt_Scene::render(rt_time time)
 
     /* multi-threaded render */
 #if RT_OPTS_THREAD != 0
-    if ((opts & RT_OPTS_THREAD) != 0
+    if ((opts & RT_OPTS_THREAD) != 0 && this == pfm->get_cur_scene()
 #if RT_OPTS_RENDER_EXT1 != 0
     &&  (opts & RT_OPTS_RENDER_EXT1) == 0
 #endif /* RT_OPTS_RENDER_EXT1 */
        )
     {
-        this->f_render(tdata, thnum, 0);
+        this->f_render(tdata, thnum, 1);
     }
     else
 #endif /* RT_OPTS_THREAD */
     {
-        render_scene(pfm, thnum, 0);
+        render_scene(this, -thnum, 1);
     }
 
 #if RT_OPTS_RENDER_EXT0 != 0
