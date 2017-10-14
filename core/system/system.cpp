@@ -186,7 +186,7 @@ rt_void rt_Heap::chunk_alloc(rt_size size, rt_ui32 align)
 
 /*
  * Reserve given "size" bytes of memory with given "align",
- * move heap pointer ahead for next alloc.
+ * move heap pointer ahead for the next alloc.
  */
 rt_pntr rt_Heap::alloc(rt_size size, rt_ui32 align)
 {
@@ -224,7 +224,7 @@ rt_pntr rt_Heap::reserve(rt_size size, rt_ui32 align)
 
 /*
  * Release all allocs made after given "ptr" was reserved.
- * Next alloc will start from "ptr" if align and size fits.
+ * Next alloc will begin from "ptr" if align and size fits.
  */
 rt_pntr rt_Heap::release(rt_pntr ptr)
 {

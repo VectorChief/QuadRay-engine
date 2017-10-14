@@ -111,8 +111,8 @@ class rt_Heap
 
     protected:
 
-    rt_FUNC_ALLOC      f_alloc;
-    rt_FUNC_FREE       f_free;
+    rt_FUNC_ALLOC       f_alloc;
+    rt_FUNC_FREE        f_free;
 
 /*  methods */
 

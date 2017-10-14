@@ -512,14 +512,11 @@ rt_Platform::rt_Platform(
                    rt_FUNC_PRINT_LOG f_print_log,
                    rt_FUNC_PRINT_ERR f_print_err) :
 
-    rt_LogRedirect(f_print_log, f_print_err) /* must be 1st in platform init */
+    rt_LogRedirect(f_print_log, f_print_err), /* must be 1st in platform init */
+    rt_Heap(f_alloc, f_free)
 {
     /* init scene list variables */
     head = tail = cur = RT_NULL;
-
-    /* init memory management functions */
-    this->f_alloc = f_alloc;
-    this->f_free  = f_free;
 
     /* init thread management functions */
     if (f_init != RT_NULL && f_term != RT_NULL

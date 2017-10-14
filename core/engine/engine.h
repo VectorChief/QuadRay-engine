@@ -52,15 +52,11 @@ typedef rt_void (*rt_FUNC_RENDER)(rt_pntr tdata, rt_si32 thnum, rt_si32 phase);
 /*
  * Platform abstraction container.
  */
-class rt_Platform : private rt_LogRedirect
+class rt_Platform : private rt_LogRedirect, public rt_Heap
 {
 /*  fields */
 
     private:
-
-    /* memory management functions */
-    rt_FUNC_ALLOC      f_alloc;
-    rt_FUNC_FREE       f_free;
 
     /* thread management functions */
     rt_FUNC_INIT        f_init;
