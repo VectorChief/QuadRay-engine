@@ -264,6 +264,9 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
 
     public:
 
+    rt_pntr operator new(size_t size, rt_Heap *hp);
+    rt_void operator delete(rt_pntr ptr);
+
     rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
              rt_si32 x_res, rt_si32 y_res, rt_si32 x_row, rt_ui32 *frame,
              rt_Platform *pfm);

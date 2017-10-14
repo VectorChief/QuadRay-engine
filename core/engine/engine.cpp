@@ -2539,6 +2539,19 @@ rt_SceneThread::~rt_SceneThread()
 /******************************************************************************/
 
 /*
+ * Allocate scene in custom heap.
+ */
+rt_pntr rt_Scene::operator new(size_t size, rt_Heap *hp)
+{
+    return hp->alloc(size, RT_ALIGN);
+}
+
+rt_void rt_Scene::operator delete(rt_pntr ptr)
+{
+
+}
+
+/*
  * Initialize scene (part of the constructor).
  * Can only be called from single (main) thread.
  */

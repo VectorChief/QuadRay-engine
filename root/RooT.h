@@ -839,8 +839,8 @@ rt_si32 main_init()
 
         for (i = 0; i < n; i++)
         {
-            sc[i] = new rt_Scene(sc_rt[i],
-                                 x_res, y_res, x_row, frame, pfm);
+            sc[i] = new(pfm) rt_Scene(sc_rt[i],
+                                      x_res, y_res, x_row, frame, pfm);
 
             sc[i]->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
             simd = sc[i]->set_simd(simd_init(n_simd, s_type, k_size));
