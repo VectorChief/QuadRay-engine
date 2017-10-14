@@ -504,13 +504,13 @@ rt_void render_scene(rt_void *tdata, rt_si32 thnum, rt_si32 phase)
  * Instantiate platform.
  * Can only be called from single (main) thread.
  */
-rt_Platform::rt_Platform(
-                   rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free, rt_si32 thnum,
-                   rt_FUNC_INIT f_init, rt_FUNC_TERM f_term,
-                   rt_FUNC_UPDATE f_update,
-                   rt_FUNC_RENDER f_render,
-                   rt_FUNC_PRINT_LOG f_print_log,
-                   rt_FUNC_PRINT_ERR f_print_err) :
+rt_Platform::rt_Platform(rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
+                         rt_si32 thnum,
+                         rt_FUNC_INIT f_init, rt_FUNC_TERM f_term,
+                         rt_FUNC_UPDATE f_update,
+                         rt_FUNC_RENDER f_render,
+                         rt_FUNC_PRINT_LOG f_print_log,
+                         rt_FUNC_PRINT_ERR f_print_err) :
 
     rt_LogRedirect(f_print_log, f_print_err), /* must be 1st in platform init */
     rt_Heap(f_alloc, f_free)
@@ -2552,17 +2552,17 @@ rt_void rt_Scene::operator delete(rt_pntr ptr)
 }
 
 /*
- * Initialize scene (part of the constructor).
+ * Instantiate scene.
  * Can only be called from single (main) thread.
  */
-rt_void rt_Scene::init_scene(rt_SCENE *scn,
-                             rt_si32 x_res, rt_si32 y_res, rt_si32 x_row,
-                             rt_ui32 *frame)
+rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
+                   rt_si32 x_res, rt_si32 y_res, rt_si32 x_row, rt_ui32 *frame,
+                   rt_Platform *pfm) :
+
+    rt_Registry(pfm->f_alloc, pfm->f_free),
+    rt_List<rt_Scene>(RT_NULL)
 {
-    if (pfm == RT_NULL)
-    {
-        throw rt_Exception("scene's platform container is NULL");
-    }
+    this->pfm = pfm;
 
     pfm->add_scene(this);
 
@@ -2713,47 +2713,6 @@ rt_void rt_Scene::init_scene(rt_SCENE *scn,
 
     simd_quads = (simd_width & 0xFF) * ((simd_width >> 16) & 0xFF);
     simd_width = (simd_quads * 128) / RT_ELEMENT;
-}
-
-/*
- * Instantiate scene.
- * Can only be called from single (main) thread.
- */
-rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
-                   rt_si32 x_res, rt_si32 y_res, rt_si32 x_row, rt_ui32 *frame,
-                   rt_Platform *pfm) :
-
-    rt_Registry(pfm ? pfm->f_alloc : RT_NULL, pfm ? pfm->f_free : RT_NULL),
-    rt_List<rt_Scene>(RT_NULL)
-{
-    shared = 1;
-    this->pfm = pfm;
-
-    init_scene(scn, x_res, y_res, x_row, frame);
-}
-
-/*
- * Instantiate scene.
- * Can only be called from single (main) thread.
- */
-rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
-                   rt_si32 x_res, rt_si32 y_res, rt_si32 x_row, rt_ui32 *frame,
-                   rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free, rt_si32 thnum,
-                   rt_FUNC_INIT f_init, rt_FUNC_TERM f_term,
-                   rt_FUNC_UPDATE f_update,
-                   rt_FUNC_RENDER f_render,
-                   rt_FUNC_PRINT_LOG f_print_log,
-                   rt_FUNC_PRINT_ERR f_print_err) :
-
-    rt_Registry(f_alloc, f_free),
-    rt_List<rt_Scene>(RT_NULL)
-{
-    shared = 0;
-    pfm = new rt_Platform(f_alloc, f_free, thnum,
-                          f_init, f_term, f_update, f_render,
-                          f_print_log, f_print_err);
-
-    init_scene(scn, x_res, y_res, x_row, frame);
 }
 
 /*
@@ -3530,12 +3489,6 @@ rt_Scene::~rt_Scene()
         rt_Texture *tex = tex_head->next;
         delete tex_head;
         tex_head = tex;
-    }
-
-    /* destroy platform container */
-    if (!shared)
-    {
-        delete pfm;
     }
 
     /* unlock scene data */

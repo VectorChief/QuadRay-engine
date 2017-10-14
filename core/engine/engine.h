@@ -75,6 +75,8 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
 
 /*  methods */
 
+    rt_void     add_scene(rt_Scene *scn);
+
     public:
 
     rt_Platform(rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free, rt_si32 thnum = 0,
@@ -87,7 +89,6 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
     virtual
    ~rt_Platform();
 
-    rt_void     add_scene(rt_Scene *scn);
     rt_Scene*   get_cur_scene();
     rt_Scene*   set_cur_scene(rt_Scene *scn);
     rt_void     next_scene();
@@ -172,9 +173,8 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
 
     private:
 
-    /* platform pointer and its shared flag */
+    /* platform pointer */
     rt_Platform        *pfm;
-    rt_si32             shared;
 
     /* root scene object from scene data */
     rt_SCENE           *scn;
@@ -258,10 +258,6 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
 
 /*  methods */
 
-    rt_void     init_scene(rt_SCENE *scn,
-                           rt_si32 x_res, rt_si32 y_res, rt_si32 x_row,
-                           rt_ui32 *frame);
-
     public:
 
     rt_pntr operator new(size_t size, rt_Heap *hp);
@@ -270,15 +266,6 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
     rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
              rt_si32 x_res, rt_si32 y_res, rt_si32 x_row, rt_ui32 *frame,
              rt_Platform *pfm);
-
-    rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
-             rt_si32 x_res, rt_si32 y_res, rt_si32 x_row, rt_ui32 *frame,
-             rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free, rt_si32 thnum = 0,
-             rt_FUNC_INIT f_init = RT_NULL, rt_FUNC_TERM f_term = RT_NULL,
-             rt_FUNC_UPDATE f_update = RT_NULL,
-             rt_FUNC_RENDER f_render = RT_NULL,
-             rt_FUNC_PRINT_LOG f_print_log = RT_NULL,
-             rt_FUNC_PRINT_ERR f_print_err = RT_NULL);
 
     virtual
    ~rt_Scene();
