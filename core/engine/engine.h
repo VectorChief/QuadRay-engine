@@ -76,6 +76,7 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
 /*  methods */
 
     rt_void     add_scene(rt_Scene *scn);
+    rt_void     del_scene(rt_Scene *scn);
 
     public:
 

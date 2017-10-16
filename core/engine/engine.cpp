@@ -542,7 +542,7 @@ rt_Platform::rt_Platform(rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
 }
 
 /*
- * Add given scene "scn" to platform's scene list.
+ * Add given "scn" to platform's scene list.
  */
 rt_void rt_Platform::add_scene(rt_Scene *scn)
 {
@@ -559,6 +559,42 @@ rt_void rt_Platform::add_scene(rt_Scene *scn)
     }
 
     scn->next = RT_NULL;
+}
+
+/*
+ * Delete given "scn" from platform's scene list.
+ * Note that scene's memory remains in platform's heap
+ * for the whole duration of platform's life-cycle.
+ * Thus add_scene/del_scene are not to be done repeatedly, avoid mem-leaks.
+ */
+rt_void rt_Platform::del_scene(rt_Scene *scn)
+{
+    rt_Scene **ptr = &head, *prev = RT_NULL;
+
+    while (*ptr != RT_NULL)
+    {
+        if (*ptr == scn)
+        {
+            *ptr = scn->next;
+            break;
+        }
+
+        prev = *ptr;
+        ptr = &prev->next;
+    }
+    if (head == RT_NULL && tdata != RT_NULL)
+    {
+        /* destroy platform-specific worker threads */
+        this->f_term(tdata, thnum);
+    }
+    if (tail == scn)
+    {
+        tail = prev;
+    }
+    if (cur == scn)
+    {
+        cur = head;
+    }
 }
 
 /*
@@ -613,10 +649,15 @@ rt_void rt_Platform::next_scene()
  */
 rt_Platform::~rt_Platform()
 {
-    if (tdata != RT_NULL)
+    rt_Scene *cur = head;
+
+    while (cur != RT_NULL)
     {
-        /* destroy platform-specific worker threads */
-        this->f_term(tdata, thnum);
+        rt_Scene *next = cur->next;
+
+        delete cur;
+
+        cur = next;
     }
 }
 
@@ -3469,10 +3510,15 @@ rt_Platform* rt_Scene::get_platform()
 
 /*
  * Deinitialize scene.
+ * Note that scene's memory remains in platform's heap
+ * for the whole duration of platform's life-cycle.
+ * Thus new/delete scene are not to be done repeatedly, avoid mem-leaks.
  */
 rt_Scene::~rt_Scene()
 {
     rt_si32 i;
+
+    pfm->del_scene(this);
 
     /* destroy scene threads array */
     for (i = 0; i < thnum; i++)
