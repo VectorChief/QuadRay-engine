@@ -563,9 +563,6 @@ rt_void rt_Platform::add_scene(rt_Scene *scn)
 
 /*
  * Delete given "scn" from platform's scene list.
- * Note that scene's memory remains in platform's heap
- * for the whole duration of platform's life-cycle.
- * Thus add_scene/del_scene are not to be done repeatedly, avoid mem-leaks.
  */
 rt_void rt_Platform::del_scene(rt_Scene *scn)
 {
@@ -649,15 +646,9 @@ rt_void rt_Platform::next_scene()
  */
 rt_Platform::~rt_Platform()
 {
-    rt_Scene *cur = head;
-
-    while (cur != RT_NULL)
+    while (head != RT_NULL)
     {
-        rt_Scene *next = cur->next;
-
-        delete cur;
-
-        cur = next;
+        delete head; /* calls del_scene(head) replacing it with next */
     }
 }
 
@@ -2581,20 +2572,26 @@ rt_SceneThread::~rt_SceneThread()
 
 /*
  * Allocate scene in custom heap.
+ * Heap "hp" must be the same object as platform "pfm" in constructor.
  */
 rt_pntr rt_Scene::operator new(size_t size, rt_Heap *hp)
 {
-    return hp->alloc(size, RT_ALIGN);
+    return hp->obj_alloc(size, RT_ALIGN);
 }
 
+/*
+ * Delete scene from custom heap.
+ * Heap "hp" must be the same object as platform "pfm" in constructor.
+ */
 rt_void rt_Scene::operator delete(rt_pntr ptr)
 {
-
+    ((rt_Scene *)ptr)->pfm->obj_free(ptr);
 }
 
 /*
  * Instantiate scene.
  * Can only be called from single (main) thread.
+ * Platform "pfm" must be the same object as heap "hp" in custom "new".
  */
 rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
                    rt_si32 x_res, rt_si32 y_res, rt_si32 x_row, rt_ui32 *frame,
@@ -3510,9 +3507,6 @@ rt_Platform* rt_Scene::get_platform()
 
 /*
  * Deinitialize scene.
- * Note that scene's memory remains in platform's heap
- * for the whole duration of platform's life-cycle.
- * Thus new/delete scene are not to be done repeatedly, avoid mem-leaks.
  */
 rt_Scene::~rt_Scene()
 {
