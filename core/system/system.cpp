@@ -153,6 +153,7 @@ rt_Heap::rt_Heap(rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free)
 
     /* init heap */
     head = RT_NULL;
+    obj_head = RT_NULL;
     chunk_alloc(0, RT_ALIGN);
 }
 
@@ -232,6 +233,24 @@ rt_pntr rt_Heap::release(rt_pntr ptr)
      * free chunks allocated afterwards */
     while (head != RT_NULL && (ptr < head + 1 || ptr >= head->end))
     {
+        rt_pntr *obj = &obj_head;
+
+        /* traverse the list of free objects */
+        while (*obj != RT_NULL)
+        {
+            /* remove free object from the chunk */
+            if (*obj >= head + 1 && *obj < head->end)
+            {
+                *((rt_si32 *)*obj - 2) = 0; /* clear object's "magic" */
+                *obj = *(rt_pntr *)*obj; /* remove object from the list */
+                continue;
+            }
+
+            /* move to the next object */
+            obj = (rt_pntr *)*obj;
+        }
+
+        /* release chunk */
         rt_CHUNK *chunk = head->next;
         f_free(head, head->size);
         head = chunk;
@@ -240,6 +259,24 @@ rt_pntr rt_Heap::release(rt_pntr ptr)
     /* reset heap pointer to "ptr" */
     if (head != RT_NULL && ptr >= head + 1 && ptr < head->end)
     {
+        rt_pntr *obj = &obj_head;
+
+        /* traverse the list of free objects */
+        while (*obj != RT_NULL)
+        {
+            /* remove free object after "ptr" */
+            if (*obj >= ptr && *obj < head->end)
+            {
+                *((rt_si32 *)*obj - 2) = 0; /* clear object's "magic" */
+                *obj = *(rt_pntr *)*obj; /* remove object from the list */
+                continue;
+            }
+
+            /* move to the next object */
+            obj = (rt_pntr *)*obj;
+        }
+
+        /* reset heap pointer */
         head->ptr = (rt_byte *)ptr;
         return ptr;
     }
@@ -249,11 +286,87 @@ rt_pntr rt_Heap::release(rt_pntr ptr)
 }
 
 /*
+ * Allocate given "size" bytes of memory with given "align",
+ * search the list of free objects, move heap pointer otherwise.
+ */
+rt_pntr rt_Heap::obj_alloc(rt_size size, rt_ui32 align)
+{
+    rt_pntr *obj = &obj_head;
+
+    /* each object must be capable of holding a pointer */
+    size = RT_MAX(size, 8);
+
+    /* search the list of free objects */
+    while (*obj != RT_NULL)
+    {
+        /* compute align */
+        rt_size mask = align > 0 ? align - 1 : 0;
+        rt_byte *real_ptr = (rt_byte *)(((rt_size)*obj + mask) & ~mask);
+        rt_si32 real_size = *((rt_si32 *)*obj - 1); /* fetch size from obj */
+        real_size -= (rt_si32)(real_ptr - (rt_byte *)*obj); /* size-=align */
+
+        /* found matching object */                  /* check 1-FREE-OBJ */
+        if (real_size >= size && *((rt_si32 *)*obj - 2) == 0x1F3EE0B7)
+        {
+            *((rt_si32 *)*obj - 2) = 0; /* clear object's "magic" */
+            *obj = *(rt_pntr *)*obj; /* remove object from the list */
+
+            *((rt_si32 *)real_ptr - 1) = real_size; /* size behind pointer */
+            *((rt_si32 *)real_ptr - 2) = 0x1600D0B7; /* stamp 1-GODD-OBJ */
+
+            return real_ptr;
+        }
+
+        /* move to the next object */
+        obj = (rt_pntr *)*obj;
+    }
+
+    rt_byte *ptr = (rt_byte *)reserve(size + RT_MAX(8, align), align);
+
+    head->ptr = ptr + size + RT_MAX(8, align);
+
+    ptr += RT_MAX(8, align);
+
+    *((rt_si32 *)ptr - 1) = size;      /* size behind pointer */
+    *((rt_si32 *)ptr - 2) = 0x1600D0B7; /* stamp 1-GODD-OBJ */
+
+    return ptr;
+}
+
+/*
+ * Release object at given "ptr",
+ * add its memory to the list of free objects.
+ */
+rt_pntr rt_Heap::obj_free(rt_pntr ptr)
+{
+    /* check object at "ptr" */
+    if (*((rt_si32 *)ptr - 2) == 0x1600D0B7) /* check 1-GOOD-OBJ */
+    {
+        *((rt_si32 *)ptr - 2)  = 0x1F3EE0B7; /* stamp 1-FREE-OBJ */
+
+        /* add object to the list */
+        *(rt_pntr *)ptr = obj_head;
+        obj_head = ptr;
+        return ptr;
+    }
+
+    /* object at "ptr" was not found */
+    return RT_NULL;
+}
+
+/*
  * Deinitialize heap.
  */
 rt_Heap::~rt_Heap()
 {
-    /* free all chunks in the list */
+    /* release all free objects from the list */
+    while (obj_head != RT_NULL)
+    {
+        *((rt_si32 *)obj_head - 2) = 0; /* clear object's "magic" */
+        obj_head = *(rt_pntr *)obj_head; /* remove object from the list */
+    }
+
+    /* free all chunks from the list */
     while (head != RT_NULL)
     {
         rt_CHUNK *chunk = head->next;

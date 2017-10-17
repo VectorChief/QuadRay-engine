@@ -106,6 +106,7 @@ class rt_Heap
     private:
 
     rt_CHUNK           *head;
+    rt_pntr             obj_head;
 
     rt_void chunk_alloc(rt_size size, rt_ui32 align);
 
@@ -126,6 +127,9 @@ class rt_Heap
     rt_pntr alloc(rt_size size, rt_ui32 align);
     rt_pntr reserve(rt_size size, rt_ui32 align);
     rt_pntr release(rt_pntr ptr);
+
+    rt_pntr obj_alloc(rt_size size, rt_ui32 align);
+    rt_pntr obj_free(rt_pntr ptr);
 };
 
 /******************************************************************************/
