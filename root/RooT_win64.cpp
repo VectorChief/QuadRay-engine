@@ -157,9 +157,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
             RT_LOGE("Couldn't create fullscreen window\n");
             return FALSE;
         }
-
-        /* hide cursor */
-        ShowCursor(FALSE);
     }
     else
     {
@@ -184,6 +181,16 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
+
+    if (w_size == 0)
+    {
+        POINT point;
+
+        /* hide cursor */
+        ShowCursor(FALSE);
+        GetCursorPos(&point);
+        SetCursorPos(point.x, point.y);
+    }
 
     while (GetMessage(&msg, NULL, 0, 0))
     {
