@@ -15,6 +15,7 @@
 HINSTANCE   hInst;
 HWND        hWnd;
 HDC         hWndDC;
+DEVMODE     DevMode;
 
 HBITMAP     hFrm;
 HDC         hFrmDC;
@@ -85,16 +86,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
         return FALSE;
     }
 
-    /* init framebuffer's dimensions */
-    DIBinfo.bmiHeader.biWidth     = +x_row;
-    DIBinfo.bmiHeader.biHeight    = -y_res;
-    DIBinfo.bmiHeader.biSizeImage = (x_row * y_res * sizeof(rt_ui32));
-
-    /* inherit framebuffer's dimensions */
-    x_win = x_res;
-    y_win = y_res;
-
-    /* create window and register its class */
+    /* register window class */
     MSG msg;
     hInst = hInstance;
 
@@ -121,24 +113,72 @@ int APIENTRY WinMain(HINSTANCE hInstance,
         return FALSE;
     }
 
-
-    RECT wRect, cRect;
-
-    hWnd = CreateWindow(wnd_class, title,
-                WS_OVERLAPPED | WS_SYSMENU | WS_MINIMIZEBOX,
-                CW_USEDEFAULT, CW_USEDEFAULT, x_win, y_win,
-                NULL, NULL, hInst, NULL);
-
-    if (!hWnd)
+    if (w_size == 0)
     {
-        RT_LOGE("Couldn't create window\n");
-        return FALSE;
+        /* acquire screen settings */
+        EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &DevMode);
+
+        /* acquire fullscreen dimensions */
+        x_win = DevMode.dmPelsWidth;
+        y_win = DevMode.dmPelsHeight;
+
+        /* override framebuffer's dimensions in fullscreen mode */
+        x_res = x_new != 0 ? x_new : x_win;
+        y_res = y_new != 0 ? y_new : y_win;
+        x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
+    }
+    else
+    {
+        /* inherit framebuffer's dimensions */
+        x_win = x_res;
+        y_win = y_res;
     }
 
-    GetWindowRect(hWnd, &wRect);
-    GetClientRect(hWnd, &cRect);
-    MoveWindow(hWnd, 100, 50, 2 * x_win - cRect.right,
-                              2 * y_win - cRect.bottom, FALSE);
+    /* init framebuffer's dimensions */
+    DIBinfo.bmiHeader.biWidth     = +x_row;
+    DIBinfo.bmiHeader.biHeight    = -y_res;
+    DIBinfo.bmiHeader.biSizeImage = (x_row * y_res * sizeof(rt_ui32));
+
+    /* create window */
+    RECT wRect, cRect;
+
+    if (w_size == 0)
+    {
+        /* create fullscreen window */
+        hWnd = CreateWindow(wnd_class, title,
+                    WS_POPUP,
+                    CW_USEDEFAULT, CW_USEDEFAULT, x_win, y_win,
+                    NULL, NULL, hInst, NULL);
+
+        if (!hWnd)
+        {
+            RT_LOGE("Couldn't create fullscreen window\n");
+            return FALSE;
+        }
+
+        /* hide cursor */
+        ShowCursor(FALSE);
+    }
+    else
+    {
+        /* create regular window */
+        hWnd = CreateWindow(wnd_class, title,
+                    WS_OVERLAPPED | WS_SYSMENU | WS_MINIMIZEBOX,
+                    CW_USEDEFAULT, CW_USEDEFAULT, x_win, y_win,
+                    NULL, NULL, hInst, NULL);
+
+        if (!hWnd)
+        {
+            RT_LOGE("Couldn't create regular window\n");
+            return FALSE;
+        }
+
+        /* move window */
+        GetWindowRect(hWnd, &wRect);
+        GetClientRect(hWnd, &cRect);
+        MoveWindow(hWnd, 100, 50, 2 * x_win - cRect.right,
+                                  2 * y_win - cRect.bottom, FALSE);
+    }
 
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
