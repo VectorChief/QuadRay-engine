@@ -115,11 +115,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
         return FALSE;
     }
 
+    /* acquire screen settings */
+    EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &DevMode);
+
     if (w_size == 0)
     {
-        /* acquire screen settings */
-        EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &DevMode);
-
         /* acquire fullscreen dimensions */
         x_win = DevMode.dmPelsWidth;
         y_win = DevMode.dmPelsHeight;
@@ -142,8 +142,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     DIBinfo.bmiHeader.biSizeImage = (x_row * y_res * sizeof(rt_ui32));
 
     /* create window */
-    RECT wRect, cRect;
-
     if (w_size == 0)
     {
         /* create fullscreen window */
@@ -172,11 +170,14 @@ int APIENTRY WinMain(HINSTANCE hInstance,
             return FALSE;
         }
 
-        /* move window */
-        GetWindowRect(hWnd, &wRect);
+        RECT cRect;
+
+        /* move and resize window */
         GetClientRect(hWnd, &cRect);
-        MoveWindow(hWnd, 100, 50, 2 * x_win - cRect.right,
-                                  2 * y_win - cRect.bottom, FALSE);
+        MoveWindow(hWnd, (DevMode.dmPelsWidth  - 2 * x_win + cRect.right)  / 2,
+                         (DevMode.dmPelsHeight - 2 * y_win + cRect.bottom) / 2,
+                         2 * x_win - cRect.right,
+                         2 * y_win - cRect.bottom, FALSE);
     }
 
     ShowWindow(hWnd, nCmdShow);
