@@ -42,7 +42,7 @@
 
 #define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
 #ifndef RT_THREADS_NUM
-#define RT_THREADS_NUM          60 /* number of threads for update and render */
+#define RT_THREADS_NUM          120/* number of threads for update and render */
 #endif /* _THREADS_NUM */
 #define RT_SETAFFINITY          0
 
