@@ -44,7 +44,7 @@
 #ifndef RT_THREADS_NUM
 #define RT_THREADS_NUM          120/* number of threads for update and render */
 #endif /* _THREADS_NUM */
-#define RT_SETAFFINITY          0
+#define RT_SETAFFINITY          (_WIN32_WINNT>=0x0601) /* Windows 7 or newer */
 
 #else /* (defined RT_LINUX) */
 
