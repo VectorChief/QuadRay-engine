@@ -34,7 +34,9 @@ BITMAPINFO  DIBinfo =
     0                                   /* biClrImportant */
 };
 
-CRITICAL_SECTION critSec;
+#include <pthread.h>
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /******************************************************************************/
 /**********************************   MAIN   **********************************/
@@ -240,7 +242,7 @@ SYSTEM_INFO s_sys = {0};
  */
 rt_pntr sys_alloc(rt_size size)
 {
-    EnterCriticalSection(&critSec);
+    pthread_mutex_lock(&mutex);
 
 #if RT_POINTER == 64
 
@@ -274,7 +276,7 @@ rt_pntr sys_alloc(rt_size size)
 
 #endif /* RT_DEBUG */
 
-    LeaveCriticalSection(&critSec);
+    pthread_mutex_unlock(&mutex);
 
 #if (RT_POINTER - RT_ADDRESS) != 0
 
@@ -298,7 +300,7 @@ rt_pntr sys_alloc(rt_size size)
  */
 rt_void sys_free(rt_pntr ptr, rt_size size)
 {
-    EnterCriticalSection(&critSec);
+    pthread_mutex_lock(&mutex);
 
 #if RT_POINTER == 64
 
@@ -316,7 +318,7 @@ rt_void sys_free(rt_pntr ptr, rt_size size)
 
 #endif /* RT_DEBUG */
 
-    LeaveCriticalSection(&critSec);
+    pthread_mutex_unlock(&mutex);
 }
 
 /******************************************************************************/
@@ -329,22 +331,20 @@ struct rt_THREAD
     rt_Platform        *pfm;
     rt_si32            *cmd;
     rt_si32             index;
-    HANDLE              pthr;
-    HANDLE              pevent;
-    HANDLE             *cevent;
+    pthread_t           pthr;
+    pthread_barrier_t  *barr;
 };
 
 /*
  * Worker thread's entry point.
  */
-DWORD WINAPI worker_thread(rt_pntr p)
+rt_pntr worker_thread(rt_pntr p)
 {
     rt_THREAD *thread = (rt_THREAD *)p;
-    rt_si32 i = 0;
 
     while (1)
     {
-        WaitForSingleObject(thread->cevent[i], INFINITE);
+        pthread_barrier_wait(&thread->barr[0]);
 
         if (thread->pfm == RT_NULL)
         {
@@ -381,12 +381,12 @@ DWORD WINAPI worker_thread(rt_pntr p)
             eout = 1;
         }
 
-        SetEvent(thread->pevent);
-        i = 1 - i;
+        pthread_barrier_wait(&thread->barr[1]);
     }
 
-    SetEvent(thread->pevent);
-    return 1;
+    pthread_barrier_wait(&thread->barr[1]);
+
+    return RT_NULL;
 }
 
 /* platform-specific pool
@@ -397,9 +397,7 @@ struct rt_THREAD_POOL
     rt_si32             cmd;
     rt_si32             thnum;
     rt_THREAD          *thread;
-    HANDLE             *pevent;
-    HANDLE              cevent[2];
-    rt_si32             cindex;
+    pthread_barrier_t   barr[2];
 };
 
 /*
@@ -419,13 +417,9 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
 
 #if RT_SETAFFINITY
 
-#if (defined RT_WIN32)
-    DWORD pam, sam;
-#else /* RT_WIN64 */
-    DWORD_PTR pam, sam;
-#endif /* RT_WIN64 */
-    HANDLE process = GetCurrentProcess();
-    GetProcessAffinityMask(process, &pam, &sam);
+    cpu_set_t cpuset_pr, cpuset_th;
+    pthread_t pthr = pthread_self();
+    pthread_getaffinity_np(pthr, sizeof(cpu_set_t), &cpuset_pr);
 
 #endif /* RT_SETAFFINITY */
 
@@ -440,17 +434,14 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
     tpool->cmd = 0;
     tpool->thnum = thnum;
     tpool->thread = (rt_THREAD *)malloc(sizeof(rt_THREAD) * thnum);
-    tpool->pevent = (HANDLE *)malloc(sizeof(HANDLE) * thnum);
 
-    if (tpool->thread == RT_NULL
-    ||  tpool->pevent == RT_NULL)
+    if (tpool->thread == RT_NULL)
     {
         throw rt_Exception("out of memory for thread data in init_threads");
     }
 
-    tpool->cevent[0] = CreateEvent(NULL, TRUE, FALSE, NULL);
-    tpool->cevent[1] = CreateEvent(NULL, TRUE, FALSE, NULL);
-    tpool->cindex = 0;
+    pthread_barrier_init(&tpool->barr[0], NULL, thnum + 1);
+    pthread_barrier_init(&tpool->barr[1], NULL, thnum + 1);
 
     rt_si32 i, a;
 
@@ -461,21 +452,20 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
         thread[i].pfm    = pfm;
         thread[i].cmd    = &tpool->cmd;
         thread[i].index  = i;
-        thread[i].pevent = CreateEvent(NULL, FALSE, FALSE, NULL);
-        thread[i].cevent = tpool->cevent;
-        tpool->pevent[i] = thread[i].pevent;
+        thread[i].barr   = tpool->barr;
 
-        thread[i].pthr   = CreateThread(NULL, 0, worker_thread,
-                                        &thread[i], 0, NULL);
+        pthread_create(&thread[i].pthr, NULL, worker_thread, &thread[i]);
 
 #if RT_SETAFFINITY
 
-        while (((pam & (ULL(1) << a)) == 0))
+        while (!CPU_ISSET(a, &cpuset_pr))
         {
             a++;
-            if (a == 64) a = 0;
+            if (a == CPU_SETSIZE) a = 0;
         }
-        SetThreadAffinityMask(thread[i].pthr, ULL(1) << a);
+        CPU_ZERO(&cpuset_th);
+        CPU_SET(a, &cpuset_th);
+        pthread_setaffinity_np(thread[i].pthr, sizeof(cpu_set_t), &cpuset_th);
 
 #endif /* RT_SETAFFINITY */
     }
@@ -498,22 +488,22 @@ rt_void term_threads(rt_pntr tdata, rt_si32 thnum)
         thread[i].pfm = RT_NULL;
     }
 
-    SetEvent(tpool->cevent[tpool->cindex]);
-    WaitForMultipleObjects(tpool->thnum, tpool->pevent, TRUE, INFINITE);
+    pthread_barrier_wait(&tpool->barr[0]);
+    pthread_barrier_wait(&tpool->barr[1]);
 
     for (i = 0; i < tpool->thnum; i++)
     {
         rt_THREAD *thread = tpool->thread;
 
-        CloseHandle(thread[i].pthr);
-        CloseHandle(thread[i].pevent);
+        pthread_join(thread[i].pthr, NULL);
+
+        thread[i].barr = NULL;
     }
 
-    CloseHandle(tpool->cevent[0]);
-    CloseHandle(tpool->cevent[1]);
+    pthread_barrier_destroy(&tpool->barr[0]);
+    pthread_barrier_destroy(&tpool->barr[1]);
 
     free(tpool->thread);
-    free(tpool->pevent);
     free(tpool);
 
     free(estr);
@@ -530,10 +520,8 @@ rt_void update_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
 
     tpool->cmd = 1 | ((phase & 0xFF) << 2);
-    SetEvent(tpool->cevent[tpool->cindex]);
-    WaitForMultipleObjects(tpool->thnum, tpool->pevent, TRUE, INFINITE);
-    ResetEvent(tpool->cevent[tpool->cindex]);
-    tpool->cindex = 1 - tpool->cindex;
+    pthread_barrier_wait(&tpool->barr[0]);
+    pthread_barrier_wait(&tpool->barr[1]);
 }
 
 /*
@@ -545,10 +533,8 @@ rt_void render_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
 
     tpool->cmd = 2 | ((phase & 0xFF) << 2);
-    SetEvent(tpool->cevent[tpool->cindex]);
-    WaitForMultipleObjects(tpool->thnum, tpool->pevent, TRUE, INFINITE);
-    ResetEvent(tpool->cevent[tpool->cindex]);
-    tpool->cindex = 1 - tpool->cindex;
+    pthread_barrier_wait(&tpool->barr[0]);
+    pthread_barrier_wait(&tpool->barr[1]);
 }
 
 /******************************************************************************/
@@ -619,7 +605,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             SelectObject(hFrmDC, hFrm);
 
             /* init sys_alloc's mutex */
-            InitializeCriticalSection(&critSec);
+            pthread_mutex_init(&mutex, NULL);
 
             ret = main_init();
 
@@ -674,7 +660,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             ret = main_term();
 
             /* destroy sys_alloc's mutex */
-            DeleteCriticalSection(&critSec);
+            pthread_mutex_destroy(&mutex);
 
             if (hFrmDC != NULL)
             {
