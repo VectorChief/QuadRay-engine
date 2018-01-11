@@ -545,7 +545,7 @@ rt_void term_threads(rt_pntr tdata, rt_si32 thnum)
     tpool->pfm = RT_NULL;
     SetEvent(tpool->wevent[tpool->windex]);
     /* wait for control-threads to signal control-events for their groups */
-    WaitForMultipleObjects(tpool->thnum / TG, tpool->cevent, TRUE, INFINITE);
+    WaitForMultipleObjects((thnum + TG-1) / TG, tpool->cevent, TRUE, INFINITE);
 
     CloseHandle(tpool->wevent[0]);
     CloseHandle(tpool->wevent[1]);
@@ -582,7 +582,7 @@ rt_void update_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
     tpool->cmd = 1 | ((phase & 0xFF) << 2);
     SetEvent(tpool->wevent[tpool->windex]);
     /* wait for control-threads to signal control-events for their groups */
-    WaitForMultipleObjects(tpool->thnum / TG, tpool->cevent, TRUE, INFINITE);
+    WaitForMultipleObjects((thnum + TG-1) / TG, tpool->cevent, TRUE, INFINITE);
     /* manually reset current worker-event */
     ResetEvent(tpool->wevent[tpool->windex]);
     /* swap worker-event for the main thread to signal */
@@ -601,7 +601,7 @@ rt_void render_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
     tpool->cmd = 2 | ((phase & 0xFF) << 2);
     SetEvent(tpool->wevent[tpool->windex]);
     /* wait for control-threads to signal control-events for their groups */
-    WaitForMultipleObjects(tpool->thnum / TG, tpool->cevent, TRUE, INFINITE);
+    WaitForMultipleObjects((thnum + TG-1) / TG, tpool->cevent, TRUE, INFINITE);
     /* manually reset current worker-event */
     ResetEvent(tpool->wevent[tpool->windex]);
     /* swap worker-event for the main thread to signal */
