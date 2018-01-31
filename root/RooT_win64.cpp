@@ -36,8 +36,9 @@ BITMAPINFO  DIBinfo =
 
 CRITICAL_SECTION critSec;
 
-/* thread-group size, maximum 64 threads per group */
-#define TG 60
+/* thread-group size, maximum 64 threads per group (Win64 limitation) */
+#define TG 64
+/* code below supports up to 4 groups, 256 threads (local limitation) */
 
 /******************************************************************************/
 /**********************************   MAIN   **********************************/
@@ -485,13 +486,14 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
     tpool->wevent[0] = CreateEvent(NULL, TRUE, FALSE, NULL);
     tpool->wevent[1] = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-    rt_si32 i, a, g;
+    rt_si32 i, k = 0;
+    rt_si32 a = k, g = 0;
 
 #if RT_DEBUG >= 1
     RT_LOGI("ThreadCount = %d\n", thnum);
 #endif /* RT_DEBUG */
 
-    for (i = 0, a = 0, g = 0; i < thnum; i++)
+    for (i = 0; i < thnum; i++)
     {
         rt_THREAD *thread = tpool->thread;
 
@@ -514,29 +516,30 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
         ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
         if (SetThreadGroupAffinity(thread[i].pthr, &ga, NULL) != FALSE)
         {
-            a++;
+            a += 2;
         }
         else
         {
-            a = 0;
+            a = k;
             g++;
             ga.Mask = ULL(1) << (a % TG);
             ga.Group = (g % 4);
             ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
             if (SetThreadGroupAffinity(thread[i].pthr, &ga, NULL) != FALSE)
             {
-                a++;
+                a += 2;
             }
             else
             {
-                a = 0;
+                k = 1 - k;
+                a = k;
                 g = 0;
                 ga.Mask = ULL(1) << (a % TG);
                 ga.Group = (g % 4);
                 ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
                 if (SetThreadGroupAffinity(thread[i].pthr, &ga, NULL) != FALSE)
                 {
-                    a++;
+                    a += 2;
                 }
             }
         }
