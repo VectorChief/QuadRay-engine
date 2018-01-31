@@ -485,13 +485,13 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
     tpool->wevent[0] = CreateEvent(NULL, TRUE, FALSE, NULL);
     tpool->wevent[1] = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-    rt_si32 i, a;
+    rt_si32 i, a, g;
 
 #if RT_DEBUG >= 1
     RT_LOGI("ThreadCount = %d\n", thnum);
 #endif /* RT_DEBUG */
 
-    for (i = 0, a = 0; i < thnum; i++, a++)
+    for (i = 0, a = 0, g = 0; i < thnum; i++)
     {
         rt_THREAD *thread = tpool->thread;
 
@@ -510,9 +510,36 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
 #if RT_SETAFFINITY
         GROUP_AFFINITY ga;
         ga.Mask = ULL(1) << (a % TG);
-        ga.Group = (a / TG);
+        ga.Group = (g % 4);
         ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
-        SetThreadGroupAffinity(thread[i].pthr, &ga, NULL);
+        if (SetThreadGroupAffinity(thread[i].pthr, &ga, NULL) != FALSE)
+        {
+            a++;
+        }
+        else
+        {
+            a = 0;
+            g++;
+            ga.Mask = ULL(1) << (a % TG);
+            ga.Group = (g % 4);
+            ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
+            if (SetThreadGroupAffinity(thread[i].pthr, &ga, NULL) != FALSE)
+            {
+                a++;
+            }
+            else
+            {
+                a = 0;
+                g = 0;
+                ga.Mask = ULL(1) << (a % TG);
+                ga.Group = (g % 4);
+                ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
+                if (SetThreadGroupAffinity(thread[i].pthr, &ga, NULL) != FALSE)
+                {
+                    a++;
+                }
+            }
+        }
 #if RT_DEBUG >= 2
         RT_LOGI("ThreadGroupAffinity: Mask = %" PR_Z "X, Group = %d\n",
                                                          ga.Mask, ga.Group);
