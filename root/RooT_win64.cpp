@@ -511,10 +511,11 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
 
 #if RT_SETAFFINITY
         GROUP_AFFINITY ga;
-        ga.Mask = ULL(1) << (a % TG);
+        ga.Mask = ULL(1) << a;
         ga.Group = (g % 4);
         ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
-        if (SetThreadGroupAffinity(thread[i].pthr, &ga, NULL) != FALSE)
+        if (a < TG
+        &&  SetThreadGroupAffinity(thread[i].pthr, &ga, NULL) != FALSE)
         {
             a += 2;
         }
@@ -522,7 +523,7 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
         {
             a = k;
             g++;
-            ga.Mask = ULL(1) << (a % TG);
+            ga.Mask = ULL(1) << a;
             ga.Group = (g % 4);
             ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
             if (SetThreadGroupAffinity(thread[i].pthr, &ga, NULL) != FALSE)
@@ -534,7 +535,7 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
                 k = 1 - k;
                 a = k;
                 g = 0;
-                ga.Mask = ULL(1) << (a % TG);
+                ga.Mask = ULL(1) << a;
                 ga.Group = (g % 4);
                 ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
                 if (SetThreadGroupAffinity(thread[i].pthr, &ga, NULL) != FALSE)
