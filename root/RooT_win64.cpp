@@ -357,7 +357,7 @@ struct rt_THREAD
 DWORD WINAPI worker_thread(rt_pntr p)
 {
     rt_THREAD *thread = (rt_THREAD *)p;
-    rt_si32 wi = 0, ti = thread->index, thnum = thread->tpool->thnum;
+    rt_si32 wi = 0, ti = thread->index;
 
     while (1)
     {
@@ -412,7 +412,7 @@ DWORD WINAPI worker_thread(rt_pntr p)
          * signals its respective control-event for the main thread */
         if ((ti % TG) == 0)
         {
-            WaitForMultipleObjects(RT_MIN(TG, thnum - ti),
+            WaitForMultipleObjects(RT_MIN(TG, thread->tpool->thnum - ti),
                                    thread->tpool->pevent + (ti / TG) * TG,
                                    TRUE, INFINITE);
 
@@ -428,7 +428,7 @@ DWORD WINAPI worker_thread(rt_pntr p)
      * signals its respective control-event for the main thread */
     if ((ti % TG) == 0)
     {
-        WaitForMultipleObjects(RT_MIN(TG, thnum - ti),
+        WaitForMultipleObjects(RT_MIN(TG, thread->tpool->thnum - ti),
                                thread->tpool->pevent + (ti / TG) * TG,
                                TRUE, INFINITE);
 
@@ -439,10 +439,12 @@ DWORD WINAPI worker_thread(rt_pntr p)
 }
 
 /*
- * Initialize platform-specific pool of "thnum" threads.
+ * Initialize platform-specific pool of "thnum" threads (< 0 - no feedback).
  */
 rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
 {
+    thnum = thnum < 0 ? -thnum : thnum;
+
     eout = 0; emax = thnum;
     estr = (rt_pstr *)malloc(sizeof(rt_pstr) * thnum);
 
@@ -486,12 +488,12 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
     tpool->wevent[0] = CreateEvent(NULL, TRUE, FALSE, NULL);
     tpool->wevent[1] = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-    rt_si32 i, k = 0;
-    rt_si32 a = k, g = 0;
-
 #if RT_DEBUG >= 1
     RT_LOGI("ThreadCount = %d\n", thnum);
 #endif /* RT_DEBUG */
+
+    rt_si32 i, k = 0;
+    rt_si32 a = k, g = 0;
 
     for (i = 0; i < thnum; i++)
     {

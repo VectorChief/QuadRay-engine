@@ -423,69 +423,7 @@ rt_void sys_free(rt_pntr ptr, rt_size size)
 /*****************************   MULTI-THREADING   ****************************/
 /******************************************************************************/
 
-/* platform-specific thread */
-struct rt_THREAD
-{
-    rt_Platform        *pfm;
-    rt_si32            *cmd;
-    rt_si32             index;
-    pthread_t           pthr;
-    pthread_barrier_t  *barr;
-};
-
-/*
- * Worker thread's entry point.
- */
-rt_pntr worker_thread(rt_pntr p)
-{
-    rt_THREAD *thread = (rt_THREAD *)p;
-
-    while (1)
-    {
-        pthread_barrier_wait(&thread->barr[0]);
-
-        if (thread->pfm == RT_NULL)
-        {
-            break;
-        }
-
-        rt_si32 cmd = thread->cmd[0];
-
-        /* if one thread throws an exception,
-         * other threads are still allowed to proceed
-         * in the same run, but not in the next one */
-        if (eout == 0)
-        try
-        {
-            rt_Scene *scene = thread->pfm->get_cur_scene();
-
-            switch (cmd & 0x3)
-            {
-                case 1:
-                scene->update_slice(thread->index, (cmd >> 2) & 0xFF);
-                break;
-
-                case 2:
-                scene->render_slice(thread->index, (cmd >> 2) & 0xFF);
-                break;
-
-                default:
-                break;
-            };
-        }
-        catch (rt_Exception e)
-        {
-            estr[thread->index] = e.err;
-            eout = 1;
-        }
-
-        pthread_barrier_wait(&thread->barr[1]);
-    }
-
-    pthread_barrier_wait(&thread->barr[1]);
-
-    return RT_NULL;
-}
+struct rt_THREAD;
 
 /* platform-specific pool
  * of "thnum" threads */
@@ -498,11 +436,81 @@ struct rt_THREAD_POOL
     pthread_barrier_t   barr[2];
 };
 
+/* platform-specific thread */
+struct rt_THREAD
+{
+    rt_THREAD_POOL     *tpool;
+    rt_si32             index;
+    pthread_t           pthr;
+};
+
 /*
- * Initialize platform-specific pool of "thnum" threads.
+ * Worker thread's entry point.
+ */
+rt_pntr worker_thread(rt_pntr p)
+{
+    rt_THREAD *thread = (rt_THREAD *)p;
+    rt_si32 ti = thread->index;
+
+    while (1)
+    {
+        /* every worker-thread waits signal from main thread */
+        pthread_barrier_wait(&thread->tpool->barr[0]);
+
+        rt_Platform *pfm = thread->tpool->pfm;
+
+        if (pfm == RT_NULL)
+        {
+            break;
+        }
+
+        rt_si32 cmd = thread->tpool->cmd;
+
+        /* if one thread throws an exception,
+         * other threads are still allowed to proceed
+         * in the same run, but not in the next one */
+        if (eout == 0)
+        try
+        {
+            rt_Scene *scene = pfm->get_cur_scene();
+
+            switch (cmd & 0x3)
+            {
+                case 1:
+                scene->update_slice(ti, (cmd >> 2) & 0xFF);
+                break;
+
+                case 2:
+                scene->render_slice(ti, (cmd >> 2) & 0xFF);
+                break;
+
+                default:
+                break;
+            };
+        }
+        catch (rt_Exception e)
+        {
+            estr[ti] = e.err;
+            eout = 1;
+        }
+
+        /* every worker-thread signals to main thread when done */
+        pthread_barrier_wait(&thread->tpool->barr[1]);
+    }
+
+    /* every worker-thread signals to main thread when done */
+    pthread_barrier_wait(&thread->tpool->barr[1]);
+
+    return RT_NULL;
+}
+
+/*
+ * Initialize platform-specific pool of "thnum" threads (< 0 - no feedback).
  */
 rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
 {
+    thnum = thnum < 0 ? -thnum : thnum;
+
     eout = 0; emax = thnum;
     estr = (rt_pstr *)malloc(sizeof(rt_pstr) * thnum);
 
@@ -547,11 +555,8 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
     {
         rt_THREAD *thread = tpool->thread;
 
-        thread[i].pfm    = pfm;
-        thread[i].cmd    = &tpool->cmd;
-        thread[i].index  = i;
-        thread[i].barr   = tpool->barr;
-
+        thread[i].tpool = tpool;
+        thread[i].index = i;
         pthread_create(&thread[i].pthr, NULL, worker_thread, &thread[i]);
 
 #if RT_SETAFFINITY
@@ -559,8 +564,12 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
         while (!CPU_ISSET(a, &cpuset_pr))
         {
             a++;
-            if (a == CPU_SETSIZE) a = 0;
+            if (a == CPU_SETSIZE)
+            {
+                a = 0;
+            }
         }
+
         CPU_ZERO(&cpuset_th);
         CPU_SET(a, &cpuset_th);
         pthread_setaffinity_np(thread[i].pthr, sizeof(cpu_set_t), &cpuset_th);
@@ -579,14 +588,11 @@ rt_void term_threads(rt_pntr tdata, rt_si32 thnum)
     rt_si32 i;
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
 
-    for (i = 0; i < tpool->thnum; i++)
-    {
-        rt_THREAD *thread = tpool->thread;
-
-        thread[i].pfm = RT_NULL;
-    }
-
+    /* signal all worker-threads to terminate */
+    tpool->cmd = 0;
+    tpool->pfm = RT_NULL;
     pthread_barrier_wait(&tpool->barr[0]);
+    /* wait for all worker-threads to finish */
     pthread_barrier_wait(&tpool->barr[1]);
 
     for (i = 0; i < tpool->thnum; i++)
@@ -594,8 +600,6 @@ rt_void term_threads(rt_pntr tdata, rt_si32 thnum)
         rt_THREAD *thread = tpool->thread;
 
         pthread_join(thread[i].pthr, NULL);
-
-        thread[i].barr = NULL;
     }
 
     pthread_barrier_destroy(&tpool->barr[0]);
@@ -617,8 +621,10 @@ rt_void update_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
 {
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
 
+    /* signal all worker-threads to update scene */
     tpool->cmd = 1 | ((phase & 0xFF) << 2);
     pthread_barrier_wait(&tpool->barr[0]);
+    /* wait for all worker-threads to finish */
     pthread_barrier_wait(&tpool->barr[1]);
 }
 
@@ -630,8 +636,10 @@ rt_void render_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
 {
     rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
 
+    /* signal all worker-threads to render scene */
     tpool->cmd = 2 | ((phase & 0xFF) << 2);
     pthread_barrier_wait(&tpool->barr[0]);
+    /* wait for all worker-threads to finish */
     pthread_barrier_wait(&tpool->barr[1]);
 }
 
