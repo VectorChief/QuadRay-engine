@@ -443,6 +443,7 @@ DWORD WINAPI worker_thread(rt_pntr p)
  */
 rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
 {
+    rt_bool feedback = thnum < 0 ? RT_FALSE : RT_TRUE;
     thnum = thnum < 0 ? -thnum : thnum;
 
     eout = 0; emax = thnum;
@@ -495,30 +496,25 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
     rt_si32 i, k = 0;
     rt_si32 a = k, g = 0;
 
+    rt_THREAD *thread = tpool->thread;
+
+    thread[0].tpool  = tpool;
+    thread[0].index  = 0;
+    thread[0].pthr   = CreateThread(NULL, 0, worker_thread,
+                                                   &thread[0], 0, NULL);
+
     for (i = 0; i < thnum; i++)
     {
-        rt_THREAD *thread = tpool->thread;
-
-        thread[i].tpool  = tpool;
-        thread[i].index  = i;
-        thread[i].pthr   = CreateThread(NULL, 0, worker_thread,
-                                                       &thread[i], 0, NULL);
-
-        tpool->pevent[i] = CreateEvent(NULL, FALSE, FALSE, NULL);
-
-        if ((i % TG) == 0)
-        {
-            tpool->cevent[i / TG] = CreateEvent(NULL, FALSE, FALSE, NULL);
-        }
-
 #if RT_SETAFFINITY
         GROUP_AFFINITY ga;
         ga.Mask = ULL(1) << a;
         ga.Group = (g % 4);
         ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
         if (a < TG
-        &&  SetThreadGroupAffinity(thread[i].pthr, &ga, NULL) != FALSE)
+        &&  SetThreadGroupAffinity(thread[0].pthr, &ga, NULL) != FALSE)
         {
+            ga.Mask = ULL(1) << a;
+            ga.Group = (g % 4);
             a += 2;
         }
         else
@@ -528,8 +524,10 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
             ga.Mask = ULL(1) << a;
             ga.Group = (g % 4);
             ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
-            if (SetThreadGroupAffinity(thread[i].pthr, &ga, NULL) != FALSE)
+            if (SetThreadGroupAffinity(thread[0].pthr, &ga, NULL) != FALSE)
             {
+                ga.Mask = ULL(1) << a;
+                ga.Group = (g % 4);
                 a += 2;
             }
             else
@@ -540,9 +538,16 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
                 ga.Mask = ULL(1) << a;
                 ga.Group = (g % 4);
                 ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
-                if (SetThreadGroupAffinity(thread[i].pthr, &ga, NULL) != FALSE)
+                if (SetThreadGroupAffinity(thread[0].pthr, &ga, NULL) != FALSE)
                 {
+                    ga.Mask = ULL(1) << a;
+                    ga.Group = (g % 4);
                     a += 2;
+                }
+                if (feedback && k == 0)
+                {
+                    thnum = i;
+                    break;
                 }
             }
         }
@@ -551,9 +556,34 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
                                                          ga.Mask, ga.Group);
 #endif /* RT_DEBUG */
 #endif /* RT_SETAFFINITY */
+
+        if (i > 0)
+        {
+            thread[i].tpool  = tpool;
+            thread[i].index  = i;
+            thread[i].pthr   = CreateThread(NULL, 0, worker_thread,
+                                                           &thread[i], 0, NULL);
+#if RT_SETAFFINITY
+            ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
+            SetThreadGroupAffinity(thread[i].pthr, &ga, NULL);
+#endif /* RT_SETAFFINITY */
+        }
+
+        tpool->pevent[i] = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+        if ((i % TG) == 0)
+        {
+            tpool->cevent[i / TG] = CreateEvent(NULL, FALSE, FALSE, NULL);
+        }
     }
 
 #if RT_SETAFFINITY
+    GROUP_AFFINITY ga;
+    ga.Mask = ULL(1) << 0;
+    ga.Group = (0 % 4);
+    ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
+    SetThreadGroupAffinity(thread[0].pthr, &ga, NULL);
+
 #if RT_DEBUG >= 1
     gcnt = 4; garr[0] = garr[1] = garr[2] = garr[3] = 0;
     GetProcessGroupAffinity(process, &gcnt, garr);
@@ -561,6 +591,12 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
                                     gcnt, garr[0], garr[1], garr[2], garr[3]);
 #endif /* RT_DEBUG */
 #endif /* RT_SETAFFINITY */
+
+    if (feedback)
+    {
+        pfm->set_thnum(thnum);
+    }
+    tpool->thnum = thnum;
 
     return tpool;
 }

@@ -452,6 +452,11 @@ rt_pntr worker_thread(rt_pntr p)
     rt_THREAD *thread = (rt_THREAD *)p;
     rt_si32 ti = thread->index;
 
+    while (thread->tpool->cmd < 0) /* <- wait for barriers */
+    {
+        sched_yield();
+    }
+
     while (1)
     {
         /* every worker-thread waits signal from main thread */
@@ -509,6 +514,7 @@ rt_pntr worker_thread(rt_pntr p)
  */
 rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
 {
+    rt_bool feedback = thnum < 0 ? RT_FALSE : RT_TRUE;
     thnum = thnum < 0 ? -thnum : thnum;
 
     eout = 0; emax = thnum;
@@ -537,7 +543,7 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
     }
 
     tpool->pfm = pfm;
-    tpool->cmd = 0;
+    tpool->cmd = -1;
     tpool->thnum = thnum;
     tpool->thread = (rt_THREAD *)malloc(sizeof(rt_THREAD) * thnum);
 
@@ -546,13 +552,35 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
         throw rt_Exception("out of memory for thread data in init_threads");
     }
 
-    pthread_barrier_init(&tpool->barr[0], NULL, thnum + 1);
-    pthread_barrier_init(&tpool->barr[1], NULL, thnum + 1);
-
     rt_si32 i, a;
 
     for (i = 0, a = 0; i < thnum; i++, a++)
     {
+#if RT_SETAFFINITY
+
+        while (!CPU_ISSET(a, &cpuset_pr))
+        {
+            a++;
+            if (a == CPU_SETSIZE)
+            {
+                if (feedback)
+                {
+                    thnum = i;
+                    break;
+                }
+                else
+                {
+                    a = 0;
+                }
+            }
+        }
+        if (thnum == i)
+        {
+            break;
+        }
+
+#endif /* RT_SETAFFINITY */
+
         rt_THREAD *thread = tpool->thread;
 
         thread[i].tpool = tpool;
@@ -561,21 +589,22 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
 
 #if RT_SETAFFINITY
 
-        while (!CPU_ISSET(a, &cpuset_pr))
-        {
-            a++;
-            if (a == CPU_SETSIZE)
-            {
-                a = 0;
-            }
-        }
-
         CPU_ZERO(&cpuset_th);
         CPU_SET(a, &cpuset_th);
         pthread_setaffinity_np(thread[i].pthr, sizeof(cpu_set_t), &cpuset_th);
 
 #endif /* RT_SETAFFINITY */
     }
+
+    pthread_barrier_init(&tpool->barr[0], NULL, thnum + 1);
+    pthread_barrier_init(&tpool->barr[1], NULL, thnum + 1);
+
+    if (feedback)
+    {
+        pfm->set_thnum(thnum);
+    }
+    tpool->thnum = thnum;
+    tpool->cmd = 0;
 
     return tpool;
 }

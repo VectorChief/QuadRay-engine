@@ -414,6 +414,7 @@ DWORD WINAPI worker_thread(rt_pntr p)
  */
 rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
 {
+    rt_bool feedback = thnum < 0 ? RT_FALSE : RT_TRUE;
     thnum = thnum < 0 ? -thnum : thnum;
 
     eout = 0; emax = thnum;
@@ -461,6 +462,31 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
 
     for (i = 0, a = 0; i < thnum; i++, a++)
     {
+#if RT_SETAFFINITY
+
+        while ((pam & (rt_uptr)(ULL(1) << a)) == 0)
+        {
+            a++;
+            if (a == sizeof(rt_uptr)*8)
+            {
+                if (feedback)
+                {
+                    thnum = i;
+                    break;
+                }
+                else
+                {
+                    a = 0;
+                }
+            }
+        }
+        if (thnum == i)
+        {
+            break;
+        }
+
+#endif /* RT_SETAFFINITY */
+
         rt_THREAD *thread = tpool->thread;
 
         thread[i].tpool  = tpool;
@@ -472,19 +498,16 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
 
 #if RT_SETAFFINITY
 
-        while ((pam & (rt_uptr)(ULL(1) << a)) == 0)
-        {
-            a++;
-            if (a == sizeof(rt_uptr)*8)
-            {
-                a = 0;
-            }
-        }
-
         SetThreadAffinityMask(thread[i].pthr, (rt_uptr)(ULL(1) << a));
 
 #endif /* RT_SETAFFINITY */
     }
+
+    if (feedback)
+    {
+        pfm->set_thnum(thnum);
+    }
+    tpool->thnum = thnum;
 
     return tpool;
 }
