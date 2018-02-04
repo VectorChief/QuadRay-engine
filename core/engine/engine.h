@@ -90,6 +90,9 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
     virtual
    ~rt_Platform();
 
+    rt_si32     get_thnum();
+    rt_si32     set_thnum(rt_si32 thnum);
+
     rt_Scene*   get_cur_scene();
     rt_Scene*   set_cur_scene(rt_Scene *scn);
     rt_void     next_scene();

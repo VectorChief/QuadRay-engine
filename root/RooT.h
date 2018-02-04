@@ -82,7 +82,7 @@ rt_pntr sys_alloc(rt_size size);
 rt_void sys_free(rt_pntr ptr, rt_size size);
 
 /*
- * Initialize platform-specific pool of "thnum" threads.
+ * Initialize platform-specific pool of "thnum" threads (< 0 - no feedback).
  */
 rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm);
 
@@ -170,6 +170,27 @@ rt_byte r_keys[KEY_MASK + 1];
 #define T_KEYS(k)   (t_keys[r_to_p[(k) & KEY_MASK]])
 /* toggle on release */
 #define R_KEYS(k)   (r_keys[r_to_p[(k) & KEY_MASK]])
+
+/*
+ * Print current target config.
+ */
+rt_void print_target()
+{
+    RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
+    RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d\n",
+                n_simd * 128, k_size, s_type, sc[d]->get_tile_w() / 8,
+                                        a_mode * 4 / (RT_ELEMENT / 32));
+    RT_LOGI("Framebuffer X-row = %5d, ptr = %016" PR_Z "X\n",
+                       sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
+    RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d\n",
+                                          x_res, y_res, l_mode, h_mode);
+    RT_LOGI("Window-rect X-res = %5d, Y-res = %4d, u %d, o %d\n",
+                                          x_win, y_win, u_mode, o_mode);
+    RT_LOGI("Threads/affinity = %4d/%d, reserved = %d, d%2d, c%2d\n",
+                         pfm->get_thnum(), RT_SETAFFINITY, 0, d+1, c+1);
+
+    RT_LOGI("----------------------  FPS LOG  -----------------------\n");
+}
 
 /*
  * Event loop's main step.
@@ -445,20 +466,7 @@ rt_si32 main_step()
         }
         RT_LOGI("AVG = %.2f\n", avg);
 
-        RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-        RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d\n",
-                    n_simd * 128, k_size, s_type, sc[d]->get_tile_w() / 8,
-                                            a_mode * 4 / (RT_ELEMENT / 32));
-        RT_LOGI("Framebuffer X-row = %5d, ptr = %016" PR_Z "X\n",
-                           sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
-        RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d\n",
-                                              x_res, y_res, l_mode, h_mode);
-        RT_LOGI("Window-rect X-res = %5d, Y-res = %4d, u %d, o %d\n",
-                                              x_win, y_win, u_mode, o_mode);
-        RT_LOGI("Threads/affinity = %4d/%d, reserved = %d, d%2d, c%2d\n",
-                                        thnum, RT_SETAFFINITY, 0, d+1, c+1);
-
-        RT_LOGI("----------------------  FPS LOG  -----------------------\n");
+        print_target();
 
         glb = 0;
         run_time = cur_time;
@@ -817,7 +825,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
     y_res = y_res * (w_size != 0 ? w_size : 1);
     x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
 
-    thnum = t_pool != 0 ? t_pool : thnum;
+    thnum = t_pool != 0 ? -t_pool : thnum; /* no feedback (< 0) if overridden */
 
     return 1;
 }
@@ -904,20 +912,7 @@ rt_si32 main_init()
     }
     sc[d]->set_opts(opts);
 
-    RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-    RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d\n",
-                n_simd * 128, k_size, s_type, sc[d]->get_tile_w() / 8,
-                                        a_mode * 4 / (RT_ELEMENT / 32));
-    RT_LOGI("Framebuffer X-row = %5d, ptr = %016" PR_Z "X\n",
-                       sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
-    RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d\n",
-                                          x_res, y_res, l_mode, h_mode);
-    RT_LOGI("Window-rect X-res = %5d, Y-res = %4d, u %d, o %d\n",
-                                          x_win, y_win, u_mode, o_mode);
-    RT_LOGI("Threads/affinity = %4d/%d, reserved = %d, d%2d, c%2d\n",
-                                    thnum, RT_SETAFFINITY, 0, d+1, c+1);
-
-    RT_LOGI("----------------------  FPS LOG  -----------------------\n");
+    print_target();
 
     return 1;
 }

@@ -28,7 +28,7 @@
 #ifndef RT_THREADS_NUM
 #define RT_THREADS_NUM          16 /* number of threads for update and render */
 #endif /* _THREADS_NUM */
-#define RT_SETAFFINITY          0
+#define RT_SETAFFINITY          1
 
 #elif (defined RT_ARM) || (defined RT_X86) /* <- original legacy targets */
 

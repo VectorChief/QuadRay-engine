@@ -16,12 +16,12 @@
 /*
  * engine.cpp: Implementation of the scene manager.
  *
- * Main file of the engine responsible for instantiating and managing the scene.
- * It contains a definition of SceneThread and Scene classes along with
+ * Main file of the engine responsible for instantiating and managing scenes.
+ * It contains definitions of Platform, SceneThread and Scene classes along with
  * a set of algorithms needed to process objects in the scene in order
  * to prepare data structures used by the rendering backend (tracer.cpp).
  *
- * Processing of objects consists of two major parts: update and render,
+ * Processing of objects consists of two major steps: update and render,
  * of which only update is handled by the engine, while render is delegated
  * to the rendering backend once all data structures have been prepared.
  *
@@ -37,7 +37,7 @@
  * custom per-side light/shadow and reflection/refraction surface lists.
  *
  * Both update and render support multi-threading and use array of SceneThread
- * objects to separate working data sets and therefore avoid thread locking.
+ * objects to separate working datasets and therefore avoid thread locking.
  */
 
 /******************************************************************************/
@@ -421,13 +421,18 @@ rt_void print_lst(rt_pstr mgn, rt_ELEM *elm)
 /******************************************************************************/
 
 /*
- * Initialize platform-specific pool of "thnum" threads.
+ * Initialize platform-specific pool of "thnum" threads (< 0 - no feedback).
  * Local stub below is used when platform threading functions are not provided
  * or during state-logging.
  */
 static
 rt_void* init_threads(rt_si32 thnum, rt_Platform *pfm)
 {
+    if (thnum > 0)
+    {
+        pfm->set_thnum(thnum); /* dummy feedback, pass core-count in platform */
+    }
+
     return pfm;
 }
 
@@ -505,7 +510,7 @@ rt_void render_scene(rt_void *tdata, rt_si32 thnum, rt_si32 phase)
  * Can only be called from single (main) thread.
  */
 rt_Platform::rt_Platform(rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
-                         rt_si32 thnum,
+                         rt_si32 thnum, /* (< 0 - no feedback) */
                          rt_FUNC_INIT f_init, rt_FUNC_TERM f_term,
                          rt_FUNC_UPDATE f_update,
                          rt_FUNC_RENDER f_render,
@@ -536,9 +541,35 @@ rt_Platform::rt_Platform(rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
     }
 
     /* init thread management variables */
-    thnum = RT_MAX(thnum, 1);
-    this->thnum = thnum;
+    thnum = thnum != 0 ? thnum : 1;
+    this->thnum = thnum < 0 ? thnum : -thnum; /* always < 0 at first init */
     this->tdata = RT_NULL;
+
+    /* create platform-specific worker threads */
+    tdata = this->f_init(thnum, this);
+    thnum = this->thnum;
+    this->thnum = thnum < 0 ? -thnum : thnum; /* always > 0 upon feedback */
+}
+
+/*
+ * Get platform's thread-pool size.
+ */
+rt_si32 rt_Platform::get_thnum()
+{
+    return thnum;
+}
+
+/*
+ * Set platform's thread-pool size (only once after platform's construction).
+ */
+rt_si32 rt_Platform::set_thnum(rt_si32 thnum)
+{
+    if (this->thnum < 0)
+    {
+        this->thnum = thnum;
+    }
+
+    return this->thnum;
 }
 
 /*
@@ -548,8 +579,6 @@ rt_void rt_Platform::add_scene(rt_Scene *scn)
 {
     if (head == RT_NULL)
     {
-        /* create platform-specific worker threads */
-        tdata = this->f_init(thnum, this);
         head = tail = cur = scn;
     }
     else
@@ -578,11 +607,6 @@ rt_void rt_Platform::del_scene(rt_Scene *scn)
 
         prev = *ptr;
         ptr = &prev->next;
-    }
-    if (head == RT_NULL && tdata != RT_NULL)
-    {
-        /* destroy platform-specific worker threads */
-        this->f_term(tdata, thnum);
     }
     if (tail == scn)
     {
@@ -650,6 +674,9 @@ rt_Platform::~rt_Platform()
     {
         delete head; /* calls del_scene(head) replacing it with next */
     }
+
+    /* destroy platform-specific worker threads */
+    this->f_term(tdata, thnum);
 }
 
 /******************************************************************************/
