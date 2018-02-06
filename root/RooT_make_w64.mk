@@ -33,7 +33,7 @@ SRC_LIST =                                  \
         ../core/tracer/tracer_1K4v2.cpp     \
         ../core/tracer/tracer_2K8v1_r8.cpp  \
         ../core/tracer/tracer_2K8v2_r8.cpp  \
-        RooT_win64.cpp
+        RooT_winxx.cpp
 
 LIB_PATH =
 

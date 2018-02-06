@@ -7,7 +7,7 @@
 #include "RooT.h"
 
 /******************************************************************************/
-/****************************   PLATFORM - WIN32   ****************************/
+/****************************   PLATFORM - WINXX   ****************************/
 /******************************************************************************/
 
 #include <windows.h>
@@ -323,6 +323,8 @@ rt_void sys_free(rt_pntr ptr, rt_size size)
 /*****************************   MULTI-THREADING   ****************************/
 /******************************************************************************/
 
+#if   (defined RT_WIN32)
+
 struct rt_THREAD;
 
 /* platform-specific pool
@@ -582,6 +584,364 @@ rt_void render_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
     /* swap worker-event for the main thread to signal */
     tpool->windex = 1 - tpool->windex;
 }
+
+#elif (defined RT_WIN64)
+
+/* thread-group size, maximum 64 threads per group (Win64 limitation) */
+#define TG 64
+/* code below supports up to 4 groups, 256 threads (local limitation) */
+
+struct rt_THREAD;
+
+/* platform-specific pool
+ * of "thnum" threads */
+struct rt_THREAD_POOL
+{
+    rt_Platform        *pfm;
+    rt_si32             cmd;
+    rt_si32             thnum;
+    rt_THREAD          *thread;
+    HANDLE             *pevent; /* per-thr events */
+    rt_si32             windex;
+    HANDLE              wevent[2]; /* wrkr-events */
+    HANDLE              cevent[TG]; /* ctl-events */
+};
+
+/* platform-specific thread */
+struct rt_THREAD
+{
+    rt_THREAD_POOL     *tpool;
+    rt_si32             index;
+    HANDLE              pthr;
+};
+
+/*
+ * Worker thread's entry point.
+ */
+DWORD WINAPI worker_thread(rt_pntr p)
+{
+    rt_THREAD *thread = (rt_THREAD *)p;
+    rt_si32 wi = 0, ti = thread->index;
+
+    while (1)
+    {
+        /* every worker-thread waits on current worker-event */
+        WaitForSingleObject(thread->tpool->wevent[wi], INFINITE);
+
+        rt_Platform *pfm = thread->tpool->pfm;
+
+        if (pfm == RT_NULL)
+        {
+            break;
+        }
+
+        rt_si32 cmd = thread->tpool->cmd;
+
+        /* if one thread throws an exception,
+         * other threads are still allowed to proceed
+         * in the same run, but not in the next one */
+        if (eout == 0)
+        try
+        {
+            rt_Scene *scene = pfm->get_cur_scene();
+
+            switch (cmd & 0x3)
+            {
+                case 1:
+                scene->update_slice(ti, (cmd >> 2) & 0xFF);
+                break;
+
+                case 2:
+                scene->render_slice(ti, (cmd >> 2) & 0xFF);
+                break;
+
+                default:
+                break;
+            };
+        }
+        catch (rt_Exception e)
+        {
+            estr[ti] = e.err;
+            eout = 1;
+        }
+
+        /* swap worker-event for all worker-threads to wait on */
+        wi = 1 - wi;
+
+        /* every worker-thread signals per-thread event when done */
+        SetEvent(thread->tpool->pevent[ti]);
+
+        /* pick one worker-thread in a group as a control-thread,
+         * which waits for other worker-threads in that group and
+         * signals its respective control-event for the main thread */
+        if ((ti % TG) == 0)
+        {
+            WaitForMultipleObjects(RT_MIN(TG, thread->tpool->thnum - ti),
+                                   thread->tpool->pevent + (ti / TG) * TG,
+                                   TRUE, INFINITE);
+
+            SetEvent(thread->tpool->cevent[ti / TG]);
+        }
+    }
+
+    /* every worker-thread signals per-thread event when done */
+    SetEvent(thread->tpool->pevent[ti]);
+
+    /* pick one worker-thread in a group as a control-thread,
+     * which waits for other worker-threads in that group and
+     * signals its respective control-event for the main thread */
+    if ((ti % TG) == 0)
+    {
+        WaitForMultipleObjects(RT_MIN(TG, thread->tpool->thnum - ti),
+                               thread->tpool->pevent + (ti / TG) * TG,
+                               TRUE, INFINITE);
+
+        SetEvent(thread->tpool->cevent[ti / TG]);
+    }
+
+    return 1;
+}
+
+/*
+ * Initialize platform-specific pool of "thnum" threads (< 0 - no feedback).
+ */
+rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
+{
+    rt_bool feedback = thnum < 0 ? RT_FALSE : RT_TRUE;
+    thnum = thnum < 0 ? -thnum : thnum;
+
+    eout = 0; emax = thnum;
+    estr = (rt_pstr *)malloc(sizeof(rt_pstr) * thnum);
+
+    if (estr == RT_NULL)
+    {
+        throw rt_Exception("out of memory for estr in init_threads");
+    }
+
+    memset(estr, 0, sizeof(rt_pstr) * thnum);
+
+#if RT_SETAFFINITY
+#if RT_DEBUG >= 1
+    HANDLE process = GetCurrentProcess();
+    USHORT gcnt = 4, garr[4] = {0};
+    GetProcessGroupAffinity(process, &gcnt, garr);
+    RT_LOGI("InitProcessGroupAffinity: %d - {%d, %d, %d, %d}\n",
+                                    gcnt, garr[0], garr[1], garr[2], garr[3]);
+#endif /* RT_DEBUG */
+#endif /* RT_SETAFFINITY */
+
+    rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)malloc(sizeof(rt_THREAD_POOL));
+
+    if (tpool == RT_NULL)
+    {
+        throw rt_Exception("out of memory for tpool in init_threads");
+    }
+
+    tpool->pfm = pfm;
+    tpool->cmd = 0;
+    tpool->thnum = thnum;
+    tpool->thread = (rt_THREAD *)malloc(sizeof(rt_THREAD) * thnum);
+    tpool->pevent = (HANDLE *)malloc(sizeof(HANDLE) * thnum);
+
+    if (tpool->thread == RT_NULL
+    ||  tpool->pevent == RT_NULL)
+    {
+        throw rt_Exception("out of memory for thread data in init_threads");
+    }
+
+    tpool->windex = 0;
+    tpool->wevent[0] = CreateEvent(NULL, TRUE, FALSE, NULL);
+    tpool->wevent[1] = CreateEvent(NULL, TRUE, FALSE, NULL);
+
+#if RT_DEBUG >= 1
+    RT_LOGI("ThreadCount = %d\n", thnum);
+#endif /* RT_DEBUG */
+
+    rt_si32 i, k = 0;
+    rt_si32 a = k, g = 0;
+
+    rt_THREAD *thread = tpool->thread;
+
+    thread[0].tpool  = tpool;
+    thread[0].index  = 0;
+    thread[0].pthr   = CreateThread(NULL, 0, worker_thread,
+                                                   &thread[0], 0, NULL);
+
+    for (i = 0; i < thnum; i++)
+    {
+#if RT_SETAFFINITY
+        GROUP_AFFINITY ga;
+        ga.Mask = ULL(1) << a;
+        ga.Group = (g % 4);
+        ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
+        if (a < TG
+        &&  SetThreadGroupAffinity(thread[0].pthr, &ga, NULL) != FALSE)
+        {
+            ga.Mask = ULL(1) << a;
+            ga.Group = (g % 4);
+            a += 2;
+        }
+        else
+        {
+            a = k;
+            g++;
+            ga.Mask = ULL(1) << a;
+            ga.Group = (g % 4);
+            ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
+            if (SetThreadGroupAffinity(thread[0].pthr, &ga, NULL) != FALSE)
+            {
+                ga.Mask = ULL(1) << a;
+                ga.Group = (g % 4);
+                a += 2;
+            }
+            else
+            {
+                k = 1 - k;
+                a = k;
+                g = 0;
+                ga.Mask = ULL(1) << a;
+                ga.Group = (g % 4);
+                ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
+                if (SetThreadGroupAffinity(thread[0].pthr, &ga, NULL) != FALSE)
+                {
+                    ga.Mask = ULL(1) << a;
+                    ga.Group = (g % 4);
+                    a += 2;
+                }
+                if (feedback && k == 0)
+                {
+                    thnum = i;
+                    break;
+                }
+            }
+        }
+#if RT_DEBUG >= 2
+        RT_LOGI("ThreadGroupAffinity: Mask = %" PR_Z "X, Group = %d\n",
+                                                         ga.Mask, ga.Group);
+#endif /* RT_DEBUG */
+#endif /* RT_SETAFFINITY */
+
+        if (i > 0)
+        {
+            thread[i].tpool  = tpool;
+            thread[i].index  = i;
+            thread[i].pthr   = CreateThread(NULL, 0, worker_thread,
+                                                           &thread[i], 0, NULL);
+#if RT_SETAFFINITY
+            ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
+            SetThreadGroupAffinity(thread[i].pthr, &ga, NULL);
+#endif /* RT_SETAFFINITY */
+        }
+
+        tpool->pevent[i] = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+        if ((i % TG) == 0)
+        {
+            tpool->cevent[i / TG] = CreateEvent(NULL, FALSE, FALSE, NULL);
+        }
+    }
+
+#if RT_SETAFFINITY
+    GROUP_AFFINITY ga;
+    ga.Mask = ULL(1) << 0;
+    ga.Group = (0 % 4);
+    ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
+    SetThreadGroupAffinity(thread[0].pthr, &ga, NULL);
+
+#if RT_DEBUG >= 1
+    gcnt = 4; garr[0] = garr[1] = garr[2] = garr[3] = 0;
+    GetProcessGroupAffinity(process, &gcnt, garr);
+    RT_LOGI("DoneProcessGroupAffinity: %d - {%d, %d, %d, %d}\n",
+                                    gcnt, garr[0], garr[1], garr[2], garr[3]);
+#endif /* RT_DEBUG */
+#endif /* RT_SETAFFINITY */
+
+    if (feedback)
+    {
+        pfm->set_thnum(thnum);
+    }
+    tpool->thnum = thnum;
+
+    return tpool;
+}
+
+/*
+ * Terminate platform-specific pool of "thnum" threads.
+ */
+rt_void term_threads(rt_pntr tdata, rt_si32 thnum)
+{
+    rt_si32 i;
+    rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
+
+    /* signal worker-event for all worker-threads to terminate */
+    tpool->cmd = 0;
+    tpool->pfm = RT_NULL;
+    SetEvent(tpool->wevent[tpool->windex]);
+    /* wait for control-threads to signal control-events for their groups */
+    WaitForMultipleObjects((thnum + TG-1) / TG, tpool->cevent, TRUE, INFINITE);
+
+    CloseHandle(tpool->wevent[0]);
+    CloseHandle(tpool->wevent[1]);
+
+    for (i = 0; i < tpool->thnum; i++)
+    {
+        CloseHandle(tpool->thread[i].pthr);
+        CloseHandle(tpool->pevent[i]);
+
+        if ((i % TG) == 0)
+        {
+            CloseHandle(tpool->cevent[i / TG]);
+        }
+    }
+
+    free(tpool->thread);
+    free(tpool->pevent);
+    free(tpool);
+
+    free(estr);
+    estr = RT_NULL;
+    eout = emax = 0;
+}
+
+/*
+ * Task platform-specific pool of "thnum" threads to update scene,
+ * block until finished.
+ */
+rt_void update_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
+{
+    rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
+
+    /* signal worker-event for all worker-threads to update scene */
+    tpool->cmd = 1 | ((phase & 0xFF) << 2);
+    SetEvent(tpool->wevent[tpool->windex]);
+    /* wait for control-threads to signal control-events for their groups */
+    WaitForMultipleObjects((thnum + TG-1) / TG, tpool->cevent, TRUE, INFINITE);
+    /* manually reset current worker-event */
+    ResetEvent(tpool->wevent[tpool->windex]);
+    /* swap worker-event for the main thread to signal */
+    tpool->windex = 1 - tpool->windex;
+}
+
+/*
+ * Task platform-specific pool of "thnum" threads to render scene,
+ * block until finished.
+ */
+rt_void render_scene(rt_pntr tdata, rt_si32 thnum, rt_si32 phase)
+{
+    rt_THREAD_POOL *tpool = (rt_THREAD_POOL *)tdata;
+
+    /* signal worker-event for all worker-threads to render scene */
+    tpool->cmd = 2 | ((phase & 0xFF) << 2);
+    SetEvent(tpool->wevent[tpool->windex]);
+    /* wait for control-threads to signal control-events for their groups */
+    WaitForMultipleObjects((thnum + TG-1) / TG, tpool->cevent, TRUE, INFINITE);
+    /* manually reset current worker-event */
+    ResetEvent(tpool->wevent[tpool->windex]);
+    /* swap worker-event for the main thread to signal */
+    tpool->windex = 1 - tpool->windex;
+}
+
+#endif /* defined RT_WIN64 */
 
 /******************************************************************************/
 /*******************************   EVENT-LOOP   *******************************/
