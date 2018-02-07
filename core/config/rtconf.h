@@ -22,39 +22,11 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
-#if RT_DEBUG >= 1
-
-#define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
-#ifndef RT_THREADS_NUM
-#define RT_THREADS_NUM          16 /* number of threads for update and render */
-#endif /* _THREADS_NUM */
-#define RT_SETAFFINITY          1
-
-#elif (defined RT_ARM) || (defined RT_X86) /* <- original legacy targets */
-
-#define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
-#ifndef RT_THREADS_NUM
-#define RT_THREADS_NUM          30 /* number of threads for update and render */
-#endif /* _THREADS_NUM */
-#define RT_SETAFFINITY          1
-
-#elif (defined RT_WIN64)
-
 #define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
 #ifndef RT_THREADS_NUM
 #define RT_THREADS_NUM          120/* number of threads for update and render */
 #endif /* _THREADS_NUM */
-#define RT_SETAFFINITY          (_WIN32_WINNT>=0x0601) /* Windows 7 or newer */
-
-#else /* (defined RT_LINUX) */
-
-#define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
-#ifndef RT_THREADS_NUM
-#define RT_THREADS_NUM          120/* number of threads for update and render */
-#endif /* _THREADS_NUM */
-#define RT_SETAFFINITY          1
-
-#endif /* system-specific */
+#define RT_SETAFFINITY          1  /* enables thread-affinity and core-count */
 
 #define RT_CHUNK_SIZE           65536 /* heap allocation granularity (16*4k) */
 
