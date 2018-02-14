@@ -78,6 +78,9 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
 
     /* common anti-aliasing mode */
     rt_si32             fsaa;
+    /* single tile dimensions in pixels */
+    rt_si32             tile_w;
+    rt_si32             tile_h;
 
     /* scene-list for given platform */
     rt_Scene           *head;
@@ -106,11 +109,13 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
 
     rt_si32     set_simd(rt_si32 simd);
     rt_si32     set_fsaa(rt_si32 fsaa);
+    rt_si32     get_tile_w();
 
     rt_Scene*   get_cur_scene();
     rt_Scene*   set_cur_scene(rt_Scene *scn);
     rt_void     next_scene();
 
+    friend      class rt_SceneThread;
     friend      class rt_Scene;
 };
 
@@ -205,9 +210,6 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
     rt_si32             x_row;
     rt_ui32            *frame;
 
-    /* single tile dimensions in pixels */
-    rt_si32             tile_w;
-    rt_si32             tile_h;
     /* tilebuffer's dimensions and pointer */
     rt_si32             tiles_in_row;
     rt_si32             tiles_in_col;
@@ -292,7 +294,6 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
                            rt_si32 d, rt_si32 z, rt_ui32 num);
 
     rt_si32     get_x_row();
-    rt_si32     get_tile_w();
     rt_void     print_state();
 
     rt_si32     get_opts();

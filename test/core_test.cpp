@@ -801,19 +801,8 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     rt_si32 tile_w = 0;
     rt_si32 size, type, simd = 0;
 
-    try
-    {
-        scene = RT_NULL;
-        o_test[0]();
-        simd = (&pfm)->set_simd(simd_init(n_simd, s_type, k_size));
-        tile_w = scene->get_tile_w();
-        delete scene;
-    }
-    catch (rt_Exception e)
-    {
-        RT_LOGE("Exception in scene %d: %s\n", 1, e.err);
-        return 0;
-    }
+    simd = (&pfm)->set_simd(simd_init(n_simd, s_type, k_size));
+    tile_w = (&pfm)->get_tile_w();
 
     size = (simd >> 16) & 0xFF;
     type = (simd >> 8) & 0xFF;
@@ -875,7 +864,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             {
                 scene->render_num(x_res-30, 10, -1, 2, (rt_si32)0);
                 scene->render_num(x_res-10, 10, -1, 2, (rt_si32)
-                                                   scene->get_tile_w() / 8);
+                                                  (&pfm)->get_tile_w() / 8);
                 scene->render_num(x_res-10, 34, -1, 2, (rt_si32)a_mode * 4
                                                          / (RT_ELEMENT / 32));
                 scene->render_num(      30, 10, +1, 2, (rt_si32)n_simd * 128);
@@ -913,7 +902,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             {
                 scene->render_num(x_res-30, 10, -1, 2, (rt_si32)0);
                 scene->render_num(x_res-10, 10, -1, 2, (rt_si32)
-                                                   scene->get_tile_w() / 8);
+                                                  (&pfm)->get_tile_w() / 8);
                 scene->render_num(x_res-10, 34, -1, 2, (rt_si32)a_mode * 4
                                                          / (RT_ELEMENT / 32));
                 scene->render_num(      30, 10, +1, 2, (rt_si32)n_simd * 128);

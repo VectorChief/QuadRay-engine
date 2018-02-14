@@ -564,6 +564,11 @@ rt_Platform::rt_Platform(rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
     thnum = this->thnum;
     this->thnum = thnum < 0 ? -thnum : thnum; /* always > 0 upon feedback */
 
+    /* init tile dimensions */
+    tile_w = RT_MAX(RT_TILE_W, 1);
+    tile_h = RT_MAX(RT_TILE_H, 1);
+    tile_w = ((tile_w + RT_SIMD_WIDTH - 1) / RT_SIMD_WIDTH) * RT_SIMD_WIDTH;
+
     /* init rendering backend,
      * default SIMD runtime target will be chosen */
     fsaa  = RT_FSAA_NO;
@@ -625,6 +630,14 @@ rt_si32 rt_Platform::set_fsaa(rt_si32 fsaa)
     this->fsaa = fsaa;
 
     return fsaa;
+}
+
+/*
+ * Return tile width in pixels.
+ */
+rt_si32 rt_Platform::get_tile_w()
+{
+    return tile_w;
 }
 
 /*
@@ -784,8 +797,8 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_si32 index) :
     s_inf->frame   = scene->frame;
 
     /* init tilebuffer's dimensions and pointer */
-    s_inf->tile_w  = scene->tile_w;
-    s_inf->tile_h  = scene->tile_h;
+    s_inf->tile_w  = scene->pfm->tile_w;
+    s_inf->tile_h  = scene->pfm->tile_h;
     s_inf->tls_row = scene->tiles_in_row;
     s_inf->tiles   = scene->tiles;
 
@@ -2749,13 +2762,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
     this->frame = frame;
 
     /* init tilebuffer's dimensions and pointer */
-    tile_w = RT_MAX(RT_TILE_W, 1);
-    tile_h = RT_MAX(RT_TILE_H, 1);
-
-    tile_w = ((tile_w + RT_SIMD_WIDTH - 1) / RT_SIMD_WIDTH) * RT_SIMD_WIDTH;
-
-    tiles_in_row = (x_res + tile_w - 1) / tile_w;
-    tiles_in_col = (y_res + tile_h - 1) / tile_h;
+    tiles_in_row = (x_res + pfm->tile_w - 1) / pfm->tile_w;
+    tiles_in_col = (y_res + pfm->tile_h - 1) / pfm->tile_h;
 
     tiles = (rt_ELEM **)
             alloc(sizeof(rt_ELEM *) * (tiles_in_row * tiles_in_col), RT_ALIGN);
@@ -2915,8 +2923,8 @@ rt_void rt_Scene::render(rt_time time)
     /* update tiles positioning and steppers */
     RT_VEC3_ADD(org, pos, dir);
 
-    h = 1.0f / (factor * tile_w); /* x_res / tile_w */
-    v = 1.0f / (factor * tile_h); /* x_res / tile_h */
+    h = 1.0f / (factor * pfm->tile_w); /* x_res / tile_w */
+    v = 1.0f / (factor * pfm->tile_h); /* x_res / tile_h */
 
     RT_VEC3_MUL_VAL1(htl, hor, h);
     RT_VEC3_MUL_VAL1(vtl, ver, v);
@@ -3437,14 +3445,6 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
 rt_si32 rt_Scene::get_x_row()
 {
     return x_row;
-}
-
-/*
- * Return tile width in pixels.
- */
-rt_si32 rt_Scene::get_tile_w()
-{
-    return tile_w;
 }
 
 /*
