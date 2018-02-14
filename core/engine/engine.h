@@ -68,6 +68,14 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
     rt_si32             thnum;
     rt_pntr             tdata;
 
+    /* backend specific structures */
+    rt_SIMD_INFOX      *s_inf;
+
+    /* width and quads parameters of the
+     * currently active SIMD runtime target */
+    rt_si32             simd_width;
+    rt_si32             simd_quads;
+
     /* scene-list for given platform */
     rt_Scene           *head;
     rt_Scene           *tail;
@@ -92,6 +100,8 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
 
     rt_si32     get_thnum();
     rt_si32     set_thnum(rt_si32 thnum);
+
+    rt_si32     set_simd(rt_si32 simd);
 
     rt_Scene*   get_cur_scene();
     rt_Scene*   set_cur_scene(rt_Scene *scn);
@@ -224,11 +234,6 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
     rt_SceneThread    **tharr;
     rt_pntr             tdata;
 
-    /* width and quads parameters of the
-     * currently active SIMD runtime target */
-    rt_si32             simd_width;
-    rt_si32             simd_quads;
-
     /* global hierarchical list */
     rt_ELEM            *hlist;
     /* global surface/node list */
@@ -290,7 +295,6 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
     rt_si32     get_opts();
     rt_si32     set_opts(rt_si32 opts);
     rt_si32     set_fsaa(rt_si32 fsaa);
-    rt_si32     set_simd(rt_si32 simd);
 
     rt_si32     get_cam_idx();
     rt_si32     next_cam();

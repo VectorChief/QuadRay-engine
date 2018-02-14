@@ -523,6 +523,20 @@ rt_Platform::rt_Platform(rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
     /* init scene list variables */
     head = tail = cur = RT_NULL;
 
+    /* allocate root SIMD structure */
+    s_inf = (rt_SIMD_INFOX *)
+            alloc(sizeof(rt_SIMD_INFOX),
+                            RT_SIMD_ALIGN);
+
+    memset(s_inf, 0, sizeof(rt_SIMD_INFOX));
+
+    /* allocate root SIMD structure */
+    rt_SIMD_REGS *s_reg = (rt_SIMD_REGS *)
+            alloc(sizeof(rt_SIMD_REGS),
+                            RT_SIMD_ALIGN);
+
+    ASM_INIT(s_inf, s_reg)
+
     /* init thread management functions */
     if (f_init != RT_NULL && f_term != RT_NULL
     &&  f_update != RT_NULL && f_render != RT_NULL)
@@ -549,6 +563,10 @@ rt_Platform::rt_Platform(rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
     tdata = this->f_init(thnum, this);
     thnum = this->thnum;
     this->thnum = thnum < 0 ? -thnum : thnum; /* always > 0 upon feedback */
+
+    /* init rendering backend,
+     * default SIMD runtime target will be chosen */
+    set_simd(0);
 }
 
 /*
@@ -570,6 +588,32 @@ rt_si32 rt_Platform::set_thnum(rt_si32 thnum)
     }
 
     return this->thnum;
+}
+
+/*
+ * Initialize SIMD target-selection variable from parameters.
+ */
+rt_si32 simd_init(rt_si32 n_simd, rt_si32 s_type, rt_si32 k_size)
+{
+    /* ------ k_size ------- s_type ------- n_simd ------ */
+    return (k_size << 16) | (s_type << 8) | (n_simd);
+}
+
+/*
+ * Set current runtime SIMD target with "simd" equal to
+ * SIMD native-size (1, 2, 4) in 0th (lowest) byte
+ * SIMD type (1, 2, 4, 8) in 1st (higher) byte and
+ * SIMD size-factor (1, 2, 4) in 2nd (higher) byte
+ */
+rt_si32 rt_Platform::set_simd(rt_si32 simd)
+{
+    /* working with simd in the old format */
+    simd = switch0(s_inf, simd);
+
+    simd_quads = (simd & 0xFF) * ((simd >> 16) & 0xFF);
+    simd_width = (simd_quads * 128) / RT_ELEMENT;
+
+    return simd;
 }
 
 /*
@@ -677,6 +721,8 @@ rt_Platform::~rt_Platform()
 
     /* destroy platform-specific worker threads */
     this->f_term(tdata, thnum);
+
+    ASM_DONE(s_inf)
 }
 
 /******************************************************************************/
@@ -2771,13 +2817,6 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
      * if the estimates are not accurate the engine should still work,
      * though not as efficient due to unnecessary allocations per frame
      * or unused extra memory reservation resulting in larger footprint */
-
-    /* init rendering backend,
-     * default SIMD runtime target will be chosen */
-    simd_width = switch0(tharr[0]->s_inf, 0);
-
-    simd_quads = (simd_width & 0xFF) * ((simd_width >> 16) & 0xFF);
-    simd_width = (simd_quads * 128) / RT_ELEMENT;
 }
 
 /*
@@ -3285,7 +3324,7 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
         rt_real as = 0.25f;
         rt_real ar = 0.08f;
 
-        for (i = 0; i < simd_quads; i++)
+        for (i = 0; i < pfm->simd_quads; i++)
         {
 #if   RT_ELEMENT == 32
 
@@ -3310,18 +3349,18 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
 #endif /* RT_ELEMENT */
         }
 
-        fhr = (rt_real)simd_quads;
+        fhr = (rt_real)pfm->simd_quads;
         fvr = (rt_real)thnum;
     }
     else
     {
-        for (i = 0; i < simd_width; i++)
+        for (i = 0; i < pfm->simd_width; i++)
         {
             fdh[i] = (rt_real)i;
             fdv[i] = (rt_real)index;
         }
 
-        fhr = (rt_real)simd_width;
+        fhr = (rt_real)pfm->simd_width;
         fvr = (rt_real)thnum;
     }
 
@@ -3331,7 +3370,7 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
 
     RT_SIMD_SET(s_cam->t_max, RT_INF);
 
-    for (i = 0; i < simd_width; i++)
+    for (i = 0; i < pfm->simd_width; i++)
     {
         s_cam->dir_x[i] = dir[RT_X] + fdh[i] * hor[RT_X] + fdv[i] * ver[RT_X];
         s_cam->dir_y[i] = dir[RT_Y] + fdh[i] * hor[RT_Y] + fdv[i] * ver[RT_Y];
@@ -3437,32 +3476,6 @@ rt_si32 rt_Scene::set_fsaa(rt_si32 fsaa)
     this->fsaa = fsaa;
 
     return fsaa;
-}
-
-/*
- * Initialize SIMD target-selection variable from parameters.
- */
-rt_si32 simd_init(rt_si32 n_simd, rt_si32 s_type, rt_si32 k_size)
-{
-    /* ------ k_size ------- s_type ------- n_simd ------ */
-    return (k_size << 16) | (s_type << 8) | (n_simd);
-}
-
-/*
- * Set current runtime SIMD target with "simd" equal to
- * SIMD native-size (1, 2, 4) in 0th (lowest) byte
- * SIMD type (1, 2, 4, 8) in 1st (higher) byte and
- * SIMD size-factor (1, 2, 4) in 2nd (higher) byte
- */
-rt_si32 rt_Scene::set_simd(rt_si32 simd)
-{
-    /* working with simd in the old format */
-    simd = switch0(tharr[0]->s_inf, simd);
-
-    simd_quads = (simd & 0xFF) * ((simd >> 16) & 0xFF);
-    simd_width = (simd_quads * 128) / RT_ELEMENT;
-
-    return simd;
 }
 
 /*
