@@ -566,6 +566,7 @@ rt_Platform::rt_Platform(rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
 
     /* init rendering backend,
      * default SIMD runtime target will be chosen */
+    fsaa  = RT_FSAA_NO;
     set_simd(0);
 }
 
@@ -614,6 +615,16 @@ rt_si32 rt_Platform::set_simd(rt_si32 simd)
     simd_width = (simd_quads * 128) / RT_ELEMENT;
 
     return simd;
+}
+
+/*
+ * Set fullscreen anti-aliasing mode.
+ */
+rt_si32 rt_Platform::set_fsaa(rt_si32 fsaa)
+{
+    this->fsaa = fsaa;
+
+    return fsaa;
 }
 
 /*
@@ -2749,12 +2760,11 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
     tiles = (rt_ELEM **)
             alloc(sizeof(rt_ELEM *) * (tiles_in_row * tiles_in_col), RT_ALIGN);
 
-    /* init aspect ratio, rays depth and fsaa */
+    /* init aspect ratio, rays depth */
     factor = 1.0f / (rt_real)x_res;
     aspect = (rt_real)y_res * factor;
 
     depth = RT_MAX(RT_STACK_DEPTH, 0);
-    fsaa  = RT_FSAA_NO;
     opts &= ~scn->opts;
 
     /* instantiate object hierarchy */
@@ -3319,7 +3329,7 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
     rt_real fhr, fvr;
     rt_si32 i;
 
-    if (fsaa == RT_FSAA_4X)
+    if (pfm->fsaa == RT_FSAA_4X)
     {
         rt_real as = 0.25f;
         rt_real ar = 0.08f;
@@ -3415,7 +3425,7 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
     s_inf->index = index;
     s_inf->thnum = thnum;
     s_inf->depth = depth;
-    s_inf->fsaa  = fsaa;
+    s_inf->fsaa  = pfm->fsaa;
 
    /* render frame based on tilebuffer */
     render0(s_inf);
@@ -3466,16 +3476,6 @@ rt_si32 rt_Scene::set_opts(rt_si32 opts)
     rootobj.time = -1;
 
     return opts;
-}
-
-/*
- * Set fullscreen anti-aliasing mode.
- */
-rt_si32 rt_Scene::set_fsaa(rt_si32 fsaa)
-{
-    this->fsaa = fsaa;
-
-    return fsaa;
 }
 
 /*

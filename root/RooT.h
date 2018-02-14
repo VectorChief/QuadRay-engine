@@ -332,7 +332,6 @@ rt_si32 main_step()
             rt_si32 dold = d;
             d = (d + 1) % RT_ARR_SIZE(sc_rt);
             c = sc[d]->get_cam_idx();
-            sc[d]->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
             pfm->set_cur_scene(sc[d]);
             switched = dold != d ? 1 : switched;
         }
@@ -344,7 +343,7 @@ rt_si32 main_step()
         if (T_KEYS(RK_F2))
         {
             a_mode = !a_mode;
-            sc[d]->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
+            pfm->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
             switched = 1;
         }
         if (T_KEYS(RK_F4))
@@ -845,13 +844,12 @@ rt_si32 main_init()
                               update_scene, render_scene);
 
         simd = pfm->set_simd(simd_init(n_simd, s_type, k_size));
+        pfm->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
 
         for (i = 0; i < n; i++)
         {
             sc[i] = new(pfm) rt_Scene(sc_rt[i],
                                       x_res, y_res, x_row, frame, pfm);
-
-            sc[i]->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
         }
 
         pfm->set_cur_scene(sc[d]);

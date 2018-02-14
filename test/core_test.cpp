@@ -852,11 +852,12 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                                                                           i+1);
         try
         {
+            (&pfm)->set_simd(simd_init(n_simd, s_type, k_size));
+            (&pfm)->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
+
             scene = RT_NULL;
             o_test[i]();
 
-            scene->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
-            (&pfm)->set_simd(simd_init(n_simd, s_type, k_size));
             scene->set_opts(RT_OPTS_NONE);
 
             time1 = get_time();
@@ -895,8 +896,6 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             scene = RT_NULL;
             o_test[i]();
 
-            scene->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
-            (&pfm)->set_simd(simd_init(n_simd, s_type, k_size));
             scene->set_opts(RT_OPTS_FULL);
 
             time1 = get_time();
