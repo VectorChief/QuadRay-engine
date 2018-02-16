@@ -82,27 +82,9 @@ struct rt_SIMD_MATERIAL;
 /******************************************************************************/
 
 /*
- * Backend's global entry point (hence 0).
- * Set current runtime SIMD target with "simd" equal to
- * SIMD native-size (1, 2, 4) in 0th (lowest) byte
- * SIMD type (1, 2, 4, 8) in 1st (higher) byte and
- * SIMD size-factor (1, 2, 4) in 2nd (higher) byte
+ * Backend's global entry points (switch0, update0, render0)
+ * are now defined within rt_Platform class in engine.h file.
  */
-rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 simd);
-
-/*
- * Backend's global entry point (hence 0).
- * Update surface's backend-specific fields
- * from its internal state.
- */
-rt_void update0(rt_SIMD_SURFACE *s_srf);
-
-/*
- * Backend's global entry point (hence 0).
- * Render frame based on the data structures
- * prepared by the engine.
- */
-rt_void render0(rt_SIMD_INFOX *s_inf);
 
 /******************************************************************************/
 /**********************************   MISC   **********************************/

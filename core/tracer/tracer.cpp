@@ -5153,185 +5153,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /**********************************   LEAVE   *********************************/
 /******************************************************************************/
 
-    if (s_inf->ctx != RT_NULL)
-    {
-#if RT_QUAD_DEBUG == 1
-
-        if (s_inf->q_dbg == 7)
-        {
-            RT_LOGE("---------------------------------------------");
-            RT_LOGE("------------- quadric debug info ------------");
-            RT_LOGE("--------------------- depth: %d --------------",
-                                        s_inf->depth - s_inf->q_cnt);
-            RT_LOGE("\n");
-            RT_LOGE("\n");
-
-            RT_LOGE("    WMASK = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->wmask[0], s_inf->wmask[1], s_inf->wmask[2], s_inf->wmask[3]);
-
-            RT_LOGE("\n");
-
-            RT_LOGE("    DFF_X = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->dff_x[0], s_inf->dff_x[1], s_inf->dff_x[2], s_inf->dff_x[3]);
-
-            RT_LOGE("    DFF_Y = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->dff_y[0], s_inf->dff_y[1], s_inf->dff_y[2], s_inf->dff_y[3]);
-
-            RT_LOGE("    DFF_Z = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->dff_z[0], s_inf->dff_z[1], s_inf->dff_z[2], s_inf->dff_z[3]);
-
-            RT_LOGE("\n");
-
-            RT_LOGE("    RAY_X = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->ray_x[0], s_inf->ray_x[1], s_inf->ray_x[2], s_inf->ray_x[3]);
-
-            RT_LOGE("    RAY_Y = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->ray_y[0], s_inf->ray_y[1], s_inf->ray_y[2], s_inf->ray_y[3]);
-
-            RT_LOGE("    RAY_Z = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->ray_z[0], s_inf->ray_z[1], s_inf->ray_z[2], s_inf->ray_z[3]);
-
-            RT_LOGE("\n");
-
-            RT_LOGE("    A_VAL = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->a_val[0], s_inf->a_val[1], s_inf->a_val[2], s_inf->a_val[3]);
-
-            RT_LOGE("    B_VAL = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->b_val[0], s_inf->b_val[1], s_inf->b_val[2], s_inf->b_val[3]);
-
-            RT_LOGE("    C_VAL = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->c_val[0], s_inf->c_val[1], s_inf->c_val[2], s_inf->c_val[3]);
-
-            RT_LOGE("    D_VAL = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->d_val[0], s_inf->d_val[1], s_inf->d_val[2], s_inf->d_val[3]);
-
-            RT_LOGE("\n");
-
-            RT_LOGE("    DMASK = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->dmask[0], s_inf->dmask[1], s_inf->dmask[2], s_inf->dmask[3]);
-
-            RT_LOGE("\n");
-
-            RT_LOGE("    T1NMR = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->t1nmr[0], s_inf->t1nmr[1], s_inf->t1nmr[2], s_inf->t1nmr[3]);
-
-            RT_LOGE("    T1DNM = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->t1dnm[0], s_inf->t1dnm[1], s_inf->t1dnm[2], s_inf->t1dnm[3]);
-
-            RT_LOGE("    T2NMR = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->t2nmr[0], s_inf->t2nmr[1], s_inf->t2nmr[2], s_inf->t2nmr[3]);
-
-            RT_LOGE("    T2DNM = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->t2dnm[0], s_inf->t2dnm[1], s_inf->t2dnm[2], s_inf->t2dnm[3]);
-
-            RT_LOGE("\n");
-
-            RT_LOGE("    T1VAL = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->t1val[0], s_inf->t1val[1], s_inf->t1val[2], s_inf->t1val[3]);
-
-            RT_LOGE("    T2VAL = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->t2val[0], s_inf->t2val[1], s_inf->t2val[2], s_inf->t2val[3]);
-
-            RT_LOGE("    T1SRT = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->t1srt[0], s_inf->t1srt[1], s_inf->t1srt[2], s_inf->t1srt[3]);
-
-            RT_LOGE("    T2SRT = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->t2srt[0], s_inf->t2srt[1], s_inf->t2srt[2], s_inf->t2srt[3]);
-
-            RT_LOGE("    T1MSK = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->t1msk[0], s_inf->t1msk[1], s_inf->t1msk[2], s_inf->t1msk[3]);
-
-            RT_LOGE("    T2MSK = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->t2msk[0], s_inf->t2msk[1], s_inf->t2msk[2], s_inf->t2msk[3]);
-
-            RT_LOGE("\n");
-
-            RT_LOGE("    TSIDE = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->tside[0], s_inf->tside[1], s_inf->tside[2], s_inf->tside[3]);
-
-            RT_LOGE("\n");
-
-            RT_LOGE("    HIT_X = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->hit_x[0], s_inf->hit_x[1], s_inf->hit_x[2], s_inf->hit_x[3]);
-
-            RT_LOGE("    HIT_Y = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->hit_y[0], s_inf->hit_y[1], s_inf->hit_y[2], s_inf->hit_y[3]);
-
-            RT_LOGE("    HIT_Z = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->hit_z[0], s_inf->hit_z[1], s_inf->hit_z[2], s_inf->hit_z[3]);
-
-            RT_LOGE("\n");
-
-            RT_LOGE("    ADJ_X = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->adj_x[0], s_inf->adj_x[1], s_inf->adj_x[2], s_inf->adj_x[3]);
-
-            RT_LOGE("    ADJ_Y = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->adj_y[0], s_inf->adj_y[1], s_inf->adj_y[2], s_inf->adj_y[3]);
-
-            RT_LOGE("    ADJ_Z = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->adj_z[0], s_inf->adj_z[1], s_inf->adj_z[2], s_inf->adj_z[3]);
-
-            RT_LOGE("\n");
-
-            RT_LOGE("    NRM_X = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->nrm_x[0], s_inf->nrm_x[1], s_inf->nrm_x[2], s_inf->nrm_x[3]);
-
-            RT_LOGE("    NRM_Y = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->nrm_y[0], s_inf->nrm_y[1], s_inf->nrm_y[2], s_inf->nrm_y[3]);
-
-            RT_LOGE("    NRM_Z = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
-            s_inf->nrm_z[0], s_inf->nrm_z[1], s_inf->nrm_z[2], s_inf->nrm_z[3]);
-
-            RT_LOGE("\n");
-        }
-
-#endif /* RT_QUAD_DEBUG */
-
-        return;
-    }
-
-    t_ptr[RT_TAG_PLANE]             = s_inf->xpl_p[0];
-    t_ptr[RT_TAG_PLANE + 1]         = s_inf->xtp_p[0];
-    t_ptr[RT_TAG_PLANE + 2]         = s_inf->xqd_p[0];
-
-    t_mat[RT_TAG_PLANE]             = s_inf->xpl_p[1];
-    t_mat[RT_TAG_PLANE + 1]         = s_inf->xtp_p[1];
-    t_mat[RT_TAG_PLANE + 2]         = s_inf->xqd_p[1];
-
-    t_clp[RT_TAG_PLANE]             = s_inf->xpl_p[2];
-    t_clp[RT_TAG_PLANE + 1]         = s_inf->xtp_p[2];
-    t_clp[RT_TAG_PLANE + 2]         = s_inf->xqd_p[2];
-
-    t_pow[0]                        = s_inf->pow_e0;
-    t_pow[1]                        = s_inf->pow_e1;
-    t_pow[2]                        = s_inf->pow_e2;
-    t_pow[3]                        = s_inf->pow_e3;
-    t_pow[4]                        = s_inf->pow_e4;
-    t_pow[5]                        = s_inf->pow_en;
-
-#if RT_DEBUG >= 2
-
-    RT_LOGI("PL ptr = %p\n", s_inf->xpl_p[0]);
-    RT_LOGI("TP ptr = %p\n", s_inf->xtp_p[0]);
-    RT_LOGI("QD ptr = %p\n", s_inf->xqd_p[0]);
-
-    RT_LOGI("PL mat = %p\n", s_inf->xpl_p[1]);
-    RT_LOGI("TP mat = %p\n", s_inf->xtp_p[1]);
-    RT_LOGI("QD mat = %p\n", s_inf->xqd_p[1]);
-
-    RT_LOGI("PL clp = %p\n", s_inf->xpl_p[2]);
-    RT_LOGI("TP clp = %p\n", s_inf->xtp_p[2]);
-    RT_LOGI("QD clp = %p\n", s_inf->xqd_p[2]);
-
-    RT_LOGI("E0 pow = %p\n", s_inf->pow_e0);
-    RT_LOGI("E1 pow = %p\n", s_inf->pow_e1);
-    RT_LOGI("E2 pow = %p\n", s_inf->pow_e2);
-    RT_LOGI("E3 pow = %p\n", s_inf->pow_e3);
-    RT_LOGI("E4 pow = %p\n", s_inf->pow_e4);
-    RT_LOGI("EN pow = %p\n", s_inf->pow_en);
-
-#endif /* RT_DEBUG */
-
 #endif /* RT_RENDER_CODE */
 }
 
@@ -5341,28 +5162,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #include "tracer.h"
 #include "format.h"
+#include "engine.h"
 
 /******************************************************************************/
 /*********************************   UPDATE   *********************************/
 /******************************************************************************/
 
 /*
- * Global pointer tables
- * for quick entry point resolution.
- */
-rt_pntr t_ptr[3];
-
-rt_pntr t_mat[3];
-
-rt_pntr t_clp[3];
-
-rt_pntr t_pow[6];
-
-/*
  * Update material's backend-specific fields.
  */
-static
-rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
+rt_void rt_Platform::update_mat(rt_SIMD_MATERIAL *s_mat)
 {
     if (s_mat == RT_NULL)
     {
@@ -5419,7 +5228,7 @@ rt_void update_mat(rt_SIMD_MATERIAL *s_mat)
  * Update surface's backend-specific fields
  * from its internal state.
  */
-rt_void update0(rt_SIMD_SURFACE *s_srf)
+rt_void rt_Platform::update0(rt_SIMD_SURFACE *s_srf)
 {
     rt_ui32 tag = (rt_ui32)(rt_word)s_srf->srf_p[3];
 
@@ -5470,11 +5279,6 @@ rt_void update0(rt_SIMD_SURFACE *s_srf)
 
 #endif /* (RT_POINTER - RT_ADDRESS) */
 
-static
-rt_si32 s_mask = 0;
-static
-rt_si32 s_mode = 0;
-
 /*
  * Backend's global entry point (hence 0).
  * Set current runtime SIMD target with "simd" equal to
@@ -5482,7 +5286,7 @@ rt_si32 s_mode = 0;
  * SIMD type (1, 2, 4, 8) in 1st (higher) byte and
  * SIMD size-factor (1, 2, 4) in 2nd (higher) byte
  */
-rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 simd)
+rt_si32 rt_Platform::switch0(rt_SIMD_INFOX *s_inf, rt_si32 simd)
 {
 #if (RT_POINTER - RT_ADDRESS) != 0 && RT_DEBUG >= 1
 
@@ -5642,7 +5446,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf);
  * Render frame based on the data structures
  * prepared by the engine.
  */
-rt_void render0(rt_SIMD_INFOX *s_inf)
+rt_void rt_Platform::render0(rt_SIMD_INFOX *s_inf)
 {
     switch (s_mode)
     {
@@ -5745,6 +5549,185 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         default:
         break;
     }
+
+    if (s_inf->ctx != RT_NULL)
+    {
+#if RT_QUAD_DEBUG == 1
+
+        if (s_inf->q_dbg == 7)
+        {
+            RT_LOGE("---------------------------------------------");
+            RT_LOGE("------------- quadric debug info ------------");
+            RT_LOGE("--------------------- depth: %d --------------",
+                                        s_inf->depth - s_inf->q_cnt);
+            RT_LOGE("\n");
+            RT_LOGE("\n");
+
+            RT_LOGE("    WMASK = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->wmask[0], s_inf->wmask[1], s_inf->wmask[2], s_inf->wmask[3]);
+
+            RT_LOGE("\n");
+
+            RT_LOGE("    DFF_X = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->dff_x[0], s_inf->dff_x[1], s_inf->dff_x[2], s_inf->dff_x[3]);
+
+            RT_LOGE("    DFF_Y = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->dff_y[0], s_inf->dff_y[1], s_inf->dff_y[2], s_inf->dff_y[3]);
+
+            RT_LOGE("    DFF_Z = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->dff_z[0], s_inf->dff_z[1], s_inf->dff_z[2], s_inf->dff_z[3]);
+
+            RT_LOGE("\n");
+
+            RT_LOGE("    RAY_X = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->ray_x[0], s_inf->ray_x[1], s_inf->ray_x[2], s_inf->ray_x[3]);
+
+            RT_LOGE("    RAY_Y = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->ray_y[0], s_inf->ray_y[1], s_inf->ray_y[2], s_inf->ray_y[3]);
+
+            RT_LOGE("    RAY_Z = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->ray_z[0], s_inf->ray_z[1], s_inf->ray_z[2], s_inf->ray_z[3]);
+
+            RT_LOGE("\n");
+
+            RT_LOGE("    A_VAL = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->a_val[0], s_inf->a_val[1], s_inf->a_val[2], s_inf->a_val[3]);
+
+            RT_LOGE("    B_VAL = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->b_val[0], s_inf->b_val[1], s_inf->b_val[2], s_inf->b_val[3]);
+
+            RT_LOGE("    C_VAL = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->c_val[0], s_inf->c_val[1], s_inf->c_val[2], s_inf->c_val[3]);
+
+            RT_LOGE("    D_VAL = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->d_val[0], s_inf->d_val[1], s_inf->d_val[2], s_inf->d_val[3]);
+
+            RT_LOGE("\n");
+
+            RT_LOGE("    DMASK = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->dmask[0], s_inf->dmask[1], s_inf->dmask[2], s_inf->dmask[3]);
+
+            RT_LOGE("\n");
+
+            RT_LOGE("    T1NMR = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->t1nmr[0], s_inf->t1nmr[1], s_inf->t1nmr[2], s_inf->t1nmr[3]);
+
+            RT_LOGE("    T1DNM = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->t1dnm[0], s_inf->t1dnm[1], s_inf->t1dnm[2], s_inf->t1dnm[3]);
+
+            RT_LOGE("    T2NMR = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->t2nmr[0], s_inf->t2nmr[1], s_inf->t2nmr[2], s_inf->t2nmr[3]);
+
+            RT_LOGE("    T2DNM = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->t2dnm[0], s_inf->t2dnm[1], s_inf->t2dnm[2], s_inf->t2dnm[3]);
+
+            RT_LOGE("\n");
+
+            RT_LOGE("    T1VAL = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->t1val[0], s_inf->t1val[1], s_inf->t1val[2], s_inf->t1val[3]);
+
+            RT_LOGE("    T2VAL = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->t2val[0], s_inf->t2val[1], s_inf->t2val[2], s_inf->t2val[3]);
+
+            RT_LOGE("    T1SRT = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->t1srt[0], s_inf->t1srt[1], s_inf->t1srt[2], s_inf->t1srt[3]);
+
+            RT_LOGE("    T2SRT = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->t2srt[0], s_inf->t2srt[1], s_inf->t2srt[2], s_inf->t2srt[3]);
+
+            RT_LOGE("    T1MSK = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->t1msk[0], s_inf->t1msk[1], s_inf->t1msk[2], s_inf->t1msk[3]);
+
+            RT_LOGE("    T2MSK = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->t2msk[0], s_inf->t2msk[1], s_inf->t2msk[2], s_inf->t2msk[3]);
+
+            RT_LOGE("\n");
+
+            RT_LOGE("    TSIDE = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->tside[0], s_inf->tside[1], s_inf->tside[2], s_inf->tside[3]);
+
+            RT_LOGE("\n");
+
+            RT_LOGE("    HIT_X = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->hit_x[0], s_inf->hit_x[1], s_inf->hit_x[2], s_inf->hit_x[3]);
+
+            RT_LOGE("    HIT_Y = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->hit_y[0], s_inf->hit_y[1], s_inf->hit_y[2], s_inf->hit_y[3]);
+
+            RT_LOGE("    HIT_Z = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->hit_z[0], s_inf->hit_z[1], s_inf->hit_z[2], s_inf->hit_z[3]);
+
+            RT_LOGE("\n");
+
+            RT_LOGE("    ADJ_X = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->adj_x[0], s_inf->adj_x[1], s_inf->adj_x[2], s_inf->adj_x[3]);
+
+            RT_LOGE("    ADJ_Y = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->adj_y[0], s_inf->adj_y[1], s_inf->adj_y[2], s_inf->adj_y[3]);
+
+            RT_LOGE("    ADJ_Z = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->adj_z[0], s_inf->adj_z[1], s_inf->adj_z[2], s_inf->adj_z[3]);
+
+            RT_LOGE("\n");
+
+            RT_LOGE("    NRM_X = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->nrm_x[0], s_inf->nrm_x[1], s_inf->nrm_x[2], s_inf->nrm_x[3]);
+
+            RT_LOGE("    NRM_Y = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->nrm_y[0], s_inf->nrm_y[1], s_inf->nrm_y[2], s_inf->nrm_y[3]);
+
+            RT_LOGE("    NRM_Z = { %+27.20f, %+27.20f, %+27.20f, %+27.20f }\n",
+            s_inf->nrm_z[0], s_inf->nrm_z[1], s_inf->nrm_z[2], s_inf->nrm_z[3]);
+
+            RT_LOGE("\n");
+        }
+
+#endif /* RT_QUAD_DEBUG */
+
+        return;
+    }
+
+    t_ptr[RT_TAG_PLANE]     = s_inf->xpl_p[0];
+    t_ptr[RT_TAG_PLANE + 1] = s_inf->xtp_p[0];
+    t_ptr[RT_TAG_PLANE + 2] = s_inf->xqd_p[0];
+
+    t_mat[RT_TAG_PLANE]     = s_inf->xpl_p[1];
+    t_mat[RT_TAG_PLANE + 1] = s_inf->xtp_p[1];
+    t_mat[RT_TAG_PLANE + 2] = s_inf->xqd_p[1];
+
+    t_clp[RT_TAG_PLANE]     = s_inf->xpl_p[2];
+    t_clp[RT_TAG_PLANE + 1] = s_inf->xtp_p[2];
+    t_clp[RT_TAG_PLANE + 2] = s_inf->xqd_p[2];
+
+    t_pow[0]                = s_inf->pow_e0;
+    t_pow[1]                = s_inf->pow_e1;
+    t_pow[2]                = s_inf->pow_e2;
+    t_pow[3]                = s_inf->pow_e3;
+    t_pow[4]                = s_inf->pow_e4;
+    t_pow[5]                = s_inf->pow_en;
+
+#if RT_DEBUG >= 2
+
+    RT_LOGI("PL ptr = %p\n", s_inf->xpl_p[0]);
+    RT_LOGI("TP ptr = %p\n", s_inf->xtp_p[0]);
+    RT_LOGI("QD ptr = %p\n", s_inf->xqd_p[0]);
+
+    RT_LOGI("PL mat = %p\n", s_inf->xpl_p[1]);
+    RT_LOGI("TP mat = %p\n", s_inf->xtp_p[1]);
+    RT_LOGI("QD mat = %p\n", s_inf->xqd_p[1]);
+
+    RT_LOGI("PL clp = %p\n", s_inf->xpl_p[2]);
+    RT_LOGI("TP clp = %p\n", s_inf->xtp_p[2]);
+    RT_LOGI("QD clp = %p\n", s_inf->xqd_p[2]);
+
+    RT_LOGI("E0 pow = %p\n", s_inf->pow_e0);
+    RT_LOGI("E1 pow = %p\n", s_inf->pow_e1);
+    RT_LOGI("E2 pow = %p\n", s_inf->pow_e2);
+    RT_LOGI("E3 pow = %p\n", s_inf->pow_e3);
+    RT_LOGI("E4 pow = %p\n", s_inf->pow_e4);
+    RT_LOGI("EN pow = %p\n", s_inf->pow_en);
+
+#endif /* RT_DEBUG */
 }
 
 #endif /* RT_SIMD_CODE */

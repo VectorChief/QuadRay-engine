@@ -58,6 +58,17 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
 
     private:
 
+    /* tracer backend's current SIMD target */
+    rt_si32 s_mask;
+    rt_si32 s_mode;
+
+    /* tracer backend's pointer tables
+     * for quick entry point resolution */
+    rt_pntr t_ptr[3];
+    rt_pntr t_mat[3];
+    rt_pntr t_clp[3];
+    rt_pntr t_pow[6];
+
     /* thread management functions */
     rt_FUNC_INIT        f_init;
     rt_FUNC_TERM        f_term;
@@ -88,6 +99,12 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
     rt_Scene           *cur;
 
 /*  methods */
+
+    rt_void     update_mat(rt_SIMD_MATERIAL *s_mat);
+
+    rt_si32     switch0(rt_SIMD_INFOX *s_inf, rt_si32 simd);
+    rt_void     update0(rt_SIMD_SURFACE *s_srf);
+    rt_void     render0(rt_SIMD_INFOX *s_inf);
 
     rt_void     add_scene(rt_Scene *scn);
     rt_void     del_scene(rt_Scene *scn);

@@ -3321,7 +3321,7 @@ rt_void rt_Scene::update_slice(rt_si32 index, rt_si32 phase)
             tharr[index]->lsort(srf);
 
             /* update surface's backend-related parts */
-            update0(srf->s_srf);
+            pfm->update0(srf->s_srf);
         }
     }
 }
@@ -3436,7 +3436,7 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
     s_inf->fsaa  = pfm->fsaa;
 
    /* render frame based on tilebuffer */
-    render0(s_inf);
+    pfm->render0(s_inf);
 }
 
 /*
