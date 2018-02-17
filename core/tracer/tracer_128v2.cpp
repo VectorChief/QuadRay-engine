@@ -23,19 +23,6 @@
 #include "system.h"
 #endif /* RT_DEBUG */
 
-/*
- * Global pointer tables
- * for quick entry point resolution.
- */
-extern
-rt_pntr t_ptr[3];
-extern
-rt_pntr t_mat[3];
-extern
-rt_pntr t_clp[3];
-extern
-rt_pntr t_pow[6];
-
 namespace simd_128v2
 {
 #include "tracer.cpp"
