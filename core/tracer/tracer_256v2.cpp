@@ -19,9 +19,6 @@
 
 #include "tracer.h"
 #include "format.h"
-#if RT_DEBUG >= 1
-#include "system.h"
-#endif /* RT_DEBUG */
 
 namespace simd_256v2
 {

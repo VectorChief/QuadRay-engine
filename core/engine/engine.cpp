@@ -514,8 +514,8 @@ rt_Platform::rt_Platform(rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
                          rt_FUNC_INIT f_init, rt_FUNC_TERM f_term,
                          rt_FUNC_UPDATE f_update,
                          rt_FUNC_RENDER f_render,
-                         rt_FUNC_PRINT_LOG f_print_log,
-                         rt_FUNC_PRINT_ERR f_print_err) :
+                         rt_FUNC_PRINT_LOG f_print_log,   /* has global scope */
+                         rt_FUNC_PRINT_ERR f_print_err) : /* has global scope */
 
     rt_LogRedirect(f_print_log, f_print_err), /* must be 1st in platform init */
     rt_Heap(f_alloc, f_free)
@@ -2768,10 +2768,9 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
     tiles = (rt_ELEM **)
             alloc(sizeof(rt_ELEM *) * (tiles_in_row * tiles_in_col), RT_ALIGN);
 
-    /* init aspect ratio, rays depth */
+    /* init pixel-width, aspect-ratio, ray-depth */
     factor = 1.0f / (rt_real)x_res;
     aspect = (rt_real)y_res * factor;
-
     depth = RT_MAX(RT_STACK_DEPTH, 0);
     opts &= ~scn->opts;
 
@@ -2904,7 +2903,7 @@ rt_void rt_Scene::render(rt_time time)
         update_scene(this, -thnum, 1);
     }
 
-    /* update rays positioning and steppers */
+    /* update ray positioning and steppers */
     rt_real h, v;
 
     RT_VEC3_SET(pos, cam->pos);
@@ -2920,7 +2919,7 @@ rt_void rt_Scene::render(rt_time time)
     RT_VEC3_MAD_VAL1(dir, hor, h);
     RT_VEC3_MAD_VAL1(dir, ver, v);
 
-    /* update tiles positioning and steppers */
+    /* update tile positioning and steppers */
     RT_VEC3_ADD(org, pos, dir);
 
     h = 1.0f / (factor * pfm->tile_w); /* x_res / tile_w */
@@ -3448,7 +3447,9 @@ rt_si32 rt_Scene::get_x_row()
 }
 
 /*
- * Print current state.
+ * Print current state during next render-call.
+ * Has global scope and effect on any instance.
+ * The flag is reset upon rendering completion.
  */
 rt_void rt_Scene::print_state()
 {

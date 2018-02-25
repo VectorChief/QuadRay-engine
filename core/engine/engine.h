@@ -59,15 +59,15 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
     private:
 
     /* tracer backend's current SIMD target */
-    rt_si32 s_mask;
-    rt_si32 s_mode;
+    rt_si32             s_mask;
+    rt_si32             s_mode;
 
     /* tracer backend's pointer tables
      * for quick entry point resolution */
-    rt_pntr t_ptr[3];
-    rt_pntr t_mat[3];
-    rt_pntr t_clp[3];
-    rt_pntr t_pow[6];
+    rt_pntr             t_ptr[3];
+    rt_pntr             t_mat[3];
+    rt_pntr             t_clp[3];
+    rt_pntr             t_pow[6];
 
     /* thread management functions */
     rt_FUNC_INIT        f_init;
@@ -93,21 +93,21 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
     rt_si32             tile_w;
     rt_si32             tile_h;
 
-    /* scene-list for given platform */
+    /* scene-list for a given platform */
     rt_Scene           *head;
     rt_Scene           *tail;
     rt_Scene           *cur;
 
 /*  methods */
 
-    rt_void     update_mat(rt_SIMD_MATERIAL *s_mat);
+    rt_void     add_scene(rt_Scene *scn);
+    rt_void     del_scene(rt_Scene *scn);
 
+    /* methods below are implemented in tracer.cpp */
+    rt_void     update_mat(rt_SIMD_MATERIAL *s_mat);
     rt_si32     switch0(rt_SIMD_INFOX *s_inf, rt_si32 simd);
     rt_void     update0(rt_SIMD_SURFACE *s_srf);
     rt_void     render0(rt_SIMD_INFOX *s_inf);
-
-    rt_void     add_scene(rt_Scene *scn);
-    rt_void     del_scene(rt_Scene *scn);
 
     public:
 
@@ -115,8 +115,8 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
                 rt_FUNC_INIT f_init = RT_NULL, rt_FUNC_TERM f_term = RT_NULL,
                 rt_FUNC_UPDATE f_update = RT_NULL,
                 rt_FUNC_RENDER f_render = RT_NULL,
-                rt_FUNC_PRINT_LOG f_print_log = RT_NULL,
-                rt_FUNC_PRINT_ERR f_print_err = RT_NULL);
+                rt_FUNC_PRINT_LOG f_print_log = RT_NULL,  /* has global scope */
+                rt_FUNC_PRINT_ERR f_print_err = RT_NULL); /* has global scope */
 
     virtual
    ~rt_Platform();
@@ -232,11 +232,11 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
     rt_si32             tiles_in_col;
     rt_ELEM           **tiles;
 
-    /* aspect ratio and pixel width */
+    /* aspect-ratio and pixel-width */
     rt_real             aspect;
     rt_real             factor;
 
-    /* internal rays depth value */
+    /* internal ray-depth value */
     rt_ui32             depth;
 
     /* memory pool in the heap
@@ -250,7 +250,7 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
     rt_FUNC_UPDATE      f_update;
     rt_FUNC_RENDER      f_render;
 
-    /* scene threads array and its
+    /* scene's thread-array and its
      * platform-specific handle */
     rt_si32             thnum;
     rt_SceneThread    **tharr;
@@ -265,17 +265,17 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
     /* camera's surface/node list */
     rt_ELEM            *clist;
 
-    /* rays positioning variables */
+    /* ray-position variables */
     rt_vec4             pos;
     rt_vec4             dir;
-    /* rays steppers variables */
+    /* ray-stepper variables */
     rt_vec4             hor;
     rt_vec4             ver;
     /* screen's normal direction */
     rt_vec4             nrm;
-    /* tiles positioning variables */
+    /* tile-position variables */
     rt_vec4             org;
-    /* tiles steppers variables */
+    /* tile-stepper variables */
     rt_vec4             htl;
     rt_vec4             vtl;
     /* accumulated ambient color */
@@ -311,7 +311,7 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
                            rt_si32 d, rt_si32 z, rt_ui32 num);
 
     rt_si32     get_x_row();
-    rt_void     print_state();
+    rt_void     print_state(); /* has global scope and effect on any instance */
 
     rt_si32     get_opts();
     rt_si32     set_opts(rt_si32 opts);
