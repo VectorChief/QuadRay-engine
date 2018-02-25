@@ -42,14 +42,15 @@
 #define RT_SHOW_BOUND               0   /* <- needs RT_OPTS_TILING to be 0 */
 #define RT_QUAD_DEBUG               0   /* <- needs RT_DEBUG to be enabled
                                                with RT_THREADS_NUM equal 1 */
+
 #define RT_FEAT_TILING              1
-#define RT_FEAT_ANTIALIASING        1
-#define RT_FEAT_MULTITHREADING      1
-#define RT_FEAT_CLIPPING_MINMAX     1
-#define RT_FEAT_CLIPPING_CUSTOM     1
-#define RT_FEAT_CLIPPING_ACCUM      1
+#define RT_FEAT_ANTIALIASING        1   /* <- breaks AA in the engine if 0 */
+#define RT_FEAT_MULTITHREADING      1   /* <- breaks MT in the engine if 0 */
+#define RT_FEAT_CLIPPING_MINMAX     1   /* <- breaks BB in the engine if 0 */
+#define RT_FEAT_CLIPPING_CUSTOM     1   /* <- breaks BB in the engine if 0 */
+#define RT_FEAT_CLIPPING_ACCUM      1   /* <- breaks AC in the engine if 0 */
 #define RT_FEAT_TEXTURING           1
-#define RT_FEAT_NORMALS             1
+#define RT_FEAT_NORMALS             1   /* <- breaks LT in the engine if 0 */
 #define RT_FEAT_LIGHTS              1
 #define RT_FEAT_LIGHTS_COLORED      1
 #define RT_FEAT_LIGHTS_AMBIENT      1
@@ -60,8 +61,8 @@
 #define RT_FEAT_REFLECTIONS         1
 #define RT_FEAT_TRANSPARENCY        1
 #define RT_FEAT_REFRACTIONS         1
-#define RT_FEAT_TRANSFORM           1
-#define RT_FEAT_TRANSFORM_ARRAY     1
+#define RT_FEAT_TRANSFORM           1   /* <- breaks TM in the engine if 0 */
+#define RT_FEAT_TRANSFORM_ARRAY     1   /* <- breaks TA in the engine if 0 */
 #define RT_FEAT_BOUND_VOL_ARRAY     1
 
 /*
@@ -2328,7 +2329,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm5, Mecx, ctx_DFF_J)
         movpx_st(Xmm6, Mecx, ctx_DFF_K)
 
+#endif /* RT_FEAT_TRANSFORM */
+
     LBL(OO_ray)
+
+#if RT_FEAT_TRANSFORM
 
         /* transform ray */
         movpx_ld(Xmm1, Mecx, ctx_RAY_X)
@@ -2374,9 +2379,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm5, Mecx, ctx_RAY_J)
         movpx_st(Xmm6, Mecx, ctx_RAY_K)
 
-    LBL(OO_trm)
-
 #endif /* RT_FEAT_TRANSFORM */
+
+    LBL(OO_trm)
 
 #if RT_FEAT_BOUND_VOL_ARRAY
 
@@ -2962,9 +2967,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use context's normal fields (NRM)
          * as temporary storage for clipping */
 
-    LBL(CC_trm)
-
 #endif /* RT_FEAT_TRANSFORM */
+
+    LBL(CC_trm)
 
         jmpxx_mm(Mebx, srf_SRF_P(CLP))
 
@@ -3188,6 +3193,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_LIGHTS_COLORED */
 
+#else /* RT_FEAT_LIGHTS_AMBIENT */
+
+        xorpx_rr(Xmm1, Xmm1)
+        xorpx_rr(Xmm2, Xmm2)
+        xorpx_rr(Xmm3, Xmm3)
+
+#endif /* RT_FEAT_LIGHTS_AMBIENT */
+
         /* ambient R */
         STORE_SIMD(LT_amR, COL_R, Xmm1)
 
@@ -3196,8 +3209,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* ambient B */
         STORE_SIMD(LT_amB, COL_B, Xmm3)
-
-#endif /* RT_FEAT_LIGHTS_AMBIENT */
 
 #if RT_FEAT_LIGHTS_DIFFUSE || RT_FEAT_LIGHTS_SPECULAR
 
