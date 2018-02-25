@@ -37,17 +37,11 @@ BITMAPINFO  DIBinfo =
 CRITICAL_SECTION critSec;
 
 #if   (defined RT_WIN32)
-
 /* thread-group size, maximum 32 threads per group (Win32 limitation) */
 #define TG 32
-/* code below supports up to 4 groups, 128 threads (local limitation) */
-
 #elif (defined RT_WIN64)
-
 /* thread-group size, maximum 64 threads per group (Win64 limitation) */
 #define TG 64
-/* code below supports up to 4 groups, 256 threads (local limitation) */
-
 #endif /* defined RT_WIN64 */
 
 /******************************************************************************/
@@ -478,12 +472,20 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
 
 #else /* Windows 7 or newer */
 
-    USHORT gcnt = 4, garr[4] = {0};
+    USHORT j, gcnt = TG, garr[TG] = {0};
     HANDLE process = GetCurrentProcess();
     GetProcessGroupAffinity(process, &gcnt, garr);
 #if RT_DEBUG >= 1
-    RT_LOGI("InitProcessGroupAffinity: %d - {%d, %d, %d, %d}\n",
-                                    gcnt, garr[0], garr[1], garr[2], garr[3]);
+    RT_LOGI("InitProcessGroupAffinity: %d - {", gcnt);
+    for (j = 0; j < gcnt; j++)
+    {
+        if (j > 0)
+        {
+            RT_LOGI(",");
+        }
+        RT_LOGI("%d", garr[j]);
+    }
+    RT_LOGI("}\n");
 #endif /* RT_DEBUG */
 
 #endif /* Windows 7 or newer */
@@ -561,13 +563,13 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
 
         GROUP_AFFINITY ga;
         ga.Mask = ULL(1) << a;
-        ga.Group = (g % 4);
+        ga.Group = g;
         ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
         if (a < TG
         &&  SetThreadGroupAffinity(thread[0].pthr, &ga, NULL) != FALSE)
         {
             ga.Mask = ULL(1) << a;
-            ga.Group = (g % 4);
+            ga.Group = g;
             a += 2; /* <- allocate to physical cores first */
         }
         else
@@ -575,12 +577,12 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
             a = k;
             g++; /* <- move onto the next thread-group */
             ga.Mask = ULL(1) << a;
-            ga.Group = (g % 4);
+            ga.Group = g;
             ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
             if (SetThreadGroupAffinity(thread[0].pthr, &ga, NULL) != FALSE)
             {
                 ga.Mask = ULL(1) << a;
-                ga.Group = (g % 4);
+                ga.Group = g;
                 a += 2;
             }
             else
@@ -589,12 +591,12 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
                 a = k;
                 g = 0;
                 ga.Mask = ULL(1) << a;
-                ga.Group = (g % 4);
+                ga.Group = g;
                 ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
                 if (SetThreadGroupAffinity(thread[0].pthr, &ga, NULL) != FALSE)
                 {
                     ga.Mask = ULL(1) << a;
-                    ga.Group = (g % 4);
+                    ga.Group = g;
                     a += 2;
                 }
                 else
@@ -603,7 +605,7 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
                     a = k;
                     g = 0;
                     ga.Mask = ULL(1) << a;
-                    ga.Group = (g % 4);
+                    ga.Group = g;
                     a += 2;
                 }
                 if (feedback && k == 0)
@@ -663,14 +665,24 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
      * after multi-group affinity probing */
     GROUP_AFFINITY ga;
     ga.Mask = ULL(1) << 0;
-    ga.Group = (0 % 4);
+    ga.Group = 0;
     ga.Reserved[0] = ga.Reserved[1] = ga.Reserved[2] = 0;
     SetThreadGroupAffinity(thread[0].pthr, &ga, NULL);
-#if RT_DEBUG >= 1
-    gcnt = 4; garr[0] = garr[1] = garr[2] = garr[3] = 0;
+
+    /* query group affinity for the whole process */
+    gcnt = TG; memset(garr, 0, sizeof(USHORT)*TG);
     GetProcessGroupAffinity(process, &gcnt, garr);
-    RT_LOGI("DoneProcessGroupAffinity: %d - {%d, %d, %d, %d}\n",
-                                    gcnt, garr[0], garr[1], garr[2], garr[3]);
+#if RT_DEBUG >= 1
+    RT_LOGI("DoneProcessGroupAffinity: %d - {", gcnt);
+    for (j = 0; j < gcnt; j++)
+    {
+        if (j > 0)
+        {
+            RT_LOGI(",");
+        }
+        RT_LOGI("%d", garr[j]);
+    }
+    RT_LOGI("}\n");
 #endif /* RT_DEBUG */
 
 #endif /* Windows 7 or newer */
