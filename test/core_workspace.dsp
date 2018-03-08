@@ -340,6 +340,14 @@ SOURCE=.\scenes\scn_test15.h
 
 SOURCE=.\scenes\scn_test16.h
 # End Source File
+# Begin Source File
+
+SOURCE=.\scenes\scn_test17.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\scenes\scn_test18.h
+# End Source File
 # End Group
 # End Group
 # End Target

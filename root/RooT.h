@@ -11,6 +11,9 @@
 #include <string.h>
 #include "engine.h"
 #include "all_scn.h"
+/* temporary scenes for testing Fresnel */
+#include "../test/scenes/scn_test17.h"
+#include "../test/scenes/scn_test18.h"
 
 #define RT_X_RES        800
 #define RT_Y_RES        480
@@ -29,6 +32,9 @@ rt_SCENE   *sc_rt[]     =
     &scn_demo01::sc_root,
     &scn_demo02::sc_root,
     &scn_demo03::sc_root,
+    /* temporary scenes for testing Fresnel */
+    &scn_test17::sc_root,
+    &scn_test18::sc_root,
 };
 
 rt_Platform*pfm                     = RT_NULL;              /* platformobj */

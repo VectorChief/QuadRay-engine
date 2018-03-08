@@ -363,6 +363,20 @@ rt_MATERIAL mt_metal02_pink01 =
     },
 };
 
+rt_MATERIAL mt_metal03_nickel01 =
+{
+    RT_MAT(METAL),
+
+    RT_TEX(PCOLOR, 0xFFA0A0A0),
+
+    {/* dff     spc     pow */
+        1.0,    0.0,    1.0
+    },
+    {/* rfl     trn     rfr */
+        1.0,    0.0,    1.0
+    },
+};
+
 /******************************************************************************/
 /**********************************   GLASS   *********************************/
 /******************************************************************************/
@@ -406,6 +420,34 @@ rt_MATERIAL mt_glass01_to_air_blue02 =
     },
     {/* rfl     trn     rfr */
         0.0,    0.5,    1.5
+    },
+};
+
+rt_MATERIAL mt_air_to_glass03 =
+{
+    RT_MAT(PLAIN),
+
+    RT_TEX(PCOLOR, 0xFFFFFFFF),
+
+    {/* dff     spc     pow */
+        1.0,    0.0,    1.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    1.0,    0.67
+    },
+};
+
+rt_MATERIAL mt_glass03_to_air =
+{
+    RT_MAT(PLAIN),
+
+    RT_TEX(PCOLOR, 0xFFFFFFFF),
+
+    {/* dff     spc     pow */
+        1.0,    0.0,    1.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    1.0,    1.5
     },
 };
 
