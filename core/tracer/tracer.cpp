@@ -3820,8 +3820,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_REFRACTIONS
 
-        /* incoming ray is not normalized
-         * therefore neither is outgoing */
         CHECK_PROP(TR_rfr, RT_PROP_REFRACT)
 
         /* compute refraction
@@ -3830,18 +3828,37 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_T_NEW)
 
         movpx_ld(Xmm1, Mecx, ctx_RAY_X)
+        movpx_rr(Xmm7, Xmm1)
+        mulps_rr(Xmm7, Xmm1)
+        addps_rr(Xmm0, Xmm7)
+
+        movpx_ld(Xmm2, Mecx, ctx_RAY_Y)
+        movpx_rr(Xmm7, Xmm2)
+        mulps_rr(Xmm7, Xmm2)
+        addps_rr(Xmm0, Xmm7)
+
+        movpx_ld(Xmm3, Mecx, ctx_RAY_Z)
+        movpx_rr(Xmm7, Xmm3)
+        mulps_rr(Xmm7, Xmm3)
+        addps_rr(Xmm0, Xmm7)
+
+        rsqps_rr(Xmm7, Xmm0)
+        mulps_rr(Xmm1, Xmm7)
+        mulps_rr(Xmm2, Xmm7)
+        mulps_rr(Xmm3, Xmm7)
+
+        xorpx_rr(Xmm0, Xmm0)
+
         movpx_ld(Xmm4, Mecx, ctx_NRM_X)
         movpx_rr(Xmm7, Xmm1)
         mulps_rr(Xmm7, Xmm4)
         addps_rr(Xmm0, Xmm7)
 
-        movpx_ld(Xmm2, Mecx, ctx_RAY_Y)
         movpx_ld(Xmm5, Mecx, ctx_NRM_Y)
         movpx_rr(Xmm7, Xmm2)
         mulps_rr(Xmm7, Xmm5)
         addps_rr(Xmm0, Xmm7)
 
-        movpx_ld(Xmm3, Mecx, ctx_RAY_Z)
         movpx_ld(Xmm6, Mecx, ctx_NRM_Z)
         movpx_rr(Xmm7, Xmm3)
         mulps_rr(Xmm7, Xmm6)
