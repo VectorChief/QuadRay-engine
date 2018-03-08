@@ -528,6 +528,9 @@
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))                                      \
     LBL(lb##_lgt)                                                           \
         CHECK_PROP(lb##_trn, RT_PROP_TRANSP)                                \
+        CHECK_PROP(lb##_rfr, RT_PROP_REFRACT)                               \
+        jmpxx_lb(lb##_trn)                                                  \
+    LBL(lb##_rfr)                                                           \
         jmpxx_mm(Mecx, ctx_LOCAL(PTR))                                      \
     LBL(lb##_trn)                                                           \
         movpx_ld(Xmm7, Mecx, ctx_C_BUF(0))                                  \
@@ -3643,6 +3646,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(LT_set)
 
+        /* consider merging with "ambient"
+         * section at the top of "lights" */
         movpx_ld(Xmm1, Mecx, ctx_TEX_R)
         movpx_ld(Xmm2, Mecx, ctx_TEX_G)
         movpx_ld(Xmm3, Mecx, ctx_TEX_B)
@@ -3666,6 +3671,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_XPTR(Redx, MAT_P(PTR))
 
+        /* incoming ray is not normalized
+         * therefore neither is outgoing */
         CHECK_PROP(RF_end, RT_PROP_REFLECT)
 
         /* compute reflection */
@@ -3813,9 +3820,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_REFRACTIONS
 
+        /* incoming ray is not normalized
+         * therefore neither is outgoing */
         CHECK_PROP(TR_rfr, RT_PROP_REFRACT)
 
-        /* compute refraction */
+        /* compute refraction
+         * requires normalized ray */
         xorpx_rr(Xmm0, Xmm0)
         movpx_st(Xmm0, Mecx, ctx_T_NEW)
 

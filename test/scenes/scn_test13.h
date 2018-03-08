@@ -369,11 +369,10 @@ rt_OBJECT ob_camera01[] =
 
 /*
  * As the rendering backend doesn't attempt to sort overlapping surfaces
- * to produce the correct result, the cubes are placed slightly above the floor
- * to avoid undefined behaviour resulting from an arbitrary surface order,
- * when optimizations are disabled. When the cubes are strictly on the floor,
- * the bounding box sorting optimization handles the case properly, while
- * unoptimized code doesn't resulting in the test failure.
+ * the cubes are placed slightly above the floor to avoid undefined behaviour.
+ *
+ * Bbox sorting optimization (RT_OPTS_INSERT) resolves this situation properly,
+ * but doesn't scale very well for larger scenes with lots of objects.
  */
 
 rt_OBJECT ob_tree[] =
