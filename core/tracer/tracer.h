@@ -471,7 +471,7 @@ struct rt_SIMD_CONTEXT
     rt_real col_b[S];
 #define ctx_COL_B(nx)       DP(Q*0x190 + nx)
 
-    /* roots sorting masks */
+    /* root sorting masks */
 
     rt_elem amask[S];
 #define ctx_AMASK           DP(Q*0x1A0)
@@ -768,7 +768,7 @@ struct rt_SIMD_SURFACE
     rt_real max_z[S];
 #define srf_MAX_Z           DP(Q*0x090)
 
-    /* axis clippers toggles (on/off) */
+    /* axis clipping toggles (on/off) */
 
     rt_si32 min_t[R];
 #define srf_MIN_T(nx)       DP(Q*0x0A0 + nx)
@@ -792,7 +792,7 @@ struct rt_SIMD_SURFACE
     rt_elem smask[S];
 #define srf_SMASK           DP(Q*0x0F0)
 
-    /* roots sorting thresholds */
+    /* root sorting thresholds */
 
     rt_real d_eps[S];
 #define srf_D_EPS           DP(Q*0x100)
