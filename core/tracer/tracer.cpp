@@ -61,6 +61,7 @@
 #define RT_FEAT_TRANSPARENCY        1
 #define RT_FEAT_REFRACTIONS         1
 #define RT_FEAT_REFLECTIONS         1
+#define RT_FEAT_FRESNEL             1   /* <- slows down refraction when 1 */
 #define RT_FEAT_TRANSFORM           1   /* <- breaks TM in the engine if 0 */
 #define RT_FEAT_TRANSFORM_ARRAY     1   /* <- breaks TA in the engine if 0 */
 #define RT_FEAT_BOUND_VOL_ARRAY     1
@@ -3659,6 +3660,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************   TRANSPARENCY   ******************************/
 /******************************************************************************/
 
+#if RT_FEAT_FRESNEL
+
+        /* init Fresnel */
+        xorpx_rr(Xmm0, Xmm0)
+        movpx_st(Xmm0, Mecx, ctx_F_RFL)
+
+#endif /* RT_FEAT_FRESNEL */
+
 #if RT_FEAT_TRANSPARENCY
 
         FETCH_XPTR(Redx, MAT_P(PTR))
@@ -3707,12 +3716,29 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm7, Mecx, ctx_NRM_Z)
         addps_rr(Xmm0, Xmm7)
 
+#if RT_FEAT_FRESNEL
+
+        /* move dot-product temporarily */
+        movpx_rr(Xmm4, Xmm0)
+
+#endif /* RT_FEAT_FRESNEL */
+
         movpx_ld(Xmm6, Medx, mat_C_RFR)
         mulps_rr(Xmm0, Xmm6)
         movpx_rr(Xmm7, Xmm0)
         mulps_rr(Xmm7, Xmm7)
         addps_ld(Xmm7, Mebp, inf_GPC01)
         subps_ld(Xmm7, Medx, mat_RFR_2)
+
+#if RT_FEAT_FRESNEL
+
+        /* check total inner reflection */
+        xorpx_rr(Xmm5, Xmm5)
+        cleps_rr(Xmm5, Xmm7)
+        movpx_st(Xmm5, Mecx, ctx_T_NEW)
+
+#endif /* RT_FEAT_FRESNEL */
+
         sqrps_rr(Xmm7, Xmm7)
         addps_rr(Xmm0, Xmm7)
 
@@ -3733,6 +3759,35 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm3, Xmm6)
         subps_rr(Xmm3, Xmm5)
         movpx_st(Xmm3, Mecx, ctx_NEW_Z)
+
+#if RT_FEAT_FRESNEL
+
+        /* compute Fresnel */
+        movpx_rr(Xmm1, Xmm4)
+        movpx_rr(Xmm2, Xmm1)
+        mulps_rr(Xmm2, Xmm6)
+        subps_rr(Xmm2, Xmm7)
+        mulps_rr(Xmm7, Xmm6)
+        movpx_rr(Xmm3, Xmm1)
+        addps_rr(Xmm1, Xmm7)
+        subps_rr(Xmm3, Xmm7)
+        divps_rr(Xmm0, Xmm2)
+        divps_rr(Xmm1, Xmm3)
+        mulps_rr(Xmm0, Xmm0)
+        mulps_rr(Xmm1, Xmm1)
+        addps_rr(Xmm0, Xmm1)
+        mulps_ld(Xmm0, Mebp, inf_GPC02)
+        andpx_ld(Xmm0, Mebp, inf_GPC04)
+        /* store Fresnel reflectance */
+        movpx_ld(Xmm5, Mecx, ctx_T_NEW)
+        andpx_rr(Xmm0, Xmm5)
+        movpx_ld(Xmm4, Medx, mat_C_TRN)
+        mulps_rr(Xmm0, Xmm4)
+        annpx_rr(Xmm5, Xmm4)
+        orrpx_rr(Xmm0, Xmm5)
+        movpx_st(Xmm0, Mecx, ctx_F_RFL)
+
+#endif /* RT_FEAT_FRESNEL */
 
         jmpxx_lb(TR_ini)
 
@@ -3822,6 +3877,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_ld(Xmm0, Medx, mat_C_TRN)
 
+#if RT_FEAT_FRESNEL
+
+        /* subtract Fresnel from refraction term */
+        subps_ld(Xmm0, Mecx, ctx_F_RFL)
+
+#endif /* RT_FEAT_FRESNEL */
+
         mulps_rr(Xmm1, Xmm0)
         mulps_rr(Xmm2, Xmm0)
         mulps_rr(Xmm3, Xmm0)
@@ -3881,6 +3943,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* incoming ray is not normalized
          * therefore neither is outgoing */
         CHECK_PROP(RF_end, RT_PROP_REFLECT)
+
+    LBL(RF_ini)
 
         /* compute reflection */
         movpx_ld(Xmm1, Mecx, ctx_RAY_X)
@@ -3976,6 +4040,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_ld(Xmm0, Medx, mat_C_RFL)
 
+#if RT_FEAT_FRESNEL
+
+        /* add Fresnel to reflection term */
+        addps_ld(Xmm0, Mecx, ctx_F_RFL)
+
+#endif /* RT_FEAT_FRESNEL */
+
         mulps_rr(Xmm1, Xmm0)
         mulps_rr(Xmm2, Xmm0)
         mulps_rr(Xmm3, Xmm0)
@@ -4000,7 +4071,19 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* reflection B */
         STORE_SIMD(RF_clB, COL_B, Xmm3)
 
+        jmpxx_lb(RF_out)
+
     LBL(RF_end)
+
+#if RT_FEAT_FRESNEL
+
+        CHECK_PROP(RF_out, RT_PROP_REFRACT)
+
+        jmpxx_lb(RF_ini)
+
+#endif /* RT_FEAT_FRESNEL */
+
+    LBL(RF_out)
 
 #endif /* RT_FEAT_REFLECTIONS */
 

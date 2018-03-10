@@ -540,10 +540,10 @@ struct rt_SIMD_CONTEXT
     rt_elem c_acc[S];
 #define ctx_C_ACC           DP(Q*0x2E0)
 
-    /* reserved area 1 */
+    /* fresnel reflection term */
 
-    rt_elem pad01[S];
-#define ctx_PAD01           DP(Q*0x2F0)
+    rt_real f_rfl[S];
+#define ctx_F_RFL           DP(Q*0x2F0)
 
     /* overlapping next context,
      * new depth min */
