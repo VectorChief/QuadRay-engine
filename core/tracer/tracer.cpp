@@ -3675,13 +3675,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* compute refraction
          * requires normalized ray */
-        xorpx_rr(Xmm0, Xmm0)
-        movpx_st(Xmm0, Mecx, ctx_T_NEW)
-
         movpx_ld(Xmm1, Mecx, ctx_RAY_X)
         movpx_rr(Xmm7, Xmm1)
         mulps_rr(Xmm7, Xmm1)
-        addps_rr(Xmm0, Xmm7)
+        movpx_rr(Xmm0, Xmm7)
 
         movpx_ld(Xmm2, Mecx, ctx_RAY_Y)
         movpx_rr(Xmm7, Xmm2)
@@ -3698,45 +3695,43 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm2, Xmm7)
         mulps_rr(Xmm3, Xmm7)
 
-        xorpx_rr(Xmm0, Xmm0)
-
-        movpx_ld(Xmm4, Mecx, ctx_NRM_X)
         movpx_rr(Xmm7, Xmm1)
-        mulps_rr(Xmm7, Xmm4)
-        addps_rr(Xmm0, Xmm7)
+        mulps_ld(Xmm7, Mecx, ctx_NRM_X)
+        movpx_rr(Xmm0, Xmm7)
 
-        movpx_ld(Xmm5, Mecx, ctx_NRM_Y)
         movpx_rr(Xmm7, Xmm2)
-        mulps_rr(Xmm7, Xmm5)
+        mulps_ld(Xmm7, Mecx, ctx_NRM_Y)
         addps_rr(Xmm0, Xmm7)
 
-        movpx_ld(Xmm6, Mecx, ctx_NRM_Z)
         movpx_rr(Xmm7, Xmm3)
-        mulps_rr(Xmm7, Xmm6)
+        mulps_ld(Xmm7, Mecx, ctx_NRM_Z)
         addps_rr(Xmm0, Xmm7)
 
-        mulps_ld(Xmm0, Medx, mat_C_RFR)
+        movpx_ld(Xmm6, Medx, mat_C_RFR)
+        mulps_rr(Xmm0, Xmm6)
         movpx_rr(Xmm7, Xmm0)
         mulps_rr(Xmm7, Xmm7)
         addps_ld(Xmm7, Mebp, inf_GPC01)
         subps_ld(Xmm7, Medx, mat_RFR_2)
         sqrps_rr(Xmm7, Xmm7)
         addps_rr(Xmm0, Xmm7)
-        movpx_ld(Xmm7, Medx, mat_C_RFR)
 
-        mulps_rr(Xmm4, Xmm0)
-        mulps_rr(Xmm1, Xmm7)
-        subps_rr(Xmm1, Xmm4)
+        movpx_ld(Xmm5, Mecx, ctx_NRM_X)
+        mulps_rr(Xmm5, Xmm0)
+        mulps_rr(Xmm1, Xmm6)
+        subps_rr(Xmm1, Xmm5)
         movpx_st(Xmm1, Mecx, ctx_NEW_X)
 
+        movpx_ld(Xmm5, Mecx, ctx_NRM_Y)
         mulps_rr(Xmm5, Xmm0)
-        mulps_rr(Xmm2, Xmm7)
+        mulps_rr(Xmm2, Xmm6)
         subps_rr(Xmm2, Xmm5)
         movpx_st(Xmm2, Mecx, ctx_NEW_Y)
 
-        mulps_rr(Xmm6, Xmm0)
-        mulps_rr(Xmm3, Xmm7)
-        subps_rr(Xmm3, Xmm6)
+        movpx_ld(Xmm5, Mecx, ctx_NRM_Z)
+        mulps_rr(Xmm5, Xmm0)
+        mulps_rr(Xmm3, Xmm6)
+        subps_rr(Xmm3, Xmm5)
         movpx_st(Xmm3, Mecx, ctx_NEW_Z)
 
         jmpxx_lb(TR_ini)
@@ -3746,9 +3741,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #endif /* RT_FEAT_REFRACTIONS */
 
         /* propagate ray */
-        xorpx_rr(Xmm0, Xmm0)
-        movpx_st(Xmm0, Mecx, ctx_T_NEW)
-
         movpx_ld(Xmm1, Mecx, ctx_RAY_X)
         movpx_ld(Xmm2, Mecx, ctx_RAY_Y)
         movpx_ld(Xmm3, Mecx, ctx_RAY_Z)
@@ -3758,6 +3750,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm3, Mecx, ctx_NEW_Z)
 
     LBL(TR_ini)
+
+        /* prepare default values */
+        xorpx_rr(Xmm0, Xmm0)
+        movpx_st(Xmm0, Mecx, ctx_T_NEW)
 
         xorpx_rr(Xmm1, Xmm1)
         xorpx_rr(Xmm2, Xmm2)
@@ -3817,34 +3813,52 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ld(Redx, Mecx, ctx_PARAM(LST))    /* restore material */
         movxx_ld(Rebx, Mecx, ctx_PARAM(OBJ))    /* restore surface */
 
-        movpx_ld(Xmm0, Medx, mat_C_TRN)
-
         movpx_ld(Xmm1, Mecx, ctx_COL_R(0))
         movpx_ld(Xmm2, Mecx, ctx_COL_G(0))
         movpx_ld(Xmm3, Mecx, ctx_COL_B(0))
+
+        addxx_mi(Mebp, inf_DEPTH, IB(1))
+        subxx_ri(Recx, IH(RT_STACK_STEP))
+
+        movpx_ld(Xmm0, Medx, mat_C_TRN)
 
         mulps_rr(Xmm1, Xmm0)
         mulps_rr(Xmm2, Xmm0)
         mulps_rr(Xmm3, Xmm0)
 
-        addxx_mi(Mebp, inf_DEPTH, IB(1))
-        subxx_ri(Recx, IH(RT_STACK_STEP))
+        jmpxx_lb(TR_mix)
 
 /************************************ LEAVE ***********************************/
 
+    LBL(TR_end)
+
+#endif /* RT_FEAT_TRANSPARENCY */
+
+        xorpx_rr(Xmm1, Xmm1)
+        xorpx_rr(Xmm2, Xmm2)
+        xorpx_rr(Xmm3, Xmm3)
+
     LBL(TR_mix)
 
+        /* consider making format parameters
+         * cumulative to avoid modulation */
         movpx_ld(Xmm0, Mebp, inf_GPC01)
         subps_ld(Xmm0, Medx, mat_C_TRN)
+        subps_ld(Xmm0, Medx, mat_C_RFL)
+        xorpx_rr(Xmm7, Xmm7)
+        cleps_rr(Xmm7, Xmm0)
+        andpx_rr(Xmm0, Xmm7)
 
         movpx_ld(Xmm4, Mecx, ctx_COL_R(0))
         movpx_ld(Xmm5, Mecx, ctx_COL_G(0))
         movpx_ld(Xmm6, Mecx, ctx_COL_B(0))
 
+        /* modulate light with surface props */
         mulps_rr(Xmm4, Xmm0)
         mulps_rr(Xmm5, Xmm0)
         mulps_rr(Xmm6, Xmm0)
 
+        /* accumulate colors */
         addps_rr(Xmm1, Xmm4)
         addps_rr(Xmm2, Xmm5)
         addps_rr(Xmm3, Xmm6)
@@ -3855,10 +3869,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         STORE_SIMD(TR_clG, COL_G, Xmm2)
         /* transparent B */
         STORE_SIMD(TR_clB, COL_B, Xmm3)
-
-    LBL(TR_end)
-
-#endif /* RT_FEAT_TRANSPARENCY */
 
 /******************************************************************************/
 /*******************************   REFLECTIONS   ******************************/
@@ -3873,14 +3883,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_PROP(RF_end, RT_PROP_REFLECT)
 
         /* compute reflection */
-        xorpx_rr(Xmm0, Xmm0)
-        movpx_st(Xmm0, Mecx, ctx_T_NEW)
-
         movpx_ld(Xmm1, Mecx, ctx_RAY_X)
         movpx_ld(Xmm4, Mecx, ctx_NRM_X)
         movpx_rr(Xmm7, Xmm1)
         mulps_rr(Xmm7, Xmm4)
-        addps_rr(Xmm0, Xmm7)
+        movpx_rr(Xmm0, Xmm7)
 
         movpx_ld(Xmm2, Mecx, ctx_RAY_Y)
         movpx_ld(Xmm5, Mecx, ctx_NRM_Y)
@@ -3908,6 +3915,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm3, Xmm6)
         subps_rr(Xmm3, Xmm6)
         movpx_st(Xmm3, Mecx, ctx_NEW_Z)
+
+        /* prepare default values */
+        xorpx_rr(Xmm0, Xmm0)
+        movpx_st(Xmm0, Mecx, ctx_T_NEW)
 
         xorpx_rr(Xmm1, Xmm1)
         xorpx_rr(Xmm2, Xmm2)
@@ -3956,34 +3967,28 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ld(Redx, Mecx, ctx_PARAM(LST))    /* restore material */
         movxx_ld(Rebx, Mecx, ctx_PARAM(OBJ))    /* restore surface */
 
-        movpx_ld(Xmm0, Medx, mat_C_RFL)
-
         movpx_ld(Xmm1, Mecx, ctx_COL_R(0))
         movpx_ld(Xmm2, Mecx, ctx_COL_G(0))
         movpx_ld(Xmm3, Mecx, ctx_COL_B(0))
+
+        addxx_mi(Mebp, inf_DEPTH, IB(1))
+        subxx_ri(Recx, IH(RT_STACK_STEP))
+
+        movpx_ld(Xmm0, Medx, mat_C_RFL)
 
         mulps_rr(Xmm1, Xmm0)
         mulps_rr(Xmm2, Xmm0)
         mulps_rr(Xmm3, Xmm0)
 
-        addxx_mi(Mebp, inf_DEPTH, IB(1))
-        subxx_ri(Recx, IH(RT_STACK_STEP))
-
 /************************************ LEAVE ***********************************/
 
     LBL(RF_mix)
-
-        movpx_ld(Xmm0, Mebp, inf_GPC01)
-        subps_ld(Xmm0, Medx, mat_C_RFL)
 
         movpx_ld(Xmm4, Mecx, ctx_COL_R(0))
         movpx_ld(Xmm5, Mecx, ctx_COL_G(0))
         movpx_ld(Xmm6, Mecx, ctx_COL_B(0))
 
-        mulps_rr(Xmm4, Xmm0)
-        mulps_rr(Xmm5, Xmm0)
-        mulps_rr(Xmm6, Xmm0)
-
+        /* accumulate colors */
         addps_rr(Xmm1, Xmm4)
         addps_rr(Xmm2, Xmm5)
         addps_rr(Xmm3, Xmm6)
