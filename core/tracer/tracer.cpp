@@ -62,6 +62,7 @@
 #define RT_FEAT_REFRACTIONS         1
 #define RT_FEAT_REFLECTIONS         1
 #define RT_FEAT_FRESNEL             1   /* <- slows down refraction when 1 */
+#define RT_FEAT_SCHLICK             1   /* <- low precision Fresnel when 1 */
 #define RT_FEAT_TRANSFORM           1   /* <- breaks TM in the engine if 0 */
 #define RT_FEAT_TRANSFORM_ARRAY     1   /* <- breaks TA in the engine if 0 */
 #define RT_FEAT_BOUND_VOL_ARRAY     1
@@ -3775,6 +3776,36 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_FRESNEL
 
+#if RT_FEAT_SCHLICK
+
+        /* compute Schlick */
+        movpx_ld(Xmm1, Mebp, inf_GPC01)
+        movpx_rr(Xmm5, Xmm6)
+        cgtps_rr(Xmm5, Xmm1)
+
+        CHECK_MASK(TR_inv, NONE, Xmm5)
+
+        xorpx_rr(Xmm4, Xmm4)
+        subps_rr(Xmm4, Xmm7)
+
+    LBL(TR_inv)
+
+        addps_rr(Xmm4, Xmm1)
+        movpx_rr(Xmm0, Xmm6)
+        subps_rr(Xmm0, Xmm1)
+        addps_rr(Xmm6, Xmm1)
+        divps_rr(Xmm0, Xmm6)
+        mulps_rr(Xmm0, Xmm0)
+        subps_rr(Xmm1, Xmm0)
+        movpx_rr(Xmm5, Xmm4)
+        mulps_rr(Xmm4, Xmm4)
+        mulps_rr(Xmm4, Xmm4)
+        mulps_rr(Xmm5, Xmm4)
+        mulps_rr(Xmm1, Xmm5)
+        addps_rr(Xmm0, Xmm1)
+
+#else /* RT_FEAT_SCHLICK */
+
         /* compute Fresnel */
         movpx_rr(Xmm1, Xmm4)
         movpx_rr(Xmm2, Xmm1)
@@ -3791,6 +3822,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm0, Xmm1)
         mulps_ld(Xmm0, Mebp, inf_GPC02)
         andpx_ld(Xmm0, Mebp, inf_GPC04)
+
+#endif /* RT_FEAT_SCHLICK */
 
         /* store Fresnel reflectance */
         movpx_ld(Xmm5, Mecx, ctx_T_NEW)
