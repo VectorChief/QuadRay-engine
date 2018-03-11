@@ -3735,7 +3735,20 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* check total inner reflection */
         xorpx_rr(Xmm5, Xmm5)
         cleps_rr(Xmm5, Xmm7)
+        andpx_ld(Xmm5, Mecx, ctx_TMASK(0))
+
+        CHECK_MASK(TR_tir, NONE, Xmm5)
+
         movpx_st(Xmm5, Mecx, ctx_T_NEW)
+        jmpxx_lb(TR_cnt)
+
+    LBL(TR_tir)
+
+        movpx_ld(Xmm5, Medx, mat_C_TRN)
+        movpx_st(Xmm5, Mecx, ctx_F_RFL)
+        jmpxx_lb(TR_end)
+
+    LBL(TR_cnt)
 
 #endif /* RT_FEAT_FRESNEL */
 
@@ -3778,6 +3791,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm0, Xmm1)
         mulps_ld(Xmm0, Mebp, inf_GPC02)
         andpx_ld(Xmm0, Mebp, inf_GPC04)
+
         /* store Fresnel reflectance */
         movpx_ld(Xmm5, Mecx, ctx_T_NEW)
         andpx_rr(Xmm0, Xmm5)
@@ -4760,7 +4774,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_QUAD_DEBUG */
 
-        /* roots sorting
+        /* root sorting
          * for near-zero determinant */
         movwx_mi(Mecx, ctx_XMISC(PTR), IB(0))
         movpx_ld(Xmm5, Mecx, ctx_DMASK)         /* dmask <- DMASK */
