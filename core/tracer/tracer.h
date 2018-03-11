@@ -955,6 +955,32 @@ struct rt_SIMD_MATERIAL
 
 };
 
+/*
+ * Extended SIMD info structure for ASM_ENTER/ASM_LEAVE in plot functions.
+ * Note that DP offsets below start where rt_SIMD_INFO ends (at Q*0x100).
+ * Structure is read-write in backend.
+ */
+struct rt_SIMD_INFOP : public rt_SIMD_INFO
+{
+    /* external parameters */
+
+    rt_real i_cos[S];
+#define inf_I_COS           DP(Q*0x100)
+
+    rt_real o_rfl[S];
+#define inf_O_RFL           DP(Q*0x110)
+
+    rt_real c_rfr[S];
+#define inf_C_RFR           DP(Q*0x120)
+
+    rt_real rfr_2[S];
+#define inf_RFR_2           DP(Q*0x130)
+
+    rt_real t_new[S];
+#define inf_T_NEW           DP(Q*0x140)
+
+};
+
 #endif /* RT_TRACER_H */
 
 /******************************************************************************/

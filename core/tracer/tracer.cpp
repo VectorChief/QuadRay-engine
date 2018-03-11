@@ -62,7 +62,7 @@
 #define RT_FEAT_REFRACTIONS         1
 #define RT_FEAT_REFLECTIONS         1
 #define RT_FEAT_FRESNEL             1   /* <- slows down refraction when 1 */
-#define RT_FEAT_SCHLICK             1   /* <- low precision Fresnel when 1 */
+#define RT_FEAT_SCHLICK             0   /* <- low precision Fresnel when 1 */
 #define RT_FEAT_TRANSFORM           1   /* <- breaks TM in the engine if 0 */
 #define RT_FEAT_TRANSFORM_ARRAY     1   /* <- breaks TA in the engine if 0 */
 #define RT_FEAT_BOUND_VOL_ARRAY     1
@@ -5313,6 +5313,161 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
 /**********************************   LEAVE   *********************************/
 /******************************************************************************/
+
+#endif /* RT_RENDER_CODE */
+}
+
+/*
+ * Fresnel code was inspired by 2006--degreve--reflection_refraction.pdf paper.
+ * Almost indentical code is used for calculations in render0 routine above.
+ */
+rt_void plot_fresnel(rt_SIMD_INFOP *s_inf)
+{
+#ifdef RT_RENDER_CODE
+
+    ASM_ENTER(s_inf)
+
+        movpx_ld(Xmm0, Mebp, inf_I_COS)
+        movpx_rr(Xmm4, Xmm0)
+
+        movpx_ld(Xmm6, Mebp, inf_C_RFR)
+        mulps_rr(Xmm0, Xmm6)
+        movpx_rr(Xmm7, Xmm0)
+        mulps_rr(Xmm7, Xmm7)
+        addps_ld(Xmm7, Mebp, inf_GPC01)
+        subps_ld(Xmm7, Mebp, inf_RFR_2)
+
+        /* check total inner reflection */
+        xorpx_rr(Xmm5, Xmm5)
+        cleps_rr(Xmm5, Xmm7)
+
+        CHECK_MASK(FR_tir, NONE, Xmm5)
+
+        movpx_st(Xmm5, Mebp, inf_T_NEW)
+        jmpxx_lb(FR_cnt)
+
+    LBL(FR_tir)
+
+        movpx_ld(Xmm5, Mebp, inf_GPC01)
+        movpx_st(Xmm5, Mebp, inf_O_RFL)
+        jmpxx_lb(FR_end)
+
+    LBL(FR_cnt)
+
+        sqrps_rr(Xmm7, Xmm7)
+        addps_rr(Xmm0, Xmm7)
+
+        /* compute Fresnel */
+        movpx_rr(Xmm1, Xmm4)
+        movpx_rr(Xmm2, Xmm1)
+        mulps_rr(Xmm2, Xmm6)
+        subps_rr(Xmm2, Xmm7)
+        mulps_rr(Xmm7, Xmm6)
+        movpx_rr(Xmm3, Xmm1)
+        addps_rr(Xmm1, Xmm7)
+        subps_rr(Xmm3, Xmm7)
+        divps_rr(Xmm0, Xmm2)
+        divps_rr(Xmm1, Xmm3)
+        mulps_rr(Xmm0, Xmm0)
+        mulps_rr(Xmm1, Xmm1)
+        addps_rr(Xmm0, Xmm1)
+        mulps_ld(Xmm0, Mebp, inf_GPC02)
+        andpx_ld(Xmm0, Mebp, inf_GPC04)
+
+        /* store Fresnel reflectance */
+        movpx_ld(Xmm5, Mebp, inf_T_NEW)
+        andpx_rr(Xmm0, Xmm5)
+        movpx_ld(Xmm4, Mebp, inf_GPC01)
+        mulps_rr(Xmm0, Xmm4)
+        annpx_rr(Xmm5, Xmm4)
+        orrpx_rr(Xmm0, Xmm5)
+        movpx_st(Xmm0, Mebp, inf_O_RFL)
+
+    LBL(FR_end)
+
+    ASM_LEAVE(s_inf)
+
+#endif /* RT_RENDER_CODE */
+}
+
+/*
+ * Schlick code was inspired by 2006--degreve--reflection_refraction.pdf paper.
+ * Almost indentical code is used for calculations in render0 routine above.
+ */
+rt_void plot_schlick(rt_SIMD_INFOP *s_inf)
+{
+#ifdef RT_RENDER_CODE
+
+    ASM_ENTER(s_inf)
+
+        movpx_ld(Xmm0, Mebp, inf_I_COS)
+        movpx_rr(Xmm4, Xmm0)
+
+        movpx_ld(Xmm6, Mebp, inf_C_RFR)
+        mulps_rr(Xmm0, Xmm6)
+        movpx_rr(Xmm7, Xmm0)
+        mulps_rr(Xmm7, Xmm7)
+        addps_ld(Xmm7, Mebp, inf_GPC01)
+        subps_ld(Xmm7, Mebp, inf_RFR_2)
+
+        /* check total inner reflection */
+        xorpx_rr(Xmm5, Xmm5)
+        cleps_rr(Xmm5, Xmm7)
+
+        CHECK_MASK(SC_tir, NONE, Xmm5)
+
+        movpx_st(Xmm5, Mebp, inf_T_NEW)
+        jmpxx_lb(SC_cnt)
+
+    LBL(SC_tir)
+
+        movpx_ld(Xmm5, Mebp, inf_GPC01)
+        movpx_st(Xmm5, Mebp, inf_O_RFL)
+        jmpxx_lb(SC_end)
+
+    LBL(SC_cnt)
+
+        sqrps_rr(Xmm7, Xmm7)
+        addps_rr(Xmm0, Xmm7)
+
+        /* compute Schlick */
+        movpx_ld(Xmm1, Mebp, inf_GPC01)
+        movpx_rr(Xmm5, Xmm6)
+        cgtps_rr(Xmm5, Xmm1)
+
+        CHECK_MASK(SC_inv, NONE, Xmm5)
+
+        xorpx_rr(Xmm4, Xmm4)
+        subps_rr(Xmm4, Xmm7)
+
+    LBL(SC_inv)
+
+        addps_rr(Xmm4, Xmm1)
+        movpx_rr(Xmm0, Xmm6)
+        subps_rr(Xmm0, Xmm1)
+        addps_rr(Xmm6, Xmm1)
+        divps_rr(Xmm0, Xmm6)
+        mulps_rr(Xmm0, Xmm0)
+        subps_rr(Xmm1, Xmm0)
+        movpx_rr(Xmm5, Xmm4)
+        mulps_rr(Xmm4, Xmm4)
+        mulps_rr(Xmm4, Xmm4)
+        mulps_rr(Xmm5, Xmm4)
+        mulps_rr(Xmm1, Xmm5)
+        addps_rr(Xmm0, Xmm1)
+
+        /* store Fresnel reflectance */
+        movpx_ld(Xmm5, Mebp, inf_T_NEW)
+        andpx_rr(Xmm0, Xmm5)
+        movpx_ld(Xmm4, Mebp, inf_GPC01)
+        mulps_rr(Xmm0, Xmm4)
+        annpx_rr(Xmm5, Xmm4)
+        orrpx_rr(Xmm0, Xmm5)
+        movpx_st(Xmm0, Mebp, inf_O_RFL)
+
+    LBL(SC_end)
+
+    ASM_LEAVE(s_inf)
 
 #endif /* RT_RENDER_CODE */
 }

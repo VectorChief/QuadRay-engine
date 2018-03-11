@@ -530,7 +530,7 @@ rt_Platform::rt_Platform(rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
 
     memset(s_inf, 0, sizeof(rt_SIMD_INFOX));
 
-    /* allocate root SIMD structure */
+    /* allocate regs SIMD structure */
     rt_SIMD_REGS *s_reg = (rt_SIMD_REGS *)
             alloc(sizeof(rt_SIMD_REGS),
                             RT_SIMD_ALIGN);
@@ -783,7 +783,7 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_si32 index) :
 
     memset(s_inf, 0, sizeof(rt_SIMD_INFOX));
 
-    /* allocate root SIMD structure */
+    /* allocate regs SIMD structure */
     rt_SIMD_REGS *s_reg = (rt_SIMD_REGS *)
             alloc(sizeof(rt_SIMD_REGS),
                             RT_SIMD_ALIGN);
@@ -3577,7 +3577,7 @@ rt_Scene::~rt_Scene()
 }
 
 /******************************************************************************/
-/******************************   NUM RENDERING   *****************************/
+/*****************************   MISC RENDERING   *****************************/
 /******************************************************************************/
 
 #define II  0xFF000000
@@ -3734,6 +3734,180 @@ rt_void rt_Scene::render_num(rt_si32 x, rt_si32 y,
             src += dW;
         }
     }
+}
+
+/******************************************************************************/
+
+#define RT_PLOT_FUNCS   0   /* set to 1 to enable (on F4) */
+
+/*
+ * Swap (v4) for available 128-bit target before enabling plot.
+ */
+#if RT_PLOT_FUNCS
+
+namespace simd_128v4
+{
+rt_void plot_fresnel(rt_SIMD_INFOP *s_inf);
+}
+
+namespace simd_128v4
+{
+rt_void plot_schlick(rt_SIMD_INFOP *s_inf);
+}
+
+#endif /* RT_PLOT_FUNCS */
+
+/*
+ * Plot functions into their respective framebuffers then save.
+ * Scene's framebuffer is first cleaned then overwritten.
+ */
+rt_void rt_Scene::plot_funcs()
+{
+#if RT_PLOT_FUNCS
+
+    /* reserve memory for temporary buffer in the heap */
+    rt_pntr s_ptr = reserve(4000, RT_SIMD_ALIGN);
+
+    /* allocate root SIMD structure */
+    rt_SIMD_INFOP *s_inf = (rt_SIMD_INFOP *)
+            alloc(sizeof(rt_SIMD_INFOP),
+                            RT_SIMD_ALIGN);
+
+    memset(s_inf, 0, sizeof(rt_SIMD_INFOP));
+
+    /* allocate regs SIMD structure */
+    rt_SIMD_REGS *s_reg = (rt_SIMD_REGS *)
+            alloc(sizeof(rt_SIMD_REGS),
+                            RT_SIMD_ALIGN);
+
+    ASM_INIT(s_inf, s_reg)
+
+    rt_si32 i, h = y_res - 1;
+    rt_real s = 1.57f / x_res;
+
+    RT_SIMD_SET(s_inf->c_rfr, (1.0/1.5));
+    RT_SIMD_SET(s_inf->rfr_2, (1.0/1.5)*(1.0/1.5));
+
+    memset(frame, 0, x_row * y_res * sizeof(rt_ui32));
+
+    for (i = 0; i < x_res / 4; i++)
+    {
+        s_inf->i_cos[0*4+0] = -cosf(s*(i*4+0));
+        s_inf->i_cos[0*4+1] = -cosf(s*(i*4+1));
+        s_inf->i_cos[0*4+2] = -cosf(s*(i*4+2));
+        s_inf->i_cos[0*4+3] = -cosf(s*(i*4+3));
+
+        simd_128v4::plot_fresnel(s_inf);
+
+        frame[int((1.0f - s_inf->o_rfl[0*4+0])*h)*x_row+i*4+0] = 0x000000FF;
+        frame[int((1.0f - s_inf->o_rfl[0*4+1])*h)*x_row+i*4+1] = 0x000000FF;
+        frame[int((1.0f - s_inf->o_rfl[0*4+2])*h)*x_row+i*4+2] = 0x000000FF;
+        frame[int((1.0f - s_inf->o_rfl[0*4+3])*h)*x_row+i*4+3] = 0x000000FF;
+
+#if RT_DEBUG >= 2
+
+        RT_LOGI("Fresnel[%03X] = %f\n", i*4+0, s_inf->o_rfl[0*4+0]);
+        RT_LOGI("Fresnel[%03X] = %f\n", i*4+1, s_inf->o_rfl[0*4+1]);
+        RT_LOGI("Fresnel[%03X] = %f\n", i*4+2, s_inf->o_rfl[0*4+2]);
+        RT_LOGI("Fresnel[%03X] = %f\n", i*4+3, s_inf->o_rfl[0*4+3]);
+
+#endif /* RT_DEBUG */
+    }
+
+    save_frame(910);
+
+    memset(frame, 0, x_row * y_res * sizeof(rt_ui32));
+
+    for (i = 0; i < x_res / 4; i++)
+    {
+        s_inf->i_cos[0*4+0] = -cosf(s*(i*4+0));
+        s_inf->i_cos[0*4+1] = -cosf(s*(i*4+1));
+        s_inf->i_cos[0*4+2] = -cosf(s*(i*4+2));
+        s_inf->i_cos[0*4+3] = -cosf(s*(i*4+3));
+
+        simd_128v4::plot_schlick(s_inf);
+
+        frame[int((1.0f - s_inf->o_rfl[0*4+0])*h)*x_row+i*4+0] = 0x00FF0000;
+        frame[int((1.0f - s_inf->o_rfl[0*4+1])*h)*x_row+i*4+1] = 0x00FF0000;
+        frame[int((1.0f - s_inf->o_rfl[0*4+2])*h)*x_row+i*4+2] = 0x00FF0000;
+        frame[int((1.0f - s_inf->o_rfl[0*4+3])*h)*x_row+i*4+3] = 0x00FF0000;
+
+#if RT_DEBUG >= 2
+
+        RT_LOGI("Schlick[%03X] = %f\n", i*4+0, s_inf->o_rfl[0*4+0]);
+        RT_LOGI("Schlick[%03X] = %f\n", i*4+1, s_inf->o_rfl[0*4+1]);
+        RT_LOGI("Schlick[%03X] = %f\n", i*4+2, s_inf->o_rfl[0*4+2]);
+        RT_LOGI("Schlick[%03X] = %f\n", i*4+3, s_inf->o_rfl[0*4+3]);
+
+#endif /* RT_DEBUG */
+    }
+
+    save_frame(920);
+
+    RT_SIMD_SET(s_inf->c_rfr, (1.5/1.0));
+    RT_SIMD_SET(s_inf->rfr_2, (1.5/1.0)*(1.5/1.0));
+
+    memset(frame, 0, x_row * y_res * sizeof(rt_ui32));
+
+    for (i = 0; i < x_res / 4; i++)
+    {
+        s_inf->i_cos[0*4+0] = -cosf(s*(i*4+0));
+        s_inf->i_cos[0*4+1] = -cosf(s*(i*4+1));
+        s_inf->i_cos[0*4+2] = -cosf(s*(i*4+2));
+        s_inf->i_cos[0*4+3] = -cosf(s*(i*4+3));
+
+        simd_128v4::plot_fresnel(s_inf);
+
+        frame[int((1.0f - s_inf->o_rfl[0*4+0])*h)*x_row+i*4+0] = 0x000000FF;
+        frame[int((1.0f - s_inf->o_rfl[0*4+1])*h)*x_row+i*4+1] = 0x000000FF;
+        frame[int((1.0f - s_inf->o_rfl[0*4+2])*h)*x_row+i*4+2] = 0x000000FF;
+        frame[int((1.0f - s_inf->o_rfl[0*4+3])*h)*x_row+i*4+3] = 0x000000FF;
+
+#if RT_DEBUG >= 2
+
+        RT_LOGI("Fresnel[%03X] = %f\n", i*4+0, s_inf->o_rfl[0*4+0]);
+        RT_LOGI("Fresnel[%03X] = %f\n", i*4+1, s_inf->o_rfl[0*4+1]);
+        RT_LOGI("Fresnel[%03X] = %f\n", i*4+2, s_inf->o_rfl[0*4+2]);
+        RT_LOGI("Fresnel[%03X] = %f\n", i*4+3, s_inf->o_rfl[0*4+3]);
+
+#endif /* RT_DEBUG */
+    }
+
+    save_frame(930);
+
+    memset(frame, 0, x_row * y_res * sizeof(rt_ui32));
+
+    for (i = 0; i < x_res / 4; i++)
+    {
+        s_inf->i_cos[0*4+0] = -cosf(s*(i*4+0));
+        s_inf->i_cos[0*4+1] = -cosf(s*(i*4+1));
+        s_inf->i_cos[0*4+2] = -cosf(s*(i*4+2));
+        s_inf->i_cos[0*4+3] = -cosf(s*(i*4+3));
+
+        simd_128v4::plot_schlick(s_inf);
+
+        frame[int((1.0f - s_inf->o_rfl[0*4+0])*h)*x_row+i*4+0] = 0x00FF0000;
+        frame[int((1.0f - s_inf->o_rfl[0*4+1])*h)*x_row+i*4+1] = 0x00FF0000;
+        frame[int((1.0f - s_inf->o_rfl[0*4+2])*h)*x_row+i*4+2] = 0x00FF0000;
+        frame[int((1.0f - s_inf->o_rfl[0*4+3])*h)*x_row+i*4+3] = 0x00FF0000;
+
+#if RT_DEBUG >= 2
+
+        RT_LOGI("Schlick[%03X] = %f\n", i*4+0, s_inf->o_rfl[0*4+0]);
+        RT_LOGI("Schlick[%03X] = %f\n", i*4+1, s_inf->o_rfl[0*4+1]);
+        RT_LOGI("Schlick[%03X] = %f\n", i*4+2, s_inf->o_rfl[0*4+2]);
+        RT_LOGI("Schlick[%03X] = %f\n", i*4+3, s_inf->o_rfl[0*4+3]);
+
+#endif /* RT_DEBUG */
+    }
+
+    save_frame(940);
+
+    ASM_DONE(s_inf)
+
+    release(s_ptr);
+
+#endif /* RT_PLOT_FUNCS */
 }
 
 /******************************************************************************/
