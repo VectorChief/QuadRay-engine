@@ -5472,6 +5472,46 @@ rt_void plot_schlick(rt_SIMD_INFOP *s_inf)
 #endif /* RT_RENDER_CODE */
 }
 
+/*
+ * Fresnel code was inspired by memo-on-fresnel-equations by S. Lagarde.
+ * Almost indentical code is used for calculations in render0 routine above.
+ */
+rt_void plot_fresnel_metal_fast(rt_SIMD_INFOP *s_inf)
+{
+#ifdef RT_RENDER_CODE
+
+    ASM_ENTER(s_inf)
+
+        movpx_ld(Xmm0, Mebp, inf_I_COS)
+        movpx_ld(Xmm6, Mebp, inf_C_RCP)
+        movpx_rr(Xmm4, Xmm0)
+        mulps_rr(Xmm4, Xmm6)
+        addps_rr(Xmm4, Xmm4)
+        mulps_rr(Xmm0, Xmm0)
+        mulps_rr(Xmm6, Xmm6)
+        addps_ld(Xmm6, Mebp, inf_EXT_2)
+        movpx_rr(Xmm1, Xmm0)
+        mulps_rr(Xmm1, Xmm6)
+        addps_rr(Xmm0, Xmm6)
+        addps_ld(Xmm1, Mebp, inf_GPC01)
+        movpx_rr(Xmm2, Xmm0)
+        movpx_rr(Xmm3, Xmm1)
+        addps_rr(Xmm0, Xmm4)
+        addps_rr(Xmm1, Xmm4)
+        subps_rr(Xmm2, Xmm4)
+        subps_rr(Xmm3, Xmm4)
+        divps_rr(Xmm0, Xmm2)
+        divps_rr(Xmm1, Xmm3)
+        addps_rr(Xmm0, Xmm1)
+        mulps_ld(Xmm0, Mebp, inf_GPC02)
+        andpx_ld(Xmm0, Mebp, inf_GPC04)
+        movpx_st(Xmm0, Mebp, inf_O_RFL)
+
+    ASM_LEAVE(s_inf)
+
+#endif /* RT_RENDER_CODE */
+}
+
 #else /* RT_SIMD_CODE */
 
 #include <string.h>

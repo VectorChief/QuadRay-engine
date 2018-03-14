@@ -953,6 +953,13 @@ struct rt_SIMD_MATERIAL
     rt_real rfr_2[S];
 #define mat_RFR_2           DP(Q*0x110)
 
+
+    rt_real c_rcp[S];
+#define mat_C_RCP           DP(Q*0x120)
+
+    rt_real ext_2[S];
+#define mat_EXT_2           DP(Q*0x130)
+
 };
 
 /*
@@ -970,14 +977,23 @@ struct rt_SIMD_INFOP : public rt_SIMD_INFO
     rt_real o_rfl[S];
 #define inf_O_RFL           DP(Q*0x110)
 
+
     rt_real c_rfr[S];
 #define inf_C_RFR           DP(Q*0x120)
 
     rt_real rfr_2[S];
 #define inf_RFR_2           DP(Q*0x130)
 
+
+    rt_real c_rcp[S];
+#define inf_C_RCP           DP(Q*0x140)
+
+    rt_real ext_2[S];
+#define inf_EXT_2           DP(Q*0x150)
+
+
     rt_real t_new[S];
-#define inf_T_NEW           DP(Q*0x140)
+#define inf_T_NEW           DP(Q*0x160)
 
 };
 

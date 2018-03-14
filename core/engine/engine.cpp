@@ -3755,6 +3755,11 @@ namespace simd_128v4
 rt_void plot_schlick(rt_SIMD_INFOP *s_inf);
 }
 
+namespace simd_128v4
+{
+rt_void plot_fresnel_metal_fast(rt_SIMD_INFOP *s_inf);
+}
+
 #endif /* RT_PLOT_FUNCS */
 
 /*
@@ -3902,6 +3907,37 @@ rt_void rt_Scene::plot_funcs()
     }
 
     save_frame(940);
+
+    RT_SIMD_SET(s_inf->c_rcp, (0.27));
+    RT_SIMD_SET(s_inf->ext_2, (2.77)*(2.77));
+
+    memset(frame, 0, x_row * y_res * sizeof(rt_ui32));
+
+    for (i = 0; i < x_res / 4; i++)
+    {
+        s_inf->i_cos[0*4+0] = -cosf(s*(i*4+0));
+        s_inf->i_cos[0*4+1] = -cosf(s*(i*4+1));
+        s_inf->i_cos[0*4+2] = -cosf(s*(i*4+2));
+        s_inf->i_cos[0*4+3] = -cosf(s*(i*4+3));
+
+        simd_128v4::plot_fresnel_metal_fast(s_inf);
+
+        frame[int((1.0f - s_inf->o_rfl[0*4+0])*h)*x_row+i*4+0] = 0x000000FF;
+        frame[int((1.0f - s_inf->o_rfl[0*4+1])*h)*x_row+i*4+1] = 0x000000FF;
+        frame[int((1.0f - s_inf->o_rfl[0*4+2])*h)*x_row+i*4+2] = 0x000000FF;
+        frame[int((1.0f - s_inf->o_rfl[0*4+3])*h)*x_row+i*4+3] = 0x000000FF;
+
+#if RT_DEBUG >= 2
+
+        RT_LOGI("Fresnel[%03X] = %f\n", i*4+0, s_inf->o_rfl[0*4+0]);
+        RT_LOGI("Fresnel[%03X] = %f\n", i*4+1, s_inf->o_rfl[0*4+1]);
+        RT_LOGI("Fresnel[%03X] = %f\n", i*4+2, s_inf->o_rfl[0*4+2]);
+        RT_LOGI("Fresnel[%03X] = %f\n", i*4+3, s_inf->o_rfl[0*4+3]);
+
+#endif /* RT_DEBUG */
+    }
+
+    save_frame(950);
 
     ASM_DONE(s_inf)
 
