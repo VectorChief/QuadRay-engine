@@ -99,7 +99,7 @@ rt_MATERIAL mt_plain03_tile01 =
         1.0,    0.0,    1.0
     },
     {/* rfl     trn     rfr */
-        0.5,    0.0,    1.0
+        0.5,    0.0,    0.1
     },
 };
 
@@ -299,7 +299,7 @@ rt_MATERIAL mt_plain03_white01 =
         1.0,    0.0,    1.0
     },
     {/* rfl     trn     rfr */
-        0.5,    0.0,    1.0
+        0.5,    0.0,    0.1
     },
 };
 

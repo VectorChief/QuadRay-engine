@@ -4045,6 +4045,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_FRESNEL
 
+        CHECK_PROP(RF_frn, RT_PROP_OPAQUE)
         CHECK_PROP(RF_mtl, RT_PROP_METAL)
 
         /* compute Fresnel for metals */
@@ -4074,7 +4075,43 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm0, Medx, mat_C_RFL)
         movpx_st(Xmm0, Mecx, ctx_F_RFL)
 
+        jmpxx_lb(RF_frn)
+
     LBL(RF_mtl)
+
+        /* move dot-product temporarily */
+        movpx_rr(Xmm4, Xmm0)
+
+        movpx_ld(Xmm6, Medx, mat_C_RFR)
+        mulps_rr(Xmm0, Xmm6)
+        movpx_rr(Xmm7, Xmm0)
+        mulps_rr(Xmm7, Xmm7)
+        addps_ld(Xmm7, Mebp, inf_GPC01)
+        subps_ld(Xmm7, Medx, mat_RFR_2)
+        sqrps_rr(Xmm7, Xmm7)
+        addps_rr(Xmm0, Xmm7)
+
+        /* compute Fresnel for opaque */
+        movpx_rr(Xmm1, Xmm4)
+        movpx_rr(Xmm2, Xmm1)
+        mulps_rr(Xmm2, Xmm6)
+        subps_rr(Xmm2, Xmm7)
+        mulps_rr(Xmm7, Xmm6)
+        movpx_rr(Xmm3, Xmm1)
+        addps_rr(Xmm1, Xmm7)
+        subps_rr(Xmm3, Xmm7)
+        divps_rr(Xmm0, Xmm2)
+        divps_rr(Xmm1, Xmm3)
+        mulps_rr(Xmm0, Xmm0)
+        mulps_rr(Xmm1, Xmm1)
+        addps_rr(Xmm0, Xmm1)
+        mulps_ld(Xmm0, Mebp, inf_GPC02)
+        andpx_ld(Xmm0, Mebp, inf_GPC04)
+        subps_ld(Xmm0, Mebp, inf_GPC01)
+        mulps_ld(Xmm0, Medx, mat_C_RFL)
+        movpx_st(Xmm0, Mecx, ctx_F_RFL)
+
+    LBL(RF_frn)
 
 #endif /* RT_FEAT_FRESNEL */
 
