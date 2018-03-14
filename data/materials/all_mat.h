@@ -316,8 +316,8 @@ rt_MATERIAL mt_metal01_cyan01 =
     {/* dff     spc     pow */
         1.0,    0.0,    1.0
     },
-    {/* rfl     trn     rfr */
-        0.5,    0.0,    1.0
+    {/* rfl     trn     rfr     ext */
+        0.5,    0.0,    1.0,    9.0
     },
 };
 
@@ -330,8 +330,8 @@ rt_MATERIAL mt_metal01_pink01 =
     {/* dff     spc     pow */
         1.0,    0.0,    1.0
     },
-    {/* rfl     trn     rfr */
-        0.5,    0.0,    1.0
+    {/* rfl     trn     rfr     ext */
+        0.5,    0.0,    1.0,    9.0
     },
 };
 
@@ -344,8 +344,8 @@ rt_MATERIAL mt_metal02_orange01 =
     {/* dff     spc     pow */
         0.5,    0.5,   32.0
     },
-    {/* rfl     trn     rfr */
-        0.0,    0.0,    1.0
+    {/* rfl     trn     rfr     ext */
+        0.0,    0.0,    1.0,    9.0
     },
 };
 
@@ -358,8 +358,8 @@ rt_MATERIAL mt_metal02_pink01 =
     {/* dff     spc     pow */
         0.5,    0.5,   32.0
     },
-    {/* rfl     trn     rfr */
-        0.0,    0.0,    1.0
+    {/* rfl     trn     rfr     ext */
+        0.0,    0.0,    1.0,    9.0
     },
 };
 
@@ -372,8 +372,8 @@ rt_MATERIAL mt_metal03_nickel01 =
     {/* dff     spc     pow */
         1.0,    0.0,    1.0
     },
-    {/* rfl     trn     rfr */
-        1.0,    0.0,    1.0
+    {/* rfl     trn     rfr     ext */
+        1.0,    0.0,    1.0,    9.0
     },
 };
 

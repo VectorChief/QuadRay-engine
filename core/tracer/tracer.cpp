@@ -3683,7 +3683,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         CHECK_PROP(TR_rfr, RT_PROP_REFRACT)
 
-        /* compute refraction
+        /* compute refraction, fresnel
          * requires normalized ray */
         movpx_ld(Xmm1, Mecx, ctx_RAY_X)
         movpx_rr(Xmm7, Xmm1)
@@ -3987,27 +3987,43 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_XPTR(Redx, MAT_P(PTR))
 
-        /* incoming ray is not normalized
-         * therefore neither is outgoing */
         CHECK_PROP(RF_end, RT_PROP_REFLECT)
 
     LBL(RF_ini)
 
-        /* compute reflection */
+        /* compute reflection, fresnel
+         * requires normalized ray */
         movpx_ld(Xmm1, Mecx, ctx_RAY_X)
         movpx_ld(Xmm4, Mecx, ctx_NRM_X)
         movpx_rr(Xmm7, Xmm1)
-        mulps_rr(Xmm7, Xmm4)
+        mulps_rr(Xmm7, Xmm1)
         movpx_rr(Xmm0, Xmm7)
 
         movpx_ld(Xmm2, Mecx, ctx_RAY_Y)
         movpx_ld(Xmm5, Mecx, ctx_NRM_Y)
         movpx_rr(Xmm7, Xmm2)
-        mulps_rr(Xmm7, Xmm5)
+        mulps_rr(Xmm7, Xmm2)
         addps_rr(Xmm0, Xmm7)
 
         movpx_ld(Xmm3, Mecx, ctx_RAY_Z)
         movpx_ld(Xmm6, Mecx, ctx_NRM_Z)
+        movpx_rr(Xmm7, Xmm3)
+        mulps_rr(Xmm7, Xmm3)
+        addps_rr(Xmm0, Xmm7)
+
+        rsqps_rr(Xmm7, Xmm0)
+        mulps_rr(Xmm1, Xmm7)
+        mulps_rr(Xmm2, Xmm7)
+        mulps_rr(Xmm3, Xmm7)
+
+        movpx_rr(Xmm7, Xmm1)
+        mulps_rr(Xmm7, Xmm4)
+        movpx_rr(Xmm0, Xmm7)
+
+        movpx_rr(Xmm7, Xmm2)
+        mulps_rr(Xmm7, Xmm5)
+        addps_rr(Xmm0, Xmm7)
+
         movpx_rr(Xmm7, Xmm3)
         mulps_rr(Xmm7, Xmm6)
         addps_rr(Xmm0, Xmm7)
@@ -4026,6 +4042,41 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm3, Xmm6)
         subps_rr(Xmm3, Xmm6)
         movpx_st(Xmm3, Mecx, ctx_NEW_Z)
+
+#if RT_FEAT_FRESNEL
+
+        CHECK_PROP(RF_mtl, RT_PROP_METAL)
+
+        /* compute Fresnel for metals */
+        movpx_ld(Xmm6, Medx, mat_C_RCP)
+        movpx_rr(Xmm4, Xmm0)
+        mulps_rr(Xmm4, Xmm6)
+        addps_rr(Xmm4, Xmm4)
+        mulps_rr(Xmm0, Xmm0)
+        mulps_rr(Xmm6, Xmm6)
+        addps_ld(Xmm6, Medx, mat_EXT_2)
+        movpx_rr(Xmm1, Xmm0)
+        mulps_rr(Xmm1, Xmm6)
+        addps_rr(Xmm0, Xmm6)
+        addps_ld(Xmm1, Mebp, inf_GPC01)
+        movpx_rr(Xmm2, Xmm0)
+        movpx_rr(Xmm3, Xmm1)
+        addps_rr(Xmm0, Xmm4)
+        addps_rr(Xmm1, Xmm4)
+        subps_rr(Xmm2, Xmm4)
+        subps_rr(Xmm3, Xmm4)
+        divps_rr(Xmm0, Xmm2)
+        divps_rr(Xmm1, Xmm3)
+        addps_rr(Xmm0, Xmm1)
+        mulps_ld(Xmm0, Mebp, inf_GPC02)
+        andpx_ld(Xmm0, Mebp, inf_GPC04)
+        subps_ld(Xmm0, Mebp, inf_GPC01)
+        mulps_ld(Xmm0, Medx, mat_C_RFL)
+        movpx_st(Xmm0, Mecx, ctx_F_RFL)
+
+    LBL(RF_mtl)
+
+#endif /* RT_FEAT_FRESNEL */
 
         /* prepare default values */
         xorpx_rr(Xmm0, Xmm0)
