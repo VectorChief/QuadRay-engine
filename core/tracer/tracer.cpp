@@ -42,6 +42,7 @@
 #define RT_SHOW_BOUND               0   /* <- needs RT_OPTS_TILING to be 0 */
 #define RT_QUAD_DEBUG               0   /* <- needs RT_DEBUG to be enabled
                                                with RT_THREADS_NUM equal 1 */
+#define RT_PLOT_FUNCS_REF           0   /* set to 1 to plot reference code */
 
 #define RT_FEAT_TILING              1
 #define RT_FEAT_ANTIALIASING        1   /* <- breaks AA in the engine if 0 */
@@ -5413,6 +5414,31 @@ rt_void plot_fresnel(rt_SIMD_INFOP *s_inf)
 {
 #ifdef RT_RENDER_CODE
 
+#if RT_PLOT_FUNCS_REF
+
+    rt_si32 i;
+
+    for (i = 0; i < 4; i++)
+    {
+        float n = s_inf->c_rfr[i];
+        float cosI = -s_inf->i_cos[i];
+        float sinT2 = n * n * (1 - cosI * cosI);
+
+        if (sinT2 > 1)
+        {
+            s_inf->o_rfl[i] = 1;
+            continue;
+        }
+
+        float cosT = sqrt(1 - sinT2);
+        float rOrth = (n * cosI - cosT) / (n * cosI + cosT);
+        float rPar = (cosI - n * cosT) / (cosI + n * cosT);
+
+        s_inf->o_rfl[i] = (rOrth * rOrth + rPar * rPar) * 0.5;
+    }
+
+#else /* RT_PLOT_FUNCS_REF */
+
     ASM_ENTER(s_inf)
 
         movpx_ld(Xmm0, Mebp, inf_I_COS)
@@ -5475,6 +5501,8 @@ rt_void plot_fresnel(rt_SIMD_INFOP *s_inf)
 
     ASM_LEAVE(s_inf)
 
+#endif /* RT_PLOT_FUNCS_REF */
+
 #endif /* RT_RENDER_CODE */
 }
 
@@ -5485,6 +5513,34 @@ rt_void plot_fresnel(rt_SIMD_INFOP *s_inf)
 rt_void plot_schlick(rt_SIMD_INFOP *s_inf)
 {
 #ifdef RT_RENDER_CODE
+
+#if RT_PLOT_FUNCS_REF
+
+    rt_si32 i;
+
+    for (i = 0; i < 4; i++)
+    {
+        float n = s_inf->c_rfr[i];
+        float r0 = (n - 1) / (n + 1);
+        r0 *= r0;
+        float cosX = -s_inf->i_cos[i];
+
+        if (n > 1)
+        {
+            float sinT2 = n * n * (1 - cosX * cosX);
+            if (sinT2 > 1)
+            {
+                s_inf->o_rfl[i] = 1;
+                continue;
+            }
+            cosX = sqrt(1 - sinT2);
+        }
+
+        float x = 1 - cosX;
+        s_inf->o_rfl[i] = r0 + (1 - r0) * x * x * x * x * x;
+    }
+
+#else /* RT_PLOT_FUNCS_REF */
 
     ASM_ENTER(s_inf)
 
@@ -5530,6 +5586,7 @@ rt_void plot_schlick(rt_SIMD_INFOP *s_inf)
 
     LBL(SC_inv)
 
+
         addps_rr(Xmm4, Xmm1)
         movpx_rr(Xmm0, Xmm6)
         subps_rr(Xmm0, Xmm1)
@@ -5557,16 +5614,38 @@ rt_void plot_schlick(rt_SIMD_INFOP *s_inf)
 
     ASM_LEAVE(s_inf)
 
+#endif /* RT_PLOT_FUNCS_REF */
+
 #endif /* RT_RENDER_CODE */
 }
 
 /*
- * Fresnel code was inspired by memo-on-fresnel-equations by S. Lagarde.
+ * Fresnel metal code was inspired by memo-on-fresnel-equations by S. Lagarde.
  * Almost indentical code is used for calculations in render0 routine above.
  */
 rt_void plot_fresnel_metal_fast(rt_SIMD_INFOP *s_inf)
 {
 #ifdef RT_RENDER_CODE
+
+#if RT_PLOT_FUNCS_REF
+
+    rt_si32 i;
+
+    for (i = 0; i < 4; i++)
+    {
+        float CosTheta2 = s_inf->i_cos[i] * s_inf->i_cos[i];
+        float TwoEtaCosTheta = 2 * s_inf->c_rcp[i] * -s_inf->i_cos[i];
+
+        float t0 = s_inf->c_rcp[i] * s_inf->c_rcp[i] + s_inf->ext_2[i];
+        float t1 = t0 * CosTheta2;
+        float Rs = (t0 - TwoEtaCosTheta + CosTheta2) /
+                   (t0 + TwoEtaCosTheta + CosTheta2);
+        float Rp = (t1 - TwoEtaCosTheta + 1) / (t1 + TwoEtaCosTheta + 1);
+
+        s_inf->o_rfl[i] = 0.5 * (Rp + Rs);
+    }
+
+#else /* RT_PLOT_FUNCS_REF */
 
     ASM_ENTER(s_inf)
 
@@ -5596,6 +5675,100 @@ rt_void plot_fresnel_metal_fast(rt_SIMD_INFOP *s_inf)
         movpx_st(Xmm0, Mebp, inf_O_RFL)
 
     ASM_LEAVE(s_inf)
+
+#endif /* RT_PLOT_FUNCS_REF */
+
+#endif /* RT_RENDER_CODE */
+}
+
+/*
+ * Fresnel metal code was inspired by memo-on-fresnel-equations by S. Lagarde.
+ * Almost indentical code is used for calculations in render0 routine above.
+ */
+rt_void plot_fresnel_metal_slow(rt_SIMD_INFOP *s_inf)
+{
+#ifdef RT_RENDER_CODE
+
+#if RT_PLOT_FUNCS_REF
+
+    rt_si32 i;
+
+    for (i = 0; i < 4; i++)
+    {
+        float CosTheta = -s_inf->i_cos[i];
+        float Eta2 = s_inf->c_rcp[i] * s_inf->c_rcp[i];
+        float Etak2 = s_inf->ext_2[i];
+
+        float CosTheta2 = CosTheta * CosTheta;
+        float SinTheta2 = 1 - CosTheta2;
+
+        float t0 = Eta2 - Etak2 - SinTheta2;
+        float a2plusb2 = sqrt(t0 * t0 + 4 * Eta2 * Etak2);
+        float t1 = a2plusb2 + CosTheta2;
+        float a = sqrt(0.5f * (a2plusb2 + t0));
+        float t2 = 2 * a * CosTheta;
+        float Rs = (t1 - t2) / (t1 + t2);
+
+        float t3 = CosTheta2 * a2plusb2 + SinTheta2 * SinTheta2;
+        float t4 = t2 * SinTheta2;
+        float Rp = Rs * (t3 - t4) / (t3 + t4);
+
+        s_inf->o_rfl[i] = 0.5 * (Rp + Rs);
+    }
+
+#else /* RT_PLOT_FUNCS_REF */
+
+    ASM_ENTER(s_inf)
+
+        movpx_ld(Xmm0, Mebp, inf_I_COS)
+        movpx_rr(Xmm4, Xmm0)
+        mulps_rr(Xmm0, Xmm0)
+        movpx_ld(Xmm1, Mebp, inf_GPC01)
+        subps_rr(Xmm1, Xmm0)
+        movpx_ld(Xmm6, Mebp, inf_C_RCP)
+        movpx_ld(Xmm5, Mebp, inf_EXT_2)
+        mulps_rr(Xmm6, Xmm6)
+        movpx_rr(Xmm7, Xmm6)
+        subps_rr(Xmm6, Xmm5)
+        subps_rr(Xmm6, Xmm1)
+        mulps_rr(Xmm5, Xmm7)
+        movpx_ld(Xmm7, Mebp, inf_GPC01)
+        addps_ld(Xmm7, Mebp, inf_GPC03)
+        mulps_rr(Xmm5, Xmm7)
+        movpx_rr(Xmm7, Xmm6)
+        mulps_rr(Xmm7, Xmm7)
+        addps_rr(Xmm7, Xmm5)
+        sqrps_rr(Xmm7, Xmm7)
+        addps_rr(Xmm6, Xmm7)
+        mulps_ld(Xmm6, Mebp, inf_GPC02)
+        andpx_ld(Xmm6, Mebp, inf_GPC04)
+        sqrps_rr(Xmm6, Xmm6)
+        mulps_rr(Xmm6, Xmm4)
+        addps_rr(Xmm6, Xmm6)
+        movpx_rr(Xmm2, Xmm0)
+        addps_rr(Xmm0, Xmm7)
+        mulps_rr(Xmm2, Xmm7)
+        movpx_rr(Xmm3, Xmm6)
+        mulps_rr(Xmm3, Xmm1)
+        mulps_rr(Xmm1, Xmm1)
+        addps_rr(Xmm2, Xmm1)
+        movpx_rr(Xmm1, Xmm0)
+        addps_rr(Xmm0, Xmm6)
+        subps_rr(Xmm1, Xmm6)
+        divps_rr(Xmm0, Xmm1)
+        movpx_rr(Xmm1, Xmm2)
+        addps_rr(Xmm2, Xmm3)
+        subps_rr(Xmm1, Xmm3)
+        divps_rr(Xmm2, Xmm1)
+        mulps_rr(Xmm2, Xmm0)
+        addps_rr(Xmm0, Xmm2)
+        mulps_ld(Xmm0, Mebp, inf_GPC02)
+        andpx_ld(Xmm0, Mebp, inf_GPC04)
+        movpx_st(Xmm0, Mebp, inf_O_RFL)
+
+    ASM_LEAVE(s_inf)
+
+#endif /* RT_PLOT_FUNCS_REF */
 
 #endif /* RT_RENDER_CODE */
 }
