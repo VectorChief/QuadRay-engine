@@ -62,11 +62,11 @@
 #define RT_FEAT_TRANSPARENCY        1
 #define RT_FEAT_REFRACTIONS         1
 #define RT_FEAT_REFLECTIONS         1
-#define RT_FEAT_FRESNEL             1   /* <- slows down refraction when 1 */
+#define RT_FEAT_FRESNEL             0   /* <- slows down refraction when 1 */
 #define RT_FEAT_SCHLICK             0   /* <- low precision Fresnel when 1 */
-#define RT_FEAT_FRESNEL_METAL       1   /* apply Fresnel on metal surfaces */
+#define RT_FEAT_FRESNEL_METAL       0   /* apply Fresnel on metal surfaces */
 #define RT_FEAT_FRESNEL_METAL_SLOW  0   /* more accurate Fresnel, but slow */
-#define RT_FEAT_FRESNEL_PLAIN       1   /* apply Fresnel on plain surfaces */
+#define RT_FEAT_FRESNEL_PLAIN       0   /* apply Fresnel on plain surfaces */
 #define RT_FEAT_TRANSFORM           1   /* <- breaks TM in the engine if 0 */
 #define RT_FEAT_TRANSFORM_ARRAY     1   /* <- breaks TA in the engine if 0 */
 #define RT_FEAT_BOUND_VOL_ARRAY     1
