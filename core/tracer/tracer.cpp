@@ -5652,7 +5652,6 @@ rt_void plot_schlick(rt_SIMD_INFOP *s_inf)
 
     LBL(SC_inv)
 
-
         addps_rr(Xmm4, Xmm1)
         movpx_rr(Xmm0, Xmm6)
         subps_rr(Xmm0, Xmm1)
@@ -5971,9 +5970,9 @@ rt_void rt_Platform::update0(rt_SIMD_SURFACE *s_srf)
  */
 rt_si32 rt_Platform::switch0(rt_SIMD_INFOX *s_inf, rt_si32 simd)
 {
-#if (RT_POINTER - RT_ADDRESS) != 0 && RT_DEBUG >= 1
+#if (RT_POINTER - RT_ADDRESS) != 0 && RT_DEBUG >= 2
 
-    RT_LOGI("S_INF PTR = %016"PR_Z"X\n", (rt_full)s_inf);
+    RT_LOGI("S_INF PTR = %016" PR_Z "X\n", (rt_full)s_inf);
 
 #endif /* (RT_POINTER - RT_ADDRESS) && RT_DEBUG */
 
