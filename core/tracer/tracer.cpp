@@ -3494,18 +3494,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(fetch_PW_ptr)
 
-        label_st(LT_pw4, /* -> Reax */
-        /* Reax -> */  Mebp, inf_POW_E4)
-
-        label_st(LT_pw3, /* -> Reax */
-        /* Reax -> */  Mebp, inf_POW_E3)
-
-        label_st(LT_pw2, /* -> Reax */
-        /* Reax -> */  Mebp, inf_POW_E2)
-
-        label_st(LT_pw1, /* -> Reax */
-        /* Reax -> */  Mebp, inf_POW_E1)
-
         label_st(LT_pw0, /* -> Reax */
         /* Reax -> */  Mebp, inf_POW_E0)
 
@@ -3513,28 +3501,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* Reax -> */  Mebp, inf_POW_EN)
 
         jmpxx_lb(fetch_end)
-
-    LBL(LT_pw4)
-
-        mulps_rr(Xmm1, Xmm1)
-
-    LBL(LT_pw3)
-
-        mulps_rr(Xmm1, Xmm1)
-
-    LBL(LT_pw2)
-
-        mulps_rr(Xmm1, Xmm1)
-
-    LBL(LT_pw1)
-
-        mulps_rr(Xmm1, Xmm1)
-
-        cmjwx_rz(Reax,
-                 EQ_x, LT_pwe)
-
-        subwx_ri(Reax, IB(1))
-        jmpxx_lb(LT_pw4)
 
     LBL(LT_pw0)
 
@@ -5927,49 +5893,7 @@ rt_void rt_Platform::update_mat(rt_SIMD_MATERIAL *s_mat)
         return;
     }
 
-    rt_ui32 pow = s_mat->l_pow[0], exp = 0;
-
-    if (s_mat->pow_p[0] != RT_NULL)
-    {
-        exp = pow >> 29;
-        s_mat->pow_p[0] = t_pow[exp];
-        return;
-    }
-
-    if (pow > (1 << 28))
-    {
-        pow = (1 << 28);
-    }
-
-    rt_si32 i;
-
-    for (i = 0; i < 29; i++)
-    {
-        if (pow == ((rt_ui32)1 << i))
-        {
-            exp = i;
-            break;
-        }
-    }
-
-    if (i < 29)
-    {
-        pow = exp / 4;
-        exp = exp % 4;
-
-        if (pow > 0 && exp == 0)
-        {
-            pow--;
-            exp = 4;
-        }
-    }
-    else
-    {
-        exp = 5;
-    }
-
-    s_mat->l_pow[0] = pow | (exp << 29);
-    s_mat->pow_p[0] = t_pow[exp];
+    s_mat->pow_p[0] = t_pow[s_mat->l_pow[0] == 0 ? 0 : 5];
 }
 
 /*
