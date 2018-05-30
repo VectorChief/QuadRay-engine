@@ -3700,9 +3700,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(TR_opq)
 
-#if RT_FEAT_REFRACTIONS
+#if RT_FEAT_REFRACTIONS || RT_FEAT_FRESNEL
+
+#if RT_FEAT_FRESNEL == 0
 
         CHECK_PROP(TR_rfr, RT_PROP_REFRACT)
+
+#endif /* RT_FEAT_FRESNEL */
 
         /* compute refraction, fresnel
          * requires normalized ray */
@@ -3777,6 +3781,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         sqrps_rr(Xmm7, Xmm7)
         addps_rr(Xmm0, Xmm7)
 
+        CHECK_PROP(TR_rfr, RT_PROP_REFRACT)
+
         movpx_ld(Xmm5, Mecx, ctx_NRM_X)
         mulps_rr(Xmm5, Xmm0)
         mulps_rr(Xmm1, Xmm6)
@@ -3794,6 +3800,23 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm3, Xmm6)
         subps_rr(Xmm3, Xmm5)
         movpx_st(Xmm3, Mecx, ctx_NEW_Z)
+
+        jmpxx_lb(TR_ini)
+
+    LBL(TR_rfr)
+
+#endif /* RT_FEAT_REFRACTIONS || RT_FEAT_FRESNEL */
+
+        /* propagate ray */
+        movpx_ld(Xmm1, Mecx, ctx_RAY_X)
+        movpx_ld(Xmm2, Mecx, ctx_RAY_Y)
+        movpx_ld(Xmm3, Mecx, ctx_RAY_Z)
+
+        movpx_st(Xmm1, Mecx, ctx_NEW_X)
+        movpx_st(Xmm2, Mecx, ctx_NEW_Y)
+        movpx_st(Xmm3, Mecx, ctx_NEW_Z)
+
+    LBL(TR_ini)
 
 #if RT_FEAT_FRESNEL
 
@@ -3856,23 +3879,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_F_RFL)
 
 #endif /* RT_FEAT_FRESNEL */
-
-        jmpxx_lb(TR_ini)
-
-    LBL(TR_rfr)
-
-#endif /* RT_FEAT_REFRACTIONS */
-
-        /* propagate ray */
-        movpx_ld(Xmm1, Mecx, ctx_RAY_X)
-        movpx_ld(Xmm2, Mecx, ctx_RAY_Y)
-        movpx_ld(Xmm3, Mecx, ctx_RAY_Z)
-
-        movpx_st(Xmm1, Mecx, ctx_NEW_X)
-        movpx_st(Xmm2, Mecx, ctx_NEW_Y)
-        movpx_st(Xmm3, Mecx, ctx_NEW_Z)
-
-    LBL(TR_ini)
 
         /* prepare default values */
         xorpx_rr(Xmm0, Xmm0)
@@ -4296,7 +4302,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_FRESNEL
 
-        CHECK_PROP(RF_out, RT_PROP_REFRACT)
+        CHECK_PROP(RF_opq, RT_PROP_OPAQUE)
+
+        jmpxx_lb(RF_out)
+
+    LBL(RF_opq)
 
         jmpxx_lb(RF_ini)
 
