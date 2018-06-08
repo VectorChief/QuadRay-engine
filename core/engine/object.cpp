@@ -4076,6 +4076,14 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     RT_SIMD_SET(s_mat->rfr_2, mat->prp[2] * mat->prp[2]);
     RT_SIMD_SET(s_mat->c_rcp, 1.0f / mat->prp[2]);
     RT_SIMD_SET(s_mat->ext_2, mat->prp[3] * mat->prp[3]);
+
+    if (mat->prp[1] == 0.0f || mat->prp[1] == 1.0f || mat->prp[2] != 1.0f)
+    {
+        return;
+    }
+
+    RT_SIMD_SET(s_mat->c_rfr, mat->prp[3]);
+    RT_SIMD_SET(s_mat->rfr_2, mat->prp[3] * mat->prp[3]);
 }
 
 /*

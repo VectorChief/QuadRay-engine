@@ -390,8 +390,8 @@ rt_MATERIAL mt_glass01_orange01 =
     {/* dff     spc     pow */
         1.0,    0.0,    1.0
     },
-    {/* rfl     trn     rfr */
-        0.0,    0.5,    1.0
+    {/* rfl     trn     rfr     ext */
+        0.0,    0.5,    1.0,    0.67
     },
 };
 
