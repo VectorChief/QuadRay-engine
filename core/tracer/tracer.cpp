@@ -3953,7 +3953,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_FRESNEL
 
-        /* subtract Fresnel from refraction term */
+        /* subtract Fresnel from transparency term */
         subps_ld(Xmm0, Mecx, ctx_F_RFL)
 
 #endif /* RT_FEAT_FRESNEL */
@@ -4072,7 +4072,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_FRESNEL
 
-        CHECK_PROP(RF_frn, RT_PROP_OPAQUE)
+        CHECK_PROP(RF_pre, RT_PROP_OPAQUE)
 
 #if RT_FEAT_FRESNEL_METAL
 
@@ -4122,11 +4122,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         divps_rr(Xmm2, Xmm1)
         mulps_rr(Xmm2, Xmm0)
         addps_rr(Xmm0, Xmm2)
-        mulps_ld(Xmm0, Mebp, inf_GPC02)
-        andpx_ld(Xmm0, Mebp, inf_GPC04)
-        subps_ld(Xmm0, Mebp, inf_GPC01)
-        mulps_ld(Xmm0, Medx, mat_C_RFL)
-        movpx_st(Xmm0, Mecx, ctx_F_RFL)
 
 #else /* RT_FEAT_FRESNEL_METAL_SLOW */
 
@@ -4151,11 +4146,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         divps_rr(Xmm0, Xmm2)
         divps_rr(Xmm1, Xmm3)
         addps_rr(Xmm0, Xmm1)
-        mulps_ld(Xmm0, Mebp, inf_GPC02)
-        andpx_ld(Xmm0, Mebp, inf_GPC04)
-        subps_ld(Xmm0, Mebp, inf_GPC01)
-        mulps_ld(Xmm0, Medx, mat_C_RFL)
-        movpx_st(Xmm0, Mecx, ctx_F_RFL)
 
 #endif /* RT_FEAT_FRESNEL_METAL_SLOW */
 
@@ -4193,15 +4183,19 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm0, Xmm0)
         mulps_rr(Xmm1, Xmm1)
         addps_rr(Xmm0, Xmm1)
+
+#endif /* RT_FEAT_FRESNEL_PLAIN */
+
+    LBL(RF_frn)
+
+        /* store Fresnel reflectance */
         mulps_ld(Xmm0, Mebp, inf_GPC02)
         andpx_ld(Xmm0, Mebp, inf_GPC04)
         subps_ld(Xmm0, Mebp, inf_GPC01)
         mulps_ld(Xmm0, Medx, mat_C_RFL)
         movpx_st(Xmm0, Mecx, ctx_F_RFL)
 
-#endif /* RT_FEAT_FRESNEL_PLAIN */
-
-    LBL(RF_frn)
+    LBL(RF_pre)
 
 #endif /* RT_FEAT_FRESNEL */
 
