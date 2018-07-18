@@ -952,8 +952,10 @@
  */
 #if RT_FEAT_GAMMA
 
+/* linear-to-gamma colorspace conversion */
 #define FRAME_COLX(cl, pl) /* destroys Xmm0, Xmm1, reads Xmm2, Xmm7 */      \
         movpx_ld(Xmm1, Mecx, ctx_##pl(0))                                   \
+        sqrps_rr(Xmm1, Xmm1)                                                \
         minps_rr(Xmm1, Xmm2)                                                \
         cvnpn_rr(Xmm7, Xmm7)                                                \
         mulps_rr(Xmm1, Xmm7)                                                \
@@ -5395,21 +5397,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(XX_ret)
 
     LBL(XX_end)
-
-#if RT_FEAT_GAMMA
-
-        /* linear-to-gamma colorspace conversion */
-        movpx_ld(Xmm0, Mecx, ctx_COL_R(0))
-        sqrps_rr(Xmm0, Xmm0)
-        movpx_st(Xmm0, Mecx, ctx_COL_R(0))
-        movpx_ld(Xmm0, Mecx, ctx_COL_G(0))
-        sqrps_rr(Xmm0, Xmm0)
-        movpx_st(Xmm0, Mecx, ctx_COL_G(0))
-        movpx_ld(Xmm0, Mecx, ctx_COL_B(0))
-        sqrps_rr(Xmm0, Xmm0)
-        movpx_st(Xmm0, Mecx, ctx_COL_B(0))
-
-#endif /* RT_FEAT_GAMMA */
 
         /* convert fp colors to integer */
         movxx_ld(Redx, Mebp, inf_CAM)           /* edx needed in FRAME_SIMD */
