@@ -72,6 +72,12 @@
 #define RT_FEAT_TRANSFORM_ARRAY     1   /* <- breaks TA in the engine if 0 */
 #define RT_FEAT_BOUND_VOL_ARRAY     1
 
+#if RT_FEAT_GAMMA
+#define GAMMA(x)    x
+#else /* RT_FEAT_GAMMA */
+#define GAMMA(x)
+#endif /* RT_FEAT_GAMMA */
+
 /*
  * Byte-offsets within SIMD-field
  * for packed scalar fields.
@@ -622,41 +628,26 @@
         movyx_st(Reax, Mecx, ctx_C_BUF(0x##pn))                             \
     LBL(lb##pn)
 
-#if RT_FEAT_GAMMA
-
-/* gamma-to-linear colorspace conversion */
-#define PAINT_COLX(cl, pl) /* destroys Xmm0, reads Xmm7 */                  \
+#define PAINT_COLX(cl, pl) /* destroys Xmm0, reads Xmm2, Xmm7 */            \
         movpx_ld(Xmm0, Mecx, ctx_C_BUF(0))                                  \
         shrpx_ri(Xmm0, IB(0x##cl))                                          \
         andpx_rr(Xmm0, Xmm7)                                                \
         cvnpn_rr(Xmm0, Xmm0)                                                \
-        cvnpn_rr(Xmm7, Xmm7)                                                \
-        divps_rr(Xmm0, Xmm7)                                                \
-        mulps_rr(Xmm0, Xmm0)                                                \
-        cvnps_rr(Xmm7, Xmm7)                                                \
+        divps_rr(Xmm0, Xmm2)                                                \
+  GAMMA(mulps_rr(Xmm0, Xmm0)) /* gamma-to-linear colorspace conversion */   \
         movpx_st(Xmm0, Mecx, ctx_##pl)
-
-#else /* RT_FEAT_GAMMA */
-
-#define PAINT_COLX(cl, pl) /* destroys Xmm0, reads Xmm7 */                  \
-        movpx_ld(Xmm0, Mecx, ctx_C_BUF(0))                                  \
-        shrpx_ri(Xmm0, IB(0x##cl))                                          \
-        andpx_rr(Xmm0, Xmm7)                                                \
-        cvnpn_rr(Xmm0, Xmm0)                                                \
-        movpx_st(Xmm0, Mecx, ctx_##pl)
-
-#endif /* RT_FEAT_GAMMA */
 
 #if   RT_SIMD_QUADS == 1
 
 #if   RT_ELEMENT == 32
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm7 */                  \
+#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
         movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 04)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
         PAINT_FRAG(lb, 0C)                                                  \
+        movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
         PAINT_COLX(10, TEX_R)                                               \
         PAINT_COLX(08, TEX_G)                                               \
@@ -664,10 +655,11 @@
 
 #elif RT_ELEMENT == 64
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm7 */                  \
+#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
         movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
+        movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
         PAINT_COLX(10, TEX_R)                                               \
         PAINT_COLX(08, TEX_G)                                               \
@@ -679,7 +671,7 @@
 
 #if   RT_ELEMENT == 32
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm7 */                  \
+#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
         movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 04)                                                  \
@@ -689,6 +681,7 @@
         PAINT_FRAG(lb, 14)                                                  \
         PAINT_FRAG(lb, 18)                                                  \
         PAINT_FRAG(lb, 1C)                                                  \
+        movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
         PAINT_COLX(10, TEX_R)                                               \
         PAINT_COLX(08, TEX_G)                                               \
@@ -696,12 +689,13 @@
 
 #elif RT_ELEMENT == 64
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm7 */                  \
+#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
         movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
         PAINT_FRAG(lb, 10)                                                  \
         PAINT_FRAG(lb, 18)                                                  \
+        movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
         PAINT_COLX(10, TEX_R)                                               \
         PAINT_COLX(08, TEX_G)                                               \
@@ -713,7 +707,7 @@
 
 #if   RT_ELEMENT == 32
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm7 */                  \
+#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
         movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 04)                                                  \
@@ -731,6 +725,7 @@
         PAINT_FRAG(lb, 34)                                                  \
         PAINT_FRAG(lb, 38)                                                  \
         PAINT_FRAG(lb, 3C)                                                  \
+        movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
         PAINT_COLX(10, TEX_R)                                               \
         PAINT_COLX(08, TEX_G)                                               \
@@ -738,7 +733,7 @@
 
 #elif RT_ELEMENT == 64
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm7 */                  \
+#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
         movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
@@ -748,6 +743,7 @@
         PAINT_FRAG(lb, 28)                                                  \
         PAINT_FRAG(lb, 30)                                                  \
         PAINT_FRAG(lb, 38)                                                  \
+        movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
         PAINT_COLX(10, TEX_R)                                               \
         PAINT_COLX(08, TEX_G)                                               \
@@ -759,7 +755,7 @@
 
 #if   RT_ELEMENT == 32
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm7 */                  \
+#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
         movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 04)                                                  \
@@ -793,6 +789,7 @@
         PAINT_FRAG(lb, 74)                                                  \
         PAINT_FRAG(lb, 78)                                                  \
         PAINT_FRAG(lb, 7C)                                                  \
+        movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
         PAINT_COLX(10, TEX_R)                                               \
         PAINT_COLX(08, TEX_G)                                               \
@@ -800,7 +797,7 @@
 
 #elif RT_ELEMENT == 64
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm7 */                  \
+#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
         movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
@@ -818,6 +815,7 @@
         PAINT_FRAG(lb, 68)                                                  \
         PAINT_FRAG(lb, 70)                                                  \
         PAINT_FRAG(lb, 78)                                                  \
+        movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
         PAINT_COLX(10, TEX_R)                                               \
         PAINT_COLX(08, TEX_G)                                               \
@@ -829,7 +827,7 @@
 
 #if   RT_ELEMENT == 32
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm7 */                  \
+#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
         movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 04)                                                  \
@@ -895,6 +893,7 @@
         PAINT_FRAG(lb, F4)                                                  \
         PAINT_FRAG(lb, F8)                                                  \
         PAINT_FRAG(lb, FC)                                                  \
+        movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
         PAINT_COLX(10, TEX_R)                                               \
         PAINT_COLX(08, TEX_G)                                               \
@@ -902,7 +901,7 @@
 
 #elif RT_ELEMENT == 64
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm7 */                  \
+#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
         movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
@@ -936,6 +935,7 @@
         PAINT_FRAG(lb, E8)                                                  \
         PAINT_FRAG(lb, F0)                                                  \
         PAINT_FRAG(lb, F8)                                                  \
+        movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
         PAINT_COLX(10, TEX_R)                                               \
         PAINT_COLX(08, TEX_G)                                               \
@@ -950,34 +950,10 @@
  * the fully computed color values from the context's
  * COL_R, COL_G, COL_B SIMD-fields into the specified location.
  */
-#if RT_FEAT_GAMMA
-
-/* linear-to-gamma colorspace conversion */
 #define FRAME_COLX(cl, pl) /* destroys Xmm0, Xmm1, reads Xmm2, Xmm7 */      \
         movpx_ld(Xmm1, Mecx, ctx_##pl(0))                                   \
-        sqrps_rr(Xmm1, Xmm1)                                                \
-        minps_rr(Xmm1, Xmm2)                                                \
-        cvnpn_rr(Xmm7, Xmm7)                                                \
-        mulps_rr(Xmm1, Xmm7)                                                \
-        cvnps_rr(Xmm7, Xmm7)                                                \
-        cvnps_rr(Xmm1, Xmm1)                                                \
-        andpx_rr(Xmm1, Xmm7)                                                \
-        shlpx_ri(Xmm1, IB(0x##cl))                                          \
-        orrpx_rr(Xmm0, Xmm1)
-
-#define FRAME_SIMD() /* destroys Xmm0, Xmm1, Xmm2, Xmm7, reads Reax, Redx */\
-        xorpx_rr(Xmm0, Xmm0)                                                \
-        movpx_ld(Xmm2, Mebp, inf_GPC01)                                     \
-        movpx_ld(Xmm7, Medx, cam_CMASK)                                     \
-        FRAME_COLX(10, COL_R)                                               \
-        FRAME_COLX(08, COL_G)                                               \
-        FRAME_COLX(00, COL_B)                                               \
-        movpx_st(Xmm0, Oeax, PLAIN)
-
-#else /* RT_FEAT_GAMMA */
-
-#define FRAME_COLX(cl, pl) /* destroys Xmm0, Xmm1, reads Xmm2, Xmm7 */      \
-        movpx_ld(Xmm1, Mecx, ctx_##pl(0))                                   \
+  GAMMA(sqrps_rr(Xmm1, Xmm1)) /* linear-to-gamma colorspace conversion */   \
+        mulps_rr(Xmm1, Xmm2)                                                \
         minps_rr(Xmm1, Xmm2)                                                \
         cvnps_rr(Xmm1, Xmm1)                                                \
         andpx_rr(Xmm1, Xmm7)                                                \
@@ -992,8 +968,6 @@
         FRAME_COLX(08, COL_G)                                               \
         FRAME_COLX(00, COL_B)                                               \
         movpx_st(Xmm0, Oeax, PLAIN)
-
-#endif /* RT_FEAT_GAMMA */
 
 /*
  * Flush all fragments (in packed integer 3-byte form)
@@ -3583,15 +3557,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(LT_mtl)
 
         movpx_rr(Xmm7, Xmm1)
-
-#if RT_FEAT_GAMMA
-
-#else /* RT_FEAT_GAMMA */
-
-        movxx_ld(Redx, Mebp, inf_CAM)
-        mulps_ld(Xmm7, Medx, cam_CLAMP)
-
-#endif /* RT_FEAT_GAMMA */
 
         /* apply lighting to "plain" color,
          * only affects diffuse-specular blending */

@@ -921,10 +921,10 @@ struct rt_SIMD_MATERIAL
     rt_si32 t_map[R];
 #define mat_T_MAP(nx)       DP(Q*0x080 + nx)
 
-    /* color mask */
+    /* reserved area 1 */
 
-    rt_elem cmask[S];
-#define mat_CMASK           DP(Q*0x090)
+    rt_elem pad01[S];
+#define mat_PAD01           DP(Q*0x090)
 
     /* properties */
 
@@ -959,6 +959,14 @@ struct rt_SIMD_MATERIAL
 
     rt_real ext_2[S];
 #define mat_EXT_2           DP(Q*0x130)
+
+    /* color masks */
+
+    rt_real clamp[S];
+#define mat_CLAMP           DP(Q*0x140)
+
+    rt_elem cmask[S];
+#define mat_CMASK           DP(Q*0x150)
 
 };
 
