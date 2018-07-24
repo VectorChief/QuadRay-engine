@@ -2090,11 +2090,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
         adrpx_ld(Reax, Mecx, ctx_PARAM(0))
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> PARAM */
-        addxx_ri(Reax, IB(RT_SIMD_QUADS*16))
+        addxx_ri(Reax, IM(RT_SIMD_QUADS*16))
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> PARAM */
         adrpx_ld(Reax, Mecx, ctx_LOCAL(0))
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
-        addxx_ri(Reax, IB(RT_SIMD_QUADS*16))
+        addxx_ri(Reax, IM(RT_SIMD_QUADS*16))
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
 
         jmpxx_lb(XX_set)
@@ -3308,7 +3308,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_T_MIN)         /* tmp_v -> T_MIN */
         adrpx_ld(Reax, Mecx, ctx_LOCAL(0))
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
-        addxx_ri(Reax, IB(RT_SIMD_QUADS*16))
+        addxx_ri(Reax, IM(RT_SIMD_QUADS*16))
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
 
         movxx_ld(Resi, Medi, elm_DATA)          /* load shadow list */
@@ -3899,7 +3899,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_T_MIN)         /* tmp_v -> T_MIN */
         adrpx_ld(Reax, Mecx, ctx_LOCAL(0))
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
-        addxx_ri(Reax, IB(RT_SIMD_QUADS*16))
+        addxx_ri(Reax, IM(RT_SIMD_QUADS*16))
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
 
         jmpxx_lb(OO_cyc)
@@ -4207,7 +4207,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_T_MIN)         /* tmp_v -> T_MIN */
         adrpx_ld(Reax, Mecx, ctx_LOCAL(0))
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
-        addxx_ri(Reax, IB(RT_SIMD_QUADS*16))
+        addxx_ri(Reax, IM(RT_SIMD_QUADS*16))
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
 
         jmpxx_lb(OO_cyc)
