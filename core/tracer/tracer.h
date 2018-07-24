@@ -194,28 +194,8 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr tls;
 #define inf_TLS             DP(Q*0x100+0x050*P+E)
 
-    rt_word pad11;
+    rt_word pad11[7];
 #define inf_PAD11           DP(Q*0x100+0x054*P+E)
-
-    /* specular entry points */
-
-    rt_pntr pow_e0;
-#define inf_POW_E0          DP(Q*0x100+0x058*P)
-
-    rt_pntr pow_e1;
-#define inf_POW_E1          DP(Q*0x100+0x05C*P)
-
-    rt_pntr pow_e2;
-#define inf_POW_E2          DP(Q*0x100+0x060*P)
-
-    rt_pntr pow_e3;
-#define inf_POW_E3          DP(Q*0x100+0x064*P)
-
-    rt_pntr pow_e4;
-#define inf_POW_E4          DP(Q*0x100+0x068*P)
-
-    rt_pntr pow_en;
-#define inf_POW_EN          DP(Q*0x100+0x06C*P)
 
     /* surface entry points */
 
@@ -921,8 +901,6 @@ struct rt_SIMD_MATERIAL
     rt_si32 t_map[R];
 #define mat_T_MAP(nx)       DP(Q*0x080 + nx)
 
-    /* reserved area 1 */
-
     rt_elem pad01[S];
 #define mat_PAD01           DP(Q*0x090)
 
@@ -937,8 +915,8 @@ struct rt_SIMD_MATERIAL
     rt_ui32 l_pow[R];
 #define mat_L_POW           DP(Q*0x0C0)
 
-    rt_pntr pow_p[R/P];
-#define mat_POW_P           DP(Q*0x0D0)
+    rt_elem pad02[S];
+#define mat_PAD02           DP(Q*0x0D0)
 
 
     rt_real c_rfl[S];

@@ -67,7 +67,6 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
     rt_pntr             t_ptr[3];
     rt_pntr             t_mat[3];
     rt_pntr             t_clp[3];
-    rt_pntr             t_pow[6];
 
     /* thread management functions */
     rt_FUNC_INIT        f_init;

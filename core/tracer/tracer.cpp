@@ -2455,14 +2455,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_CLIPPING_CUSTOM */
 
-    LBL(fetch_pow)
-
-#if RT_FEAT_LIGHTS && RT_FEAT_LIGHTS_SPECULAR
-
-        jmpxx_lb(fetch_PW_ptr)
-
-#endif /* RT_FEAT_LIGHTS, RT_FEAT_LIGHTS_SPECULAR */
-
         jmpxx_lb(fetch_end)
 
 /******************************************************************************/
@@ -3465,22 +3457,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* compute specular pow,
          * integers only for now */
         movwx_ld(Reax, Medx, mat_L_POW)
-        andwx_ri(Reax, IV(0x1FFFFFFF))
-        jmpxx_mm(Medx, mat_POW_P)
 
-    LBL(fetch_PW_ptr)
-
-        label_st(LT_pw0, /* -> Reax */
-        /* Reax -> */  Mebp, inf_POW_E0)
-
-        label_st(LT_pwn, /* -> Reax */
-        /* Reax -> */  Mebp, inf_POW_EN)
-
-        jmpxx_lb(fetch_end)
-
-    LBL(LT_pw0)
-
-        jmpxx_lb(LT_pwe)
+        cmjwx_rz(Reax,
+                 EQ_x, LT_pwe)
 
     LBL(LT_pwn)
 
@@ -5291,7 +5270,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         label_st(QD_clp, /* -> Reax */
         /* Reax -> */  Mebp, inf_XQD_P(CLP))
-        jmpxx_lb(fetch_pow)
+        jmpxx_lb(fetch_end)
 
     LBL(QD_clp)
 
@@ -5840,19 +5819,6 @@ rt_void plot_fresnel_metal_slow(rt_SIMD_INFOP *s_inf)
 /******************************************************************************/
 
 /*
- * Update material's backend-specific fields.
- */
-rt_void rt_Platform::update_mat(rt_SIMD_MATERIAL *s_mat)
-{
-    if (s_mat == RT_NULL)
-    {
-        return;
-    }
-
-    s_mat->pow_p[0] = t_pow[s_mat->l_pow[0] == 0 ? 0 : 5];
-}
-
-/*
  * Backend's global entry point (hence 0).
  * Update surface's backend-specific fields
  * from its internal state.
@@ -5892,10 +5858,6 @@ rt_void rt_Platform::update0(rt_SIMD_SURFACE *s_srf)
                             tag == RT_TAG_HYPERCYLINDER &&
                             s_srf->sci_w[0] == 0.0f ?
                             (rt_pntr)2 : (rt_pntr)0;
-
-    /* update surface's materials for each side */
-    update_mat((rt_SIMD_MATERIAL *)s_srf->mat_p[0]);
-    update_mat((rt_SIMD_MATERIAL *)s_srf->mat_p[2]);
 }
 
 /******************************************************************************/
@@ -6328,13 +6290,6 @@ rt_void rt_Platform::render0(rt_SIMD_INFOX *s_inf)
     t_clp[RT_TAG_PLANE + 1] = s_inf->xtp_p[2];
     t_clp[RT_TAG_PLANE + 2] = s_inf->xqd_p[2];
 
-    t_pow[0]                = s_inf->pow_e0;
-    t_pow[1]                = s_inf->pow_e1;
-    t_pow[2]                = s_inf->pow_e2;
-    t_pow[3]                = s_inf->pow_e3;
-    t_pow[4]                = s_inf->pow_e4;
-    t_pow[5]                = s_inf->pow_en;
-
 #if RT_DEBUG >= 2
 
     RT_LOGI("PL ptr = %p\n", s_inf->xpl_p[0]);
@@ -6348,13 +6303,6 @@ rt_void rt_Platform::render0(rt_SIMD_INFOX *s_inf)
     RT_LOGI("PL clp = %p\n", s_inf->xpl_p[2]);
     RT_LOGI("TP clp = %p\n", s_inf->xtp_p[2]);
     RT_LOGI("QD clp = %p\n", s_inf->xqd_p[2]);
-
-    RT_LOGI("E0 pow = %p\n", s_inf->pow_e0);
-    RT_LOGI("E1 pow = %p\n", s_inf->pow_e1);
-    RT_LOGI("E2 pow = %p\n", s_inf->pow_e2);
-    RT_LOGI("E3 pow = %p\n", s_inf->pow_e3);
-    RT_LOGI("E4 pow = %p\n", s_inf->pow_e4);
-    RT_LOGI("EN pow = %p\n", s_inf->pow_en);
 
 #endif /* RT_DEBUG */
 }
