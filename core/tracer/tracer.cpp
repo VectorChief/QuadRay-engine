@@ -5356,27 +5356,116 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         minps_rr(Xmm0, Xmm1)
         movpx_st(Xmm0, Mecx, ctx_COL_B(0))
 
-        /* convert fp colors to integer */
-        movxx_ld(Redx, Mebp, inf_CAM)           /* edx needed in FRAME_SIMD */
-        adrpx_ld(Reax, Mecx, ctx_C_BUF(0))
-        FRAME_SIMD()
-
 #if RT_FEAT_ANTIALIASING
 
-        cmjxx_mz(Mebp, inf_FSAA,
-                 EQ_x, FF_put)
+        movxx_ri(Resi, IM(RT_SIMD_QUADS*16))
+        movxx_ld(Rebx, Mebp, inf_FSAA)
+        shlxx_ri(Rebx, IB(2-L))
 
-        FRAME_FSAA()
+        cmjxx_rz(Rebx,
+                 EQ_x, AA_out)
 
-        jmpxx_lb(FF_end)
+    LBL(AA_cyc)
 
-    LBL(FF_put)
+        /* half fp colors for each pass */
+        movpx_ld(Xmm1, Mebp, inf_GPC02)
+        andpx_ld(Xmm1, Mebp, inf_GPC04)
+
+        movpx_ld(Xmm0, Mecx, ctx_COL_R(0))
+        mulps_rr(Xmm0, Xmm1)
+        movpx_st(Xmm0, Mecx, ctx_COL_R(0))
+
+        movpx_ld(Xmm0, Mecx, ctx_COL_G(0))
+        mulps_rr(Xmm0, Xmm1)
+        movpx_st(Xmm0, Mecx, ctx_COL_G(0))
+
+        movpx_ld(Xmm0, Mecx, ctx_COL_B(0))
+        mulps_rr(Xmm0, Xmm1)
+        movpx_st(Xmm0, Mecx, ctx_COL_B(0))
+
+        /* select code-paths from quads */
+        xorxx_rr(Reax, Reax)
+        movxx_rr(Redx, Resi)
+
+        cmjxx_ri(Redx, IB(16),
+                 GT_x, AA_qds)
+
+        xorlx_rr(Xmm0, Xmm0)
+
+        movlx_ld(Xmm1, Mecx, ctx_COL_R(0x00))
+        adpls_rr(Xmm1, Xmm0)
+        movlx_ld(Xmm2, Mecx, ctx_COL_G(0x00))
+        adpls_rr(Xmm2, Xmm0)
+        movlx_ld(Xmm3, Mecx, ctx_COL_B(0x00))
+        adpls_rr(Xmm3, Xmm0)
+
+        movlx_st(Xmm1, Mecx, ctx_COL_R(0x00))
+        movlx_st(Xmm2, Mecx, ctx_COL_G(0x00))
+        movlx_st(Xmm3, Mecx, ctx_COL_B(0x00))
+
+        jmpxx_lb(AA_end)
+
+    LBL(AA_qds)
+
+        movlx_ld(Xmm1, Iecx, ctx_COL_R(0x00))
+        adpls_ld(Xmm1, Iecx, ctx_COL_R(0x10))
+        movlx_ld(Xmm2, Iecx, ctx_COL_G(0x00))
+        adpls_ld(Xmm2, Iecx, ctx_COL_G(0x10))
+        movlx_ld(Xmm3, Iecx, ctx_COL_B(0x00))
+        adpls_ld(Xmm3, Iecx, ctx_COL_B(0x10))
+
+        shrxx_ri(Reax, IB(1))
+        movlx_st(Xmm1, Iecx, ctx_COL_R(0x00))
+        movlx_st(Xmm2, Iecx, ctx_COL_G(0x00))
+        movlx_st(Xmm3, Iecx, ctx_COL_B(0x00))
+        shlxx_ri(Reax, IB(1))
+
+        addxx_ri(Reax, IB(32))
+        subxx_ri(Redx, IB(32))
+
+        cmjxx_rz(Redx,
+                 NE_x, AA_qds)
+
+    LBL(AA_end)
+
+        subxx_ri(Rebx, IB(1))
+        shrxx_ri(Resi, IB(1))
+
+        cmjxx_rz(Rebx,
+                 NE_x, AA_cyc)
+
+    LBL(AA_out)
 
 #endif /* RT_FEAT_ANTIALIASING */
 
-        FRAME_FBUF()
+        /* convert fp colors to integer */
+        movxx_ld(Redx, Mebp, inf_CAM)           /* edx needed in FRAME_SIMD */
+        adrpx_ld(Reax, Mecx, ctx_C_BUF(0))
 
-    LBL(FF_end)
+        FRAME_SIMD()
+
+        movxx_ld(Rebx, Mebp, inf_FRM_X)
+        shlxx_ri(Rebx, IB(2))
+        addxx_ld(Rebx, Mebp, inf_FRM)
+
+        xorxx_rr(Reax, Reax)
+
+    LBL(FF_cyc)
+
+        shlxx_ri(Reax, IB(L-1))
+        movyx_ld(Redx, Iecx, ctx_C_BUF(0))
+        shrxx_ri(Reax, IB(L-1))
+
+        movwx_st(Redx, Iebx, DP(0))
+
+        subxx_ri(Resi, IB(4*L))
+        addxx_ri(Reax, IB(4))
+
+        cmjxx_rz(Resi,
+                 NE_x, FF_cyc)
+
+        shrxx_ri(Reax, IB(2))
+        addxx_st(Reax, Mebp, inf_FRM_X)
 
         movxx_ld(Reax, Mebp, inf_FRM_X)
         cmjxx_rm(Reax, Mebp, inf_FRM_W,
