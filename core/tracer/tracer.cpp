@@ -954,7 +954,6 @@
         movpx_ld(Xmm1, Mecx, ctx_##pl(0))                                   \
   GAMMA(sqrps_rr(Xmm1, Xmm1)) /* linear-to-gamma colorspace conversion */   \
         mulps_rr(Xmm1, Xmm2)                                                \
-        minps_rr(Xmm1, Xmm2)                                                \
         cvnps_rr(Xmm1, Xmm1)                                                \
         andpx_rr(Xmm1, Xmm7)                                                \
         shlpx_ri(Xmm1, IB(0x##cl))                                          \
@@ -5341,6 +5340,21 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(XX_ret)
 
     LBL(XX_end)
+
+        /* clamp fp colors to 1.0 limit */
+        movpx_ld(Xmm1, Mebp, inf_GPC01)
+
+        movpx_ld(Xmm0, Mecx, ctx_COL_R(0))
+        minps_rr(Xmm0, Xmm1)
+        movpx_st(Xmm0, Mecx, ctx_COL_R(0))
+
+        movpx_ld(Xmm0, Mecx, ctx_COL_G(0))
+        minps_rr(Xmm0, Xmm1)
+        movpx_st(Xmm0, Mecx, ctx_COL_G(0))
+
+        movpx_ld(Xmm0, Mecx, ctx_COL_B(0))
+        minps_rr(Xmm0, Xmm1)
+        movpx_st(Xmm0, Mecx, ctx_COL_B(0))
 
         /* convert fp colors to integer */
         movxx_ld(Redx, Mebp, inf_CAM)           /* edx needed in FRAME_SIMD */
