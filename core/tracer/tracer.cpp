@@ -4287,9 +4287,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         minps_rr(Xmm0, Xmm1)
         movpx_st(Xmm0, Mecx, ctx_COL_B(0))
 
+        movxx_ri(Resi, IM(RT_SIMD_QUADS*16))
+
 #if RT_FEAT_ANTIALIASING
 
-        movxx_ri(Resi, IM(RT_SIMD_QUADS*16))
         movxx_ld(Rebx, Mebp, inf_FSAA)
         shlxx_ri(Rebx, IB(2-L))
 
