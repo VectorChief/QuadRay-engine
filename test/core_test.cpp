@@ -56,7 +56,7 @@ rt_bool     v_mode      = RT_FALSE;     /* verbose mode (from command-line) */
 rt_bool     p_mode      = RT_FALSE;     /* pixhunt mode (from command-line) */
 rt_bool     i_mode      = RT_FALSE;     /* imaging mode (from command-line) */
 rt_bool     h_mode      = RT_FALSE;     /* shownum mode (from command-line) */
-rt_bool     a_mode      = RT_FALSE;     /* antialiasing (from command-line) */
+rt_si32     a_mode      = 0;            /* antialiasing (from command-line) */
 
 /*
  * Get system time in milliseconds.
@@ -577,7 +577,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -p, enable pixhunt mode, print isolated pixels (> diff)\n");
         RT_LOGI(" -i, enable imaging mode, save images before-after-diffs\n");
         RT_LOGI(" -h, show-screen-num mode, activates info-number drawing\n");
-        RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
+        RT_LOGI(" -a n, enable antialiasing, 1 for 2x, 2 for 4x, 3 for 8x\n");
         RT_LOGI(" -t tex1 tex2 texn, convert images in data/textures/tex*\n");
         RT_LOGI("options -b, -e, .., -a can be combined, -t is standalone\n");
         RT_LOGI("--------------------------------------------------------\n");
@@ -822,10 +822,22 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             h_mode = RT_TRUE;
             RT_LOGI("Show-screen-num mode\n");
         }
-        if (k < argc && strcmp(argv[k], "-a") == 0 && !a_mode)
+        if (k < argc && strcmp(argv[k], "-a") == 0)
         {
-            a_mode = RT_TRUE;
-            RT_LOGI("Antialiasing enabled\n");
+            a_mode = RT_FSAA_4X;
+            if (++k < argc)
+            {
+                t = argv[k][0] - '0';
+                if (strlen(argv[k]) == 1 && t >= 0 && t <= 3)
+                {
+                    a_mode = t;
+                }
+                else
+                {
+                    k--;
+                }
+            }            
+            RT_LOGI("Antialiasing request: %dx\n", 1 << a_mode);
         }
     }
 
@@ -842,6 +854,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     rt_si32 size, type, simd = 0;
 
     simd = (&pfm)->set_simd(simd_init(n_simd, s_type, k_size));
+    a_mode = (&pfm)->set_fsaa(a_mode);
     tile_w = (&pfm)->get_tile_w();
 
     size = (simd >> 16) & 0xFF;
@@ -867,7 +880,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
     RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d\n",
                                n_simd * 128, k_size, s_type, tile_w / 8,
-                                        a_mode * 4 / (RT_ELEMENT / 32));
+                                                           1 << a_mode);
     RT_LOGI("Framebuffer X-row = %5d, ptr = %016" PR_Z "X\n",
                                                  x_row, (rt_full)frame);
     RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d\n",
@@ -882,7 +895,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         try
         {
             (&pfm)->set_simd(simd_init(n_simd, s_type, k_size));
-            (&pfm)->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
+            a_mode = (&pfm)->get_fsaa();
 
             scene = RT_NULL;
             o_test[i]();
@@ -902,14 +915,12 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
             if (h_mode)
             {
-                scene->render_num(x_res-30, 10, -1, 2, (rt_si32)0);
-                scene->render_num(x_res-10, 10, -1, 2, (rt_si32)
-                                                  (&pfm)->get_tile_w() / 8);
-                scene->render_num(x_res-10, 34, -1, 2, (rt_si32)a_mode * 4
-                                                         / (RT_ELEMENT / 32));
-                scene->render_num(      30, 10, +1, 2, (rt_si32)n_simd * 128);
-                scene->render_num(      10, 10, +1, 2, (rt_si32)k_size);
-                scene->render_num(      10, 34, +1, 2, (rt_si32)s_type);
+                scene->render_num(x_res-30, 10, -1, 2, 0);
+                scene->render_num(x_res-10, 10, -1, 2, pfm.get_tile_w() / 8);
+                scene->render_num(x_res-10, 34, -1, 2, 1 << a_mode);
+                scene->render_num(      30, 10, +1, 2, n_simd * 128);
+                scene->render_num(      10, 10, +1, 2, k_size);
+                scene->render_num(      10, 34, +1, 2, s_type);
             }
 
             if (i_mode)
@@ -940,14 +951,12 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
             if (h_mode)
             {
-                scene->render_num(x_res-30, 10, -1, 2, (rt_si32)0);
-                scene->render_num(x_res-10, 10, -1, 2, (rt_si32)
-                                                  (&pfm)->get_tile_w() / 8);
-                scene->render_num(x_res-10, 34, -1, 2, (rt_si32)a_mode * 4
-                                                         / (RT_ELEMENT / 32));
-                scene->render_num(      30, 10, +1, 2, (rt_si32)n_simd * 128);
-                scene->render_num(      10, 10, +1, 2, (rt_si32)k_size);
-                scene->render_num(      10, 34, +1, 2, (rt_si32)s_type);
+                scene->render_num(x_res-30, 10, -1, 2, 0);
+                scene->render_num(x_res-10, 10, -1, 2, pfm.get_tile_w() / 8);
+                scene->render_num(x_res-10, 34, -1, 2, 1 << a_mode);
+                scene->render_num(      30, 10, +1, 2, n_simd * 128);
+                scene->render_num(      10, 10, +1, 2, k_size);
+                scene->render_num(      10, 34, +1, 2, s_type);
             }
 
             if (i_mode)

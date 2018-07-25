@@ -29,10 +29,12 @@
 /******************************************************************************/
 
 /*
- * Fullscreen anti-aliasing modes.
+ * Fullscreen antialiasing modes.
  */
 #define RT_FSAA_NO                  0
-#define RT_FSAA_4X                  1
+#define RT_FSAA_2X                  1
+#define RT_FSAA_4X                  2
+#define RT_FSAA_8X                  3 /* reserved */
 
 /* Classes */
 
@@ -86,7 +88,7 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
     rt_si32             simd_width;
     rt_si32             simd_quads;
 
-    /* common anti-aliasing mode */
+    /* common antialiasing mode */
     rt_si32             fsaa;
     /* single tile dimensions in pixels */
     rt_si32             tile_w;
@@ -125,6 +127,8 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
 
     rt_si32     set_simd(rt_si32 simd);
     rt_si32     set_fsaa(rt_si32 fsaa);
+    rt_si32     get_fsaa_max();
+    rt_si32     get_fsaa();
     rt_si32     get_tile_w();
 
     rt_Scene*   get_cur_scene();

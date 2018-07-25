@@ -619,17 +619,54 @@ rt_si32 rt_Platform::set_simd(rt_si32 simd)
     simd_quads = (simd & 0xFF) * ((simd >> 16) & 0xFF);
     simd_width = (simd_quads * 128) / RT_ELEMENT;
 
+    set_fsaa(fsaa);
+
     return simd;
 }
 
 /*
- * Set fullscreen anti-aliasing mode.
+ * Set current antialiasing mode.
  */
 rt_si32 rt_Platform::set_fsaa(rt_si32 fsaa)
 {
+    if (fsaa > get_fsaa_max())
+    {
+        fsaa = get_fsaa_max();
+    }
+
     this->fsaa = fsaa;
 
     return fsaa;
+}
+
+/*
+ * Get current antialiasing mode.
+ */
+rt_si32 rt_Platform::get_fsaa()
+{
+    return fsaa;
+}
+
+/*
+ * Get maximmum antialiasing mode
+ * for chosen SIMD target.
+ */
+rt_si32 rt_Platform::get_fsaa_max()
+{
+    if (simd_width >= 8)
+    {
+        return RT_FSAA_4X; /* 8X is reserved */
+    }
+    else
+    if (simd_width >= 4)
+    {
+        return RT_FSAA_4X;
+    }
+    else
+    if (simd_width >= 2)
+    {
+        return RT_FSAA_2X;
+    }
 }
 
 /*
@@ -3331,20 +3368,48 @@ rt_void rt_Scene::update_slice(rt_si32 index, rt_si32 phase)
  */
 rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
 {
-    /* adjust ray steppers according to anti-aliasing mode */
+    /* adjust ray steppers according to antialiasing mode */
     rt_real fdh[RT_SIMD_WIDTH], fdv[RT_SIMD_WIDTH];
     rt_real fhr, fvr;
     rt_si32 i;
 
+    if (pfm->fsaa == RT_FSAA_NO)
+    {
+        for (i = 0; i < pfm->simd_width; i++)
+        {
+            fdh[i] = (rt_real)i;
+            fdv[i] = (rt_real)index;
+        }
+
+        fhr = (rt_real)(pfm->simd_width);
+        fvr = (rt_real)thnum;
+    }
+    else
+    if (pfm->fsaa == RT_FSAA_2X)
+    {
+        rt_real as = 0.25f;
+        rt_real ar = 0.08f;
+
+        for (i = 0; i < pfm->simd_width / 2; i++)
+        {
+            fdh[i*2+0] = (-ar-as) + (rt_real)i;
+            fdh[i*2+1] = (+ar+as) + (rt_real)i;
+
+            fdv[i*2+0] = (+ar-as) + (rt_real)index;
+            fdv[i*2+1] = (-ar+as) + (rt_real)index;
+        }
+
+        fhr = (rt_real)(pfm->simd_width / 2);
+        fvr = (rt_real)thnum;
+    }
+    else
     if (pfm->fsaa == RT_FSAA_4X)
     {
         rt_real as = 0.25f;
         rt_real ar = 0.08f;
 
-        for (i = 0; i < pfm->simd_quads; i++)
+        for (i = 0; i < pfm->simd_width / 4; i++)
         {
-#if   RT_ELEMENT == 32
-
             fdh[i*4+0] = (-ar-as) + (rt_real)i;
             fdh[i*4+1] = (-ar+as) + (rt_real)i;
             fdh[i*4+2] = (+ar-as) + (rt_real)i;
@@ -3354,31 +3419,15 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
             fdv[i*4+1] = (-ar-as) + (rt_real)index;
             fdv[i*4+2] = (+ar+as) + (rt_real)index;
             fdv[i*4+3] = (-ar+as) + (rt_real)index;
-
-#elif RT_ELEMENT == 64
-
-            fdh[i*2+0] = (-ar-as) + (rt_real)i;
-            fdh[i*2+1] = (+ar+as) + (rt_real)i;
-
-            fdv[i*2+0] = (+ar-as) + (rt_real)index;
-            fdv[i*2+1] = (-ar+as) + (rt_real)index;
-
-#endif /* RT_ELEMENT */
         }
 
-        fhr = (rt_real)pfm->simd_quads;
+        fhr = (rt_real)(pfm->simd_width / 4);
         fvr = (rt_real)thnum;
     }
     else
+    if (pfm->fsaa == RT_FSAA_8X)
     {
-        for (i = 0; i < pfm->simd_width; i++)
-        {
-            fdh[i] = (rt_real)i;
-            fdv[i] = (rt_real)index;
-        }
-
-        fhr = (rt_real)pfm->simd_width;
-        fvr = (rt_real)thnum;
+        /* reserved */
     }
 
 /*  rt_SIMD_CAMERA */

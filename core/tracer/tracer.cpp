@@ -4292,7 +4292,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #if RT_FEAT_ANTIALIASING
 
         movxx_ld(Rebx, Mebp, inf_FSAA)
-        shlxx_ri(Rebx, IB(2-L))
 
         cmjxx_rz(Rebx,
                  EQ_x, AA_out)

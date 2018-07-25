@@ -58,7 +58,7 @@ rt_bool     l_mode      = RT_FALSE;        /* fpslogoff (from command-line) */
 rt_bool     h_mode      = RT_FALSE;        /* hide mode (from command-line) */
 rt_si32     u_mode      = 0; /* update/render threadoff (from command-line) */
 rt_bool     o_mode      = RT_FALSE;        /* offscreen (from command-line) */
-rt_bool     a_mode      = RT_FALSE;        /* FSAA mode (from command-line) */
+rt_si32     a_mode      = 0;               /* FSAA mode (from command-line) */
 
 /******************************************************************************/
 /********************************   PLATFORM   ********************************/
@@ -179,7 +179,7 @@ rt_void print_target()
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
     RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d\n",
                   n_simd * 128, k_size, s_type, pfm->get_tile_w() / 8,
-                                        a_mode * 4 / (RT_ELEMENT / 32));
+                                                           1 << a_mode);
     RT_LOGI("Framebuffer X-row = %5d, ptr = %016" PR_Z "X\n",
                        sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
     RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d\n",
@@ -279,6 +279,7 @@ rt_si32 main_step()
                 }
             }
             while (size != k_size);
+            a_mode = pfm->get_fsaa();
             switched = kold != k_size ? 1 : switched;
         }
         if (T_KEYS(RK_F7))
@@ -298,6 +299,7 @@ rt_si32 main_step()
                 }
             }
             while (type != s_type);
+            a_mode = pfm->get_fsaa();
             switched = told != s_type ? 1 : switched;
         }
         if (T_KEYS(RK_F8))
@@ -325,6 +327,7 @@ rt_si32 main_step()
                 }
             }
             while (simd != n_simd);
+            a_mode = pfm->get_fsaa();
             switched = nold != n_simd ? 1 : switched;
         }
         if (T_KEYS(RK_F11))
@@ -342,8 +345,8 @@ rt_si32 main_step()
 
         if (T_KEYS(RK_F2))
         {
-            a_mode = !a_mode;
-            pfm->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
+            a_mode = (a_mode + 1) % (pfm->get_fsaa_max() + 1);
+            a_mode = pfm->set_fsaa(a_mode);
             switched = 1;
         }
         if (T_KEYS(RK_F4))
@@ -415,13 +418,11 @@ rt_si32 main_step()
         if (!h_mode)
         {
             sc[d]->render_num(x_res-30, 10, -1, 2, (rt_si32)fps);
-            sc[d]->render_num(x_res-10, 10, -1, 2, (rt_si32)
-                                                 pfm->get_tile_w() / 8);
-            sc[d]->render_num(x_res-10, 34, -1, 2, (rt_si32)a_mode * 4
-                                                     / (RT_ELEMENT / 32));
-            sc[d]->render_num(      30, 10, +1, 2, (rt_si32)n_simd * 128);
-            sc[d]->render_num(      10, 10, +1, 2, (rt_si32)k_size);
-            sc[d]->render_num(      10, 34, +1, 2, (rt_si32)s_type);
+            sc[d]->render_num(x_res-10, 10, -1, 2, pfm->get_tile_w() / 8);
+            sc[d]->render_num(x_res-10, 34, -1, 2, 1 << a_mode);
+            sc[d]->render_num(      30, 10, +1, 2, n_simd * 128);
+            sc[d]->render_num(      10, 10, +1, 2, k_size);
+            sc[d]->render_num(      10, 34, +1, 2, s_type);
         }
     }
     catch (rt_Exception e)
@@ -513,7 +514,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -h, hide-screen-num mode, turns off info-number drawing\n");
         RT_LOGI(" -u n, 1-3/4 serial update/render, 5/6 update/render off\n");
         RT_LOGI(" -o, offscreen-frame mode, turns off window-rect updates\n");
-        RT_LOGI(" -a, enable antialiasing, 4x for fp32, 2x for fp64 pipes\n");
+        RT_LOGI(" -a n, enable antialiasing, 1 for 2x, 2 for 4x, 3 for 8x\n");
         RT_LOGI("options -d n, -c n, ... , ... , ... , -a can be combined\n");
         RT_LOGI("--------------------------------------------------------\n");
     }
@@ -813,10 +814,22 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             o_mode = RT_TRUE;
             RT_LOGI("Offscreen-frame mode\n");
         }
-        if (k < argc && strcmp(argv[k], "-a") == 0 && !a_mode)
+        if (k < argc && strcmp(argv[k], "-a") == 0)
         {
-            a_mode = RT_TRUE;
-            RT_LOGI("Antialiasing enabled\n");
+            a_mode = RT_FSAA_4X;
+            if (++k < argc)
+            {
+                t = argv[k][0] - '0';
+                if (strlen(argv[k]) == 1 && t >= 0 && t <= 3)
+                {
+                    a_mode = t;
+                }
+                else
+                {
+                    k--;
+                }
+            }            
+            RT_LOGI("Antialiasing request: %dx\n", 1 << a_mode);
         }
     }
 
@@ -845,7 +858,7 @@ rt_si32 main_init()
                               update_scene, render_scene);
 
         simd = pfm->set_simd(simd_init(n_simd, s_type, k_size));
-        pfm->set_fsaa(a_mode ? RT_FSAA_4X : RT_FSAA_NO);
+        a_mode = pfm->set_fsaa(a_mode);
 
         for (i = 0; i < n; i++)
         {
