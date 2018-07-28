@@ -313,6 +313,7 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
     rt_void     render_num(rt_si32 x, rt_si32 y,
                            rt_si32 d, rt_si32 z, rt_ui32 num);
 
+    rt_void     plot_frags();
     rt_void     plot_funcs();
 
     rt_si32     get_x_row();

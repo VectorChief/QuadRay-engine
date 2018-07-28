@@ -3787,7 +3787,80 @@ rt_void rt_Scene::render_num(rt_si32 x, rt_si32 y,
 
 /******************************************************************************/
 
-#define RT_PLOT_FUNCS   0   /* set to 1 to enable (on F4) */
+#define RT_PLOT_FRAGS   1   /* 1 enables (on F4) plotting of FSAA samples */
+#define RT_PLOT_FUNCS   1   /* 1 enables (on F4) plotting of Fresnel funcs */
+
+/*
+ * Plot fragments into their respective framebuffers then save.
+ * Scene's framebuffer is first cleaned then overwritten.
+ */
+rt_void rt_Scene::plot_frags()
+{
+#if RT_PLOT_FRAGS
+
+    rt_real fdh[8], fdv[8];
+
+    rt_si32 r = RT_MIN(x_res, y_res) - 1, i;
+    rt_si32 x = (x_res - r) / 2, y = (y_res - r) / 2;
+
+    memset(frame, 0, x_row * y_res * sizeof(rt_ui32));
+
+    for (i = 0; i <= r; i++)
+    {
+        frame[(y+0)*x_row+(x+i)] = 0x000000FF;
+        frame[(y+i)*x_row+(x+0)] = 0x000000FF;
+        frame[(y+i)*x_row+(x+r)] = 0x000000FF;
+        frame[(y+r)*x_row+(x+i)] = 0x000000FF;
+    }
+    {
+        rt_real as = 0.25f;
+        rt_real ar = 0.08f;
+
+        fdh[0] = ((-ar-as) + 0.5f) * r + 0.5f;
+        fdh[1] = ((+ar+as) + 0.5f) * r + 0.5f;
+
+        fdv[0] = ((+ar-as) + 0.5f) * r + 0.5f;
+        fdv[1] = ((-ar+as) + 0.5f) * r + 0.5f;
+
+        frame[(y+int(fdv[0]))*x_row+(x+int(fdh[0]))] = 0x00FF0000;
+        frame[(y+int(fdv[1]))*x_row+(x+int(fdh[1]))] = 0x00FF0000;
+    }
+
+    save_frame(820);
+
+    memset(frame, 0, x_row * y_res * sizeof(rt_ui32));
+
+    for (i = 0; i <= r; i++)
+    {
+        frame[(y+0)*x_row+(x+i)] = 0x000000FF;
+        frame[(y+i)*x_row+(x+0)] = 0x000000FF;
+        frame[(y+i)*x_row+(x+r)] = 0x000000FF;
+        frame[(y+r)*x_row+(x+i)] = 0x000000FF;
+    }
+    {
+        rt_real as = 0.25f;
+        rt_real ar = 0.08f;
+
+        fdh[0] = ((-ar-as) + 0.5f) * r + 0.5f;
+        fdh[1] = ((-ar+as) + 0.5f) * r + 0.5f;
+        fdh[2] = ((+ar-as) + 0.5f) * r + 0.5f;
+        fdh[3] = ((+ar+as) + 0.5f) * r + 0.5f;
+
+        fdv[0] = ((+ar-as) + 0.5f) * r + 0.5f;
+        fdv[1] = ((-ar-as) + 0.5f) * r + 0.5f;
+        fdv[2] = ((+ar+as) + 0.5f) * r + 0.5f;
+        fdv[3] = ((-ar+as) + 0.5f) * r + 0.5f;
+
+        frame[(y+int(fdv[0]))*x_row+(x+int(fdh[0]))] = 0x00FF0000;
+        frame[(y+int(fdv[1]))*x_row+(x+int(fdh[1]))] = 0x00FF0000;
+        frame[(y+int(fdv[2]))*x_row+(x+int(fdh[2]))] = 0x00FF0000;
+        frame[(y+int(fdv[3]))*x_row+(x+int(fdh[3]))] = 0x00FF0000;
+    }
+
+    save_frame(840);
+
+#endif /* RT_PLOT_FRAGS */
+}
 
 /*
  * Swap (v4) for available 128-bit target before enabling plot.
