@@ -660,12 +660,12 @@ rt_si32 rt_Platform::get_fsaa_max()
     else
     if (simd_width >= 4)
     {
-        return RT_FSAA_4X;
+        return RT_FSAA_4X; /* 2X alternating */
     }
     else
-    if (simd_width >= 2)
+    if (simd_width >= 0)
     {
-        return RT_FSAA_2X;
+        return RT_FSAA_NO;
     }
 }
 
@@ -3385,18 +3385,22 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
         fvr = (rt_real)thnum;
     }
     else
-    if (pfm->fsaa == RT_FSAA_2X)
+    if (pfm->fsaa == RT_FSAA_2X) /* alternating */
     {
         rt_real as = 0.25f;
         rt_real ar = 0.08f;
 
-        for (i = 0; i < pfm->simd_width / 2; i++)
+        for (i = 0; i < pfm->simd_width / 4; i++)
         {
-            fdh[i*2+0] = (-ar-as) + (rt_real)i;
-            fdh[i*2+1] = (+ar+as) + (rt_real)i;
+            fdh[i*4+0] = (-ar+as) + (rt_real)(i*2+0);
+            fdh[i*4+1] = (+ar-as) + (rt_real)(i*2+0);
+            fdh[i*4+2] = (+ar-as) + (rt_real)(i*2+1);
+            fdh[i*4+3] = (-ar+as) + (rt_real)(i*2+1);
 
-            fdv[i*2+0] = (+ar-as) + (rt_real)index;
-            fdv[i*2+1] = (-ar+as) + (rt_real)index;
+            fdv[i*4+0] = (+ar+as) + (rt_real)index;
+            fdv[i*4+1] = (-ar-as) + (rt_real)index;
+            fdv[i*4+2] = (+ar+as) + (rt_real)index;
+            fdv[i*4+3] = (-ar-as) + (rt_real)index;
         }
 
         fhr = (rt_real)(pfm->simd_width / 2);
@@ -3425,9 +3429,9 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
         fvr = (rt_real)thnum;
     }
     else
-    if (pfm->fsaa == RT_FSAA_8X)
+    if (pfm->fsaa == RT_FSAA_8X) /* is reserved */
     {
-        /* reserved */
+        ;
     }
 
 /*  rt_SIMD_CAMERA */
@@ -3812,18 +3816,25 @@ rt_void rt_Scene::plot_frags()
         frame[(y+i)*x_row+(x+r)] = 0x000000FF;
         frame[(y+r)*x_row+(x+i)] = 0x000000FF;
     }
+    /* plot samples for 2X alternating slope pattern */
     {
         rt_real as = 0.25f;
         rt_real ar = 0.08f;
 
-        fdh[0] = ((-ar-as) + 0.5f) * r + 0.5f;
-        fdh[1] = ((+ar+as) + 0.5f) * r + 0.5f;
+        fdh[0] = ((-ar+as) + 0.5f) * r + 0.5f;
+        fdh[1] = ((+ar-as) + 0.5f) * r + 0.5f;
+        fdh[2] = ((+ar-as) + 0.5f) * r + 0.5f;
+        fdh[3] = ((-ar+as) + 0.5f) * r + 0.5f;
 
-        fdv[0] = ((+ar-as) + 0.5f) * r + 0.5f;
-        fdv[1] = ((-ar+as) + 0.5f) * r + 0.5f;
+        fdv[0] = ((+ar+as) + 0.5f) * r + 0.5f;
+        fdv[1] = ((-ar-as) + 0.5f) * r + 0.5f;
+        fdv[2] = ((+ar+as) + 0.5f) * r + 0.5f;
+        fdv[3] = ((-ar-as) + 0.5f) * r + 0.5f;
 
         frame[(y+int(fdv[0]))*x_row+(x+int(fdh[0]))] = 0x00FF0000;
         frame[(y+int(fdv[1]))*x_row+(x+int(fdh[1]))] = 0x00FF0000;
+        frame[(y+int(fdv[2]))*x_row+(x+int(fdh[2]))] = 0x0000FF00;
+        frame[(y+int(fdv[3]))*x_row+(x+int(fdh[3]))] = 0x0000FF00;
     }
 
     save_frame(820);
@@ -3837,6 +3848,7 @@ rt_void rt_Scene::plot_frags()
         frame[(y+i)*x_row+(x+r)] = 0x000000FF;
         frame[(y+r)*x_row+(x+i)] = 0x000000FF;
     }
+    /* plot samples for 4X rotated grid pattern */
     {
         rt_real as = 0.25f;
         rt_real ar = 0.08f;
