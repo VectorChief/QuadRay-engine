@@ -2385,15 +2385,43 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm1, Xmm5)
 
         /* compute specular pow,
-         * integers only for now */
+         * fixed-point 28.4-bit */
         movwx_ld(Reax, Medx, mat_L_POW)
+        andwx_ri(Reax, IB(0xF))
+
+        movpx_rr(Xmm2, Xmm1)
+        movpx_rr(Xmm4, Xmm1)
+        movpx_ld(Xmm1, Mebp, inf_GPC01)
+
+        cmjwx_rz(Reax,
+                 EQ_x, LT_pwi)
+
+    LBL(LT_frc)
+
+        sqrps_rr(Xmm4, Xmm4)
+        movwx_ri(Resi, IB(0x8))
+        andwx_rr(Resi, Reax)
+        shlwx_ri(Reax, IB(1))
+        andwx_ri(Reax, IB(0xF))
+        cmjwx_rz(Resi,
+                 EQ_x, LT_frs)
+
+        mulps_rr(Xmm1, Xmm4)
+
+    LBL(LT_frs)
+
+        cmjwx_rz(Reax,
+                 NE_x, LT_frc)
+
+    LBL(LT_pwi)
+
+        movwx_ld(Reax, Medx, mat_L_POW)
+        shrwx_ri(Reax, IB(4))
 
         cmjwx_rz(Reax,
                  EQ_x, LT_pwe)
 
-    LBL(LT_pwn)
-
-        movpx_rr(Xmm2, Xmm1)
+        movpx_rr(Xmm3, Xmm1)
         movpx_ld(Xmm1, Mebp, inf_GPC01)
 
     LBL(LT_pwc)
@@ -2411,6 +2439,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm2, Xmm2)
         cmjwx_rz(Reax,
                  NE_x, LT_pwc)
+
+        mulps_rr(Xmm1, Xmm3)
 
     LBL(LT_pwe)
 
