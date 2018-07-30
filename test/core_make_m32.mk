@@ -17,6 +17,7 @@ SRC_LIST =                                  \
         ../core/system/system.cpp           \
         ../core/tracer/tracer.cpp           \
         ../core/tracer/tracer_128v1.cpp     \
+        ../core/tracer/tracer_128v4.cpp     \
         ../core/tracer/tracer_256v1.cpp     \
         core_test.cpp
 
