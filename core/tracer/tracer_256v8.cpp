@@ -12,10 +12,11 @@
 #define RT_SIMD_CODE /* enable SIMD instruction definitions */
 
 #if (defined RT_256) && (RT_256 & 8)
-#undef  RT_256
-#define RT_256 8
 #define RT_RENDER_CODE /* enable contents of render0 routine */
 #endif /* RT_256 */
+
+#undef  RT_256
+#define RT_256 8
 
 #include "tracer.h"
 #include "format.h"
