@@ -3791,8 +3791,8 @@ rt_void rt_Scene::render_num(rt_si32 x, rt_si32 y,
 
 /******************************************************************************/
 
-#define RT_PLOT_FRAGS   1   /* 1 enables (on F4) plotting of FSAA samples */
-#define RT_PLOT_FUNCS   1   /* 1 enables (on F4) plotting of Fresnel funcs */
+#define RT_PLOT_FRAGS   0   /* 1 enables (on F4) plotting of FSAA samples */
+#define RT_PLOT_FUNCS   0   /* 1 enables (on F4) plotting of Fresnel funcs */
 
 /*
  * Plot fragments into their respective framebuffers then save.
@@ -4109,6 +4109,30 @@ rt_void rt_Scene::plot_funcs()
     ASM_DONE(s_inf)
 
     release(s_ptr);
+
+    rt_si32 r = RT_MIN(x_res, y_res) - 1;
+    rt_si32 x = (x_res - r) / 2, y = (y_res - r) / 2;
+
+    memset(frame, 0, x_row * y_res * sizeof(rt_ui32));
+
+    for (i = 0; i <= r; i++)
+    {
+        frame[(y+0)*x_row+(x+i)] = 0x000000FF;
+        frame[(y+i)*x_row+(x+0)] = 0x000000FF;
+        frame[(y+i)*x_row+(x+r)] = 0x000000FF;
+        frame[(y+r)*x_row+(x+i)] = 0x000000FF;
+    }
+    /* plot reference and actual Gamma color conversion */
+    for (i = 0, s = r; i <= r; i++)
+    {
+        frame[(y+int((1.0f-RT_POW(i/s,1/2.2))*s))*x_row+x+i] = 0x00FF0000;
+        frame[(y+int((1.0f-RT_POW(i/s,  2.2))*s))*x_row+x+i] = 0x00FF0000;
+
+        frame[(y+int((1.0f-RT_POW(i/s,1/2.0))*s))*x_row+x+i] = 0x0000FF00;
+        frame[(y+int((1.0f-RT_POW(i/s,  2.0))*s))*x_row+x+i] = 0x0000FF00;
+    }
+
+    save_frame(970);
 
 #endif /* RT_PLOT_FUNCS */
 }
