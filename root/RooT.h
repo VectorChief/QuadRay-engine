@@ -352,8 +352,6 @@ rt_si32 main_step()
         if (T_KEYS(RK_F4))
         {
             sc[d]->save_frame(scr_id++);
-            sc[d]->plot_frags();
-            sc[d]->plot_funcs();
             switched = 1;
         }
         if (T_KEYS(RK_F5))

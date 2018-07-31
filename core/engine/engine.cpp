@@ -3791,8 +3791,8 @@ rt_void rt_Scene::render_num(rt_si32 x, rt_si32 y,
 
 /******************************************************************************/
 
-#define RT_PLOT_FRAGS   0   /* 1 enables (on F4) plotting of FSAA samples */
-#define RT_PLOT_FUNCS   0   /* 1 enables (on F4) plotting of Fresnel funcs */
+#define RT_PLOT_FRAGS   1   /* 1 enables (on -z) plotting of FSAA samples */
+#define RT_PLOT_FUNCS   1   /* 1 enables (on -z) plotting of Fresnel funcs */
 
 /*
  * Plot fragments into their respective framebuffers then save.

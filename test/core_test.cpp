@@ -579,8 +579,21 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -h, show-screen-num mode, activates info-number drawing\n");
         RT_LOGI(" -a n, enable antialiasing, 1 for 2x, 2 for 4x, 3 for 8x\n");
         RT_LOGI(" -t tex1 tex2 texn, convert images in data/textures/tex*\n");
-        RT_LOGI("options -b, -e, .., -a can be combined, -t is standalone\n");
+        RT_LOGI(" -z, plot Fresnel/Gamma functions & antialiasing samples\n");
+        RT_LOGI("options -b, .., -a can be combined, -t/-z are standalone\n");
         RT_LOGI("--------------------------------------------------------\n");
+    }
+
+    if (argc >= 2 && strcmp(argv[1], "-z") == 0)
+    {
+        RT_LOGI("Plotting samples/functions: ");
+        o_test[0]();
+        scene->plot_frags();
+        scene->plot_funcs();
+        delete scene;
+        scene = RT_NULL;
+        RT_LOGI("Done!\n");
+        return 0;
     }
 
     if (argc >= 3 && strcmp(argv[1], "-t") == 0)
@@ -897,7 +910,6 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             (&pfm)->set_simd(simd_init(n_simd, s_type, k_size));
             a_mode = (&pfm)->get_fsaa();
 
-            scene = RT_NULL;
             o_test[i]();
 
             scene->set_opts(RT_OPTS_NONE);
@@ -930,10 +942,10 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             frame_cpy(frame, scene->get_frame());
 
             delete scene;
+            scene = RT_NULL;
 
             /* --------------------------------- */
 
-            scene = RT_NULL;
             o_test[i]();
 
             scene->set_opts(RT_OPTS_FULL);
@@ -980,6 +992,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             }
 
             delete scene;
+            scene = RT_NULL;
         }
         catch (rt_Exception e)
         {

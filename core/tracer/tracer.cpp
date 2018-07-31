@@ -4510,8 +4510,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
  */
 rt_void plot_fresnel(rt_SIMD_INFOP *s_inf)
 {
-#ifdef RT_RENDER_CODE
-
 #if RT_PLOT_FUNCS_REF
 
     rt_si32 i;
@@ -4600,8 +4598,6 @@ rt_void plot_fresnel(rt_SIMD_INFOP *s_inf)
     ASM_LEAVE(s_inf)
 
 #endif /* RT_PLOT_FUNCS_REF */
-
-#endif /* RT_RENDER_CODE */
 }
 
 /*
@@ -4610,8 +4606,6 @@ rt_void plot_fresnel(rt_SIMD_INFOP *s_inf)
  */
 rt_void plot_schlick(rt_SIMD_INFOP *s_inf)
 {
-#ifdef RT_RENDER_CODE
-
 #if RT_PLOT_FUNCS_REF
 
     rt_si32 i;
@@ -4712,8 +4706,6 @@ rt_void plot_schlick(rt_SIMD_INFOP *s_inf)
     ASM_LEAVE(s_inf)
 
 #endif /* RT_PLOT_FUNCS_REF */
-
-#endif /* RT_RENDER_CODE */
 }
 
 /*
@@ -4722,8 +4714,6 @@ rt_void plot_schlick(rt_SIMD_INFOP *s_inf)
  */
 rt_void plot_fresnel_metal_fast(rt_SIMD_INFOP *s_inf)
 {
-#ifdef RT_RENDER_CODE
-
 #if RT_PLOT_FUNCS_REF
 
     rt_si32 i;
@@ -4774,8 +4764,6 @@ rt_void plot_fresnel_metal_fast(rt_SIMD_INFOP *s_inf)
     ASM_LEAVE(s_inf)
 
 #endif /* RT_PLOT_FUNCS_REF */
-
-#endif /* RT_RENDER_CODE */
 }
 
 /*
@@ -4784,8 +4772,6 @@ rt_void plot_fresnel_metal_fast(rt_SIMD_INFOP *s_inf)
  */
 rt_void plot_fresnel_metal_slow(rt_SIMD_INFOP *s_inf)
 {
-#ifdef RT_RENDER_CODE
-
 #if RT_PLOT_FUNCS_REF
 
     rt_si32 i;
@@ -4866,8 +4852,6 @@ rt_void plot_fresnel_metal_slow(rt_SIMD_INFOP *s_inf)
     ASM_LEAVE(s_inf)
 
 #endif /* RT_PLOT_FUNCS_REF */
-
-#endif /* RT_RENDER_CODE */
 }
 
 #else /* RT_SIMD_CODE */
