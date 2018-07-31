@@ -16,6 +16,7 @@
 #endif /* RT_256_R8 */
 
 #undef  RT_256_R8
+#undef  RT_256
 #define RT_256_R8 4
 
 #include "tracer.h"

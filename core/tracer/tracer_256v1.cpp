@@ -15,6 +15,7 @@
 #define RT_RENDER_CODE /* enable contents of render0 routine */
 #endif /* RT_256 */
 
+#undef  RT_256_R8
 #undef  RT_256
 #define RT_256 1
 

@@ -16,6 +16,7 @@
 #endif /* RT_512_R8 */
 
 #undef  RT_512_R8
+#undef  RT_512
 #define RT_512_R8 1
 
 #include "tracer.h"

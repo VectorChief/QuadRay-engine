@@ -15,6 +15,7 @@
 #define RT_RENDER_CODE /* enable contents of render0 routine */
 #endif /* RT_1K4 */
 
+#undef  RT_1K4_R8
 #undef  RT_1K4
 #define RT_1K4 1
 

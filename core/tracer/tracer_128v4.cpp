@@ -16,6 +16,7 @@
 #endif /* RT_128 */
 
 #undef  RT_128
+
 #define RT_128 4
 
 #include "tracer.h"
