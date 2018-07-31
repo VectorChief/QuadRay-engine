@@ -957,28 +957,28 @@ struct rt_SIMD_INFOP : public rt_SIMD_INFO
 {
     /* external parameters */
 
-    rt_real i_cos[S];
+    rt_fp32 i_cos[R];
 #define inf_I_COS           DP(Q*0x100)
 
-    rt_real o_rfl[S];
+    rt_fp32 o_rfl[R];
 #define inf_O_RFL           DP(Q*0x110)
 
 
-    rt_real c_rfr[S];
+    rt_fp32 c_rfr[R];
 #define inf_C_RFR           DP(Q*0x120)
 
-    rt_real rfr_2[S];
+    rt_fp32 rfr_2[R];
 #define inf_RFR_2           DP(Q*0x130)
 
 
-    rt_real c_rcp[S];
+    rt_fp32 c_rcp[R];
 #define inf_C_RCP           DP(Q*0x140)
 
-    rt_real ext_2[S];
+    rt_fp32 ext_2[R];
 #define inf_EXT_2           DP(Q*0x150)
 
 
-    rt_real t_new[S];
+    rt_fp32 t_new[R];
 #define inf_T_NEW           DP(Q*0x160)
 
 };

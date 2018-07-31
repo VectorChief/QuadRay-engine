@@ -3929,8 +3929,8 @@ rt_void rt_Scene::plot_funcs()
     rt_si32 i, h = y_res - 1;
     rt_real s = 1.57f / x_res;
 
-    RT_SIMD_SET(s_inf->c_rfr, (1.0/1.5));
-    RT_SIMD_SET(s_inf->rfr_2, (1.0/1.5)*(1.0/1.5));
+    RT_SIMD_SET32(s_inf->c_rfr, (1.0/1.5));
+    RT_SIMD_SET32(s_inf->rfr_2, (1.0/1.5)*(1.0/1.5));
 
     memset(frame, 0, x_row * y_res * sizeof(rt_ui32));
 
@@ -3988,8 +3988,8 @@ rt_void rt_Scene::plot_funcs()
 
     save_frame(920);
 
-    RT_SIMD_SET(s_inf->c_rfr, (1.5/1.0));
-    RT_SIMD_SET(s_inf->rfr_2, (1.5/1.0)*(1.5/1.0));
+    RT_SIMD_SET32(s_inf->c_rfr, (1.5/1.0));
+    RT_SIMD_SET32(s_inf->rfr_2, (1.5/1.0)*(1.5/1.0));
 
     memset(frame, 0, x_row * y_res * sizeof(rt_ui32));
 
@@ -4047,8 +4047,8 @@ rt_void rt_Scene::plot_funcs()
 
     save_frame(940);
 
-    RT_SIMD_SET(s_inf->c_rcp, (0.27));
-    RT_SIMD_SET(s_inf->ext_2, (2.77)*(2.77));
+    RT_SIMD_SET32(s_inf->c_rcp, (0.27));
+    RT_SIMD_SET32(s_inf->ext_2, (2.77)*(2.77));
 
     memset(frame, 0, x_row * y_res * sizeof(rt_ui32));
 
