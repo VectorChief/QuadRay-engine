@@ -5,7 +5,7 @@ P) Task title: "add new rt_Platform class for common thread-pool, log-redirect"
 2) Move SIMD target-tracking static variables from tracer-backend to rt_Scene?
 3) Make sure tracer-backend feature flags are consistent with the code (on/off)
 4) Set thread-pool size from CPU core-count, add native Win64 threading support
-5) Implement fullscreen mode (-w 0) for Windows, use DirectDraw/OpenGL+NeHe/SDL
+5) Implement fullscreen mode (-w 0) for Windows, use screen-sized modal window
 
 ================================================================================
 
@@ -15,13 +15,17 @@ F) Task title: "implement Fresnel reflection terms for refractive surfaces"
 3) Split current refraction term (coeff) to refraction + Fresnel
 4) New reflectance term is a sum of reflectance (coeff) + Fresnel
 5) Compatibility break with current 0.6.x versions in produced images (=> 0.7.0)
+6) Add option to scene format for turning off Fresnel on per-obj/scene basis?
+7) Check how Fresnel coeffs integrate with the existing scheme before finalizing
 
 ================================================================================
 
-G) Task title: "implement Gamma correction in final color conversion"
-1) Use Gamma correction when colors are written into the framebuffer
+G) Task title: "implement Gamma-correction in final color conversion"
+1) Use Gamma-correction when colors are written into the framebuffer
 2) Perform antialiasing before Gamma correction
 3) Compatibility break with current 0.6.x versions in produced images (=> 0.7.0)
+4) Add option to scene format for turning off Gamma on pre-Gamma assets/scenes?
+5) Consider using extra tweaks to perform Gamma-correction with 1.0/2.2, 2.2 pow
 
 ================================================================================
 
@@ -29,15 +33,8 @@ K) Task title: "use configuration utils (autotools, CMake, etc) for building"
 1) Use single build script for all host CPU architectures on Linux
 2) Keep cross-compilation on x86-64 Linux hosts (targeting QEMU linux-user mode)
 
+================================================================================
 === >>> === tasks above are planned for the upcoming 0.7.0 milestone === <<< ===
-
-O) Task title: "consider support for more operating systems"
-1) Create DEB/RPM packages for Linux (consider new formats)
-2) Test the engine (RooT demo, CORE/SIMD tests) with Free/OpenBSD, port to NuttX
-3) Write an Android app for RooT demo, use engine's core as native/jni library
-4) Port the engine (RooT demo, CORE/SIMD tests) to Apple's MacOS, iOS
-5) Perform feasibility study for Tizen, Sailfish OS support (optional)
-
 ================================================================================
 
 T) Task title: "consider packed SIMD tile traversal (instead of scanline)"
@@ -45,14 +42,9 @@ T) Task title: "consider packed SIMD tile traversal (instead of scanline)"
 2) Current tile width must be large enough to fit maximal SIMD width
 3) Consider new approaches where tile is traversed with packed SIMD
 4) New tile area needs to be large enough to fit maximal SIMD width
-
-================================================================================
-
-B) Task title: "achieve bit-exact fp-compute across modern SIMD targets"
-1) Re-implement fp-related parts of the engine core as ASM sections
-2) Re-architect engine core to minimize ASM enter/leave overheads (in new parts)
-3) Test if deterministic order of IEEE-compatible-fp produces bit-exact results
-4) Calculate test image check-sums, compare across modern RISC and x86 targets
+5) Consider replacing SIMD-width-specific backend macros with runtime code
+6) Experiment with work granularity for multi-threading (1 tile?, 1 SIMD?)
+7) Formulate task for ray-sorting optimization to maximize ray-coherency
 
 ================================================================================
 
@@ -62,6 +54,22 @@ S) Task title: "implement basic unbiased path-tracer (to match smallpt code)"
 3) Implement randomization of diffuse samples over hemisphere
 4) Enable path-tracer in "pause" mode in addition to real-time ray-tracer
 5) Allow image to converge in real-time (add new samples between updates)
+6) Check out CPPRay (https://github.com/Harha/CPPRay) + youtube video
+
+================================================================================
+
+U) Task title: "implement UV-mapping for quadrics"
+1) Implement trigonometric functions across SIMD targets (check sleef for algos)
+2) Use trigonometric functions to implement UV-mapping for quadrics
+3) Implement 2x2-matrix for surface-UV to texture-XY coords transform
+
+================================================================================
+
+B) Task title: "achieve bit-exact fp-compute across modern SIMD targets"
+1) Reimplement fp-related parts of the engine core as ASM sections (in task R)
+2) Rearchitect engine core to minimize ASM enter/leave overheads (in new parts)
+3) Test if deterministic order of IEEE-compatible fp produces bit-exact results
+4) Calculate test image check-sums, compare across modern RISC and x86 targets
 
 ================================================================================
 
@@ -93,14 +101,7 @@ Q) Task title: "add support for quartic (4th order: Torus, Egg) surfaces (RaVi)"
 
 ================================================================================
 
-U) Task title: "implement UV mapping for quadrics"
-1) Implement trigonometric functions across SIMD targets (use Taylor+FMA?)
-2) Use trigonometric functions to implement UV mapping for quadrics
-3) Implement 2x2-matrix-transform for surface-UV to texture-XY coords
-
-================================================================================
-
-R) Task title: "re-assemble QuadRay from earlier/simpler branches, write docs"
+R) Task title: "reassemble QuadRay from earlier/simpler branches, write docs"
 
 ================================================================================
 
@@ -116,6 +117,15 @@ A) Task title: "implement chromatic aberration, separate R,G,B rays"
 
 ================================================================================
 
-X) Task title: "consider advanced path-tracing methods (bidirectional, MLT, etc)"
+X) Task title: "consider advanced path-tracing methods (bidirectional, MLT)"
+
+================================================================================
+
+O) Task title: "consider support for more operating systems"
+1) Create DEB/RPM packages for Linux (consider new formats like Snap & Flatpak)
+2) Test the engine (RooT demo, CORE/SIMD tests) with Free/OpenBSD
+3) Write an Android app for RooT demo, use engine's core as native/jni library
+4) Port the engine (RooT demo, CORE/SIMD tests) to Apple's MacOS, iOS
+5) Perform feasibility study for Tizen, Sailfish, NuttX porting
 
 ================================================================================
