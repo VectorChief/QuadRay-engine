@@ -6,6 +6,7 @@ P) Task title: "add new rt_Platform class for common thread-pool, log-redirect"
 3) Make sure tracer-backend feature flags are consistent with the code (on/off)
 4) Set thread-pool size from CPU core-count, add native Win64 threading support
 5) Implement fullscreen mode (-w 0) for Windows, use screen-sized modal window
+6) Update tracer-backend targets to check if RT_REGS is defined in makefiles
 
 ================================================================================
 
