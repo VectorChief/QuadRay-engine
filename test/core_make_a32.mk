@@ -58,6 +58,7 @@ core_test_a32:
 # Building/running CORE test:
 # make -f core_make_a32.mk
 # (recent upstream QEMU(-2.6) doesn't currently support AArch64 ILP32 ABI)
+# Use "-c 1" option to reduce test time when emulating with QEMU
 
 # Clang compilation works too (takes much longer prior to 3.8), use (replace):
 # clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses

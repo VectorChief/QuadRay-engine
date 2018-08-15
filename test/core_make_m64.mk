@@ -131,10 +131,10 @@ core_test_m64f64Br6:
 #
 # Building/running CORE test:
 # make -f core_make_m64.mk
-# qemu-mips64el -cpu I6400 core_test.m64f32Lr6 -i -a
-# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
-# qemu-mips64 -cpu I6400 core_test.m64f32Br6 -i -a
-# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+# qemu-mips64el -cpu I6400 core_test.m64f32Lr6 -i -a -c 1
+# qemu-mips64 -cpu I6400 core_test.m64f32Br6 -i -a -c 1
+# (should produce antialiased "-a" images "-i" in the ../dump subfolder)
+# Use "-c 1" option to reduce test time when emulating with QEMU
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override

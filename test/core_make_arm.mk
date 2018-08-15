@@ -112,10 +112,10 @@ core_test_arm_rpi3:
 #
 # Building/running CORE test:
 # make -f core_make_arm.mk
-# qemu-arm -cpu cortex-a8  core_test.arm_v1 -i -a
-# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
-# qemu-arm -cpu cortex-a15 core_test.arm_v2 -i -a
-# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+# qemu-arm -cpu cortex-a8  core_test.arm_v1 -i -a -c 1
+# qemu-arm -cpu cortex-a15 core_test.arm_v2 -i -a -c 1
+# (should produce antialiased "-a" images "-i" in the ../dump subfolder)
+# Use "-c 1" option to reduce test time when emulating with QEMU
 
 # Clang compilation works too (takes much longer prior to 3.8), use (replace):
 # clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses

@@ -52,6 +52,7 @@ rt_si32     k_size      = 0;        /* SIMD-size-factor (from command-line) */
 rt_si32     s_type      = 0;        /* SIMD-sub-variant (from command-line) */
 rt_si32     w_size      = 1;        /* Window-rect-size (from command-line) */
 rt_si32     t_diff      = 3;          /* diff-threshold (from command-line) */
+rt_si32     r_test      = CYC_SIZE;   /* test-redundant (from command-line) */
 rt_bool     v_mode      = RT_FALSE;     /* verbose mode (from command-line) */
 rt_bool     p_mode      = RT_FALSE;     /* pixhunt mode (from command-line) */
 rt_bool     i_mode      = RT_FALSE;     /* imaging mode (from command-line) */
@@ -573,6 +574,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -x n, override x-resolution, where new x-value <= 65535\n");
         RT_LOGI(" -y n, override y-resolution, where new y-value <= 65535\n");
         RT_LOGI(" -d n, override diff-threshold for qualification, n >= 0\n");
+        RT_LOGI(" -c n, override counter of redundant test cycles, n >= 1\n");
         RT_LOGI(" -v, enable verbose mode, print all pixel spots (> diff)\n");
         RT_LOGI(" -p, enable pixhunt mode, print isolated pixels (> diff)\n");
         RT_LOGI(" -i, enable imaging mode, save images before-after-diffs\n");
@@ -815,6 +817,23 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
+        if (k < argc && strcmp(argv[k], "-c") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 1)
+            {
+                RT_LOGI("Test-redundant overridden: %d\n", t);
+                r_test = t;
+            }
+            else
+            {
+                RT_LOGI("Test-redundant value out of range\n");
+                return 0;
+            }
+        }
         if (k < argc && strcmp(argv[k], "-v") == 0 && !v_mode)
         {
             v_mode = RT_TRUE;
@@ -916,7 +935,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
             time1 = get_time();
 
-            for (j = 0; j < f_num; j++)
+            for (j = 0; j < RT_MIN(f_num, r_test); j++)
             {
                 scene->render(j * f_time);
             }
@@ -952,7 +971,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
             time1 = get_time();
 
-            for (j = 0; j < f_num; j++)
+            for (j = 0; j < RT_MIN(f_num, r_test); j++)
             {
                 scene->render(j * f_time);
             }

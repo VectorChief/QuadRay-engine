@@ -83,12 +83,11 @@ core_test_p32Bp8:
 #
 # Building/running CORE test:
 # make -f core_make_p32.mk
-# qemu-ppc -cpu G4 core_test.p32Bg4 -i -a
-# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
-# qemu-ppc64abi32 -cpu POWER7 core_test.p32Bp7 -i -a
-# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
-# qemu-ppc64abi32 -cpu POWER8 core_test.p32Bp8 -i -a
-# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+# qemu-ppc -cpu G4 core_test.p32Bg4 -i -a -c 1
+# qemu-ppc64abi32 -cpu POWER7 core_test.p32Bp7 -i -a -c 1
+# qemu-ppc64abi32 -cpu POWER8 core_test.p32Bp8 -i -a -c 1
+# (should produce antialiased "-a" images "-i" in the ../dump subfolder)
+# Use "-c 1" option to reduce test time when emulating with QEMU
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override

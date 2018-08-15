@@ -98,8 +98,9 @@ core_test_x64f64:
 #
 # Building/running CORE test:
 # make -f core_make_x64.mk
-# ./core_test.x64f32 -i -a
-# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+# ./core_test.x64f32 -i -a -c 1
+# (should produce antialiased "-a" images "-i" in the ../dump subfolder)
+# Use "-c 1" option to reduce test time when emulating with Intel SDE
 
 # Clang compilation works too (takes much longer prior to 3.8), use (replace):
 # clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses

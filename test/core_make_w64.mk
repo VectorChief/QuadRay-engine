@@ -100,8 +100,9 @@ core_test_w64f64:
 # run core_make_w64.bat from Windows UI or
 # run the following from Command Prompt "cmd":
 # mingw32-make -f core_make_w64.mk
-# core_test_w64f32.exe -i -a
-# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+# core_test_w64f32.exe -i -a -c 1
+# (should produce antialiased "-a" images "-i" in the ../dump subfolder)
+# Use "-c 1" option to reduce test time when emulating with Intel SDE
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on x86 targets top cpuid-value is chosen by default, use -n/-k/-s to override

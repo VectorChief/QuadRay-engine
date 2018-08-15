@@ -94,15 +94,13 @@ core_test_m32Br6:
 #
 # Building/running CORE test:
 # make -f core_make_m32.mk
-# qemu-mipsel -cpu P5600 core_test.m32Lr5 -i -a
-# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
-# qemu-mips -cpu P5600 core_test.m32Br5 -i -a
-# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+# qemu-mipsel -cpu P5600 core_test.m32Lr5 -i -a -c 1
+# qemu-mips -cpu P5600 core_test.m32Br5 -i -a -c 1
 # For MIPS32 Release 6 emulation use QEMU 2.5.0.2.0 from imgtec.com:
-# qemu-mipsel -cpu mips32r6-generic core_test.m32Lr6 -i -a
-# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
-# qemu-mips -cpu mips32r6-generic core_test.m32Br6 -i -a
-# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+# qemu-mipsel -cpu mips32r6-generic core_test.m32Lr6 -i -a -c 1
+# qemu-mips -cpu mips32r6-generic core_test.m32Br6 -i -a -c 1
+# (should produce antialiased "-a" images "-i" in the ../dump subfolder)
+# Use "-c 1" option to reduce test time when emulating with QEMU
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override

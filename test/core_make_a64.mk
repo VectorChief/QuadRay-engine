@@ -84,8 +84,9 @@ core_test_a64f64:
 #
 # Building/running CORE test:
 # make -f core_make_a64.mk
-# qemu-aarch64 -cpu cortex-a57 core_test.a64f32 -i -a
-# (should produce antialiased (-a) images (-i) in the ../dump subfolder)
+# qemu-aarch64 -cpu cortex-a57 core_test.a64f32 -i -a -c 1
+# (should produce antialiased "-a" images "-i" in the ../dump subfolder)
+# Use "-c 1" option to reduce test time when emulating with QEMU
 
 # Clang compilation works too (takes much longer prior to 3.8), use (replace):
 # clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
