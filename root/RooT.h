@@ -513,7 +513,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -h, hide-screen-num mode, turns off info-number drawing\n");
         RT_LOGI(" -u n, 1-3/4 serial update/render, 5/6 update/render off\n");
         RT_LOGI(" -o, offscreen-frame mode, turns off window-rect updates\n");
-        RT_LOGI(" -a n, enable antialiasing, 1 for 2x, 2 for 4x, 3 for 8x\n");
+        RT_LOGI(" -a n, enable antialiasing, 2 for 2x, 4 for 4x, 8 for 8x\n");
         RT_LOGI("options -d n, -c n, ... , ... , ... , -a can be combined\n");
         RT_LOGI("--------------------------------------------------------\n");
     }
@@ -815,13 +815,19 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         }
         if (k < argc && strcmp(argv[k], "-a") == 0)
         {
+            rt_si32 aa_map[10] =
+            {
+                RT_FSAA_NO, RT_FSAA_NO, RT_FSAA_2X, RT_FSAA_2X,
+                RT_FSAA_4X, RT_FSAA_4X, RT_FSAA_4X, RT_FSAA_4X,
+                RT_FSAA_8X, RT_FSAA_8X
+            };
             a_mode = RT_FSAA_4X;
             if (++k < argc)
             {
                 t = argv[k][0] - '0';
-                if (strlen(argv[k]) == 1 && t >= 0 && t <= 3)
+                if (strlen(argv[k]) == 1 && t >= 0 && t <= 9)
                 {
-                    a_mode = t;
+                    a_mode = aa_map[t];
                 }
                 else
                 {

@@ -579,7 +579,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -p, enable pixhunt mode, print isolated pixels (> diff)\n");
         RT_LOGI(" -i, enable imaging mode, save images before-after-diffs\n");
         RT_LOGI(" -h, show-screen-num mode, activates info-number drawing\n");
-        RT_LOGI(" -a n, enable antialiasing, 1 for 2x, 2 for 4x, 3 for 8x\n");
+        RT_LOGI(" -a n, enable antialiasing, 2 for 2x, 4 for 4x, 8 for 8x\n");
         RT_LOGI(" -t tex1 tex2 texn, convert images in data/textures/tex*\n");
         RT_LOGI(" -z, plot Fresnel/Gamma functions & antialiasing samples\n");
         RT_LOGI("options -b, .., -a can be combined, -t/-z are standalone\n");
@@ -856,13 +856,19 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         }
         if (k < argc && strcmp(argv[k], "-a") == 0)
         {
+            rt_si32 aa_map[10] =
+            {
+                RT_FSAA_NO, RT_FSAA_NO, RT_FSAA_2X, RT_FSAA_2X,
+                RT_FSAA_4X, RT_FSAA_4X, RT_FSAA_4X, RT_FSAA_4X,
+                RT_FSAA_8X, RT_FSAA_8X
+            };
             a_mode = RT_FSAA_4X;
             if (++k < argc)
             {
                 t = argv[k][0] - '0';
-                if (strlen(argv[k]) == 1 && t >= 0 && t <= 3)
+                if (strlen(argv[k]) == 1 && t >= 0 && t <= 9)
                 {
-                    a_mode = t;
+                    a_mode = aa_map[t];
                 }
                 else
                 {
