@@ -928,8 +928,8 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
     for (i = n_init; i <= n_done; i++)
     {
-        RT_LOGI("-------------------  RUN LEVEL = %2d  -------------------\n",
-                                                                          i+1);
+        RT_LOGI("-------------------  RUN LEVEL = %2d  - ptr/fp = %d%s%d --\n",
+                    i+1, RT_POINTER, RT_ADDRESS == 32 ? "_" : "f", RT_ELEMENT);
         try
         {
             (&pfm)->set_simd(simd_init(n_simd, s_type, k_size));
@@ -1023,7 +1023,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         {
             RT_LOGE("Exception in test %d: %s\n", i+1, e.err);
         }
-        RT_LOGI("------------------------------------ simd = %4dx%dv%d ---\n",
+        RT_LOGI("-------------------------------------- simd = %4dx%dv%d -\n",
                                                 n_simd * 128, k_size, s_type);
     }
 
