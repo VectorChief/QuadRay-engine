@@ -17,15 +17,11 @@ SRC_LIST =                                  \
         ../core/system/system.cpp           \
         ../core/tracer/tracer.cpp           \
         ../core/tracer/tracer_128v1.cpp     \
-        ../core/tracer/tracer_128v2.cpp     \
         ../core/tracer/tracer_128v4.cpp     \
         ../core/tracer/tracer_256v4_r8.cpp  \
         ../core/tracer/tracer_256v1.cpp     \
-        ../core/tracer/tracer_256v2.cpp     \
         ../core/tracer/tracer_256v4.cpp     \
-        ../core/tracer/tracer_256v8.cpp     \
         ../core/tracer/tracer_512v1.cpp     \
-        ../core/tracer/tracer_512v2.cpp     \
         core_test.cpp
 
 LIB_PATH =
@@ -61,8 +57,8 @@ core_test_p32Bp7:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p32Bp7
 
 core_test_p32Bp8:
-	powerpc-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_P32 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
+	powerpc-linux-gnu-g++ -O3 -g -static -DRT_SIMD_COMPAT_PW8=1 \
+        -DRT_LINUX -DRT_P32 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -93,7 +89,6 @@ core_test_p32Bp8:
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 # 512-bit SIMD is achieved by combining quads of 128-bit registers/instructions
-# For 30 256-bit VSX1/2 registers on POWER7/8 targets use (replace): RT_256=4+8
+# For 30 256-bit VSX1/2 registers on POWER7/8 targets use (replace): RT_256=4
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
-
