@@ -17,10 +17,14 @@ SRC_LIST =                                  \
         ../core/system/system.cpp           \
         ../core/tracer/tracer.cpp           \
         ../core/tracer/tracer_128v1.cpp     \
+        ../core/tracer/tracer_128v2.cpp     \
         ../core/tracer/tracer_128v4.cpp     \
         ../core/tracer/tracer_256v1.cpp     \
+        ../core/tracer/tracer_256v2.cpp     \
         ../core/tracer/tracer_256v4.cpp     \
+        ../core/tracer/tracer_256v8.cpp     \
         ../core/tracer/tracer_512v1.cpp     \
+        ../core/tracer/tracer_512v2.cpp     \
         RooT_linux.cpp
 
 LIB_PATH =
@@ -61,7 +65,7 @@ RooT_p64_64:
 
 RooT_p64f32:
 	g++ -O2 -g -pthread -no-pie \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -69,7 +73,7 @@ RooT_p64f32:
 
 RooT_p64f64:
 	g++ -O2 -g -pthread -no-pie \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -100,7 +104,7 @@ RooT.p64f32:
 	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -110,7 +114,7 @@ RooT.p64f64:
 	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -124,7 +128,8 @@ RooT.p64f64:
 #
 # Building/running RooT demo:
 # make -f RooT_make_p64.mk
-# ./RooT.p64f32 (on POWER8 host or QEMU system mode)
+# ./RooT.p64_32 (on POWER7 host or QEMU system mode)
+# ./RooT.p64f32 (on POWER9 host or QEMU system mode)
 # (hasn't been verified yet due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
@@ -137,7 +142,7 @@ RooT.p64f64:
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 # 512-bit SIMD is achieved by combining quads of 128-bit registers/instructions
-# For 30 256-bit VSX1/2 registers on POWER7/8 targets use (replace): RT_256=4
+# For 30 256-bit VSX1/3 registers on POWER7/9 targets use (replace): RT_256=4+8
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 

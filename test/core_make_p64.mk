@@ -17,10 +17,14 @@ SRC_LIST =                                  \
         ../core/system/system.cpp           \
         ../core/tracer/tracer.cpp           \
         ../core/tracer/tracer_128v1.cpp     \
+        ../core/tracer/tracer_128v2.cpp     \
         ../core/tracer/tracer_128v4.cpp     \
         ../core/tracer/tracer_256v1.cpp     \
+        ../core/tracer/tracer_256v2.cpp     \
         ../core/tracer/tracer_256v4.cpp     \
+        ../core/tracer/tracer_256v8.cpp     \
         ../core/tracer/tracer_512v1.cpp     \
+        ../core/tracer/tracer_512v2.cpp     \
         core_test.cpp
 
 LIB_PATH =
@@ -30,7 +34,7 @@ LIB_LIST =                                  \
         -lstdc++
 
 
-build: build_le build_be
+build: build_p9 build_le build_be
 
 strip:
 	powerpc64le-linux-gnu-strip core_test.p64???L*
@@ -38,6 +42,41 @@ strip:
 
 clean:
 	rm core_test.p64*
+
+
+build_p9: core_test_p64_32Lp9 core_test_p64_64Lp9 core_test_p64f32Lp9 core_test_p64f64Lp9
+
+core_test_p64_32Lp9:
+	powerpc64le-linux-gnu-g++ -O2 -g -static \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64_32Lp9
+
+core_test_p64_64Lp9:
+	powerpc64le-linux-gnu-g++ -O2 -g -static \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64_64Lp9
+
+core_test_p64f32Lp9:
+	powerpc64le-linux-gnu-g++ -O2 -g -static \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64f32Lp9
+
+core_test_p64f64Lp9:
+	powerpc64le-linux-gnu-g++ -O2 -g -static \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64f64Lp9
 
 
 build_le: core_test_p64_32Lp8 core_test_p64_64Lp8 core_test_p64f32Lp8 core_test_p64f64Lp8
@@ -125,8 +164,9 @@ core_test_p64f64Bp7:
 #
 # Building/running CORE test:
 # make -f core_make_p64.mk
+# qemu-ppc64le -cpu POWER9 core_test.p64f32Lp9 -i -a -c 1
 # qemu-ppc64le -cpu POWER8 core_test.p64f32Lp8 -i -a -c 1
-# qemu-ppc64 -cpu POWER7 core_test.p64f32Bp7 -i -a -c 1
+# qemu-ppc64   -cpu POWER7 core_test.p64f32Bp7 -i -a -c 1
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)
 # Use "-c 1" option to reduce test time when emulating with QEMU
 
@@ -134,7 +174,7 @@ core_test_p64f64Bp7:
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 # 512-bit SIMD is achieved by combining quads of 128-bit registers/instructions
-# For 30 256-bit VSX1/2 registers on POWER7/8 targets use (replace): RT_256=4
+# For 30 256-bit VSX1/3 registers on POWER7/9 targets use (replace): RT_256=4+8
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 
