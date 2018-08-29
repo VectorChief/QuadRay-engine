@@ -2,14 +2,42 @@
   - add new fp-compatibility and feature tasks, rename TASKS file to ROADMAP
   - add support for 30 SIMD register pairs (2x128) backend on POWER7/8
   - add support for 30 SIMD registers (scalar+128+256) backend on Skylake-X
-  - drop standalone SSE2 target from x64, reuse SSE4 (v4) slot, new compat flag
+  - drop standalone SSE2 target from x64, reuse SSE4 (v4) slot, add compat flag
   - add support for 128-bit AVX1+FMA3 (v16) and AVX2+FMA3 (v32) targets for AMD
-  - swap legacy PowerPC G4/POWER6 VMX (now v4) with POWER7/8 VSX1/2 (now v1/v2)
+  - compactify POWER7/8 targets into one slot, add new RT_SIMD_COMPAT_PW8 flag
+  - swap legacy PowerPC G4/POWER6 VMX (now v4) with POWER7/8 VSX1/2 (now v1)
   - 64-bit POWER6 now matches 64-bit Nehalem target (both v4), 15x128/8x256-bit
-  - move 128-bit 30 SIMD registers Skylake-X target from v1 to v2, match POWER8
+  - add support for POWER9 backend (v2) with immediate vector loads/stores
+  - move 128-bit 30 SIMD registers Skylake-X target from v1 to v2, match POWER9
   - reserve 128-bit v1 and 256-bit v4 for 30 SIMD registers emulation on AVX1/2
   - new scheme: RT_128=4+8, RT_256=1+2, RT_512=1+2, RT_1K4=1+2 are 15 registers
   - new scheme: RT_128=1+2, RT_256=4+8, RT_512=4+8, RT_1K4=4+8 are 30 registers
+  - add elm*x_st instruction to decouple scalar subset from vectors (via mem)
+  - add support for horizontal pairwise/reductive add/mul/min/max instructions
+  - implement antialiasing as a cycle of pairwise horizontal fp-adds, no macros
+  - add support for Gamma correction to rendering backend (approx with sqrt)
+  - add support for Fresnel reflectance on reflective/refractive surfaces
+  - add test scenes 17 and 18 for Fresnel (from RaVi/smallpt, work in progress)
+  - implement fixed-point for specular pow, plotters for Gamma/Fresnel (-z)
+  - implement alternating 2x antialiasing, plotters for antialiasing samples
+  - introduce rt_Platform class as a common instance for multiple rt_Scene
+  - move tracer backend's SIMD target tracking to rt_Platform
+  - move thread-pool from rt_Scene to rt_Platform, add support for core-count
+  - implement multi-group affinity for Windows threading (more than 64 threads)
+  - add support for fullscreen mode on Windows (-w 0) as a modal window
+  - merge Win32/64 files into one (RooT_winxx.cpp), drop Win64 pthread support
+  - add VMX-compatible scalar SIMD subset on PPC G4 and POWER family of CPUs
+  - add MSA/scalar compatibility on big-endian MIPS, support for fp32 11-bit DP
+  - improve SIMD target reporting in tests, add -c n option to reduce test time
+  - fix BASE shifts with zero immediate arg on legacy ARMv7 (backported down)
+  - undef SIMD flags of the same width in corresponding tracer backend files
+  - fix location for 128/256-bit common SIMD instructions
+  - fix comment for SIMD shifts with count in memory
+  - fix for scalar SIMD alignment on ARMv7, POWER8
+  - fix compilation in C++11 mode with RT_DEBUG=2
+  - add comment for scalar/vector compatibility
+  - fix stride for frame copying in Windows
+  - fix stride for BMP file format
 
 v0.6.7: Backend improvements, new command-line options, extra SIMD backends
   - make new demo scene 3 (former test scene 14) default, add camera animator
