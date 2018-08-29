@@ -12,6 +12,7 @@
 #define RT_SIMD_CODE /* enable SIMD instruction definitions */
 
 #if defined (RT_1K4) && (RT_1K4 & 2)
+#undef  RT_1K4_R8
 #undef  RT_1K4
 #define RT_1K4 2
 #define RT_RENDER_CODE /* enable contents of render0 routine */

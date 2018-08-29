@@ -13,6 +13,7 @@
 
 #if defined (RT_256_R8) && (RT_256_R8 & 2)
 #undef  RT_256_R8
+#undef  RT_256
 #define RT_256_R8 2
 #define RT_RENDER_CODE /* enable contents of render0 routine */
 #endif /* RT_256_R8 */

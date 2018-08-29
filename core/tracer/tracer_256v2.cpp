@@ -12,6 +12,7 @@
 #define RT_SIMD_CODE /* enable SIMD instruction definitions */
 
 #if defined (RT_256) && (RT_256 & 2)
+#undef  RT_256_R8
 #undef  RT_256
 #define RT_256 2
 #define RT_RENDER_CODE /* enable contents of render0 routine */

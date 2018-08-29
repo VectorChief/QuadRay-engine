@@ -13,6 +13,7 @@
 
 #if defined (RT_512_R8) && (RT_512_R8 & 2)
 #undef  RT_512_R8
+#undef  RT_512
 #define RT_512_R8 2
 #define RT_RENDER_CODE /* enable contents of render0 routine */
 #endif /* RT_512_R8 */
