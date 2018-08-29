@@ -521,7 +521,7 @@ rt_void frame_to_screen(rt_ui32 *frame, rt_si32 x_row)
 
         for (i = 0; i < y_res; i++)
         {
-            rt_ui32 *idata = ::frame + i * x_res;
+            rt_ui32 *idata = ::frame + i * ::x_row;
 
             memcpy(idata, frame + i * x_row, x_res * sizeof(rt_ui32));
         }
