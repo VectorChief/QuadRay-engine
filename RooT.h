@@ -447,7 +447,7 @@ rt_si32 main_step()
         RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d\n",
                     n_simd * 128, k_size, s_type, sc[d]->get_tile_w() / 8,
                                             a_mode * 4 / (RT_ELEMENT / 32));
-        RT_LOGI("Framebuffer X-row = %5d, ptr = %016"PR_Z"X\n",
+        RT_LOGI("Framebuffer X-row = %5d, ptr = %016" PR_Z "X\n",
                            sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
         RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d\n",
                                               x_res, y_res, l_mode, h_mode);
@@ -901,7 +901,7 @@ rt_si32 main_init()
     RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d\n",
                 n_simd * 128, k_size, s_type, sc[d]->get_tile_w() / 8,
                                         a_mode * 4 / (RT_ELEMENT / 32));
-    RT_LOGI("Framebuffer X-row = %5d, ptr = %016"PR_Z"X\n",
+    RT_LOGI("Framebuffer X-row = %5d, ptr = %016" PR_Z "X\n",
                        sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
     RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d\n",
                                           x_res, y_res, l_mode, h_mode);

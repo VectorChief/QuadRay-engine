@@ -850,7 +850,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d\n",
                                n_simd * 128, k_size, s_type, tile_w / 8,
                                         a_mode * 4 / (RT_ELEMENT / 32));
-    RT_LOGI("Framebuffer X-row = %5d, ptr = %016"PR_Z"X\n",
+    RT_LOGI("Framebuffer X-row = %5d, ptr = %016" PR_Z "X\n",
                                                  x_row, (rt_full)frame);
     RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d\n",
                                               x_res, y_res, 0, !h_mode);
@@ -1052,9 +1052,9 @@ rt_pntr sys_alloc(rt_size size)
 
 #endif /* RT_POINTER */
 
-#if RT_DEBUG >= 1
+#if RT_DEBUG >= 2
 
-    RT_LOGI("ALLOC PTR = %016"PR_Z"X, size = %ld\n", (rt_full)ptr, size);
+    RT_LOGI("ALLOC PTR = %016" PR_Z "X, size = %ld\n", (rt_full)ptr, size);
 
 #endif /* RT_DEBUG */
 
@@ -1090,9 +1090,9 @@ rt_void sys_free(rt_pntr ptr, rt_size size)
 
 #endif /* RT_POINTER */
 
-#if RT_DEBUG >= 1
+#if RT_DEBUG >= 2
 
-    RT_LOGI("FREED PTR = %016"PR_Z"X, size = %ld\n", (rt_full)ptr, size);
+    RT_LOGI("FREED PTR = %016" PR_Z "X, size = %ld\n", (rt_full)ptr, size);
 
 #endif /* RT_DEBUG */
 }
@@ -1147,9 +1147,9 @@ rt_pntr sys_alloc(rt_size size)
 
 #endif /* RT_POINTER */
 
-#if RT_DEBUG >= 1
+#if RT_DEBUG >= 2
 
-    RT_LOGI("ALLOC PTR = %016"PR_Z"X, size = %ld\n", (rt_full)ptr, size);
+    RT_LOGI("ALLOC PTR = %016" PR_Z "X, size = %ld\n", (rt_full)ptr, size);
 
 #endif /* RT_DEBUG */
 
@@ -1185,9 +1185,9 @@ rt_void sys_free(rt_pntr ptr, rt_size size)
 
 #endif /* RT_POINTER */
 
-#if RT_DEBUG >= 1
+#if RT_DEBUG >= 2
 
-    RT_LOGI("FREED PTR = %016"PR_Z"X, size = %ld\n", (rt_full)ptr, size);
+    RT_LOGI("FREED PTR = %016" PR_Z "X, size = %ld\n", (rt_full)ptr, size);
 
 #endif /* RT_DEBUG */
 }
