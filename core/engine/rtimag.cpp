@@ -49,7 +49,7 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 {
 #if RT_EMBED_FILEIO == 0
     rt_ui32 *p = RT_NULL;
-    rt_si32 i, n;
+    rt_si32 i, k, n;
 
     rt_pstr path = RT_PATH_TEXTURES;
     rt_size len = strlen(path);
@@ -157,6 +157,14 @@ rt_void load_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
                 break;
             }
             RT_LOAD_W(*p, &buf);
+            if ((i+1) % bwidth == 0) /* <- temp fix for tex's stride */
+            {
+                k = ((bwidth*3+3)/4)*4 - (bwidth*3);
+                if (k != 0 && f->load(&buf, k, 1) != 1)
+                {
+                    break;
+                }
+            }
         }
 
         if (i < n)
@@ -199,7 +207,7 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
 {
 #if RT_EMBED_FILEIO == 0
     rt_ui32 *p = RT_NULL;
-    rt_si32 i, n;
+    rt_si32 i, k, n;
 
     rt_pstr path = RT_PATH_DUMP;
     rt_size len = strlen(path);
@@ -327,6 +335,15 @@ rt_void save_image(rt_Heap *hp, rt_pstr name, rt_TEX *tx)
             if (f->save(&buf, 3, 1) != 1)
             {
                 break;
+            }
+            if ((i+1) % bwidth == 0) /* <- temp fix for tex's stride */
+            {
+                p += RT_MAX(tx->tex_num, bwidth) - bwidth;
+                k = ((bwidth*3+3)/4)*4 - (bwidth*3); buf = 0;
+                if (k != 0 && f->save(&buf, k, 1) != 1)
+                {
+                    break;
+                }
             }
         }
 
