@@ -19,6 +19,7 @@ SRC_LIST =                                  \
         ../core/tracer/tracer_128v1.cpp     \
         ../core/tracer/tracer_128v4.cpp     \
         ../core/tracer/tracer_256v1.cpp     \
+        ../core/tracer/tracer_512v1.cpp     \
         core_test.cpp
 
 LIB_PATH =
@@ -80,11 +81,14 @@ core_test_a64f64:
 #
 # Prerequisites for emulation:
 # recent QEMU(-2.5) is installed or built from source and in the PATH variable.
+# SVE target requires QEMU 3.0.0 with sve-max-vq cpu property patch.
 # sudo apt-get install qemu
 #
 # Building/running CORE test:
 # make -f core_make_a64.mk
 # qemu-aarch64 -cpu cortex-a57 core_test.a64f32 -i -a -c 1
+# For 512-bit SVE  build use (replace): RT_512=1    (uses 15 SIMD registers)
+# qemu-aarch64 -cpu max,sve-max-vq=4 core_test.a64f32 -i -a -c 1
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)
 # Use "-c 1" option to reduce test time when emulating with QEMU
 
