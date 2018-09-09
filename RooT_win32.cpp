@@ -26,7 +26,7 @@ BITMAPINFO  DIBinfo =
     1,                                  /* biPlanes */
     32,                                 /* biBitCount */
     BI_RGB,                             /* biCompression */
-    x_row * y_res * sizeof(rt_ui32),    /* biSizeImage */
+    (DWORD)(x_row * y_res * 4),         /* biSizeImage */
     0,                                  /* biXPelsPerMeter */
     0,                                  /* biYPelsPerMeter */
     0,                                  /* biClrUsed */
