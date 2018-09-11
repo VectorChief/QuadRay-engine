@@ -160,6 +160,7 @@ core_test_p64f64Bp7:
 #
 # Prerequisites for emulation:
 # recent QEMU(-2.5) is installed or built from source and in the PATH variable.
+# POWER9 target requires more recent QEMU, tested with 3.0.0.
 # sudo apt-get install qemu
 #
 # Building/running CORE test:

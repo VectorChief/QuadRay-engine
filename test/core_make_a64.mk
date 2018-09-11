@@ -99,6 +99,8 @@ core_test_a64f64:
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
+# For 512-bit SVE  build use (replace): RT_512=1            (15 SIMD registers)
+# For 512-bit SVE  build use (replace): RT_512=4            (30 SIMD registers)
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 
