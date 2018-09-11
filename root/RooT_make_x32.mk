@@ -101,7 +101,7 @@ RooT.x32:
 # on x86 targets top cpuid-value is chosen by default, use -n/-k/-s to override
 # 1K4-bit SIMD is achieved by combining pairs of 512-bit registers/instructions
 # 2K8-bit SIMD is achieved by combining quads of 512-bit registers/instructions
-# For 30 512-bit AVX3.1/.2 registers on Skylake-X use (replace): RT_512=4+8
+# For 30-regs 512-bit AVX512F/DQ targets on Skylake-X use (replace): RT_512=4+8
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 
