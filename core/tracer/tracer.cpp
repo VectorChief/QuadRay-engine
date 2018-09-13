@@ -4302,6 +4302,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(XX_end)
 
+        /* introduce an intermediate fp32
+         * color-buffer here to implement
+         * tasks H,D and other 2D effects */
+
+        /* implement precision-converters
+         * to fp32 from fp64, fp16, fp128
+         * to enable limited SPMD-targets
+         * like fp16/fp128 to render core */
+
         /* clamp fp colors to 1.0 limit */
         movpx_ld(Xmm1, Mebp, inf_GPC01)
 

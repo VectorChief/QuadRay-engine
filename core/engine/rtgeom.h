@@ -25,6 +25,13 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
+/*
+ * Floating point thresholds,
+ * values have been roughly selected for single-precision,
+ * double-precision mode may or may not require adjustments.
+ */
+#define RT_CULL_THRESHOLD       0.0001f
+
 /* Structures */
 
 struct rt_VERT;

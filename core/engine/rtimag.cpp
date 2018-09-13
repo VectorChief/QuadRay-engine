@@ -9,7 +9,6 @@
 #endif /* RT_EMBED_FILEIO */
 #include <string.h>
 
-#include "rtconf.h"
 #include "rtimag.h"
 
 /******************************************************************************/

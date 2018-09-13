@@ -7,7 +7,6 @@
 #ifndef RT_TRACER_H
 #define RT_TRACER_H
 
-#include "rtarch.h"
 #include "rtbase.h"
 
 /******************************************************************************/

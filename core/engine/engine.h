@@ -7,7 +7,6 @@
 #ifndef RT_ENGINE_H
 #define RT_ENGINE_H
 
-#include "rtconf.h"
 #include "rtgeom.h"
 #include "object.h"
 #include "system.h"
@@ -27,6 +26,23 @@
 /******************************************************************************/
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
+
+#define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
+#ifndef RT_THREADS_NUM
+#define RT_THREADS_NUM          120/* number of threads for update and render */
+#endif /* _THREADS_NUM */
+#define RT_SETAFFINITY          1  /* enables thread-affinity and core-count */
+
+#define RT_TILE_W               8  /* screen tile width  in pixels (%S == 0) */
+#define RT_TILE_H               8  /* screen tile height in pixels */
+
+/*
+ * Floating point thresholds,
+ * values have been roughly selected for single-precision,
+ * double-precision mode may or may not require adjustments.
+ */
+#define RT_TILE_THRESHOLD       0.2f
+#define RT_LINE_THRESHOLD       0.01f
 
 /*
  * Fullscreen antialiasing modes.

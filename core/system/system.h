@@ -29,6 +29,15 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
+#define RT_CHUNK_SIZE           65536 /* heap allocation granularity (16*4k) */
+
+#define RT_PATH_STRFY(p)        #p
+#define RT_PATH_TOSTR(p)        RT_PATH_STRFY(p)
+
+#define RT_PATH_DUMP            RT_PATH_TOSTR(RT_PATH)"dump/"
+#define RT_PATH_DUMP_LOG        RT_PATH_TOSTR(RT_PATH)"dump/log.txt"
+#define RT_PATH_DUMP_ERR        RT_PATH_TOSTR(RT_PATH)"dump/err.txt"
+
 /* Classes */
 
 class rt_File;
