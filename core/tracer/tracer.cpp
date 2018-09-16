@@ -4930,8 +4930,8 @@ rt_void rt_Platform::update0(rt_SIMD_SURFACE *s_srf)
 /*
  * Backend's global entry point (hence 0).
  * Set current runtime SIMD target with "simd" equal to
- * SIMD native-size (1, 2, 4) in 0th (lowest) byte
- * SIMD type (1, 2, 4, 8) in 1st (higher) byte and
+ * SIMD native-size (1,..,16) in 0th (lowest) byte
+ * SIMD type (1,2,4,8, 16,32) in 1st (higher) byte
  * SIMD size-factor (1, 2, 4) in 2nd (higher) byte
  */
 rt_si32 rt_Platform::switch0(rt_SIMD_INFOX *s_inf, rt_si32 simd)
@@ -5079,12 +5079,22 @@ namespace simd_1K4v2
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
+namespace simd_1K4v4
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
 namespace simd_2K8v1_r8
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
 namespace simd_2K8v2_r8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace simd_2K8v4_r8
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
@@ -5098,6 +5108,11 @@ rt_void rt_Platform::render0(rt_SIMD_INFOX *s_inf)
 {
     switch (s_mode)
     {
+#if (RT_2K8_R8 & 4)
+        case 0x40000000:
+        simd_2K8v4_r8::render0(s_inf);
+        break;
+#endif /* RT_2K8_R8 & 4 */
 #if (RT_2K8_R8 & 2)
         case 0x20000000:
         simd_2K8v2_r8::render0(s_inf);
@@ -5108,6 +5123,11 @@ rt_void rt_Platform::render0(rt_SIMD_INFOX *s_inf)
         simd_2K8v1_r8::render0(s_inf);
         break;
 #endif /* RT_2K8_R8 & 1 */
+#if (RT_1K4 & 4)
+        case 0x04000000:
+        simd_1K4v4::render0(s_inf);
+        break;
+#endif /* RT_1K4 & 4 */
 #if (RT_1K4 & 2)
         case 0x02000000:
         simd_1K4v2::render0(s_inf);

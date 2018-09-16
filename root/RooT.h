@@ -498,7 +498,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -e n, specify time (ms) at which testing ends, n >= min\n");
         RT_LOGI(" -f n, specify # of consecutive frames to render, n >= 0\n");
         RT_LOGI(" -g n, specify delta (ms) for consecutive frames, n >= 0\n");
-        RT_LOGI(" -n n, override SIMD-native-size, where new simd is 1..4\n");
+        RT_LOGI(" -n n, override SIMD-native-size, where new simd is 1.16\n");
         RT_LOGI(" -k n, override SIMD-size-factor, where new size is 1..4\n");
         RT_LOGI(" -q n, override SIMD-total-quads, where new size is 1..8\n");
         RT_LOGI(" -s n, override SIMD-sub-variant, where new type is 1..8\n");
@@ -628,7 +628,8 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             {
                 t += (argv[k][l-1] - '0') * r;
             }
-            if (t == 1 || t == 2 || t == 4 || t == 128 || t == 256 || t == 512)
+            if (t == 1   || t == 2   || t == 4   || t == 8    || t == 16
+            ||  t == 128 || t == 256 || t == 512 || t == 1024 || t == 2048)
             {
                 RT_LOGI("SIMD-native-size overridden: %d\n", t);
                 n_simd = t >= 128 ? t / 128 : t;

@@ -15,6 +15,30 @@
 #define RT_RENDER_CODE /* enable contents of render0 routine */
 #endif /* RT_128 */
 
+/*
+ * Determine SIMD total-quads for backend structs (maximal for a given build).
+ */
+#if (defined RT_MAXQ)
+/* RT_MAXQ is already defined outside */
+#elif           (RT_2K8_R8)
+#define RT_MAXQ 16
+#elif (RT_1K4 || RT_1K4_R8)
+#define RT_MAXQ 8
+#elif (RT_512 || RT_512_R8)
+#define RT_MAXQ 4
+#elif (RT_256 || RT_256_R8)
+#define RT_MAXQ 2
+#elif (RT_128)
+#define RT_MAXQ 1
+#endif /* RT_MAXQ: 16, 8, 4, 2, 1 */
+
+#undef  RT_2K8_R8
+#undef  RT_1K4
+#undef  RT_1K4_R8
+#undef  RT_512
+#undef  RT_512_R8
+#undef  RT_256
+#undef  RT_256_R8
 #undef  RT_128
 
 #define RT_128 4

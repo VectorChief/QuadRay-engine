@@ -8,12 +8,12 @@
 #define RT_REGS 32  /* define maximum of available SIMD registers for code */
 
 #undef  RT_SIMD
-#define RT_SIMD 512  /* map vector-length-agnostic SIMD subsets to 512-bit */
+#define RT_SIMD 1024 /* map vector-length-agnostic SIMD subsets to 1K4-bit */
 #define RT_SIMD_CODE /* enable SIMD instruction definitions */
 
-#if (defined RT_512) && (RT_512 & 4)
+#if (defined RT_1K4) && (RT_1K4 & 4)
 #define RT_RENDER_CODE /* enable contents of render0 routine */
-#endif /* RT_512 */
+#endif /* RT_1K4 */
 
 /*
  * Determine SIMD total-quads for backend structs (maximal for a given build).
@@ -41,12 +41,12 @@
 #undef  RT_256_R8
 #undef  RT_128
 
-#define RT_512 4
+#define RT_1K4 4
 
 #include "tracer.h"
 #include "format.h"
 
-namespace simd_512v4
+namespace simd_1K4v4
 {
 #include "tracer.cpp"
 }

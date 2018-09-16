@@ -607,8 +607,8 @@ rt_si32 simd_init(rt_si32 n_simd, rt_si32 s_type, rt_si32 k_size)
 
 /*
  * Set current runtime SIMD target with "simd" equal to
- * SIMD native-size (1, 2, 4) in 0th (lowest) byte
- * SIMD type (1, 2, 4, 8) in 1st (higher) byte and
+ * SIMD native-size (1,..,16) in 0th (lowest) byte
+ * SIMD type (1,2,4,8, 16,32) in 1st (higher) byte
  * SIMD size-factor (1, 2, 4) in 2nd (higher) byte
  */
 rt_si32 rt_Platform::set_simd(rt_si32 simd)

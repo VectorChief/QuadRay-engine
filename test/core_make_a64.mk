@@ -19,7 +19,10 @@ SRC_LIST =                                  \
         ../core/tracer/tracer_128v1.cpp     \
         ../core/tracer/tracer_128v4.cpp     \
         ../core/tracer/tracer_256v1.cpp     \
-        ../core/tracer/tracer_512v1.cpp     \
+        ../core/tracer/tracer_256v4.cpp     \
+        ../core/tracer/tracer_512v4.cpp     \
+        ../core/tracer/tracer_1K4v4.cpp     \
+        ../core/tracer/tracer_2K8v4_r8.cpp  \
         core_test.cpp
 
 LIB_PATH =
@@ -87,7 +90,7 @@ core_test_a64f64:
 # Building/running CORE test:
 # make -f core_make_a64.mk
 # qemu-aarch64 -cpu cortex-a57 core_test.a64f32 -i -a -c 1
-# For 512-bit SVE  build use (replace): RT_512=1    (uses 15 SIMD registers)
+# For 512-bit  SVE build use (replace): RT_512=4            (30 SIMD registers)
 # qemu-aarch64 -cpu max,sve-max-vq=4 core_test.a64f32 -i -a -c 1
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)
 # Use "-c 1" option to reduce test time when emulating with QEMU
@@ -99,8 +102,10 @@ core_test_a64f64:
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
-# For 512-bit SVE  build use (replace): RT_512=1            (15 SIMD registers)
-# For 512-bit SVE  build use (replace): RT_512=4            (30 SIMD registers)
+# For 256-bit  SVE build use (replace): RT_256=4            (30 SIMD registers)
+# For 512-bit  SVE build use (replace): RT_512=4            (30 SIMD registers)
+# For 1024-bit SVE build use (replace): RT_1K4=4            (30 SIMD registers)
+# For 2048-bit SVE build use (replace): RT_2K8_R8=4         (15 SIMD registers)
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 
