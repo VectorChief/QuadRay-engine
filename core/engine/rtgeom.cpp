@@ -6,9 +6,9 @@
 
 #include <string.h>
 
-#include "rtgeom.h"
-#include "system.h"
 #include "tracer.h"
+#include "system.h"
+#include "rtgeom.h"
 
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/

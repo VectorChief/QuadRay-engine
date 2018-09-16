@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "rtimag.h"
 #include "engine.h"
+#include "rtimag.h"
 
 /******************************************************************************/
 /*******************************   DEFINITIONS   ******************************/

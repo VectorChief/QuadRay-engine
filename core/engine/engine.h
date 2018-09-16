@@ -7,10 +7,10 @@
 #ifndef RT_ENGINE_H
 #define RT_ENGINE_H
 
-#include "rtgeom.h"
-#include "object.h"
-#include "system.h"
 #include "tracer.h"
+#include "system.h"
+#include "object.h"
+#include "rtgeom.h"
 
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/

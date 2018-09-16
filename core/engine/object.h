@@ -7,10 +7,10 @@
 #ifndef RT_OBJECT_H
 #define RT_OBJECT_H
 
-#include "rtgeom.h"
-#include "format.h"
-#include "system.h"
 #include "tracer.h"
+#include "system.h"
+#include "format.h"
+#include "rtgeom.h"
 
 /******************************************************************************/
 /*********************************   LEGEND   *********************************/
