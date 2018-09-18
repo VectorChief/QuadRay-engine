@@ -886,8 +886,8 @@ rt_si32 main_init()
     simd = simd & 0xFF;
 
     /* test converted internal SIMD variables against new command-line format */
-    if ((k_size != 0 && k_size != size && n_simd != simd * size)
-    ||  (s_type != 0 && s_type >  type)
+    if ((k_size != 0 && k_size != size)
+    ||  (s_type != 0 && s_type != type)
     ||  (n_simd != 0 && n_simd != simd && n_simd != simd * size))
     {
         RT_LOGI("Chosen SIMD target not supported, check -n/-k/-s options\n");
