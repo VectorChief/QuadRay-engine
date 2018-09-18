@@ -32,7 +32,6 @@ LIB_LIST =                                  \
 
 
 build: RooT_m64_32 RooT_m64_64 RooT_m64f32 RooT_m64f64
-clang: RooT.m64_32 RooT.m64_64 RooT.m64f32 RooT.m64f64
 
 strip:
 	strip RooT.m64*
@@ -73,6 +72,8 @@ RooT_m64f64:
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.m64f64
 
+
+clang: RooT.m64_32 RooT.m64_64 RooT.m64f32 RooT.m64f64
 
 RooT.m64_32:
 	clang++ -O3 -g -pthread -mips64r6 -mabi=64 -mmsa \

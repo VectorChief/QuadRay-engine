@@ -37,7 +37,6 @@ LIB_LIST =                                  \
 
 
 build: RooT_x86
-clang: RooT.x86
 
 strip:
 	strip RooT.x86
@@ -54,6 +53,8 @@ RooT_x86:
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.x86
 
+
+clang: RooT.x86
 
 RooT.x86:
 	clang++ -O3 -g -pthread -m32 -Wno-unknown-warning-option \

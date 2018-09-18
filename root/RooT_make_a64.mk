@@ -35,8 +35,8 @@ LIB_LIST =                                  \
         -lpthread
 
 
-build: RooT_a64_32 RooT_a64_64 RooT_a64f32 RooT_a64f64
-clang: RooT.a64_32 RooT.a64_64 RooT.a64f32 RooT.a64f64
+build: RooT_a64_32 RooT_a64_64 RooT_a64f32 RooT_a64f64 \
+       RooT_a64f32sve RooT_a64f64sve
 
 strip:
 	strip RooT.a64*
@@ -77,6 +77,25 @@ RooT_a64f64:
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64f64
 
+RooT_a64f32sve:
+	g++ -O3 -g -pthread -no-pie \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=4 -DRT_1K4=4 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64f32sve
+
+RooT_a64f64sve:
+	g++ -O3 -g -pthread -no-pie \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=4 -DRT_1K4=4 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64f64sve
+
+
+clang: RooT.a64_32 RooT.a64_64 RooT.a64f32 RooT.a64f64 \
+       RooT.a64f32sve RooT.a64f64sve
 
 RooT.a64_32:
 	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
@@ -118,6 +137,26 @@ RooT.a64f64:
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64f64
 
+RooT.a64f32sve:
+	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
+        -Wno-shift-negative-value -Wno-shift-op-parentheses \
+        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=4 -DRT_1K4=4 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64f32sve
+
+RooT.a64f64sve:
+	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
+        -Wno-shift-negative-value -Wno-shift-op-parentheses \
+        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=4 -DRT_1K4=4 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64f64sve
+
 
 # Prerequisites for the build:
 # native-compiler for AArch64 is installed and in the PATH variable.
@@ -127,6 +166,7 @@ RooT.a64f64:
 # Building/running RooT demo:
 # make -f RooT_make_a64.mk
 # ./RooT.a64f32 (on AArch64 host or QEMU system mode)
+# ./RooT.a64f32sve (on AArch64 host with SVE or QEMU system mode)
 # (has been tested on Raspberry Pi 3 target host system with Devuan/openSUSE)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
@@ -139,10 +179,7 @@ RooT.a64f64:
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
-# For 256-bit  SVE build use (replace): RT_256=4            (30 SIMD registers)
-# For 512-bit  SVE build use (replace): RT_512=4            (30 SIMD registers)
-# For 1024-bit SVE build use (replace): RT_1K4=4            (30 SIMD registers)
-# For 2048-bit SVE build use (replace): RT_2K8_R8=4         (15 SIMD registers)
+# For 2048-bit SVE build use (replace): RT_2K8_R8=4
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 

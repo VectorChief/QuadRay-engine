@@ -32,7 +32,6 @@ LIB_LIST =                                  \
 
 
 build: RooT_arm
-clang: RooT.arm
 
 strip:
 	strip RooT.arm
@@ -49,6 +48,8 @@ RooT_arm:
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.arm
 
+
+clang: RooT.arm
 
 RooT.arm:
 	clang++ -O3 -g -pthread -march=armv7-a -marm \
@@ -80,7 +81,6 @@ RooT_arm_n900:
 
 
 build_rpiX: RooT_arm_rpi2 RooT_arm_rpi3
-clang_rpiX: RooT.arm_rpi2 RooT.arm_rpi3
 
 strip_rpiX:
 	strip RooT.arm_rpi*
@@ -105,6 +105,8 @@ RooT_arm_rpi3:
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.arm_rpi3
 
+
+clang_rpiX: RooT.arm_rpi2 RooT.arm_rpi3
 
 RooT.arm_rpi2:
 	clang++ -O3 -g -pthread -march=armv7-a -marm \

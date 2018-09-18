@@ -38,7 +38,6 @@ LIB_LIST =                                  \
 
 
 build: RooT_p64_32 RooT_p64_64 RooT_p64f32 RooT_p64f64
-clang: RooT.p64_32 RooT.p64_64 RooT.p64f32 RooT.p64f64
 
 strip:
 	strip RooT.p64*
@@ -79,6 +78,8 @@ RooT_p64f64:
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f64
 
+
+clang: RooT.p64_32 RooT.p64_64 RooT.p64f32 RooT.p64f64
 
 RooT.p64_32:
 	clang++ -O3 -g -pthread -Wno-unknown-warning-option \

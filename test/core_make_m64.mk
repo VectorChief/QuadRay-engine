@@ -37,7 +37,8 @@ clean:
 	rm core_test.m64*
 
 
-build_le: core_test_m64_32Lr6 core_test_m64_64Lr6 core_test_m64f32Lr6 core_test_m64f64Lr6
+build_le: core_test_m64_32Lr6 core_test_m64_64Lr6 \
+          core_test_m64f32Lr6 core_test_m64f64Lr6
 
 core_test_m64_32Lr6:
 	mips-img-linux-gnu-g++ -O3 -g -static -EL -mabi=64 -mmsa \
@@ -72,7 +73,8 @@ core_test_m64f64Lr6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m64f64Lr6
 
 
-build_be: core_test_m64_32Br6 core_test_m64_64Br6 core_test_m64f32Br6 core_test_m64f64Br6
+build_be: core_test_m64_32Br6 core_test_m64_64Br6 \
+          core_test_m64f32Br6 core_test_m64f64Br6
 
 core_test_m64_32Br6:
 	mips-img-linux-gnu-g++ -O3 -g -static -EB -mabi=64 -mmsa \

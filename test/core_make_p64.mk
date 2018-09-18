@@ -44,7 +44,8 @@ clean:
 	rm core_test.p64*
 
 
-build_p9: core_test_p64_32Lp9 core_test_p64_64Lp9 core_test_p64f32Lp9 core_test_p64f64Lp9
+build_p9: core_test_p64_32Lp9 core_test_p64_64Lp9 \
+          core_test_p64f32Lp9 core_test_p64f64Lp9
 
 core_test_p64_32Lp9:
 	powerpc64le-linux-gnu-g++ -O2 -g -static \
@@ -79,7 +80,8 @@ core_test_p64f64Lp9:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64f64Lp9
 
 
-build_le: core_test_p64_32Lp8 core_test_p64_64Lp8 core_test_p64f32Lp8 core_test_p64f64Lp8
+build_le: core_test_p64_32Lp8 core_test_p64_64Lp8 \
+          core_test_p64f32Lp8 core_test_p64f64Lp8
 
 core_test_p64_32Lp8:
 	powerpc64le-linux-gnu-g++ -O2 -g -static \
@@ -114,7 +116,8 @@ core_test_p64f64Lp8:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64f64Lp8
 
 
-build_be: core_test_p64_32Bp7 core_test_p64_64Bp7 core_test_p64f32Bp7 core_test_p64f64Bp7
+build_be: core_test_p64_32Bp7 core_test_p64_64Bp7 \
+          core_test_p64f32Bp7 core_test_p64f64Bp7
 
 core_test_p64_32Bp7:
 	powerpc64-linux-gnu-g++ -O3 -g -static \

@@ -32,7 +32,8 @@ LIB_LIST =                                  \
         -lstdc++
 
 
-build: core_test_a64_32 core_test_a64_64 core_test_a64f32 core_test_a64f64
+build: core_test_a64_32 core_test_a64_64 core_test_a64f32 core_test_a64f64 \
+       core_test_a64f32sve core_test_a64f64sve
 
 strip:
 	aarch64-linux-gnu-strip core_test.a64*
@@ -73,6 +74,22 @@ core_test_a64f64:
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a64f64
 
+core_test_a64f32sve:
+	aarch64-linux-gnu-g++ -O3 -g -static \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=4 -DRT_1K4=4 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a64f32sve
+
+core_test_a64f64sve:
+	aarch64-linux-gnu-g++ -O3 -g -static \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=4 -DRT_1K4=4 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a64f64sve
+
 
 # On Ubuntu 16.04 Live DVD add "universe multiverse" to "main restricted"
 # in /etc/apt/sources.list (sudo gedit /etc/apt/sources.list) then run:
@@ -90,8 +107,9 @@ core_test_a64f64:
 # Building/running CORE test:
 # make -f core_make_a64.mk
 # qemu-aarch64 -cpu cortex-a57 core_test.a64f32 -i -a -c 1
-# For 512-bit  SVE build use (replace): RT_512=4            (30 SIMD registers)
-# qemu-aarch64 -cpu max,sve-max-vq=4 core_test.a64f32 -i -a -c 1
+# qemu-aarch64 -cpu max,sve-max-vq=2 core_test.a64f32sve -i -a -c 1
+# qemu-aarch64 -cpu max,sve-max-vq=4 core_test.a64f32sve -i -a -c 1
+# qemu-aarch64 -cpu max,sve-max-vq=8 core_test.a64f32sve -i -a -c 1
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)
 # Use "-c 1" option to reduce test time when emulating with QEMU
 
@@ -102,10 +120,7 @@ core_test_a64f64:
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
-# For 256-bit  SVE build use (replace): RT_256=4            (30 SIMD registers)
-# For 512-bit  SVE build use (replace): RT_512=4            (30 SIMD registers)
-# For 1024-bit SVE build use (replace): RT_1K4=4            (30 SIMD registers)
-# For 2048-bit SVE build use (replace): RT_2K8_R8=4         (15 SIMD registers)
+# For 2048-bit SVE build use (replace): RT_2K8_R8=4
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 
