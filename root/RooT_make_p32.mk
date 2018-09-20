@@ -30,35 +30,36 @@ LIB_LIST =                                  \
         -lpthread
 
 
-build: RooT_p32
+build: RooT_p32Bg4
 
 strip:
-	strip RooT.p32
+	strip RooT.p32*
 
 clean:
-	rm RooT.p32
+	rm RooT.p32*
 
 
-RooT_p32:
+RooT_p32Bg4:
 	g++ -O3 -g -pthread -no-pie \
         -DRT_LINUX -DRT_P32 -DRT_128=4 -DRT_256_R8=4 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p32
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p32Bg4
 
 
-clang: RooT.p32
+clang: RooT.p32Bg4
 
-RooT.p32:
-	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
+RooT.p32Bg4:
+	clang++ -O3 -g -pthread \
+        -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_P32 -DRT_128=4 -DRT_256_R8=4 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p32
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p32Bg4
 
 
 # Prerequisites for the build:
@@ -68,7 +69,7 @@ RooT.p32:
 #
 # Building/running RooT demo:
 # make -f RooT_make_p32.mk
-# ./RooT.p32 (on G4 host or QEMU system mode)
+# ./RooT.p32Bg4 (on G4 host or QEMU system mode)
 # (hasn't been verified yet due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 

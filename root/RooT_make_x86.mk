@@ -39,10 +39,10 @@ LIB_LIST =                                  \
 build: RooT_x86
 
 strip:
-	strip RooT.x86
+	strip RooT.x86*
 
 clean:
-	rm RooT.x86
+	rm RooT.x86*
 
 
 RooT_x86:
@@ -57,7 +57,8 @@ RooT_x86:
 clang: RooT.x86
 
 RooT.x86:
-	clang++ -O3 -g -pthread -m32 -Wno-unknown-warning-option \
+	clang++ -O3 -g -pthread -m32 \
+        -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_X86 -DRT_128=1+2+4+8 -DRT_256=1+2 -DRT_512=1+2 \

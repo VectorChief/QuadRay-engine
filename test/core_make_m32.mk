@@ -31,7 +31,7 @@ LIB_LIST =                                  \
 build: core_test_m32Lr5 core_test_m32Br5
 
 strip:
-	mips-mti-linux-gnu-strip core_test.m32?r5
+	mips-mti-linux-gnu-strip core_test.m32?r5*
 
 clean:
 	rm core_test.m32*

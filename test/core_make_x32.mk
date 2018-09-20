@@ -45,16 +45,15 @@ LIB_LIST =                                  \
 build: core_test_x32
 
 strip:
-	x86_64-linux-gnu-strip core_test.x32
+	x86_64-linux-gnu-strip core_test.x32*
 
 clean:
-	rm core_test.x32
+	rm core_test.x32*
 
 
 core_test_x32:
 	x86_64-linux-gnu-g++ -O3 -g -static -mx32 \
-        -DRT_LINUX -DRT_X32 \
-        -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
+        -DRT_LINUX -DRT_X32 -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
         -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \

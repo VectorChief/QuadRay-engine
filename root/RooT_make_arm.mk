@@ -31,44 +31,45 @@ LIB_LIST =                                  \
         -lpthread
 
 
-build: RooT_arm
+build: RooT_arm_v1
 
 strip:
-	strip RooT.arm
+	strip RooT.arm_v*
 
 clean:
-	rm RooT.arm
+	rm RooT.arm_v*
 
 
-RooT_arm:
+RooT_arm_v1:
 	g++ -O3 -g -pthread -no-pie -march=armv7-a -marm \
         -DRT_LINUX -DRT_ARM -DRT_128=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.arm
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.arm_v1
 
 
-clang: RooT.arm
+clang: RooT.arm_v1
 
-RooT.arm:
+RooT.arm_v1:
 	clang++ -O3 -g -pthread -march=armv7-a -marm \
+        -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
-        -DRT_LINUX -DRT_ARM -DRT_128=1 -Wno-unknown-warning-option \
+        -DRT_LINUX -DRT_ARM -DRT_128=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.arm
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.arm_v1
 
 
 build_n900: RooT_arm_n900
 
 strip_n900:
-	strip RooT.arm_n900
+	strip RooT.arm_n900*
 
 clean_n900:
-	rm RooT.arm_n900
+	rm RooT.arm_n900*
 
 
 RooT_arm_n900:
@@ -110,9 +111,10 @@ clang_rpiX: RooT.arm_rpi2 RooT.arm_rpi3
 
 RooT.arm_rpi2:
 	clang++ -O3 -g -pthread -march=armv7-a -marm \
+        -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
-        -DRT_LINUX -DRT_ARM -DRT_128=1+2 -Wno-unknown-warning-option \
+        -DRT_LINUX -DRT_ARM -DRT_128=1+2 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -120,9 +122,10 @@ RooT.arm_rpi2:
 
 RooT.arm_rpi3:
 	clang++ -O3 -g -pthread -march=armv7-a -marm \
+        -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
-        -DRT_LINUX -DRT_ARM -DRT_128=1+2+4 -Wno-unknown-warning-option \
+        -DRT_LINUX -DRT_ARM -DRT_128=1+2+4 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -136,7 +139,7 @@ RooT.arm_rpi3:
 #
 # Building/running RooT demo:
 # make -f RooT_make_arm.mk
-# ./RooT.arm (on ARMv7 host or QEMU system mode)
+# ./RooT.arm_v1 (on ARMv7 host or QEMU system mode)
 # (has been tested on Raspberry Pi 2/3 target host system with Raspbian/Ubuntu)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 

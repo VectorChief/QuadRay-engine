@@ -36,10 +36,10 @@ LIB_LIST =                                  \
 build: core_test_x86
 
 strip:
-	strip core_test.x86
+	strip core_test.x86*
 
 clean:
-	rm core_test.x86
+	rm core_test.x86*
 
 
 core_test_x86:

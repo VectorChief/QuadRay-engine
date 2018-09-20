@@ -32,13 +32,12 @@ LIB_LIST =                                  \
 
 
 build: RooT_a32
-clang: RooT.a32
 
 strip:
-	strip RooT.a32
+	strip RooT.a32*
 
 clean:
-	rm RooT.a32
+	rm RooT.a32*
 
 
 RooT_a32:
@@ -50,8 +49,11 @@ RooT_a32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a32
 
 
+clang: RooT.a32
+
 RooT.a32:
-	clang++ -O3 -g -pthread -mabi=ilp32 -Wno-unknown-warning-option \
+	clang++ -O3 -g -pthread -mabi=ilp32 \
+        -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_A32 -DRT_128=1 -DRT_256=1 \

@@ -37,7 +37,7 @@ LIB_LIST =                                  \
         -lpthread
 
 
-build: RooT_p64_32 RooT_p64_64 RooT_p64f32 RooT_p64f64
+build: RooT_p64_32Lp8 RooT_p64_64Lp8 RooT_p64f32Lp9 RooT_p64f64Lp9
 
 strip:
 	strip RooT.p64*
@@ -46,80 +46,84 @@ clean:
 	rm RooT.p64*
 
 
-RooT_p64_32:
+RooT_p64_32Lp8:
 	g++ -O2 -g -pthread -no-pie \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_32
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_32Lp8
 
-RooT_p64_64:
+RooT_p64_64Lp8:
 	g++ -O2 -g -pthread -no-pie \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_64
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_64Lp8
 
-RooT_p64f32:
+RooT_p64f32Lp9:
 	g++ -O2 -g -pthread -no-pie \
         -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f32
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f32Lp9
 
-RooT_p64f64:
+RooT_p64f64Lp9:
 	g++ -O2 -g -pthread -no-pie \
         -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f64
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f64Lp9
 
 
-clang: RooT.p64_32 RooT.p64_64 RooT.p64f32 RooT.p64f64
+clang: RooT.p64_32Lp8 RooT.p64_64Lp8 RooT.p64f32Lp9 RooT.p64f64Lp9
 
-RooT.p64_32:
-	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
+RooT.p64_32Lp8:
+	clang++ -O3 -g -pthread \
+        -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_32
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_32Lp8
 
-RooT.p64_64:
-	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
+RooT.p64_64Lp8:
+	clang++ -O3 -g -pthread \
+        -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_64
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_64Lp8
 
-RooT.p64f32:
-	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
+RooT.p64f32Lp9:
+	clang++ -O3 -g -pthread \
+        -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f32
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f32Lp9
 
-RooT.p64f64:
-	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
+RooT.p64f64Lp9:
+	clang++ -O3 -g -pthread \
+        -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f64
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f64Lp9
 
 
 # Prerequisites for the build:
@@ -129,8 +133,8 @@ RooT.p64f64:
 #
 # Building/running RooT demo:
 # make -f RooT_make_p64.mk
-# ./RooT.p64_32 (on POWER7 host or QEMU system mode)
-# ./RooT.p64f32 (on POWER9 host or QEMU system mode)
+# ./RooT.p64_32Lp8 (on POWER8 host or QEMU system mode)
+# ./RooT.p64f32Lp9 (on POWER9 host or QEMU system mode)
 # (hasn't been verified yet due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 

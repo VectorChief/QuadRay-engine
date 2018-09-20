@@ -57,10 +57,10 @@ core_test_arm_v2:
 build_n900: core_test_arm_n900
 
 strip_n900:
-	arm-linux-gnueabi-strip core_test.arm_n900
+	arm-linux-gnueabi-strip core_test.arm_n900*
 
 clean_n900:
-	rm core_test.arm_n900
+	rm core_test.arm_n900*
 
 
 core_test_arm_n900:

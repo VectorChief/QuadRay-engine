@@ -31,10 +31,10 @@ LIB_LIST =                                  \
 build: core_test_a32
 
 strip:
-	aarch64-linux-gnu-strip core_test.a32
+	aarch64-linux-gnu-strip core_test.a32*
 
 clean:
-	rm core_test.a32
+	rm core_test.a32*
 
 
 core_test_a32:

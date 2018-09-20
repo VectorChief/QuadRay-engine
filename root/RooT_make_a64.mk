@@ -98,7 +98,8 @@ clang: RooT.a64_32 RooT.a64_64 RooT.a64f32 RooT.a64f64 \
        RooT.a64f32sve RooT.a64f64sve
 
 RooT.a64_32:
-	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
+	clang++ -O3 -g -pthread \
+        -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
@@ -108,7 +109,8 @@ RooT.a64_32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64_32
 
 RooT.a64_64:
-	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
+	clang++ -O3 -g -pthread \
+        -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
@@ -118,7 +120,8 @@ RooT.a64_64:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64_64
 
 RooT.a64f32:
-	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
+	clang++ -O3 -g -pthread \
+        -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
@@ -128,7 +131,8 @@ RooT.a64f32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64f32
 
 RooT.a64f64:
-	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
+	clang++ -O3 -g -pthread \
+        -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
@@ -138,7 +142,8 @@ RooT.a64f64:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64f64
 
 RooT.a64f32sve:
-	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
+	clang++ -O3 -g -pthread \
+        -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=4 -DRT_1K4=4 \
@@ -148,7 +153,8 @@ RooT.a64f32sve:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64f32sve
 
 RooT.a64f64sve:
-	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
+	clang++ -O3 -g -pthread \
+        -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=4 -DRT_1K4=4 \
