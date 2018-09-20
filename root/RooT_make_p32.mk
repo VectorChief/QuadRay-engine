@@ -31,7 +31,6 @@ LIB_LIST =                                  \
 
 
 build: RooT_p32
-clang: RooT.p32
 
 strip:
 	strip RooT.p32
@@ -48,6 +47,8 @@ RooT_p32:
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p32
 
+
+clang: RooT.p32
 
 RooT.p32:
 	clang++ -O3 -g -pthread -Wno-unknown-warning-option \
