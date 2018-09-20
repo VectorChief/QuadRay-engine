@@ -109,8 +109,9 @@ core_test_m64f64Br6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m64f64Br6
 
 
-# The up-to-date MIPS toolchain (g++ & QEMU) can be found here:
-# https://community.imgtec.com/developers/mips/tools/codescape-mips-sdk/
+# The up-to-date MIPS toolchain (g++) can be found here:
+# https://www.mips.com/develop/tools/codescape-mips-sdk/
+# https://codescape.mips.com/components/toolchain/2017.10-08/downloads.html
 
 # On Ubuntu 16.04 Live DVD add "universe multiverse" to "main restricted"
 # in /etc/apt/sources.list (sudo gedit /etc/apt/sources.list) then run:
@@ -118,23 +119,18 @@ core_test_m64f64Br6:
 #
 # Prerequisites for the build:
 # (cross-)compiler for MIPSr6+MSA is installed and in the PATH variable.
-# Codescape.GNU.Tools.Package.2016.05-03.for.MIPS.IMG.Linux.CentOS-5.x86_64
-# is unpacked and folder mips-img-linux-gnu/2016.05-03/bin is added to PATH:
-# PATH=/home/ubuntu/Downloads/mips-img-linux-gnu/2016.05-03/bin:$PATH
+# Codescape.GNU.Tools.Package.2017.10-08.for.MIPS.IMG.Linux.CentOS-5.x86_64
+# is unpacked and folder mips-img-linux-gnu/2017.10-08/bin is added to PATH:
+# PATH=/home/ubuntu/Downloads/mips-img-linux-gnu/2017.10-08/bin:$PATH
 #
 # Prerequisites for emulation:
-# QEMU 2.5.0.2.0 from imgtec.com is built from source and in the PATH variable.
-# Unpack qemu-rel-2.5.0.2.0 archive and change to its root folder, then run:
-# sudo apt-get install libfdt-dev libglib2.0-dev libpixman-1-dev zlib1g-dev
-# (remove --target-list option from ./configure below to build all targets)
-# ./configure --target-list=mips64el-linux-user,mips64-linux-user
-# make -j8
-# sudo make install
+# recent QEMU(-2.7) is installed or built from source and in the PATH variable.
+# sudo apt-get install qemu
 #
 # Building/running CORE test:
 # make -f core_make_m64.mk
 # qemu-mips64el -cpu I6400 core_test.m64f32Lr6 -i -a -c 1
-# qemu-mips64 -cpu I6400 core_test.m64f32Br6 -i -a -c 1
+# qemu-mips64   -cpu I6400 core_test.m64f32Br6 -i -a -c 1
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)
 # Use "-c 1" option to reduce test time when emulating with QEMU
 

@@ -32,7 +32,6 @@ LIB_LIST =                                  \
 
 
 build: RooT_m32
-clang: RooT.m32
 
 strip:
 	strip RooT.m32
@@ -42,7 +41,7 @@ clean:
 
 
 RooT_m32:
-	g++ -O3 -g -pthread -no-pie -mips32r5 -mmsa \
+	g++ -O3 -g -pthread -no-pie -mips32r5 -mmsa -mnan=2008 \
         -DRT_LINUX -DRT_M32 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -50,8 +49,10 @@ RooT_m32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.m32
 
 
+clang: RooT.m32
+
 RooT.m32:
-	clang++ -O3 -g -pthread -mips32r5 -mmsa -Wno-unknown-warning-option \
+	clang++ -O3 -g -pthread -mips32r5 -mmsa -mnan=2008 \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_M32 -DRT_128=1 -DRT_256=1 \

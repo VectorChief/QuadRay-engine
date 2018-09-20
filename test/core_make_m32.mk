@@ -28,18 +28,17 @@ LIB_LIST =                                  \
         -lstdc++
 
 
-build: core_test_m32Lr5 core_test_m32Br5 core_test_m32Lr6 core_test_m32Br6
+build: core_test_m32Lr5 core_test_m32Br5
 
 strip:
 	mips-mti-linux-gnu-strip core_test.m32?r5
-	mips-img-linux-gnu-strip core_test.m32?r6
 
 clean:
 	rm core_test.m32*
 
 
 core_test_m32Lr5:
-	mips-mti-linux-gnu-g++ -O3 -g -static -EL -mips32r5 -mmsa \
+	mips-mti-linux-gnu-g++ -O3 -g -static -EL -mips32r5 -mmsa -mnan=2008 \
         -DRT_LINUX -DRT_M32 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -47,46 +46,26 @@ core_test_m32Lr5:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m32Lr5
 
 core_test_m32Br5:
-	mips-mti-linux-gnu-g++ -O3 -g -static -EB -mips32r5 -mmsa \
+	mips-mti-linux-gnu-g++ -O3 -g -static -EB -mips32r5 -mmsa -mnan=2008 \
         -DRT_LINUX -DRT_M32 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m32Br5
 
-core_test_m32Lr6:
-	mips-img-linux-gnu-g++ -O3 -g -static -EL -mips32r6 -mmsa \
-        -DRT_LINUX -DRT_M32=6 -DRT_128=1 -DRT_256=1 \
-        -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
-        -DRT_DEBUG=0 -DRT_PATH="../" \
-        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m32Lr6
 
-core_test_m32Br6:
-	mips-img-linux-gnu-g++ -O3 -g -static -EB -mips32r6 -mmsa \
-        -DRT_LINUX -DRT_M32=6 -DRT_128=1 -DRT_256=1 \
-        -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
-        -DRT_DEBUG=0 -DRT_PATH="../" \
-        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
-        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m32Br6
-
-
-# The up-to-date MIPS toolchain (g++ & QEMU) can be found here:
-# https://community.imgtec.com/developers/mips/tools/codescape-mips-sdk/
+# The up-to-date MIPS toolchain (g++) can be found here:
+# https://www.mips.com/develop/tools/codescape-mips-sdk/
+# https://codescape.mips.com/components/toolchain/2017.10-08/downloads.html
 
 # On Ubuntu 16.04 Live DVD add "universe multiverse" to "main restricted"
 # in /etc/apt/sources.list (sudo gedit /etc/apt/sources.list) then run:
 # sudo apt-get update (ignoring the old database errors in the end)
 #
 # Prerequisites for the build:
-# (cross-)compiler for MIPSr5+MSA is installed and in the PATH variable.
-# Codescape.GNU.Tools.Package.2016.05-03.for.MIPS.MTI.Linux.CentOS-5.x86_64
-# is unpacked and folder mips-mti-linux-gnu/2016.05-03/bin is added to PATH:
-# PATH=/home/ubuntu/Downloads/mips-mti-linux-gnu/2016.05-03/bin:$PATH
-# (cross-)compiler for MIPSr6+MSA is installed and in the PATH variable.
-# Codescape.GNU.Tools.Package.2016.05-03.for.MIPS.IMG.Linux.CentOS-5.x86_64
-# is unpacked and folder mips-img-linux-gnu/2016.05-03/bin is added to PATH:
-# PATH=/home/ubuntu/Downloads/mips-img-linux-gnu/2016.05-03/bin:$PATH
+# Codescape.GNU.Tools.Package.2017.10-08.for.MIPS.MTI.Linux.CentOS-5.x86_64
+# is unpacked and folder mips-mti-linux-gnu/2017.10-08/bin is added to PATH:
+# PATH=/home/ubuntu/Downloads/mips-mti-linux-gnu/2017.10-08/bin:$PATH
 #
 # Prerequisites for emulation:
 # recent QEMU(-2.5) is installed or built from source and in the PATH variable.
@@ -95,10 +74,7 @@ core_test_m32Br6:
 # Building/running CORE test:
 # make -f core_make_m32.mk
 # qemu-mipsel -cpu P5600 core_test.m32Lr5 -i -a -c 1
-# qemu-mips -cpu P5600 core_test.m32Br5 -i -a -c 1
-# For MIPS32 Release 6 emulation use QEMU 2.5.0.2.0 from imgtec.com:
-# qemu-mipsel -cpu mips32r6-generic core_test.m32Lr6 -i -a -c 1
-# qemu-mips -cpu mips32r6-generic core_test.m32Br6 -i -a -c 1
+# qemu-mips   -cpu P5600 core_test.m32Br5 -i -a -c 1
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)
 # Use "-c 1" option to reduce test time when emulating with QEMU
 
