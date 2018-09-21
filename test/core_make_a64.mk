@@ -20,8 +20,11 @@ SRC_LIST =                                  \
         ../core/tracer/tracer_128v4.cpp     \
         ../core/tracer/tracer_256v1.cpp     \
         ../core/tracer/tracer_256v4.cpp     \
+        ../core/tracer/tracer_512v1.cpp     \
         ../core/tracer/tracer_512v4.cpp     \
+        ../core/tracer/tracer_1K4v1.cpp     \
         ../core/tracer/tracer_1K4v4.cpp     \
+        ../core/tracer/tracer_2K8v1_r8.cpp  \
         ../core/tracer/tracer_2K8v4_r8.cpp  \
         core_test.cpp
 
@@ -76,7 +79,7 @@ core_test_a64f64:
 
 core_test_a64f32sve:
 	aarch64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=4 -DRT_1K4=4 \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -84,7 +87,7 @@ core_test_a64f32sve:
 
 core_test_a64f64sve:
 	aarch64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=4 -DRT_1K4=4 \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -120,7 +123,7 @@ core_test_a64f64sve:
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
-# For 2048-bit SVE build use (replace): RT_2K8_R8=4
+# For 2048-bit SVE build use (replace): RT_2K8_R8=1+4
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 

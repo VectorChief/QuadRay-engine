@@ -20,8 +20,11 @@ SRC_LIST =                                  \
         ../core/tracer/tracer_128v4.cpp     \
         ../core/tracer/tracer_256v1.cpp     \
         ../core/tracer/tracer_256v4.cpp     \
+        ../core/tracer/tracer_512v1.cpp     \
         ../core/tracer/tracer_512v4.cpp     \
+        ../core/tracer/tracer_1K4v1.cpp     \
         ../core/tracer/tracer_1K4v4.cpp     \
+        ../core/tracer/tracer_2K8v1_r8.cpp  \
         ../core/tracer/tracer_2K8v4_r8.cpp  \
         RooT_linux.cpp
 
@@ -79,7 +82,7 @@ RooT_a64f64:
 
 RooT_a64f32sve:
 	g++ -O3 -g -pthread -no-pie \
-        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=4 -DRT_1K4=4 \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -87,7 +90,7 @@ RooT_a64f32sve:
 
 RooT_a64f64sve:
 	g++ -O3 -g -pthread -no-pie \
-        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=4 -DRT_1K4=4 \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -146,7 +149,7 @@ RooT.a64f32sve:
         -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
-        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=4 -DRT_1K4=4 \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -157,7 +160,7 @@ RooT.a64f64sve:
         -Wno-unknown-warning-option \
         -Wno-shift-negative-value -Wno-shift-op-parentheses \
         -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
-        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=4 -DRT_1K4=4 \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -185,7 +188,7 @@ RooT.a64f64sve:
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
-# For 2048-bit SVE build use (replace): RT_2K8_R8=4
+# For 2048-bit SVE build use (replace): RT_2K8_R8=1+4
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 
