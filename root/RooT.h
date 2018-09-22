@@ -273,7 +273,18 @@ rt_si32 main_step()
                 size = (simd >> 16) & 0xFF;
                 type = (simd >> 8) & 0xFF;
                 simd = simd & 0xFF;
-                if (simd != n_simd || type != s_type)
+                if (size != k_size)
+                {
+                    simd = pfm->set_simd(simd_init(n_simd, 0, k_size));
+                    size = (simd >> 16) & 0xFF;
+                    type = (simd >> 8) & 0xFF;
+                    simd = simd & 0xFF;
+                }
+                if (size == k_size && simd == n_simd)
+                {
+                    s_type = type;
+                }
+                if (simd != n_simd)
                 {
                     size = 0;
                 }
@@ -288,7 +299,7 @@ rt_si32 main_step()
             rt_si32 size, type, simd;
             do
             {
-                s_type = s_type % 8 + s_type % 7; /* 1, 2, 4, 8 */
+                s_type = s_type % 32 + s_type % 31; /* 1, 2, 4, 8, 16, 32 */
                 simd = pfm->set_simd(simd_init(n_simd, s_type, k_size));
                 size = (simd >> 16) & 0xFF;
                 type = (simd >> 8) & 0xFF;
@@ -308,11 +319,18 @@ rt_si32 main_step()
             rt_si32 size, type, simd;
             do
             {
-                n_simd = n_simd % 4 + n_simd % 3; /* 1, 2, 4 */
+                n_simd = n_simd % 16 + n_simd % 15; /* 1, 2, 4, 8, 16 */
                 simd = pfm->set_simd(simd_init(n_simd, s_type, k_size));
                 size = (simd >> 16) & 0xFF;
                 type = (simd >> 8) & 0xFF;
                 simd = simd & 0xFF;
+                if (simd != n_simd)
+                {
+                    simd = pfm->set_simd(simd_init(n_simd, 0, k_size));
+                    size = (simd >> 16) & 0xFF;
+                    type = (simd >> 8) & 0xFF;
+                    simd = simd & 0xFF;
+                }
                 if (simd != n_simd)
                 {
                     simd = pfm->set_simd(simd_init(n_simd, 0, 0));
@@ -500,8 +518,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -g n, specify delta (ms) for consecutive frames, n >= 0\n");
         RT_LOGI(" -n n, override SIMD-native-size, where new simd is 1.16\n");
         RT_LOGI(" -k n, override SIMD-size-factor, where new size is 1..4\n");
-        RT_LOGI(" -q n, override SIMD-total-quads, where new size is 1..8\n");
-        RT_LOGI(" -s n, override SIMD-sub-variant, where new type is 1..8\n");
+        RT_LOGI(" -s n, override SIMD-sub-variant, where new type is 1.32\n");
         RT_LOGI(" -t n, override thread-pool-size, where new size <= 1000\n");
         RT_LOGI(" -w n, override window-rect-size, where new size is 0..9\n");
         RT_LOGI(" -w 0, activate window-less mode, full native resolution\n");
@@ -643,8 +660,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         if (k < argc && strcmp(argv[k], "-k") == 0 && ++k < argc)
         {
             t = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1
-            && (t == 1 || t == 2 || t == 4))
+            if (strlen(argv[k]) == 1 && (t == 1 || t == 2 || t == 4))
             {
                 RT_LOGI("SIMD-size-factor overridden: %d\n", t);
                 k_size = t;
@@ -655,27 +671,13 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (k < argc && strcmp(argv[k], "-q") == 0 && ++k < argc)
-        {
-            t = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1
-            && (t == 1 || t == 2 || t == 4 || t == 8 || t == 16))
-            {
-                RT_LOGI("SIMD-total-quads overridden: %d\n", t);
-                n_simd = t <= 8 ? t : 8;
-                k_size = t <= 8 ? 1 : 2;
-            }
-            else
-            {
-                RT_LOGI("SIMD-total-quads value out of range\n");
-                return 0;
-            }
-        }
         if (k < argc && strcmp(argv[k], "-s") == 0 && ++k < argc)
         {
-            t = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1
-            && (t == 1 || t == 2 || t == 4 || t == 8))
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t == 1 || t == 2 || t == 4 || t == 8 || t == 16 || t == 32)
             {
                 RT_LOGI("SIMD-sub-variant overridden: %d\n", t);
                 s_type = t;
