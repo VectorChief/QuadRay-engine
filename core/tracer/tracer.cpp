@@ -1008,11 +1008,40 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     ASM_ENTER(s_inf)
 
-        /* if CTX is NULL fetch surface entry points
-         * into the local pointer tables
-         * as a part of backend's one-time initialization */
+        /* if CTX is NULL fetch surface solvers' entry points
+         * into local pointer tables used for target switches */
         cmjxx_mz(Mebp, inf_CTX,
-                 EQ_x, fetch_ptr)
+                 NE_x, RT_ini)
+
+        label_st(PL_ptr, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XPL_P(PTR))
+        label_st(TP_ptr, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XTP_P(PTR))
+        label_st(QD_ptr, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XQD_P(PTR))
+
+
+        label_st(PL_mat, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XPL_P(SRF))
+        label_st(TP_mat, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XTP_P(SRF))
+        label_st(QD_mat, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XQD_P(SRF))
+
+#if RT_FEAT_CLIPPING_CUSTOM
+
+        label_st(PL_clp, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XPL_P(CLP))
+        label_st(TP_clp, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XTP_P(CLP))
+        label_st(QD_clp, /* -> Reax */
+        /* Reax -> */  Mebp, inf_XQD_P(CLP))
+
+#endif /* RT_FEAT_CLIPPING_CUSTOM */
+
+        jmpxx_lb(YY_out)
+
+    LBL(RT_ini)
 
         movxx_ld(Recx, Mebp, inf_CTX)
         movxx_ld(Redx, Mebp, inf_CAM)
@@ -1027,9 +1056,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addxx_ri(Reax, IM(RT_SIMD_QUADS*16))
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
 
-        jmpxx_lb(XX_set)
-
-    LBL(XX_ret)
+        label_st(XX_end, /* -> Reax */
+        /* Reax -> */  Mecx, ctx_PARAM(PTR))
 
 /******************************************************************************/
 /********************************   RAY INIT   ********************************/
@@ -1065,7 +1093,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjxx_rm(Reax, Mebp, inf_FRM_H,
                  LT_x, YY_ini)
 
-        jmpxx_lb(fetch_end)
+        jmpxx_lb(YY_out)
 
     LBL(YY_ini)
 
@@ -1362,30 +1390,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addxx_ri(Reax, IB((P-1)*4))
         movwx_ld(Reax, Oeax, PLAIN)
         arjwx_ld(Reax, Mebx, srf_SRF_P(PTR),
-        orr_x,   EZ_x, OO_end)
+        orr_x,   NZ_x, OO_trl)
+
+        jmpxx_lb(OO_end)
+
+    LBL(OO_trl)
 
 #endif /* RT_FEAT_TRANSFORM_ARRAY */
 
         jmpxx_mm(Mebx, srf_SRF_P(PTR))
-
-/******************************************************************************/
-    LBL(fetch_ptr)
-
-        jmpxx_lb(fetch_PL_ptr)
-
-    LBL(fetch_mat)
-
-        jmpxx_lb(fetch_PL_mat)
-
-    LBL(fetch_clp)
-
-#if RT_FEAT_CLIPPING_CUSTOM
-
-        jmpxx_lb(fetch_PL_clp)
-
-#endif /* RT_FEAT_CLIPPING_CUSTOM */
-
-        jmpxx_lb(fetch_end)
 
 /******************************************************************************/
 /********************************   CLIPPING   ********************************/
@@ -3337,12 +3350,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /**********************************   PLANE   *********************************/
 /******************************************************************************/
 
-    LBL(fetch_PL_ptr)
-
-        label_st(PL_ptr, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XPL_P(PTR))
-        jmpxx_lb(fetch_TP_ptr)
-
     LBL(PL_ptr)
 
 #if RT_QUAD_DEBUG == 1
@@ -3420,12 +3427,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(OO_end)
 
 /******************************************************************************/
-    LBL(fetch_PL_mat)
-
-        label_st(PL_mat, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XPL_P(SRF))
-        jmpxx_lb(fetch_TP_mat)
-
     LBL(PL_mat)
 
         FETCH_PROP()                            /* Xmm7  <- tside */
@@ -3485,12 +3486,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
 #if RT_FEAT_CLIPPING_CUSTOM
 
-    LBL(fetch_PL_clp)
-
-        label_st(PL_clp, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XPL_P(CLP))
-        jmpxx_lb(fetch_TP_clp)
-
     LBL(PL_clp)
 
         INDEX_AXIS(RT_K)                        /* eax   <-     k */
@@ -3508,12 +3503,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
 /********************************   TWO-PLANE   *******************************/
 /******************************************************************************/
-
-    LBL(fetch_TP_ptr)
-
-        label_st(TP_ptr, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XTP_P(PTR))
-        jmpxx_lb(fetch_QD_ptr)
 
     LBL(TP_ptr)
 
@@ -3579,12 +3568,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(QD_rts)                        /* quadric  roots */
 
 /******************************************************************************/
-    LBL(fetch_TP_mat)
-
-        label_st(TP_mat, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XTP_P(SRF))
-        jmpxx_lb(fetch_QD_mat)
-
     LBL(TP_mat)
 
         FETCH_PROP()                            /* Xmm7  <- tside */
@@ -3646,12 +3629,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
 #if RT_FEAT_CLIPPING_CUSTOM
 
-    LBL(fetch_TP_clp)
-
-        label_st(TP_clp, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XTP_P(CLP))
-        jmpxx_lb(fetch_QD_clp)
-
     LBL(TP_clp)
 
         movwx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iecx */
@@ -3688,12 +3665,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
 /*********************************   QUADRIC   ********************************/
 /******************************************************************************/
-
-    LBL(fetch_QD_ptr)
-
-        label_st(QD_ptr, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XQD_P(PTR))
-        jmpxx_lb(fetch_mat)
 
     LBL(QD_ptr)
 
@@ -4155,12 +4126,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_mm(Mebx, srf_SRF_P(SRF))          /* material redirect */
 
 /******************************************************************************/
-    LBL(fetch_QD_mat)
-
-        label_st(QD_mat, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XQD_P(SRF))
-        jmpxx_lb(fetch_clp)
-
     LBL(QD_mat)
 
         FETCH_PROP()                            /* Xmm7  <- tside */
@@ -4226,12 +4191,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
 #if RT_FEAT_CLIPPING_CUSTOM
 
-    LBL(fetch_QD_clp)
-
-        label_st(QD_clp, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XQD_P(CLP))
-        jmpxx_lb(fetch_end)
-
     LBL(QD_clp)
 
         movwx_ld(Reax, Mebx, srf_A_SGN(RT_L*4)) /* Reax is used in Iecx */
@@ -4293,12 +4252,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
 /********************************   HOR SCAN   ********************************/
 /******************************************************************************/
-
-    LBL(XX_set)
-
-        label_st(XX_end, /* -> Reax */
-        /* Reax -> */  Mecx, ctx_PARAM(PTR))
-        jmpxx_lb(XX_ret)
 
     LBL(XX_end)
 
@@ -4502,7 +4455,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         jmpxx_lb(YY_cyc)
 
-    LBL(fetch_end)
+    LBL(YY_out)
 
     ASM_LEAVE(s_inf)
 
