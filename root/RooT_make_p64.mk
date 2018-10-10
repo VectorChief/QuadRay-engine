@@ -127,7 +127,7 @@ RooT.p64f64Lp9:
 
 
 # Prerequisites for the build:
-# native-compiler for 64-bit Power is installed and in the PATH variable.
+# native-compiler for 64-bit POWER is installed and in the PATH variable.
 # sudo apt-get install g++ libxext-dev (on POWER8 host or QEMU system mode)
 # (recent g++-5-powerpc64le series target POWER8 and don't work well with -O3)
 #
