@@ -6,7 +6,7 @@ allowing single assembler code to be compatible with different processor
 architectures, thus reducing the need to maintain multiple parallel versions.
 
 At present, Intel SSE/SSE2/SSE4 and AVX/AVX2/AVX-512 (32/64-bit x86 ISAs),
-ARMv7 NEON/NEONv2, ARMv8 AArch32 NEON and AArch64 NEON (32/64-bit ARM ISAs),
+ARMv7 NEON/NEONv2, ARMv8 AArch32 and AArch64 NEON, SVE (32/64-bit ARM ISAs),
 MIPS 32/64-bit r5/r6 MSA and POWER 32/64-bit VMX/VSX (little/big-endian ISAs)
 are mostly implemented (/w horizontal reductions) although scalar improvements,
 wider SIMD vectors with zeroing/merging predicates in 3/4-operand instructions,
@@ -28,7 +28,7 @@ RooT demo features:
  - Multi-threading support with core-count (df: 120 threads)
  - Multi-group affinity for Windows threading (> 64 threads)
  - Fullscreen support on Linux and Windows (-w 0)
- - Offscreen rendering support for benchmarking
+ - Offscreen rendering support for benchmarking (-o)
  - Refer to VERSION file (section 0.6.7) for cli options
 
 QuadRay core features:
