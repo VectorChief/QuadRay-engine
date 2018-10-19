@@ -45,14 +45,14 @@ LIB_LIST =                                  \
 build: core_test_x64_32 core_test_x64_64 core_test_x64f32 core_test_x64f64
 
 strip:
-	x86_64-linux-gnu-strip core_test.x64*
+	strip core_test.x64*
 
 clean:
 	rm core_test.x64*
 
 
 core_test_x64_32:
-	x86_64-linux-gnu-g++ -O3 -g -static \
+	g++ -O3 -g \
         -DRT_LINUX -DRT_X64 -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
         -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
@@ -61,7 +61,7 @@ core_test_x64_32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.x64_32
 
 core_test_x64_64:
-	x86_64-linux-gnu-g++ -O3 -g -static \
+	g++ -O3 -g \
         -DRT_LINUX -DRT_X64 -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
         -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
@@ -70,7 +70,7 @@ core_test_x64_64:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.x64_64
 
 core_test_x64f32:
-	x86_64-linux-gnu-g++ -O3 -g -static \
+	g++ -O3 -g \
         -DRT_LINUX -DRT_X64 -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
         -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
@@ -79,7 +79,7 @@ core_test_x64f32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.x64f32
 
 core_test_x64f64:
-	x86_64-linux-gnu-g++ -O3 -g -static \
+	g++ -O3 -g \
         -DRT_LINUX -DRT_X64 -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
         -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
