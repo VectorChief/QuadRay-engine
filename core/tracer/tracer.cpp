@@ -538,19 +538,43 @@
 #define CHECK_SHAD(lb) /* destroys Reax, Xmm7 */                            \
         CHECK_FLAG(lb, PARAM, RT_FLAG_SHAD)                                 \
         CHECK_PROP(lb##_lgt, RT_PROP_LIGHT)                                 \
-        jmpxx_mm(Mecx, ctx_LOCAL(PTR))                                      \
+        movwx_ld(Reax, Mecx, ctx_LOCAL(PTR))                                \
+        cmjwx_ri(Reax, IB(1),                                               \
+                 EQ_x, SR_rt1)                                              \
+        cmjwx_ri(Reax, IB(2),                                               \
+                 EQ_x, SR_rt2)                                              \
+        cmjwx_ri(Reax, IB(4),                                               \
+                 EQ_x, SR_rt4)                                              \
+        cmjwx_ri(Reax, IB(6),                                               \
+                 EQ_x, SR_rt6)                                              \
     LBL(lb##_lgt)                                                           \
         CHECK_PROP(lb##_trn, RT_PROP_TRANSP)                                \
         CHECK_PROP(lb##_rfr, RT_PROP_REFRACT)                               \
         jmpxx_lb(lb##_trn)                                                  \
     LBL(lb##_rfr)                                                           \
-        jmpxx_mm(Mecx, ctx_LOCAL(PTR))                                      \
+        movwx_ld(Reax, Mecx, ctx_LOCAL(PTR))                                \
+        cmjwx_ri(Reax, IB(1),                                               \
+                 EQ_x, SR_rt1)                                              \
+        cmjwx_ri(Reax, IB(2),                                               \
+                 EQ_x, SR_rt2)                                              \
+        cmjwx_ri(Reax, IB(4),                                               \
+                 EQ_x, SR_rt4)                                              \
+        cmjwx_ri(Reax, IB(6),                                               \
+                 EQ_x, SR_rt6)                                              \
     LBL(lb##_trn)                                                           \
         movpx_ld(Xmm7, Mecx, ctx_C_BUF(0))                                  \
         orrpx_ld(Xmm7, Mecx, ctx_TMASK(0))                                  \
         movpx_st(Xmm7, Mecx, ctx_C_BUF(0))                                  \
         CHECK_MASK(OO_out, FULL, Xmm7)                                      \
-        jmpxx_mm(Mecx, ctx_LOCAL(PTR))                                      \
+        movwx_ld(Reax, Mecx, ctx_LOCAL(PTR))                                \
+        cmjwx_ri(Reax, IB(1),                                               \
+                 EQ_x, SR_rt1)                                              \
+        cmjwx_ri(Reax, IB(2),                                               \
+                 EQ_x, SR_rt2)                                              \
+        cmjwx_ri(Reax, IB(4),                                               \
+                 EQ_x, SR_rt4)                                              \
+        cmjwx_ri(Reax, IB(6),                                               \
+                 EQ_x, SR_rt6)                                              \
     LBL(lb)
 
 /*
@@ -970,17 +994,16 @@
 
 /*
  * Replicate subroutine calling behaviour
- * by saving a given return address "lb" in the context's
+ * by saving a given return address tag "tg" in the context's
  * local PTR field, then jumping to the destination address "to".
- * The destination code segment uses saved return address
+ * The destination code segment uses saved return address tag
  * to jump back after processing is finished. Parameters are
  * passed via context's local FLG field.
  */
-#define SUBROUTINE(lb, to) /* destroys Reax */                              \
-        label_st(lb, /* -> Reax */                                          \
-        /* Reax -> */  Mecx, ctx_LOCAL(PTR))                                \
+#define SUBROUTINE(tg, to) /* destroys Reax */                              \
+        movwx_mi(Mecx, ctx_LOCAL(PTR), IB(tg))                              \
         jmpxx_lb(to)                                                        \
-    LBL(lb)
+    LBL(SR_rt##tg)
 
 /******************************************************************************/
 /*********************************   RENDER   *********************************/
@@ -1928,7 +1951,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_CLIPPING_CUSTOM */
 
-        jmpxx_mm(Mecx, ctx_LOCAL(PTR))
+        movwx_ld(Reax, Mecx, ctx_LOCAL(PTR))
+
+        cmjwx_ri(Reax, IB(0),
+                 EQ_x, SR_rt0)
+        cmjwx_ri(Reax, IB(3),
+                 EQ_x, SR_rt3)
+        cmjwx_ri(Reax, IB(5),
+                 EQ_x, SR_rt5)
 
 /******************************************************************************/
 /********************************   MATERIAL   ********************************/
@@ -3207,7 +3237,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movxx_ld(Resi, Mecx, ctx_LOCAL(LST))
 
-        jmpxx_mm(Mecx, ctx_LOCAL(PTR))
+        movwx_ld(Reax, Mecx, ctx_LOCAL(PTR))
+
+        cmjwx_ri(Reax, IB(1),
+                 EQ_x, SR_rt1)
+        cmjwx_ri(Reax, IB(2),
+                 EQ_x, SR_rt2)
+        cmjwx_ri(Reax, IB(4),
+                 EQ_x, SR_rt4)
+        cmjwx_ri(Reax, IB(6),
+                 EQ_x, SR_rt6)
 
 /******************************************************************************/
 /**********************************   ARRAY   *********************************/
@@ -3362,7 +3401,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm4, Mecx, ctx_T_VAL(0))      /* t_rt1 -> T_VAL */
 
         /* clipping */
-        SUBROUTINE(PL_cp1, CC_clp)
+        SUBROUTINE(0, CC_clp)
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
@@ -3381,7 +3420,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
-        SUBROUTINE(PL_mt1, PL_mat)
+        SUBROUTINE(1, PL_mat)
 
 /******************************************************************************/
     LBL(PL_rt2)
@@ -3394,7 +3433,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* material */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
-        SUBROUTINE(PL_mt2, PL_mat)
+        SUBROUTINE(2, PL_mat)
 
         jmpxx_lb(OO_end)
 
@@ -3982,12 +4021,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
 
         /* clipping */
-        SUBROUTINE(QD_cp1, CC_clp)
+        SUBROUTINE(3, CC_clp)
         CHECK_MASK(QD_rs2, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
-        SUBROUTINE(QD_mt1, QD_mtr)
+        SUBROUTINE(4, QD_mtr)
 
         /* side count check */
         cmjwx_mz(Mecx, ctx_XMISC(FLG),
@@ -4064,12 +4103,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
 
         /* clipping */
-        SUBROUTINE(QD_cp2, CC_clp)
+        SUBROUTINE(5, CC_clp)
         CHECK_MASK(QD_rs1, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
         /* material */
-        SUBROUTINE(QD_mt2, QD_mtr)
+        SUBROUTINE(6, QD_mtr)
 
         /* side count check */
         cmjwx_mz(Mecx, ctx_XMISC(FLG),
