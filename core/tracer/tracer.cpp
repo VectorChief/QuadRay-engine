@@ -1021,8 +1021,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addxx_ri(Reax, IM(RT_SIMD_QUADS*16))
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
 
-        label_st(XX_end, /* -> Reax */
-        /* Reax -> */  Mecx, ctx_PARAM(PTR))
+        movwx_mi(Mecx, ctx_PARAM(PTR), IB(0))
 
 /******************************************************************************/
 /********************************   RAY INIT   ********************************/
@@ -2203,8 +2202,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
         movxx_st(Redi, Mecx, ctx_PARAM(LST))    /* save light/shadow list */
         movxx_st(Rebx, Mecx, ctx_PARAM(OBJ))    /* originating surface */
-        label_st(LT_ret, /* -> Reax */
-        /* Reax -> */  Mecx, ctx_PARAM(PTR))    /* return ptr */
+        movwx_mi(Mecx, ctx_PARAM(PTR), IB(1))   /* mark LT_ret with tag 1 */
         movpx_st(Xmm0, Mecx, ctx_WMASK)         /* tmask -> WMASK */
 
         movpx_ld(Xmm0, Medx, lgt_T_MAX)         /* tmp_v <- T_MAX */
@@ -2810,8 +2808,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
         movxx_st(Redx, Mecx, ctx_PARAM(LST))    /* save material */
         movxx_st(Rebx, Mecx, ctx_PARAM(OBJ))    /* originating surface */
-        label_st(TR_ret, /* -> Reax */
-        /* Reax -> */  Mecx, ctx_PARAM(PTR))    /* return pointer */
+        movwx_mi(Mecx, ctx_PARAM(PTR), IB(3))   /* mark TR_ret with tag 3 */
         movpx_st(Xmm0, Mecx, ctx_WMASK)         /* tmask -> WMASK */
 
         movxx_ld(Redx, Mebp, inf_CAM)
@@ -3118,8 +3115,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
         movxx_st(Redx, Mecx, ctx_PARAM(LST))    /* save material */
         movxx_st(Rebx, Mecx, ctx_PARAM(OBJ))    /* originating surface */
-        label_st(RF_ret, /* -> Reax */
-        /* Reax -> */  Mecx, ctx_PARAM(PTR))    /* return pointer */
+        movwx_mi(Mecx, ctx_PARAM(PTR), IB(2))   /* mark RF_ret with tag 2 */
         movpx_st(Xmm0, Mecx, ctx_WMASK)         /* tmask -> WMASK */
 
         movxx_ld(Redx, Mebp, inf_CAM)
@@ -4230,7 +4226,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(OO_out)
 
-        jmpxx_mm(Mecx, ctx_PARAM(PTR))
+        movwx_ld(Reax, Mecx, ctx_PARAM(PTR))
+
+        cmjwx_ri(Reax, IB(0),
+                 EQ_x, XX_end)
+        cmjwx_ri(Reax, IB(1),
+                 EQ_x, LT_ret)
+        cmjwx_ri(Reax, IB(2),
+                 EQ_x, RF_ret)
+        cmjwx_ri(Reax, IB(3),
+                 EQ_x, TR_ret)
 
 /******************************************************************************/
 /********************************   HOR SCAN   ********************************/
