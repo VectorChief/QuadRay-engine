@@ -714,14 +714,14 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
 
     s_srf = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
     memset(s_srf, 0, ssize);
-    s_srf->srf_p[3] = (rt_pntr)(rt_word)tag;
+    s_srf->srf_t[3] = tag;
 
 #if 0 /* surface's misc pointers description */
 
-    s_srf->srf_p[0];    /* surf ptr, filled in update0 */
-    s_srf->srf_p[1];    /* norm ptr, filled in update0 */
-    s_srf->srf_p[2];    /* clip ptr, filled in update0 */
-    s_srf->srf_p[3];    /* surf tag */
+    s_srf->srf_t[0];    /* surf ptr, filled in update0 */
+    s_srf->srf_t[1];    /* norm ptr, filled in update0 */
+    s_srf->srf_t[2];    /* clip ptr, filled in update0 */
+    s_srf->srf_t[3];    /* surf tag */
 
     s_srf->msc_p[0];    /* screen tiles */
     s_srf->msc_p[1];    /* surf flg, filled in update0 */
@@ -1543,7 +1543,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
 
     s_inb = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
     memset(s_inb, 0, ssize);
-    s_inb->srf_p[3] = (rt_pntr)RT_TAG_SURFACE_MAX;
+    s_inb->srf_t[3] = RT_TAG_SURFACE_MAX;
 
     s_inb->mat_p[0] = outer->s_mat;
     s_inb->mat_p[1] = (rt_pntr)(rt_word)outer->props;
@@ -1561,7 +1561,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
 
     s_bvb = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
     memset(s_bvb, 0, ssize);
-    s_bvb->srf_p[3] = (rt_pntr)RT_TAG_SURFACE_MAX;
+    s_bvb->srf_t[3] = RT_TAG_SURFACE_MAX;
 
     s_bvb->mat_p[0] = outer->s_mat;
     s_bvb->mat_p[1] = (rt_pntr)(rt_word)outer->props;

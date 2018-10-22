@@ -82,17 +82,17 @@
  * Byte-offsets within SIMD-field
  * for packed scalar fields.
  */
-#define PTR   0x00 /* LOCAL, PARAM, MAT_P, SRF_P, XMISC */
+#define PTR   0x00 /* LOCAL, PARAM, MAT_P, SRF_T, XMISC */
 #define LGT   0x00 /* LST_P */
 
 #define FLG   0x04 /* LOCAL, PARAM, MAT_P, MSC_P, XMISC */
-#define SRF   0x04 /* LST_P, SRF_P */
+#define SRF   0x04 /* LST_P, SRF_T */
 
 #define LST   0x08 /* LOCAL, PARAM */
-#define CLP   0x08 /* MSC_P, SRF_P */
+#define CLP   0x08 /* MSC_P, SRF_T */
 
 #define OBJ   0x0C /* LOCAL, PARAM, MSC_P */
-#define TAG   0x0C /* SRF_P, XMISC */
+#define TAG   0x0C /* SRF_T, XMISC */
 
 /*
  * Manual register allocation table
@@ -1190,7 +1190,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM_ARRAY
 
-        cmjxx_mz(Mebx, srf_SRF_P(TAG),
+        cmjwx_mz(Mebx, srf_SRF_T(TAG),
                  LT_n, OO_dff)                  /* signed comparison */
 
         /* ctx_LOCAL(OBJ) holds trnode's
@@ -1296,7 +1296,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM_ARRAY
 
-        cmjxx_mz(Mebx, srf_SRF_P(TAG),
+        cmjwx_mz(Mebx, srf_SRF_T(TAG),
                  GE_n, OO_srf)                  /* signed comparison */
 
         movpx_st(Xmm4, Mecx, ctx_DFF_X)
@@ -1383,14 +1383,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_BOUND_VOL_ARRAY */
 
+        movwx_ld(Reax, Mebx, srf_SRF_T(PTR))
+
 #if RT_FEAT_TRANSFORM_ARRAY
 
         /* skip trnode elements from the list */
-        adrxx_ld(Reax, Mebx, srf_SRF_P(PTR))
-        addxx_ri(Reax, IB((P-1)*4))
-        movwx_ld(Reax, Oeax, PLAIN)
-        arjwx_ld(Reax, Mebx, srf_SRF_P(PTR),
-        orr_x,   NZ_x, OO_trl)
+        cmjwx_rz(Reax,
+                 NE_x, OO_trl)
 
         jmpxx_lb(OO_end)
 
@@ -1398,7 +1397,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_TRANSFORM_ARRAY */
 
-        jmpxx_mm(Mebx, srf_SRF_P(PTR))
+        cmjwx_ri(Reax, IB(1),
+                 EQ_x, PL_ptr)
+        cmjwx_ri(Reax, IB(2),
+                 EQ_x, QD_ptr)
+        cmjwx_ri(Reax, IB(3),
+                 EQ_x, TP_ptr)
 
 /******************************************************************************/
 /********************************   CLIPPING   ********************************/
@@ -1777,7 +1781,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM_ARRAY
 
-        cmjxx_mz(Mebx, srf_SRF_P(TAG),
+        cmjwx_mz(Mebx, srf_SRF_T(TAG),
                  LT_n, CC_arr)                  /* signed comparison */
 
         /* Redx holds trnode's
@@ -1908,7 +1912,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_TRANSFORM_ARRAY
 
-        cmjxx_mz(Mebx, srf_SRF_P(TAG),
+        cmjwx_mz(Mebx, srf_SRF_T(TAG),
                  GE_n, CC_srf)                  /* signed comparison */
 
         movpx_st(Xmm4, Mecx, ctx_NRM_X)
@@ -1936,7 +1940,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(CC_trm)
 
-        jmpxx_mm(Mebx, srf_SRF_P(CLP))
+        movwx_ld(Reax, Mebx, srf_SRF_T(CLP))
+
+        cmjwx_ri(Reax, IB(1),
+                 EQ_x, PL_clp)
+        cmjwx_ri(Reax, IB(2),
+                 EQ_x, QD_clp)
+        cmjwx_ri(Reax, IB(3),
+                 EQ_x, TP_clp)
 
     LBL(CC_ret)
 
@@ -2816,7 +2827,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_SHOW_BOUND
 
-        cmjxx_mi(Mebx, srf_SRF_P(TAG), IB(RT_TAG_SURFACE_MAX),
+        cmjwx_mi(Mebx, srf_SRF_T(TAG), IB(RT_TAG_SURFACE_MAX),
                  NE_x, TR_arr)
 
         movxx_ld(Resi, Mebp, inf_LST)
@@ -3308,7 +3319,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjxx_rz(Redx,
                  EQ_x, AR_shb)
 
-        cmjxx_mi(Medx, srf_SRF_P(TAG), IB(RT_TAG_SURFACE_MAX),
+        cmjwx_mi(Medx, srf_SRF_T(TAG), IB(RT_TAG_SURFACE_MAX),
                  NE_x, AR_shn)
 
     LBL(AR_shb)
@@ -4118,12 +4129,19 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_SHOW_BOUND
 
-        cmjxx_mi(Mebx, srf_SRF_P(TAG), IB(RT_TAG_SURFACE_MAX),
+        cmjwx_mi(Mebx, srf_SRF_T(TAG), IB(RT_TAG_SURFACE_MAX),
                  EQ_x, QD_mat)
 
 #endif /* RT_SHOW_BOUND */
 
-        jmpxx_mm(Mebx, srf_SRF_P(SRF))          /* material redirect */
+        movwx_ld(Reax, Mebx, srf_SRF_T(SRF))    /* material redirect */
+
+        cmjwx_ri(Reax, IB(1),
+                 EQ_x, PL_mat)
+        cmjwx_ri(Reax, IB(2),
+                 EQ_x, QD_mat)
+        cmjwx_ri(Reax, IB(3),
+                 EQ_x, TP_mat)
 
 /******************************************************************************/
     LBL(QD_mat)
@@ -4835,39 +4853,38 @@ rt_void plot_fresnel_metal_slow(rt_SIMD_INFOP *s_inf)
  */
 rt_void rt_Platform::update0(rt_SIMD_SURFACE *s_srf)
 {
-    rt_ui32 tag = (rt_ui32)(rt_word)s_srf->srf_p[3];
+    rt_ui32 tag = (rt_ui32)(rt_word)s_srf->srf_t[3];
 
     if (tag >= RT_TAG_SURFACE_MAX)
     {
         return;
     }
 
-    /* save surface's entry points from local pointer tables
-     * filled during backend's one-time initialization */
-    s_srf->srf_p[0] = t_ptr[tag > RT_TAG_PLANE ?
-                            tag == RT_TAG_HYPERCYLINDER &&
-                            s_srf->sci_w[0] == 0.0f ?
-                            RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
+    /* set surface's tags */
+    s_srf->srf_t[0] = tag > RT_TAG_PLANE ?
+                      tag == RT_TAG_HYPERCYLINDER &&
+                      s_srf->sci_w[0] == 0.0f ?
+                      3 : 2 : 1;
 
-    s_srf->srf_p[1] = t_mat[tag > RT_TAG_PLANE ?
-                            tag != RT_TAG_PARABOLOID &&
-                            tag != RT_TAG_PARACYLINDER &&
-                            tag != RT_TAG_HYPERPARABOLOID ?
-                            RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
+    s_srf->srf_t[1] = tag > RT_TAG_PLANE ?
+                      tag != RT_TAG_PARABOLOID &&
+                      tag != RT_TAG_PARACYLINDER &&
+                      tag != RT_TAG_HYPERPARABOLOID ?
+                      3 : 2 : 1;
 
-    s_srf->srf_p[2] = t_clp[tag > RT_TAG_PLANE ?
-                            tag != RT_TAG_PARABOLOID &&
-                            tag != RT_TAG_PARACYLINDER &&
-                            tag != RT_TAG_HYPERPARABOLOID ?
-                            RT_TAG_PLANE + 1 : RT_TAG_PLANE + 2 : tag];
+    s_srf->srf_t[2] = tag > RT_TAG_PLANE ?
+                      tag != RT_TAG_PARABOLOID &&
+                      tag != RT_TAG_PARACYLINDER &&
+                      tag != RT_TAG_HYPERPARABOLOID ?
+                      3 : 2 : 1;
 
-    s_srf->msc_p[1] =       tag == RT_TAG_CONE ||
-                            tag == RT_TAG_HYPERBOLOID &&
-                            s_srf->sci_w[0] == 0.0f ?
-                            (rt_pntr)1 :
-                            tag == RT_TAG_HYPERCYLINDER &&
-                            s_srf->sci_w[0] == 0.0f ?
-                            (rt_pntr)2 : (rt_pntr)0;
+    s_srf->msc_p[1] = tag == RT_TAG_CONE ||
+                      tag == RT_TAG_HYPERBOLOID &&
+                      s_srf->sci_w[0] == 0.0f ?
+                      (rt_pntr)1 :
+                      tag == RT_TAG_HYPERCYLINDER &&
+                      s_srf->sci_w[0] == 0.0f ?
+                      (rt_pntr)2 : (rt_pntr)0;
 }
 
 /******************************************************************************/

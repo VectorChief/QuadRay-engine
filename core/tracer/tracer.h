@@ -852,19 +852,19 @@ struct rt_SIMD_SURFACE
     rt_real scj_z[S];
 #define srf_SCJ_Z           DP(Q*0x230)
 
-    /* misc pointers */
+    /* misc tags/pointers */
 
-    rt_pntr srf_p[4];                               /* TAG == 0xC */
-#define srf_SRF_P(nx)       DP(Q*0x240+0x000*P+0 + nx*P + (nx/0xC)*E)
+    rt_si32 srf_t[4];
+#define srf_SRF_T(nx)       DP(Q*0x240 + nx)
 
     rt_pntr msc_p[4];
-#define srf_MSC_P(nx)       DP(Q*0x240+0x010*P+E + nx*P)
+#define srf_MSC_P(nx)       DP(Q*0x240+0x010+0x000*P+E + nx*P)
 
     rt_pntr mat_p[4];
-#define srf_MAT_P(nx)       DP(Q*0x240+0x020*P+E + nx*P)
+#define srf_MAT_P(nx)       DP(Q*0x240+0x010+0x010*P+E + nx*P)
 
     rt_pntr lst_p[4];
-#define srf_LST_P(nx)       DP(Q*0x240+0x030*P+E + nx*P)
+#define srf_LST_P(nx)       DP(Q*0x240+0x010+0x020*P+E + nx*P)
 
 };
 
