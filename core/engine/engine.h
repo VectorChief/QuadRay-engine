@@ -80,12 +80,6 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
     rt_si32             s_mask;
     rt_si32             s_mode;
 
-    /* tracer backend's pointer tables
-     * for quick entry point resolution */
-    rt_pntr             t_ptr[3];
-    rt_pntr             t_mat[3];
-    rt_pntr             t_clp[3];
-
     /* thread management functions */
     rt_FUNC_INIT        f_init;
     rt_FUNC_TERM        f_term;

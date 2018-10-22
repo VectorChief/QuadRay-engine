@@ -1008,41 +1008,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     ASM_ENTER(s_inf)
 
-        /* if CTX is NULL fetch surface solvers' entry points
-         * into local pointer tables used for target switches */
-        cmjxx_mz(Mebp, inf_CTX,
-                 NE_x, RT_ini)
-
-        label_st(PL_ptr, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XPL_P(PTR))
-        label_st(TP_ptr, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XTP_P(PTR))
-        label_st(QD_ptr, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XQD_P(PTR))
-
-
-        label_st(PL_mat, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XPL_P(SRF))
-        label_st(TP_mat, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XTP_P(SRF))
-        label_st(QD_mat, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XQD_P(SRF))
-
-#if RT_FEAT_CLIPPING_CUSTOM
-
-        label_st(PL_clp, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XPL_P(CLP))
-        label_st(TP_clp, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XTP_P(CLP))
-        label_st(QD_clp, /* -> Reax */
-        /* Reax -> */  Mebp, inf_XQD_P(CLP))
-
-#endif /* RT_FEAT_CLIPPING_CUSTOM */
-
-        jmpxx_lb(YY_out)
-
-    LBL(RT_ini)
-
         movxx_ld(Recx, Mebp, inf_CTX)
         movxx_ld(Redx, Mebp, inf_CAM)
 
@@ -4898,6 +4863,19 @@ rt_void rt_Platform::update0(rt_SIMD_SURFACE *s_srf)
 #endif /* (RT_POINTER - RT_ADDRESS) */
 
 /*
+ * When ASM sections are used together with non-trivial logic written in C/C++
+ * in the same function, optimizing compilers may produce inconsistent results
+ * with optimization levels higher than O0 (tested both clang and g++).
+ * Using separate functions for ASM and C/C++ resolves the issue.
+ */
+rt_void simd_version(rt_SIMD_INFOX *s_inf)
+{
+    ASM_ENTER(s_inf)
+        verxx_xx()
+    ASM_LEAVE(s_inf)
+}
+
+/*
  * Backend's global entry point (hence 0).
  * Set current runtime SIMD target with "simd" equal to
  * SIMD native-size (1,..,16) in 0th (lowest) byte
@@ -4921,9 +4899,7 @@ rt_si32 rt_Platform::switch0(rt_SIMD_INFOX *s_inf, rt_si32 simd)
 
 #endif /* (RT_POINTER - RT_ADDRESS) */
 
-    ASM_ENTER(s_inf)
-        verxx_xx()
-    ASM_LEAVE(s_inf)
+    simd_version(s_inf);
 
     s_mask = s_inf->ver;
 
@@ -4951,9 +4927,6 @@ rt_si32 rt_Platform::switch0(rt_SIMD_INFOX *s_inf, rt_si32 simd)
     }
 
     s_mode = mask;
-
-    s_inf->ctx = RT_NULL; /* <- force internal entry points re-fetching */
-    render0(s_inf); /* <- perform internal entry points re-fetching */
 
     simd = from_mask(mask);
 
@@ -5321,37 +5294,7 @@ rt_void rt_Platform::render0(rt_SIMD_INFOX *s_inf)
         }
 
 #endif /* RT_QUAD_DEBUG */
-
-        return;
     }
-
-    t_ptr[RT_TAG_PLANE]     = s_inf->xpl_p[0];
-    t_ptr[RT_TAG_PLANE + 1] = s_inf->xtp_p[0];
-    t_ptr[RT_TAG_PLANE + 2] = s_inf->xqd_p[0];
-
-    t_mat[RT_TAG_PLANE]     = s_inf->xpl_p[1];
-    t_mat[RT_TAG_PLANE + 1] = s_inf->xtp_p[1];
-    t_mat[RT_TAG_PLANE + 2] = s_inf->xqd_p[1];
-
-    t_clp[RT_TAG_PLANE]     = s_inf->xpl_p[2];
-    t_clp[RT_TAG_PLANE + 1] = s_inf->xtp_p[2];
-    t_clp[RT_TAG_PLANE + 2] = s_inf->xqd_p[2];
-
-#if RT_DEBUG >= 2
-
-    RT_LOGI("PL ptr = %p\n", s_inf->xpl_p[0]);
-    RT_LOGI("TP ptr = %p\n", s_inf->xtp_p[0]);
-    RT_LOGI("QD ptr = %p\n", s_inf->xqd_p[0]);
-
-    RT_LOGI("PL mat = %p\n", s_inf->xpl_p[1]);
-    RT_LOGI("TP mat = %p\n", s_inf->xtp_p[1]);
-    RT_LOGI("QD mat = %p\n", s_inf->xqd_p[1]);
-
-    RT_LOGI("PL clp = %p\n", s_inf->xpl_p[2]);
-    RT_LOGI("TP clp = %p\n", s_inf->xtp_p[2]);
-    RT_LOGI("QD clp = %p\n", s_inf->xqd_p[2]);
-
-#endif /* RT_DEBUG */
 }
 
 #endif /* RT_SIMD_CODE */

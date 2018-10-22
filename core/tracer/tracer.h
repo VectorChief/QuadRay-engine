@@ -204,22 +204,8 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr tls;
 #define inf_TLS             DP(Q*0x100+0x050*P+E)
 
-    rt_word pad11[7];
+    rt_word pad11[43];
 #define inf_PAD11           DP(Q*0x100+0x054*P+E)
-
-    /* surface entry points */
-
-    rt_pntr xpl_p[4];
-#define inf_XPL_P(nx)       DP(Q*0x100+0x070*P + nx*P)
-
-    rt_pntr xtp_p[4];
-#define inf_XTP_P(nx)       DP(Q*0x100+0x080*P + nx*P)
-
-    rt_pntr xqd_p[4];
-#define inf_XQD_P(nx)       DP(Q*0x100+0x090*P + nx*P)
-
-    rt_word pad12[4*6];
-#define inf_PAD12           DP(Q*0x100+0x0A0*P)
 
 #if RT_DEBUG >= 1
 
