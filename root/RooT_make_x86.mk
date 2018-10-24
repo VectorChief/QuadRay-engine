@@ -46,7 +46,7 @@ clean:
 
 
 RooT_x86:
-	g++ -O3 -g -pthread -no-pie -m32 \
+	g++ -O3 -g -pthread -m32 \
         -DRT_LINUX -DRT_X86 -DRT_128=1+2+4+8 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -79,11 +79,11 @@ RooT.x86:
 # make -f RooT_make_x86.mk
 # ./RooT.x86
 
-# g++ compilation works on Debian/Ubuntu without PIE-mode (-no-pie >= g++-5)
 # clang compilation takes much longer prior to 3.8 (older Ubuntu 14.04/Mint 17)
 # sudo apt-get update (on Ubuntu add "universe" to "main" /etc/apt/sources.list)
 # sudo apt-get install clang libxext-dev (on x86 host) or if libs are present:
 # sudo apt-get install clang g++-multilib libxext-dev:i386 (on x86_64, Mint 18)
+# (installation of g++-multilib may remove g++ cross-compilers on some distros)
 # make -f RooT_make_x86.mk clang
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above

@@ -41,7 +41,7 @@ clean:
 
 
 RooT_m64_32Lr6:
-	g++ -O3 -g -pthread -no-pie -mips64r6 -mabi=64 -mmsa \
+	g++ -O3 -g -pthread -mips64r6 -mabi=64 -mmsa \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -49,7 +49,7 @@ RooT_m64_32Lr6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.m64_32Lr6
 
 RooT_m64_64Lr6:
-	g++ -O3 -g -pthread -no-pie -mips64r6 -mabi=64 -mmsa \
+	g++ -O3 -g -pthread -mips64r6 -mabi=64 -mmsa \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -57,7 +57,7 @@ RooT_m64_64Lr6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.m64_64Lr6
 
 RooT_m64f32Lr6:
-	g++ -O3 -g -pthread -no-pie -mips64r6 -mabi=64 -mmsa \
+	g++ -O3 -g -pthread -mips64r6 -mabi=64 -mmsa \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -65,7 +65,7 @@ RooT_m64f32Lr6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.m64f32Lr6
 
 RooT_m64f64Lr6:
-	g++ -O3 -g -pthread -no-pie -mips64r6 -mabi=64 -mmsa \
+	g++ -O3 -g -pthread -mips64r6 -mabi=64 -mmsa \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -130,11 +130,6 @@ RooT.m64f64Lr6:
 # ./RooT.m64f32Lr6 (on I6400 host or QEMU system mode)
 # (hasn't been verified yet due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
-
-# g++ on Ubuntu 16.10++/Debian 9 has PIE-by-default/link-errors => use -no-pie
-# http://wiki.ubuntu.com/SecurityTeam/PIE
-# http://wiki.debian.org/Hardening/PIEByDefaultTransition
-# http://www.phoronix.com/scan.php?page=news_item&px=Ubuntu-17.10-PIE-SecureBoot
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override

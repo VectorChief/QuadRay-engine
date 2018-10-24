@@ -55,7 +55,7 @@ clean:
 
 
 RooT_x32:
-	g++ -O3 -g -pthread -no-pie -mx32 \
+	g++ -O3 -g -pthread -mx32 \
         -DRT_LINUX -DRT_X32 -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
         -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
@@ -90,10 +90,10 @@ RooT.x32:
 # ./RooT.x32
 # (hasn't been verified yet due to lack of available libs, SIMD/CORE tests pass)
 
-# g++ compilation works on Debian/Ubuntu without PIE-mode (-no-pie >= g++-5)
 # clang compilation takes much longer prior to 3.8 (older Ubuntu 14.04/Mint 17)
 # sudo apt-get update (on Ubuntu add "universe" to "main" /etc/apt/sources.list)
 # sudo apt-get install clang g++-multilib (plus X11/Xext libs for x32 ABI)
+# (installation of g++-multilib may remove g++ cross-compilers on some distros)
 # make -f RooT_make_x32.mk clang
 # (hasn't been verified yet due to lack of available libs, SIMD/CORE tests pass)
 

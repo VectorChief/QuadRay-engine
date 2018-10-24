@@ -41,7 +41,7 @@ clean:
 
 
 RooT_a32:
-	g++ -O3 -g -pthread -no-pie -mabi=ilp32 \
+	g++ -O3 -g -pthread -mabi=ilp32 \
         -DRT_LINUX -DRT_A32 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -74,7 +74,6 @@ RooT.a32:
 # ./RooT.a32 (on AArch64 host or QEMU system mode with ILP32 X11/Xext libs)
 # (hasn't been verified yet due to lack of available libs)
 
-# g++ compilation works on Devuan/openSUSE without PIE-mode (-no-pie >= g++-5)
 # clang compilation takes much longer prior to 3.8 (older Ubuntu 14.04/Mint 17)
 # sudo apt-get update (on Ubuntu add "universe" to "main" /etc/apt/sources.list)
 # sudo apt-get install clang g++-multilib (plus X11/Xext libs for ILP32 ABI)

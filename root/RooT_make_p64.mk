@@ -47,7 +47,7 @@ clean:
 
 
 RooT_p64_32Lp8:
-	g++ -O2 -g -pthread -no-pie \
+	g++ -O2 -g -pthread \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -55,7 +55,7 @@ RooT_p64_32Lp8:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_32Lp8
 
 RooT_p64_64Lp8:
-	g++ -O2 -g -pthread -no-pie \
+	g++ -O2 -g -pthread \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -63,7 +63,7 @@ RooT_p64_64Lp8:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_64Lp8
 
 RooT_p64f32Lp9:
-	g++ -O2 -g -pthread -no-pie \
+	g++ -O2 -g -pthread \
         -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -71,7 +71,7 @@ RooT_p64f32Lp9:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f32Lp9
 
 RooT_p64f64Lp9:
-	g++ -O2 -g -pthread -no-pie \
+	g++ -O2 -g -pthread \
         -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -138,16 +138,11 @@ RooT.p64f64Lp9:
 # (hasn't been verified yet due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
-# g++ on Ubuntu 16.10++/Debian 9 has PIE-by-default/link-errors => use -no-pie
-# http://wiki.ubuntu.com/SecurityTeam/PIE
-# http://wiki.debian.org/Hardening/PIEByDefaultTransition
-# http://www.phoronix.com/scan.php?page=news_item&px=Ubuntu-17.10-PIE-SecureBoot
-
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 # 512-bit SIMD is achieved by combining quads of 128-bit registers/instructions
-# For 30 256-bit VSX1/3 registers on POWER7/9 targets use (replace): RT_256=4+8
+# For 30 256-bit VSX2/3 registers on POWER8/9 targets use (replace): RT_256=4+8
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 

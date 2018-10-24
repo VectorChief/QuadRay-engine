@@ -40,7 +40,7 @@ clean:
 
 
 RooT_p32Bg4:
-	g++ -O3 -g -pthread -no-pie \
+	g++ -O3 -g -pthread \
         -DRT_LINUX -DRT_P32 -DRT_128=4 -DRT_256_R8=4 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -72,11 +72,6 @@ RooT.p32Bg4:
 # ./RooT.p32Bg4 (on G4 host or QEMU system mode)
 # (hasn't been verified yet due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
-
-# g++ on Ubuntu 16.10++/Debian 9 has PIE-by-default/link-errors => use -no-pie
-# http://wiki.ubuntu.com/SecurityTeam/PIE
-# http://wiki.debian.org/Hardening/PIEByDefaultTransition
-# http://www.phoronix.com/scan.php?page=news_item&px=Ubuntu-17.10-PIE-SecureBoot
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override

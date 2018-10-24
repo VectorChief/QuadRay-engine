@@ -49,7 +49,7 @@ clean:
 
 
 RooT_a64_32:
-	g++ -O3 -g -pthread -no-pie \
+	g++ -O3 -g -pthread \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -57,7 +57,7 @@ RooT_a64_32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64_32
 
 RooT_a64_64:
-	g++ -O3 -g -pthread -no-pie \
+	g++ -O3 -g -pthread \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -65,7 +65,7 @@ RooT_a64_64:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64_64
 
 RooT_a64f32:
-	g++ -O3 -g -pthread -no-pie \
+	g++ -O3 -g -pthread \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -73,7 +73,7 @@ RooT_a64f32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64f32
 
 RooT_a64f64:
-	g++ -O3 -g -pthread -no-pie \
+	g++ -O3 -g -pthread \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -81,7 +81,7 @@ RooT_a64f64:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64f64
 
 RooT_a64f32sve:
-	g++ -O3 -g -pthread -no-pie \
+	g++ -O3 -g -pthread \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -89,7 +89,7 @@ RooT_a64f32sve:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64f32sve
 
 RooT_a64f64sve:
-	g++ -O3 -g -pthread -no-pie \
+	g++ -O3 -g -pthread \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -179,7 +179,6 @@ RooT.a64f64sve:
 # (has been tested on Raspberry Pi 3 target host system with Devuan/openSUSE)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
-# g++ compilation works on Devuan/openSUSE without PIE-mode (-no-pie >= g++-5)
 # clang compilation takes much longer prior to 3.8 (older Ubuntu 14.04/Mint 17)
 # sudo apt-get update (on Ubuntu add "universe" to "main" /etc/apt/sources.list)
 # sudo apt-get install clang libxext-dev (on AArch64 host or QEMU system mode)
