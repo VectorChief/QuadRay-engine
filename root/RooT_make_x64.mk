@@ -7,7 +7,8 @@ INC_PATH =                                  \
         -I../data/materials/                \
         -I../data/objects/                  \
         -I../data/scenes/                   \
-        -I../data/textures/
+        -I../data/textures/                 \
+        -I/usr/X11/include/
 
 SRC_LIST =                                  \
         ../core/engine/engine.cpp           \
@@ -35,7 +36,8 @@ SRC_LIST =                                  \
         ../core/tracer/tracer_2K8v2_r8.cpp  \
         RooT_linux.cpp
 
-LIB_PATH =
+LIB_PATH =                                  \
+        -L/usr/X11/lib/
 
 LIB_LIST =                                  \
         -lm                                 \
@@ -146,6 +148,12 @@ RooT.x64f64:
 # native-compiler for x86_64 is installed and in the PATH variable.
 # sudo apt-get update
 # sudo apt-get install g++ libxext-dev (on x86_64 host)
+#
+# When building on MacOS install Command Line Tools and XQuartz first.
+# http://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
+# https://www.youtube.com/watch?v=uS4zTqfwSSQ  https://www.xquartz.org/
+# As pthread affinity features are not supported on a Mac, use "-t n" option
+# when running produced binary (below), where "n" is the number of CPU cores.
 #
 # Building/running RooT demo:
 # make -f RooT_make_x64.mk
