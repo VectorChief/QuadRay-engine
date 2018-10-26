@@ -61,6 +61,9 @@ macOS:
 	mv RooT.x64f32 RooT.o64f32
 	mv RooT.x64f64 RooT.o64f64
 
+macRD:
+	rm -fr RooT.x64*.dSYM/
+
 macRM:
 	rm RooT.o64*
 

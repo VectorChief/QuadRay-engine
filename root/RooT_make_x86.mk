@@ -49,6 +49,9 @@ clean:
 macOS:
 	mv RooT.x86 RooT.o86
 
+macRD:
+	rm -fr RooT.x86*.dSYM/
+
 macRM:
 	rm RooT.o86*
 

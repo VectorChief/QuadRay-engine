@@ -56,6 +56,9 @@ macOS:
 	mv core_test.x64f32 core_test.o64f32
 	mv core_test.x64f64 core_test.o64f64
 
+macRD:
+	rm -fr core_test.x64*.dSYM/
+
 macRM:
 	rm core_test.o64*
 

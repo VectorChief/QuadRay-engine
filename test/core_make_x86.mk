@@ -44,6 +44,9 @@ clean:
 macOS:
 	mv core_test.x86 core_test.o86
 
+macRD:
+	rm -fr core_test.x86*.dSYM/
+
 macRM:
 	rm core_test.o86*
 
