@@ -50,6 +50,15 @@ strip:
 clean:
 	rm core_test.x64*
 
+macOS:
+	mv core_test.x64_32 core_test.o64_32
+	mv core_test.x64_64 core_test.o64_64
+	mv core_test.x64f32 core_test.o64f32
+	mv core_test.x64f64 core_test.o64f64
+
+macRM:
+	rm core_test.o64*
+
 
 core_test_x64_32:
 	g++ -O3 -g \
@@ -91,6 +100,9 @@ core_test_x64f64:
 # Prerequisites for the build:
 # native-compiler for x86_64 is installed and in the PATH variable.
 # sudo apt-get install g++
+#
+# When building on macOS install Command Line Tools first.
+# http://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
 #
 # Building/running CORE test:
 # make -f core_make_x64.mk

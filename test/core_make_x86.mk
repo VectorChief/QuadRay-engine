@@ -41,6 +41,12 @@ strip:
 clean:
 	rm core_test.x86*
 
+macOS:
+	mv core_test.x86 core_test.o86
+
+macRM:
+	rm core_test.o86*
+
 
 core_test_x86:
 	g++ -O3 -g -m32 \
@@ -56,6 +62,9 @@ core_test_x86:
 # sudo apt-get install g++ (for x86 host)
 # sudo apt-get install g++-multilib (for x86_64 host)
 # (installation of g++-multilib removes any g++ cross-compilers)
+#
+# When building on macOS install Command Line Tools first.
+# http://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
 #
 # Building/running CORE test:
 # make -f core_make_x86.mk

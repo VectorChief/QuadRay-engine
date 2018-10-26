@@ -55,6 +55,15 @@ strip:
 clean:
 	rm RooT.x64*
 
+macOS:
+	mv RooT.x64_32 RooT.o64_32
+	mv RooT.x64_64 RooT.o64_64
+	mv RooT.x64f32 RooT.o64f32
+	mv RooT.x64f64 RooT.o64f64
+
+macRM:
+	rm RooT.o64*
+
 
 RooT_x64_32:
 	g++ -O3 -g -pthread \

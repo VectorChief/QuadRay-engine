@@ -46,6 +46,12 @@ strip:
 clean:
 	rm RooT.x86*
 
+macOS:
+	mv RooT.x86 RooT.o86
+
+macRM:
+	rm RooT.o86*
+
 
 RooT_x86:
 	g++ -O3 -g -pthread -m32 \
