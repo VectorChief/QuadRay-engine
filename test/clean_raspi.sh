@@ -8,6 +8,8 @@ make -f simd_make_arm.mk clean_rpiX
 make -f core_make_arm.mk clean_rpiX
 
 
+# RooT demo compilation requires Xext development library in addition to g++
+
 cd ../root
 
 make -f RooT_make_arm.mk clean_rpiX

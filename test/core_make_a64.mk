@@ -35,8 +35,7 @@ LIB_LIST =                                  \
         -lstdc++
 
 
-build: core_test_a64_32 core_test_a64_64 core_test_a64f32 core_test_a64f64 \
-       core_test_a64f32sve core_test_a64f64sve
+build: build_a64 build_a64sve
 
 strip:
 	aarch64-linux-gnu-strip core_test.a64*
@@ -44,6 +43,8 @@ strip:
 clean:
 	rm core_test.a64*
 
+
+build_a64: core_test_a64_32 core_test_a64_64 core_test_a64f32 core_test_a64f64
 
 core_test_a64_32:
 	aarch64-linux-gnu-g++ -O3 -g -static \
@@ -76,6 +77,26 @@ core_test_a64f64:
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a64f64
+
+
+build_a64sve: core_test_a64_32sve core_test_a64_64sve \
+              core_test_a64f32sve core_test_a64f64sve
+
+core_test_a64_32sve:
+	aarch64-linux-gnu-g++ -O3 -g -static \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a64_32sve
+
+core_test_a64_64sve:
+	aarch64-linux-gnu-g++ -O3 -g -static \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a64_64sve
 
 core_test_a64f32sve:
 	aarch64-linux-gnu-g++ -O3 -g -static \

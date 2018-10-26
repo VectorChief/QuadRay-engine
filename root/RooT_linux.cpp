@@ -43,14 +43,14 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #ifdef __APPLE__
 
-#undef  RT_XSHM /* XShm compiles on MacOS with XQuartz, but fails at runtime */
+#undef  RT_XSHM /* XShm compiles on macOS with XQuartz, but fails at runtime */
 #define RT_XSHM 0
 
-#undef  RT_SETAFFINITY /* setting thread affinity is not present on MacOS */
+#undef  RT_SETAFFINITY /* setting thread affinity is not present on macOS */
 #define RT_SETAFFINITY 0
 
 /*
- * Custom implementation of pthread barriers for MacOS found at:
+ * Custom implementation of pthread barriers for macOS found at:
  * http://blog.albertarmea.com/post/47089939939/using-pthreadbarrier-on-mac-os-x
  * copied as is with minor format adjustments.
  */
@@ -411,8 +411,8 @@ rt_byte *s_ptr = RT_ADDRESS_MIN;
 #include <sys/mman.h>
 
 #ifndef MAP_ANONYMOUS
-#define MAP_ANONYMOUS MAP_ANON  /* workaround for MacOS compilation */
-#endif /* MacOS still cannot allocate with mmap within 32-bit range */
+#define MAP_ANONYMOUS MAP_ANON  /* workaround for macOS compilation */
+#endif /* macOS still cannot allocate with mmap within 32-bit range */
 
 #endif /* RT_POINTER */
 

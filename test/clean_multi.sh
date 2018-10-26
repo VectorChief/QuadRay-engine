@@ -12,6 +12,8 @@ make -f core_make_x32.mk clean
 make -f core_make_x64.mk clean
 
 
+# RooT demo compilation requires Xext development library in addition to g++
+
 cd ../root
 
 make -f RooT_make_x86.mk clean
