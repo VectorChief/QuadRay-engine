@@ -127,6 +127,13 @@ rt_void frame_to_screen(rt_ui32 *frame, rt_si32 x_row);
 #define RK_F11              11
 #define RK_F12              12
 
+#define RK_0                30
+#define RK_1                31
+#define RK_5                35
+
+#define RK_I                28
+#define RK_L                29
+
 #define RK_UP               15
 #define RK_DOWN             16
 #define RK_LEFT             17
@@ -252,7 +259,7 @@ rt_si32 main_step()
         if (H_KEYS(RK_LEFT))    sc[d]->update(cur_time, RT_CAMERA_ROTATE_LEFT);
         if (H_KEYS(RK_RIGHT))   sc[d]->update(cur_time, RT_CAMERA_ROTATE_RIGHT);
 
-        if (T_KEYS(RK_F1))
+        if (T_KEYS(RK_F1) || T_KEYS(RK_I))
         {
             sc[d]->print_state();
         }
@@ -348,7 +355,7 @@ rt_si32 main_step()
             a_mode = pfm->get_fsaa();
             switched = nold != n_simd ? 1 : switched;
         }
-        if (T_KEYS(RK_F11))
+        if (T_KEYS(RK_F11) || T_KEYS(RK_1))
         {
             rt_si32 dold = d;
             d = (d + 1) % RT_ARR_SIZE(sc_rt);
@@ -372,7 +379,7 @@ rt_si32 main_step()
             sc[d]->save_frame(scr_id++);
             switched = 1;
         }
-        if (T_KEYS(RK_F5))
+        if (T_KEYS(RK_F5) || T_KEYS(RK_L))
         {
             l_mode = !l_mode;
             switched = 1;
@@ -408,12 +415,12 @@ rt_si32 main_step()
             sc[d]->set_opts(opts);
             switched = 1;
         }
-        if (T_KEYS(RK_F10))
+        if (T_KEYS(RK_F10) || T_KEYS(RK_0))
         {
             o_mode = !o_mode;
             switched = 1;
         }
-        if (T_KEYS(RK_F12))
+        if (T_KEYS(RK_F12) || T_KEYS(RK_5))
         {
             h_mode = !h_mode;
             switched = 1;

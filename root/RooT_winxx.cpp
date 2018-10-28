@@ -82,6 +82,13 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     r_to_p[RK_F11]      = KEY_MASK & VK_F11;
     r_to_p[RK_F12]      = KEY_MASK & VK_F12;
 
+    r_to_p[RK_0]        = KEY_MASK & '0';
+    r_to_p[RK_1]        = KEY_MASK & '1';
+    r_to_p[RK_5]        = KEY_MASK & '5';
+
+    r_to_p[RK_I]        = KEY_MASK & 'I';
+    r_to_p[RK_L]        = KEY_MASK & 'L';
+
     r_to_p[RK_ESCAPE]   = KEY_MASK & VK_ESCAPE;
 
     /* init internal variables from command-line args */
