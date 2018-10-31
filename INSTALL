@@ -22,6 +22,16 @@ configurations for particular hardware platforms are given in the makefiles.
 By default, DEB-based distributions (Mint, Ubuntu, Debian) are implied,
 refer to the AArch64 Linux section at the bottom for RPM-based options.
 
+To build QuadRay engine demo on macOS, open terminal window,
+go to QuadRay's "root" subfolder,
+make sure necessary tools and libraries are installed:
+https://www.youtube.com/watch?v=uS4zTqfwSSQ  https://www.xquartz.org/
+http://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
+    xcode-select --install
+run for x64 architecture:
+    make -f RooT_make_x64.mk -j8
+    ./RooT.x64f32
+
 To build QuadRay engine demo on Windows,
 go to QuadRay's "root" subfolder and open (in Visual C++ 6.0 or later):
     RooT_workspace.dsw
@@ -64,6 +74,15 @@ configurations for particular hardware platforms are given in the makefiles.
 By default, DEB-based distributions (Mint, Ubuntu, Debian) are implied,
 refer to the AArch64 Linux section at the bottom for RPM-based options.
 
+To build CORE test framework on macOS, open terminal window,
+go to QuadRay's "test" subfolder,
+make sure necessary tools and libraries are installed:
+http://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
+    xcode-select --install
+run for x64 architecture:
+    make -f core_make_x64.mk -j8
+    ./core_test.x64f32
+
 To build CORE test framework on Windows,
 go to QuadRay's "test" subfolder and open (in Visual C++ 6.0 or later):
     core_workspace.dsw
@@ -105,6 +124,15 @@ Prerequisites for building/emulating guest non-x86 architectures as well as
 configurations for particular hardware platforms are given in the makefiles.
 By default, DEB-based distributions (Mint, Ubuntu, Debian) are implied,
 refer to the AArch64 Linux section at the bottom for RPM-based options.
+
+To build SIMD test framework on macOS, open terminal window,
+go to QuadRay's "test" subfolder,
+make sure necessary tools and libraries are installed:
+http://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
+    xcode-select --install
+run for x64 architecture:
+    make -f simd_make_x64.mk -j8
+    ./simd_test.x64f32
 
 To build SIMD test framework on Windows,
 go to QuadRay's "test" subfolder and open (in Visual C++ 6.0 or later):
