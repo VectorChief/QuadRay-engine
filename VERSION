@@ -28,6 +28,11 @@
   - implement multi-group affinity for Windows threading (more than 64 threads)
   - add support for fullscreen mode on Windows (-w 0) as a modal window
   - merge Win32/64 files into one (RooT_winxx.cpp), drop Win64 pthread support
+  - add alternative key-mapping to RooT demo (all digit keys plus few letters)
+  - patch system allocators to compile on macOS, widen OS support in makefiles
+  - clean up SIMD tests and engine's CORE to support PIE (also macOS)
+  - add pthread barriers implementation (RooT_linux.cpp) for macOS (no XShm)
+  - separate 64-bit Linux from multilib build scripts, add for macOS
   - add VMX-compatible scalar SIMD subset on PPC G4 and POWER family of CPUs
   - add MSA/scalar compatibility on big-endian MIPS, support for fp32 11-bit DP
   - rename sections in target-specific headers to BASE, SIMD, ELEM (for scalar)
@@ -45,6 +50,7 @@
   - fix SIMD registers save/restore for 15x128x2 on POWER7
   - fix temporary FPRs save/restore on POWER
   - fix scalar SIMD min/max on POWER7
+  - fix BASE compare immediate encodings on POWER
   - fix location for 128/256-bit common SIMD instructions
   - fix for scalar SIMD alignment on ARMv7, POWER8
   - fix compilation in C++11 mode with RT_DEBUG=2, non-debug build on Windows
