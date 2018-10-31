@@ -14,21 +14,23 @@ cross-precision fp-converters as well as sub-word (byte/half) integer SIMD ops
 are planned as extensions to current 2/3-operand SPMD-driven vertical SIMD ISA.
 
 The project has a test framework for Linux/GCC/Clang and Windows/VC++/TDM64-GCC.
+Support for macOS is provided via Command Line Tools with GCC and Clang options.
 Instructions for resolving dependencies and building the binaries
 for supported platforms can be found in the accompanying INSTALL file.
 
 RooT demo features:
  - Move/rotate camera with W,A,S,D + arrow keys
- - Print state (to dump) of all objects in the scene (on F1)
- - Runtime toggling of antialiasing (on F2)
- - Runtime cycling through cameras (on F3)
- - Runtime saving (to dump) of BMP screenshots (on F4)
- - Runtime switching of SIMD targets (F6, F7, F8)
- - Runtime scene selection (F11), hide nums (F12)
+ - Print state (to dump) of all objects in the scene (on F1/'I')
+ - Runtime toggling of antialiasing (on F2/'2')
+ - Runtime cycling through cameras (on F3/'3')
+ - Runtime saving (to dump) of BMP screenshots (on F4/'4')
+ - Runtime toggling of FPS logging (on F5/'L')
+ - Runtime switching of SIMD targets (F6/'6', F7/'7', F8/'8')
+ - Runtime scene selection (F11/'1'), hide nums (F12/'5')
  - Multi-threading support with core-count (df: 120 threads)
  - Multi-group affinity for Windows threading (> 64 threads)
- - Fullscreen support on Linux and Windows (-w 0)
- - Offscreen rendering support for benchmarking (-o)
+ - Fullscreen support on Linux, macOS and Windows (-w 0)
+ - Offscreen rendering support for benchmarking (-o or F10/'0')
  - Refer to VERSION file (section 0.6.7) for cli options
 
 QuadRay core features:
