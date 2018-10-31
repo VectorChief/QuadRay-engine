@@ -93,7 +93,7 @@ core_test_w64f64:
 # Download tdm64-gcc-5.1.0-2.exe from sourceforge and run the installer.
 #
 # Building/running CORE test:
-# run core_make_w64.bat from Windows UI or
+# run core_make_w64.bat from Windows Explorer or
 # run the following from Command Prompt "cmd":
 # mingw32-make -f core_make_w64.mk
 # core_test_w64f32.exe -i -a -c 1
