@@ -155,7 +155,14 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
     r_to_p[RK_0]        = KEY_MASK & XK_0;
     r_to_p[RK_1]        = KEY_MASK & XK_1;
+    r_to_p[RK_2]        = KEY_MASK & XK_2;
+    r_to_p[RK_3]        = KEY_MASK & XK_3;
+    r_to_p[RK_4]        = KEY_MASK & XK_4;
     r_to_p[RK_5]        = KEY_MASK & XK_5;
+    r_to_p[RK_6]        = KEY_MASK & XK_6;
+    r_to_p[RK_7]        = KEY_MASK & XK_7;
+    r_to_p[RK_8]        = KEY_MASK & XK_8;
+    r_to_p[RK_9]        = KEY_MASK & XK_9;
 
     r_to_p[RK_I]        = KEY_MASK & XK_i;
     r_to_p[RK_L]        = KEY_MASK & XK_l;

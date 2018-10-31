@@ -84,7 +84,14 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
     r_to_p[RK_0]        = KEY_MASK & '0';
     r_to_p[RK_1]        = KEY_MASK & '1';
+    r_to_p[RK_2]        = KEY_MASK & '2';
+    r_to_p[RK_3]        = KEY_MASK & '3';
+    r_to_p[RK_4]        = KEY_MASK & '4';
     r_to_p[RK_5]        = KEY_MASK & '5';
+    r_to_p[RK_6]        = KEY_MASK & '6';
+    r_to_p[RK_7]        = KEY_MASK & '7';
+    r_to_p[RK_8]        = KEY_MASK & '8';
+    r_to_p[RK_9]        = KEY_MASK & '9';
 
     r_to_p[RK_I]        = KEY_MASK & 'I';
     r_to_p[RK_L]        = KEY_MASK & 'L';

@@ -129,7 +129,14 @@ rt_void frame_to_screen(rt_ui32 *frame, rt_si32 x_row);
 
 #define RK_0                30
 #define RK_1                31
+#define RK_2                32
+#define RK_3                33
+#define RK_4                34
 #define RK_5                35
+#define RK_6                36
+#define RK_7                37
+#define RK_8                38
+#define RK_9                39
 
 #define RK_I                28
 #define RK_L                29
@@ -263,13 +270,13 @@ rt_si32 main_step()
         {
             sc[d]->print_state();
         }
-        if (T_KEYS(RK_F3))
+        if (T_KEYS(RK_F3) || T_KEYS(RK_3))
         {
             rt_si32 cold = c;
             c = sc[d]->next_cam();
             switched = cold != c ? 1 : switched;
         }
-        if (T_KEYS(RK_F6))
+        if (T_KEYS(RK_F6) || T_KEYS(RK_6))
         {
             rt_si32 kold = k_size;
             rt_si32 size, type, simd;
@@ -300,7 +307,7 @@ rt_si32 main_step()
             a_mode = pfm->get_fsaa();
             switched = kold != k_size ? 1 : switched;
         }
-        if (T_KEYS(RK_F7))
+        if (T_KEYS(RK_F7) || T_KEYS(RK_7))
         {
             rt_si32 told = s_type;
             rt_si32 size, type, simd;
@@ -320,7 +327,7 @@ rt_si32 main_step()
             a_mode = pfm->get_fsaa();
             switched = told != s_type ? 1 : switched;
         }
-        if (T_KEYS(RK_F8))
+        if (T_KEYS(RK_F8) || T_KEYS(RK_8))
         {
             rt_si32 nold = n_simd;
             rt_si32 size, type, simd;
@@ -368,13 +375,13 @@ rt_si32 main_step()
         } /* --<----<-- skip update0 --<----<-- */
 #endif /* RT_OPTS_UPDATE_EXT0 */
 
-        if (T_KEYS(RK_F2))
+        if (T_KEYS(RK_F2) || T_KEYS(RK_2))
         {
             a_mode = (a_mode + 1) % (pfm->get_fsaa_max() + 1);
             a_mode = pfm->set_fsaa(a_mode);
             switched = 1;
         }
-        if (T_KEYS(RK_F4))
+        if (T_KEYS(RK_F4) || T_KEYS(RK_4))
         {
             sc[d]->save_frame(scr_id++);
             switched = 1;
@@ -384,7 +391,7 @@ rt_si32 main_step()
             l_mode = !l_mode;
             switched = 1;
         }
-        if (T_KEYS(RK_F9))
+        if (T_KEYS(RK_F9) || T_KEYS(RK_9))
         {
             rt_si32 opts = sc[d]->get_opts();
             u_mode = (u_mode + 1) % 7;
