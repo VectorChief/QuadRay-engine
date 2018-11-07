@@ -606,6 +606,20 @@ rt_si32 simd_init(rt_si32 n_simd, rt_si32 s_type, rt_si32 k_size)
 }
 
 /*
+ * When ASM sections are used together with non-trivial logic written in C/C++
+ * in the same function, optimizing compilers may produce inconsistent results
+ * with optimization levels higher than O0 (tested both clang and g++).
+ * Using separate functions for ASM and C/C++ resolves the issue
+ * if the ASM function is not inlined (thus keeping it in a separate file).
+ */
+rt_void simd_version(rt_SIMD_INFOX *s_inf)
+{
+    ASM_ENTER(s_inf)
+        verxx_xx()
+    ASM_LEAVE(s_inf)
+}
+
+/*
  * Set current runtime SIMD target with "simd" equal to
  * SIMD native-size (1,..,16) in 0th (lowest) byte
  * SIMD type (1,2,4,8, 16,32) in 1st (higher) byte

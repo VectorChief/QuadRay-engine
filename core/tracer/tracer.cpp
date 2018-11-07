@@ -4907,19 +4907,6 @@ rt_void rt_Platform::update0(rt_SIMD_SURFACE *s_srf)
 #endif /* (RT_POINTER - RT_ADDRESS) */
 
 /*
- * When ASM sections are used together with non-trivial logic written in C/C++
- * in the same function, optimizing compilers may produce inconsistent results
- * with optimization levels higher than O0 (tested both clang and g++).
- * Using separate functions for ASM and C/C++ resolves the issue.
- */
-rt_void simd_version(rt_SIMD_INFOX *s_inf)
-{
-    ASM_ENTER(s_inf)
-        verxx_xx()
-    ASM_LEAVE(s_inf)
-}
-
-/*
  * Backend's global entry point (hence 0).
  * Set current runtime SIMD target with "simd" equal to
  * SIMD native-size (1,..,16) in 0th (lowest) byte

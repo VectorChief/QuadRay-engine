@@ -342,8 +342,11 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
     friend      class rt_SceneThread;
 };
 
-/* internal SIMD format converters */
+/* internal SIMD format converter */
 rt_si32 simd_init(rt_si32 q_simd, rt_si32 s_type, rt_si32 v_size);
+
+/* internal SIMD mask initializer */
+rt_void simd_version(rt_SIMD_INFOX *s_inf);
 
 #endif /* RT_ENGINE_H */
 
