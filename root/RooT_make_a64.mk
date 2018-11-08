@@ -124,9 +124,6 @@ clang_a64: RooT.a64_32 RooT.a64_64 RooT.a64f32 RooT.a64f64
 
 RooT.a64_32:
 	clang++ -O3 -g -pthread \
-        -Wno-unknown-warning-option \
-        -Wno-shift-negative-value -Wno-shift-op-parentheses \
-        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -135,9 +132,6 @@ RooT.a64_32:
 
 RooT.a64_64:
 	clang++ -O3 -g -pthread \
-        -Wno-unknown-warning-option \
-        -Wno-shift-negative-value -Wno-shift-op-parentheses \
-        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -146,9 +140,6 @@ RooT.a64_64:
 
 RooT.a64f32:
 	clang++ -O3 -g -pthread \
-        -Wno-unknown-warning-option \
-        -Wno-shift-negative-value -Wno-shift-op-parentheses \
-        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -157,9 +148,6 @@ RooT.a64f32:
 
 RooT.a64f64:
 	clang++ -O3 -g -pthread \
-        -Wno-unknown-warning-option \
-        -Wno-shift-negative-value -Wno-shift-op-parentheses \
-        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -172,9 +160,6 @@ clang_a64sve: RooT.a64_32sve RooT.a64_64sve \
 
 RooT.a64_32sve:
 	clang++ -O3 -g -pthread \
-        -Wno-unknown-warning-option \
-        -Wno-shift-negative-value -Wno-shift-op-parentheses \
-        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -183,9 +168,6 @@ RooT.a64_32sve:
 
 RooT.a64_64sve:
 	clang++ -O3 -g -pthread \
-        -Wno-unknown-warning-option \
-        -Wno-shift-negative-value -Wno-shift-op-parentheses \
-        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -194,9 +176,6 @@ RooT.a64_64sve:
 
 RooT.a64f32sve:
 	clang++ -O3 -g -pthread \
-        -Wno-unknown-warning-option \
-        -Wno-shift-negative-value -Wno-shift-op-parentheses \
-        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -205,9 +184,6 @@ RooT.a64f32sve:
 
 RooT.a64f64sve:
 	clang++ -O3 -g -pthread \
-        -Wno-unknown-warning-option \
-        -Wno-shift-negative-value -Wno-shift-op-parentheses \
-        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \

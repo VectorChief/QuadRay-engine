@@ -53,9 +53,6 @@ clang: RooT.arm_v1
 
 RooT.arm_v1:
 	clang++ -O3 -g -pthread -march=armv7-a -marm \
-        -Wno-unknown-warning-option \
-        -Wno-shift-negative-value -Wno-shift-op-parentheses \
-        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_ARM -DRT_128=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -111,9 +108,6 @@ clang_rpiX: RooT.arm_rpi2 RooT.arm_rpi3
 
 RooT.arm_rpi2:
 	clang++ -O3 -g -pthread -march=armv7-a -marm \
-        -Wno-unknown-warning-option \
-        -Wno-shift-negative-value -Wno-shift-op-parentheses \
-        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_ARM -DRT_128=1+2 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -122,9 +116,6 @@ RooT.arm_rpi2:
 
 RooT.arm_rpi3:
 	clang++ -O3 -g -pthread -march=armv7-a -marm \
-        -Wno-unknown-warning-option \
-        -Wno-shift-negative-value -Wno-shift-op-parentheses \
-        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_ARM -DRT_128=1+2+4 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \

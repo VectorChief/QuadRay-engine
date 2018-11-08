@@ -68,9 +68,6 @@ clang: RooT.x32
 
 RooT.x32:
 	clang++ -O3 -g -pthread -mx32 \
-        -Wno-unknown-warning-option \
-        -Wno-shift-negative-value -Wno-shift-op-parentheses \
-        -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses \
         -DRT_LINUX -DRT_X32 -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
         -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
