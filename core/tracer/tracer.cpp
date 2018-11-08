@@ -4871,28 +4871,28 @@ rt_void rt_Platform::update0(rt_SIMD_SURFACE *s_srf)
 
     /* set surface's tags */
     s_srf->srf_t[0] = tag > RT_TAG_PLANE ?
-                      tag == RT_TAG_HYPERCYLINDER &&
-                      s_srf->sci_w[0] == 0.0f ?
+                     (tag == RT_TAG_HYPERCYLINDER &&
+                      s_srf->sci_w[0] == 0.0f) ?
                       3 : 2 : 1;
 
     s_srf->srf_t[1] = tag > RT_TAG_PLANE ?
-                      tag != RT_TAG_PARABOLOID &&
+                     (tag != RT_TAG_PARABOLOID &&
                       tag != RT_TAG_PARACYLINDER &&
-                      tag != RT_TAG_HYPERPARABOLOID ?
+                      tag != RT_TAG_HYPERPARABOLOID) ?
                       3 : 2 : 1;
 
     s_srf->srf_t[2] = tag > RT_TAG_PLANE ?
-                      tag != RT_TAG_PARABOLOID &&
+                     (tag != RT_TAG_PARABOLOID &&
                       tag != RT_TAG_PARACYLINDER &&
-                      tag != RT_TAG_HYPERPARABOLOID ?
+                      tag != RT_TAG_HYPERPARABOLOID) ?
                       3 : 2 : 1;
 
     s_srf->msc_p[1] = tag == RT_TAG_CONE ||
-                      tag == RT_TAG_HYPERBOLOID &&
-                      s_srf->sci_w[0] == 0.0f ?
+                     (tag == RT_TAG_HYPERBOLOID &&
+                      s_srf->sci_w[0] == 0.0f) ?
                       (rt_pntr)1 :
-                      tag == RT_TAG_HYPERCYLINDER &&
-                      s_srf->sci_w[0] == 0.0f ?
+                     (tag == RT_TAG_HYPERCYLINDER &&
+                      s_srf->sci_w[0] == 0.0f) ?
                       (rt_pntr)2 : (rt_pntr)0;
 }
 

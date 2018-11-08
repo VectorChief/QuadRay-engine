@@ -749,11 +749,14 @@ rt_si32 clip_conc(rt_SHAPE *srf)
     if ((srf->tag == RT_TAG_CONE
     ||   srf->tag == RT_TAG_HYPERBOLOID
     ||   srf->tag == RT_TAG_HYPERCYLINDER)
-    &&  (srf->sci[RT_W] <= 0.0f
+    && ((srf->sci[RT_W] <= 0.0f
     &&   srf->bmin[mp_k] < pps[mp_k]
-    &&   srf->bmax[mp_k] > pps[mp_k]
-    ||   srf->sci[RT_W] > 0.0f)
-    ||  (srf->tag == RT_TAG_HYPERPARABOLOID))
+    &&   srf->bmax[mp_k] > pps[mp_k])
+    ||   srf->sci[RT_W] > 0.0f))
+    {
+        c = 1;
+    }
+    if (srf->tag == RT_TAG_HYPERPARABOLOID)
     {
         c = 1;
     }
@@ -1187,7 +1190,7 @@ rt_si32 bbox_conv(rt_BOUND *obj, rt_real *pos)
     /* if only one bbox's face is fully covered (by plane),
      * then bbox's projection is always convex */
     if (RT_IS_PLANE(obj)
-    ||  RT_IS_ARRAY(obj) && obj->fln == 1)
+    || (RT_IS_ARRAY(obj) && obj->fln == 1))
     {
         return obj->flf;
     }
@@ -2068,7 +2071,7 @@ rt_si32 bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
     /* check if bboxes intersect */
     n = bbox_fuse(obj, srf);
 
-    if (n != 0 && m == 1 || n == 2)
+    if ((n != 0 && m == 1) || n == 2)
     {
         c |= 3;
         return c;

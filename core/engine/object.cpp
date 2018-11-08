@@ -3251,12 +3251,12 @@ rt_Cone::rt_Cone(rt_Registry *rg, rt_Object *parent,
     xcn = (rt_CONE *)obj->obj.pobj;
 
     /* init surface's bvbox used for tiling, rtgeom and array's bounds */
-    if (srf->min[RT_I] != -RT_INF
-    &&  srf->max[RT_I] != +RT_INF
-    &&  srf->min[RT_J] != -RT_INF
-    &&  srf->max[RT_J] != +RT_INF
-    ||  srf->min[RT_K] != -RT_INF
-    &&  srf->max[RT_K] != +RT_INF)
+    if ((srf->min[RT_I] != -RT_INF
+    &&   srf->max[RT_I] != +RT_INF
+    &&   srf->min[RT_J] != -RT_INF
+    &&   srf->max[RT_J] != +RT_INF)
+    ||  (srf->min[RT_K] != -RT_INF
+    &&   srf->max[RT_K] != +RT_INF))
     {
         bvbox->verts_num = 8;
         bvbox->verts = (rt_VERT *)
@@ -3359,12 +3359,12 @@ rt_Paraboloid::rt_Paraboloid(rt_Registry *rg, rt_Object *parent,
     xpb = (rt_PARABOLOID *)obj->obj.pobj;
 
     /* init surface's bvbox used for tiling, rtgeom and array's bounds */
-    if (srf->min[RT_I] != -RT_INF
-    &&  srf->max[RT_I] != +RT_INF
-    &&  srf->min[RT_J] != -RT_INF
-    &&  srf->max[RT_J] != +RT_INF
-    ||  srf->min[RT_K] != -RT_INF && xpb->par < 0.0f
-    ||  srf->max[RT_K] != +RT_INF && xpb->par > 0.0f)
+    if ((srf->min[RT_I] != -RT_INF
+    &&   srf->max[RT_I] != +RT_INF
+    &&   srf->min[RT_J] != -RT_INF
+    &&   srf->max[RT_J] != +RT_INF)
+    ||  (srf->min[RT_K] != -RT_INF && xpb->par < 0.0f)
+    ||  (srf->max[RT_K] != +RT_INF && xpb->par > 0.0f))
     {
         bvbox->verts_num = 8;
         bvbox->verts = (rt_VERT *)
@@ -3424,14 +3424,14 @@ rt_void rt_Paraboloid::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
     {
         cmin[RT_I] = cmin[RT_I] <= -rad ? -RT_INF : cmin[RT_I];
         cmin[RT_J] = cmin[RT_J] <= -rad ? -RT_INF : cmin[RT_J];
-        cmin[RT_K] = cmin[RT_K] <= 0.0f && par > 0.0f ||
-                     cmin[RT_K] <  -top && par < 0.0f
+        cmin[RT_K] = (cmin[RT_K] <= 0.0f && par > 0.0f) ||
+                     (cmin[RT_K] <  -top && par < 0.0f)
                                         ? -RT_INF : cmin[RT_K];
 
         cmax[RT_I] = cmax[RT_I] >= +rad ? +RT_INF : cmax[RT_I];
         cmax[RT_J] = cmax[RT_J] >= +rad ? +RT_INF : cmax[RT_J];
-        cmax[RT_K] = cmax[RT_K] >= 0.0f && par < 0.0f ||
-                     cmax[RT_K] >  +top && par > 0.0f
+        cmax[RT_K] = (cmax[RT_K] >= 0.0f && par < 0.0f) ||
+                     (cmax[RT_K] >  +top && par > 0.0f)
                                         ? +RT_INF : cmax[RT_K];
 
         cb = RT_TRUE; /* self-adjust if cbox is passed */
@@ -3478,12 +3478,12 @@ rt_Hyperboloid::rt_Hyperboloid(rt_Registry *rg, rt_Object *parent,
     xhb = (rt_HYPERBOLOID *)obj->obj.pobj;
 
     /* init surface's bvbox used for tiling, rtgeom and array's bounds */
-    if (srf->min[RT_I] != -RT_INF
-    &&  srf->max[RT_I] != +RT_INF
-    &&  srf->min[RT_J] != -RT_INF
-    &&  srf->max[RT_J] != +RT_INF
-    ||  srf->min[RT_K] != -RT_INF
-    &&  srf->max[RT_K] != +RT_INF)
+    if ((srf->min[RT_I] != -RT_INF
+    &&   srf->max[RT_I] != +RT_INF
+    &&   srf->min[RT_J] != -RT_INF
+    &&   srf->max[RT_J] != +RT_INF)
+    ||  (srf->min[RT_K] != -RT_INF
+    &&   srf->max[RT_K] != +RT_INF))
     {
         bvbox->verts_num = 8;
         bvbox->verts = (rt_VERT *)
@@ -3588,12 +3588,12 @@ rt_ParaCylinder::rt_ParaCylinder(rt_Registry *rg, rt_Object *parent,
     xpc = (rt_PARACYLINDER *)obj->obj.pobj;
 
     /* init surface's bvbox used for tiling, rtgeom and array's bounds */
-    if (srf->min[RT_J] != -RT_INF
-    &&  srf->max[RT_J] != +RT_INF
-    && (srf->min[RT_I] != -RT_INF
-    &&  srf->max[RT_I] != +RT_INF
-    ||  srf->min[RT_K] != -RT_INF && xpc->par < 0.0f
-    ||  srf->max[RT_K] != +RT_INF && xpc->par > 0.0f))
+    if ((srf->min[RT_J] != -RT_INF
+    &&   srf->max[RT_J] != +RT_INF)
+    && ((srf->min[RT_I] != -RT_INF
+    &&   srf->max[RT_I] != +RT_INF)
+    ||  (srf->min[RT_K] != -RT_INF && xpc->par < 0.0f)
+    ||  (srf->max[RT_K] != +RT_INF && xpc->par > 0.0f)))
     {
         bvbox->verts_num = 8;
         bvbox->verts = (rt_VERT *)
@@ -3652,13 +3652,13 @@ rt_void rt_ParaCylinder::adjust_minmax(rt_vec4 smin, rt_vec4 smax, /* src */
     if (cmin != RT_NULL && cmax != RT_NULL)
     {
         cmin[RT_I] = cmin[RT_I] <= -rad ? -RT_INF : cmin[RT_I];
-        cmin[RT_K] = cmin[RT_K] <= 0.0f && par > 0.0f ||
-                     cmin[RT_K] <  -top && par < 0.0f
+        cmin[RT_K] = (cmin[RT_K] <= 0.0f && par > 0.0f) ||
+                     (cmin[RT_K] <  -top && par < 0.0f)
                                         ? -RT_INF : cmin[RT_K];
 
         cmax[RT_I] = cmax[RT_I] >= +rad ? +RT_INF : cmax[RT_I];
-        cmax[RT_K] = cmax[RT_K] >= 0.0f && par < 0.0f ||
-                     cmax[RT_K] >  +top && par > 0.0f
+        cmax[RT_K] = (cmax[RT_K] >= 0.0f && par < 0.0f) ||
+                     (cmax[RT_K] >  +top && par > 0.0f)
                                         ? +RT_INF : cmax[RT_K];
 
         cb = RT_TRUE; /* self-adjust if cbox is passed */
@@ -3705,12 +3705,12 @@ rt_HyperCylinder::rt_HyperCylinder(rt_Registry *rg, rt_Object *parent,
     xhc = (rt_HYPERCYLINDER *)obj->obj.pobj;
 
     /* init surface's bvbox used for tiling, rtgeom and array's bounds */
-    if (srf->min[RT_J] != -RT_INF
-    &&  srf->max[RT_J] != +RT_INF
-    && (srf->min[RT_I] != -RT_INF
-    &&  srf->max[RT_I] != +RT_INF
-    ||  srf->min[RT_K] != -RT_INF
-    &&  srf->max[RT_K] != +RT_INF))
+    if ((srf->min[RT_J] != -RT_INF
+    &&   srf->max[RT_J] != +RT_INF)
+    && ((srf->min[RT_I] != -RT_INF
+    &&   srf->max[RT_I] != +RT_INF)
+    ||  (srf->min[RT_K] != -RT_INF
+    &&   srf->max[RT_K] != +RT_INF)))
     {
         bvbox->verts_num = 8;
         bvbox->verts = (rt_VERT *)
