@@ -4,8 +4,9 @@
 /* file COPYING or http://www.opensource.org/licenses/mit-license.php         */
 /******************************************************************************/
 
-#undef  RT_REGS
+#ifndef RT_REGS
 #define RT_REGS 16   /* define maximum of available SIMD registers for code */
+#endif /* RT_REGS */
 
 #undef  RT_SIMD
 #define RT_SIMD 2048 /* map vector-length-agnostic SIMD subsets to 2K8-bit */
