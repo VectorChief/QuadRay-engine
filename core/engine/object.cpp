@@ -3972,7 +3972,7 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     otx.x_dim = otx.y_dim = -1;
 
     /* save original texture data */
-    if (tx->x_dim == 0 && tx->y_dim == 0
+    if ((tx->x_dim == 0 && tx->y_dim == 0)
 #if (RT_POINTER - RT_ADDRESS) != 0
     || (rt_full)tx->ptex >= (rt_full)(0x80000000 - tx->x_dim * tx->y_dim * 4)
 #endif /* (RT_POINTER - RT_ADDRESS) */

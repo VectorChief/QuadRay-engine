@@ -28,10 +28,14 @@
 /******************************************************************************/
 
 #define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
+
 #ifndef RT_THREADS_NUM
 #define RT_THREADS_NUM          120/* number of threads for update and render */
-#endif /* _THREADS_NUM */
+#endif /* RT_THREADS_NUM */
+
+#ifndef RT_SETAFFINITY
 #define RT_SETAFFINITY          1  /* enables thread-affinity and core-count */
+#endif /* RT_SETAFFINITY */
 
 #define RT_TILE_W               8  /* screen tile width  in pixels (%S == 0) */
 #define RT_TILE_H               8  /* screen tile height in pixels */
