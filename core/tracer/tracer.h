@@ -762,10 +762,10 @@ struct rt_SIMD_SURFACE
 
     /* sign masks */
 
-    rt_elem sbase[S];
+    rt_uelm sbase[S];
 #define srf_SBASE           DP(Q*0x0E0)
 
-    rt_elem smask[S];
+    rt_uelm smask[S];
 #define srf_SMASK           DP(Q*0x0F0)
 
     /* root sorting thresholds */
