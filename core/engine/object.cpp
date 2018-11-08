@@ -190,7 +190,7 @@ rt_void rt_Object::update_status(rt_time time, rt_si32 flags,
     obj->time = time;
 
     /* inherit changed status from the hierarchy */
-    obj_changed = flags & RT_UPDATE_FLAG_OBJ;
+    obj_changed = (flags & RT_UPDATE_FLAG_OBJ);
 
     /* update changed status for all object
      * instances sharing the same scene data,
@@ -206,8 +206,8 @@ rt_void rt_Object::update_status(rt_time time, rt_si32 flags,
     }
 
     /* inherit transform flags from the hierarchy */
-    obj_has_trm = flags & RT_UPDATE_FLAG_SCL |
-                  flags & RT_UPDATE_FLAG_ROT;
+    obj_has_trm = (flags & RT_UPDATE_FLAG_SCL) |
+                  (flags & RT_UPDATE_FLAG_ROT);
 
     /* set object's trnode from the hierarchy
      * (node up in the hierarchy with non-trivial transform,
