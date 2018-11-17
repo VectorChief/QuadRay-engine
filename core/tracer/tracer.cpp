@@ -62,11 +62,11 @@
 #define RT_FEAT_TRANSPARENCY        1
 #define RT_FEAT_REFRACTIONS         1
 #define RT_FEAT_REFLECTIONS         1
-#define RT_FEAT_FRESNEL             0   /* <- slows down refraction when 1 */
+#define RT_FEAT_FRESNEL             1   /* <- slows down refraction when 1 */
 #define RT_FEAT_SCHLICK             0   /* <- low precision Fresnel when 1 */
-#define RT_FEAT_FRESNEL_METAL       0   /* apply Fresnel on metal surfaces */
+#define RT_FEAT_FRESNEL_METAL       1   /* apply Fresnel on metal surfaces */
 #define RT_FEAT_FRESNEL_METAL_SLOW  0   /* more accurate Fresnel, but slow */
-#define RT_FEAT_FRESNEL_PLAIN       0   /* apply Fresnel on plain surfaces */
+#define RT_FEAT_FRESNEL_PLAIN       1   /* apply Fresnel on plain surfaces */
 #define RT_FEAT_GAMMA               1   /* gamma->linear->gamma space if 1 */
 #define RT_FEAT_TRANSFORM           1   /* <- breaks TM in the engine if 0 */
 #define RT_FEAT_TRANSFORM_ARRAY     1   /* <- breaks TA in the engine if 0 */
@@ -2629,11 +2629,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_REFRACTIONS || RT_FEAT_FRESNEL
 
-#if RT_FEAT_FRESNEL == 0
-
         CHECK_PROP(TR_rfr, RT_PROP_REFRACT)
 
-#endif /* RT_FEAT_FRESNEL */
+    LBL(TR_rfi)
 
         /* compute refraction, fresnel
          * requires normalized ray */
@@ -2685,6 +2683,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_FRESNEL
 
+        CHECK_PROP(TR_cnt, RT_PROP_FRESNEL)
+
         /* check total inner reflection */
         xorpx_rr(Xmm5, Xmm5)
         cleps_rr(Xmm5, Xmm7)
@@ -2708,7 +2708,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         sqrps_rr(Xmm7, Xmm7)
         addps_rr(Xmm0, Xmm7)
 
-        CHECK_PROP(TR_rfr, RT_PROP_REFRACT)
+        CHECK_PROP(TR_rfe, RT_PROP_REFRACT)
 
         movpx_ld(Xmm5, Mecx, ctx_NRM_X)
         mulps_rr(Xmm5, Xmm0)
@@ -2732,6 +2732,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(TR_rfr)
 
+#if RT_FEAT_FRESNEL
+
+        CHECK_PROP(TR_rfe, RT_PROP_FRESNEL)
+
+        jmpxx_lb(TR_rfi)
+
+#endif /* RT_FEAT_FRESNEL */
+
+    LBL(TR_rfe)
+
 #endif /* RT_FEAT_REFRACTIONS || RT_FEAT_FRESNEL */
 
         /* propagate ray */
@@ -2746,6 +2756,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(TR_ini)
 
 #if RT_FEAT_FRESNEL
+
+        CHECK_PROP(TR_frn, RT_PROP_FRESNEL)
 
 #if RT_FEAT_SCHLICK
 
@@ -2804,6 +2816,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         annpx_rr(Xmm5, Xmm4)
         orrpx_rr(Xmm0, Xmm5)
         movpx_st(Xmm0, Mecx, ctx_F_RFL)
+
+    LBL(TR_frn)
 
 #endif /* RT_FEAT_FRESNEL */
 
@@ -2936,7 +2950,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /*******************************   REFLECTIONS   ******************************/
 /******************************************************************************/
 
-#if RT_FEAT_REFLECTIONS
+#if RT_FEAT_REFLECTIONS || RT_FEAT_FRESNEL
 
         FETCH_XPTR(Redx, MAT_P(PTR))
 
@@ -2997,6 +3011,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm3, Mecx, ctx_NEW_Z)
 
 #if RT_FEAT_FRESNEL
+
+        CHECK_PROP(RF_pre, RT_PROP_FRESNEL)
 
         CHECK_PROP(RF_pre, RT_PROP_OPAQUE)
 
@@ -3227,13 +3243,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(RF_opq)
 
+        CHECK_PROP(RF_out, RT_PROP_FRESNEL)
+
         jmpxx_lb(RF_ini)
 
 #endif /* RT_FEAT_FRESNEL */
 
     LBL(RF_out)
 
-#endif /* RT_FEAT_REFLECTIONS */
+#endif /* RT_FEAT_REFLECTIONS || RT_FEAT_FRESNEL */
 
 /******************************************************************************/
 /********************************   MATERIAL   ********************************/
