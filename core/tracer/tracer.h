@@ -47,6 +47,7 @@
  */
 #define RT_PROP_LIGHT       0x00000010
 #define RT_PROP_METAL       0x00000020
+#define RT_PROP_GAMMA       0x00000040
 #define RT_PROP_NORMAL      0x00000100
 #define RT_PROP_OPAQUE      0x00000200
 #define RT_PROP_TRANSP      0x00000400

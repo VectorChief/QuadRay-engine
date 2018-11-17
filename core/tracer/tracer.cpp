@@ -67,7 +67,7 @@
 #define RT_FEAT_FRESNEL_METAL       0   /* apply Fresnel on metal surfaces */
 #define RT_FEAT_FRESNEL_METAL_SLOW  0   /* more accurate Fresnel, but slow */
 #define RT_FEAT_FRESNEL_PLAIN       0   /* apply Fresnel on plain surfaces */
-#define RT_FEAT_GAMMA               0   /* gamma->linear->gamma space if 1 */
+#define RT_FEAT_GAMMA               1   /* gamma->linear->gamma space if 1 */
 #define RT_FEAT_TRANSFORM           1   /* <- breaks TM in the engine if 0 */
 #define RT_FEAT_TRANSFORM_ARRAY     1   /* <- breaks TA in the engine if 0 */
 #define RT_FEAT_BOUND_VOL_ARRAY     1
@@ -652,13 +652,15 @@
         movyx_st(Reax, Mecx, ctx_C_BUF(0x##pn))                             \
     LBL(lb##pn)
 
-#define PAINT_COLX(cl, pl) /* destroys Xmm0, reads Xmm2, Xmm7 */            \
+#define PAINT_COLX(cl, pl) /* destroys Reax, Xmm0, reads Xmm2, Xmm7 */      \
         movpx_ld(Xmm0, Mecx, ctx_C_BUF(0))                                  \
         shrpx_ri(Xmm0, IB(0x##cl))                                          \
         andpx_rr(Xmm0, Xmm7)                                                \
         cvnpn_rr(Xmm0, Xmm0)                                                \
         divps_rr(Xmm0, Xmm2)                                                \
+        CHECK_PROP(GM_p##cl, RT_PROP_GAMMA)                                 \
   GAMMA(mulps_rr(Xmm0, Xmm0)) /* gamma-to-linear colorspace conversion */   \
+    LBL(GM_p##cl)                                                           \
         movpx_st(Xmm0, Mecx, ctx_##pl)
 
 #if   RT_SIMD_QUADS == 1
@@ -974,23 +976,25 @@
  * the fully computed color values from the context's
  * COL_R, COL_G, COL_B SIMD-fields into the specified location.
  */
-#define FRAME_COLX(cl, pl) /* destroys Xmm0, Xmm1, reads Xmm2, Xmm7 */      \
+#define FRAME_COLX(cl, pl) /* destroys Reax, Xmm0, Xmm1, reads Xmm2, Xmm7 */\
         movpx_ld(Xmm1, Mecx, ctx_##pl(0))                                   \
+        CHECK_PROP(GM_f##cl, RT_PROP_GAMMA)                                 \
   GAMMA(sqrps_rr(Xmm1, Xmm1)) /* linear-to-gamma colorspace conversion */   \
+    LBL(GM_f##cl)                                                           \
         mulps_rr(Xmm1, Xmm2)                                                \
         cvnps_rr(Xmm1, Xmm1)                                                \
         andpx_rr(Xmm1, Xmm7)                                                \
         shlpx_ri(Xmm1, IB(0x##cl))                                          \
         orrpx_rr(Xmm0, Xmm1)
 
-#define FRAME_SIMD() /* destroys Xmm0, Xmm1, Xmm2, Xmm7, reads Reax, Redx */\
+#define FRAME_SIMD() /* destroys Reax, Xmm0, Xmm1, Xmm2, Xmm7, reads Redx */\
         xorpx_rr(Xmm0, Xmm0)                                                \
         movpx_ld(Xmm2, Medx, cam_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, cam_CMASK)                                     \
         FRAME_COLX(10, COL_R)                                               \
         FRAME_COLX(08, COL_G)                                               \
         FRAME_COLX(00, COL_B)                                               \
-        movpx_st(Xmm0, Oeax, PLAIN)
+        movpx_st(Xmm0, Mecx, ctx_C_BUF(0))
 
 /*
  * Replicate subroutine calling behaviour
@@ -4390,7 +4394,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* convert fp colors to integer */
         movxx_ld(Redx, Mebp, inf_CAM)           /* edx needed in FRAME_SIMD */
-        adrpx_ld(Reax, Mecx, ctx_C_BUF(0))
 
         FRAME_SIMD()
 
