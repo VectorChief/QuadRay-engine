@@ -210,6 +210,8 @@ struct rt_TEX
     rt_si32             y_dim;
 };
 
+/* texture arrays are not currently implemented in the engine */
+
 struct rt_TEXTURE
 {
     /* TRANSFORM2D (implicit) */
