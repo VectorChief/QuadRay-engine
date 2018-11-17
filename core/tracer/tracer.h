@@ -508,10 +508,10 @@ struct rt_SIMD_CONTEXT
     /* packed scalar fields */
 
     rt_ui64 param[R];
-#define ctx_PARAM(nx)       DP(Q*0x2A0 + nx*2)
+#define ctx_PARAM(nx)       DP(Q*0x2A0+C + nx*2)
 
     rt_ui64 local[R];
-#define ctx_LOCAL(nx)       DP(Q*0x2C0 + nx*2)
+#define ctx_LOCAL(nx)       DP(Q*0x2C0+C + nx*2)
 
     /* custom clipping accum */
 

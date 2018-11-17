@@ -3478,6 +3478,7 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
 
     rt_SIMD_CONTEXT *s_ctx = tharr[index]->s_ctx;
 
+    s_ctx->param[1] = -((opts & RT_OPTS_GAMMA) == 0) & RT_PROP_GAMMA;
     RT_SIMD_SET(s_ctx->t_min, cam->pov);
     RT_SIMD_SET(s_ctx->wmask, -1);
 
@@ -3529,11 +3530,12 @@ rt_si32 rt_Scene::get_opts()
 }
 
 /*
- * Set runtime optimization flags.
+ * Set runtime optimization flags,
+ * except those turned off in the original scene definition.
  */
 rt_si32 rt_Scene::set_opts(rt_si32 opts)
 {
-    this->opts = opts;
+    this->opts = opts & ~scn->opts;
 
     /* trigger update of the whole hierarchy,
      * safe to reset time as "rootobj" never has an animator,

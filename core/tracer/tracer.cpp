@@ -1038,17 +1038,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ld(Recx, Mebp, inf_CTX)
         movxx_ld(Redx, Mebp, inf_CAM)
 
+        movwx_mi(Mecx, ctx_PARAM(PTR), IB(0))   /* mark XX_end with tag 0 */
+        /* ctx_PARAM(FLG) is initialized outside */
+        movxx_mi(Mecx, ctx_PARAM(LST), IB(0))
+        movxx_mi(Mecx, ctx_PARAM(OBJ), IB(0))
+
         xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
-        adrpx_ld(Reax, Mecx, ctx_PARAM(0))
-        movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> PARAM */
-        addxx_ri(Reax, IM(RT_SIMD_QUADS*16))
-        movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> PARAM */
         adrpx_ld(Reax, Mecx, ctx_LOCAL(0))
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
         addxx_ri(Reax, IM(RT_SIMD_QUADS*16))
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
-
-        movwx_mi(Mecx, ctx_PARAM(PTR), IB(0))
 
 /******************************************************************************/
 /********************************   RAY INIT   ********************************/
@@ -4412,6 +4411,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* convert fp colors to integer */
         movxx_ld(Redx, Mebp, inf_CAM)           /* edx needed in FRAME_SIMD */
+
+        movxx_ld(Reax, Mecx, ctx_PARAM(FLG))    /* load Gamma prop */
+        movxx_st(Reax, Mecx, ctx_LOCAL(FLG))    /* save Gamma prop */
 
         FRAME_SIMD()
 

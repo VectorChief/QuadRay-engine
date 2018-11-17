@@ -46,7 +46,6 @@
  * define particular flag as 0
  * to turn respective optimization off at compile time.
  */
-#define RT_OPTS_NONE            0
 #define RT_OPTS_THREAD          (1 << 0)
 #define RT_OPTS_TILING          (1 << 1)
 #define RT_OPTS_TILING_EXT1     (1 << 2)
@@ -66,6 +65,7 @@
 #define RT_OPTS_INSERT_EXT1     (0 << 17)
 #define RT_OPTS_INSERT_EXT2     (0 << 18)
 #define RT_OPTS_REMOVE          (0 << 19)
+#define RT_OPTS_GAMMA           (1 << 20) /* turns off Gamma when set to 1 */
 
 /* extra options (update) */
 #define RT_OPTS_UPDATE_EXT0     (1 << 26) /* update phases off */
@@ -78,6 +78,9 @@
 
 /* bbox sorting (RT_OPTS_INSERT) and hidden surfaces removal (RT_OPTS_REMOVE)
  * optimizations have been turned off for poor scalability with larger scenes */
+
+#define RT_OPTS_NONE            (                                           \
+        RT_OPTS_GAMMA           )
 
 #define RT_OPTS_FULL            (                                           \
         RT_OPTS_THREAD          |                                           \
@@ -98,7 +101,8 @@
         RT_OPTS_INSERT          |                                           \
         RT_OPTS_INSERT_EXT1     |                                           \
         RT_OPTS_INSERT_EXT2     |                                           \
-        RT_OPTS_REMOVE          )
+        RT_OPTS_REMOVE          |                                           \
+        RT_OPTS_GAMMA           )
 
 /*
  * Camera actions.
