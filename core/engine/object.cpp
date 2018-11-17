@@ -3985,6 +3985,7 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
 
     props  = 0;
     props |= -((rg->opts & RT_OPTS_GAMMA) == 0) & RT_PROP_GAMMA;
+    props |= -((rg->opts & RT_OPTS_FRESNEL) == 0) & RT_PROP_FRESNEL;
     props |= mat->tag == RT_MAT_LIGHT ? RT_PROP_LIGHT : RT_PROP_NORMAL;
     props |= mat->tag == RT_MAT_METAL ? RT_PROP_METAL : 0;
     props |= mat->prp[1] == 0.0f ? RT_PROP_OPAQUE : 0;

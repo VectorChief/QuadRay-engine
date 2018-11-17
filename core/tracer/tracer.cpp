@@ -3011,9 +3011,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_FRESNEL
 
-        CHECK_PROP(RF_pre, RT_PROP_FRESNEL)
+        CHECK_PROP(RF_frn, RT_PROP_FRESNEL)
 
-        CHECK_PROP(RF_pre, RT_PROP_OPAQUE)
+        CHECK_PROP(RF_frn, RT_PROP_OPAQUE)
 
 #if RT_FEAT_FRESNEL_METAL
 
@@ -3090,7 +3090,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_FRESNEL_METAL_SLOW */
 
-        jmpxx_lb(RF_frn)
+        jmpxx_lb(RF_pre)
 
     LBL(RF_mtl)
 
@@ -3127,7 +3127,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_FRESNEL_PLAIN */
 
-    LBL(RF_frn)
+    LBL(RF_pre)
 
         /* store Fresnel reflectance */
         mulps_ld(Xmm0, Mebp, inf_GPC02)
@@ -3136,7 +3136,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm0, Medx, mat_C_RFL)
         movpx_st(Xmm0, Mecx, ctx_F_RFL)
 
-    LBL(RF_pre)
+    LBL(RF_frn)
 
 #endif /* RT_FEAT_FRESNEL */
 

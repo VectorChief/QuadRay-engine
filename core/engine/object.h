@@ -66,6 +66,7 @@
 #define RT_OPTS_INSERT_EXT2     (0 << 18)
 #define RT_OPTS_REMOVE          (0 << 19)
 #define RT_OPTS_GAMMA           (1 << 20) /* turns off Gamma when set to 1 */
+#define RT_OPTS_FRESNEL         (1 << 21) /* turns off Fresnel when set to 1 */
 
 /* extra options (update) */
 #define RT_OPTS_UPDATE_EXT0     (1 << 26) /* update phases off */
@@ -80,7 +81,8 @@
  * optimizations have been turned off for poor scalability with larger scenes */
 
 #define RT_OPTS_NONE            (                                           \
-        RT_OPTS_GAMMA           )
+        RT_OPTS_GAMMA           |                                           \
+        RT_OPTS_FRESNEL         )
 
 #define RT_OPTS_FULL            (                                           \
         RT_OPTS_THREAD          |                                           \
@@ -102,7 +104,8 @@
         RT_OPTS_INSERT_EXT1     |                                           \
         RT_OPTS_INSERT_EXT2     |                                           \
         RT_OPTS_REMOVE          |                                           \
-        RT_OPTS_GAMMA           )
+        RT_OPTS_GAMMA           |                                           \
+        RT_OPTS_FRESNEL         )
 
 /*
  * Camera actions.
