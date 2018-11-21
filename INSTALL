@@ -205,8 +205,8 @@ In terminal window for 32-bit x86 run:
 for AVX (Sandy Bridge) and AVX512F (Knights Landing) respectively.
 
 In terminal window for 64-bit x64 run:
-    path-to-kit/sde64 -hsw -- ./simd_test.x64_32avx -c 1
-    path-to-kit/sde64 -skx -- ./simd_test.x64f32avx -c 1
+    path-to-kit/sde64 -hsw -- ./simd_test.x64f32avx -c 1
+    path-to-kit/sde64 -skx -- ./simd_test.x64f32avx512 -c 1
     path-to-kit/sde64 -skx -- ./core_test.x64f32 -c 1 -i            (check dump)
 for AVX2 (Haswell) and AVX512DQ (Skylake-X) respectively.
 
