@@ -1,41 +1,12 @@
 ================================================================================
-
-P) Task title: "add new rt_Platform class for common thread-pool, log-redirect"
-1) Use single instance of rt_Platform class in many rt_Scene class instances
-2) Move SIMD target-tracking static variables from tracer-backend to rt_Scene?
-3) Make sure tracer-backend feature flags are consistent with the code (on/off)
-4) Set thread-pool size from CPU core-count, add native Win64 threading support
-5) Implement fullscreen mode (-w 0) for Windows, use screen-sized modal window
-6) Update tracer-backend targets to check if RT_REGS is defined in makefiles
-
-================================================================================
-
-F) Task title: "implement Fresnel reflection terms for refractive surfaces"
-1) Use Schlick approximation as a base for Fresnel reflectance
-2) Account for total inner reflection below certain angles
-3) Split current refraction term (coeff) to refraction + Fresnel
-4) New reflectance term is a sum of reflectance (coeff) + Fresnel
-5) Compatibility break with current 0.6.x versions in produced images (=> 0.7.0)
-6) Add option to scene format for turning off Fresnel on per-obj/scene basis?
-7) Check how Fresnel coeffs integrate with the existing scheme before finalizing
-
-================================================================================
-
-G) Task title: "implement Gamma-correction in final color conversion"
-1) Use Gamma-correction when colors are written into the framebuffer
-2) Perform antialiasing before Gamma correction
-3) Compatibility break with current 0.6.x versions in produced images (=> 0.7.0)
-4) Add option to scene format for turning off Gamma on pre-Gamma assets/scenes?
-5) Consider using extra tweaks to perform Gamma-correction with 1.0/2.2, 2.2 pow
-
+=== >>> === tasks below are planned for the forthcoming 0.7.x series === <<< ===
 ================================================================================
 
 K) Task title: "use configuration utils (autotools, CMake, etc) for building"
 1) Use single build script for all host CPU architectures on Linux
 2) Keep cross-compilation on x86-64 Linux hosts (targeting QEMU linux-user mode)
+3) Consider adding continuous integration (CI) tests
 
-================================================================================
-=== >>> === tasks above are planned for the upcoming 0.7.0 milestone === <<< ===
 ================================================================================
 
 T) Task title: "consider packed SIMD tile traversal (instead of scanline)"
@@ -56,6 +27,7 @@ S) Task title: "implement basic unbiased path-tracer (to match smallpt code)"
 4) Enable path-tracer in "pause" mode in addition to real-time ray-tracer
 5) Allow image to converge in real-time (add new samples between updates)
 6) Check out CPPRay (https://github.com/Harha/CPPRay) + youtube video
+7) Consider using extra tweaks to perform Gamma-correction with 1.0/2.2, 2.2 pow
 
 ================================================================================
 
