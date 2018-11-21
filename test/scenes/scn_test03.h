@@ -171,6 +171,11 @@ rt_RELATION rl_tree[] =
 rt_SCENE sc_root =
 {
     RT_OBJ_ARRAY_REL(&ob_tree, &rl_tree),
+    /* list of optimizations to be turned off *
+     * refer to core/engine/object.h for defs */
+    
+    /* turning off GAMMA|FRESNEL opts in turn *
+     * enables respective GAMMA|FRESNEL props */
 };
 
 } /* namespace scn_test03 */

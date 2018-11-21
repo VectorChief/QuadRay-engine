@@ -231,7 +231,8 @@ rt_OBJECT ob_tree[] =
 rt_SCENE sc_root =
 {
     RT_OBJ_ARRAY(&ob_tree),
-    /* list of optimizations to be turned off */
+    /* list of optimizations to be turned off *
+     * refer to core/engine/object.h for defs */
     RT_OPTS_GAMMA | RT_OPTS_FRESNEL
     /* turning off GAMMA|FRESNEL opts in turn *
      * enables respective GAMMA|FRESNEL props */
