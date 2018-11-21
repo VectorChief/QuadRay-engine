@@ -1,3 +1,4 @@
+v0.7.0: QuadRay engine, code name "GIzmo", base for future GI path-tracing work
   - renewed directory structure, move RooT demo files to a separate root folder
   - add new fp-compatibility and feature tasks, rename TASKS file to ROADMAP
   - add support for 30 SIMD register pairs (2x128) backend on POWER7/8
@@ -19,6 +20,7 @@
   - implement antialiasing as a cycle of pairwise horizontal fp-adds, no macros
   - add support for Gamma correction to rendering backend (approx with sqrt)
   - add support for Fresnel reflectance on reflective/refractive surfaces
+  - fix ray normalization for refraction and Fresnel (was close to normal)
   - add test scenes 17 and 18 for Fresnel (from RaVi/smallpt, work in progress)
   - implement fixed-point for specular pow, plotters for Gamma/Fresnel (-z)
   - implement alternating 2x antialiasing, plotters for antialiasing samples
@@ -44,6 +46,9 @@
   - improve SIMD target reporting in tests, add -c n option to reduce test time
   - update notes for MIPS cross-compiler location, add -mnan=2008 to makefiles
   - update notes for AArch64 Linux, QEMU 3.0.0, Intel SDE, add ARM IE reference
+  - add test for SIMD mask-move (mmv), run level 27
+  - add test for 8/15/30 BASE/SIMD registers, run level 28
+  - convert all text files with unix2dos
   - fix BASE shifts with zero immediate arg on legacy ARMv7 (backported down)
   - always reserve maximum space for SIMD register file
   - save/restore temp predicate register on AVX512
