@@ -1,4 +1,5 @@
 v0.7.0: QuadRay engine, code name "GIzmo", base for future GI path-tracing work
+  - makes use of UniSIMD assembler 1.0.0 "ENsed" for ARM-SVE, POWER9, new scheme
   - renewed directory structure, move RooT demo files to a separate root folder
   - add new fp-compatibility and feature tasks, rename TASKS file to ROADMAP
   - add support for 30 SIMD register pairs (2x128) backend on POWER7/8
