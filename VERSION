@@ -56,8 +56,26 @@ v0.6.7: Backend improvements, new command-line options, extra SIMD backends
   - move BASE sub-target selection to rtarch main header (ARM, x86)
   - add notes for AArch64 Linux on Raspberry Pi 3 to INSTALL file
   - add new TASKS file with description for future tasks
+  - convert all text files with unix2dos
   - enforce full ARMv7 instruction set (32-bit words) in makefiles
   - fix LLVM's condition evaluation sign on all targets, define M -/+
+  - fix BASE shifts with zero immediate arg on legacy ARMv7
+  - always reserve maximum space for SIMD register file
+  - save/restore temp predicate register on AVX512
+  - fix SIMD registers save/restore for 15x128x2 on POWER7
+  - fix temporary FPRs save/restore on POWER
+  - fix scalar SIMD min/max on POWER7
+  - fix BASE compare immediate encodings on POWER
+  - fix location for 128/256-bit common SIMD instructions
+  - fix for scalar SIMD alignment on ARMv7, POWER8
+  - fix compilation in C++11 mode with RT_DEBUG=2, non-debug build on Windows
+  - add comment for NaNs handling in floating point piepline
+  - clarify comments about SIMD fp round instructions
+  - fix comment for SIMD shifts with count in memory
+  - add comment for scalar/vector compatibility
+  - undef SIMD flags of the same width in corresponding tracer backend files
+  - fix stride for frame copying in Windows
+  - fix stride for BMP file format
   - fix SIMD registers save/restore for 128-bit AVX targets (backported down)
   - fix buffer allocation in SIMD tests (for 64-bit elems)
   - fix stack alignment (now 16 bytes) on ARMv8/AArch64 (hardware) targets
