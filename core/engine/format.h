@@ -68,6 +68,9 @@
 #define RT_OPTS_RENDER_EXT0     (1 << 30) /* render scene off */
 #define RT_OPTS_RENDER_EXT1     (1 << 31) /* render scene single-threadedly */
 
+/* Gamma correction (RT_OPTS_GAMMA) and Fresnel reflectance (RT_OPTS_FRESNEL)
+ * optimizations are on by default (which means corresponding properties off)
+ * as scene assets need to be reworked to properly support these new features */
 /* bbox sorting (RT_OPTS_INSERT) and hidden surfaces removal (RT_OPTS_REMOVE)
  * optimizations have been turned off for poor scalability with larger scenes */
 
