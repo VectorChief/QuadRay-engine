@@ -486,10 +486,11 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
 
 #else /* Windows 7 or newer */
 
-    USHORT j, gcnt = TG, garr[TG] = {0};
+    USHORT gcnt = TG, garr[TG] = {0};
     HANDLE process = GetCurrentProcess();
     GetProcessGroupAffinity(process, &gcnt, garr);
 #if RT_DEBUG >= 1
+    rt_si32 j;
     RT_LOGI("InitProcessGroupAffinity: %d - {", gcnt);
     for (j = 0; j < gcnt; j++)
     {
