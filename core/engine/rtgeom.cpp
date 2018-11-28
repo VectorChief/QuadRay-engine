@@ -1385,9 +1385,9 @@ rt_si32 bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         }
         if (i == 2 && j == 1)
         {
-            if (s == 2 && t == 2
-            ||  s == 2 && p == 1 && t == 1 && n == 1
-            ||  s == 1 && m == 1 && t == 2 && q == 1)
+            if ((s == 2 && t == 2)
+            ||  (s == 2 && p == 1 && t == 1 && n == 1)
+            ||  (s == 1 && m == 1 && t == 2 && q == 1))
             {
                 if (s == 1 || p == 1)
                 {
@@ -1395,14 +1395,14 @@ rt_si32 bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                 }
                 return u|1;
             }
-            if (s == 1 && t == 1
-            ||  s == 1 && m == 0 && q == 0
-            ||  s == 2 && p == 0 && t == 1 && n == 0)
+            if ((s == 1 && t == 1)
+            ||  (s == 1 && m == 0 && q == 0)
+            ||  (s == 2 && p == 0 && t == 1 && n == 0))
             {
                 return 2;
             }
-            if (s == 2 && p == 1 && t == 1
-            ||  s == 1 && m == 0 && t == 2 && q == 1)
+            if ((s == 2 && p == 1 && t == 1)
+            ||  (s == 1 && m == 0 && t == 2 && q == 1))
             {
                 return 3;
             }
@@ -1410,9 +1410,9 @@ rt_si32 bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         }
         if (i == 1 && j == 2)
         {
-            if (t == 2 && s == 2
-            ||  t == 2 && q == 1 && s == 1 && m == 1
-            ||  t == 1 && n == 1 && s == 2 && p == 1)
+            if ((t == 2 && s == 2)
+            ||  (t == 2 && q == 1 && s == 1 && m == 1)
+            ||  (t == 1 && n == 1 && s == 2 && p == 1))
             {
                 if (t == 1 || q == 1)
                 {
@@ -1420,14 +1420,14 @@ rt_si32 bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
                 }
                 return u|2;
             }
-            if (t == 1 && s == 1
-            ||  t == 1 && n == 0 && p == 0
-            ||  t == 2 && q == 0 && s == 1 && m == 0)
+            if ((t == 1 && s == 1)
+            ||  (t == 1 && n == 0 && p == 0)
+            ||  (t == 2 && q == 0 && s == 1 && m == 0))
             {
                 return 1;
             }
-            if (t == 2 && q == 1 && s == 1
-            ||  t == 1 && n == 0 && s == 2 && p == 1)
+            if ((t == 2 && q == 1 && s == 1)
+            ||  (t == 1 && n == 0 && s == 2 && p == 1))
             {
                 return 3;
             }
@@ -1459,9 +1459,9 @@ rt_si32 bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         }
         if (i == 1 && j == 0)
         {
-            if (s == 1
-            ||  s == 2 && p == 0 && q == 1
-            ||  s == 2 && p == 0 && t == 1 && n == 0)
+            if ((s == 1)
+            ||  (s == 2 && p == 0 && q == 1)
+            ||  (s == 2 && p == 0 && t == 1 && n == 0))
             {
                 return 1;
             }
@@ -1473,9 +1473,9 @@ rt_si32 bbox_sort(rt_BOUND *obj, rt_BOUND *nd1, rt_BOUND *nd2)
         }
         if (i == 0 && j == 1)
         {
-            if (t == 1
-            ||  t == 2 && q == 0 && p == 1
-            ||  t == 2 && q == 0 && s == 1 && m == 0)
+            if ((t == 1)
+            ||  (t == 2 && q == 0 && p == 1)
+            ||  (t == 2 && q == 0 && s == 1 && m == 0))
             {
                 return 2;
             }
@@ -1994,8 +1994,8 @@ rt_si32 bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
         i = surf_clip(ref, srf);
         j = surf_clip(srf, ref);
 
-        if (i == 2 && j == 2
-        ||  i == 2 && j == 0)
+        if ((i == 2 && j == 2)
+        ||  (i == 2 && j == 0))
         {
             c |= 1;
             if (m == 1 && k != 0)
@@ -2041,8 +2041,8 @@ rt_si32 bbox_side(rt_BOUND *obj, rt_SHAPE *srf)
             }
             return c;
         }
-        if (i == 0 && j == 2
-        ||  i == 0 && j == 1)
+        if ((i == 0 && j == 2)
+        ||  (i == 0 && j == 1))
         {
             c |= 3;
             return c;
