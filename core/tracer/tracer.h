@@ -16,7 +16,11 @@
  * 16  means 1/16 DP-level  (8-bit displacements) has not been exceeded (Q=1).
  * NOTE: the built-in rt_SIMD_INFO structure is already filled at full 1/16th.
  */
-#define RT_DATA 4
+#if RT_DEBUG >= 1
+#define RT_DATA 2 /* for rt_SIMD_INFOX */
+#else /* RT_DEBUG == 0 */
+#define RT_DATA 4 /* all fit if no debug */
+#endif /* RT_DEBUG == 0 */
 
 #include "rtbase.h"
 
