@@ -213,8 +213,20 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_word pad11[43];
 #define inf_PAD11           DP(Q*0x100+0x054*P+E)
 
-    rt_elem pad12[S*16];
-#define inf_PAD12           DP(Q*0x100+0x100*P)
+    rt_uelm prngs[S];
+#define inf_PRNGS           DP(Q*0x100+0x100*P)
+
+    rt_uelm prngf[S];
+#define inf_PRNGF           DP(Q*0x110+0x100*P)
+
+    rt_uelm prnga[S];
+#define inf_PRNGA           DP(Q*0x120+0x100*P)
+
+    rt_uelm prngm[S];
+#define inf_PRNGM           DP(Q*0x130+0x100*P)
+
+    rt_elem pad12[S*12];
+#define inf_PAD12           DP(Q*0x140+0x100*P)
 
 #if RT_DEBUG >= 1
 

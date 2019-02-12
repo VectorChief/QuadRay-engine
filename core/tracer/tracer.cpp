@@ -997,6 +997,17 @@
         movpx_st(Xmm0, Mecx, ctx_C_BUF(0))
 
 /*
+ * Generate next random number (to inf_PRNGS) using 32-bit LCG method.
+ */
+#define RANDOM_NUM()       /* destroys Xmm0 */                              \
+        movpx_ld(Xmm0, Mebp, inf_PRNGS)                                     \
+        mulpx_ld(Xmm0, Mebp, inf_PRNGF)                                     \
+        addpx_ld(Xmm0, Mebp, inf_PRNGA)                                     \
+        shrpx_ri(Xmm0, IB(16))                                              \
+        andpx_ld(Xmm0, Mebp, inf_PRNGM)                                     \
+        movpx_st(Xmm0, Mebp, inf_PRNGS)
+
+/*
  * Replicate subroutine calling behaviour
  * by saving a given return address tag "tg" in the context's
  * local PTR field, then jumping to the destination address "to".

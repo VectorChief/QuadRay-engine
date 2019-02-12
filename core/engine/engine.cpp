@@ -850,6 +850,12 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_si32 index) :
     s_inf->tls_row = scene->tiles_in_row;
     s_inf->tiles   = scene->tiles;
 
+    /* init PRNG's constants (32-bit LCG) */
+    RT_SIMD_SET(s_inf->prngs, (rt_uelm)1);          /* PRNG's 32-bit seed */
+    RT_SIMD_SET(s_inf->prngf, (rt_uelm)214013);     /* PRNG's 32-bit factor */
+    RT_SIMD_SET(s_inf->prnga, (rt_uelm)2531011);    /* PRNG's 32-bit addend */
+    RT_SIMD_SET(s_inf->prngm, (rt_uelm)0x7fff);     /* PRNG's 32-bit mask */
+
     /* allocate cam SIMD structure */
     s_cam = (rt_SIMD_CAMERA *)
             alloc(sizeof(rt_SIMD_CAMERA),
