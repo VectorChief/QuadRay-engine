@@ -997,15 +997,21 @@
         movpx_st(Xmm0, Mecx, ctx_C_BUF(0))
 
 /*
- * Generate next random number (to Xmm0) using 32-bit LCG method.
+ * Generate next random number (Xmm0, fp: 0.0-1.0) using 32-bit LCG method.
+ * Seed (inf_PRNGS) must be initialized outside along with other constants.
  */
-#define RANDOM_NUM()       /* destroys Xmm0 */                              \
+#define GET_RANDOM()       /* destroys Xmm0, Xmm1 */                        \
         movpx_ld(Xmm0, Mebp, inf_PRNGS)                                     \
         mulpx_ld(Xmm0, Mebp, inf_PRNGF)                                     \
         addpx_ld(Xmm0, Mebp, inf_PRNGA)                                     \
         movpx_st(Xmm0, Mebp, inf_PRNGS)                                     \
+        movpx_ld(Xmm1, Mebp, inf_PRNGM)                                     \
         shrpx_ri(Xmm0, IB(16))                                              \
-        andpx_ld(Xmm0, Mebp, inf_PRNGM)
+        andpx_rr(Xmm0, Xmm1)                                                \
+        cvnpn_rr(Xmm0, Xmm0)                                                \
+        cvnpn_rr(Xmm1, Xmm1)                                                \
+        addps_ld(Xmm1, Mebp, inf_GPC01)                                     \
+        divps_rr(Xmm0, Xmm1)
 
 /*
  * Replicate subroutine calling behaviour
