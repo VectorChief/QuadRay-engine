@@ -1000,18 +1000,18 @@
  * Generate next random number (Xmm0, fp: 0.0-1.0) using 32-bit LCG method.
  * Seed (inf_PRNGS) must be initialized outside along with other constants.
  */
-#define GET_RANDOM()       /* destroys Xmm0, Xmm1 */                        \
+#define GET_RANDOM()       /* destroys Xmm0, Xmm7 */                        \
         movpx_ld(Xmm0, Mebp, inf_PRNGS)                                     \
         mulpx_ld(Xmm0, Mebp, inf_PRNGF)                                     \
         addpx_ld(Xmm0, Mebp, inf_PRNGA)                                     \
         movpx_st(Xmm0, Mebp, inf_PRNGS)                                     \
-        movpx_ld(Xmm1, Mebp, inf_PRNGM)                                     \
+        movpx_ld(Xmm7, Mebp, inf_PRNGM)                                     \
         shrpx_ri(Xmm0, IB(16))                                              \
-        andpx_rr(Xmm0, Xmm1)                                                \
+        andpx_rr(Xmm0, Xmm7)                                                \
         cvnpn_rr(Xmm0, Xmm0)                                                \
-        cvnpn_rr(Xmm1, Xmm1)                                                \
-        addps_ld(Xmm1, Mebp, inf_GPC01)                                     \
-        divps_rr(Xmm0, Xmm1)
+        cvnpn_rr(Xmm7, Xmm7)                                                \
+        addps_ld(Xmm7, Mebp, inf_GPC01)                                     \
+        divps_rr(Xmm0, Xmm7)
 
 /*
  * Replicate subroutine calling behaviour
@@ -2239,6 +2239,51 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_T_VAL(0))      /* 2nd vec, Z */
         /* use context's available fields
          * as temporary storage for basis */
+
+        /* compute random sample within halfcube */
+
+        GET_RANDOM() /* -> Xmm0, destroys Xmm7 */
+
+        mulps_rr(Xmm1, Xmm0)
+        mulps_rr(Xmm2, Xmm0)
+        mulps_rr(Xmm3, Xmm0)
+
+        GET_RANDOM() /* -> Xmm0, destroys Xmm7 */
+
+        addps_rr(Xmm0, Xmm0)
+        subps_ld(Xmm0, Mebp, inf_GPC01)
+
+        mulps_rr(Xmm4, Xmm0)
+        mulps_rr(Xmm5, Xmm0)
+        mulps_rr(Xmm6, Xmm0)
+
+        addps_rr(Xmm1, Xmm4)
+        addps_rr(Xmm2, Xmm5)
+        addps_rr(Xmm3, Xmm6)
+
+        movpx_ld(Xmm4, Mecx, ctx_C_ACC)         /* 2nd vec, X */
+        movpx_ld(Xmm5, Mecx, ctx_F_RFL)         /* 2nd vec, Y */
+        movpx_ld(Xmm6, Mecx, ctx_T_VAL(0))      /* 2nd vec, Z */
+
+        GET_RANDOM() /* -> Xmm0, destroys Xmm7 */
+
+        addps_rr(Xmm0, Xmm0)
+        subps_ld(Xmm0, Mebp, inf_GPC01)
+
+        mulps_rr(Xmm4, Xmm0)
+        mulps_rr(Xmm5, Xmm0)
+        mulps_rr(Xmm6, Xmm0)
+
+        addps_rr(Xmm1, Xmm4)
+        addps_rr(Xmm2, Xmm5)
+        addps_rr(Xmm3, Xmm6)
+
+        movpx_st(Xmm1, Mecx, ctx_NEW_X)         /* new ray, X */
+        movpx_st(Xmm2, Mecx, ctx_NEW_Y)         /* new ray, Y */
+        movpx_st(Xmm3, Mecx, ctx_NEW_Z)         /* new ray, Z */
+
+        /* replace with sampling over hemisphere
+         * for better uniformity later (sin, cos) */
 
         /* reservation for path-tracer light sampling */
 
