@@ -2151,6 +2151,101 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /*********************************   LIGHTS   *********************************/
 /******************************************************************************/
 
+        cmjxx_mz(Mebp, inf_PAD10,
+                 EQ_x, LT_reg)
+
+        /* compute orthonormal basis relative to normal */
+
+        movpx_ld(Xmm1, Mecx, ctx_NRM_X)
+        movpx_ld(Xmm2, Mecx, ctx_NRM_Y)
+        movpx_ld(Xmm3, Mecx, ctx_NRM_Z)
+
+        movpx_ld(Xmm4, Mecx, ctx_RAY_X)
+        movpx_ld(Xmm5, Mecx, ctx_RAY_Y)
+        movpx_ld(Xmm6, Mecx, ctx_RAY_Z)
+
+        /* compute 1st cross-product */
+
+        mulps3rr(Xmm0, Xmm2, Xmm6)
+        mulps3rr(Xmm7, Xmm3, Xmm5)
+        subps_rr(Xmm0, Xmm7)
+        movpx_st(Xmm0, Mecx, ctx_TEX_U)         /* 1st vec, X */
+        /* use context's available fields
+         * as temporary storage for basis */
+
+        mulps3rr(Xmm0, Xmm3, Xmm4)
+        mulps3rr(Xmm7, Xmm1, Xmm6)
+        subps_rr(Xmm0, Xmm7)
+        movpx_st(Xmm0, Mecx, ctx_TEX_V)         /* 1st vec, Y */
+        /* use context's available fields
+         * as temporary storage for basis */
+
+        mulps3rr(Xmm0, Xmm1, Xmm5)
+        mulps3rr(Xmm7, Xmm2, Xmm4)
+        subps_rr(Xmm0, Xmm7)
+        movpx_st(Xmm0, Mecx, ctx_C_PTR(0))      /* 1st vec, Z */
+        /* use context's available fields
+         * as temporary storage for basis */
+
+        movpx_ld(Xmm4, Mecx, ctx_TEX_U)         /* 1st vec, X */
+        movpx_ld(Xmm5, Mecx, ctx_TEX_V)         /* 1st vec, Y */
+        movpx_ld(Xmm6, Mecx, ctx_C_PTR(0))      /* 1st vec, Z */
+
+        /* normalize 1st vector */
+
+        movpx_rr(Xmm1, Xmm4)                    /* loc_x <- loc_x */
+        movpx_rr(Xmm2, Xmm5)                    /* loc_y <- loc_y */
+        movpx_rr(Xmm3, Xmm6)                    /* loc_z <- loc_z */
+
+        mulps_rr(Xmm1, Xmm4)                    /* loc_x *= loc_x */
+        mulps_rr(Xmm2, Xmm5)                    /* loc_y *= loc_y */
+        mulps_rr(Xmm3, Xmm6)                    /* loc_z *= loc_z */
+
+        addps_rr(Xmm1, Xmm2)                    /* lc2_x += lc2_y */
+        addps_rr(Xmm1, Xmm3)                    /* lc2_t += lc2_z */
+        rsqps_rr(Xmm0, Xmm1)                    /* inv_r rs loc_r */
+
+        mulps_rr(Xmm4, Xmm0)                    /* loc_x *= inv_r */
+        mulps_rr(Xmm5, Xmm0)                    /* loc_y *= inv_r */
+        mulps_rr(Xmm6, Xmm0)                    /* loc_z *= inv_r */
+
+        movpx_st(Xmm4, Mecx, ctx_TEX_U)         /* 1st vec, X */
+        movpx_st(Xmm5, Mecx, ctx_TEX_V)         /* 1st vec, Y */
+        movpx_st(Xmm6, Mecx, ctx_C_PTR(0))      /* 1st vec, Z */
+
+        movpx_ld(Xmm1, Mecx, ctx_NRM_X)
+        movpx_ld(Xmm2, Mecx, ctx_NRM_Y)
+        movpx_ld(Xmm3, Mecx, ctx_NRM_Z)
+
+        /* compute 2nd cross-product */
+
+        mulps3rr(Xmm0, Xmm2, Xmm6)
+        mulps3rr(Xmm7, Xmm3, Xmm5)
+        subps_rr(Xmm0, Xmm7)
+        movpx_st(Xmm0, Mecx, ctx_C_ACC)         /* 2nd vec, X */
+        /* use context's available fields
+         * as temporary storage for basis */
+
+        mulps3rr(Xmm0, Xmm3, Xmm4)
+        mulps3rr(Xmm7, Xmm1, Xmm6)
+        subps_rr(Xmm0, Xmm7)
+        movpx_st(Xmm0, Mecx, ctx_F_RFL)         /* 2nd vec, Y */
+        /* use context's available fields
+         * as temporary storage for basis */
+
+        mulps3rr(Xmm0, Xmm1, Xmm5)
+        mulps3rr(Xmm7, Xmm2, Xmm4)
+        subps_rr(Xmm0, Xmm7)
+        movpx_st(Xmm0, Mecx, ctx_T_VAL(0))      /* 2nd vec, Z */
+        /* use context's available fields
+         * as temporary storage for basis */
+
+        /* reservation for path-tracer light sampling */
+
+        jmpxx_lb(LT_end)
+
+    LBL(LT_reg)
+
         CHECK_PROP(LT_lgt, RT_PROP_LIGHT)
 
         jmpxx_lb(LT_set)
