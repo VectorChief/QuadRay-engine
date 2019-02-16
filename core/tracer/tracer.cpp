@@ -1601,7 +1601,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* normalize point */
         addps_rr(Xmm6, Xmm4)                    /* lc2_k += loc_r */
-        rsqps_rr(Xmm4, Xmm6)                    /* inv_r rs loc_r */
+        rsqps_rr(Xmm4, Xmm6) /* destroys Xmm6 *//* inv_r rs loc_r */
         mulps_ld(Xmm4, Mebx, srf_T_EPS)         /* inv_r *= T_EPS */
         mulps_rr(Xmm1, Xmm4)                    /* loc_i *= inv_r */
         mulps_rr(Xmm2, Xmm4)                    /* loc_j *= inv_r */
@@ -2066,7 +2066,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         addps_rr(Xmm1, Xmm2)                    /* lc2_x += lc2_y */
         addps_rr(Xmm1, Xmm3)                    /* lc2_t += lc2_z */
-        rsqps_rr(Xmm0, Xmm1)                    /* inv_r rs loc_r */
+        rsqps_rr(Xmm0, Xmm1) /* destroys Xmm1 *//* inv_r rs loc_r */
 
         mulps_rr(Xmm4, Xmm0)                    /* loc_x *= inv_r */
         mulps_rr(Xmm5, Xmm0)                    /* loc_y *= inv_r */
@@ -2203,7 +2203,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         addps_rr(Xmm1, Xmm2)                    /* lc2_x += lc2_y */
         addps_rr(Xmm1, Xmm3)                    /* lc2_t += lc2_z */
-        rsqps_rr(Xmm0, Xmm1)                    /* inv_r rs loc_r */
+        rsqps_rr(Xmm0, Xmm1) /* destroys Xmm1 *//* inv_r rs loc_r */
 
         mulps_rr(Xmm4, Xmm0)                    /* loc_x *= inv_r */
         mulps_rr(Xmm5, Xmm0)                    /* loc_y *= inv_r */
@@ -2284,6 +2284,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* replace with sampling over hemisphere
          * for better uniformity later (sin, cos) */
+
+        /* decorrelate samples within SIMD using
+         * varying yet deterministic seed (PRNGS) */
 
         /* reservation for path-tracer light sampling */
 
@@ -2466,7 +2469,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_LIGHTS_ATTENUATION */
 
-        rsqps_rr(Xmm5, Xmm4)                    /* Xmm5  <-   1/r */
+        rsqps_rr(Xmm5, Xmm4) /* destroys Xmm4 *//* Xmm5  <-   1/r */
 
 #if RT_FEAT_LIGHTS_ATTENUATION
 
@@ -2480,7 +2483,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm4, Medx, lgt_A_LNR)
         addps_ld(Xmm6, Medx, lgt_A_CNT)
         addps_rr(Xmm6, Xmm4)
-        rsqps_rr(Xmm4, Xmm6)                    /* Xmm4  <-   1/a */
+        rsqps_rr(Xmm4, Xmm6) /* destroys Xmm6 *//* Xmm4  <-   1/a */
 
 #endif /* RT_FEAT_LIGHTS_ATTENUATION */
 
@@ -2556,9 +2559,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_MASK(LT_spc, NONE, Xmm2)
 
         movpx_ld(Xmm4, Mecx, ctx_C_PTR(0))
-        rsqps_rr(Xmm5, Xmm6)
+        rsqps_rr(Xmm5, Xmm6) /* destroys Xmm6 */
         mulps_rr(Xmm1, Xmm5)
-        rsqps_rr(Xmm5, Xmm4)
+        rsqps_rr(Xmm5, Xmm4) /* destroys Xmm4 */
         mulps_rr(Xmm1, Xmm5)
 
         /* compute specular pow,
@@ -2806,7 +2809,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm7, Xmm3)
         addps_rr(Xmm0, Xmm7)
 
-        rsqps_rr(Xmm7, Xmm0)
+        rsqps_rr(Xmm7, Xmm0) /* destroys Xmm0 */
         mulps_rr(Xmm1, Xmm7)
         mulps_rr(Xmm2, Xmm7)
         mulps_rr(Xmm3, Xmm7)
@@ -3134,7 +3137,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm7, Xmm3)
         addps_rr(Xmm0, Xmm7)
 
-        rsqps_rr(Xmm7, Xmm0)
+        rsqps_rr(Xmm7, Xmm0) /* destroys Xmm0 */
         mulps_rr(Xmm1, Xmm7)
         mulps_rr(Xmm2, Xmm7)
         mulps_rr(Xmm3, Xmm7)
@@ -3795,7 +3798,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         addps_rr(Xmm1, Xmm2)                    /* lc2_x += lc2_y */
         addps_rr(Xmm1, Xmm3)                    /* lc2_t += lc2_z */
-        rsqps_rr(Xmm0, Xmm1)                    /* inv_r rs loc_r */
+        rsqps_rr(Xmm0, Xmm1) /* destroys Xmm1 *//* inv_r rs loc_r */
         xorpx_rr(Xmm0, Xmm7)                    /* inv_r ^= tside */
 
         mulps_rr(Xmm4, Xmm0)                    /* loc_x *= inv_r */
@@ -4364,7 +4367,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         addps_rr(Xmm1, Xmm2)                    /* lc2_x += lc2_y */
         addps_rr(Xmm1, Xmm3)                    /* lc2_t += lc2_z */
-        rsqps_rr(Xmm0, Xmm1)                    /* inv_r rs loc_r */
+        rsqps_rr(Xmm0, Xmm1) /* destroys Xmm1 *//* inv_r rs loc_r */
         xorpx_rr(Xmm0, Xmm7)                    /* inv_r ^= tside */
 
         mulps_rr(Xmm4, Xmm0)                    /* loc_x *= inv_r */
