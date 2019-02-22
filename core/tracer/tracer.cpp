@@ -2288,9 +2288,108 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* decorrelate samples within SIMD using
          * varying yet deterministic seed (PRNGS) */
 
-        /* reservation for path-tracer light sampling */
+        /* recursive path-tracer light sampling */
+
+        /* prepare default values */
+        xorpx_rr(Xmm0, Xmm0)
+        movpx_st(Xmm0, Mecx, ctx_T_NEW)
+
+        xorpx_rr(Xmm1, Xmm1)
+        xorpx_rr(Xmm2, Xmm2)
+        xorpx_rr(Xmm3, Xmm3)
+
+/************************************ ENTER ***********************************/
+
+        cmjxx_mz(Mebp, inf_DEPTH,
+                 EQ_x, PT_mix)
+
+        /* consider evaluating multiple samples
+         * per hit to speed up image convergence */
+
+        /* consider terminating recursion based on
+         * probability for Monte-Carlo path-tracer */
+
+        FETCH_XPTR(Resi, LST_P(SRF))
+
+        movpx_ld(Xmm0, Mecx, ctx_TMASK(0))      /* load tmask */
+        movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
+        orrxx_ri(Reax, IB(RT_FLAG_PASS_BACK))
+        addxx_ri(Recx, IH(RT_STACK_STEP))
+        subxx_mi(Mebp, inf_DEPTH, IB(1))
+
+        movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
+        movxx_st(Redx, Mecx, ctx_PARAM(LST))    /* save material */
+        movxx_st(Rebx, Mecx, ctx_PARAM(OBJ))    /* originating surface */
+        movwx_mi(Mecx, ctx_PARAM(PTR), IB(4))   /* mark PT_ret with tag 4 */
+        movpx_st(Xmm0, Mecx, ctx_WMASK)         /* tmask -> WMASK */
+
+        movxx_ld(Redx, Mebp, inf_CAM)
+        movpx_ld(Xmm0, Medx, cam_T_MAX)         /* tmp_v <- T_MAX */
+        movpx_st(Xmm0, Mecx, ctx_T_BUF(0))      /* tmp_v -> T_BUF */
+
+        xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
+        movpx_st(Xmm0, Mecx, ctx_C_BUF(0))      /* tmp_v -> C_BUF */
+        movpx_st(Xmm0, Mecx, ctx_COL_R(0))      /* tmp_v -> COL_R */
+        movpx_st(Xmm0, Mecx, ctx_COL_G(0))      /* tmp_v -> COL_G */
+        movpx_st(Xmm0, Mecx, ctx_COL_B(0))      /* tmp_v -> COL_B */
+
+        movpx_st(Xmm0, Mecx, ctx_T_MIN)         /* tmp_v -> T_MIN */
+        adrpx_ld(Reax, Mecx, ctx_LOCAL(0))
+        movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
+        addxx_ri(Reax, IM(RT_SIMD_QUADS*16))
+        movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
+
+        jmpxx_lb(OO_cyc)
+
+    LBL(PT_ret)
+
+        movxx_ld(Redx, Mecx, ctx_PARAM(LST))    /* restore material */
+        movxx_ld(Rebx, Mecx, ctx_PARAM(OBJ))    /* restore surface */
+
+        movpx_ld(Xmm1, Mecx, ctx_COL_R(0))
+        movpx_ld(Xmm2, Mecx, ctx_COL_G(0))
+        movpx_ld(Xmm3, Mecx, ctx_COL_B(0))
+
+        addxx_mi(Mebp, inf_DEPTH, IB(1))
+        subxx_ri(Recx, IH(RT_STACK_STEP))
+
+        movpx_ld(Xmm0, Medx, mat_L_DFF)
+
+        mulps_rr(Xmm1, Xmm0)
+        mulps_rr(Xmm2, Xmm0)
+        mulps_rr(Xmm3, Xmm0)
+
+/************************************ LEAVE ***********************************/
+
+    LBL(PT_mix)
+
+        /* modulate with surface color */
+        mulps_ld(Xmm1, Mecx, ctx_TEX_R)
+        mulps_ld(Xmm2, Mecx, ctx_TEX_G)
+        mulps_ld(Xmm3, Mecx, ctx_TEX_B)
+
+        /* add self-emission */
+        addps_ld(Xmm1, Medx, mat_COL_R)
+        addps_ld(Xmm2, Medx, mat_COL_G)
+        addps_ld(Xmm3, Medx, mat_COL_B)
+
+        /* accumulate colors */
+        addps_ld(Xmm1, Mecx, ctx_COL_R(0))
+        addps_ld(Xmm2, Mecx, ctx_COL_G(0))
+        addps_ld(Xmm3, Mecx, ctx_COL_B(0))
+
+        /* radiance R */
+        STORE_SIMD(PT_clR, COL_R, Xmm1)
+        /* radiance G */
+        STORE_SIMD(PT_clG, COL_G, Xmm2)
+        /* radiance B */
+        STORE_SIMD(PT_clB, COL_B, Xmm3)
 
         jmpxx_lb(LT_end)
+
+/******************************************************************************/
+
+        /* regular lighting for ray-tracer */
 
     LBL(LT_reg)
 
@@ -4450,6 +4549,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         cmjwx_ri(Reax, IB(0),
                  EQ_x, XX_end)
+        cmjwx_ri(Reax, IB(4),
+                 EQ_x, PT_ret)
         cmjwx_ri(Reax, IB(1),
                  EQ_x, LT_ret)
         cmjwx_ri(Reax, IB(2),
