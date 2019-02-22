@@ -2147,6 +2147,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         PAINT_SIMD(MT_rtx, Xmm1)
 
+        xorpx_rr(Xmm7, Xmm7)                    /* tmp_v <-     0 */
+
+        /* reset R */
+        STORE_SIMD(RT_clR, COL_R, Xmm7)
+        /* reset G */
+        STORE_SIMD(RT_clG, COL_G, Xmm7)
+        /* reset B */
+        STORE_SIMD(RT_clB, COL_B, Xmm7)
+
 /******************************************************************************/
 /*********************************   LIGHTS   *********************************/
 /******************************************************************************/
@@ -2288,7 +2297,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* decorrelate samples within SIMD using
          * varying yet deterministic seed (PRNGS) */
 
-        /* recursive path-tracer light sampling */
+        /* recursive light sampling for path-tracer */
 
         /* prepare default values */
         xorpx_rr(Xmm0, Xmm0)
