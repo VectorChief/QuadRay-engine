@@ -2147,19 +2147,19 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         PAINT_SIMD(MT_rtx, Xmm1)
 
-        xorpx_rr(Xmm1, Xmm1)
-        xorpx_rr(Xmm2, Xmm2)
-        xorpx_rr(Xmm3, Xmm3)
-
-        /* reset color */
-        STORE_SIMD()
-
 /******************************************************************************/
 /*********************************   LIGHTS   *********************************/
 /******************************************************************************/
 
         cmjxx_mz(Mebp, inf_PAD10,
                  EQ_x, LT_reg)
+
+        xorpx_rr(Xmm1, Xmm1)
+        xorpx_rr(Xmm2, Xmm2)
+        xorpx_rr(Xmm3, Xmm3)
+
+        /* reset color */
+        STORE_SIMD()
 
         /* compute orthonormal basis relative to normal */
 

@@ -1330,15 +1330,6 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
         }
     }
 
-    /* pass accumulated light up in the hierarchy */
-    if (parent != RT_NULL)
-    {
-        ((rt_Array *)parent)->col.hdr[RT_R] += col.hdr[RT_R];
-        ((rt_Array *)parent)->col.hdr[RT_G] += col.hdr[RT_G];
-        ((rt_Array *)parent)->col.hdr[RT_B] += col.hdr[RT_B];
-        ((rt_Array *)parent)->col.hdr[RT_A] += col.hdr[RT_A];
-    }
-
     /* assign accumulated light to emitting surfaces */
     for (i = 0; i < obj_num; i++)
     {
@@ -1346,19 +1337,25 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
 
         if (RT_IS_SURFACE(obj_arr[i]))
         {
-            s_mat = ((rt_Surface *)obj_arr[i])->outer->s_mat;
+            if (((rt_Surface *)obj_arr[i])->outer->props & RT_PROP_LIGHT)
+            {
+                s_mat = ((rt_Surface *)obj_arr[i])->outer->s_mat;
 
-            RT_SIMD_SET(s_mat->col_r, col.hdr[RT_R]);
-            RT_SIMD_SET(s_mat->col_g, col.hdr[RT_G]);
-            RT_SIMD_SET(s_mat->col_b, col.hdr[RT_B]);
-            RT_SIMD_SET(s_mat->e_src, col.hdr[RT_A]);
+                RT_SIMD_SET(s_mat->col_r, col.hdr[RT_R]);
+                RT_SIMD_SET(s_mat->col_g, col.hdr[RT_G]);
+                RT_SIMD_SET(s_mat->col_b, col.hdr[RT_B]);
+                RT_SIMD_SET(s_mat->e_src, col.hdr[RT_A]);
+            }
 
-            s_mat = ((rt_Surface *)obj_arr[i])->inner->s_mat;
+            if (((rt_Surface *)obj_arr[i])->inner->props & RT_PROP_LIGHT)
+            {
+                s_mat = ((rt_Surface *)obj_arr[i])->inner->s_mat;
 
-            RT_SIMD_SET(s_mat->col_r, col.hdr[RT_R]);
-            RT_SIMD_SET(s_mat->col_g, col.hdr[RT_G]);
-            RT_SIMD_SET(s_mat->col_b, col.hdr[RT_B]);
-            RT_SIMD_SET(s_mat->e_src, col.hdr[RT_A]);
+                RT_SIMD_SET(s_mat->col_r, col.hdr[RT_R]);
+                RT_SIMD_SET(s_mat->col_g, col.hdr[RT_G]);
+                RT_SIMD_SET(s_mat->col_b, col.hdr[RT_B]);
+                RT_SIMD_SET(s_mat->e_src, col.hdr[RT_A]);
+            }
         }
     }
 
