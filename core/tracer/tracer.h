@@ -962,6 +962,20 @@ struct rt_SIMD_MATERIAL
     rt_elem cmask[S];
 #define mat_CMASK           DP(Q*0x150)
 
+    /* emission intensity and color */
+
+    rt_real e_src[S];
+#define mat_E_SRC           DP(Q*0x160)
+
+    rt_real col_r[S];
+#define mat_COL_R           DP(Q*0x170)
+
+    rt_real col_g[S];
+#define mat_COL_G           DP(Q*0x180)
+
+    rt_real col_b[S];
+#define mat_COL_B           DP(Q*0x190)
+
 };
 
 /*

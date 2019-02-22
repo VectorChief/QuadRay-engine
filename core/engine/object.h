@@ -392,13 +392,11 @@ class rt_Node : public rt_Object
 {
 /*  fields */
 
-    protected:
+    public:
 
     /* per-side materials */
     rt_Material        *outer;
     rt_Material        *inner;
-
-    public:
 
     /* reusable relations template
      * for arrays and surfaces */
@@ -466,6 +464,10 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
     /* non-zero if array itself or
      * some of its sub-objects changed */
     rt_si32             arr_changed;
+
+    /* cumulative luminosity
+     * of all lights in array */
+    rt_COL              col;
 
     /* bounding box and volume,
      * used for trnode if present

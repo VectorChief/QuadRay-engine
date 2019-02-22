@@ -618,6 +618,16 @@ rt_Light::rt_Light(rt_Registry *rg, rt_Object *parent, rt_OBJECT *obj) :
     RT_SIMD_SET(s_lgt->a_lnr, lgt->atn[2]);
     RT_SIMD_SET(s_lgt->a_cnt, lgt->atn[1] + 1.0f);
     RT_SIMD_SET(s_lgt->a_rng, lgt->atn[0]);
+
+    ((rt_Array *)parent)->col.hdr[RT_R] += s_lgt->col_r[0];
+    ((rt_Array *)parent)->col.hdr[RT_G] += s_lgt->col_g[0];
+    ((rt_Array *)parent)->col.hdr[RT_B] += s_lgt->col_b[0];
+
+    ((rt_Array *)parent)->col.hdr[RT_R] += lgt->col.hdr[RT_R] * lgt->lum[0];
+    ((rt_Array *)parent)->col.hdr[RT_G] += lgt->col.hdr[RT_G] * lgt->lum[0];
+    ((rt_Array *)parent)->col.hdr[RT_B] += lgt->col.hdr[RT_B] * lgt->lum[0];
+
+    ((rt_Array *)parent)->col.hdr[RT_A] += lgt->lum[0] + lgt->lum[1];
 }
 
 /*
@@ -1168,6 +1178,9 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
     /* reset array's changed status */
     arr_changed = 0;
 
+    /* reset array's accumulated light */
+    memset(&col, 0, sizeof(rt_COL));
+
     /* init bvbox used for outer part of split bvnode if present */
     if (RT_TRUE)
     {
@@ -1314,6 +1327,38 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
             j--;
             obj_num--;
             break;
+        }
+    }
+
+    /* pass accumulated light up in the hierarchy */
+    if (parent != RT_NULL)
+    {
+        ((rt_Array *)parent)->col.hdr[RT_R] += col.hdr[RT_R];
+        ((rt_Array *)parent)->col.hdr[RT_G] += col.hdr[RT_G];
+        ((rt_Array *)parent)->col.hdr[RT_B] += col.hdr[RT_B];
+        ((rt_Array *)parent)->col.hdr[RT_A] += col.hdr[RT_A];
+    }
+
+    /* assign accumulated light to emitting surfaces */
+    for (i = 0; i < obj_num; i++)
+    {
+        rt_SIMD_MATERIAL *s_mat = RT_NULL;
+
+        if (RT_IS_SURFACE(obj_arr[i]))
+        {
+            s_mat = ((rt_Surface *)obj_arr[i])->outer->s_mat;
+
+            RT_SIMD_SET(s_mat->col_r, col.hdr[RT_R]);
+            RT_SIMD_SET(s_mat->col_g, col.hdr[RT_G]);
+            RT_SIMD_SET(s_mat->col_b, col.hdr[RT_B]);
+            RT_SIMD_SET(s_mat->e_src, col.hdr[RT_A]);
+
+            s_mat = ((rt_Surface *)obj_arr[i])->inner->s_mat;
+
+            RT_SIMD_SET(s_mat->col_r, col.hdr[RT_R]);
+            RT_SIMD_SET(s_mat->col_g, col.hdr[RT_G]);
+            RT_SIMD_SET(s_mat->col_b, col.hdr[RT_B]);
+            RT_SIMD_SET(s_mat->e_src, col.hdr[RT_A]);
         }
     }
 
