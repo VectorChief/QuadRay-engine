@@ -850,6 +850,12 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_si32 index) :
     s_inf->tls_row = scene->tiles_in_row;
     s_inf->tiles   = scene->tiles;
 
+    /* init framebuffer's fp-color planes */
+    s_inf->ptr_r   = scene->ptr_r;
+    s_inf->ptr_g   = scene->ptr_g;
+    s_inf->ptr_b   = scene->ptr_b;
+    s_inf->pt_on   = scene->pt_on;
+
     /* init PRNG's constants (32-bit LCG) */
     RT_SIMD_SET(s_inf->prngs, (rt_uelm)1);          /* PRNG's 32-bit seed */
     RT_SIMD_SET(s_inf->prngf, (rt_uelm)214013);     /* PRNG's 32-bit factor */
@@ -2820,7 +2826,23 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
     tiles_in_col = (y_res + pfm->tile_h - 1) / pfm->tile_h;
 
     tiles = (rt_ELEM **)
-            alloc(sizeof(rt_ELEM *) * (tiles_in_row * tiles_in_col), RT_ALIGN);
+            alloc(tiles_in_row * tiles_in_col * sizeof(rt_ELEM *), RT_ALIGN);
+
+    memset(tiles, 0, tiles_in_row * tiles_in_col * sizeof(rt_ELEM *));
+
+    /* alloc framebuffer's fp-color planes */
+    ptr_r = (rt_real *)
+            alloc(x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
+    ptr_g = (rt_real *)
+            alloc(x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
+    ptr_b = (rt_real *)
+            alloc(x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
+
+    memset(ptr_r, 0, x_row * y_res * sizeof(rt_real));
+    memset(ptr_g, 0, x_row * y_res * sizeof(rt_real));
+    memset(ptr_b, 0, x_row * y_res * sizeof(rt_real));
+
+    pt_on = RT_FALSE;
 
     /* init pixel-width, aspect-ratio, ray-depth */
     factor = 1.0f / (rt_real)x_res;

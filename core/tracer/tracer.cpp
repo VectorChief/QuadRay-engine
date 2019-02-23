@@ -2151,7 +2151,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /*********************************   LIGHTS   *********************************/
 /******************************************************************************/
 
-        cmjxx_mz(Mebp, inf_PAD10,
+        cmjxx_mz(Mebp, inf_PT_ON,
                  EQ_x, LT_reg)
 
         xorpx_rr(Xmm1, Xmm1)

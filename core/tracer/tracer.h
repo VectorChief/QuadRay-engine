@@ -193,25 +193,38 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr tiles;
 #define inf_TILES           DP(Q*0x100+0x03C*P+E)
 
+
+    rt_pntr ptr_r;
+#define inf_PTR_R           DP(Q*0x100+0x040*P+E)
+
+    rt_pntr ptr_g;
+#define inf_PTR_G           DP(Q*0x100+0x044*P+E)
+
+    rt_pntr ptr_b;
+#define inf_PTR_B           DP(Q*0x100+0x048*P+E)
+
+    rt_word pt_on;
+#define inf_PT_ON           DP(Q*0x100+0x04C*P+E)
+
     /* internal variables */
 
     rt_word frm_x;
-#define inf_FRM_X           DP(Q*0x100+0x040*P+E)
+#define inf_FRM_X           DP(Q*0x100+0x050*P+E)
 
     rt_word frm_y;
-#define inf_FRM_Y           DP(Q*0x100+0x044*P+E)
+#define inf_FRM_Y           DP(Q*0x100+0x054*P+E)
 
     rt_pntr frm;
-#define inf_FRM             DP(Q*0x100+0x048*P+E)
+#define inf_FRM             DP(Q*0x100+0x058*P+E)
 
     rt_word tls_x;
-#define inf_TLS_X           DP(Q*0x100+0x04C*P+E)
+#define inf_TLS_X           DP(Q*0x100+0x05C*P+E)
 
     rt_pntr tls;
-#define inf_TLS             DP(Q*0x100+0x050*P+E)
+#define inf_TLS             DP(Q*0x100+0x060*P+E)
 
-    rt_word pad11[43];
-#define inf_PAD11           DP(Q*0x100+0x054*P+E)
+    rt_word pad11[39];
+#define inf_PAD11           DP(Q*0x100+0x064*P+E)
 
     rt_uelm prngs[S];
 #define inf_PRNGS           DP(Q*0x100+0x100*P)

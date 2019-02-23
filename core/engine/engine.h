@@ -249,6 +249,12 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
     rt_si32             tiles_in_col;
     rt_ELEM           **tiles;
 
+    /* framebuffer's fp-color planes */
+    rt_real            *ptr_r;
+    rt_real            *ptr_g;
+    rt_real            *ptr_b;
+    rt_si32             pt_on;
+
     /* aspect-ratio and pixel-width */
     rt_real             aspect;
     rt_real             factor;
