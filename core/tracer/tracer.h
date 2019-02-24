@@ -238,8 +238,17 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_uelm prngm[S];
 #define inf_PRNGM           DP(Q*0x130+0x100*P)
 
-    rt_elem pad12[S*12];
-#define inf_PAD12           DP(Q*0x140+0x100*P)
+    rt_real pts_c[S];
+#define inf_PTS_C           DP(Q*0x140+0x100*P)
+
+    rt_real pts_o[S];
+#define inf_PTS_O           DP(Q*0x150+0x100*P)
+
+    rt_real pts_u[S];
+#define inf_PTS_U           DP(Q*0x160+0x100*P)
+
+    rt_elem pad12[S*9];
+#define inf_PAD12           DP(Q*0x170+0x100*P)
 
 #if RT_DEBUG >= 1
 

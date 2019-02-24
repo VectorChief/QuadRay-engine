@@ -1000,7 +1000,7 @@
  * Generate next random number (Xmm0, fp: 0.0-1.0) using 32-bit LCG method.
  * Seed (inf_PRNGS) must be initialized outside along with other constants.
  */
-#define GET_RANDOM()       /* destroys Xmm0, Xmm7 */                        \
+#define GET_RANDOM() /* destroys Xmm0, Xmm7 */                              \
         movpx_ld(Xmm0, Mebp, inf_PRNGS)                                     \
         mulpx_ld(Xmm0, Mebp, inf_PRNGF)                                     \
         addpx_ld(Xmm0, Mebp, inf_PRNGA)                                     \
@@ -1065,6 +1065,28 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
         addxx_ri(Reax, IM(RT_SIMD_QUADS*16))
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
+
+        /* calculate number of path-tracer samples */
+        cmjxx_mz(Mebp, inf_PT_ON,
+                 EQ_x, FF_ini)
+
+        movpx_ld(Xmm0, Mebp, inf_PTS_C)
+        movpx_ld(Xmm1, Mebp, inf_GPC01)
+        addps_rr(Xmm0, Xmm1)
+        movpx_st(Xmm0, Mebp, inf_PTS_C)
+        rcpps_rr(Xmm2, Xmm0) /* destroys Xmm0 */
+        movpx_st(Xmm2, Mebp, inf_PTS_O)
+        subps_rr(Xmm1, Xmm2)
+        movpx_st(Xmm1, Mebp, inf_PTS_U)
+
+        jmpxx_lb(FF_pts)
+
+    LBL(FF_ini)
+
+        xorpx_rr(Xmm0, Xmm0)
+        movpx_st(Xmm0, Mebp, inf_PTS_C)
+
+    LBL(FF_pts)
 
 /******************************************************************************/
 /********************************   RAY INIT   ********************************/
@@ -4550,7 +4572,45 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* implement precision-converters
          * to fp32 from fp64, fp16, fp128
          * to enable limited SPMD-targets
-         * like fp16/fp128 to render core */
+         * like fp16/fp128 in render core */
+
+        /* accumulate path-tracer samples */
+        cmjxx_mz(Mebp, inf_PT_ON,
+                 EQ_x, FF_clm)
+
+        movxx_ld(Reax, Mebp, inf_FRM_Y)
+        mulxx_ld(Reax, Mebp, inf_FRM_ROW)
+        addxx_ld(Reax, Mebp, inf_FRM_X)
+        shlxx_ri(Reax, IB(L+1))
+
+        movxx_ld(Rebx, Mebp, inf_PTR_R)
+        movpx_ld(Xmm0, Mecx, ctx_COL_R(0))
+        mulps_ld(Xmm0, Mebp, inf_PTS_O)
+        movpx_ld(Xmm1, Iebx, DP(0))
+        mulps_ld(Xmm1, Mebp, inf_PTS_U)
+        addps_rr(Xmm0, Xmm1)
+        movpx_st(Xmm0, Iebx, DP(0))
+        movpx_st(Xmm0, Mecx, ctx_COL_R(0))
+
+        movxx_ld(Rebx, Mebp, inf_PTR_G)
+        movpx_ld(Xmm0, Mecx, ctx_COL_G(0))
+        mulps_ld(Xmm0, Mebp, inf_PTS_O)
+        movpx_ld(Xmm1, Iebx, DP(0))
+        mulps_ld(Xmm1, Mebp, inf_PTS_U)
+        addps_rr(Xmm0, Xmm1)
+        movpx_st(Xmm0, Iebx, DP(0))
+        movpx_st(Xmm0, Mecx, ctx_COL_G(0))
+
+        movxx_ld(Rebx, Mebp, inf_PTR_B)
+        movpx_ld(Xmm0, Mecx, ctx_COL_B(0))
+        mulps_ld(Xmm0, Mebp, inf_PTS_O)
+        movpx_ld(Xmm1, Iebx, DP(0))
+        mulps_ld(Xmm1, Mebp, inf_PTS_U)
+        addps_rr(Xmm0, Xmm1)
+        movpx_st(Xmm0, Iebx, DP(0))
+        movpx_st(Xmm0, Mecx, ctx_COL_B(0))
+
+    LBL(FF_clm)
 
         /* clamp fp colors to 1.0 limit */
         movpx_ld(Xmm1, Mebp, inf_GPC01)
@@ -4684,6 +4744,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjxx_rm(Reax, Mebp, inf_FRM_W,
                  GE_x, YY_end)
 
+        /* advance primary rays horizontally */
         movxx_ld(Redx, Mebp, inf_CAM)
 
         movpx_ld(Xmm0, Mecx, ctx_RAY_X)         /* ray_x <- RAY_X */
@@ -4715,6 +4776,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(YY_end)
 
+        /* advance primary rays vertically */
         movxx_ld(Redx, Mebp, inf_CAM)
 
         movpx_ld(Xmm0, Medx, cam_DIR_X)         /* ray_x <- DIR_X */
