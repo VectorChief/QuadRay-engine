@@ -142,6 +142,8 @@ rt_void frame_to_screen(rt_ui32 *frame, rt_si32 x_row);
 #define RK_I                28
 #define RK_L                29
 #define RK_P                27
+#define RK_E                26
+#define RK_Q                25
 
 #define RK_UP               15
 #define RK_DOWN             16
@@ -277,7 +279,7 @@ rt_si32 main_step()
     try
     {
 #if RT_OPTS_UPDATE_EXT0 != 0
-        if (u_mode <= 4)
+        if (u_mode <= 4 && !p_mode)
         { /* -->---->-- skip update0 -->---->-- */
 #endif /* RT_OPTS_UPDATE_EXT0 */
 
