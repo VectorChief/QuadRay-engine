@@ -3527,6 +3527,8 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
     s_inf->depth = depth;
     s_inf->fsaa  = pfm->fsaa;
 
+    s_inf->pt_on = pt_on;
+
    /* render frame based on tilebuffer */
     pfm->render0(s_inf);
 }
@@ -3571,6 +3573,16 @@ rt_si32 rt_Scene::set_opts(rt_si32 opts)
     rootobj.time = -1;
 
     return opts;
+}
+
+/*
+ * Set path-tracer mode to: 0 - off, 1 - on.
+ */
+rt_si32 rt_Scene::set_pton(rt_si32 pton)
+{
+    this->pt_on = pton;
+
+    return pton;
 }
 
 /*

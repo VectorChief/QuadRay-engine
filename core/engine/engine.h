@@ -341,6 +341,7 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
 
     rt_si32     get_opts();
     rt_si32     set_opts(rt_si32 opts);
+    rt_si32     set_pton(rt_si32 pton);
 
     rt_si32     get_cam_idx();
     rt_si32     next_cam();

@@ -1341,20 +1341,20 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
             {
                 s_mat = ((rt_Surface *)obj_arr[i])->outer->s_mat;
 
-                RT_SIMD_SET(s_mat->col_r, col.hdr[RT_R]);
-                RT_SIMD_SET(s_mat->col_g, col.hdr[RT_G]);
-                RT_SIMD_SET(s_mat->col_b, col.hdr[RT_B]);
-                RT_SIMD_SET(s_mat->e_src, col.hdr[RT_A]);
+                RT_SIMD_SET(s_mat->col_r, col.hdr[RT_R] * 100.0f);
+                RT_SIMD_SET(s_mat->col_g, col.hdr[RT_G] * 100.0f);
+                RT_SIMD_SET(s_mat->col_b, col.hdr[RT_B] * 100.0f);
+                RT_SIMD_SET(s_mat->e_src, col.hdr[RT_A] * 100.0f);
             }
 
             if (((rt_Surface *)obj_arr[i])->inner->props & RT_PROP_LIGHT)
             {
                 s_mat = ((rt_Surface *)obj_arr[i])->inner->s_mat;
 
-                RT_SIMD_SET(s_mat->col_r, col.hdr[RT_R]);
-                RT_SIMD_SET(s_mat->col_g, col.hdr[RT_G]);
-                RT_SIMD_SET(s_mat->col_b, col.hdr[RT_B]);
-                RT_SIMD_SET(s_mat->e_src, col.hdr[RT_A]);
+                RT_SIMD_SET(s_mat->col_r, col.hdr[RT_R] * 100.0f);
+                RT_SIMD_SET(s_mat->col_g, col.hdr[RT_G] * 100.0f);
+                RT_SIMD_SET(s_mat->col_b, col.hdr[RT_B] * 100.0f);
+                RT_SIMD_SET(s_mat->e_src, col.hdr[RT_A] * 100.0f);
             }
         }
     }

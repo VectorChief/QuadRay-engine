@@ -57,6 +57,7 @@ rt_time     l_time      = 500;        /* fpslogupd-(ms) (from command-line) */
 rt_bool     l_mode      = RT_FALSE;        /* fpslogoff (from command-line) */
 rt_bool     h_mode      = RT_FALSE;        /* hide mode (from command-line) */
 rt_bool     p_mode      = RT_FALSE;       /* pause mode (from command-line) */
+rt_bool     q_mode      = RT_FALSE;       /* quake mode (from command-line) */
 rt_si32     u_mode      = 0; /* update/render threadoff (from command-line) */
 rt_bool     o_mode      = RT_FALSE;        /* offscreen (from command-line) */
 rt_si32     a_mode      = 0;               /* FSAA mode (from command-line) */
@@ -297,6 +298,12 @@ rt_si32 main_step()
         {
             sc[d]->print_state();
         }
+        if (T_KEYS(RK_F2) || T_KEYS(RK_2))
+        {
+            a_mode = (a_mode + 1) % (pfm->get_fsaa_max() + 1);
+            a_mode = pfm->set_fsaa(a_mode);
+            switched = 1;
+        }
         if (T_KEYS(RK_F3) || T_KEYS(RK_3))
         {
             rt_si32 cold = c;
@@ -402,12 +409,6 @@ rt_si32 main_step()
         } /* --<----<-- skip update0 --<----<-- */
 #endif /* RT_OPTS_UPDATE_EXT0 */
 
-        if (T_KEYS(RK_F2) || T_KEYS(RK_2))
-        {
-            a_mode = (a_mode + 1) % (pfm->get_fsaa_max() + 1);
-            a_mode = pfm->set_fsaa(a_mode);
-            switched = 1;
-        }
         if (T_KEYS(RK_F4) || T_KEYS(RK_4))
         {
             sc[d]->save_frame(scr_id++);
@@ -418,9 +419,15 @@ rt_si32 main_step()
             l_mode = !l_mode;
             switched = 1;
         }
-        if (T_KEYS(RK_P))
+        if (T_KEYS(RK_P) && !q_mode)
         {
             p_mode = !p_mode;
+            switched = 1;
+        }
+        if (T_KEYS(RK_Q) && !a_mode && p_mode)
+        {
+            q_mode = !q_mode;
+            sc[d]->set_pton(q_mode);
             switched = 1;
         }
         if (T_KEYS(RK_F9) || T_KEYS(RK_9))
@@ -568,6 +575,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -l, fps-logging-off mode, turns off fps-logging updates\n");
         RT_LOGI(" -h, hide-screen-num mode, turns off info-number drawing\n");
         RT_LOGI(" -p, pause mode, stops animation from starting time (ms)\n");
+        RT_LOGI(" -q, quake mode, enables path-tracing for quality lights\n");
         RT_LOGI(" -u n, 1-3/4 serial update/render, 5/6 update/render off\n");
         RT_LOGI(" -o, offscreen-frame mode, turns off window-rect updates\n");
         RT_LOGI(" -a n, enable antialiasing, 2 for 2x, 4 for 4x, 8 for 8x\n");
@@ -842,6 +850,11 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             p_mode = RT_TRUE;
             RT_LOGI("Pause-animation mode\n");
         }
+        if (k < argc && strcmp(argv[k], "-q") == 0 && !q_mode)
+        {
+            q_mode = RT_TRUE;
+            RT_LOGI("Quasi-realistic mode\n");
+        }
         if (k < argc && strcmp(argv[k], "-u") == 0 && ++k < argc)
         {
             t = argv[k][0] - '0';
@@ -976,6 +989,11 @@ rt_si32 main_init()
         break;
     }
     sc[d]->set_opts(opts);
+
+    if (p_mode)
+    {
+        sc[d]->set_pton(q_mode);
+    }
 
     print_target();
 
