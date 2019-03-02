@@ -998,11 +998,12 @@
  * Generate next random number (Xmm0, fp: 0.0-1.0) using 32-bit LCG method.
  * Seed (inf_PRNGS) must be initialized outside along with other constants.
  */
-#define GET_RANDOM() /* destroys Xmm0, Xmm7 */                              \
-        movpx_ld(Xmm0, Mebp, inf_PRNGS)                                     \
+#define GET_RANDOM() /* destroys Xmm0, Xmm7, Reax */                        \
+        movxx_ld(Reax, Mebp, inf_PRNGS)                                     \
+        movpx_ld(Xmm0, Oeax, PLAIN)                                         \
         mulpx_ld(Xmm0, Mebp, inf_PRNGF)                                     \
         addpx_ld(Xmm0, Mebp, inf_PRNGA)                                     \
-        movpx_st(Xmm0, Mebp, inf_PRNGS)                                     \
+        movpx_st(Xmm0, Oeax, PLAIN)                                         \
         movpx_ld(Xmm7, Mebp, inf_PRNGM)                                     \
         shrpx_ri(Xmm0, IB(16))                                              \
         andpx_rr(Xmm0, Xmm7)                                                \
@@ -1128,6 +1129,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         shlxx_ri(Reax, IB(2))
         addxx_ld(Reax, Mebp, inf_FRAME)
         movxx_st(Reax, Mebp, inf_FRM)
+        subxx_ld(Reax, Mebp, inf_FRAME)
+        addxx_ld(Reax, Mebp, inf_PSEED)
+        movxx_st(Reax, Mebp, inf_PRNGS)
 
 /******************************************************************************/
 /********************************   HOR INIT   ********************************/
@@ -2271,13 +2275,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* compute random sample within halfcube */
 
-        GET_RANDOM() /* -> Xmm0, destroys Xmm7 */
+        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax */
 
         mulps_rr(Xmm1, Xmm0)
         mulps_rr(Xmm2, Xmm0)
         mulps_rr(Xmm3, Xmm0)
 
-        GET_RANDOM() /* -> Xmm0, destroys Xmm7 */
+        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax */
 
         addps_rr(Xmm0, Xmm0)
         subps_ld(Xmm0, Mebp, inf_GPC01)
@@ -2294,7 +2298,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm5, Mecx, ctx_F_RFL)         /* 2nd vec, Y */
         movpx_ld(Xmm6, Mecx, ctx_T_VAL(0))      /* 2nd vec, Z */
 
-        GET_RANDOM() /* -> Xmm0, destroys Xmm7 */
+        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax */
 
         addps_rr(Xmm0, Xmm0)
         subps_ld(Xmm0, Mebp, inf_GPC01)
@@ -4765,6 +4769,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjxx_rz(Resi,
                  NE_x, FF_cyc)
 
+        addxx_st(Reax, Mebp, inf_PRNGS)
         shrxx_ri(Reax, IB(2))
         addxx_st(Reax, Mebp, inf_FRM_X)
 

@@ -857,7 +857,7 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_si32 index) :
     s_inf->pt_on   = scene->pt_on;
 
     /* init PRNG's constants (32-bit LCG) */
-    RT_SIMD_SET(s_inf->prngs, (rt_uelm)1);          /* PRNG's 32-bit seed */
+    s_inf->pseed   = scene->pseed; /* ptr to buffer of PRNG's 32-bit seed */
     RT_SIMD_SET(s_inf->prngf, (rt_uelm)214013);     /* PRNG's 32-bit factor */
     RT_SIMD_SET(s_inf->prnga, (rt_uelm)2531011);    /* PRNG's 32-bit addend */
     RT_SIMD_SET(s_inf->prngm, (rt_uelm)0x7fff);     /* PRNG's 32-bit mask */
@@ -2830,6 +2830,12 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
 
     memset(tiles, 0, tiles_in_row * tiles_in_col * sizeof(rt_ELEM *));
 
+    /* alloc framebuffer's seed-plane for path-tracer */
+    pseed = (rt_ui32 *)
+            alloc(x_row * y_res * sizeof(rt_ui32), RT_SIMD_ALIGN);
+
+    reset_pseed();
+
     /* alloc framebuffer's fp-color planes */
     ptr_r = (rt_real *)
             alloc(x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
@@ -3549,6 +3555,22 @@ rt_si32 rt_Scene::get_x_row()
 rt_void rt_Scene::print_state()
 {
     g_print = RT_TRUE;
+}
+
+/*
+ * Reset current state of framebuffer's seed-plane for path-tracer.
+ */
+rt_void rt_Scene::reset_pseed()
+{
+    rt_si32 i, j;
+
+    for (j = 0; j < y_res; j++)
+    {
+        for (i = 0; i < x_row; i++)
+        {
+            pseed[j*x_row + i] = (j + 1)*(i + 1) + i;
+        }
+    }
 }
 
 /*

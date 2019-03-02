@@ -151,8 +151,8 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr lst;
 #define inf_LST             DP(Q*0x100+0x008*P+E)
 
-    rt_word pad10;
-#define inf_PAD10           DP(Q*0x100+0x00C*P+E)
+    rt_pntr pseed;
+#define inf_PSEED           DP(Q*0x100+0x00C*P+E)
 
 
     rt_cell index;
@@ -223,32 +223,32 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr tls;
 #define inf_TLS             DP(Q*0x100+0x060*P+E)
 
-    rt_word pad11[39];
-#define inf_PAD11           DP(Q*0x100+0x064*P+E)
+    rt_pntr prngs;
+#define inf_PRNGS           DP(Q*0x100+0x064*P+E)
 
-    rt_uelm prngs[S];
-#define inf_PRNGS           DP(Q*0x100+0x100*P)
+    rt_word pad11[38];
+#define inf_PAD11           DP(Q*0x100+0x068*P+E)
 
     rt_uelm prngf[S];
-#define inf_PRNGF           DP(Q*0x110+0x100*P)
+#define inf_PRNGF           DP(Q*0x100+0x100*P)
 
     rt_uelm prnga[S];
-#define inf_PRNGA           DP(Q*0x120+0x100*P)
+#define inf_PRNGA           DP(Q*0x110+0x100*P)
 
     rt_uelm prngm[S];
-#define inf_PRNGM           DP(Q*0x130+0x100*P)
+#define inf_PRNGM           DP(Q*0x120+0x100*P)
 
     rt_real pts_c[S];
-#define inf_PTS_C           DP(Q*0x140+0x100*P)
+#define inf_PTS_C           DP(Q*0x130+0x100*P)
 
     rt_real pts_o[S];
-#define inf_PTS_O           DP(Q*0x150+0x100*P)
+#define inf_PTS_O           DP(Q*0x140+0x100*P)
 
     rt_real pts_u[S];
-#define inf_PTS_U           DP(Q*0x160+0x100*P)
+#define inf_PTS_U           DP(Q*0x150+0x100*P)
 
-    rt_elem pad12[S*9];
-#define inf_PAD12           DP(Q*0x170+0x100*P)
+    rt_elem pad12[S*10];
+#define inf_PAD12           DP(Q*0x160+0x100*P)
 
 #if RT_DEBUG >= 1
 

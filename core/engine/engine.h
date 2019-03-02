@@ -249,6 +249,9 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
     rt_si32             tiles_in_col;
     rt_ELEM           **tiles;
 
+    /* framebuffer's seed-plane for path-tracer */
+    rt_ui32            *pseed;
+
     /* framebuffer's fp-color planes */
     rt_real            *ptr_r;
     rt_real            *ptr_g;
@@ -338,6 +341,7 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
 
     rt_si32     get_x_row();
     rt_void     print_state(); /* has global scope and effect on any instance */
+    rt_void     reset_pseed();
 
     rt_si32     get_opts();
     rt_si32     set_opts(rt_si32 opts);
