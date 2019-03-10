@@ -4444,6 +4444,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjxx_rm(Reax, Mebp, inf_FRM_W,
                  GE_x, YY_end)
 
+        /* advance primary rays horizontally */
         movxx_ld(Redx, Mebp, inf_CAM)
 
         movpx_ld(Xmm0, Mecx, ctx_RAY_X)         /* ray_x <- RAY_X */
@@ -4475,6 +4476,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(YY_end)
 
+        /* advance primary rays vertically */
         movxx_ld(Redx, Mebp, inf_CAM)
 
         movpx_ld(Xmm0, Medx, cam_DIR_X)         /* ray_x <- DIR_X */

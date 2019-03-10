@@ -580,7 +580,7 @@ struct rt_SIMD_CONTEXT
  * SIMD camera structure with properties for
  * rays horizontal and vertical scanning, color masks,
  * accumulated ambient color.
- * Structure is read-only in backend.
+ * Structure is read-write in backend.
  */
 struct rt_SIMD_CAMERA
 {

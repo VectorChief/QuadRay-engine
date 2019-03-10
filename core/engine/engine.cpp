@@ -3440,7 +3440,7 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
         fvr = (rt_real)thnum;
     }
     else
-    if (pfm->fsaa == RT_FSAA_8X) /* is reserved */
+    if (pfm->fsaa == RT_FSAA_8X) /* 8x reserved */
     {
         ;
     }
@@ -3499,7 +3499,7 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
     s_inf->depth = depth;
     s_inf->fsaa  = pfm->fsaa;
 
-   /* render frame based on tilebuffer */
+    /* render frame based on tilebuffer */
     pfm->render0(s_inf);
 }
 
