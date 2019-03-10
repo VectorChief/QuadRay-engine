@@ -3414,20 +3414,23 @@ rt_void rt_Scene::update_slice(rt_si32 index, rt_si32 phase)
 rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
 {
     /* adjust ray steppers according to antialiasing mode */
-    rt_real fdh[RT_SIMD_WIDTH], fdv[RT_SIMD_WIDTH];
-    rt_real fhr, fvr;
+    rt_real fha[RT_SIMD_WIDTH], fhi[RT_SIMD_WIDTH], fhu; /* h - hor */
+    rt_real fva[RT_SIMD_WIDTH], fvi[RT_SIMD_WIDTH], fvu; /* v - ver */
     rt_si32 i;
 
     if (pfm->fsaa == RT_FSAA_NO)
     {
         for (i = 0; i < pfm->simd_width; i++)
         {
-            fdh[i] = (rt_real)i;
-            fdv[i] = (rt_real)index;
+            fha[i] = 0.0f;
+            fva[i] = 0.0f;
+
+            fhi[i] = (rt_real)i;
+            fvi[i] = (rt_real)index;
         }
 
-        fhr = (rt_real)(pfm->simd_width);
-        fvr = (rt_real)thnum;
+        fhu = (rt_real)(pfm->simd_width);
+        fvu = (rt_real)thnum;
     }
     else
     if (pfm->fsaa == RT_FSAA_2X) /* alternating */
@@ -3437,19 +3440,29 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
 
         for (i = 0; i < pfm->simd_width / 4; i++)
         {
-            fdh[i*4+0] = (-ar+as) + (rt_real)(i*2+0);
-            fdh[i*4+1] = (+ar-as) + (rt_real)(i*2+0);
-            fdh[i*4+2] = (+ar-as) + (rt_real)(i*2+1);
-            fdh[i*4+3] = (-ar+as) + (rt_real)(i*2+1);
+            fha[i*4+0] = (-ar+as);
+            fha[i*4+1] = (+ar-as);
+            fha[i*4+2] = (+ar-as);
+            fha[i*4+3] = (-ar+as);
 
-            fdv[i*4+0] = (+ar+as) + (rt_real)index;
-            fdv[i*4+1] = (-ar-as) + (rt_real)index;
-            fdv[i*4+2] = (+ar+as) + (rt_real)index;
-            fdv[i*4+3] = (-ar-as) + (rt_real)index;
+            fva[i*4+0] = (+ar+as);
+            fva[i*4+1] = (-ar-as);
+            fva[i*4+2] = (+ar+as);
+            fva[i*4+3] = (-ar-as);
+
+            fhi[i*4+0] = (rt_real)(i*2+0);
+            fhi[i*4+1] = (rt_real)(i*2+0);
+            fhi[i*4+2] = (rt_real)(i*2+1);
+            fhi[i*4+3] = (rt_real)(i*2+1);
+
+            fvi[i*4+0] = (rt_real)index;
+            fvi[i*4+1] = (rt_real)index;
+            fvi[i*4+2] = (rt_real)index;
+            fvi[i*4+3] = (rt_real)index;
         }
 
-        fhr = (rt_real)(pfm->simd_width / 2);
-        fvr = (rt_real)thnum;
+        fhu = (rt_real)(pfm->simd_width / 2);
+        fvu = (rt_real)thnum;
     }
     else
     if (pfm->fsaa == RT_FSAA_4X)
@@ -3459,22 +3472,32 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
 
         for (i = 0; i < pfm->simd_width / 4; i++)
         {
-            fdh[i*4+0] = (-ar-as) + (rt_real)i;
-            fdh[i*4+1] = (-ar+as) + (rt_real)i;
-            fdh[i*4+2] = (+ar-as) + (rt_real)i;
-            fdh[i*4+3] = (+ar+as) + (rt_real)i;
+            fha[i*4+0] = (-ar-as);
+            fha[i*4+1] = (-ar+as);
+            fha[i*4+2] = (+ar-as);
+            fha[i*4+3] = (+ar+as);
 
-            fdv[i*4+0] = (+ar-as) + (rt_real)index;
-            fdv[i*4+1] = (-ar-as) + (rt_real)index;
-            fdv[i*4+2] = (+ar+as) + (rt_real)index;
-            fdv[i*4+3] = (-ar+as) + (rt_real)index;
+            fva[i*4+0] = (+ar-as);
+            fva[i*4+1] = (-ar-as);
+            fva[i*4+2] = (+ar+as);
+            fva[i*4+3] = (-ar+as);
+
+            fhi[i*4+0] = (rt_real)i;
+            fhi[i*4+1] = (rt_real)i;
+            fhi[i*4+2] = (rt_real)i;
+            fhi[i*4+3] = (rt_real)i;
+
+            fvi[i*4+0] = (rt_real)index;
+            fvi[i*4+1] = (rt_real)index;
+            fvi[i*4+2] = (rt_real)index;
+            fvi[i*4+3] = (rt_real)index;
         }
 
-        fhr = (rt_real)(pfm->simd_width / 4);
-        fvr = (rt_real)thnum;
+        fhu = (rt_real)(pfm->simd_width / 4);
+        fvu = (rt_real)thnum;
     }
     else
-    if (pfm->fsaa == RT_FSAA_8X) /* is reserved */
+    if (pfm->fsaa == RT_FSAA_8X) /* 8x reserved */
     {
         ;
     }
@@ -3485,20 +3508,20 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
 
     RT_SIMD_SET(s_cam->t_max, RT_INF);
 
-    for (i = 0; i < pfm->simd_width; i++)
-    {
-        s_cam->dir_x[i] = dir[RT_X] + fdh[i] * hor[RT_X] + fdv[i] * ver[RT_X];
-        s_cam->dir_y[i] = dir[RT_Y] + fdh[i] * hor[RT_Y] + fdv[i] * ver[RT_Y];
-        s_cam->dir_z[i] = dir[RT_Z] + fdh[i] * hor[RT_Z] + fdv[i] * ver[RT_Z];
-    }
+    RT_SIMD_SET(s_cam->dir_x, dir[RT_X]);
+    RT_SIMD_SET(s_cam->dir_y, dir[RT_Y]);
+    RT_SIMD_SET(s_cam->dir_z, dir[RT_Z]);
 
-    RT_SIMD_SET(s_cam->hor_x, hor[RT_X] * fhr);
-    RT_SIMD_SET(s_cam->hor_y, hor[RT_Y] * fhr);
-    RT_SIMD_SET(s_cam->hor_z, hor[RT_Z] * fhr);
+    RT_SIMD_SET(s_cam->hor_x, hor[RT_X]);
+    RT_SIMD_SET(s_cam->hor_y, hor[RT_Y]);
+    RT_SIMD_SET(s_cam->hor_z, hor[RT_Z]);
 
-    RT_SIMD_SET(s_cam->ver_x, ver[RT_X] * fvr);
-    RT_SIMD_SET(s_cam->ver_y, ver[RT_Y] * fvr);
-    RT_SIMD_SET(s_cam->ver_z, ver[RT_Z] * fvr);
+    RT_SIMD_SET(s_cam->ver_x, ver[RT_X]);
+    RT_SIMD_SET(s_cam->ver_y, ver[RT_Y]);
+    RT_SIMD_SET(s_cam->ver_z, ver[RT_Z]);
+
+    RT_SIMD_SET(s_cam->hor_u, fhu);
+    RT_SIMD_SET(s_cam->ver_u, fvu);
 
     RT_SIMD_SET(s_cam->clamp, (rt_real)255);
     RT_SIMD_SET(s_cam->cmask, (rt_elem)255);
@@ -3535,7 +3558,20 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
 
     s_inf->pt_on = pt_on;
 
-   /* render frame based on tilebuffer */
+    /* use of integer indices for primary rays update
+     * makes related fp-math independent from SIMD width */
+    for (i = 0; i < pfm->simd_width; i++)
+    {
+        s_inf->hor_c[i] = fhi[i];
+
+        s_inf->hor_i[i] = fhi[i];
+        s_inf->ver_i[i] = fvi[i];
+
+        s_cam->hor_a[i] = fha[i];
+        s_cam->ver_a[i] = fva[i];
+    }
+
+    /* render frame based on tilebuffer */
     pfm->render0(s_inf);
 }
 
