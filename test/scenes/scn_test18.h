@@ -215,6 +215,26 @@ rt_OBJECT ob_light01[] =
 /*********************************   CAMERA   *********************************/
 /******************************************************************************/
 
+rt_CAMERA cm_camera02 =
+{
+    RT_CAM(PLAIN),
+
+    RT_COL(0xFFFFFFFF),
+
+    {/* amb */
+        0.05
+    },
+    {/* pov */
+        1.4605
+    },
+    {/* dpi     dpj     dpk */
+        0.5,    0.5,    0.5
+    },
+    {/* dri     drj     drk */
+        1.5,    1.5,    1.5
+    },
+};
+
 rt_OBJECT ob_camera01[] =
 {
     {
@@ -223,7 +243,7 @@ rt_OBJECT ob_camera01[] =
 /* rot */   { -180.0,        0.0,        0.0    },
 /* pos */   {    0.0,        0.0,        0.0    },
         },
-        RT_OBJ_CAMERA(&cm_camera01)
+        RT_OBJ_CAMERA(&cm_camera02)
     },
 };
 
