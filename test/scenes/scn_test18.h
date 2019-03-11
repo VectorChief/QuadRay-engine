@@ -166,6 +166,31 @@ rt_LIGHT lt_light02 =
     },
 };
 
+rt_SPHERE sp_bulb02 =
+{
+    {      /*   RT_I,       RT_J,       RT_K    */
+/* min */   {  -RT_INF,    -RT_INF,    -RT_INF  },
+/* max */   {  +RT_INF,    +RT_INF,    +RT_INF  },
+        {
+/* OUTER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_light01_bulb01,
+        },
+        {
+/* INNER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_light01_bulb01,
+        },
+    },
+/* rad */   600.0,
+};
+
 rt_OBJECT ob_light01[] =
 {
     {
@@ -173,6 +198,14 @@ rt_OBJECT ob_light01[] =
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {    0.0,        0.0,        0.0    },
+        },
+        RT_OBJ_SPHERE(&sp_bulb02)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {    0.0, -600.0+.14,        0.0    },
         },
         RT_OBJ_LIGHT(&lt_light02)
     },
@@ -253,7 +286,7 @@ rt_OBJECT ob_tree[] =
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {   50.0,       71.0,       81.6    },
+/* pos */   {   50.0,  681.6-.27,       81.6    },
         },
         RT_OBJ_ARRAY(&ob_light01),
     },
@@ -292,7 +325,7 @@ rt_SCENE sc_root =
     RT_OBJ_ARRAY(&ob_tree),
     /* list of optimizations to be turned off *
      * refer to core/engine/format.h for defs */
-    RT_OPTS_FRESNEL
+    RT_OPTS_GAMMA | RT_OPTS_FRESNEL
     /* turning off GAMMA|FRESNEL opts in turn *
      * enables respective GAMMA|FRESNEL props */
 };
