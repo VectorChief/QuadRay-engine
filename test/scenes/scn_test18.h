@@ -15,11 +15,39 @@
 namespace scn_test18
 {
 
+rt_MATERIAL mt_plain01_black01 =
+{
+    RT_MAT(PLAIN),
+
+    RT_TEX(PCOLOR, 0xFF000000),
+
+    {/* dff     spc     pow */
+        1.0,    0.0,    1.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    0.0,    1.0
+    },
+};
+
+rt_MATERIAL mt_glass02_black01 =
+{
+    RT_MAT(PLAIN),
+
+    RT_TEX(PCOLOR, 0xFF000000),
+
+    {/* dff     spc     pow */
+        1.0,    0.0,    1.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    1.0,    1.0
+    },
+};
+
 /******************************************************************************/
 /**********************************   BASE   **********************************/
 /******************************************************************************/
 
-rt_SPHERE sp_front01 =
+rt_SPHERE sp_back01 =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
 /* min */   {  -RT_INF,    -RT_INF,    -RT_INF  },
@@ -39,6 +67,31 @@ rt_SPHERE sp_front01 =
 /* pos */   {    0.0,        0.0    },
 
 /* mat */   &mt_plain01_gray01,
+        },
+    },
+/* rad */   1e5,
+};
+
+rt_SPHERE sp_front01 =
+{
+    {      /*   RT_I,       RT_J,       RT_K    */
+/* min */   {  -RT_INF,    -RT_INF,    -RT_INF  },
+/* max */   {  +RT_INF,    +RT_INF,    +RT_INF  },
+        {
+/* OUTER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_glass02_black01,
+        },
+        {
+/* INNER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
+/* mat */   &mt_plain01_black01,
         },
     },
 /* rad */   1e5,
@@ -268,7 +321,7 @@ rt_OBJECT ob_tree[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   50.0,       40.8,        1e5    },
         },
-        RT_OBJ_SPHERE(&sp_front01)
+        RT_OBJ_SPHERE(&sp_back01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
@@ -276,13 +329,21 @@ rt_OBJECT ob_tree[] =
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   50.0,        1e5,       81.6    },
         },
-        RT_OBJ_SPHERE(&sp_front01)
+        RT_OBJ_SPHERE(&sp_back01)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {   50.0,  -1e5+81.6,       81.6    },
+        },
+        RT_OBJ_SPHERE(&sp_back01)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,        0.0,        0.0    },
+/* pos */   {   50.0,       40.8,   -1e5+170    },
         },
         RT_OBJ_SPHERE(&sp_front01)
     },
