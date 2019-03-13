@@ -43,6 +43,48 @@ rt_MATERIAL mt_glass02_black01 =
     },
 };
 
+rt_MATERIAL mt_plain01_grayPT =
+{
+    RT_MAT(PLAIN),
+
+    RT_TEX(PCOLOR, 0xFFE1E1E1),
+
+    {/* dff     spc     pow */
+        1.0,    0.0,    1.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    0.0,    1.0
+    },
+};
+
+rt_MATERIAL mt_plain01_pinkPT =
+{
+    RT_MAT(PLAIN),
+
+    RT_TEX(PCOLOR, 0xFFE18787),
+
+    {/* dff     spc     pow */
+        1.0,    0.0,    1.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    0.0,    1.0
+    },
+};
+
+rt_MATERIAL mt_plain01_bluePT =
+{
+    RT_MAT(PLAIN),
+
+    RT_TEX(PCOLOR, 0xFF8787E1),
+
+    {/* dff     spc     pow */
+        1.0,    0.0,    1.0
+    },
+    {/* rfl     trn     rfr */
+        0.0,    0.0,    1.0
+    },
+};
+
 /******************************************************************************/
 /**********************************   BASE   **********************************/
 /******************************************************************************/
@@ -58,7 +100,7 @@ rt_SPHERE sp_back01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_plain01_gray01,
+/* mat */   &mt_plain01_grayPT,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -66,7 +108,7 @@ rt_SPHERE sp_back01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_plain01_gray01,
+/* mat */   &mt_plain01_grayPT,
         },
     },
 /* rad */   1e5,
@@ -108,7 +150,7 @@ rt_SPHERE sp_left01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_plain01_red01,
+/* mat */   &mt_plain01_pinkPT,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -116,7 +158,7 @@ rt_SPHERE sp_left01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_plain01_red01,
+/* mat */   &mt_plain01_pinkPT,
         },
     },
 /* rad */   1e5,
@@ -133,7 +175,7 @@ rt_SPHERE sp_right01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_plain01_blue01,
+/* mat */   &mt_plain01_bluePT,
         },
         {
 /* INNER        RT_U,       RT_V    */
@@ -141,7 +183,7 @@ rt_SPHERE sp_right01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_plain01_blue01,
+/* mat */   &mt_plain01_bluePT,
         },
     },
 /* rad */   1e5,
@@ -212,7 +254,7 @@ rt_LIGHT lt_light02 =
     RT_COL(0xFFFFFFFF),
 
     {/* amb     src */
-        0.1,   10.7
+        0.0,    0.12
     },
     {/* rng     cnt     lnr     qdr */
         0.0,    0.7,    0.5,    0.1
