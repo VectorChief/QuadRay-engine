@@ -397,13 +397,42 @@ rt_OBJECT ob_tree[] =
     },
 };
 
+rt_RELATION rl_tree[] =
+{
+    {   0,  RT_REL_MINUS_OUTER,   1   },
+    {   0,  RT_REL_MINUS_OUTER,   2   },
+    {   0,  RT_REL_MINUS_OUTER,   4   },
+    {   0,  RT_REL_MINUS_OUTER,   5   },
+    {   1,  RT_REL_MINUS_OUTER,   0   },
+    {   1,  RT_REL_MINUS_OUTER,   3   },
+    {   1,  RT_REL_MINUS_OUTER,   4   },
+    {   1,  RT_REL_MINUS_OUTER,   5   },
+    {   2,  RT_REL_MINUS_OUTER,   0   },
+    {   2,  RT_REL_MINUS_OUTER,   3   },
+    {   2,  RT_REL_MINUS_OUTER,   4   },
+    {   2,  RT_REL_MINUS_OUTER,   5   },
+    {   3,  RT_REL_MINUS_OUTER,   1   },
+    {   3,  RT_REL_MINUS_OUTER,   2   },
+    {   3,  RT_REL_MINUS_OUTER,   4   },
+    {   3,  RT_REL_MINUS_OUTER,   5   },
+    {   4,  RT_REL_MINUS_OUTER,   0   },
+    {   4,  RT_REL_MINUS_OUTER,   1   },
+    {   4,  RT_REL_MINUS_OUTER,   2   },
+    {   4,  RT_REL_MINUS_OUTER,   3   },
+    {   5,  RT_REL_MINUS_OUTER,   0   },
+    {   5,  RT_REL_MINUS_OUTER,   1   },
+    {   5,  RT_REL_MINUS_OUTER,   2   },
+    {   5,  RT_REL_MINUS_OUTER,   3   },
+    {   6,  RT_REL_MINUS_OUTER,   2   },
+};
+
 /******************************************************************************/
 /**********************************   SCENE   *********************************/
 /******************************************************************************/
 
 rt_SCENE sc_root =
 {
-    RT_OBJ_ARRAY(&ob_tree),
+    RT_OBJ_ARRAY_REL(&ob_tree, &rl_tree),
     /* list of optimizations to be turned off *
      * refer to core/engine/format.h for defs */
     RT_OPTS_GAMMA | RT_OPTS_FRESNEL
