@@ -335,7 +335,7 @@ rt_OBJECT ob_camera01[] =
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   { -180.0,        0.0,        0.0    },
+/* rot */   { -182.44,       0.0,        0.0    },
 /* pos */   {    0.0,        0.0,        0.0    },
         },
         RT_OBJ_CAMERA(&cm_camera02)
@@ -349,10 +349,10 @@ rt_OBJECT ob_camera01[] =
 /*
  * The scene data was taken almost "as is" from smallpt project.
  * Camera is facing downward as the scene is "under the floor".
- * Need to be redesigned for proper scale and navigation.
+ * Needs to be redesigned for proper scale and navigation.
  *
- * Light's form and position as well as camera's FOV and wall colors
- * differ slightly from smallpt, still work in progress.
+ * Include this scene in RooT demo and run it with
+ * ./Root.x64f32 -x 1024 -y 768 -p -q
  */
 
 rt_OBJECT ob_tree[] =
