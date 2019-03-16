@@ -15,34 +15,6 @@
 namespace scn_test18
 {
 
-rt_MATERIAL mt_plain01_black01 =
-{
-    RT_MAT(PLAIN),
-
-    RT_TEX(PCOLOR, 0xFF000000),
-
-    {/* dff     spc     pow */
-        1.0,    0.0,    1.0
-    },
-    {/* rfl     trn     rfr */
-        0.0,    0.0,    1.0
-    },
-};
-
-rt_MATERIAL mt_glass02_black01 =
-{
-    RT_MAT(PLAIN),
-
-    RT_TEX(PCOLOR, 0xFF000000),
-
-    {/* dff     spc     pow */
-        1.0,    0.0,    1.0
-    },
-    {/* rfl     trn     rfr */
-        0.0,    1.0,    1.0
-    },
-};
-
 rt_MATERIAL mt_plain01_grayPT =
 {
     RT_MAT(PLAIN),
@@ -89,11 +61,11 @@ rt_MATERIAL mt_plain01_bluePT =
 /**********************************   BASE   **********************************/
 /******************************************************************************/
 
-rt_SPHERE sp_back01 =
+rt_PLANE pl_wall01 =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
-/* min */   {  -RT_INF,    -RT_INF,    -RT_INF  },
-/* max */   {  +RT_INF,    +RT_INF,    +RT_INF  },
+/* min */   {  -49.0,      -40.8,      -RT_INF  },
+/* max */   {  +49.0,      +40.8,      +RT_INF  },
         {
 /* OUTER        RT_U,       RT_V    */
 /* scl */   {    1.0,        1.0    },
@@ -108,42 +80,40 @@ rt_SPHERE sp_back01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
+/* mat */   &mt_plain01_gray02,
+        },
+    },
+};
+
+rt_PLANE pl_wall02 =
+{
+    {      /*   RT_I,       RT_J,       RT_K    */
+/* min */   {  -49.0,      -85.0,      -RT_INF  },
+/* max */   {  +49.0,      +85.0,      +RT_INF  },
+        {
+/* OUTER        RT_U,       RT_V    */
+/* scl */   {    1.0,        1.0    },
+/* rot */              0.0           ,
+/* pos */   {    0.0,        0.0    },
+
 /* mat */   &mt_plain01_grayPT,
         },
-    },
-/* rad */   1e5,
-};
-
-rt_SPHERE sp_front01 =
-{
-    {      /*   RT_I,       RT_J,       RT_K    */
-/* min */   {  -RT_INF,    -RT_INF,    -RT_INF  },
-/* max */   {  +RT_INF,    +RT_INF,    +RT_INF  },
-        {
-/* OUTER        RT_U,       RT_V    */
-/* scl */   {    1.0,        1.0    },
-/* rot */              0.0           ,
-/* pos */   {    0.0,        0.0    },
-
-/* mat */   &mt_glass02_black01,
-        },
         {
 /* INNER        RT_U,       RT_V    */
 /* scl */   {    1.0,        1.0    },
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_plain01_black01,
+/* mat */   &mt_plain01_gray02,
         },
     },
-/* rad */   1e5,
 };
 
-rt_SPHERE sp_left01 =
+rt_PLANE pl_wall_L =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
-/* min */   {  -RT_INF,    -RT_INF,    -RT_INF  },
-/* max */   {  +RT_INF,    +RT_INF,    +RT_INF  },
+/* min */   {  -85.0,      -40.8,      -RT_INF  },
+/* max */   {  +85.0,      +40.8,      +RT_INF  },
         {
 /* OUTER        RT_U,       RT_V    */
 /* scl */   {    1.0,        1.0    },
@@ -158,17 +128,16 @@ rt_SPHERE sp_left01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_plain01_pinkPT,
+/* mat */   &mt_plain01_gray02,
         },
     },
-/* rad */   1e5,
 };
 
-rt_SPHERE sp_right01 =
+rt_PLANE pl_wall_R =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
-/* min */   {  -RT_INF,    -RT_INF,    -RT_INF  },
-/* max */   {  +RT_INF,    +RT_INF,    +RT_INF  },
+/* min */   {  -85.0,      -40.8,      -RT_INF  },
+/* max */   {  +85.0,      +40.8,      +RT_INF  },
         {
 /* OUTER        RT_U,       RT_V    */
 /* scl */   {    1.0,        1.0    },
@@ -183,10 +152,9 @@ rt_SPHERE sp_right01 =
 /* rot */              0.0           ,
 /* pos */   {    0.0,        0.0    },
 
-/* mat */   &mt_plain01_bluePT,
+/* mat */   &mt_plain01_gray02,
         },
     },
-/* rad */   1e5,
 };
 
 /******************************************************************************/
@@ -265,7 +233,7 @@ rt_SPHERE sp_bulb02 =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
 /* min */   {  -RT_INF,    -RT_INF,    -RT_INF  },
-/* max */   {  +RT_INF,    +RT_INF,    +RT_INF  },
+/* max */   {  +RT_INF,   -600.0+.27,  +RT_INF  },
         {
 /* OUTER        RT_U,       RT_V    */
 /* scl */   {    1.0,        1.0    },
@@ -300,7 +268,7 @@ rt_OBJECT ob_light01[] =
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {    0.0, -600.0+.14,        0.0    },
+/* pos */   {    0.0,     -600.0+.14,    0.0    },
         },
         RT_OBJ_LIGHT(&lt_light02)
     },
@@ -347,12 +315,13 @@ rt_OBJECT ob_camera01[] =
 /******************************************************************************/
 
 /*
- * The scene data was taken almost "as is" from smallpt project.
+ * The scene data was taken from smallpt project (spheres -> planes).
  * Camera is facing downward as the scene is "under the floor".
  * Needs to be redesigned for proper scale and navigation.
  *
- * Include this scene in RooT demo and run it with
+ * Include this scene in RooT demo and run it with:
  * ./Root.x64f32 -x 1024 -y 768 -p -q
+ * Path-tracing mode (-p -q) is still highly experimental.
  */
 
 rt_OBJECT ob_tree[] =
@@ -361,55 +330,47 @@ rt_OBJECT ob_tree[] =
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {   50.0,       40.8,        1e5    },
+/* pos */   {   50.0,       40.8,        0.0    },
         },
-        RT_OBJ_SPHERE(&sp_back01)
+        RT_OBJ_PLANE(&pl_wall01)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {  -90.0,        0.0,        0.0    },
+/* pos */   {   50.0,        0.0,       85.0    },
+        },
+        RT_OBJ_PLANE(&pl_wall02)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {  +90.0,        0.0,        0.0    },
+/* pos */   {   50.0,       81.6,       85.0    },
+        },
+        RT_OBJ_PLANE(&pl_wall02)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,      +90.0,        0.0    },
+/* pos */   {    1.0,       40.8,       85.0    },
+        },
+        RT_OBJ_PLANE(&pl_wall_L)
+    },
+    {
+        {  /*   RT_X,       RT_Y,       RT_Z    */
+/* scl */   {    1.0,        1.0,        1.0    },
+/* rot */   {    0.0,      -90.0,        0.0    },
+/* pos */   {   99.0,       40.8,       85.0    },
+        },
+        RT_OBJ_PLANE(&pl_wall_R)
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
 /* scl */   {    1.0,        1.0,        1.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {   50.0,        1e5,       81.6    },
-        },
-        RT_OBJ_SPHERE(&sp_back01)
-    },
-    {
-        {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {   50.0,  -1e5+81.6,       81.6    },
-        },
-        RT_OBJ_SPHERE(&sp_back01)
-    },
-    {
-        {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {   50.0,       40.8,   -1e5+170    },
-        },
-        RT_OBJ_SPHERE(&sp_front01)
-    },
-    {
-        {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {+1e5+ 1,       40.8,       81.6    },
-        },
-        RT_OBJ_SPHERE(&sp_left01)
-    },
-    {
-        {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {-1e5+99,       40.8,       81.6    },
-        },
-        RT_OBJ_SPHERE(&sp_right01)
-    },
-    {
-        {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        1.0,        1.0    },
-/* rot */   {    0.0,        0.0,        0.0    },
-/* pos */   {   50.0,  681.6-.27,       81.6    },
+/* pos */   {   50.0,      681.6-.27,   81.6    },
         },
         RT_OBJ_ARRAY(&ob_light01),
     },
@@ -439,42 +400,13 @@ rt_OBJECT ob_tree[] =
     },
 };
 
-rt_RELATION rl_tree[] =
-{
-    {   0,  RT_REL_MINUS_OUTER,   1   },
-    {   0,  RT_REL_MINUS_OUTER,   2   },
-    {   0,  RT_REL_MINUS_OUTER,   4   },
-    {   0,  RT_REL_MINUS_OUTER,   5   },
-    {   1,  RT_REL_MINUS_OUTER,   0   },
-    {   1,  RT_REL_MINUS_OUTER,   3   },
-    {   1,  RT_REL_MINUS_OUTER,   4   },
-    {   1,  RT_REL_MINUS_OUTER,   5   },
-    {   2,  RT_REL_MINUS_OUTER,   0   },
-    {   2,  RT_REL_MINUS_OUTER,   3   },
-    {   2,  RT_REL_MINUS_OUTER,   4   },
-    {   2,  RT_REL_MINUS_OUTER,   5   },
-    {   3,  RT_REL_MINUS_OUTER,   1   },
-    {   3,  RT_REL_MINUS_OUTER,   2   },
-    {   3,  RT_REL_MINUS_OUTER,   4   },
-    {   3,  RT_REL_MINUS_OUTER,   5   },
-    {   4,  RT_REL_MINUS_OUTER,   0   },
-    {   4,  RT_REL_MINUS_OUTER,   1   },
-    {   4,  RT_REL_MINUS_OUTER,   2   },
-    {   4,  RT_REL_MINUS_OUTER,   3   },
-    {   5,  RT_REL_MINUS_OUTER,   0   },
-    {   5,  RT_REL_MINUS_OUTER,   1   },
-    {   5,  RT_REL_MINUS_OUTER,   2   },
-    {   5,  RT_REL_MINUS_OUTER,   3   },
-    {   6,  RT_REL_MINUS_OUTER,   2   },
-};
-
 /******************************************************************************/
 /**********************************   SCENE   *********************************/
 /******************************************************************************/
 
 rt_SCENE sc_root =
 {
-    RT_OBJ_ARRAY_REL(&ob_tree, &rl_tree),
+    RT_OBJ_ARRAY(&ob_tree),
     /* list of optimizations to be turned off *
      * refer to core/engine/format.h for defs */
     RT_OPTS_GAMMA | RT_OPTS_FRESNEL
