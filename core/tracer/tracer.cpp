@@ -1117,6 +1117,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addxx_ld(Reax, Mebp, inf_FRAME)
         movxx_st(Reax, Mebp, inf_FRM)
         subxx_ld(Reax, Mebp, inf_FRAME)
+        shlxx_ri(Reax, IB(L-1))
         addxx_ld(Reax, Mebp, inf_PSEED)
         movxx_st(Reax, Mebp, inf_PRNGS)
 
@@ -2342,9 +2343,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* replace with sampling over hemisphere
          * for better uniformity later (sin, cos) */
-
-        /* decorrelate samples within SIMD using
-         * varying yet deterministic seed (PRNGS) */
 
         /* recursive light sampling for path-tracer */
 
@@ -4794,8 +4792,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjxx_rz(Resi,
                  NE_x, FF_cyc)
 
+        shlxx_ri(Reax, IB(L-1))
         addxx_st(Reax, Mebp, inf_PRNGS)
-        shrxx_ri(Reax, IB(2))
+        shrxx_ri(Reax, IB(L+1))
         addxx_st(Reax, Mebp, inf_FRM_X)
 
         movxx_ld(Reax, Mebp, inf_FRM_X)

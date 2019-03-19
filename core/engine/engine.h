@@ -250,7 +250,7 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
     rt_ELEM           **tiles;
 
     /* framebuffer's seed-plane for path-tracer */
-    rt_ui32            *pseed;
+    rt_elem            *pseed;
 
     /* framebuffer's fp-color planes */
     rt_real            *ptr_r;

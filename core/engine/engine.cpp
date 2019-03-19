@@ -2831,8 +2831,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
     memset(tiles, 0, tiles_in_row * tiles_in_col * sizeof(rt_ELEM *));
 
     /* alloc framebuffer's seed-plane for path-tracer */
-    pseed = (rt_ui32 *)
-            alloc(x_row * y_res * sizeof(rt_ui32), RT_SIMD_ALIGN);
+    pseed = (rt_elem *)
+            alloc(x_row * y_res * sizeof(rt_elem), RT_SIMD_ALIGN);
 
     reset_pseed();
 
