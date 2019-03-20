@@ -1026,7 +1026,9 @@
         mulps3rr(W(XS), W(XS), W(T1))                                       \
         fmaps_ld(W(XD), W(XS), Mebp, inf_SIN_5)                             \
         mulps3rr(W(XS), W(XS), W(T1))                                       \
-        fmaps_ld(W(XD), W(XS), Mebp, inf_SIN_7)
+        fmaps_ld(W(XD), W(XS), Mebp, inf_SIN_7)                             \
+        mulps3rr(W(XS), W(XS), W(T1))                                       \
+        fmaps_ld(W(XD), W(XS), Mebp, inf_SIN_9)
 
 /*
  * Calculate power series approximation for cos.
@@ -1035,11 +1037,13 @@
         mulps3rr(W(T1), W(XS), W(XS))                                       \
         movpx_ld(W(XD), Mebp, inf_GPC01)                                    \
         mulps3rr(W(XS), W(XD), W(T1))                                       \
-        fmaps_ld(W(XD), W(XS), Mebp, inf_COS_2)                             \
+        fmaps_ld(W(XD), W(XS), Mebp, inf_GPC02)                             \
         mulps3rr(W(XS), W(XS), W(T1))                                       \
         fmaps_ld(W(XD), W(XS), Mebp, inf_COS_4)                             \
         mulps3rr(W(XS), W(XS), W(T1))                                       \
-        fmaps_ld(W(XD), W(XS), Mebp, inf_COS_6)
+        fmaps_ld(W(XD), W(XS), Mebp, inf_COS_6)                             \
+        mulps3rr(W(XS), W(XS), W(T1))                                       \
+        fmaps_ld(W(XD), W(XS), Mebp, inf_COS_8)
 
 /*
  * Replicate subroutine calling behaviour

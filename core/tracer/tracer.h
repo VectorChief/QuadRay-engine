@@ -265,8 +265,8 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_real sin_7[S];
 #define inf_SIN_7           DP(Q*0x1B0+0x100*P)
 
-    rt_real cos_2[S];
-#define inf_COS_2           DP(Q*0x1C0+0x100*P)
+    rt_real sin_9[S];
+#define inf_SIN_9           DP(Q*0x1C0+0x100*P)
 
     rt_real cos_4[S];
 #define inf_COS_4           DP(Q*0x1D0+0x100*P)
@@ -274,8 +274,8 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_real cos_6[S];
 #define inf_COS_6           DP(Q*0x1E0+0x100*P)
 
-    rt_elem pad12[S];
-#define inf_PAD12           DP(Q*0x1F0+0x100*P)
+    rt_real cos_8[S];
+#define inf_COS_8           DP(Q*0x1F0+0x100*P)
 
 #if RT_DEBUG >= 1
 
