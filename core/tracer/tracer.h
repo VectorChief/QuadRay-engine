@@ -1041,6 +1041,11 @@ struct rt_SIMD_MATERIAL
     rt_real col_b[S];
 #define mat_COL_B           DP(Q*0x190)
 
+    /* PI constant for path-tracer */
+
+    rt_real gpc10[S];
+#define mat_GPC10           DP(Q*0x1A0)
+
 };
 
 /*

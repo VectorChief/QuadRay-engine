@@ -4107,6 +4107,7 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     s_mat->yshft[0] = x_lg2;
 
     s_mat->tex_p[0] = tx->ptex;
+    RT_SIMD_SET(s_mat->gpc10, (rt_real)RT_PI);
     RT_SIMD_SET(s_mat->clamp, (rt_real)255);
     RT_SIMD_SET(s_mat->cmask, (rt_elem)255);
 

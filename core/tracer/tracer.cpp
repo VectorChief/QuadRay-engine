@@ -2328,9 +2328,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* use context's available fields
          * as temporary storage for basis */
 
-        /* compute random sample within halfcube */
+        /* compute random sample over hemisphere */
 
         GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax */
+
+        movpx_rr(Xmm6, Xmm0)
+        movpx_ld(Xmm0, Mebp, inf_GPC01)
+        subps_rr(Xmm0, Xmm6)
+        sqrps_rr(Xmm6, Xmm6)
+        sqrps_rr(Xmm0, Xmm0)
 
         mulps_rr(Xmm1, Xmm0)
         mulps_rr(Xmm2, Xmm0)
@@ -2339,39 +2345,40 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax */
 
         addps_rr(Xmm0, Xmm0)
-        subps_ld(Xmm0, Mebp, inf_GPC01)
+        mulps_ld(Xmm0, Medx, mat_GPC10)
+        subps_ld(Xmm0, Medx, mat_GPC10)
 
-        mulps_rr(Xmm4, Xmm0)
-        mulps_rr(Xmm5, Xmm0)
-        mulps_rr(Xmm6, Xmm0)
+        movpx_rr(Xmm5, Xmm0)
+        cosps_rr(Xmm4, Xmm5, Xmm7)
+        mulps_rr(Xmm4, Xmm6)
 
-        addps_rr(Xmm1, Xmm4)
+        movpx_ld(Xmm5, Mecx, ctx_TEX_U)         /* 1st vec, X */
+        mulps_rr(Xmm5, Xmm4)
+        addps_rr(Xmm1, Xmm5)
+        movpx_ld(Xmm5, Mecx, ctx_TEX_V)         /* 1st vec, Y */
+        mulps_rr(Xmm5, Xmm4)
         addps_rr(Xmm2, Xmm5)
-        addps_rr(Xmm3, Xmm6)
+        movpx_ld(Xmm5, Mecx, ctx_C_PTR(0))      /* 1st vec, Z */
+        mulps_rr(Xmm5, Xmm4)
+        addps_rr(Xmm3, Xmm5)
 
-        movpx_ld(Xmm4, Mecx, ctx_C_ACC)         /* 2nd vec, X */
+        movpx_rr(Xmm5, Xmm0)
+        sinps_rr(Xmm4, Xmm5, Xmm7)
+        mulps_rr(Xmm4, Xmm6)
+
+        movpx_ld(Xmm5, Mecx, ctx_C_ACC)         /* 2nd vec, X */
+        mulps_rr(Xmm5, Xmm4)
+        addps_rr(Xmm1, Xmm5)
         movpx_ld(Xmm5, Mecx, ctx_F_RFL)         /* 2nd vec, Y */
-        movpx_ld(Xmm6, Mecx, ctx_T_VAL(0))      /* 2nd vec, Z */
-
-        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax */
-
-        addps_rr(Xmm0, Xmm0)
-        subps_ld(Xmm0, Mebp, inf_GPC01)
-
-        mulps_rr(Xmm4, Xmm0)
-        mulps_rr(Xmm5, Xmm0)
-        mulps_rr(Xmm6, Xmm0)
-
-        addps_rr(Xmm1, Xmm4)
+        mulps_rr(Xmm5, Xmm4)
         addps_rr(Xmm2, Xmm5)
-        addps_rr(Xmm3, Xmm6)
+        movpx_ld(Xmm5, Mecx, ctx_T_VAL(0))      /* 2nd vec, Z */
+        mulps_rr(Xmm5, Xmm4)
+        addps_rr(Xmm3, Xmm5)
 
         movpx_st(Xmm1, Mecx, ctx_NEW_X)         /* new ray, X */
         movpx_st(Xmm2, Mecx, ctx_NEW_Y)         /* new ray, Y */
         movpx_st(Xmm3, Mecx, ctx_NEW_Z)         /* new ray, Z */
-
-        /* replace with sampling over hemisphere
-         * for better uniformity later (sin, cos) */
 
         /* recursive light sampling for path-tracer */
 
