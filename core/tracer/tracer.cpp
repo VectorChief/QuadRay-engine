@@ -1016,6 +1016,32 @@
         divps_rr(Xmm0, Xmm7)
 
 /*
+ * Calculate power series approximation for sin.
+ */
+#define sinps_rr(XD, XS, T1) /* destroys XS, T1 */                          \
+        mulps3rr(W(T1), W(XS), W(XS))                                       \
+        movpx_rr(W(XD), W(XS))                                              \
+        mulps3rr(W(XS), W(XD), W(T1))                                       \
+        fmaps_ld(W(XD), W(XS), Mebp, inf_SIN_3)                             \
+        mulps3rr(W(XS), W(XS), W(T1))                                       \
+        fmaps_ld(W(XD), W(XS), Mebp, inf_SIN_5)                             \
+        mulps3rr(W(XS), W(XS), W(T1))                                       \
+        fmaps_ld(W(XD), W(XS), Mebp, inf_SIN_7)
+
+/*
+ * Calculate power series approximation for cos.
+ */
+#define cosps_rr(XD, XS, T1) /* destroys XS, T1 */                          \
+        mulps3rr(W(T1), W(XS), W(XS))                                       \
+        movpx_ld(W(XD), Mebp, inf_GPC01)                                    \
+        mulps3rr(W(XS), W(XD), W(T1))                                       \
+        fmaps_ld(W(XD), W(XS), Mebp, inf_COS_2)                             \
+        mulps3rr(W(XS), W(XS), W(T1))                                       \
+        fmaps_ld(W(XD), W(XS), Mebp, inf_COS_4)                             \
+        mulps3rr(W(XS), W(XS), W(T1))                                       \
+        fmaps_ld(W(XD), W(XS), Mebp, inf_COS_6)
+
+/*
  * Replicate subroutine calling behaviour
  * by saving a given return address tag "tg" in the context's
  * local PTR field, then jumping to the destination address "to".

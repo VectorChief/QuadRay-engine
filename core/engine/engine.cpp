@@ -862,6 +862,14 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_si32 index) :
     RT_SIMD_SET(s_inf->prnga, (rt_uelm)2531011);    /* PRNG's 32-bit addend */
     RT_SIMD_SET(s_inf->prngm, (rt_uelm)0x7fff);     /* PRNG's 32-bit mask */
 
+    /* init power series constants for sin, cos */
+    RT_SIMD_SET(s_inf->sin_3, -0.1666666666666666666666666666666666666666666);
+    RT_SIMD_SET(s_inf->sin_5, +0.0083333333333333333333333333333333333333333);
+    RT_SIMD_SET(s_inf->sin_7, -0.0001984126984126984126984126984126984126984);
+    RT_SIMD_SET(s_inf->cos_2, -0.5000000000000000000000000000000000000000000);
+    RT_SIMD_SET(s_inf->cos_4, +0.0416666666666666666666666666666666666666666);
+    RT_SIMD_SET(s_inf->cos_6, -0.0013888888888888888888888888888888888888888);
+
     /* allocate cam SIMD structure */
     s_cam = (rt_SIMD_CAMERA *)
             alloc(sizeof(rt_SIMD_CAMERA),
