@@ -997,13 +997,16 @@
 /*
  * Generate next random number (Xmm0, fp: 0.0-1.0) using 32-bit LCG method.
  * Seed (inf_PRNGS) must be initialized outside along with other constants.
+ * Only applies to active SIMD elements according to current TMASK.
  */
 #define GET_RANDOM() /* destroys Xmm0, Xmm7, Reax */                        \
+        movpx_ld(Xmm0, Mecx, ctx_TMASK(0))                                  \
         movxx_ld(Reax, Mebp, inf_PRNGS)                                     \
-        movpx_ld(Xmm0, Oeax, PLAIN)                                         \
-        mulpx_ld(Xmm0, Mebp, inf_PRNGF)                                     \
-        addpx_ld(Xmm0, Mebp, inf_PRNGA)                                     \
-        movpx_st(Xmm0, Oeax, PLAIN)                                         \
+        movpx_ld(Xmm7, Oeax, PLAIN)                                         \
+        mulpx_ld(Xmm7, Mebp, inf_PRNGF)                                     \
+        addpx_ld(Xmm7, Mebp, inf_PRNGA)                                     \
+        mmvpx_st(Xmm7, Oeax, PLAIN)                                         \
+        movpx_rr(Xmm0, Xmm7)                                                \
         movpx_ld(Xmm7, Mebp, inf_PRNGM)                                     \
         shrpx_ri(Xmm0, IB(16))                                              \
         andpx_rr(Xmm0, Xmm7)                                                \
