@@ -3603,17 +3603,28 @@ rt_void rt_Scene::print_state()
 }
 
 /*
+ * Generate next random number using 48-bit LCG method.
+ */
+static
+rt_ui64 random48(rt_ui64 seed)
+{
+    return (seed * LL(25214903917) + 11) & LL(0x0000FFFFFFFFFFFF);
+}
+
+/*
  * Reset current state of framebuffer's seed-plane for path-tracer.
  */
 rt_void rt_Scene::reset_pseed()
 {
     rt_si32 i, j;
+    rt_ui64 seed = 1;
 
     for (j = 0; j < y_res; j++)
     {
         for (i = 0; i < x_row; i++)
         {
-            pseed[j*x_row + i] = (j + 1)*(i + 1) + i;
+            seed = random48(seed);
+            pseed[j*x_row + i] = (rt_elem)(seed & 0x7FFFFFFF);
         }
     }
 }
