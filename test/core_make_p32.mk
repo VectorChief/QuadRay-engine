@@ -45,7 +45,7 @@ clean:
 
 
 core_test_p32Bg4:
-	powerpc-linux-gnu-g++ -O3 -g -static \
+	powerpc-linux-gnu-g++ -O3 -g -static -DRT_SIMD_COMPAT_VSX=0 \
         -DRT_LINUX -DRT_P32 -DRT_128=4 -DRT_256_R8=4 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
