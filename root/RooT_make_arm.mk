@@ -125,8 +125,8 @@ RooT.arm_rpi3:
 
 # Prerequisites for the build:
 # native-compiler for ARMv7 is installed and in the PATH variable.
-# sudo apt-get update
-# sudo apt-get install g++ libxext-dev (on ARMv7 host or QEMU system mode)
+# sudo apt-get update (on ARMv7 host or QEMU system mode)
+# sudo apt-get install make g++ libxext-dev
 #
 # Building/running RooT demo:
 # make -f RooT_make_arm.mk
@@ -134,15 +134,17 @@ RooT.arm_rpi3:
 # (has been tested on Raspberry Pi 2/3 target host system with Raspbian/Ubuntu)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
-# clang compilation takes much longer prior to 3.8 (older Ubuntu 14.04/Mint 17)
+# Clang native build works too (takes much longer prior to 3.8):
 # sudo apt-get update (on Ubuntu add "universe" to "main" /etc/apt/sources.list)
 # sudo apt-get install clang libxext-dev (on ARMv7 host or QEMU system mode)
+# make -f RooT_make_arm.mk clean
 # make -f RooT_make_arm.mk clang
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.
 
 # 1) Nokia N900, Maemo 5 scratchbox: -DRT_FULLSCREEN=1 -DRT_EMBED_FILEIO=1
 # 2) Raspberry Pi 2, Raspbian: clang++ -DRT_128=1+2

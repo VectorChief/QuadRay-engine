@@ -193,8 +193,8 @@ RooT.a64f64sve:
 
 # Prerequisites for the build:
 # native-compiler for AArch64 is installed and in the PATH variable.
-# sudo apt-get update
-# sudo apt-get install g++ libxext-dev (on AArch64 host or QEMU system mode)
+# sudo apt-get update (on AArch64 host or QEMU system mode)
+# sudo apt-get install make g++ libxext-dev
 #
 # Building/running RooT demo:
 # make -f RooT_make_a64.mk
@@ -203,10 +203,11 @@ RooT.a64f64sve:
 # (has been tested on Raspberry Pi 3 target host system with Devuan/openSUSE)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
 
-# clang compilation takes much longer prior to 3.8 (older Ubuntu 14.04/Mint 17)
+# Clang native build works too (takes much longer prior to 3.8):
 # sudo apt-get update (on Ubuntu add "universe" to "main" /etc/apt/sources.list)
 # sudo apt-get install clang libxext-dev (on AArch64 host or QEMU system mode)
-# make -f RooT_make_a64.mk clang
+# make -f RooT_make_a64.mk clean
+# make -f RooT_make_a64.mk clang -j4
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
@@ -214,9 +215,9 @@ RooT.a64f64sve:
 # For 2048-bit SVE build use (replace): RT_2K8_R8=1+4
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.
 
 # 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
 # use (replace): RT_ADDRESS=32, rename the binary to RooT.a64_**
-
 # 64-bit packed SIMD mode (fp64/int64) is supported on 64-bit targets,
 # use (replace): RT_ELEMENT=64, rename the binary to RooT.a64*64

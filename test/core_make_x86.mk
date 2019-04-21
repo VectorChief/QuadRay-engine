@@ -62,8 +62,9 @@ core_test_x86:
 
 # Prerequisites for the build:
 # native/multilib-compiler for x86/x86_64 is installed and in the PATH variable.
-# sudo apt-get install g++ (for x86 host)
-# sudo apt-get install g++-multilib (for x86_64 host)
+# sudo apt-get update
+# sudo apt-get install make g++ (for x86 host)
+# sudo apt-get install make g++-multilib (for x86_64 host)
 # (installation of g++-multilib removes any g++ cross-compilers)
 #
 # When building on macOS install Command Line Tools first.
@@ -75,11 +76,13 @@ core_test_x86:
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)
 # Use "-c 1" option to reduce test time when emulating with Intel SDE
 
-# Clang compilation works too (takes much longer prior to 3.8), use (replace):
-# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
+# Clang native build works too (takes much longer prior to 3.8), use (replace):
+# clang++ (in place of g++) on Ubuntu add "universe" to /etc/apt/sources.list
+# sudo apt-get update
 # sudo apt-get install clang (requires g++-multilib for non-native ABI)
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on x86 targets top cpuid-value is chosen by default, use -n/-k/-s to override
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.

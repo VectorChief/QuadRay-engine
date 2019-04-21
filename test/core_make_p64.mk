@@ -152,19 +152,21 @@ core_test_p64f64Bp7:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64f64Bp7
 
 
-# On Ubuntu 16.04 Live DVD add "universe multiverse" to "main restricted"
-# in /etc/apt/sources.list (sudo gedit /etc/apt/sources.list) then run:
-# sudo apt-get update (ignoring the old database errors in the end)
+# On Ubuntu (Mate) 16.04/18.04 add "universe multiverse" to "main restricted"
+# in /etc/apt/sources.list (sudo nano /etc/apt/sources.list) then run:
+# sudo apt-get update
 #
 # Prerequisites for the build:
 # (cross-)compiler for 64-bit POWER is installed and in the PATH variable.
-# sudo apt-get install g++-powerpc64le-linux-gnu
+# sudo apt-get install make g++-powerpc64le-linux-gnu
+# sudo apt-get install make g++-powerpc64-linux-gnu
 # (recent g++-5-powerpc64le series target POWER8 and don't work well with -O3)
+# (recent g++-8-powerpc64le series show issues with powf in QEMU, but not on HW)
 #
 # Prerequisites for emulation:
 # recent QEMU(-2.5) is installed or built from source and in the PATH variable.
-# POWER9 target requires more recent QEMU, tested with 3.0.0.
-# sudo apt-get install qemu
+# POWER9 target requires more recent QEMU, tested with 3.0.0 and 3.1.0.
+# sudo apt-get install qemu-user
 #
 # Building/running CORE test:
 # make -f core_make_p64.mk
@@ -174,16 +176,20 @@ core_test_p64f64Bp7:
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)
 # Use "-c 1" option to reduce test time when emulating with QEMU
 
+# Clang native build works too (takes much longer prior to 3.8), use (replace):
+# clang++ (in place of ...-g++) on 64-bit POWER host (Tyan TN71-BP012 POWER8)
+# sudo apt-get install clang
+
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 # 512-bit SIMD is achieved by combining quads of 128-bit registers/instructions
-# For 30 256-bit VSX1/3 registers on POWER7/9 targets use (replace): RT_256=4+8
+# For 30 256-bit VSX2/3 registers on POWER8/9 targets use (replace): RT_256=4+8
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.
 
 # 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
 # use (replace): RT_ADDRESS=32, rename the binary to core_test.p64_**
-
 # 64-bit packed SIMD mode (fp64/int64) is supported on 64-bit targets,
 # use (replace): RT_ELEMENT=64, rename the binary to core_test.p64*64

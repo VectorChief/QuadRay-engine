@@ -63,7 +63,7 @@ RooT.a32:
 # Prerequisites for the build:
 # multilib-compiler for AArch64 is installed and in the PATH variable,
 # sudo apt-get update (on AArch64 host or QEMU system mode)
-# sudo apt-get install g++-multilib (plus X11/Xext libs for ILP32 ABI)
+# sudo apt-get install make g++-multilib (plus X11/Xext libs for ILP32 ABI)
 # (recent upstream g++-5-aarch64 series may not fully support ILP32 ABI)
 #
 # Building/running RooT demo:
@@ -71,9 +71,10 @@ RooT.a32:
 # ./RooT.a32 (on AArch64 host or QEMU system mode with ILP32 X11/Xext libs)
 # (hasn't been verified yet due to lack of available libs)
 
-# clang compilation takes much longer prior to 3.8 (older Ubuntu 14.04/Mint 17)
+# Clang native build should theoretically work too (not tested):
 # sudo apt-get update (on Ubuntu add "universe" to "main" /etc/apt/sources.list)
 # sudo apt-get install clang g++-multilib (plus X11/Xext libs for ILP32 ABI)
+# make -f RooT_make_a32.mk clean
 # make -f RooT_make_a32.mk clang
 # (hasn't been verified yet due to lack of available libs)
 
@@ -82,6 +83,7 @@ RooT.a32:
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.
 
 # 32-bit ABI hasn't been fully tested yet due to lack of available libs,
 # check out 64/32-bit (ptr/adr) hybrid mode for 64-bit ABI in RooT_make_a64.mk

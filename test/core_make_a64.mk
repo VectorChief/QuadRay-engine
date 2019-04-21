@@ -115,18 +115,18 @@ core_test_a64f64sve:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a64f64sve
 
 
-# On Ubuntu 16.04 Live DVD add "universe multiverse" to "main restricted"
-# in /etc/apt/sources.list (sudo gedit /etc/apt/sources.list) then run:
-# sudo apt-get update (ignoring the old database errors in the end)
+# On Ubuntu (Mate) 16.04/18.04 add "universe multiverse" to "main restricted"
+# in /etc/apt/sources.list (sudo nano /etc/apt/sources.list) then run:
+# sudo apt-get update
 #
 # Prerequisites for the build:
 # (cross-)compiler for AArch64 is installed and in the PATH variable.
-# sudo apt-get install g++-aarch64-linux-gnu
+# sudo apt-get install make g++-aarch64-linux-gnu
 #
 # Prerequisites for emulation:
 # recent QEMU(-2.5) is installed or built from source and in the PATH variable.
 # SVE targets require QEMU 3.1.0 (or 3.0.0 with sve-max-vq cpu property patch).
-# sudo apt-get install qemu
+# sudo apt-get install qemu-user
 #
 # Building/running CORE test:
 # make -f core_make_a64.mk
@@ -137,8 +137,8 @@ core_test_a64f64sve:
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)
 # Use "-c 1" option to reduce test time when emulating with QEMU
 
-# Clang compilation works too (takes much longer prior to 3.8), use (replace):
-# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
+# Clang native build works too (takes much longer prior to 3.8), use (replace):
+# clang++ (in place of ...-g++) on AArch64 host (Raspberry Pi 3)
 # sudo apt-get install clang
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
@@ -147,9 +147,9 @@ core_test_a64f64sve:
 # For 2048-bit SVE build use (replace): RT_2K8_R8=1+4
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.
 
 # 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
 # use (replace): RT_ADDRESS=32, rename the binary to core_test.a64_**
-
 # 64-bit packed SIMD mode (fp64/int64) is supported on 64-bit targets,
 # use (replace): RT_ELEMENT=64, rename the binary to core_test.a64*64
