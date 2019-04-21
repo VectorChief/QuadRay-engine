@@ -101,6 +101,10 @@ RooT_w64f64:
 # mingw32-make -f RooT_make_w64.mk
 # RooT_w64f32.exe
 
+# Clang native build should theoretically work too (not tested), use (replace):
+# clang++ (in place of g++) may require Visual Studio
+# once clang for Windows is installed and in the PATH variable.
+
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on x86 targets top cpuid-value is chosen by default, use -n/-k/-s to override
 # 1K4-bit SIMD is achieved by combining pairs of 512-bit registers/instructions
@@ -108,9 +112,9 @@ RooT_w64f64:
 # For 30-regs 512-bit AVX512F/DQ targets on Skylake-X use (replace): RT_512=4+8
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.
 
 # 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
 # use (replace): RT_ADDRESS=32, rename the binary to RooT_w64_**.exe
-
 # 64-bit packed SIMD mode (fp64/int64) is supported on 64-bit targets,
 # use (replace): RT_ELEMENT=64, rename the binary to RooT_w64*64.exe

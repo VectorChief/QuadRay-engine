@@ -46,29 +46,28 @@ core_test_a32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a32
 
 
-# On Ubuntu 16.04 Live DVD add "universe multiverse" to "main restricted"
-# in /etc/apt/sources.list (sudo gedit /etc/apt/sources.list) then run:
-# sudo apt-get update (ignoring the old database errors in the end)
+# On Ubuntu (Mate) 16.04/18.04 add "universe multiverse" to "main restricted"
+# in /etc/apt/sources.list (sudo nano /etc/apt/sources.list) then run:
+# sudo apt-get update
 #
 # Prerequisites for the build:
 # (cross-)compiler for AArch64 is installed and in the PATH variable.
-# sudo apt-get install g++-aarch64-linux-gnu
+# sudo apt-get install make g++-aarch64-linux-gnu
 # (recent upstream g++-5-aarch64 series may not fully support ILP32 ABI)
 #
 # Building/running CORE test:
 # make -f core_make_a32.mk
-# (recent upstream QEMU(-2.6) doesn't currently support AArch64 ILP32 ABI)
-# Use "-c 1" option to reduce test time when emulating with QEMU
 
-# Clang compilation works too (takes much longer prior to 3.8), use (replace):
-# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
-# sudo apt-get install clang (requires g++-multilib for non-native ABI)
+# Clang native build should theoretically work too (not tested), use (replace):
+# clang++ (in place of ...-g++) on AArch64 host (Raspberry Pi 3)
+# sudo apt-get install clang
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.
 
 # 32-bit ABI hasn't been fully tested yet due to lack of available libs,
 # check out 64/32-bit (ptr/adr) hybrid mode for 64-bit ABI in core_make_a64.mk

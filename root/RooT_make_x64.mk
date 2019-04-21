@@ -147,7 +147,7 @@ RooT.x64f64:
 # Prerequisites for the build:
 # native-compiler for x86_64 is installed and in the PATH variable.
 # sudo apt-get update
-# sudo apt-get install g++ libxext-dev (on x86_64 host)
+# sudo apt-get install make g++ libxext-dev
 #
 # When building on macOS install Command Line Tools and XQuartz first.
 # http://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
@@ -160,10 +160,11 @@ RooT.x64f64:
 # make -f RooT_make_x64.mk
 # ./RooT.x64f32
 
-# clang compilation takes much longer prior to 3.8 (older Ubuntu 14.04/Mint 17)
+# Clang native build works too (takes much longer prior to 3.8):
 # sudo apt-get update (on Ubuntu add "universe" to "main" /etc/apt/sources.list)
-# sudo apt-get install clang libxext-dev (on x86_64 host)
-# make -f RooT_make_x64.mk clang
+# sudo apt-get install clang libxext-dev
+# make -f RooT_make_x64.mk clean
+# make -f RooT_make_x64.mk clang -j4
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on x86 targets top cpuid-value is chosen by default, use -n/-k/-s to override
@@ -172,9 +173,9 @@ RooT.x64f64:
 # For 30-regs 512-bit AVX512F/DQ targets on Skylake-X use (replace): RT_512=4+8
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.
 
 # 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
 # use (replace): RT_ADDRESS=32, rename the binary to RooT.x64_**
-
 # 64-bit packed SIMD mode (fp64/int64) is supported on 64-bit targets,
 # use (replace): RT_ELEMENT=64, rename the binary to RooT.x64*64

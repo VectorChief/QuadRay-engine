@@ -79,18 +79,19 @@ RooT.x32:
 # Prerequisites for the build:
 # multilib-compiler for x86_64 is installed and in the PATH variable.
 # sudo apt-get update
-# sudo apt-get install g++-multilib (plus X11/Xext libs for x32 ABI)
-# (installation of g++-multilib may remove g++ cross-compilers on some distros)
+# sudo apt-get install make g++-multilib (plus X11/Xext libs for x32 ABI)
+# (installation of g++-multilib removes any g++ cross-compilers)
 #
 # Building/running RooT demo:
 # make -f RooT_make_x32.mk
 # ./RooT.x32
 # (hasn't been verified yet due to lack of available libs, SIMD/CORE tests pass)
 
-# clang compilation takes much longer prior to 3.8 (older Ubuntu 14.04/Mint 17)
+# Clang native build should theoretically work too (not tested):
 # sudo apt-get update (on Ubuntu add "universe" to "main" /etc/apt/sources.list)
 # sudo apt-get install clang g++-multilib (plus X11/Xext libs for x32 ABI)
-# (installation of g++-multilib may remove g++ cross-compilers on some distros)
+# (installation of g++-multilib removes any g++ cross-compilers)
+# make -f RooT_make_x32.mk clean
 # make -f RooT_make_x32.mk clang
 # (hasn't been verified yet due to lack of available libs, SIMD/CORE tests pass)
 
@@ -101,6 +102,7 @@ RooT.x32:
 # For 30-regs 512-bit AVX512F/DQ targets on Skylake-X use (replace): RT_512=4+8
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.
 
 # 32-bit ABI hasn't been fully tested yet due to lack of available libs,
 # check out 64/32-bit (ptr/adr) hybrid mode for 64-bit ABI in RooT_make_x64.mk

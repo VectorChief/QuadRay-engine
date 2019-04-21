@@ -110,23 +110,30 @@ RooT.m64f64Lr6:
 
 # Prerequisites for the build:
 # native-compiler for MIPS+MSA is installed and in the PATH variable.
-# sudo apt-get install g++ libxext-dev (on I6400 host or QEMU system mode)
+# sudo apt-get update (on MIPS64 host or QEMU system mode)
+# sudo apt-get install make g++ libxext-dev
 # (recent upstream g++-5-mips64el series may not fully support MSA)
 #
 # Building/running RooT demo:
 # make -f RooT_make_m64.mk
-# ./RooT.m64f32Lr6 (on I6400 host or QEMU system mode)
+# ./RooT.m64f32Lr6 (on MIPS64 host or QEMU system mode)
 # (hasn't been verified yet due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
+
+# Clang native build should theoretically work too (not tested):
+# sudo apt-get update (on Ubuntu add "universe" to "main" /etc/apt/sources.list)
+# sudo apt-get install clang libxext-dev (on MIPS64 host or QEMU system mode)
+# make -f RooT_make_m64.mk clean
+# make -f RooT_make_m64.mk clang -j4
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.
 
 # 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
 # use (replace): RT_ADDRESS=32, rename the binary to RooT.m64_**
-
 # 64-bit packed SIMD mode (fp64/int64) is supported on 64-bit targets,
 # use (replace): RT_ELEMENT=64, rename the binary to RooT.m64*64

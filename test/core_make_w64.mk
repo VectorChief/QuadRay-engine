@@ -100,6 +100,10 @@ core_test_w64f64:
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)
 # Use "-c 1" option to reduce test time when emulating with Intel SDE
 
+# Clang native build should theoretically work too (not tested), use (replace):
+# clang++ (in place of g++) may require Visual Studio
+# once clang for Windows is installed and in the PATH variable.
+
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on x86 targets top cpuid-value is chosen by default, use -n/-k/-s to override
 # 1K4-bit SIMD is achieved by combining pairs of 512-bit registers/instructions
@@ -107,9 +111,9 @@ core_test_w64f64:
 # For 30-regs 512-bit AVX512F/DQ targets on Skylake-X use (replace): RT_512=4+8
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.
 
 # 64/32-bit (ptr/adr) hybrid mode is compatible with native 64-bit ABI,
 # use (replace): RT_ADDRESS=32, rename the binary to core_test_w64_**.exe
-
 # 64-bit packed SIMD mode (fp64/int64) is supported on 64-bit targets,
 # use (replace): RT_ELEMENT=64, rename the binary to core_test_w64*64.exe

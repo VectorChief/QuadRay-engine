@@ -79,9 +79,9 @@ RooT.x86:
 # Prerequisites for the build:
 # native/multilib-compiler for x86/x86_64 is installed and in the PATH variable.
 # sudo apt-get update
-# sudo apt-get install g++ libxext-dev (on x86 host) or if libs are present:
-# sudo apt-get install g++-multilib libxext-dev:i386 (on x86_64 host, Mint 18)
-# (installation of g++-multilib may remove g++ cross-compilers on some distros)
+# sudo apt-get install make g++ libxext-dev (x86 host) or if libs are present:
+# sudo apt-get install make g++-multilib libxext-dev:i386 (x86_64 host, Mint 18)
+# (installation of g++-multilib removes any g++ cross-compilers)
 #
 # When building on macOS install Command Line Tools and XQuartz first.
 # http://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
@@ -94,14 +94,16 @@ RooT.x86:
 # make -f RooT_make_x86.mk
 # ./RooT.x86
 
-# clang compilation takes much longer prior to 3.8 (older Ubuntu 14.04/Mint 17)
+# Clang native build works too (takes much longer prior to 3.8):
 # sudo apt-get update (on Ubuntu add "universe" to "main" /etc/apt/sources.list)
 # sudo apt-get install clang libxext-dev (on x86 host) or if libs are present:
 # sudo apt-get install clang g++-multilib libxext-dev:i386 (on x86_64, Mint 18)
-# (installation of g++-multilib may remove g++ cross-compilers on some distros)
+# (installation of g++-multilib removes any g++ cross-compilers)
+# make -f RooT_make_x86.mk clean
 # make -f RooT_make_x86.mk clang
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on x86 targets top cpuid-value is chosen by default, use -n/-k/-s to override
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.

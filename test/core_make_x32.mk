@@ -63,7 +63,8 @@ core_test_x32:
 
 # Prerequisites for the build:
 # multilib-compiler for x86_64 is installed and in the PATH variable.
-# sudo apt-get install g++-multilib
+# sudo apt-get update
+# sudo apt-get install make g++-multilib
 # (installation of g++-multilib removes any g++ cross-compilers)
 #
 # Building/running CORE test:
@@ -72,8 +73,9 @@ core_test_x32:
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)
 # Use "-c 1" option to reduce test time when emulating with Intel SDE
 
-# Clang compilation works too (takes much longer prior to 3.8), use (replace):
-# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
+# Clang native build works too (takes much longer prior to 3.8), use (replace):
+# clang++ (in place of g++) on Ubuntu add "universe" to /etc/apt/sources.list
+# sudo apt-get update
 # sudo apt-get install clang (requires g++-multilib for non-native ABI)
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
@@ -83,3 +85,4 @@ core_test_x32:
 # For 30-regs 512-bit AVX512F/DQ targets on Skylake-X use (replace): RT_512=4+8
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.

@@ -98,17 +98,17 @@ core_test_arm_rpi3:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.arm_rpi3
 
 
-# On Ubuntu 16.04 Live DVD add "universe multiverse" to "main restricted"
-# in /etc/apt/sources.list (sudo gedit /etc/apt/sources.list) then run:
-# sudo apt-get update (ignoring the old database errors in the end)
+# On Ubuntu (Mate) 16.04/18.04 add "universe multiverse" to "main restricted"
+# in /etc/apt/sources.list (sudo nano /etc/apt/sources.list) then run:
+# sudo apt-get update
 #
 # Prerequisites for the build:
 # (cross-)compiler for ARMv7 is installed and in the PATH variable.
-# sudo apt-get install g++-arm-linux-gnueabi
+# sudo apt-get install make g++-arm-linux-gnueabi
 #
 # Prerequisites for emulation:
 # recent QEMU(-2.5) is installed or built from source and in the PATH variable.
-# sudo apt-get install qemu
+# sudo apt-get install qemu-user
 #
 # Building/running CORE test:
 # make -f core_make_arm.mk
@@ -117,14 +117,15 @@ core_test_arm_rpi3:
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)
 # Use "-c 1" option to reduce test time when emulating with QEMU
 
-# Clang compilation works too (takes much longer prior to 3.8), use (replace):
-# clang++ -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses
-# sudo apt-get install clang (requires g++-multilib for non-native ABI)
+# Clang native build works too (takes much longer prior to 3.8), use (replace):
+# clang++ (in place of ...-g++) on ARMv7 host (Raspberry Pi 2)
+# sudo apt-get install clang
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.
 
 # 1) Nokia N900, Maemo 5 scratchbox: -DRT_EMBED_FILEIO=1
 # 2) Raspberry Pi 2, Raspbian: arm-linux-gnueabihf-g++ -DRT_128=2

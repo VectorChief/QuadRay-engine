@@ -57,19 +57,16 @@ core_test_m32Br5:
 # The up-to-date MIPS toolchain (g++) can be found here:
 # https://www.mips.com/develop/tools/codescape-mips-sdk/
 # https://codescape.mips.com/components/toolchain/2017.10-08/downloads.html
-
-# On Ubuntu 16.04 Live DVD add "universe multiverse" to "main restricted"
-# in /etc/apt/sources.list (sudo gedit /etc/apt/sources.list) then run:
-# sudo apt-get update (ignoring the old database errors in the end)
 #
 # Prerequisites for the build:
 # Codescape.GNU.Tools.Package.2017.10-08.for.MIPS.MTI.Linux.CentOS-5.x86_64
 # is unpacked and folder mips-mti-linux-gnu/2017.10-08/bin is added to PATH:
 # PATH=/home/ubuntu/Downloads/mips-mti-linux-gnu/2017.10-08/bin:$PATH
+# PATH=/home/ubuntu-mate/Downloads/mips-mti-linux-gnu/2017.10-08/bin:$PATH
 #
 # Prerequisites for emulation:
 # recent QEMU(-2.5) is installed or built from source and in the PATH variable.
-# sudo apt-get install qemu
+# sudo apt-get install qemu-user make
 #
 # Building/running CORE test:
 # make -f core_make_m32.mk
@@ -78,8 +75,13 @@ core_test_m32Br5:
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)
 # Use "-c 1" option to reduce test time when emulating with QEMU
 
+# Clang native build should theoretically work too (not tested), use (replace):
+# clang++ (in place of ...-g++) on MIPS32 host
+# sudo apt-get install clang
+
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.

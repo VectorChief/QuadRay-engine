@@ -77,18 +77,18 @@ core_test_p32Bp9:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p32Bp9
 
 
-# On Ubuntu 16.04 Live DVD add "universe multiverse" to "main restricted"
-# in /etc/apt/sources.list (sudo gedit /etc/apt/sources.list) then run:
-# sudo apt-get update (ignoring the old database errors in the end)
+# On Ubuntu (Mate) 16.04/18.04 add "universe multiverse" to "main restricted"
+# in /etc/apt/sources.list (sudo nano /etc/apt/sources.list) then run:
+# sudo apt-get update
 #
 # Prerequisites for the build:
 # (cross-)compiler for PowerPC is installed and in the PATH variable.
-# sudo apt-get install g++-powerpc-linux-gnu
+# sudo apt-get install make g++-powerpc-linux-gnu
 #
 # Prerequisites for emulation:
 # recent QEMU(-2.5) is installed or built from source and in the PATH variable.
-# POWER9 target requires more recent QEMU, tested with 3.0.0.
-# sudo apt-get install qemu
+# POWER9 target requires more recent QEMU, tested with 3.0.0 and 3.1.0.
+# sudo apt-get install qemu-user
 #
 # Building/running CORE test:
 # make -f core_make_p32.mk
@@ -99,6 +99,10 @@ core_test_p32Bp9:
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)
 # Use "-c 1" option to reduce test time when emulating with QEMU
 
+# Clang native build should theoretically work too (not tested), use (replace):
+# clang++ (in place of ...-g++) on PowerPC host
+# sudo apt-get install clang
+
 # core_test uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
@@ -106,3 +110,4 @@ core_test_p32Bp9:
 # For 30 256-bit VSX1/3 registers on POWER7/9 targets use (replace): RT_256=4+8
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.

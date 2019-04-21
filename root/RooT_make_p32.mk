@@ -61,17 +61,25 @@ RooT.p32Bg4:
 
 # Prerequisites for the build:
 # native-compiler for PowerPC is installed and in the PATH variable.
-# sudo apt-get install g++ libxext-dev (on G4 host or QEMU system mode)
-# (legacy 32-bit powerpc target may no longer be supported on latest distros)
+# sudo apt-get update (on PowerPC host or QEMU system mode)
+# sudo apt-get install make g++ libxext-dev
+# (legacy 32-bit PowerPC target may no longer be supported on latest distros)
 #
 # Building/running RooT demo:
 # make -f RooT_make_p32.mk
-# ./RooT.p32Bg4 (on G4 host or QEMU system mode)
+# ./RooT.p32Bg4 (on PowerPC host or QEMU system mode)
 # (hasn't been verified yet due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
+
+# Clang native build should theoretically work too (not tested):
+# sudo apt-get update (on Ubuntu add "universe" to "main" /etc/apt/sources.list)
+# sudo apt-get install clang libxext-dev (on PowerPC host or QEMU system mode)
+# make -f RooT_make_p32.mk clean
+# make -f RooT_make_p32.mk clang
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.

@@ -62,17 +62,25 @@ RooT.m32Lr5:
 
 # Prerequisites for the build:
 # native-compiler for MIPS+MSA is installed and in the PATH variable.
-# sudo apt-get install g++ libxext-dev (on P5600 host or QEMU system mode)
+# sudo apt-get update (on MIPS32 host or QEMU system mode)
+# sudo apt-get install make g++ libxext-dev
 # (recent upstream g++-5-mipsel series may not fully support MSA)
 #
 # Building/running RooT demo:
 # make -f RooT_make_m32.mk
-# ./RooT.m32Lr5 (on P5600 host or QEMU system mode)
+# ./RooT.m32Lr5 (on MIPS32 host or QEMU system mode)
 # (hasn't been verified yet due to lack of target host system)
 # (SIMD and CORE tests pass in QEMU linux-user mode, check test subfolder)
+
+# Clang native build should theoretically work too (not tested):
+# sudo apt-get update (on Ubuntu add "universe" to "main" /etc/apt/sources.list)
+# sudo apt-get install clang libxext-dev (on MIPS32 host or QEMU system mode)
+# make -f RooT_make_m32.mk clean
+# make -f RooT_make_m32.mk clang
 
 # RooT demo uses runtime SIMD target selection, multiple can be specified above
 # on RISC targets top value above is chosen by default, use -n/-k/-s to override
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
+# or refer to the corresponding simd_make_***.mk file.
