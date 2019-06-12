@@ -50,7 +50,7 @@ build_p8: RooT_p64_32Lp8 RooT_p64_64Lp8 RooT_p64f32Lp8 RooT_p64f64Lp8
 
 RooT_p64_32Lp8:
 	g++ -O2 -g -pthread \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -58,7 +58,7 @@ RooT_p64_32Lp8:
 
 RooT_p64_64Lp8:
 	g++ -O2 -g -pthread \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -66,7 +66,7 @@ RooT_p64_64Lp8:
 
 RooT_p64f32Lp8:
 	g++ -O2 -g -pthread \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -74,7 +74,7 @@ RooT_p64f32Lp8:
 
 RooT_p64f64Lp8:
 	g++ -O2 -g -pthread \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -85,7 +85,7 @@ build_p9: RooT_p64_32Lp9 RooT_p64_64Lp9 RooT_p64f32Lp9 RooT_p64f64Lp9
 
 RooT_p64_32Lp9:
 	g++ -O2 -g -pthread \
-        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -93,7 +93,7 @@ RooT_p64_32Lp9:
 
 RooT_p64_64Lp9:
 	g++ -O2 -g -pthread \
-        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -101,7 +101,7 @@ RooT_p64_64Lp9:
 
 RooT_p64f32Lp9:
 	g++ -O2 -g -pthread \
-        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -109,7 +109,7 @@ RooT_p64f32Lp9:
 
 RooT_p64f64Lp9:
 	g++ -O2 -g -pthread \
-        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -122,7 +122,7 @@ clang_p8: RooT.p64_32Lp8 RooT.p64_64Lp8 RooT.p64f32Lp8 RooT.p64f64Lp8
 
 RooT.p64_32Lp8:
 	clang++ -O3 -g -pthread \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -130,7 +130,7 @@ RooT.p64_32Lp8:
 
 RooT.p64_64Lp8:
 	clang++ -O3 -g -pthread \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -138,7 +138,7 @@ RooT.p64_64Lp8:
 
 RooT.p64f32Lp8:
 	clang++ -O3 -g -pthread \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -146,7 +146,7 @@ RooT.p64f32Lp8:
 
 RooT.p64f64Lp8:
 	clang++ -O3 -g -pthread \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -157,7 +157,7 @@ clang_p9: RooT.p64_32Lp9 RooT.p64_64Lp9 RooT.p64f32Lp9 RooT.p64f64Lp9
 
 RooT.p64_32Lp9:
 	clang++ -O3 -g -pthread \
-        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -165,7 +165,7 @@ RooT.p64_32Lp9:
 
 RooT.p64_64Lp9:
 	clang++ -O3 -g -pthread \
-        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -173,7 +173,7 @@ RooT.p64_64Lp9:
 
 RooT.p64f32Lp9:
 	clang++ -O3 -g -pthread \
-        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -181,7 +181,7 @@ RooT.p64f32Lp9:
 
 RooT.p64f64Lp9:
 	clang++ -O3 -g -pthread \
-        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -213,7 +213,6 @@ RooT.p64f64Lp9:
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 # 512-bit SIMD is achieved by combining quads of 128-bit registers/instructions
 # For 30 256-bit VSX2/3 registers on POWER8/9 targets use (replace): RT_256=4+8
-# For 15 512-bit VSX2/3 registers on POWER8/9 targets use (replace): RT_512=1+2
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 # or refer to the corresponding simd_make_***.mk file.
