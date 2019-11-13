@@ -2963,6 +2963,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************   TRANSPARENCY   ******************************/
 /******************************************************************************/
 
+        FETCH_XPTR(Redx, MAT_P(PTR))
+
+        movpx_ld(Xmm0, Medx, mat_C_TRN)
+        movpx_st(Xmm0, Mecx, ctx_C_TRN)
+        movpx_ld(Xmm0, Medx, mat_C_RFL)
+        movpx_st(Xmm0, Mecx, ctx_C_RFL)
+
 #if RT_FEAT_FRESNEL
 
         /* init Fresnel */
@@ -2972,8 +2979,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #endif /* RT_FEAT_FRESNEL */
 
 #if RT_FEAT_TRANSPARENCY
-
-        FETCH_XPTR(Redx, MAT_P(PTR))
 
         CHECK_PROP(TR_opq, RT_PROP_OPAQUE)
 
@@ -3051,8 +3056,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(TR_tir)
 
-        movpx_ld(Xmm5, Medx, mat_C_TRN)
-        movpx_st(Xmm5, Mecx, ctx_F_RFL)
+        movpx_ld(Xmm0, Medx, mat_C_TRN)
+        movpx_st(Xmm0, Mecx, ctx_F_RFL)
+
+        xorpx_rr(Xmm4, Xmm4)
+        movpx_st(Xmm4, Mecx, ctx_C_TRN)
+        movpx_ld(Xmm5, Medx, mat_C_RFL)
+        addps_rr(Xmm5, Xmm0)
+        movpx_st(Xmm5, Mecx, ctx_C_RFL)
         jmpxx_lb(TR_end)
 
     LBL(TR_cnt)
@@ -3171,6 +3182,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         orrpx_rr(Xmm0, Xmm5)
         movpx_st(Xmm0, Mecx, ctx_F_RFL)
 
+        movpx_ld(Xmm4, Medx, mat_C_TRN)
+        subps_rr(Xmm4, Xmm0)
+        movpx_st(Xmm4, Mecx, ctx_C_TRN)
+        movpx_ld(Xmm5, Medx, mat_C_RFL)
+        addps_rr(Xmm5, Xmm0)
+        movpx_st(Xmm5, Mecx, ctx_C_RFL)
+
     LBL(TR_frn)
 
 #endif /* RT_FEAT_FRESNEL */
@@ -3243,14 +3261,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addxx_mi(Mebp, inf_DEPTH, IB(1))
         subxx_ri(Recx, IH(RT_STACK_STEP))
 
-        movpx_ld(Xmm0, Medx, mat_C_TRN)
-
-#if RT_FEAT_FRESNEL
-
-        /* subtract Fresnel from transparency term */
-        subps_ld(Xmm0, Mecx, ctx_F_RFL)
-
-#endif /* RT_FEAT_FRESNEL */
+        movpx_ld(Xmm0, Mecx, ctx_C_TRN)
 
         mulps_rr(Xmm1, Xmm0)
         mulps_rr(Xmm2, Xmm0)
@@ -3491,6 +3502,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm0, Medx, mat_C_RFL)
         movpx_st(Xmm0, Mecx, ctx_F_RFL)
 
+        movpx_ld(Xmm5, Medx, mat_C_RFL)
+        addps_rr(Xmm5, Xmm0)
+        movpx_st(Xmm5, Mecx, ctx_C_RFL)
+
     LBL(RF_frn)
 
 #endif /* RT_FEAT_FRESNEL */
@@ -3552,14 +3567,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addxx_mi(Mebp, inf_DEPTH, IB(1))
         subxx_ri(Recx, IH(RT_STACK_STEP))
 
-        movpx_ld(Xmm0, Medx, mat_C_RFL)
-
-#if RT_FEAT_FRESNEL
-
-        /* add Fresnel to reflection term */
-        addps_ld(Xmm0, Mecx, ctx_F_RFL)
-
-#endif /* RT_FEAT_FRESNEL */
+        movpx_ld(Xmm0, Mecx, ctx_C_RFL)
 
         mulps_rr(Xmm1, Xmm0)
         mulps_rr(Xmm2, Xmm0)
