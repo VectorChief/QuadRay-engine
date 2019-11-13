@@ -2237,15 +2237,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjxx_mz(Mebp, inf_PT_ON,
                  EQ_x, LT_reg)
 
-        xorpx_rr(Xmm7, Xmm7)                    /* tmp_v <-     0 */
-
-        /* reset R */
-        STORE_SIMD(COL_R, Xmm7)
-        /* reset G */
-        STORE_SIMD(COL_G, Xmm7)
-        /* reset B */
-        STORE_SIMD(COL_B, Xmm7)
-
         cmjxx_mi(Mebp, inf_DEPTH, IB(RT_STACK_DEPTH - 5),
                  GT_x, PT_cnt)
 
@@ -2279,8 +2270,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(PT_clB)
 
         GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax */
-        movpx_st(Xmm0, Mecx, ctx_F_RND)
-        movpx_st(Xmm4, Mecx, ctx_F_PRB)
 
         cltps_rr(Xmm0, Xmm4)
         andpx_ld(Xmm0, Mecx, ctx_TMASK(0))
@@ -2537,11 +2526,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm1, Medx, mat_COL_R)
         addps_ld(Xmm2, Medx, mat_COL_G)
         addps_ld(Xmm3, Medx, mat_COL_B)
-
-        /* accumulate colors */
-        addps_ld(Xmm1, Mecx, ctx_COL_R(0))
-        addps_ld(Xmm2, Mecx, ctx_COL_G(0))
-        addps_ld(Xmm3, Mecx, ctx_COL_B(0))
 
         /* radiance R */
         STORE_SIMD(COL_R, Xmm1)
@@ -3041,16 +3025,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_ld(Xmm0, Mebp, inf_GPC07)
         andpx_ld(Xmm0, Mecx, ctx_TMASK(0))
-        movpx_st(Xmm0, Mecx, ctx_M_TRN)
         movpx_st(Xmm0, Mecx, ctx_M_RFL)
-
-#if RT_FEAT_FRESNEL
-
-        /* init Fresnel */
-        xorpx_rr(Xmm0, Xmm0)
-        movpx_st(Xmm0, Mecx, ctx_F_RFL)
-
-#endif /* RT_FEAT_FRESNEL */
 
 #if RT_FEAT_TRANSPARENCY
 
@@ -3131,11 +3106,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(TR_tir)
 
         movpx_ld(Xmm0, Medx, mat_C_TRN)
-        movpx_st(Xmm0, Mecx, ctx_F_RFL)
 
         xorpx_rr(Xmm4, Xmm4)
         movpx_st(Xmm4, Mecx, ctx_C_TRN)
-        movpx_st(Xmm4, Mecx, ctx_M_TRN)
         movpx_ld(Xmm5, Medx, mat_C_RFL)
         addps_rr(Xmm5, Xmm0)
         movpx_st(Xmm5, Mecx, ctx_C_RFL)
@@ -3255,7 +3228,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm0, Xmm4)
         annpx_rr(Xmm5, Xmm4)
         orrpx_rr(Xmm0, Xmm5)
-        movpx_st(Xmm0, Mecx, ctx_F_RFL)
 
         movpx_ld(Xmm4, Medx, mat_C_TRN)
         subps_rr(Xmm4, Xmm0)
@@ -3271,7 +3243,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
                  GT_x, TR_frn)
 
         GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax */
-        movpx_st(Xmm0, Mecx, ctx_F_RND)
 
         movpx_rr(Xmm6, Xmm5)
         addps3rr(Xmm7, Xmm4, Xmm5)
@@ -3281,7 +3252,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm5, Xmm7)
         mulps_rr(Xmm7, Xmm7)
         addps_rr(Xmm7, Xmm5)
-        movpx_st(Xmm7, Mecx, ctx_F_PRB)
 
         movpx_rr(Xmm5, Xmm0)
         cgeps_rr(Xmm0, Xmm7)
@@ -3619,7 +3589,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         andpx_ld(Xmm0, Mebp, inf_GPC04)
         subps_ld(Xmm0, Mebp, inf_GPC01)
         mulps_ld(Xmm0, Medx, mat_C_RFL)
-        movpx_st(Xmm0, Mecx, ctx_F_RFL)
 
         movpx_ld(Xmm5, Medx, mat_C_RFL)
         addps_rr(Xmm5, Xmm0)
