@@ -2237,6 +2237,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjxx_mz(Mebp, inf_PT_ON,
                  EQ_x, LT_reg)
 
+        xorpx_rr(Xmm7, Xmm7)                    /* tmp_v <-     0 */
+
+        /* reset R */
+        STORE_SIMD(COL_R, Xmm7)
+        /* reset G */
+        STORE_SIMD(COL_G, Xmm7)
+        /* reset B */
+        STORE_SIMD(COL_B, Xmm7)
+
         cmjxx_mi(Mebp, inf_DEPTH, IB(RT_STACK_DEPTH - 5),
                  GT_x, PT_cnt)
 
@@ -2274,6 +2283,21 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm4, Mecx, ctx_F_PRB)
 
         cltps_rr(Xmm0, Xmm4)
+        andpx_ld(Xmm0, Mecx, ctx_TMASK(0))
+
+        CHECK_MASK(PT_chk, NONE, Xmm0)
+
+        jmpxx_lb(PT_tex)
+
+    LBL(PT_chk)
+
+        xorpx_rr(Xmm1, Xmm1)
+        xorpx_rr(Xmm2, Xmm2)
+        xorpx_rr(Xmm3, Xmm3)
+
+        jmpxx_lb(PT_skp)
+
+    LBL(PT_tex)
 
         movpx_ld(Xmm1, Mecx, ctx_TEX_R)
         movpx_ld(Xmm2, Mecx, ctx_TEX_G)
@@ -2291,15 +2315,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm3, Mecx, ctx_TEX_B)
 
     LBL(PT_cnt)
-
-        xorpx_rr(Xmm7, Xmm7)                    /* tmp_v <-     0 */
-
-        /* reset R */
-        STORE_SIMD(COL_R, Xmm7)
-        /* reset G */
-        STORE_SIMD(COL_G, Xmm7)
-        /* reset B */
-        STORE_SIMD(COL_B, Xmm7)
 
         /* compute orthonormal basis relative to normal */
 
@@ -2457,9 +2472,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* consider evaluating multiple samples
          * per hit to speed up image convergence */
 
-        /* consider terminating recursion based on
-         * probability for Monte-Carlo path-tracer */
-
         FETCH_XPTR(Resi, LST_P(SRF))
 
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))      /* load tmask */
@@ -2518,6 +2530,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_ld(Xmm1, Mecx, ctx_TEX_R)
         mulps_ld(Xmm2, Mecx, ctx_TEX_G)
         mulps_ld(Xmm3, Mecx, ctx_TEX_B)
+
+    LBL(PT_skp)
 
         /* add self-emission */
         addps_ld(Xmm1, Medx, mat_COL_R)
