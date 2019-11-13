@@ -3025,6 +3025,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm0, Medx, mat_C_RFL)
         movpx_st(Xmm0, Mecx, ctx_C_RFL)
 
+        movpx_ld(Xmm0, Mebp, inf_GPC07)
+        andpx_ld(Xmm0, Mecx, ctx_TMASK(0))
+        movpx_st(Xmm0, Mecx, ctx_M_TRN)
+        movpx_st(Xmm0, Mecx, ctx_M_RFL)
+
 #if RT_FEAT_FRESNEL
 
         /* init Fresnel */
@@ -3116,6 +3121,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         xorpx_rr(Xmm4, Xmm4)
         movpx_st(Xmm4, Mecx, ctx_C_TRN)
+        movpx_st(Xmm4, Mecx, ctx_M_TRN)
         movpx_ld(Xmm5, Medx, mat_C_RFL)
         addps_rr(Xmm5, Xmm0)
         movpx_st(Xmm5, Mecx, ctx_C_RFL)
@@ -3265,9 +3271,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_rr(Xmm5, Xmm0)
         cgeps_rr(Xmm0, Xmm7)
+        andpx_ld(Xmm0, Mecx, ctx_TMASK(0))
         movpx_st(Xmm0, Mecx, ctx_M_TRN)
         movpx_rr(Xmm0, Xmm5)
         cltps_rr(Xmm0, Xmm7)
+        andpx_ld(Xmm0, Mecx, ctx_TMASK(0))
         movpx_st(Xmm0, Mecx, ctx_M_RFL)
 
         movpx_rr(Xmm5, Xmm4)
@@ -3279,6 +3287,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm5, Mecx, ctx_C_TRN)
         andpx_ld(Xmm6, Mecx, ctx_M_RFL)
         movpx_st(Xmm6, Mecx, ctx_C_RFL)
+
+        movpx_ld(Xmm0, Mecx, ctx_M_TRN)
+        CHECK_MASK(TR_end, NONE, Xmm0)
 
     LBL(TR_frn)
 
@@ -3413,6 +3424,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_PROP(RF_end, RT_PROP_REFLECT)
 
     LBL(RF_ini)
+
+        movpx_ld(Xmm0, Mecx, ctx_M_RFL)
+        CHECK_MASK(RF_out, NONE, Xmm0)
 
         /* compute reflection, Fresnel
          * requires normalized ray */
