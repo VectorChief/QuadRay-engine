@@ -27,8 +27,6 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
-#define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
-
 #ifndef RT_THREADS_NUM
 #define RT_THREADS_NUM          120/* number of threads for update and render */
 #endif /* RT_THREADS_NUM */
@@ -51,10 +49,10 @@
 /*
  * Fullscreen antialiasing modes.
  */
-#define RT_FSAA_NO                  0
-#define RT_FSAA_2X                  1
-#define RT_FSAA_4X                  2
-#define RT_FSAA_8X                  3 /* reserved */
+#define RT_FSAA_NO              0
+#define RT_FSAA_2X              1
+#define RT_FSAA_4X              2
+#define RT_FSAA_8X              3 /* reserved */
 
 /* Classes */
 

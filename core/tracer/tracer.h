@@ -43,6 +43,8 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
+#define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
+
 /*
  * Material properties.
  * Value bit-range must not overlap with context flags (defined in tracer.cpp),
