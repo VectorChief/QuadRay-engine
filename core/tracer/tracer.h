@@ -592,50 +592,70 @@ struct rt_SIMD_CONTEXT
     rt_elem dmask[S];
 #define ctx_DMASK           DP(Q*0x2F0)
 
+    /* aux fields for path-tracer */
+
+    rt_real f_rnd[S];
+#define ctx_F_RND           DP(Q*0x300)
+
+    rt_real f_prb[S];
+#define ctx_F_PRB           DP(Q*0x310)
+
+    rt_real m_trn[S];
+#define ctx_M_TRN           DP(Q*0x320)
+
+    rt_real m_rfl[S];
+#define ctx_M_RFL           DP(Q*0x330)
+
+    rt_real c_trn[S];
+#define ctx_C_TRN           DP(Q*0x340)
+
+    rt_real c_rfl[S];
+#define ctx_C_RFL           DP(Q*0x350)
+
     /* overlapping next context,
      * new depth min */
 
     rt_real t_new[S];
-#define ctx_T_NEW           DP(Q*0x300)
+#define ctx_T_NEW           DP(Q*0x360)
 
     /* hit point,
      * new origin */
 
     rt_real hit_x[S];
-#define ctx_HIT_X           DP(Q*0x310)
+#define ctx_HIT_X           DP(Q*0x370)
 
     rt_real hit_y[S];
-#define ctx_HIT_Y           DP(Q*0x320)
+#define ctx_HIT_Y           DP(Q*0x380)
 
     rt_real hit_z[S];
-#define ctx_HIT_Z           DP(Q*0x330)
+#define ctx_HIT_Z           DP(Q*0x390)
 
     /* new ray */
 
-#define ctx_NEW_O           DP(Q*0x340)
+#define ctx_NEW_O           DP(Q*0x3A0)
 
     rt_real new_x[S];
-#define ctx_NEW_X           DP(Q*0x340)
+#define ctx_NEW_X           DP(Q*0x3A0)
 
     rt_real new_y[S];
-#define ctx_NEW_Y           DP(Q*0x350)
+#define ctx_NEW_Y           DP(Q*0x3B0)
 
     rt_real new_z[S];
-#define ctx_NEW_Z           DP(Q*0x360)
+#define ctx_NEW_Z           DP(Q*0x3C0)
 
     rt_real new_i[S];
-#define ctx_NEW_I           DP(Q*0x370)
+#define ctx_NEW_I           DP(Q*0x3D0)
 
     rt_real new_j[S];
-#define ctx_NEW_J           DP(Q*0x380)
+#define ctx_NEW_J           DP(Q*0x3E0)
 
     rt_real new_k[S];
-#define ctx_NEW_K           DP(Q*0x390)
+#define ctx_NEW_K           DP(Q*0x3F0)
 
 };
 
 /* context stack step for secondary rays */
-#define RT_STACK_STEP       (Q * 0x300)
+#define RT_STACK_STEP       (Q * 0x360)
 
 /******************************************************************************/
 /*********************************   CAMERA   *********************************/
