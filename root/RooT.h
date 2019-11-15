@@ -12,6 +12,13 @@
 #include "engine.h"
 #include "all_scn.h"
 
+#define RT_TEST_PT      0
+
+#if RT_TEST_PT != 0
+#include "../test/scenes/scn_test17.h" /* RaVi - glass cube */
+#include "../test/scenes/scn_test18.h" /* smallpt - Cornell's box */
+#endif /* RT_TEST_PT */
+
 #define RT_X_RES        800
 #define RT_Y_RES        480
 
@@ -29,6 +36,10 @@ rt_SCENE   *sc_rt[]     =
     &scn_demo01::sc_root,
     &scn_demo02::sc_root,
     &scn_demo03::sc_root,
+#if RT_TEST_PT != 0
+    &scn_test17::sc_root, /* RaVi - glass cube */
+    &scn_test18::sc_root, /* smallpt - Cornell's box */
+#endif /* RT_TEST_PT */
 };
 
 rt_Platform*pfm                     = RT_NULL;              /* platformobj */
