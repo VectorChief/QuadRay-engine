@@ -856,11 +856,39 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_si32 index) :
     s_inf->ptr_b   = scene->ptr_b;
     s_inf->pt_on   = scene->pt_on;
 
+#if   RT_PRNG == LCG16
+
     /* init PRNG's constants (32-bit LCG) */
     s_inf->pseed   = scene->pseed; /* ptr to buffer of PRNG's 32-bit seed */
     RT_SIMD_SET(s_inf->prngf, (rt_uelm)214013);     /* PRNG's 32-bit factor */
     RT_SIMD_SET(s_inf->prnga, (rt_uelm)2531011);    /* PRNG's 32-bit addend */
-    RT_SIMD_SET(s_inf->prngm, (rt_uelm)0x7fff);     /* PRNG's 32-bit mask */
+    RT_SIMD_SET(s_inf->prngm, (rt_uelm)0x7FFF);     /* PRNG's 16-bit mask */
+
+#elif RT_PRNG == LCG24
+
+    /* init PRNG's constants (32-bit LCG) */
+    s_inf->pseed   = scene->pseed; /* ptr to buffer of PRNG's 32-bit seed */
+    RT_SIMD_SET(s_inf->prngf, (rt_uelm)214013);     /* PRNG's 32-bit factor */
+    RT_SIMD_SET(s_inf->prnga, (rt_uelm)2531011);    /* PRNG's 32-bit addend */
+    RT_SIMD_SET(s_inf->prngm, (rt_uelm)0x7FFFFF);   /* PRNG's 24-bit mask */
+
+#elif RT_PRNG == LCG32
+
+    /* init PRNG's constants (32-bit LCG) */
+    s_inf->pseed   = scene->pseed; /* ptr to buffer of PRNG's 32-bit seed */
+    RT_SIMD_SET(s_inf->prngf, (rt_uelm)214013);     /* PRNG's 32-bit factor */
+    RT_SIMD_SET(s_inf->prnga, (rt_uelm)2531011);    /* PRNG's 32-bit addend */
+    RT_SIMD_SET(s_inf->prngm, (rt_uelm)0xFFFFFFFF); /* PRNG's 32-bit mask */
+
+#elif RT_PRNG == LCG48
+
+    /* init PRNG's constants (48-bit LCG) */
+    s_inf->pseed   = scene->pseed; /* ptr to buffer of PRNG's 48-bit seed */
+    RT_SIMD_SET(s_inf->prngf, (rt_uelm)LL(25214903917));   /* 48-bit factor */
+    RT_SIMD_SET(s_inf->prnga, (rt_uelm)LL(11));     /* PRNG's 48-bit addend */
+    RT_SIMD_SET(s_inf->prngm, (rt_uelm)LL(0x0000FFFFFFFFFFFF));   /* mask */
+
+#endif /* RT_PRNG */
 
     /* init power series constants for sin, cos */
     RT_SIMD_SET(s_inf->sin_3, -0.1666666666666666666666666666666666666666666);
@@ -3603,12 +3631,22 @@ rt_void rt_Scene::print_state()
 }
 
 /*
- * Generate next random number using 48-bit LCG method.
+ * Generate next random number using XX-bit LCG method.
  */
 static
-rt_ui64 random48(rt_ui64 seed)
+rt_ui64 randomXX(rt_ui64 seed)
 {
+#if RT_PRNG != LCG48
+
+    /* use 48-bit seeding to decorrelate lesser LCG */
     return (seed * LL(25214903917) + 11) & LL(0x0000FFFFFFFFFFFF);
+
+#else /* RT_PRNG == LCG48 */
+
+    /* use 32-bit seeding to decorrelate 48-bit LCG */
+    return (seed * 214013 + 2531011) & 0xFFFFFFFF;
+
+#endif /* RT_PRNG == LCG48 */
 }
 
 /*
@@ -3623,8 +3661,8 @@ rt_void rt_Scene::reset_pseed()
     {
         for (i = 0; i < x_row; i++)
         {
-            seed = random48(seed);
-            pseed[j*x_row + i] = (rt_elem)(seed & 0x7FFFFFFF);
+            seed = randomXX(seed);
+            pseed[j*x_row + i] = (rt_elem)seed;
         }
     }
 }

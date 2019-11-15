@@ -45,6 +45,13 @@
 
 #define RT_STACK_DEPTH          10 /* context stack depth for secondary rays */
 
+#define LCG16                   16
+#define LCG24                   24
+#define LCG32                   32 /* applicable to 64-bit SIMD elements only */
+#define LCG48                   48 /* applicable to 64-bit SIMD elements only */
+
+#define RT_PRNG                 LCG24
+
 /*
  * Material properties.
  * Value bit-range must not overlap with context flags (defined in tracer.cpp),
