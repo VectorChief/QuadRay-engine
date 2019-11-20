@@ -72,6 +72,9 @@
 #define RT_FEAT_TRANSFORM_ARRAY     1   /* <- breaks TA in the engine if 0 */
 #define RT_FEAT_BOUND_VOL_ARRAY     1
 
+#define RT_FEAT_PT_SPLIT_DEPTH      0
+#define RT_FEAT_PT_SPLIT_FRESNEL    0
+
 #if RT_FEAT_GAMMA
 #define GAMMA(x)    x
 #else /* RT_FEAT_GAMMA */
@@ -2236,6 +2239,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjxx_mz(Mebp, inf_PT_ON,
                  EQ_x, LT_reg)
 
+#if RT_FEAT_PT_SPLIT_DEPTH
+
         cmjxx_mi(Mebp, inf_DEPTH, IB(RT_STACK_DEPTH - 5),
                  GT_x, PT_cnt)
 
@@ -2303,6 +2308,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm3, Mecx, ctx_TEX_B)
 
     LBL(PT_cnt)
+
+#endif /* RT_FEAT_PT_SPLIT_DEPTH */
 
         /* compute orthonormal basis relative to normal */
 
@@ -3235,6 +3242,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm5, Xmm0)
         movpx_st(Xmm5, Mecx, ctx_C_RFL)
 
+#if RT_FEAT_PT_SPLIT_FRESNEL
+
         cmjxx_mz(Mebp, inf_PT_ON,
                  EQ_x, TR_frn)
 
@@ -3273,6 +3282,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_ld(Xmm0, Mecx, ctx_M_TRN)
         CHECK_MASK(TR_end, NONE, Xmm0)
+
+#endif /* RT_FEAT_PT_SPLIT_FRESNEL */
 
     LBL(TR_frn)
 
