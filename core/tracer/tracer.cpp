@@ -2244,34 +2244,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjxx_mi(Mebp, inf_DEPTH, IB(RT_STACK_DEPTH - 5),
                  GT_x, PT_cnt)
 
-        movpx_ld(Xmm1, Mecx, ctx_TEX_R)
-        movpx_ld(Xmm2, Mecx, ctx_TEX_G)
-        movpx_ld(Xmm3, Mecx, ctx_TEX_B)
-
-        movpx_rr(Xmm0, Xmm1)
-        cgtps_rr(Xmm0, Xmm2)
-        cgtps_rr(Xmm1, Xmm3)
-        andpx_rr(Xmm1, Xmm0)
-
-        CHECK_MASK(PT_clR, NONE, Xmm1)
-
         movpx_ld(Xmm4, Mecx, ctx_TEX_R)
-        jmpxx_lb(PT_clB)
-
-    LBL(PT_clR)
-
-        cgtps_rr(Xmm2, Xmm3)
-
-        CHECK_MASK(PT_clG, NONE, Xmm2)
-
-        movpx_ld(Xmm4, Mecx, ctx_TEX_G)
-        jmpxx_lb(PT_clB)
-
-    LBL(PT_clG)
-
-        movpx_ld(Xmm4, Mecx, ctx_TEX_B)
-
-    LBL(PT_clB)
+        maxps_ld(Xmm4, Mecx, ctx_TEX_G)
+        maxps_ld(Xmm4, Mecx, ctx_TEX_B)
 
         GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax */
 
