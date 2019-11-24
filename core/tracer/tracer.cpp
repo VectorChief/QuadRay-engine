@@ -3004,8 +3004,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm0, Medx, mat_C_RFL)
         movpx_st(Xmm0, Mecx, ctx_C_RFL)
 
-        movpx_ld(Xmm0, Mebp, inf_GPC07)
-        andpx_ld(Xmm0, Mecx, ctx_TMASK(0))
+        movpx_ld(Xmm0, Mecx, ctx_TMASK(0))
+        movpx_st(Xmm0, Mecx, ctx_M_TRN)
         movpx_st(Xmm0, Mecx, ctx_M_RFL)
 
 #if RT_FEAT_TRANSPARENCY
@@ -3081,7 +3081,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         CHECK_MASK(TR_tir, NONE, Xmm5)
 
-        movpx_st(Xmm5, Mecx, ctx_T_NEW)
+        movpx_st(Xmm5, Mecx, ctx_M_TRN)
+
         jmpxx_lb(TR_cnt)
 
     LBL(TR_tir)
@@ -3093,6 +3094,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm5, Medx, mat_C_RFL)
         addps_rr(Xmm5, Xmm0)
         movpx_st(Xmm5, Mecx, ctx_C_RFL)
+
         jmpxx_lb(TR_end)
 
     LBL(TR_cnt)
@@ -3203,7 +3205,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #endif /* RT_FEAT_SCHLICK */
 
         /* store Fresnel reflectance */
-        movpx_ld(Xmm5, Mecx, ctx_T_NEW)
+        movpx_ld(Xmm5, Mecx, ctx_M_TRN)
         andpx_rr(Xmm0, Xmm5)
         movpx_ld(Xmm4, Medx, mat_C_TRN)
         mulps_rr(Xmm0, Xmm4)
@@ -3238,31 +3240,32 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_rr(Xmm5, Xmm0)
         cgeps_rr(Xmm0, Xmm7)
-        andpx_ld(Xmm0, Mecx, ctx_TMASK(0))
+        andpx_ld(Xmm0, Mecx, ctx_M_TRN)
         movpx_st(Xmm0, Mecx, ctx_M_TRN)
-        movpx_rr(Xmm0, Xmm5)
-        cltps_rr(Xmm0, Xmm7)
-        andpx_ld(Xmm0, Mecx, ctx_TMASK(0))
-        movpx_st(Xmm0, Mecx, ctx_M_RFL)
+        movpx_rr(Xmm1, Xmm5)
+        cltps_rr(Xmm1, Xmm7)
+        andpx_ld(Xmm1, Mecx, ctx_M_RFL)
+        movpx_st(Xmm1, Mecx, ctx_M_RFL)
 
         movpx_rr(Xmm5, Xmm4)
-        movpx_ld(Xmm0, Mebp, inf_GPC01)
-        subps_rr(Xmm0, Xmm7)
-        divps_rr(Xmm5, Xmm0)
+        movpx_ld(Xmm2, Mebp, inf_GPC01)
+        subps_rr(Xmm2, Xmm7)
+        divps_rr(Xmm5, Xmm2)
         divps_rr(Xmm6, Xmm7)
-        andpx_ld(Xmm5, Mecx, ctx_M_TRN)
+        andpx_rr(Xmm5, Xmm0)
         movpx_st(Xmm5, Mecx, ctx_C_TRN)
-        andpx_ld(Xmm6, Mecx, ctx_M_RFL)
+        andpx_rr(Xmm6, Xmm1)
         movpx_st(Xmm6, Mecx, ctx_C_RFL)
-
-        movpx_ld(Xmm0, Mecx, ctx_M_TRN)
-        CHECK_MASK(TR_end, NONE, Xmm0)
 
 #endif /* RT_FEAT_PT_SPLIT_FRESNEL */
 
     LBL(TR_frn)
 
 #endif /* RT_FEAT_FRESNEL */
+
+        movpx_ld(Xmm0, Mecx, ctx_M_TRN)
+
+        CHECK_MASK(TR_end, NONE, Xmm0)
 
         /* prepare default values */
         xorpx_rr(Xmm0, Xmm0)
@@ -3395,6 +3398,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
     LBL(RF_ini)
 
         movpx_ld(Xmm0, Mecx, ctx_M_RFL)
+
         CHECK_MASK(RF_out, NONE, Xmm0)
 
         /* compute reflection, Fresnel
