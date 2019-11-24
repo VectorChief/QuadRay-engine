@@ -2239,6 +2239,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjxx_mz(Mebp, inf_PT_ON,
                  EQ_x, LT_reg)
 
+        movpx_ld(Xmm0, Mecx, ctx_TMASK(0))
+        movpx_st(Xmm0, Mecx, ctx_F_PRB)
+
 #if RT_FEAT_PT_SPLIT_DEPTH
 
         cmjxx_mi(Mebp, inf_DEPTH, IB(RT_STACK_DEPTH - 5),
@@ -2252,6 +2255,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         cltps_rr(Xmm0, Xmm4)
         andpx_ld(Xmm0, Mecx, ctx_TMASK(0))
+        movpx_st(Xmm0, Mecx, ctx_TMASK(0))
 
         CHECK_MASK(PT_chk, NONE, Xmm0)
 
@@ -2507,6 +2511,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm1, Medx, mat_COL_R)
         addps_ld(Xmm2, Medx, mat_COL_G)
         addps_ld(Xmm3, Medx, mat_COL_B)
+
+        movpx_ld(Xmm0, Mecx, ctx_F_PRB)
+        movpx_st(Xmm0, Mecx, ctx_TMASK(0))
 
         /* radiance R */
         STORE_SIMD(COL_R, Xmm1)
