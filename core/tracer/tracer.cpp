@@ -72,8 +72,8 @@
 #define RT_FEAT_TRANSFORM_ARRAY     1   /* <- breaks TA in the engine if 0 */
 #define RT_FEAT_BOUND_VOL_ARRAY     1
 
-#define RT_FEAT_PT_SPLIT_DEPTH      0
-#define RT_FEAT_PT_SPLIT_FRESNEL    0
+#define RT_FEAT_PT_SPLIT_DEPTH      1
+#define RT_FEAT_PT_SPLIT_FRESNEL    1
 
 #if RT_FEAT_GAMMA
 #define GAMMA(x)    x
@@ -3085,25 +3085,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* check total inner reflection */
         xorpx_rr(Xmm5, Xmm5)
         cleps_rr(Xmm5, Xmm7)
-        andpx_ld(Xmm5, Mecx, ctx_TMASK(0))
-
-        CHECK_MASK(TR_tir, NONE, Xmm5)
-
+        andpx_ld(Xmm5, Mecx, ctx_M_TRN)
         movpx_st(Xmm5, Mecx, ctx_M_TRN)
-
-        jmpxx_lb(TR_cnt)
-
-    LBL(TR_tir)
-
-        movpx_ld(Xmm0, Medx, mat_C_TRN)
-
-        xorpx_rr(Xmm4, Xmm4)
-        movpx_st(Xmm4, Mecx, ctx_C_TRN)
-        movpx_ld(Xmm5, Medx, mat_C_RFL)
-        addps_rr(Xmm5, Xmm0)
-        movpx_st(Xmm5, Mecx, ctx_C_RFL)
-
-        jmpxx_lb(TR_end)
 
     LBL(TR_cnt)
 
