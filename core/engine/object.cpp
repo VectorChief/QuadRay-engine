@@ -4038,6 +4038,12 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     props |= mat->lgt[0] == 0.0f ? 0 : RT_PROP_DIFFUSE;
     props |= mat->lgt[1] == 0.0f ? 0 : RT_PROP_SPECULAR;
 
+    if (mat->prp[0] + mat->prp[1] >= 1.0f)
+    {
+        props &= ~RT_PROP_DIFFUSE;
+        props &= ~RT_PROP_SPECULAR;
+    }
+
     mtx[0][0] = +RT_COSA(sd->rot);
     mtx[0][1] = +RT_SINA(sd->rot);
     mtx[1][0] = -RT_SINA(sd->rot);

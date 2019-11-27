@@ -2243,6 +2243,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjxx_mz(Mebp, inf_PT_ON,
                  EQ_x, LT_reg)
 
+        xorpx_rr(Xmm1, Xmm1)
+        xorpx_rr(Xmm2, Xmm2)
+        xorpx_rr(Xmm3, Xmm3)
+
+#if RT_FEAT_LIGHTS_DIFFUSE
+
+        CHECK_PROP(PT_mix, RT_PROP_DIFFUSE)
+
 #if RT_FEAT_PT_SPLIT_DEPTH
 
         cmjxx_mi(Mebp, inf_DEPTH, IB(RT_STACK_DEPTH - 5),
@@ -2264,10 +2272,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(PT_tex)
 
     LBL(PT_chk)
-
-        xorpx_rr(Xmm1, Xmm1)
-        xorpx_rr(Xmm2, Xmm2)
-        xorpx_rr(Xmm3, Xmm3)
 
         jmpxx_lb(PT_mix)
 
@@ -2505,6 +2509,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /************************************ LEAVE ***********************************/
 
     LBL(PT_mix)
+
+#endif /* RT_FEAT_LIGHTS_DIFFUSE */
+
+        /* specular highlights on rough surfaces
+         * aren't yet implemented in path-tracer */
 
         /* add self-emission */
         addps_ld(Xmm1, Medx, mat_COL_R)
