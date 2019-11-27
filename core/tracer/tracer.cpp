@@ -72,6 +72,7 @@
 #define RT_FEAT_TRANSFORM_ARRAY     1   /* <- breaks TA in the engine if 0 */
 #define RT_FEAT_BOUND_VOL_ARRAY     1
 
+#define RT_FEAT_PT                  1
 #define RT_FEAT_PT_SPLIT_DEPTH      1
 #define RT_FEAT_PT_SPLIT_FRESNEL    1
 
@@ -1100,6 +1101,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addxx_ri(Reax, IM(RT_SIMD_QUADS*16))
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
 
+#if RT_FEAT_PT
+
         /* calculate number of path-tracer samples */
         cmjxx_mz(Mebp, inf_PT_ON,
                  EQ_x, FF_ini)
@@ -1121,6 +1124,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mebp, inf_PTS_C)
 
     LBL(FF_pts)
+
+#endif /* RT_FEAT_PT */
 
 /******************************************************************************/
 /********************************   VER INIT   ********************************/
@@ -2240,6 +2245,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_F_RND)
         movpx_st(Xmm0, Mecx, ctx_F_PRB)
 
+#if RT_FEAT_PT
+
         cmjxx_mz(Mebp, inf_PT_ON,
                  EQ_x, LT_reg)
 
@@ -2281,7 +2288,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm2, Mecx, ctx_TEX_G)
         movpx_ld(Xmm3, Mecx, ctx_TEX_B)
 
-        rcpps_rr(Xmm5, Xmm4)
+        rcpps_rr(Xmm5, Xmm4) /* destroys Xmm4 */
 
         mulps_rr(Xmm1, Xmm5)
         mulps_rr(Xmm2, Xmm5)
@@ -2531,6 +2538,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         STORE_SIMD(COL_B, Xmm3)
 
         jmpxx_lb(LT_end)
+
+#endif /* RT_FEAT_PT */
 
 /******************************************************************************/
 
@@ -3237,7 +3246,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm5, Xmm0)
         movpx_st(Xmm5, Mecx, ctx_C_RFL)
 
-#if RT_FEAT_PT_SPLIT_FRESNEL
+#if RT_FEAT_PT && RT_FEAT_PT_SPLIT_FRESNEL
 
         cmjxx_mz(Mebp, inf_PT_ON,
                  EQ_x, TR_frn)
@@ -3275,7 +3284,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         andpx_rr(Xmm6, Xmm1)
         movpx_st(Xmm6, Mecx, ctx_C_RFL)
 
-#endif /* RT_FEAT_PT_SPLIT_FRESNEL */
+#endif /* RT_FEAT_PT && RT_FEAT_PT_SPLIT_FRESNEL */
 
     LBL(TR_frn)
 
@@ -4775,12 +4784,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* introduce an intermediate fp32
          * color-buffer here to implement
-         * tasks H,D and other 2D effects */
+         * tasks H,D and other 2D effects
+         * reuse path-tracer color-planes */
 
         /* implement precision-converters
          * to fp32 from fp64, fp16, fp128
          * to enable limited SPMD-targets
-         * like fp16/fp128 in render core */
+         * like fp16/fp128 in render-core */
+
+#if RT_FEAT_PT
 
         /* accumulate path-tracer samples */
         cmjxx_mz(Mebp, inf_PT_ON,
@@ -4819,6 +4831,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_COL_B(0))
 
     LBL(FF_clm)
+
+#endif /* RT_FEAT_PT */
 
         /* clamp fp colors to 1.0 limit */
         movpx_ld(Xmm1, Mebp, inf_GPC01)
