@@ -3020,8 +3020,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_C_RFL)
 
         movpx_ld(Xmm0, Mecx, ctx_F_PRB)
+        movpx_st(Xmm0, Mecx, ctx_TMASK(0))
         movpx_st(Xmm0, Mecx, ctx_M_TRN)
         movpx_st(Xmm0, Mecx, ctx_M_RFL)
+
+        CHECK_MASK(TR_end, NONE, Xmm0)
 
 #if RT_FEAT_TRANSPARENCY
 
@@ -3094,6 +3097,23 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cleps_rr(Xmm5, Xmm7)
         andpx_ld(Xmm5, Mecx, ctx_M_TRN)
         movpx_st(Xmm5, Mecx, ctx_M_TRN)
+        movpx_st(Xmm5, Mecx, ctx_TMASK(0))
+
+        CHECK_MASK(TR_tir, NONE, Xmm5)
+
+        jmpxx_lb(TR_cnt)
+
+    LBL(TR_tir)
+
+        movpx_ld(Xmm0, Medx, mat_C_TRN)
+
+        xorpx_rr(Xmm4, Xmm4)
+        movpx_st(Xmm4, Mecx, ctx_C_TRN)
+        movpx_ld(Xmm5, Medx, mat_C_RFL)
+        addps_rr(Xmm5, Xmm0)
+        movpx_st(Xmm5, Mecx, ctx_C_RFL)
+
+        jmpxx_lb(TR_end)
 
     LBL(TR_cnt)
 
