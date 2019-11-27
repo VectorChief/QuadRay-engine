@@ -2255,9 +2255,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax */
 
         cltps_rr(Xmm0, Xmm4)
-        andpx_ld(Xmm0, Mecx, ctx_TMASK(0))
-        movpx_st(Xmm0, Mecx, ctx_TMASK(0))
+        andpx_ld(Xmm0, Mecx, ctx_F_PRB)
         movpx_st(Xmm0, Mecx, ctx_F_PRB)
+        movpx_st(Xmm0, Mecx, ctx_TMASK(0))
 
         CHECK_MASK(PT_chk, NONE, Xmm0)
 
@@ -2269,7 +2269,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_rr(Xmm2, Xmm2)
         xorpx_rr(Xmm3, Xmm3)
 
-        jmpxx_lb(PT_skp)
+        jmpxx_lb(PT_mix)
 
     LBL(PT_tex)
 
@@ -2278,7 +2278,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm3, Mecx, ctx_TEX_B)
 
         rcpps_rr(Xmm5, Xmm4)
-        andpx_rr(Xmm5, Xmm0)
 
         mulps_rr(Xmm1, Xmm5)
         mulps_rr(Xmm2, Xmm5)
@@ -2498,16 +2497,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm2, Xmm0)
         mulps_rr(Xmm3, Xmm0)
 
-/************************************ LEAVE ***********************************/
-
-    LBL(PT_mix)
-
         /* modulate with surface color */
         mulps_ld(Xmm1, Mecx, ctx_TEX_R)
         mulps_ld(Xmm2, Mecx, ctx_TEX_G)
         mulps_ld(Xmm3, Mecx, ctx_TEX_B)
 
-    LBL(PT_skp)
+/************************************ LEAVE ***********************************/
+
+    LBL(PT_mix)
 
         /* add self-emission */
         addps_ld(Xmm1, Medx, mat_COL_R)
