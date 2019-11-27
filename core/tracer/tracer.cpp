@@ -2236,11 +2236,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /*********************************   LIGHTS   *********************************/
 /******************************************************************************/
 
+        movpx_ld(Xmm0, Mecx, ctx_TMASK(0))
+        movpx_st(Xmm0, Mecx, ctx_F_RND)
+        movpx_st(Xmm0, Mecx, ctx_F_PRB)
+
         cmjxx_mz(Mebp, inf_PT_ON,
                  EQ_x, LT_reg)
-
-        movpx_ld(Xmm0, Mecx, ctx_TMASK(0))
-        movpx_st(Xmm0, Mecx, ctx_F_PRB)
 
 #if RT_FEAT_PT_SPLIT_DEPTH
 
@@ -2256,6 +2257,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cltps_rr(Xmm0, Xmm4)
         andpx_ld(Xmm0, Mecx, ctx_TMASK(0))
         movpx_st(Xmm0, Mecx, ctx_TMASK(0))
+        movpx_st(Xmm0, Mecx, ctx_F_PRB)
 
         CHECK_MASK(PT_chk, NONE, Xmm0)
 
@@ -2512,7 +2514,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm2, Medx, mat_COL_G)
         addps_ld(Xmm3, Medx, mat_COL_B)
 
-        movpx_ld(Xmm0, Mecx, ctx_F_PRB)
+        movpx_ld(Xmm0, Mecx, ctx_F_RND)
         movpx_st(Xmm0, Mecx, ctx_TMASK(0))
 
         /* radiance R */
@@ -3011,8 +3013,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm0, Medx, mat_C_RFL)
         movpx_st(Xmm0, Mecx, ctx_C_RFL)
 
-        movpx_ld(Xmm0, Mecx, ctx_TMASK(0))
-        movpx_st(Xmm0, Mecx, ctx_F_PRB)
+        movpx_ld(Xmm0, Mecx, ctx_F_PRB)
         movpx_st(Xmm0, Mecx, ctx_M_TRN)
         movpx_st(Xmm0, Mecx, ctx_M_RFL)
 
@@ -3371,7 +3372,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm2, Xmm5)
         addps_rr(Xmm3, Xmm6)
 
-        movpx_ld(Xmm0, Mecx, ctx_F_PRB)
+        movpx_ld(Xmm0, Mecx, ctx_F_RND)
         movpx_st(Xmm0, Mecx, ctx_TMASK(0))
 
         /* transparent R */
@@ -3661,7 +3662,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm2, Xmm5)
         addps_rr(Xmm3, Xmm6)
 
-        movpx_ld(Xmm0, Mecx, ctx_F_PRB)
+        movpx_ld(Xmm0, Mecx, ctx_F_RND)
         movpx_st(Xmm0, Mecx, ctx_TMASK(0))
 
         /* reflection R */
