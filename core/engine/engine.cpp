@@ -2869,21 +2869,21 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
 
     /* alloc framebuffer's seed-plane for path-tracer */
     pseed = (rt_elem *)
-            alloc(x_row * y_res * sizeof(rt_elem), RT_SIMD_ALIGN);
+            alloc(4 * x_row * y_res * sizeof(rt_elem), RT_SIMD_ALIGN);
 
     reset_pseed();
 
     /* alloc framebuffer's fp-color planes */
     ptr_r = (rt_real *)
-            alloc(x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
+            alloc(4 * x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
     ptr_g = (rt_real *)
-            alloc(x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
+            alloc(4 * x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
     ptr_b = (rt_real *)
-            alloc(x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
+            alloc(4 * x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
 
-    memset(ptr_r, 0, x_row * y_res * sizeof(rt_real));
-    memset(ptr_g, 0, x_row * y_res * sizeof(rt_real));
-    memset(ptr_b, 0, x_row * y_res * sizeof(rt_real));
+    memset(ptr_r, 0, 4 * x_row * y_res * sizeof(rt_real));
+    memset(ptr_g, 0, 4 * x_row * y_res * sizeof(rt_real));
+    memset(ptr_b, 0, 4 * x_row * y_res * sizeof(rt_real));
 
     pt_on = RT_FALSE;
 
@@ -3654,16 +3654,13 @@ rt_ui64 randomXX(rt_ui64 seed)
  */
 rt_void rt_Scene::reset_pseed()
 {
-    rt_si32 i, j;
+    rt_si32 k, n = 4 * x_row * y_res;
     rt_ui64 seed = 1;
 
-    for (j = 0; j < y_res; j++)
+    for (k = 0; k < n; k++)
     {
-        for (i = 0; i < x_row; i++)
-        {
-            seed = randomXX(seed);
-            pseed[j*x_row + i] = (rt_elem)seed;
-        }
+        seed = randomXX(seed);
+        pseed[k] = (rt_elem)seed;
     }
 }
 
@@ -3696,7 +3693,7 @@ rt_si32 rt_Scene::set_opts(rt_si32 opts)
  */
 rt_si32 rt_Scene::set_pton(rt_si32 pton)
 {
-    this->pt_on = pton;
+    this->pt_on = pton != 0;
 
     return pton;
 }

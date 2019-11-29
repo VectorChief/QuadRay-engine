@@ -1156,10 +1156,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         shlxx_ri(Reax, IB(2))
         addxx_ld(Reax, Mebp, inf_FRAME)
         movxx_st(Reax, Mebp, inf_FRM)
+
+#if RT_FEAT_PT
+
         subxx_ld(Reax, Mebp, inf_FRAME)
         shlxx_ri(Reax, IB(L-1))
+        shlxx_ld(Reax, Mebp, inf_FSAA)
         addxx_ld(Reax, Mebp, inf_PSEED)
         movxx_st(Reax, Mebp, inf_PRNGS)
+
+#endif /* RT_FEAT_PT */
 
 /******************************************************************************/
 /********************************   HOR INIT   ********************************/
@@ -4792,42 +4798,48 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * to enable limited SPMD-targets
          * like fp16/fp128 in render-core */
 
+        movxx_ld(Rebx, Mebp, inf_FSAA)
+        movxx_ri(Resi, IM(RT_SIMD_QUADS*16))
+
 #if RT_FEAT_PT
 
         /* accumulate path-tracer samples */
         cmjxx_mz(Mebp, inf_PT_ON,
                  EQ_x, FF_clm)
 
+        addxx_st(Resi, Mebp, inf_PRNGS)
+
         movxx_ld(Reax, Mebp, inf_FRM_Y)
         mulxx_ld(Reax, Mebp, inf_FRM_ROW)
         addxx_ld(Reax, Mebp, inf_FRM_X)
         shlxx_ri(Reax, IB(L+1))
+        shlxx_rr(Reax, Rebx)
 
-        movxx_ld(Rebx, Mebp, inf_PTR_R)
+        movxx_ld(Redx, Mebp, inf_PTR_R)
         movpx_ld(Xmm0, Mecx, ctx_COL_R(0))
         mulps_ld(Xmm0, Mebp, inf_PTS_O)
-        movpx_ld(Xmm1, Iebx, DP(0))
+        movpx_ld(Xmm1, Iedx, DP(0))
         mulps_ld(Xmm1, Mebp, inf_PTS_U)
         addps_rr(Xmm0, Xmm1)
-        movpx_st(Xmm0, Iebx, DP(0))
+        movpx_st(Xmm0, Iedx, DP(0))
         movpx_st(Xmm0, Mecx, ctx_COL_R(0))
 
-        movxx_ld(Rebx, Mebp, inf_PTR_G)
+        movxx_ld(Redx, Mebp, inf_PTR_G)
         movpx_ld(Xmm0, Mecx, ctx_COL_G(0))
         mulps_ld(Xmm0, Mebp, inf_PTS_O)
-        movpx_ld(Xmm1, Iebx, DP(0))
+        movpx_ld(Xmm1, Iedx, DP(0))
         mulps_ld(Xmm1, Mebp, inf_PTS_U)
         addps_rr(Xmm0, Xmm1)
-        movpx_st(Xmm0, Iebx, DP(0))
+        movpx_st(Xmm0, Iedx, DP(0))
         movpx_st(Xmm0, Mecx, ctx_COL_G(0))
 
-        movxx_ld(Rebx, Mebp, inf_PTR_B)
+        movxx_ld(Redx, Mebp, inf_PTR_B)
         movpx_ld(Xmm0, Mecx, ctx_COL_B(0))
         mulps_ld(Xmm0, Mebp, inf_PTS_O)
-        movpx_ld(Xmm1, Iebx, DP(0))
+        movpx_ld(Xmm1, Iedx, DP(0))
         mulps_ld(Xmm1, Mebp, inf_PTS_U)
         addps_rr(Xmm0, Xmm1)
-        movpx_st(Xmm0, Iebx, DP(0))
+        movpx_st(Xmm0, Iedx, DP(0))
         movpx_st(Xmm0, Mecx, ctx_COL_B(0))
 
     LBL(FF_clm)
@@ -4849,11 +4861,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         minps_rr(Xmm0, Xmm1)
         movpx_st(Xmm0, Mecx, ctx_COL_B(0))
 
-        movxx_ri(Resi, IM(RT_SIMD_QUADS*16))
-
 #if RT_FEAT_ANTIALIASING
-
-        movxx_ld(Rebx, Mebp, inf_FSAA)
 
         cmjxx_rz(Rebx,
                  EQ_x, AA_out)
@@ -4959,9 +4967,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjxx_rz(Resi,
                  NE_x, FF_cyc)
 
-        shlxx_ri(Reax, IB(L-1))
-        addxx_st(Reax, Mebp, inf_PRNGS)
-        shrxx_ri(Reax, IB(L+1))
+        shrxx_ri(Reax, IB(2))
         addxx_st(Reax, Mebp, inf_FRM_X)
 
         movxx_ld(Reax, Mebp, inf_FRM_X)

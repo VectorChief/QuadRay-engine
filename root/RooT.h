@@ -16,7 +16,7 @@
 
 #if RT_TEST_PT != 0
 #include "../test/scenes/scn_test17.h" /* RaVi - glass cube */
-#include "../test/scenes/scn_test18.h" /* smallpt - Cornell's box */
+#include "../test/scenes/scn_test18.h" /* smallpt - Cornell box */
 #endif /* RT_TEST_PT */
 
 #define RT_X_RES        800
@@ -38,7 +38,7 @@ rt_SCENE   *sc_rt[]     =
     &scn_demo03::sc_root,
 #if RT_TEST_PT != 0
     &scn_test17::sc_root, /* RaVi - glass cube */
-    &scn_test18::sc_root, /* smallpt - Cornell's box */
+    &scn_test18::sc_root, /* smallpt - Cornell box */
 #endif /* RT_TEST_PT */
 };
 
@@ -231,8 +231,9 @@ rt_void print_target()
                                                            1 << a_mode);
     RT_LOGI("Framebuffer X-row = %5d, ptr = %016" PR_Z "X\n",
                        sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
-    RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d\n",
-                                          x_res, y_res, l_mode, h_mode);
+    RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d  %s %s\n",
+                                          x_res, y_res, l_mode, h_mode,
+                                p_mode ? "p" : " ", q_mode ? "q" : " ");
     RT_LOGI("Window-rect X-res = %5d, Y-res = %4d, u %d, o %d\n",
                                           x_win, y_win, u_mode, o_mode);
     RT_LOGI("Threads/affinity = %4d/%d, reserved = %d, d%2d, c%2d\n",
@@ -435,9 +436,19 @@ rt_si32 main_step()
             p_mode = !p_mode;
             switched = 1;
         }
-        if (T_KEYS(RK_Q) && !a_mode && p_mode)
+        if (T_KEYS(RK_Q))
         {
-            q_mode = !q_mode;
+            if (q_mode)
+            {
+                p_mode = q_mode - 1;
+                q_mode = 0;
+            }
+            else
+            {
+                q_mode = 1 + p_mode;
+                p_mode = RT_TRUE;
+                sc[d]->reset_pseed();
+            }
             sc[d]->set_pton(q_mode);
             switched = 1;
         }
@@ -1001,16 +1012,11 @@ rt_si32 main_init()
     }
     sc[d]->set_opts(opts);
 
-    if (q_mode && !a_mode && p_mode)
-    {
-        sc[d]->set_pton(q_mode);
-    }
-    else
     if (q_mode)
     {
-        q_mode = RT_FALSE;
-        RT_LOGI("Quasi-realistic mode: %d (%s)\n",
-               q_mode, !p_mode ? "-p" : "-a");
+        q_mode += p_mode;
+        p_mode = RT_TRUE;
+        sc[d]->set_pton(q_mode);
     }
 
     print_target();
