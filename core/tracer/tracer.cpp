@@ -75,6 +75,7 @@
 #define RT_FEAT_PT                  1
 #define RT_FEAT_PT_SPLIT_DEPTH      1
 #define RT_FEAT_PT_SPLIT_FRESNEL    1
+#define RT_FEAT_PT_RANDOM_SAMPLE    1
 
 #if RT_FEAT_GAMMA
 #define GAMMA(x)    x
@@ -1003,7 +1004,7 @@
  * Seed (inf_PRNGS) must be initialized outside along with other constants.
  * Only applies to active SIMD elements according to current TMASK.
  */
-#define GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax */                     \
+#define GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */        \
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))                                  \
         movxx_ld(Reax, Mebp, inf_PRNGS)                                     \
         movpx_ld(Xmm7, Oeax, PLAIN)                                         \
@@ -1204,11 +1205,79 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /********************************   RAY INIT   ********************************/
 /******************************************************************************/
 
+        xorpx_rr(Xmm6, Xmm6)                    /* hor_r <-     0 */
+        xorpx_rr(Xmm5, Xmm5)                    /* ver_r <-     0 */
+
+#if RT_FEAT_PT && RT_FEAT_PT_RANDOM_SAMPLE
+
+        cmjxx_mz(Mebp, inf_PT_ON,
+                 EQ_x, RR_cnt)
+
+        movpx_ld(Xmm1, Mebp, inf_GPC01)
+        addps3rr(Xmm4, Xmm1, Xmm1)
+
+        movpx_ld(Xmm7, Mebp, inf_GPC07)
+        movpx_st(Xmm7, Mecx, ctx_TMASK(0))
+
+        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
+
+        addps_rr(Xmm0, Xmm0)
+        movpx_rr(Xmm2, Xmm0)
+        cltps_rr(Xmm0, Xmm1)
+
+        sqrps_rr(Xmm3, Xmm2)
+        subps_rr(Xmm3, Xmm1)
+        subps3rr(Xmm5, Xmm4, Xmm2)
+        sqrps_rr(Xmm5, Xmm5)
+        subps3rr(Xmm5, Xmm1, Xmm5)
+
+        andpx_rr(Xmm3, Xmm0)
+        annpx_rr(Xmm0, Xmm5)
+        orrpx3rr(Xmm6, Xmm0, Xmm3)
+
+        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
+
+        addps_rr(Xmm0, Xmm0)
+        movpx_rr(Xmm2, Xmm0)
+        cltps_rr(Xmm0, Xmm1)
+
+        sqrps_rr(Xmm3, Xmm2)
+        subps_rr(Xmm3, Xmm1)
+        subps3rr(Xmm5, Xmm4, Xmm2)
+        sqrps_rr(Xmm5, Xmm5)
+        subps3rr(Xmm5, Xmm1, Xmm5)
+
+        andpx_rr(Xmm3, Xmm0)
+        annpx_rr(Xmm0, Xmm5)
+        orrpx3rr(Xmm5, Xmm0, Xmm3)
+
+        movpx_ld(Xmm2, Mebp, inf_GPC02)
+        andpx_ld(Xmm2, Mebp, inf_GPC04)
+
+        /* to better match smallpt comment out 2 ops below
+         * also enable SCHLICK and turn off FRESNEL_METAL
+         * make AA-grid regular in engine.cpp with 4X AA */
+        mulps_rr(Xmm6, Xmm2)
+        mulps_rr(Xmm5, Xmm2)
+
+        cmjxx_mz(Mebp, inf_FSAA,
+                 EQ_x, RR_cnt)
+
+        mulps_rr(Xmm6, Xmm2)
+        mulps_rr(Xmm5, Xmm2)
+
+    LBL(RR_cnt)
+
+#endif /* RT_FEAT_PT && RT_FEAT_PT_RANDOM_SAMPLE */
+
         movpx_ld(Xmm0, Mebp, inf_HOR_I)         /* hor_s <- HOR_I */
         movpx_ld(Xmm7, Mebp, inf_VER_I)         /* ver_s <- VER_I */
 
         addps_ld(Xmm0, Medx, cam_HOR_A)         /* hor_s += HOR_A */
         addps_ld(Xmm7, Medx, cam_VER_A)         /* ver_s += VER_A */
+
+        addps_rr(Xmm0, Xmm6)                    /* hor_s += hor_r */
+        addps_rr(Xmm7, Xmm5)                    /* ver_s += ver_r */
 
         movpx_ld(Xmm1, Medx, cam_HOR_X)         /* hor_x <- HOR_X */
         movpx_ld(Xmm2, Medx, cam_HOR_Y)         /* hor_y <- HOR_Y */
@@ -2250,6 +2319,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))
         movpx_st(Xmm0, Mecx, ctx_F_RND)
         movpx_st(Xmm0, Mecx, ctx_F_PRB)
+        /* use context's available fields
+         * as temporary storage for TMASK */
 
 #if RT_FEAT_PT
 
@@ -2273,12 +2344,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         maxps_ld(Xmm4, Mecx, ctx_TEX_G)
         maxps_ld(Xmm4, Mecx, ctx_TEX_B)
 
-        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax */
+        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
 
         cltps_rr(Xmm0, Xmm4)
         andpx_ld(Xmm0, Mecx, ctx_F_PRB)
         movpx_st(Xmm0, Mecx, ctx_F_PRB)
         movpx_st(Xmm0, Mecx, ctx_TMASK(0))
+        /* use context's available fields
+         * as temporary storage for TMASK */
 
         CHECK_MASK(PT_chk, NONE, Xmm0)
 
@@ -2396,7 +2469,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* compute random sample over hemisphere */
 
-        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax */
+        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
 
         movpx_rr(Xmm6, Xmm0)
         movpx_ld(Xmm0, Mebp, inf_GPC01)
@@ -2408,7 +2481,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm2, Xmm0)
         mulps_rr(Xmm3, Xmm0)
 
-        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax */
+        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
 
         addps_rr(Xmm0, Xmm0)
         mulps_ld(Xmm0, Medx, mat_GPC10)
@@ -2533,6 +2606,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm2, Medx, mat_COL_G)
         addps_ld(Xmm3, Medx, mat_COL_B)
 
+        /* restore TMASK from storage */
         movpx_ld(Xmm0, Mecx, ctx_F_RND)
         movpx_st(Xmm0, Mecx, ctx_TMASK(0))
 
@@ -3034,6 +3108,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm0, Medx, mat_C_RFL)
         movpx_st(Xmm0, Mecx, ctx_C_RFL)
 
+        /* set new TMASK from storage */
         movpx_ld(Xmm0, Mecx, ctx_F_PRB)
         movpx_st(Xmm0, Mecx, ctx_TMASK(0))
         movpx_st(Xmm0, Mecx, ctx_M_TRN)
@@ -3277,7 +3352,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjxx_mi(Mebp, inf_DEPTH, IB(RT_STACK_DEPTH - 2),
                  GT_x, TR_frn)
 
-        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax */
+        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
 
         movpx_rr(Xmm6, Xmm5)
         addps3rr(Xmm7, Xmm4, Xmm5)
@@ -3430,6 +3505,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm2, Xmm5)
         addps_rr(Xmm3, Xmm6)
 
+        /* restore TMASK from storage */
         movpx_ld(Xmm0, Mecx, ctx_F_RND)
         movpx_st(Xmm0, Mecx, ctx_TMASK(0))
 
@@ -3739,6 +3815,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm2, Xmm5)
         addps_rr(Xmm3, Xmm6)
 
+        /* restore TMASK from storage */
         movpx_ld(Xmm0, Mecx, ctx_F_RND)
         movpx_st(Xmm0, Mecx, ctx_TMASK(0))
 
