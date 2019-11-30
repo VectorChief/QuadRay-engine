@@ -58,6 +58,7 @@ rt_bool     p_mode      = RT_FALSE;     /* pixhunt mode (from command-line) */
 rt_bool     i_mode      = RT_FALSE;     /* imaging mode (from command-line) */
 rt_bool     h_mode      = RT_FALSE;     /* shownum mode (from command-line) */
 rt_bool     o_mode      = RT_FALSE;     /* optimal mode (from command-line) */
+rt_bool     q_mode      = RT_FALSE;     /* quality mode (from command-line) */
 rt_si32     a_mode      = 0;            /* antialiasing (from command-line) */
 
 /*
@@ -580,6 +581,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -i, enable imaging mode, save images before-after-diffs\n");
         RT_LOGI(" -h, enable shownum mode, activate screen-number drawing\n");
         RT_LOGI(" -o, enable optimal mode, omit unoptimized rendering run\n");
+        RT_LOGI(" -q, enable quality mode, activate path-tracing lighting\n");
         RT_LOGI(" -a n, enable antialiasing, 2 for 2x, 4 for 4x, 8 for 8x\n");
         RT_LOGI(" -t tex1 tex2 texn, convert images in data/textures/tex*\n");
         RT_LOGI(" -z, plot Fresnel/Gamma functions & antialiasing samples\n");
@@ -846,6 +848,11 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             o_mode = RT_TRUE;
             RT_LOGI("Optimal mode enabled: %d\n", o_mode);
         }
+        if (k < argc && strcmp(argv[k], "-q") == 0 && !q_mode)
+        {
+            q_mode = RT_TRUE;
+            RT_LOGI("Quality mode enabled: %d\n", q_mode);
+        }
         if (k < argc && strcmp(argv[k], "-a") == 0)
         {
             rt_si32 aa_map[10] =
@@ -913,9 +920,9 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                                                            1 << a_mode);
     RT_LOGI("Framebuffer X-row = %5d, ptr = %016" PR_Z "X\n",
                                                  x_row, (rt_full)frame);
-    RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d  %s\n",
+    RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d  %s %s\n",
                                               x_res, y_res, 0, !h_mode,
-                                                    o_mode ? "o" : " ");
+                o_mode ? "o" : q_mode ? "p" : " ",  q_mode ? "q" : " ");
 
     rt_si32 i, j;
 
@@ -936,12 +943,13 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             o_test[i]();
 
             scene->set_opts(RT_OPTS_NONE);
+            scene->set_pton(q_mode);
 
             time1 = get_time();
 
             for (j = 0; j < RT_MAX(f_num, r_test); j++)
             {
-                scene->render(j * f_time);
+                scene->render(q_mode ? 0 : j * f_time);
             }
 
             time2 = get_time();
@@ -975,12 +983,13 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             o_test[i]();
 
             scene->set_opts(RT_OPTS_FULL);
+            scene->set_pton(q_mode);
 
             time1 = get_time();
 
             for (j = 0; j < RT_MAX(f_num, r_test); j++)
             {
-                scene->render(j * f_time);
+                scene->render(q_mode ? 0 : j * f_time);
             }
 
             time2 = get_time();
