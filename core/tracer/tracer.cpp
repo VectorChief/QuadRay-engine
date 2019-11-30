@@ -3113,6 +3113,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         andpx_ld(Xmm5, Mecx, ctx_M_TRN)
         movpx_st(Xmm5, Mecx, ctx_M_TRN)
         movpx_st(Xmm5, Mecx, ctx_TMASK(0))
+        /* T_NEW was used as temporary storage
+         * for total inner reflection mask
+         * before new path-tracer fields were added */
 
         CHECK_MASK(TR_tir, NONE, Xmm5)
 
@@ -3120,6 +3123,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(TR_tir)
 
+        /* store Fresnel reflectance
+         * for total inner reflection
+         * add to static reflectivity */
         movpx_ld(Xmm0, Medx, mat_C_TRN)
 
         xorpx_rr(Xmm4, Xmm4)
@@ -3127,6 +3133,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm5, Medx, mat_C_RFL)
         addps_rr(Xmm5, Xmm0)
         movpx_st(Xmm5, Mecx, ctx_C_RFL)
+        /* F_RFL is no longer used for Fresnel
+         * with new fields added for path-tracer */
 
         jmpxx_lb(TR_end)
 
@@ -3237,20 +3245,29 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_SCHLICK */
 
-        /* store Fresnel reflectance */
+        /* recombine Fresnel with
+         * total inner reflection mask */
         movpx_ld(Xmm5, Mecx, ctx_M_TRN)
         andpx_rr(Xmm0, Xmm5)
         movpx_ld(Xmm4, Medx, mat_C_TRN)
         mulps_rr(Xmm0, Xmm4)
         annpx_rr(Xmm5, Xmm4)
         orrpx_rr(Xmm0, Xmm5)
+        /* T_NEW was used as temporary storage
+         * for total inner reflection mask
+         * before new path-tracer fields were added */
 
+        /* store Fresnel reflectance,
+         * subtract from transparency
+         * add to static reflectivity */
         movpx_ld(Xmm4, Medx, mat_C_TRN)
         subps_rr(Xmm4, Xmm0)
         movpx_st(Xmm4, Mecx, ctx_C_TRN)
         movpx_ld(Xmm5, Medx, mat_C_RFL)
         addps_rr(Xmm5, Xmm0)
         movpx_st(Xmm5, Mecx, ctx_C_RFL)
+        /* F_RFL is no longer used for Fresnel
+         * with new fields added for path-tracer */
 
 #if RT_FEAT_PT && RT_FEAT_PT_SPLIT_FRESNEL
 
@@ -3499,9 +3516,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         CHECK_PROP(RF_frn, RT_PROP_OPAQUE)
 
-#if RT_FEAT_FRESNEL_METAL
-
         CHECK_PROP(RF_mtl, RT_PROP_METAL)
+
+#if RT_FEAT_FRESNEL_METAL
 
 #if RT_FEAT_FRESNEL_METAL_SLOW
 
@@ -3547,6 +3564,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         divps_rr(Xmm2, Xmm1)
         mulps_rr(Xmm2, Xmm0)
         addps_rr(Xmm0, Xmm2)
+        mulps_ld(Xmm0, Mebp, inf_GPC02)
+        andpx_ld(Xmm0, Mebp, inf_GPC04)
 
 #else /* RT_FEAT_FRESNEL_METAL_SLOW */
 
@@ -3571,14 +3590,22 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         divps_rr(Xmm0, Xmm2)
         divps_rr(Xmm1, Xmm3)
         addps_rr(Xmm0, Xmm1)
+        mulps_ld(Xmm0, Mebp, inf_GPC02)
+        andpx_ld(Xmm0, Mebp, inf_GPC04)
 
 #endif /* RT_FEAT_FRESNEL_METAL_SLOW */
 
         jmpxx_lb(RF_pre)
 
-    LBL(RF_mtl)
-
 #endif /* RT_FEAT_FRESNEL_METAL */
+
+        /* reset Fresnel reflectance,
+         * 1.0 is subtracted below */
+        movpx_ld(Xmm0, Mebp, inf_GPC01)
+
+        jmpxx_lb(RF_pre)
+
+    LBL(RF_mtl)
 
 #if RT_FEAT_FRESNEL_PLAIN
 
@@ -3608,20 +3635,29 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm0, Xmm0)
         mulps_rr(Xmm1, Xmm1)
         addps_rr(Xmm0, Xmm1)
+        mulps_ld(Xmm0, Mebp, inf_GPC02)
+        andpx_ld(Xmm0, Mebp, inf_GPC04)
+
+        jmpxx_lb(RF_pre)
 
 #endif /* RT_FEAT_FRESNEL_PLAIN */
 
+        /* reset Fresnel reflectance,
+         * 1.0 is subtracted below */
+        movpx_ld(Xmm0, Mebp, inf_GPC01)
+
     LBL(RF_pre)
 
-        /* store Fresnel reflectance */
-        mulps_ld(Xmm0, Mebp, inf_GPC02)
-        andpx_ld(Xmm0, Mebp, inf_GPC04)
+        /* store Fresnel reflectance,
+         * subtract from reflectivity */
         subps_ld(Xmm0, Mebp, inf_GPC01)
         mulps_ld(Xmm0, Medx, mat_C_RFL)
 
         movpx_ld(Xmm5, Medx, mat_C_RFL)
         addps_rr(Xmm5, Xmm0)
         movpx_st(Xmm5, Mecx, ctx_C_RFL)
+        /* F_RFL is no longer used for Fresnel
+         * with new fields added for path-tracer */
 
     LBL(RF_frn)
 
