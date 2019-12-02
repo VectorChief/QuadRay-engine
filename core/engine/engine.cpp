@@ -2775,7 +2775,6 @@ rt_pntr rt_Scene::operator new(size_t size, rt_Heap *hp)
 
 /*
  * Delete scene from custom heap.
- * Heap "hp" must be the same object as platform "pfm" in constructor.
  */
 rt_void rt_Scene::operator delete(rt_pntr ptr)
 {
