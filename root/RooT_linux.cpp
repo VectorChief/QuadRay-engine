@@ -184,20 +184,42 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     disp = XOpenDisplay(NULL);
     if (disp == NULL)
     {
-        RT_LOGE("Cannot open X display\n");
+        RT_LOGE("Couldn't open X display\n");
         return 1;
     }
 
     /* acquire screen depth */
     rt_si32 scr_id = DefaultScreen(disp);
     depth = DefaultDepth(disp, scr_id);
+    Screen *screen = ScreenOfDisplay(disp, scr_id);
+
+    while (w_size > 0)
+    {
+        if (x_res > WidthOfScreen(screen)
+        ||  y_res > HeightOfScreen(screen))
+        {
+            w_size--;
+            x_res = (x_res / (w_size + 1)) * w_size;
+            y_res = (y_res / (w_size + 1)) * w_size;
+            x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
+            RT_LOGI("Window size exceeds screen, resizing: -w %d\n", w_size);
+        }
+        else
+        {
+            break;
+        }
+    };
 
     if (w_size == 0)
     {
         /* acquire fullscreen dimensions */
-        Screen *screen = ScreenOfDisplay(disp, scr_id);
         x_win = WidthOfScreen(screen);
         y_win = HeightOfScreen(screen);
+
+        /* override framebuffer's dimensions in fullscreen mode */
+        x_res = x_new != 0 ? x_new : x_win;
+        y_res = y_new != 0 ? y_new : y_win;
+        x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
     }
     else
     {
@@ -211,7 +233,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                                     10, 10, x_win, y_win, 1, 0, 0);
     if ((rt_pntr)win == NULL)
     {
-        RT_LOGE("Cannot create X window\n");
+        RT_LOGE("Couldn't create X window\n");
         XCloseDisplay(disp);
         return 1;
     }
@@ -231,7 +253,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         XChangeProperty(disp, win, atom, XA_ATOM, 32,
                         PropModeReplace, (rt_byte *)&state, 1);
 
-        RT_LOGI("Window-less mode on! (fullscreen)\n");
+        /* RT_LOGI("Window-less mode on! (fullscreen)\n"); */
 
         /* create empty cursor from pixmap */
         static rt_char bitmap[8] = {0};
@@ -253,14 +275,6 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     XMapWindow(disp, win);
     XSync(disp, False);
 
-    if (w_size == 0)
-    {
-        /* override framebuffer's dimensions in fullscreen mode */
-        x_res = x_new != 0 ? x_new : x_win;
-        y_res = y_new != 0 ? y_new : y_win;
-        x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
-    }
-
 #if RT_XSHM
     do
     {
@@ -274,7 +288,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                                  x_row, y_res);
         if (ximage == NULL)
         {
-            RT_LOGE("Cannot create XShm image\n");
+            RT_LOGE("Couldn't create XShm image\n");
             RT_LOGE("defaulting to (slower) non-XShm fallback\n");
             break;
         }
@@ -327,7 +341,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                               x_res, y_res, pixel, x_row * pixel / 8);
         if (ximage == NULL)
         {
-            RT_LOGE("Cannot create X image\n");
+            RT_LOGE("Couldn't create X image\n");
             XDestroyWindow(disp, win);
             XCloseDisplay(disp);
             return 1;

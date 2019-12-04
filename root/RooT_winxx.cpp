@@ -141,6 +141,23 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     /* acquire screen settings */
     EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &DevMode);
 
+    while (w_size > 0)
+    {
+        if (x_res > DevMode.dmPelsWidth
+        ||  y_res > DevMode.dmPelsHeight)
+        {
+            w_size--;
+            x_res = (x_res / (w_size + 1)) * w_size;
+            y_res = (y_res / (w_size + 1)) * w_size;
+            x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
+            RT_LOGI("Window size exceeds screen, resizing: -w %d\n", w_size);
+        }
+        else
+        {
+            break;
+        }
+    };
+
     if (w_size == 0)
     {
         /* acquire fullscreen dimensions */
@@ -181,7 +198,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     }
     else
     {
-        /* create regular window */
+        /* create window */
         hWnd = CreateWindow(wnd_class, title,
                     WS_OVERLAPPED | WS_SYSMENU | WS_MINIMIZEBOX,
                     CW_USEDEFAULT, CW_USEDEFAULT, x_win, y_win,
@@ -189,7 +206,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
         if (!hWnd)
         {
-            RT_LOGE("Couldn't create regular window\n");
+            RT_LOGE("Couldn't create window\n");
             return FALSE;
         }
 
