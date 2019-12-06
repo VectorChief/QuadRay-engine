@@ -83,6 +83,12 @@
 #define GAMMA(x)
 #endif /* RT_FEAT_GAMMA */
 
+#if RT_PRNG < LCG32
+#define SHIFT(x)    x
+#else /* RT_PRNG >= LCG32 */
+#define SHIFT(x)
+#endif /* RT_PRNG >= LCG32 */
+
 /*
  * Byte-offsets within SIMD-field
  * for packed scalar fields.
@@ -1013,6 +1019,7 @@
         mmvpx_st(Xmm7, Oeax, PLAIN)                                         \
         movpx_rr(Xmm0, Xmm7)                                                \
         movpx_ld(Xmm7, Mebp, inf_PRNGM)                                     \
+  SHIFT(shrpx_ri(Xmm0, IB(32-RT_PRNG)))                                     \
         andpx_rr(Xmm0, Xmm7)                                                \
         cvnpn_rr(Xmm0, Xmm0)                                                \
         cvnpn_rr(Xmm7, Xmm7)                                                \
@@ -1256,7 +1263,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* to better match smallpt comment out 2 ops below
          * also enable SCHLICK and turn off FRESNEL_METAL
-         * make AA-grid regular in engine.cpp with 4X AA */
+         * make AA-grid regular in engine.cpp with 4X AA
+         * enable RT_TEST_PT in Root.h for a test scene
+         * change RT_PRNG to LCG48 in tracer.h, run f64
+         * example: ./RooT.x64f64 -x 1024 -y 768 -a -h -q
+         * wait some time, then press 'F4' for an image
+         * alternatively: use -f n and -i n to automate
+         * ./core_test.x64f64 -b 18 -o -q -a -i -f 1500 */
         mulps_rr(Xmm6, Xmm2)
         mulps_rr(Xmm5, Xmm2)
 

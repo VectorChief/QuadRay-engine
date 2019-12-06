@@ -862,7 +862,7 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_si32 index) :
     s_inf->pseed   = scene->pseed; /* ptr to buffer of PRNG's 32-bit seed */
     RT_SIMD_SET(s_inf->prngf, (rt_uelm)214013);     /* PRNG's 32-bit factor */
     RT_SIMD_SET(s_inf->prnga, (rt_uelm)2531011);    /* PRNG's 32-bit addend */
-    RT_SIMD_SET(s_inf->prngm, (rt_uelm)0x7FFF);     /* PRNG's 16-bit mask */
+    RT_SIMD_SET(s_inf->prngm, (rt_uelm)0xFFFF);     /* PRNG's 16-bit mask */
 
 #elif RT_PRNG == LCG24
 
@@ -870,7 +870,7 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_si32 index) :
     s_inf->pseed   = scene->pseed; /* ptr to buffer of PRNG's 32-bit seed */
     RT_SIMD_SET(s_inf->prngf, (rt_uelm)214013);     /* PRNG's 32-bit factor */
     RT_SIMD_SET(s_inf->prnga, (rt_uelm)2531011);    /* PRNG's 32-bit addend */
-    RT_SIMD_SET(s_inf->prngm, (rt_uelm)0x7FFFFF);   /* PRNG's 24-bit mask */
+    RT_SIMD_SET(s_inf->prngm, (rt_uelm)0xFFFFFF);   /* PRNG's 24-bit mask */
 
 #elif RT_PRNG == LCG32
 

@@ -46,6 +46,7 @@ rt_Platform*pfm                     = RT_NULL;              /* platformobj */
 rt_Scene   *sc[RT_ARR_SIZE(sc_rt)]  = {0};                  /* scene array */
 rt_si32     d                       = RT_ARR_SIZE(sc_rt)-1; /* demo-scene */
 rt_si32     c                       = 0;                    /* camera-idx */
+rt_si32     tile_w                  = 0;                    /* tile width */
 
 rt_time     b_time      = 0;        /* time-begins-(ms) (from command-line) */
 rt_time     e_time      =-1;        /* time-ending-(ms) (from command-line) */
@@ -71,7 +72,7 @@ rt_bool     p_mode      = RT_FALSE;       /* pause mode (from command-line) */
 rt_bool     q_mode      = RT_FALSE;       /* quake mode (from command-line) */
 rt_si32     u_mode      = 0; /* update/render threadoff (from command-line) */
 rt_bool     o_mode      = RT_FALSE;        /* offscreen (from command-line) */
-rt_si32     a_mode      = 0;               /* FSAA mode (from command-line) */
+rt_si32     a_mode      = RT_FSAA_NO;      /* FSAA mode (from command-line) */
 
 /******************************************************************************/
 /********************************   PLATFORM   ********************************/
@@ -208,7 +209,8 @@ rt_byte r_keys[KEY_MASK + 1];
  */
 rt_void print_avgfps()
 {
-    RT_LOGI("----------------------  FPS AVG  -----------------------\n");
+    RT_LOGI("----------------------  FPS AVG  ----- simd = %4dx%dv%d -\n",
+                                            n_simd * 128, k_size, s_type);
     if (cur_time - run_time > 0)
     {
         avg = (rt_real)(glb + cnt) * 1000 / (cur_time - run_time);
@@ -226,9 +228,9 @@ rt_void print_avgfps()
 rt_void print_target()
 {
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-    RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d\n",
-                  n_simd * 128, k_size, s_type, pfm->get_tile_w() / 8,
-                                                           1 << a_mode);
+    RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d %s\n",
+                               n_simd * 128, k_size, s_type, tile_w / 8,
+                               1 << a_mode, a_mode ? "(spp)" : "(off)");
     RT_LOGI("Framebuffer X-row = %5d, ptr = %016" PR_Z "X\n",
                        sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
     RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d  %s %s\n",
@@ -239,7 +241,8 @@ rt_void print_target()
     RT_LOGI("Threads/affinity = %4d/%d, reserved = %d, d%2d, c%2d\n",
                          pfm->get_thnum(), RT_SETAFFINITY, 0, d+1, c+1);
 
-    RT_LOGI("----------------------  FPS LOG  -----------------------\n");
+    RT_LOGI("----------------------  FPS LOG  ----- ptr/fp = %d%s%d --\n",
+                    RT_POINTER, RT_ADDRESS == 32 ? "_" : "f", RT_ELEMENT);
 }
 
 /*
@@ -505,12 +508,33 @@ rt_si32 main_step()
             sc[g]->save_frame(img_id++);
         }
 
+        if (switched)
+        {
+            switched = 0;
+
+            print_avgfps();
+
+            print_target();
+
+            glb = 0;
+            run_time = cur_time;
+
+            cnt = 0;
+            log_time = cur_time;
+        }
+
+        prev_time = cur_time;
+
+        /* update frame counters */
+        cnt++;
+        ttl++;
+
         sc[d]->render(f_time >= 0 ? b_time + f_time * ttl : anim_time);
 
         if (!h_mode)
         {
             sc[d]->render_num(x_res-30, 10, -1, 2, (rt_si32)fps);
-            sc[d]->render_num(x_res-10, 10, -1, 2, pfm->get_tile_w() / 8);
+            sc[d]->render_num(x_res-10, 10, -1, 2, tile_w / 8);
             sc[d]->render_num(x_res-10, 34, -1, 2, 1 << a_mode);
             sc[d]->render_num(      30, 10, +1, 2, n_simd * 128);
             sc[d]->render_num(      10, 10, +1, 2, k_size);
@@ -543,27 +567,6 @@ rt_si32 main_step()
         frame_to_screen(sc[d]->get_frame(), sc[d]->get_x_row());
     }
 
-    if (switched)
-    {
-        switched = 0;
-
-        print_avgfps();
-
-        print_target();
-
-        glb = 0;
-        run_time = cur_time;
-
-        cnt = 0;
-        log_time = cur_time;
-    }
-
-    prev_time = cur_time;
-
-    /* update frame counters */
-    cnt++;
-    ttl++;
-
     return 1;
 }
 
@@ -588,7 +591,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -k n, override SIMD-size-factor, where new size is 1..4\n");
         RT_LOGI(" -s n, override SIMD-sub-variant, where new type is 1.32\n");
         RT_LOGI(" -t n, override thread-pool-size, where new size <= 1000\n");
-        RT_LOGI(" -w n, override window-rect-size, where new size is 0..9\n");
+        RT_LOGI(" -w n, override window-rect-size, where new size is 1..9\n");
         RT_LOGI(" -w 0, activate window-less mode, full native resolution\n");
         RT_LOGI(" -x n, override x-resolution, where new x-value <= 65535\n");
         RT_LOGI(" -y n, override y-resolution, where new y-value <= 65535\n");
@@ -823,9 +826,21 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (k < argc && strcmp(argv[k], "-i") == 0 && ++k < argc)
+        if (k < argc && strcmp(argv[k], "-i") == 0)
         {
-            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            l = 0;
+            if (++k < argc)
+            {
+                if (argv[k][0] != '-')
+                {
+                    l = strlen(argv[k]);
+                }
+                else
+                {
+                    k--;
+                }
+            }
+            for (r = 1, t = 0; l > 0; l--, r *= 10)
             {
                 t += (argv[k][l-1] - '0') * r;
             }
@@ -947,6 +962,7 @@ rt_si32 main_init()
 
         simd = pfm->set_simd(simd_init(n_simd, s_type, k_size));
         a_mode = pfm->set_fsaa(a_mode);
+        tile_w = pfm->get_tile_w();
 
         for (i = 0; i < n; i++)
         {

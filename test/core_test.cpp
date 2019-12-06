@@ -45,21 +45,21 @@ rt_Scene   *scene       = RT_NULL;
 
 rt_si32     n_init      = 0;            /* subtest-init (from command-line) */
 rt_si32     n_done      = RUN_LEVEL-1;  /* subtest-done (from command-line) */
-rt_si32     f_num       = 0;        /* number-of-frames (from command-line) */
+rt_si32     f_num       =-1;        /* number-of-frames (from command-line) */
 rt_time     f_time      = 16;       /* frame-delta-(ms) (from command-line) */
 rt_si32     n_simd      = 0;        /* SIMD-native-size (from command-line) */
 rt_si32     k_size      = 0;        /* SIMD-size-factor (from command-line) */
 rt_si32     s_type      = 0;        /* SIMD-sub-variant (from command-line) */
 rt_si32     w_size      = 1;        /* Window-rect-size (from command-line) */
 rt_si32     t_diff      = 3;          /* diff-threshold (from command-line) */
-rt_si32     r_test      = CYC_SIZE;   /* test-redundant (from command-line) */
+rt_si32     r_test      =-CYC_SIZE;   /* test-redundant (from command-line) */
 rt_bool     v_mode      = RT_FALSE;     /* verbose mode (from command-line) */
 rt_bool     p_mode      = RT_FALSE;     /* pixhunt mode (from command-line) */
 rt_bool     i_mode      = RT_FALSE;     /* imaging mode (from command-line) */
 rt_bool     h_mode      = RT_FALSE;     /* shownum mode (from command-line) */
 rt_bool     o_mode      = RT_FALSE;     /* optimal mode (from command-line) */
 rt_bool     q_mode      = RT_FALSE;     /* quality mode (from command-line) */
-rt_si32     a_mode      = 0;            /* antialiasing (from command-line) */
+rt_si32     a_mode      = RT_FSAA_NO;   /* antialiasing (from command-line) */
 
 /*
  * Get system time in milliseconds.
@@ -571,7 +571,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -n n, override SIMD-native-size, where new simd is 1.16\n");
         RT_LOGI(" -k n, override SIMD-size-factor, where new size is 1..4\n");
         RT_LOGI(" -s n, override SIMD-sub-variant, where new type is 1.32\n");
-        RT_LOGI(" -w n, override window-rect-size, where new size is 0..9\n");
+        RT_LOGI(" -w n, override window-rect-size, where new size is 1..9\n");
         RT_LOGI(" -x n, override x-resolution, where new x-value <= 65535\n");
         RT_LOGI(" -y n, override y-resolution, where new y-value <= 65535\n");
         RT_LOGI(" -d n, override diff-threshold for qualification, n >= 0\n");
@@ -744,7 +744,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         if (k < argc && strcmp(argv[k], "-w") == 0 && ++k < argc)
         {
             t = argv[k][0] - '0';
-            if (strlen(argv[k]) == 1 && t >= 0 && t <= 9)
+            if (strlen(argv[k]) == 1 && t >= 1 && t <= 9)
             {
                 RT_LOGI("Window-rect-size overridden: %d\n", t);
                 w_size = t;
@@ -878,6 +878,16 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         }
     }
 
+    if (r_test != -CYC_SIZE && f_num != -1)
+    {
+        RT_LOGI("Test-redundant overridden: %d (-f)\n", f_num);
+    }
+    if (f_num != -1)
+    {
+        r_test = f_num;
+    }
+    r_test = RT_ABS32(r_test);
+
     rt_time time1 = 0;
     rt_time time2 = 0;
     rt_time tN = 0;
@@ -915,9 +925,9 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     frame = (rt_ui32 *)sys_alloc(x_row * y_res * sizeof(rt_ui32));
 
     RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
-    RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d\n",
+    RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d %s\n",
                                n_simd * 128, k_size, s_type, tile_w / 8,
-                                                           1 << a_mode);
+                               1 << a_mode, a_mode ? "(spp)" : "(off)");
     RT_LOGI("Framebuffer X-row = %5d, ptr = %016" PR_Z "X\n",
                                                  x_row, (rt_full)frame);
     RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d  %s %s\n",
@@ -947,7 +957,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
             time1 = get_time();
 
-            for (j = 0; j < RT_MAX(f_num, r_test); j++)
+            for (j = 0; j < r_test; j++)
             {
                 scene->render(q_mode ? 0 : j * f_time);
             }
@@ -987,7 +997,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
             time1 = get_time();
 
-            for (j = 0; j < RT_MAX(f_num, r_test); j++)
+            for (j = 0; j < r_test; j++)
             {
                 scene->render(q_mode ? 0 : j * f_time);
             }

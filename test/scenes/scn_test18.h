@@ -320,8 +320,8 @@ rt_OBJECT ob_camera01[] =
  * Needs to be redesigned for proper scale and navigation.
  *
  * Include this scene in RooT demo and run it with:
- * ./Root.x64f32 -x 1024 -y 768 -p -q
- * Path-tracing mode (-p -q) is still highly experimental.
+ * ./Root.x64f32 -x 1024 -y 768 -q -k 1 -i -h
+ * Path-tracing mode (-q) is still work in progress.
  */
 
 rt_OBJECT ob_tree[] =
