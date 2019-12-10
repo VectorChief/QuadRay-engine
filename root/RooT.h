@@ -186,6 +186,23 @@ rt_byte r_keys[KEY_MASK + 1];
 #define R_KEYS(k)   (r_keys[r_to_p[(k) & KEY_MASK]])
 
 /*
+ * Print average fps.
+ */
+rt_void print_avgfps()
+{
+    RT_LOGI("----------------------  FPS AVG  -----------------------\n");
+    if (cur_time - run_time > 0)
+    {
+        avg = (rt_real)(glb + cnt) * 1000 / (cur_time - run_time);
+    }
+    else
+    {
+        avg = (rt_real)0;
+    }
+    RT_LOGI("AVG = %.2f\n", avg);
+}
+
+/*
  * Print current target config.
  */
 rt_void print_target()
@@ -486,16 +503,7 @@ rt_si32 main_step()
     {
         switched = 0;
 
-        RT_LOGI("----------------------  FPS AVG  -----------------------\n");
-        if (cur_time - run_time)
-        {
-            avg = (rt_real)(glb + cnt) * 1000 / (cur_time - run_time);
-        }
-        else
-        {
-            avg = (rt_real)0;
-        }
-        RT_LOGI("AVG = %.2f\n", avg);
+        print_avgfps();
 
         print_target();
 
@@ -961,16 +969,7 @@ rt_si32 main_term()
         sc[d]->save_frame(img_id++);
     }
 
-    RT_LOGI("----------------------  FPS AVG  -----------------------\n");
-    if (cur_time - run_time)
-    {
-        avg = (rt_real)(glb + cnt) * 1000 / (cur_time - run_time);
-    }
-    else
-    {
-        avg = (rt_real)0;
-    }
-    RT_LOGI("AVG = %.2f\n", avg);
+    print_avgfps();
 
     rt_si32 i, n = RT_ARR_SIZE(sc_rt);
 
