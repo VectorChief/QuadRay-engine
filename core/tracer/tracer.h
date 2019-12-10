@@ -213,122 +213,125 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_word pad11[43];
 #define inf_PAD11           DP(Q*0x100+0x054*P+E)
 
+    rt_elem pad12[S*16];
+#define inf_PAD12           DP(Q*0x100+0x100*P)
+
 #if RT_DEBUG >= 1
 
     /* quadric debug info */
 
     rt_real wmask[S];
-#define inf_WMASK           DP(Q*0x100+0x100*P)
+#define inf_WMASK           DP(Q*0x200+0x100*P)
 
 
     rt_real dff_x[S];
-#define inf_DFF_X           DP(Q*0x110+0x100*P)
+#define inf_DFF_X           DP(Q*0x210+0x100*P)
 
     rt_real dff_y[S];
-#define inf_DFF_Y           DP(Q*0x120+0x100*P)
+#define inf_DFF_Y           DP(Q*0x220+0x100*P)
 
     rt_real dff_z[S];
-#define inf_DFF_Z           DP(Q*0x130+0x100*P)
+#define inf_DFF_Z           DP(Q*0x230+0x100*P)
 
 
     rt_real ray_x[S];
-#define inf_RAY_X           DP(Q*0x140+0x100*P)
+#define inf_RAY_X           DP(Q*0x240+0x100*P)
 
     rt_real ray_y[S];
-#define inf_RAY_Y           DP(Q*0x150+0x100*P)
+#define inf_RAY_Y           DP(Q*0x250+0x100*P)
 
     rt_real ray_z[S];
-#define inf_RAY_Z           DP(Q*0x160+0x100*P)
+#define inf_RAY_Z           DP(Q*0x260+0x100*P)
 
 
     rt_real a_val[S];
-#define inf_A_VAL           DP(Q*0x170+0x100*P)
+#define inf_A_VAL           DP(Q*0x270+0x100*P)
 
     rt_real b_val[S];
-#define inf_B_VAL           DP(Q*0x180+0x100*P)
+#define inf_B_VAL           DP(Q*0x280+0x100*P)
 
     rt_real c_val[S];
-#define inf_C_VAL           DP(Q*0x190+0x100*P)
+#define inf_C_VAL           DP(Q*0x290+0x100*P)
 
     rt_real d_val[S];
-#define inf_D_VAL           DP(Q*0x1A0+0x100*P)
+#define inf_D_VAL           DP(Q*0x2A0+0x100*P)
 
 
     rt_real dmask[S];
-#define inf_DMASK           DP(Q*0x1B0+0x100*P)
+#define inf_DMASK           DP(Q*0x2B0+0x100*P)
 
 
     rt_real t1nmr[S];
-#define inf_T1NMR           DP(Q*0x1C0+0x100*P)
+#define inf_T1NMR           DP(Q*0x2C0+0x100*P)
 
     rt_real t1dnm[S];
-#define inf_T1DNM           DP(Q*0x1D0+0x100*P)
+#define inf_T1DNM           DP(Q*0x2D0+0x100*P)
 
     rt_real t2nmr[S];
-#define inf_T2NMR           DP(Q*0x1E0+0x100*P)
+#define inf_T2NMR           DP(Q*0x2E0+0x100*P)
 
     rt_real t2dnm[S];
-#define inf_T2DNM           DP(Q*0x1F0+0x100*P)
+#define inf_T2DNM           DP(Q*0x2F0+0x100*P)
 
 
     rt_real t1val[S];
-#define inf_T1VAL           DP(Q*0x200+0x100*P)
+#define inf_T1VAL           DP(Q*0x300+0x100*P)
 
     rt_real t2val[S];
-#define inf_T2VAL           DP(Q*0x210+0x100*P)
+#define inf_T2VAL           DP(Q*0x310+0x100*P)
 
     rt_real t1srt[S];
-#define inf_T1SRT           DP(Q*0x220+0x100*P)
+#define inf_T1SRT           DP(Q*0x320+0x100*P)
 
     rt_real t2srt[S];
-#define inf_T2SRT           DP(Q*0x230+0x100*P)
+#define inf_T2SRT           DP(Q*0x330+0x100*P)
 
     rt_real t1msk[S];
-#define inf_T1MSK           DP(Q*0x240+0x100*P)
+#define inf_T1MSK           DP(Q*0x340+0x100*P)
 
     rt_real t2msk[S];
-#define inf_T2MSK           DP(Q*0x250+0x100*P)
+#define inf_T2MSK           DP(Q*0x350+0x100*P)
 
 
     rt_real tside[S];
-#define inf_TSIDE           DP(Q*0x260+0x100*P)
+#define inf_TSIDE           DP(Q*0x360+0x100*P)
 
 
     rt_real hit_x[S];
-#define inf_HIT_X           DP(Q*0x270+0x100*P)
+#define inf_HIT_X           DP(Q*0x370+0x100*P)
 
     rt_real hit_y[S];
-#define inf_HIT_Y           DP(Q*0x280+0x100*P)
+#define inf_HIT_Y           DP(Q*0x380+0x100*P)
 
     rt_real hit_z[S];
-#define inf_HIT_Z           DP(Q*0x290+0x100*P)
+#define inf_HIT_Z           DP(Q*0x390+0x100*P)
 
 
     rt_real adj_x[S];
-#define inf_ADJ_X           DP(Q*0x2A0+0x100*P)
+#define inf_ADJ_X           DP(Q*0x3A0+0x100*P)
 
     rt_real adj_y[S];
-#define inf_ADJ_Y           DP(Q*0x2B0+0x100*P)
+#define inf_ADJ_Y           DP(Q*0x3B0+0x100*P)
 
     rt_real adj_z[S];
-#define inf_ADJ_Z           DP(Q*0x2C0+0x100*P)
+#define inf_ADJ_Z           DP(Q*0x3C0+0x100*P)
 
 
     rt_real nrm_x[S];
-#define inf_NRM_X           DP(Q*0x2D0+0x100*P)
+#define inf_NRM_X           DP(Q*0x3D0+0x100*P)
 
     rt_real nrm_y[S];
-#define inf_NRM_Y           DP(Q*0x2E0+0x100*P)
+#define inf_NRM_Y           DP(Q*0x3E0+0x100*P)
 
     rt_real nrm_z[S];
-#define inf_NRM_Z           DP(Q*0x2F0+0x100*P)
+#define inf_NRM_Z           DP(Q*0x3F0+0x100*P)
 
 
     rt_word q_dbg;
-#define inf_Q_DBG           DP(Q*0x300+0x100*P+E)
+#define inf_Q_DBG           DP(Q*0x400+0x100*P+E)
 
     rt_word q_cnt;
-#define inf_Q_CNT           DP(Q*0x300+0x104*P+E)
+#define inf_Q_CNT           DP(Q*0x400+0x104*P+E)
 
 #endif /* RT_DEBUG */
 };
