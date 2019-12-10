@@ -3402,7 +3402,7 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
     if (pfm->fsaa == RT_FSAA_2X) /* alternating */
     {
         rt_real as = 0.25f;
-        rt_real ar = 0.08f;
+        rt_real ar = 0.08f; /* <- set to zero for more regular AA-grid */
 
         for (i = 0; i < pfm->simd_width / 4; i++)
         {
@@ -3434,7 +3434,7 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
     if (pfm->fsaa == RT_FSAA_4X)
     {
         rt_real as = 0.25f;
-        rt_real ar = 0.08f;
+        rt_real ar = 0.08f; /* <- set to zero for more regular AA-grid */
 
         for (i = 0; i < pfm->simd_width / 4; i++)
         {
@@ -3869,7 +3869,7 @@ rt_void rt_Scene::plot_frags()
     /* plot samples for 2X alternating slope pattern */
     {
         rt_real as = 0.25f;
-        rt_real ar = 0.08f;
+        rt_real ar = 0.08f; /* <- set to zero for more regular AA-grid */
 
         fdh[0] = ((-ar+as) + 0.5f) * r + 0.5f;
         fdh[1] = ((+ar-as) + 0.5f) * r + 0.5f;
@@ -3901,7 +3901,7 @@ rt_void rt_Scene::plot_frags()
     /* plot samples for 4X rotated grid pattern */
     {
         rt_real as = 0.25f;
-        rt_real ar = 0.08f;
+        rt_real ar = 0.08f; /* <- set to zero for more regular AA-grid */
 
         fdh[0] = ((-ar-as) + 0.5f) * r + 0.5f;
         fdh[1] = ((-ar+as) + 0.5f) * r + 0.5f;
