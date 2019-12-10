@@ -45,7 +45,7 @@ rt_Scene   *scene       = RT_NULL;
 
 rt_si32     n_init      = 0;            /* subtest-init (from command-line) */
 rt_si32     n_done      = RUN_LEVEL-1;  /* subtest-done (from command-line) */
-rt_si32     f_num       = CYC_SIZE; /* number-of-frames (from command-line) */
+rt_si32     f_num       = 0;        /* number-of-frames (from command-line) */
 rt_time     f_time      = 16;       /* frame-delta-(ms) (from command-line) */
 rt_si32     n_simd      = 0;        /* SIMD-native-size (from command-line) */
 rt_si32     k_size      = 0;        /* SIMD-size-factor (from command-line) */
@@ -57,6 +57,7 @@ rt_bool     v_mode      = RT_FALSE;     /* verbose mode (from command-line) */
 rt_bool     p_mode      = RT_FALSE;     /* pixhunt mode (from command-line) */
 rt_bool     i_mode      = RT_FALSE;     /* imaging mode (from command-line) */
 rt_bool     h_mode      = RT_FALSE;     /* shownum mode (from command-line) */
+rt_bool     o_mode      = RT_FALSE;     /* optimal mode (from command-line) */
 rt_si32     a_mode      = 0;            /* antialiasing (from command-line) */
 
 /*
@@ -578,6 +579,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -p, enable pixhunt mode, print isolated pixels (> diff)\n");
         RT_LOGI(" -i, enable imaging mode, save images before-after-diffs\n");
         RT_LOGI(" -h, enable shownum mode, activate screen-number drawing\n");
+        RT_LOGI(" -o, enable optimal mode, omit unoptimized rendering run\n");
         RT_LOGI(" -a n, enable antialiasing, 2 for 2x, 4 for 4x, 8 for 8x\n");
         RT_LOGI(" -t tex1 tex2 texn, convert images in data/textures/tex*\n");
         RT_LOGI(" -z, plot Fresnel/Gamma functions & antialiasing samples\n");
@@ -839,6 +841,11 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             h_mode = RT_TRUE;
             RT_LOGI("Shownum mode enabled: %d\n", h_mode);
         }
+        if (k < argc && strcmp(argv[k], "-o") == 0 && !o_mode)
+        {
+            o_mode = RT_TRUE;
+            RT_LOGI("Optimal mode enabled: %d\n", o_mode);
+        }
         if (k < argc && strcmp(argv[k], "-a") == 0)
         {
             rt_si32 aa_map[10] =
@@ -906,8 +913,9 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                                                            1 << a_mode);
     RT_LOGI("Framebuffer X-row = %5d, ptr = %016" PR_Z "X\n",
                                                  x_row, (rt_full)frame);
-    RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d\n",
-                                              x_res, y_res, 0, !h_mode);
+    RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d  %s\n",
+                                              x_res, y_res, 0, !h_mode,
+                                                    o_mode ? "o" : " ");
 
     rt_si32 i, j;
 
@@ -920,13 +928,18 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             (&pfm)->set_simd(simd_init(n_simd, s_type, k_size));
             a_mode = (&pfm)->get_fsaa();
 
+            if (!o_mode)
+            { /* -->---->-- skip run0 -->---->-- */
+
+            /* ------------ test run0 ---------- */
+
             o_test[i]();
 
             scene->set_opts(RT_OPTS_NONE);
 
             time1 = get_time();
 
-            for (j = 0; j < RT_MIN(f_num, r_test); j++)
+            for (j = 0; j < RT_MAX(f_num, r_test); j++)
             {
                 scene->render(j * f_time);
             }
@@ -949,12 +962,15 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             {
                 scene->save_frame((i+1) * 10 + 0);
             }
+
             frame_cpy(frame, scene->get_frame());
 
             delete scene;
             scene = RT_NULL;
 
-            /* --------------------------------- */
+            } /* --<----<-- skip run0 --<----<-- */
+
+            /* ------------ test run1 ---------- */
 
             o_test[i]();
 
@@ -962,7 +978,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
             time1 = get_time();
 
-            for (j = 0; j < RT_MIN(f_num, r_test); j++)
+            for (j = 0; j < RT_MAX(f_num, r_test); j++)
             {
                 scene->render(j * f_time);
             }
@@ -985,9 +1001,13 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             {
                 scene->save_frame((i+1) * 10 + 1);
             }
+
+            if (!o_mode)
+            { /* -->---->-- skip diff -->---->-- */
+
             frame_cmp(frame, scene->get_frame());
 
-            /* --------------------------------- */
+            /* ------------ test diff ---------- */
 
             frame_dff(scene->get_frame(), frame);
             if (i_mode)
@@ -1000,6 +1020,8 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             {
                 scene->save_frame((i+1) * 10 + 3);
             }
+
+            } /* --<----<-- skip diff --<----<-- */
 
             delete scene;
             scene = RT_NULL;
