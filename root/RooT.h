@@ -263,7 +263,7 @@ rt_si32 main_step()
             RT_LOGI("FPS = %.2f\n", fps);
         }
     }
-    if (e_time >= 0 && cur_time >= e_time)
+    if (e_time >= 0 && anim_time >= e_time)
     {
         return 0;
     }
@@ -281,15 +281,15 @@ rt_si32 main_step()
         { /* -->---->-- skip update0 -->---->-- */
 #endif /* RT_OPTS_UPDATE_EXT0 */
 
-        if (H_KEYS(RK_W))       sc[d]->update(cur_time, RT_CAMERA_MOVE_FORWARD);
-        if (H_KEYS(RK_S))       sc[d]->update(cur_time, RT_CAMERA_MOVE_BACK);
-        if (H_KEYS(RK_A))       sc[d]->update(cur_time, RT_CAMERA_MOVE_LEFT);
-        if (H_KEYS(RK_D))       sc[d]->update(cur_time, RT_CAMERA_MOVE_RIGHT);
+        if (H_KEYS(RK_W))     sc[d]->update(anim_time, RT_CAMERA_MOVE_FORWARD);
+        if (H_KEYS(RK_S))     sc[d]->update(anim_time, RT_CAMERA_MOVE_BACK);
+        if (H_KEYS(RK_A))     sc[d]->update(anim_time, RT_CAMERA_MOVE_LEFT);
+        if (H_KEYS(RK_D))     sc[d]->update(anim_time, RT_CAMERA_MOVE_RIGHT);
 
-        if (H_KEYS(RK_UP))      sc[d]->update(cur_time, RT_CAMERA_ROTATE_DOWN);
-        if (H_KEYS(RK_DOWN))    sc[d]->update(cur_time, RT_CAMERA_ROTATE_UP);
-        if (H_KEYS(RK_LEFT))    sc[d]->update(cur_time, RT_CAMERA_ROTATE_LEFT);
-        if (H_KEYS(RK_RIGHT))   sc[d]->update(cur_time, RT_CAMERA_ROTATE_RIGHT);
+        if (H_KEYS(RK_UP))    sc[d]->update(anim_time, RT_CAMERA_ROTATE_DOWN);
+        if (H_KEYS(RK_DOWN))  sc[d]->update(anim_time, RT_CAMERA_ROTATE_UP);
+        if (H_KEYS(RK_LEFT))  sc[d]->update(anim_time, RT_CAMERA_ROTATE_LEFT);
+        if (H_KEYS(RK_RIGHT)) sc[d]->update(anim_time, RT_CAMERA_ROTATE_RIGHT);
 
         if (T_KEYS(RK_F1) || T_KEYS(RK_I))
         {
@@ -828,17 +828,17 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         if (k < argc && strcmp(argv[k], "-l") == 0 && !l_mode)
         {
             l_mode = RT_TRUE;
-            RT_LOGI("FPS-logging-off mode\n");
+            RT_LOGI("FPS-logging-off mode: %d\n", l_mode);
         }
         if (k < argc && strcmp(argv[k], "-h") == 0 && !h_mode)
         {
             h_mode = RT_TRUE;
-            RT_LOGI("Hide-screen-num mode\n");
+            RT_LOGI("Hide-screen-num mode: %d\n", h_mode);
         }
         if (k < argc && strcmp(argv[k], "-p") == 0 && !p_mode)
         {
             p_mode = RT_TRUE;
-            RT_LOGI("Pause-animation mode\n");
+            RT_LOGI("Pause-animation mode: %d\n", p_mode);
         }
         if (k < argc && strcmp(argv[k], "-u") == 0 && ++k < argc)
         {
@@ -857,7 +857,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         if (k < argc && strcmp(argv[k], "-o") == 0 && !o_mode)
         {
             o_mode = RT_TRUE;
-            RT_LOGI("Offscreen-frame mode\n");
+            RT_LOGI("Offscreen-frame mode: %d\n", o_mode);
         }
         if (k < argc && strcmp(argv[k], "-a") == 0)
         {
@@ -880,7 +880,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
                     k--;
                 }
             }            
-            RT_LOGI("Antialiasing request: %dx\n", 1 << a_mode);
+            RT_LOGI("Antialiasing request: %d\n", 1 << a_mode);
         }
     }
 

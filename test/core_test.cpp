@@ -577,7 +577,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -v, enable verbose mode, print all pixel spots (> diff)\n");
         RT_LOGI(" -p, enable pixhunt mode, print isolated pixels (> diff)\n");
         RT_LOGI(" -i, enable imaging mode, save images before-after-diffs\n");
-        RT_LOGI(" -h, show-screen-num mode, activates info-number drawing\n");
+        RT_LOGI(" -h, enable shownum mode, activate screen-number drawing\n");
         RT_LOGI(" -a n, enable antialiasing, 2 for 2x, 4 for 4x, 8 for 8x\n");
         RT_LOGI(" -t tex1 tex2 texn, convert images in data/textures/tex*\n");
         RT_LOGI(" -z, plot Fresnel/Gamma functions & antialiasing samples\n");
@@ -822,22 +822,22 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         if (k < argc && strcmp(argv[k], "-v") == 0 && !v_mode)
         {
             v_mode = RT_TRUE;
-            RT_LOGI("Verbose mode enabled\n");
+            RT_LOGI("Verbose mode enabled: %d\n", v_mode);
         }
         if (k < argc && strcmp(argv[k], "-p") == 0 && !p_mode)
         {
             p_mode = RT_TRUE;
-            RT_LOGI("Pixhunt mode enabled\n");
+            RT_LOGI("Pixhunt mode enabled: %d\n", p_mode);
         }
         if (k < argc && strcmp(argv[k], "-i") == 0 && !i_mode)
         {
             i_mode = RT_TRUE;
-            RT_LOGI("Imaging mode enabled\n");
+            RT_LOGI("Imaging mode enabled: %d\n", i_mode);
         }
         if (k < argc && strcmp(argv[k], "-h") == 0 && !h_mode)
         {
             h_mode = RT_TRUE;
-            RT_LOGI("Show-screen-num mode\n");
+            RT_LOGI("Shownum mode enabled: %d\n", h_mode);
         }
         if (k < argc && strcmp(argv[k], "-a") == 0)
         {
@@ -860,7 +860,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                     k--;
                 }
             }            
-            RT_LOGI("Antialiasing request: %dx\n", 1 << a_mode);
+            RT_LOGI("Antialiasing request: %d\n", 1 << a_mode);
         }
     }
 
