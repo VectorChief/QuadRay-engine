@@ -56,6 +56,7 @@ rt_si32     img_id      =-1;        /* save-image-index (from command-line) */
 rt_time     l_time      = 500;        /* fpslogupd-(ms) (from command-line) */
 rt_bool     l_mode      = RT_FALSE;        /* fpslogoff (from command-line) */
 rt_bool     h_mode      = RT_FALSE;        /* hide mode (from command-line) */
+rt_bool     p_mode      = RT_FALSE;       /* pause mode (from command-line) */
 rt_si32     u_mode      = 0; /* update/render threadoff (from command-line) */
 rt_bool     o_mode      = RT_FALSE;        /* offscreen (from command-line) */
 rt_si32     a_mode      = 0;               /* FSAA mode (from command-line) */
@@ -140,6 +141,7 @@ rt_void frame_to_screen(rt_ui32 *frame, rt_si32 x_row);
 
 #define RK_I                28
 #define RK_L                29
+#define RK_P                27
 
 #define RK_UP               15
 #define RK_DOWN             16
@@ -159,6 +161,8 @@ rt_pstr *estr = RT_NULL;
 
 /* time counter variables */
 rt_time init_time = 0;
+rt_time anim_time = 0;
+rt_time prev_time = 0;
 rt_time run_time = 0;
 rt_time log_time = 0;
 rt_time cur_time = 0;
@@ -238,10 +242,14 @@ rt_si32 main_step()
     if (init_time == 0)
     {
         init_time = cur_time - b_time;
-        log_time = run_time = b_time;
+        anim_time = run_time = log_time = prev_time = b_time;
     }
     cur_time = cur_time - init_time;
 
+    if (!p_mode)
+    {
+        anim_time += (cur_time - prev_time);
+    }
     if (cur_time - log_time >= l_time)
     {
         fps = (rt_real)cnt * 1000 / (cur_time - log_time);
@@ -269,7 +277,7 @@ rt_si32 main_step()
     try
     {
 #if RT_OPTS_UPDATE_EXT0 != 0
-        if (u_mode <= 4)
+        if (u_mode <= 4 && !p_mode)
         { /* -->---->-- skip update0 -->---->-- */
 #endif /* RT_OPTS_UPDATE_EXT0 */
 
@@ -408,6 +416,11 @@ rt_si32 main_step()
             l_mode = !l_mode;
             switched = 1;
         }
+        if (T_KEYS(RK_P))
+        {
+            p_mode = !p_mode;
+            switched = 1;
+        }
         if (T_KEYS(RK_F9) || T_KEYS(RK_9))
         {
             rt_si32 opts = sc[d]->get_opts();
@@ -461,7 +474,7 @@ rt_si32 main_step()
             sc[g]->save_frame(img_id++);
         }
 
-        sc[d]->render(f_time >= 0 ? b_time + f_time * ttl : cur_time);
+        sc[d]->render(f_time >= 0 ? b_time + f_time * ttl : anim_time);
 
         if (!h_mode)
         {
@@ -514,6 +527,8 @@ rt_si32 main_step()
         log_time = cur_time;
     }
 
+    prev_time = cur_time;
+
     /* update frame counters */
     cnt++;
     ttl++;
@@ -550,6 +565,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -r n, fps-logging update rate, where n is interval (ms)\n");
         RT_LOGI(" -l, fps-logging-off mode, turns off fps-logging updates\n");
         RT_LOGI(" -h, hide-screen-num mode, turns off info-number drawing\n");
+        RT_LOGI(" -p, pause mode, stops animation from starting time (ms)\n");
         RT_LOGI(" -u n, 1-3/4 serial update/render, 5/6 update/render off\n");
         RT_LOGI(" -o, offscreen-frame mode, turns off window-rect updates\n");
         RT_LOGI(" -a n, enable antialiasing, 2 for 2x, 4 for 4x, 8 for 8x\n");
@@ -818,6 +834,11 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         {
             h_mode = RT_TRUE;
             RT_LOGI("Hide-screen-num mode\n");
+        }
+        if (k < argc && strcmp(argv[k], "-p") == 0 && !p_mode)
+        {
+            p_mode = RT_TRUE;
+            RT_LOGI("Pause-animation mode\n");
         }
         if (k < argc && strcmp(argv[k], "-u") == 0 && ++k < argc)
         {
