@@ -426,7 +426,7 @@ struct rt_SIMD_CONTEXT
     rt_real tex_v[S];
 #define ctx_TEX_V           DP(Q*0x110)
 
-    /* color buffer */
+    /* color pointer/buffer */
 
     rt_elem c_ptr[S];
 #define ctx_C_PTR(nx)       DP(Q*0x120 + nx)
@@ -456,13 +456,14 @@ struct rt_SIMD_CONTEXT
     rt_real col_b[S];
 #define ctx_COL_B(nx)       DP(Q*0x190 + nx)
 
-    /* root sorting masks */
+    /* custom clipping accum,
+     * Fresnel reflection term */
 
-    rt_elem amask[S];
-#define ctx_AMASK           DP(Q*0x1A0)
+    rt_elem c_acc[S];
+#define ctx_C_ACC           DP(Q*0x1A0)
 
-    rt_elem dmask[S];
-#define ctx_DMASK           DP(Q*0x1B0)
+    rt_real f_rfl[S];
+#define ctx_F_RFL           DP(Q*0x1B0)
 
     /* depth, masks, temps, misc */
 
@@ -520,15 +521,13 @@ struct rt_SIMD_CONTEXT
     rt_ui64 local[R];
 #define ctx_LOCAL(nx)       DP(Q*0x2C0+C + nx*2)
 
-    /* custom clipping accum */
+    /* root sorting masks */
 
-    rt_elem c_acc[S];
-#define ctx_C_ACC           DP(Q*0x2E0)
+    rt_elem amask[S];
+#define ctx_AMASK           DP(Q*0x2E0)
 
-    /* fresnel reflection term */
-
-    rt_real f_rfl[S];
-#define ctx_F_RFL           DP(Q*0x2F0)
+    rt_elem dmask[S];
+#define ctx_DMASK           DP(Q*0x2F0)
 
     /* overlapping next context,
      * new depth min */

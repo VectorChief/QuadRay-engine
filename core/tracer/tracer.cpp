@@ -2632,7 +2632,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(TR_rfi)
 
-        /* compute refraction, fresnel
+        /* compute refraction, Fresnel
          * requires normalized ray */
         movpx_ld(Xmm1, Mecx, ctx_RAY_X)
         movpx_rr(Xmm7, Xmm1)
@@ -2957,7 +2957,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(RF_ini)
 
-        /* compute reflection, fresnel
+        /* compute reflection, Fresnel
          * requires normalized ray */
         movpx_ld(Xmm1, Mecx, ctx_RAY_X)
         movpx_ld(Xmm4, Mecx, ctx_NRM_X)
