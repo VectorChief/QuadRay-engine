@@ -1050,19 +1050,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
 
 /******************************************************************************/
-/********************************   RAY INIT   ********************************/
-/******************************************************************************/
-
-        movpx_ld(Xmm0, Medx, cam_DIR_X)         /* ray_x <- DIR_X */
-        movpx_st(Xmm0, Mecx, ctx_RAY_X)         /* ray_x -> RAY_X */
-
-        movpx_ld(Xmm0, Medx, cam_DIR_Y)         /* ray_y <- DIR_Y */
-        movpx_st(Xmm0, Mecx, ctx_RAY_Y)         /* ray_y -> RAY_Y */
-
-        movpx_ld(Xmm0, Medx, cam_DIR_Z)         /* ray_z <- DIR_Z */
-        movpx_st(Xmm0, Mecx, ctx_RAY_Z)         /* ray_z -> RAY_Z */
-
-/******************************************************************************/
 /********************************   VER INIT   ********************************/
 /******************************************************************************/
 
@@ -1124,6 +1111,44 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_COL_R(0))      /* tmp_v -> COL_R */
         movpx_st(Xmm0, Mecx, ctx_COL_G(0))      /* tmp_v -> COL_G */
         movpx_st(Xmm0, Mecx, ctx_COL_B(0))      /* tmp_v -> COL_B */
+
+/******************************************************************************/
+/********************************   RAY INIT   ********************************/
+/******************************************************************************/
+
+        movpx_ld(Xmm0, Mebp, inf_HOR_I)         /* hor_s <- HOR_I */
+        movpx_ld(Xmm7, Mebp, inf_VER_I)         /* ver_s <- VER_I */
+
+        addps_ld(Xmm0, Medx, cam_HOR_A)         /* hor_s += HOR_A */
+        addps_ld(Xmm7, Medx, cam_VER_A)         /* ver_s += VER_A */
+
+        movpx_ld(Xmm1, Medx, cam_HOR_X)         /* hor_x <- HOR_X */
+        movpx_ld(Xmm2, Medx, cam_HOR_Y)         /* hor_y <- HOR_Y */
+        movpx_ld(Xmm3, Medx, cam_HOR_Z)         /* hor_z <- HOR_Z */
+
+        mulps_rr(Xmm1, Xmm0)                    /* hor_x *= hor_s */
+        mulps_rr(Xmm2, Xmm0)                    /* hor_y *= hor_s */
+        mulps_rr(Xmm3, Xmm0)                    /* hor_z *= hor_s */
+
+        movpx_ld(Xmm4, Medx, cam_VER_X)         /* ver_x <- VER_X */
+        movpx_ld(Xmm5, Medx, cam_VER_Y)         /* ver_y <- VER_Y */
+        movpx_ld(Xmm6, Medx, cam_VER_Z)         /* ver_z <- VER_Z */
+
+        mulps_rr(Xmm4, Xmm7)                    /* ver_x *= ver_s */
+        mulps_rr(Xmm5, Xmm7)                    /* ver_y *= ver_s */
+        mulps_rr(Xmm6, Xmm7)                    /* ver_z *= ver_s */
+
+        addps_rr(Xmm1, Xmm4)                    /* hor_x += ver_x */
+        addps_rr(Xmm2, Xmm5)                    /* hor_y += ver_y */
+        addps_rr(Xmm3, Xmm6)                    /* hor_z += ver_z */
+
+        addps_ld(Xmm1, Medx, cam_DIR_X)         /* ray_x += DIR_X */
+        addps_ld(Xmm2, Medx, cam_DIR_Y)         /* ray_y += DIR_Y */
+        addps_ld(Xmm3, Medx, cam_DIR_Z)         /* ray_z += DIR_Z */
+
+        movpx_st(Xmm1, Mecx, ctx_RAY_X)         /* ray_x -> RAY_X */
+        movpx_st(Xmm2, Mecx, ctx_RAY_Y)         /* ray_y -> RAY_Y */
+        movpx_st(Xmm3, Mecx, ctx_RAY_Z)         /* ray_z -> RAY_Z */
 
 /******************************************************************************/
 /********************************   OBJ LIST   ********************************/
@@ -4447,17 +4472,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* advance primary rays horizontally */
         movxx_ld(Redx, Mebp, inf_CAM)
 
-        movpx_ld(Xmm0, Mecx, ctx_RAY_X)         /* ray_x <- RAY_X */
-        addps_ld(Xmm0, Medx, cam_HOR_X)         /* ray_x += HOR_X */
-        movpx_st(Xmm0, Mecx, ctx_RAY_X)         /* ray_x -> RAY_X */
-
-        movpx_ld(Xmm1, Mecx, ctx_RAY_Y)         /* ray_y <- RAY_Y */
-        addps_ld(Xmm1, Medx, cam_HOR_Y)         /* ray_y += HOR_Y */
-        movpx_st(Xmm1, Mecx, ctx_RAY_Y)         /* ray_y -> RAY_Y */
-
-        movpx_ld(Xmm2, Mecx, ctx_RAY_Z)         /* ray_z <- RAY_Z */
-        addps_ld(Xmm2, Medx, cam_HOR_Z)         /* ray_z += HOR_Z */
-        movpx_st(Xmm2, Mecx, ctx_RAY_Z)         /* ray_z -> RAY_Z */
+        movpx_ld(Xmm0, Mebp, inf_HOR_I)         /* hor_i <- HOR_I */
+        addps_ld(Xmm0, Medx, cam_HOR_U)         /* hor_i += HOR_U */
+        movpx_st(Xmm0, Mebp, inf_HOR_I)         /* hor_i -> HOR_I */
 
 #if RT_FEAT_TILING
 
@@ -4479,20 +4496,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* advance primary rays vertically */
         movxx_ld(Redx, Mebp, inf_CAM)
 
-        movpx_ld(Xmm0, Medx, cam_DIR_X)         /* ray_x <- DIR_X */
-        addps_ld(Xmm0, Medx, cam_VER_X)         /* ray_x += VER_X */
-        movpx_st(Xmm0, Medx, cam_DIR_X)         /* ray_x -> DIR_X */
-        movpx_st(Xmm0, Mecx, ctx_RAY_X)         /* ray_x -> RAY_X */
+        movpx_ld(Xmm0, Mebp, inf_VER_I)         /* ver_i <- VER_I */
+        addps_ld(Xmm0, Medx, cam_VER_U)         /* ver_i += VER_U */
+        movpx_st(Xmm0, Mebp, inf_VER_I)         /* ver_i -> VER_I */
 
-        movpx_ld(Xmm1, Medx, cam_DIR_Y)         /* ray_y <- DIR_Y */
-        addps_ld(Xmm1, Medx, cam_VER_Y)         /* ray_y += VER_Y */
-        movpx_st(Xmm1, Medx, cam_DIR_Y)         /* ray_y -> DIR_Y */
-        movpx_st(Xmm1, Mecx, ctx_RAY_Y)         /* ray_y -> RAY_Y */
-
-        movpx_ld(Xmm2, Medx, cam_DIR_Z)         /* ray_z <- DIR_Z */
-        addps_ld(Xmm2, Medx, cam_VER_Z)         /* ray_z += VER_Z */
-        movpx_st(Xmm2, Medx, cam_DIR_Z)         /* ray_z -> DIR_Z */
-        movpx_st(Xmm2, Mecx, ctx_RAY_Z)         /* ray_z -> RAY_Z */
+        movpx_ld(Xmm0, Mebp, inf_HOR_C)         /* hor_i <- HOR_C */
+        movpx_st(Xmm0, Mebp, inf_HOR_I)         /* hor_i -> HOR_I */
 
 #if RT_FEAT_MULTITHREADING
 

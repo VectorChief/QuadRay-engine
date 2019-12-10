@@ -213,8 +213,17 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_word pad11[43];
 #define inf_PAD11           DP(Q*0x100+0x054*P+E)
 
-    rt_elem pad12[S*16];
-#define inf_PAD12           DP(Q*0x100+0x100*P)
+    rt_real hor_c[S];
+#define inf_HOR_C           DP(Q*0x100+0x100*P)
+
+    rt_real hor_i[S];
+#define inf_HOR_I           DP(Q*0x110+0x100*P)
+
+    rt_real ver_i[S];
+#define inf_VER_I           DP(Q*0x120+0x100*P)
+
+    rt_elem pad12[S*13];
+#define inf_PAD12           DP(Q*0x130+0x100*P)
 
 #if RT_DEBUG >= 1
 
@@ -602,7 +611,7 @@ struct rt_SIMD_CAMERA
     rt_real dir_z[S];
 #define cam_DIR_Z           DP(Q*0x030)
 
-    /* ray update horizontal */
+    /* ray step horizontal */
 
     rt_real hor_x[S];
 #define cam_HOR_X           DP(Q*0x040)
@@ -613,7 +622,7 @@ struct rt_SIMD_CAMERA
     rt_real hor_z[S];
 #define cam_HOR_Z           DP(Q*0x060)
 
-    /* ray update vertical */
+    /* ray step vertical */
 
     rt_real ver_x[S];
 #define cam_VER_X           DP(Q*0x070)
@@ -624,19 +633,21 @@ struct rt_SIMD_CAMERA
     rt_real ver_z[S];
 #define cam_VER_Z           DP(Q*0x090)
 
-    /* ambient color and intensity */
+    /* ray addend for AA */
 
-    rt_real col_r[S];
-#define cam_COL_R           DP(Q*0x0A0)
+    rt_real hor_a[S];
+#define cam_HOR_A           DP(Q*0x0A0)
 
-    rt_real col_g[S];
-#define cam_COL_G           DP(Q*0x0B0)
+    rt_real ver_a[S];
+#define cam_VER_A           DP(Q*0x0B0)
 
-    rt_real col_b[S];
-#define cam_COL_B           DP(Q*0x0C0)
+    /* ray update for index */
 
-    rt_real l_amb[S];
-#define cam_L_AMB           DP(Q*0x0D0)
+    rt_real hor_u[S];
+#define cam_HOR_U           DP(Q*0x0C0)
+
+    rt_real ver_u[S];
+#define cam_VER_U           DP(Q*0x0D0)
 
     /* color masks */
 
@@ -645,6 +656,20 @@ struct rt_SIMD_CAMERA
 
     rt_elem cmask[S];
 #define cam_CMASK           DP(Q*0x0F0)
+
+    /* ambient color and intensity */
+
+    rt_real l_amb[S];
+#define cam_L_AMB           DP(Q*0x100)
+
+    rt_real col_r[S];
+#define cam_COL_R           DP(Q*0x110)
+
+    rt_real col_g[S];
+#define cam_COL_G           DP(Q*0x120)
+
+    rt_real col_b[S];
+#define cam_COL_B           DP(Q*0x130)
 
 };
 
