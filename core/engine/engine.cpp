@@ -2726,7 +2726,6 @@ rt_pntr rt_Scene::operator new(size_t size, rt_Heap *hp)
 
 /*
  * Delete scene from custom heap.
- * Heap "hp" must be the same object as platform "pfm" in constructor.
  */
 rt_void rt_Scene::operator delete(rt_pntr ptr)
 {
@@ -2814,7 +2813,9 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
     tiles_in_col = (y_res + pfm->tile_h - 1) / pfm->tile_h;
 
     tiles = (rt_ELEM **)
-            alloc(sizeof(rt_ELEM *) * (tiles_in_row * tiles_in_col), RT_ALIGN);
+            alloc(tiles_in_row * tiles_in_col * sizeof(rt_ELEM *), RT_ALIGN);
+
+    memset(tiles, 0, tiles_in_row * tiles_in_col * sizeof(rt_ELEM *));
 
     /* init pixel-width, aspect-ratio, ray-depth */
     factor = 1.0f / (rt_real)x_res;

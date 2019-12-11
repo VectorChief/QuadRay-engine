@@ -4351,7 +4351,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* implement precision-converters
          * to fp32 from fp64, fp16, fp128
          * to enable limited SPMD-targets
-         * like fp16/fp128 to render core */
+         * like fp16/fp128 in render-core */
 
         /* clamp fp colors to 1.0 limit */
         movpx_ld(Xmm1, Mebp, inf_GPC01)
