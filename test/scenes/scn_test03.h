@@ -173,7 +173,7 @@ rt_SCENE sc_root =
     RT_OBJ_ARRAY_REL(&ob_tree, &rl_tree),
     /* list of optimizations to be turned off *
      * refer to core/engine/format.h for defs */
-    
+    RT_OPTS_PT
     /* turning off GAMMA|FRESNEL opts in turn *
      * enables respective GAMMA|FRESNEL props */
 };
