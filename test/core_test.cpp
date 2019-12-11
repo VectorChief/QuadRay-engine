@@ -934,7 +934,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                                               x_res, y_res, 0, !h_mode,
                 o_mode ? "o" : q_mode ? "p" : " ",  q_mode ? "q" : " ");
 
-    rt_si32 i, j;
+    rt_si32 i, j, q_test;
 
     for (i = n_init; i <= n_done; i++)
     {
@@ -953,13 +953,13 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             o_test[i]();
 
             scene->set_opts(RT_OPTS_NONE);
-            scene->set_pton(q_mode);
+            q_test = scene->set_pton(q_mode);
 
             time1 = get_time();
 
             for (j = 0; j < r_test; j++)
             {
-                scene->render(q_mode ? 0 : j * f_time);
+                scene->render(q_test ? 0 : j * f_time);
             }
 
             time2 = get_time();
@@ -969,7 +969,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             if (h_mode)
             {
                 scene->render_num(x_res-30, 10, -1, 2, 0);
-                scene->render_num(x_res-10, 10, -1, 2, pfm.get_tile_w() / 8);
+                scene->render_num(x_res-10, 10, -1, 2, tile_w / 8);
                 scene->render_num(x_res-10, 34, -1, 2, 1 << a_mode);
                 scene->render_num(      30, 10, +1, 2, n_simd * 128);
                 scene->render_num(      10, 10, +1, 2, k_size);
@@ -993,13 +993,13 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             o_test[i]();
 
             scene->set_opts(RT_OPTS_FULL);
-            scene->set_pton(q_mode);
+            q_test = scene->set_pton(q_mode);
 
             time1 = get_time();
 
             for (j = 0; j < r_test; j++)
             {
-                scene->render(q_mode ? 0 : j * f_time);
+                scene->render(q_test ? 0 : j * f_time);
             }
 
             time2 = get_time();
@@ -1009,7 +1009,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             if (h_mode)
             {
                 scene->render_num(x_res-30, 10, -1, 2, 0);
-                scene->render_num(x_res-10, 10, -1, 2, pfm.get_tile_w() / 8);
+                scene->render_num(x_res-10, 10, -1, 2, tile_w / 8);
                 scene->render_num(x_res-10, 34, -1, 2, 1 << a_mode);
                 scene->render_num(      30, 10, +1, 2, n_simd * 128);
                 scene->render_num(      10, 10, +1, 2, k_size);
@@ -1049,8 +1049,9 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         {
             RT_LOGE("Exception in test %d: %s\n", i+1, e.err);
         }
-        RT_LOGI("-------------------------------------- simd = %4dx%dv%d -\n",
-                                                n_simd * 128, k_size, s_type);
+        RT_LOGI("--%s%s%s------------------------------- simd = %4dx%dv%d -\n",
+            o_mode ? " o" : q_test ? " p" : "--", o_mode || q_test ? " " : "-",
+                            q_test ? "q " : "--", n_simd * 128, k_size, s_type);
     }
 
     sys_free(frame, x_row * y_res * sizeof(rt_ui32));
