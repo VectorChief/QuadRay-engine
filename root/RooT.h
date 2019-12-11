@@ -218,7 +218,7 @@ rt_byte r_keys[KEY_MASK + 1];
  */
 rt_void print_avgfps()
 {
-    RT_LOGI("---%s%s-------------  FPS AVG  ------ simd = %4dx%dv%d -\n",
+    RT_LOGI("---%s%s--------------  FPS AVG  ----- simd = %4dx%dv%d -\n",
                             p_prev ? " p " : "---", q_prev ? "q " : "--",
                                             n_prev * 128, k_prev, s_prev);
     if (cur_time - run_time > 0)
@@ -251,7 +251,7 @@ rt_void print_target()
     RT_LOGI("Threads/affinity = %4d/%d, reserved = %d, d%2d, c%2d\n",
                          pfm->get_thnum(), RT_SETAFFINITY, 0, d+1, c+1);
 
-    RT_LOGI("---%s%s-------------  FPS LOG  ------ ptr/fp = %d%s%d --\n",
+    RT_LOGI("---%s%s--------------  FPS LOG  ----- ptr/fp = %d%s%d --\n",
                             p_mode ? " p " : "---", q_mode ? "q " : "--",
                     RT_POINTER, RT_ADDRESS == 32 ? "_" : "f", RT_ELEMENT);
 }
