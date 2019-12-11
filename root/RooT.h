@@ -160,6 +160,14 @@ rt_void frame_to_screen(rt_ui32 *frame, rt_si32 x_row);
 rt_si32  eout = 0, emax = 0;
 rt_pstr *estr = RT_NULL;
 
+/* state tracking variables */
+rt_si32 d_prev = -1;        /* prev demo-scene */
+rt_si32 c_prev = -1;        /* prev camera-idx */
+rt_si32 n_prev = -1;        /* prev SIMD-native-size */
+rt_si32 k_prev = -1;        /* prev SIMD-size-factor */
+rt_si32 s_prev = -1;        /* prev SIMD-sub-variant */
+rt_si32 p_prev = -1;        /* prev pause mode */
+
 /* time counter variables */
 rt_time init_time = 0;
 rt_time anim_time = 0;
@@ -195,8 +203,8 @@ rt_byte r_keys[KEY_MASK + 1];
  */
 rt_void print_avgfps()
 {
-    RT_LOGI("----------------------  FPS AVG  ----- simd = %4dx%dv%d -\n",
-                                            n_simd * 128, k_size, s_type);
+    RT_LOGI("---%s---------------  FPS AVG  ------ simd = %4dx%dv%d -\n",
+                    p_prev ? " p " : "---", n_prev * 128, k_prev, s_prev);
     if (cur_time - run_time > 0)
     {
         avg = (rt_real)(glb + cnt) * 1000 / (cur_time - run_time);
@@ -226,7 +234,8 @@ rt_void print_target()
     RT_LOGI("Threads/affinity = %4d/%d, reserved = %d, d%2d, c%2d\n",
                          pfm->get_thnum(), RT_SETAFFINITY, 0, d+1, c+1);
 
-    RT_LOGI("----------------------  FPS LOG  ----- ptr/fp = %d%s%d --\n",
+    RT_LOGI("---%s---------------  FPS LOG  ------ ptr/fp = %d%s%d --\n",
+                                                  p_mode ? " p " : "---",
                     RT_POINTER, RT_ADDRESS == 32 ? "_" : "f", RT_ELEMENT);
 }
 
@@ -256,6 +265,7 @@ rt_si32 main_step()
         }
         if (T_KEYS(RK_P))
         {
+            p_prev = p_mode;
             p_mode = !p_mode;
             switched = 1;
         }
@@ -367,13 +377,13 @@ rt_si32 main_step()
         }
         if (T_KEYS(RK_F3) || T_KEYS(RK_3))
         {
-            rt_si32 cold = c;
+            c_prev = c;
             c = sc[d]->next_cam();
-            switched = cold != c ? 1 : switched;
+            switched = c_prev != c ? 1 : switched;
         }
         if (T_KEYS(RK_F6) || T_KEYS(RK_6))
         {
-            rt_si32 kold = k_size;
+            k_prev = k_size;
             rt_si32 size, type, simd;
             do
             {
@@ -400,11 +410,11 @@ rt_si32 main_step()
             }
             while (size != k_size);
             a_mode = pfm->get_fsaa();
-            switched = kold != k_size ? 1 : switched;
+            switched = k_prev != k_size ? 1 : switched;
         }
         if (T_KEYS(RK_F7) || T_KEYS(RK_7))
         {
-            rt_si32 told = s_type;
+            s_prev = s_type;
             rt_si32 size, type, simd;
             do
             {
@@ -420,11 +430,11 @@ rt_si32 main_step()
             }
             while (type != s_type);
             a_mode = pfm->get_fsaa();
-            switched = told != s_type ? 1 : switched;
+            switched = s_prev != s_type ? 1 : switched;
         }
         if (T_KEYS(RK_F8) || T_KEYS(RK_8))
         {
-            rt_si32 nold = n_simd;
+            n_prev = n_simd;
             rt_si32 size, type, simd;
             do
             {
@@ -455,15 +465,15 @@ rt_si32 main_step()
             }
             while (simd != n_simd);
             a_mode = pfm->get_fsaa();
-            switched = nold != n_simd ? 1 : switched;
+            switched = n_prev != n_simd ? 1 : switched;
         }
         if (T_KEYS(RK_F11) || T_KEYS(RK_1))
         {
-            rt_si32 dold = d;
+            d_prev = d;
             d = (d + 1) % RT_ARR_SIZE(sc_rt);
             c = sc[d]->get_cam_idx();
             pfm->set_cur_scene(sc[d]);
-            switched = dold != d ? 1 : switched;
+            switched = d_prev != d ? 1 : switched;
         }
 
 #if RT_OPTS_UPDATE_EXT0 != 0
@@ -484,6 +494,13 @@ rt_si32 main_step()
 
             print_avgfps();
             print_target();
+
+            d_prev = d;
+            c_prev = c;
+            n_prev = n_simd;
+            k_prev = k_size;
+            s_prev = s_type;
+            p_prev = p_mode;
 
             glb = 0;
             run_time = cur_time;
@@ -990,6 +1007,13 @@ rt_si32 main_init()
         break;
     }
     sc[d]->set_opts(opts);
+
+    d_prev = d;
+    c_prev = c;
+    n_prev = n_simd;
+    k_prev = k_size;
+    s_prev = s_type;
+    p_prev = p_mode;
 
     print_target();
 
