@@ -2866,31 +2866,41 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
 
     memset(tiles, 0, tiles_in_row * tiles_in_col * sizeof(rt_ELEM *));
 
-    /* alloc framebuffer's seed-plane for path-tracer */
-    pseed = (rt_elem *)
-            alloc(4 * x_row * y_res * sizeof(rt_elem), RT_SIMD_ALIGN);
-
-    reset_pseed();
-
-    /* alloc framebuffer's fp-color planes */
-    ptr_r = (rt_real *)
-            alloc(4 * x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
-    ptr_g = (rt_real *)
-            alloc(4 * x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
-    ptr_b = (rt_real *)
-            alloc(4 * x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
-
-    memset(ptr_r, 0, 4 * x_row * y_res * sizeof(rt_real));
-    memset(ptr_g, 0, 4 * x_row * y_res * sizeof(rt_real));
-    memset(ptr_b, 0, 4 * x_row * y_res * sizeof(rt_real));
-
-    pt_on = RT_FALSE;
-
     /* init pixel-width, aspect-ratio, ray-depth */
     factor = 1.0f / (rt_real)x_res;
     aspect = (rt_real)y_res * factor;
     depth = RT_MAX(RT_STACK_DEPTH, 0);
     opts &= ~scn->opts;
+
+    if ((opts & RT_OPTS_PT) == 0)
+    {
+        /* alloc framebuffer's seed-plane for path-tracer */
+        pseed = (rt_elem *)
+                alloc(4 * x_row * y_res * sizeof(rt_elem), RT_SIMD_ALIGN);
+
+        reset_pseed();
+
+        /* alloc framebuffer's fp-color planes */
+        ptr_r = (rt_real *)
+                alloc(4 * x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
+        ptr_g = (rt_real *)
+                alloc(4 * x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
+        ptr_b = (rt_real *)
+                alloc(4 * x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
+
+        memset(ptr_r, 0, 4 * x_row * y_res * sizeof(rt_real));
+        memset(ptr_g, 0, 4 * x_row * y_res * sizeof(rt_real));
+        memset(ptr_b, 0, 4 * x_row * y_res * sizeof(rt_real));
+    }
+    else
+    {
+        pseed = RT_NULL;
+        ptr_r = RT_NULL;
+        ptr_g = RT_NULL;
+        ptr_b = RT_NULL;
+    }
+
+    pt_on = RT_FALSE;
 
     /* instantiate object hierarchy */
     memset(&rootobj, 0, sizeof(rt_OBJECT));
@@ -3661,6 +3671,11 @@ rt_ui64 randomXX(rt_ui64 seed)
  */
 rt_void rt_Scene::reset_pseed()
 {
+    if ((opts & RT_OPTS_PT) != 0)
+    {
+        return;
+    }
+
     rt_si32 k, n = 4 * x_row * y_res;
     rt_ui64 seed = 1;
 
@@ -3700,9 +3715,9 @@ rt_si32 rt_Scene::set_opts(rt_si32 opts)
  */
 rt_si32 rt_Scene::set_pton(rt_si32 pton)
 {
-    this->pt_on = pton != 0;
+    this->pt_on = pton != 0 && ((opts & RT_OPTS_PT) == 0);
 
-    return pton;
+    return this->pt_on;
 }
 
 /*
