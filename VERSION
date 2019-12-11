@@ -1,3 +1,42 @@
+  - allow path-tracer in all scenes (demo, test) for further development
+  - add flag to allow/prohibit path-tracer per scene (RT_OPTS_PT)
+  - enable pause-mode in RooT demo automatically when invoking path-tracer (-q)
+  - add quasi-realistic/quake/quality mode (-q) to CORE tests for path-tracer
+  - add camera ray sample randomizer with Tent filter for path-tracer
+  - implement antialiasing in path-tracer, add to RooT demo and CORE tests
+  - add feature flag for path-tracer in rendering backend, wrap code sections
+  - make path-tracer SIMD-width agnostic, fix normals for light surfaces
+  - add flag to enable test scenes for path-tracer in RooT demo
+  - add 24/32/48-bit LCG methods to SIMD PRNG in engine and tracer
+  - add PRNG splitter for ray depth in path-tracer, use PRNG-based masking
+  - add PRNG splitter for Fresnel in path-tracer, use PRNG-based masking
+  - compute random diffuse sample over hemisphere
+  - add power series approximation for SIMD sin/cos
+  - make path-tracer's PRNG reproducible across SIMD widths
+  - add light sphere to test scene 18, enable Gamma, Fresnel
+  - decorrelate path-tracer samples within SIMD
+  - add preliminary support for basic path-tracer to RooT demo (-p/-q)
+  - accumulate path-tracer samples in fp-color planes
+  - allocate framebuffer's fp-color planes
+  - clean up STORE_SIMD macro in rendering backend
+  - add recursive light sampling for path-tracer
+  - add emission properties to light surfaces
+  - compute random diffuse sample within halfcube (rough approximation)
+  - compute orthonormal basis for diffuse sampling in path-tracer
+  - add SIMD PRNG (32-bit LCG) to rendering backend
+  - add tests for half-int SIMD/BASE ops (run level 30-37)
+  - drop extended POWER targets from SIMD testing (no half-int support)
+  - add half-int SIMD arithmetic with saturate
+  - add BASE half-int support on legacy ARMv7 and x86
+  - add implementation for half-int BASE ops
+  - add SIMD half-int support on legacy ARMv7 and x86
+  - adjust displacement types for BASE half-int on x86_64
+  - adjust displacement types for scalar fp16 on ARMv8
+  - split SIMD half-int subset from fp16 on ARMv8
+  - add SIMD half-int support on x86_64, enable on ARMv8
+  - add SIMD half-int support on MIPS and POWER
+  - add preliminary support for POWER9 fp128 SIMD ops (not tested)
+  - add preliminary support for ARMv8.2 fp16 SIMD ops (not tested)
   - make key-handling more immediate in RooT demo (no skipping next frame)
   - fix window size exceeding screen, add flag to make AA-grid regular
   - fix -f option in CORE tests, add optimal mode -o (omit unoptimized run)
