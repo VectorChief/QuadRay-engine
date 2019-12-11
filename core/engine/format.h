@@ -42,7 +42,7 @@
 #define RT_OPTS_TILING_EXT1     (1 << 2)
 #define RT_OPTS_FSCALE          (1 << 3)
 #define RT_OPTS_TARRAY          (1 << 4)
-#define RT_OPTS_VARRAY          (1 << 5) /* 6 reserved for future exts */
+#define RT_OPTS_VARRAY          (1 << 5) /* 6 is reserved for future exts */
 #define RT_OPTS_ADJUST          (1 << 7)
 #define RT_OPTS_UPDATE          (1 << 8)
 #define RT_OPTS_RENDER          (1 << 9)
@@ -69,7 +69,7 @@
 #define RT_OPTS_RENDER_EXT1     (1 << 31) /* render scene single-threadedly */
 
 /* Gamma correction (RT_OPTS_GAMMA) and Fresnel reflectance (RT_OPTS_FRESNEL)
- * optimizations are on by default (which means corresponding properties off)
+ * optimizations are on by default (which turns corresponding properties off)
  * as scene assets need to be reworked to properly support these new features */
 /* bbox sorting (RT_OPTS_INSERT) and hidden surfaces removal (RT_OPTS_REMOVE)
  * optimizations have been turned off for poor scalability with larger scenes */
