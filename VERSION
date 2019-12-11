@@ -1,4 +1,18 @@
-  - fix SIMD backend struct load-level in debug mode
+  - make key-handling more immediate in RooT demo (no skipping next frame)
+  - fix window size exceeding screen, add flag to make AA-grid regular
+  - fix -f option in CORE tests, add optimal mode -o (omit unoptimized run)
+  - fix Fresnel flag for metals and other opaque surfaces in tracer
+  - fix check for diffuse/specular lighting, add pause-animation mode (-p)
+  - use integer indices for primary rays update (makes it SIMD-width agnostic)
+  - add SIMD flag to replace VMX targets with VSX (on)
+  - add signed BASE ops to combined-arithmetic-jump
+  - add setting-flags BASE arithmetic shift right
+  - make setting-flags BASE ops orthogonal to size/type
+  - optimize 64-bit SIMD shifts on POWER9, clean up mkj** formatting
+  - improve ARM/x86 compatibility in SIMD shifts
+  - add SIMD integer multiply instruction (for 32/64-bit elements)
+  - update copyright year to 2019
+  - fix SIMD backend struct load-level in debug mode (backported down)
   - fix 32-bit BASE compare-to-mem on 64-bit POWER
   - fix usage of non-persistent temp-register on POWER
   - update build instructions and makefile notes
