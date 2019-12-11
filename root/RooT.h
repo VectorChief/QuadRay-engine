@@ -255,45 +255,122 @@ rt_si32 main_step()
         return 0;
     }
 
-    /* update time variables */
-    cur_time = get_time();
-    if (init_time == 0)
-    {
-        init_time = cur_time - b_time;
-        anim_time = run_time = log_time = prev_time = b_time;
-    }
-    cur_time = cur_time - init_time;
-
-    if (!p_mode)
-    {
-        anim_time += (cur_time - prev_time);
-    }
-    if (cur_time - log_time >= l_time)
-    {
-        fps = (rt_real)cnt * 1000 / (cur_time - log_time);
-
-        glb += cnt;
-        cnt = 0;
-        log_time = cur_time;
-
-        if (!l_mode)
-        {
-            RT_LOGI("FPS = %.2f\n", fps);
-        }
-    }
-    if (e_time >= 0 && anim_time >= e_time)
-    {
-        return 0;
-    }
-    if (f_num >= 0 && ttl >= f_num)
-    {
-        return 0;
-    }
-
     rt_si32 g = d; /* current scene for save_frame at the end of each run */
 
     try
     {
+        if (T_KEYS(RK_F4) || T_KEYS(RK_4))
+        {
+            sc[d]->save_frame(scr_id++);
+            switched = 1;
+        }
+        if (T_KEYS(RK_F5) || T_KEYS(RK_L))
+        {
+            l_mode = !l_mode;
+            switched = 1;
+        }
+        if (T_KEYS(RK_P) && !q_mode)
+        {
+            p_mode = !p_mode;
+            switched = 1;
+        }
+        if (T_KEYS(RK_Q))
+        {
+            if (q_mode)
+            {
+                p_mode = q_mode - 1;
+                q_mode = 0;
+            }
+            else
+            {
+                q_mode = 1 + p_mode;
+                p_mode = RT_TRUE;
+                sc[d]->reset_pseed();
+            }
+            sc[d]->set_pton(q_mode);
+            switched = 1;
+        }
+        if (T_KEYS(RK_F9) || T_KEYS(RK_9))
+        {
+            rt_si32 opts = sc[d]->get_opts();
+            u_mode = (u_mode + 1) % 7;
+            opts &= ~RT_OPTS_UPDATE_EXT0 & ~RT_OPTS_UPDATE_EXT1 &
+                    ~RT_OPTS_UPDATE_EXT2 & ~RT_OPTS_UPDATE_EXT3 &
+                    ~RT_OPTS_RENDER_EXT0 & ~RT_OPTS_RENDER_EXT1;
+            switch (u_mode)
+            {
+                case 6:
+                opts |= RT_OPTS_RENDER_EXT0;
+                case 5:
+                opts |= RT_OPTS_UPDATE_EXT0;
+                break;
+
+                case 4:
+                opts |= RT_OPTS_RENDER_EXT1;
+                case 3:
+                opts |= RT_OPTS_UPDATE_EXT3;
+                case 2:
+                opts |= RT_OPTS_UPDATE_EXT2;
+                case 1:
+                opts |= RT_OPTS_UPDATE_EXT1;
+                break;
+
+                default:
+                break;
+            }
+            sc[d]->set_opts(opts);
+            switched = 1;
+        }
+        if (T_KEYS(RK_F10) || T_KEYS(RK_0))
+        {
+            o_mode = !o_mode;
+            switched = 1;
+        }
+        if (T_KEYS(RK_F12) || T_KEYS(RK_5))
+        {
+            h_mode = !h_mode;
+            switched = 1;
+        }
+        if (T_KEYS(RK_ESCAPE))
+        {
+            return 0;
+        }
+
+        /* update time variables */
+        cur_time = get_time();
+        if (init_time == 0)
+        {
+            init_time = cur_time - b_time;
+            anim_time = run_time = log_time = prev_time = b_time;
+        }
+        cur_time = cur_time - init_time;
+
+        if (!p_mode)
+        {
+            anim_time += (cur_time - prev_time);
+        }
+        if (cur_time - log_time >= l_time)
+        {
+            fps = (rt_real)cnt * 1000 / (cur_time - log_time);
+
+            glb += cnt;
+            cnt = 0;
+            log_time = cur_time;
+
+            if (!l_mode)
+            {
+                RT_LOGI("FPS = %.2f\n", fps);
+            }
+        }
+        if (e_time >= 0 && anim_time >= e_time)
+        {
+            return 0;
+        }
+        if (f_num >= 0 && ttl >= f_num)
+        {
+            return 0;
+        }
+
 #if RT_OPTS_UPDATE_EXT0 != 0
         if (u_mode <= 4 && !p_mode)
         { /* -->---->-- skip update0 -->---->-- */
@@ -424,82 +501,6 @@ rt_si32 main_step()
         } /* --<----<-- skip update0 --<----<-- */
 #endif /* RT_OPTS_UPDATE_EXT0 */
 
-        if (T_KEYS(RK_F4) || T_KEYS(RK_4))
-        {
-            sc[d]->save_frame(scr_id++);
-            switched = 1;
-        }
-        if (T_KEYS(RK_F5) || T_KEYS(RK_L))
-        {
-            l_mode = !l_mode;
-            switched = 1;
-        }
-        if (T_KEYS(RK_P) && !q_mode)
-        {
-            p_mode = !p_mode;
-            switched = 1;
-        }
-        if (T_KEYS(RK_Q))
-        {
-            if (q_mode)
-            {
-                p_mode = q_mode - 1;
-                q_mode = 0;
-            }
-            else
-            {
-                q_mode = 1 + p_mode;
-                p_mode = RT_TRUE;
-                sc[d]->reset_pseed();
-            }
-            sc[d]->set_pton(q_mode);
-            switched = 1;
-        }
-        if (T_KEYS(RK_F9) || T_KEYS(RK_9))
-        {
-            rt_si32 opts = sc[d]->get_opts();
-            u_mode = (u_mode + 1) % 7;
-            opts &= ~RT_OPTS_UPDATE_EXT0 & ~RT_OPTS_UPDATE_EXT1 &
-                    ~RT_OPTS_UPDATE_EXT2 & ~RT_OPTS_UPDATE_EXT3 &
-                    ~RT_OPTS_RENDER_EXT0 & ~RT_OPTS_RENDER_EXT1;
-            switch (u_mode)
-            {
-                case 6:
-                opts |= RT_OPTS_RENDER_EXT0;
-                case 5:
-                opts |= RT_OPTS_UPDATE_EXT0;
-                break;
-
-                case 4:
-                opts |= RT_OPTS_RENDER_EXT1;
-                case 3:
-                opts |= RT_OPTS_UPDATE_EXT3;
-                case 2:
-                opts |= RT_OPTS_UPDATE_EXT2;
-                case 1:
-                opts |= RT_OPTS_UPDATE_EXT1;
-                break;
-
-                default:
-                break;
-            }
-            sc[d]->set_opts(opts);
-            switched = 1;
-        }
-        if (T_KEYS(RK_F10) || T_KEYS(RK_0))
-        {
-            o_mode = !o_mode;
-            switched = 1;
-        }
-        if (T_KEYS(RK_F12) || T_KEYS(RK_5))
-        {
-            h_mode = !h_mode;
-            switched = 1;
-        }
-        if (T_KEYS(RK_ESCAPE))
-        {
-            return 0;
-        }
         memset(t_keys, 0, sizeof(t_keys));
         memset(r_keys, 0, sizeof(r_keys));
 
@@ -513,7 +514,6 @@ rt_si32 main_step()
             switched = 0;
 
             print_avgfps();
-
             print_target();
 
             glb = 0;
