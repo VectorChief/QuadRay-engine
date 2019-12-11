@@ -58,7 +58,8 @@
 #define RT_OPTS_REMOVE          (0 << 19)
 #define RT_OPTS_GAMMA           (1 << 20) /* turns off Gamma when set to 1 */
 #define RT_OPTS_FRESNEL         (1 << 21) /* turns off Fresnel when set to 1 */
-#define RT_OPTS_PT              (1 << 22) /* prohibits path-tracer if 1 */
+
+#define RT_OPTS_PT              (1 << 25) /* prohibits path-tracer if 1 */
 
 /* extra options (update) */
 #define RT_OPTS_UPDATE_EXT0     (1 << 26) /* update phases off */

@@ -2614,6 +2614,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* specular highlights on rough surfaces
          * aren't yet implemented in path-tracer */
 
+        /* use reference implementation found at:
+         * https://eleni.mutantstargoat.com/portfolio/prj/pt.html
+         * with acos and pow on 2 random numbers */
+
         /* add self-emission */
         addps_ld(Xmm1, Medx, mat_COL_R)
         addps_ld(Xmm2, Medx, mat_COL_G)
