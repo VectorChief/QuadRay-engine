@@ -143,8 +143,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
     while (w_size > 0)
     {
-        if (x_res > DevMode.dmPelsWidth
-        ||  y_res > DevMode.dmPelsHeight)
+        if (x_res > (rt_si32)DevMode.dmPelsWidth
+        ||  y_res > (rt_si32)DevMode.dmPelsHeight)
         {
             w_size--;
             x_res = (x_res / (w_size + 1)) * w_size;
