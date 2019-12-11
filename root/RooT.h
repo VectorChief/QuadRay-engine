@@ -285,7 +285,6 @@ rt_si32 main_step()
             {
                 q_mode = 1 + p_mode;
                 p_mode = RT_TRUE;
-                sc[d]->reset_pseed();
             }
             sc[d]->set_pton(q_mode);
             switched = 1;

@@ -850,7 +850,7 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_si32 index) :
     s_inf->tls_row = scene->tiles_in_row;
     s_inf->tiles   = scene->tiles;
 
-    /* init framebuffer's fp-color planes */
+    /* init framebuffer's color-planes for path-tracer */
     s_inf->ptr_r   = scene->ptr_r;
     s_inf->ptr_g   = scene->ptr_g;
     s_inf->ptr_b   = scene->ptr_b;
@@ -2878,9 +2878,9 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
         pseed = (rt_elem *)
                 alloc(4 * x_row * y_res * sizeof(rt_elem), RT_SIMD_ALIGN);
 
-        reset_pseed();
+                /* pseed is initialized in reset_pseed() */
 
-        /* alloc framebuffer's fp-color planes */
+        /* alloc framebuffer's color-planes for path-tracer */
         ptr_r = (rt_real *)
                 alloc(4 * x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
         ptr_g = (rt_real *)
@@ -2888,9 +2888,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
         ptr_b = (rt_real *)
                 alloc(4 * x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
 
-        memset(ptr_r, 0, 4 * x_row * y_res * sizeof(rt_real));
-        memset(ptr_g, 0, 4 * x_row * y_res * sizeof(rt_real));
-        memset(ptr_b, 0, 4 * x_row * y_res * sizeof(rt_real));
+                /* ptr_* is initialized in reset_color() */
     }
     else
     {
@@ -3687,6 +3685,21 @@ rt_void rt_Scene::reset_pseed()
 }
 
 /*
+ * Reset current state of framebuffer's color-planes for path-tracer.
+ */
+rt_void rt_Scene::reset_color()
+{
+    if ((opts & RT_OPTS_PT) != 0)
+    {
+        return;
+    }
+
+    memset(ptr_r, 0, 4 * x_row * y_res * sizeof(rt_real));
+    memset(ptr_g, 0, 4 * x_row * y_res * sizeof(rt_real));
+    memset(ptr_b, 0, 4 * x_row * y_res * sizeof(rt_real));
+}
+
+/*
  * Get runtime optimization flags.
  */
 rt_si32 rt_Scene::get_opts()
@@ -3715,7 +3728,15 @@ rt_si32 rt_Scene::set_opts(rt_si32 opts)
  */
 rt_si32 rt_Scene::set_pton(rt_si32 pton)
 {
+    rt_si32 pt_on = this->pt_on;
+
     this->pt_on = pton != 0 && ((opts & RT_OPTS_PT) == 0);
+
+    if (this->pt_on && !pt_on)
+    {
+        reset_pseed();
+        reset_color();
+    }
 
     return this->pt_on;
 }

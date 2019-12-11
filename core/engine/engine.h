@@ -254,7 +254,7 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
     /* framebuffer's seed-plane for path-tracer */
     rt_elem            *pseed;
 
-    /* framebuffer's fp-color planes */
+    /* framebuffer's color-planes for path-tracer */
     rt_real            *ptr_r;
     rt_real            *ptr_g;
     rt_real            *ptr_b;
@@ -317,6 +317,9 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
 
 /*  methods */
 
+    rt_void     reset_pseed();
+    rt_void     reset_color();
+
     public:
 
     rt_pntr operator new(size_t size, rt_Heap *hp);
@@ -343,7 +346,6 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
 
     rt_si32     get_x_row();
     rt_void     print_state(); /* has global scope and effect on any instance */
-    rt_void     reset_pseed();
 
     rt_si32     get_opts();
     rt_si32     set_opts(rt_si32 opts);
