@@ -54,6 +54,10 @@
 #define RT_FSAA_4X              2
 #define RT_FSAA_8X              3 /* reserved */
 
+#ifndef RT_FSAA_REGULAR
+#define RT_FSAA_REGULAR         0 /* makes AA-grid regular if 1 */
+#endif /* RT_FSAA_REGULAR */
+
 /* Classes */
 
 class rt_Platform;
