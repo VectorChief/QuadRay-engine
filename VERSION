@@ -1,3 +1,14 @@
+  - fix SIMD backend struct load-level in debug mode (backported down)
+  - fix 32-bit BASE compare-to-mem on 64-bit POWER
+  - fix usage of non-persistent temp-register on POWER
+  - update build instructions and makefile notes
+  - add notes about QEMU 3.1.0 for SVE emulation
+  - add SIMD flag to replace VMX targets with VSX (off)
+  - fix and clean up SIMD target selection in headers
+  - fix/add comments for SIMD/BASE shift count value
+  - adjust build instructions for older HW compatibility
+  - adjust Win64 release build script for lower core-count
+
 v0.7.0: QuadRay engine, code name "GIzmo", base for future GI path-tracing work
   - makes use of UniSIMD assembler 1.0.0 "ENsed" for ARM-SVE, POWER9, new scheme
   - renewed directory structure, move RooT demo files to a separate root folder
