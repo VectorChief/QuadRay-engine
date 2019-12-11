@@ -961,7 +961,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             if (h_mode)
             {
                 scene->render_num(x_res-30, 10, -1, 2, 0);
-                scene->render_num(x_res-10, 10, -1, 2, pfm.get_tile_w() / 8);
+                scene->render_num(x_res-10, 10, -1, 2, tile_w / 8);
                 scene->render_num(x_res-10, 34, -1, 2, 1 << a_mode);
                 scene->render_num(      30, 10, +1, 2, n_simd * 128);
                 scene->render_num(      10, 10, +1, 2, k_size);
@@ -1000,7 +1000,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             if (h_mode)
             {
                 scene->render_num(x_res-30, 10, -1, 2, 0);
-                scene->render_num(x_res-10, 10, -1, 2, pfm.get_tile_w() / 8);
+                scene->render_num(x_res-10, 10, -1, 2, tile_w / 8);
                 scene->render_num(x_res-10, 34, -1, 2, 1 << a_mode);
                 scene->render_num(      30, 10, +1, 2, n_simd * 128);
                 scene->render_num(      10, 10, +1, 2, k_size);
@@ -1040,8 +1040,8 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         {
             RT_LOGE("Exception in test %d: %s\n", i+1, e.err);
         }
-        RT_LOGI("-------------------------------------- simd = %4dx%dv%d -\n",
-                                                n_simd * 128, k_size, s_type);
+        RT_LOGI("--%s--------------------------------- simd = %4dx%dv%d -\n",
+                        o_mode ? " o " : "---", n_simd * 128, k_size, s_type);
     }
 
     sys_free(frame, x_row * y_res * sizeof(rt_ui32));
