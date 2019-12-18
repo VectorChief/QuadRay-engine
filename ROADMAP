@@ -26,8 +26,10 @@ S) Task title: "implement basic unbiased path-tracer (to match smallpt code)"
 3) Implement randomization of diffuse samples over hemisphere
 4) Enable path-tracer in "pause" mode in addition to real-time ray-tracer
 5) Allow image to converge in real-time (add new samples between updates)
-6) Check out CPPRay (https://github.com/Harha/CPPRay) + youtube video
-7) Consider using extra tweaks to perform Gamma-correction with 1.0/2.2, 2.2 pow
+6) Check out CPPRay (https://github.com/Harha/CPPRay) + youtube video (C++Ray)
+7) Consider using SIMD pow for proper Gamma-correction with 1.0/2.2, 2.2 exp
+8) Add specular highlights on rough surfaces for path-tracer (SIMD acos, pow)
+9) Add separate self-emittance props to light surfaces in scene definition file
 
 ================================================================================
 
@@ -43,6 +45,7 @@ B) Task title: "achieve bit-exact fp-compute across modern SIMD targets"
 2) Rearchitect engine core to minimize ASM enter/leave overheads (in new parts)
 3) Test if deterministic order of IEEE-compatible fp produces bit-exact results
 4) Calculate test image check-sums, compare across modern RISC and x86 targets
+5) Test internal fp-color planes for exact results to avoid hiding discrepancy
 
 ================================================================================
 
