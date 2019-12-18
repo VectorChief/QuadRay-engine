@@ -219,7 +219,7 @@ rt_byte r_keys[KEY_MASK + 1];
 rt_void print_avgfps()
 {
     RT_LOGI("---%s%s--------------  FPS AVG  ----- simd = %4dx%dv%d -\n",
-                            p_prev ? " p " : "---", q_prev ? "q " : "--",
+      q_prev == 2 ? " P " : p_prev ? " p " : "---", q_prev ? "q " : "--",
                                             n_prev * 128, k_prev, s_prev);
     if (cur_time - run_time > 0)
     {
@@ -245,14 +245,14 @@ rt_void print_target()
                        sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
     RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d  %s %s\n",
                                           x_res, y_res, l_mode, h_mode,
-                                p_mode ? "p" : " ", q_mode ? "q" : " ");
+            q_mode == 2 ? "P" : p_mode ? "p" : " ", q_mode ? "q" : " ");
     RT_LOGI("Window-rect X-res = %5d, Y-res = %4d, u %d, o %d\n",
                                           x_win, y_win, u_mode, o_mode);
     RT_LOGI("Threads/affinity = %4d/%d, reserved = %d, d%2d, c%2d\n",
                          pfm->get_thnum(), RT_SETAFFINITY, 0, d+1, c+1);
 
     RT_LOGI("---%s%s--------------  FPS LOG  ----- ptr/fp = %d%s%d --\n",
-                            p_mode ? " p " : "---", q_mode ? "q " : "--",
+      q_mode == 2 ? " P " : p_mode ? " p " : "---", q_mode ? "q " : "--",
                     RT_POINTER, RT_ADDRESS == 32 ? "_" : "f", RT_ELEMENT);
 }
 
@@ -281,11 +281,26 @@ rt_si32 main_step()
             l_mode = !l_mode;
             switched = 1;
         }
-        if (T_KEYS(RK_P) && !q_mode)
+        if (T_KEYS(RK_P))
         {
-            p_prev = p_mode;
-            p_mode = !p_mode;
-            switched = 1;
+            if (q_mode)
+            {
+                p_mode = q_mode - 1;
+                p_mode = !p_mode;
+                q_mode = 1 + p_mode;
+                p_mode = RT_TRUE;
+                q_prev = q_mode; /* <-- update here as switched is 0 */
+                RT_LOGI("%s\n", str);
+                RT_LOGI("---%s%s----- changing inherited pause mode --%s\n",
+                            q_mode == 2 ? " P " : " p ", "q ", "----------");
+                RT_LOGI("%s\n", str);
+            }
+            else
+            {
+                p_prev = p_mode;
+                p_mode = !p_mode;
+                switched = 1;
+            }
         }
         if (T_KEYS(RK_Q))
         {
