@@ -59,16 +59,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
                      int       nCmdShow)
 {
     /* fill in platform's keymap */
-    r_to_p[RK_W]        = KEY_MASK & 'W';
-    r_to_p[RK_S]        = KEY_MASK & 'S';
-    r_to_p[RK_A]        = KEY_MASK & 'A';
-    r_to_p[RK_D]        = KEY_MASK & 'D';
-
-    r_to_p[RK_UP]       = KEY_MASK & VK_UP;
-    r_to_p[RK_DOWN]     = KEY_MASK & VK_DOWN;
-    r_to_p[RK_LEFT]     = KEY_MASK & VK_LEFT;
-    r_to_p[RK_RIGHT]    = KEY_MASK & VK_RIGHT;
-
     r_to_p[RK_F1]       = KEY_MASK & VK_F1;
     r_to_p[RK_F2]       = KEY_MASK & VK_F2;
     r_to_p[RK_F3]       = KEY_MASK & VK_F3;
@@ -82,6 +72,23 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     r_to_p[RK_F11]      = KEY_MASK & VK_F11;
     r_to_p[RK_F12]      = KEY_MASK & VK_F12;
 
+    r_to_p[RK_UP]       = KEY_MASK & VK_UP;
+    r_to_p[RK_DOWN]     = KEY_MASK & VK_DOWN;
+    r_to_p[RK_LEFT]     = KEY_MASK & VK_LEFT;
+    r_to_p[RK_RIGHT]    = KEY_MASK & VK_RIGHT;
+
+    r_to_p[RK_U]        = KEY_MASK & 'U';
+    r_to_p[RK_O]        = KEY_MASK & 'O';
+
+    r_to_p[RK_W]        = KEY_MASK & 'W';
+    r_to_p[RK_S]        = KEY_MASK & 'S';
+    r_to_p[RK_A]        = KEY_MASK & 'A';
+    r_to_p[RK_D]        = KEY_MASK & 'D';
+
+    r_to_p[RK_I]        = KEY_MASK & 'I';
+    r_to_p[RK_L]        = KEY_MASK & 'L';
+    r_to_p[RK_P]        = KEY_MASK & 'P';
+
     r_to_p[RK_0]        = KEY_MASK & '0';
     r_to_p[RK_1]        = KEY_MASK & '1';
     r_to_p[RK_2]        = KEY_MASK & '2';
@@ -92,10 +99,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     r_to_p[RK_7]        = KEY_MASK & '7';
     r_to_p[RK_8]        = KEY_MASK & '8';
     r_to_p[RK_9]        = KEY_MASK & '9';
-
-    r_to_p[RK_I]        = KEY_MASK & 'I';
-    r_to_p[RK_L]        = KEY_MASK & 'L';
-    r_to_p[RK_P]        = KEY_MASK & 'P';
 
     r_to_p[RK_ESCAPE]   = KEY_MASK & VK_ESCAPE;
 

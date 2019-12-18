@@ -129,30 +129,33 @@ rt_void frame_to_screen(rt_ui32 *frame, rt_si32 x_row);
 #define RK_F11              11
 #define RK_F12              12
 
-#define RK_0                30
-#define RK_1                31
-#define RK_2                32
-#define RK_3                33
-#define RK_4                34
-#define RK_5                35
-#define RK_6                36
-#define RK_7                37
-#define RK_8                38
-#define RK_9                39
-
-#define RK_I                28
-#define RK_L                29
-#define RK_P                27
-
 #define RK_UP               15
 #define RK_DOWN             16
 #define RK_LEFT             17
 #define RK_RIGHT            18
 
+#define RK_U                19
+#define RK_O                20
+
 #define RK_W                21
 #define RK_S                22
 #define RK_A                23
 #define RK_D                24
+
+#define RK_I                27
+#define RK_L                28
+#define RK_P                29
+
+#define RK_0                50
+#define RK_1                51
+#define RK_2                52
+#define RK_3                53
+#define RK_4                54
+#define RK_5                55
+#define RK_6                56
+#define RK_7                57
+#define RK_8                58
+#define RK_9                59
 
 #define KEY_MASK            0xFF
 
@@ -269,7 +272,7 @@ rt_si32 main_step()
             p_mode = !p_mode;
             switched = 1;
         }
-        if (T_KEYS(RK_F9) || T_KEYS(RK_9))
+        if (T_KEYS(RK_9) || T_KEYS(RK_U))
         {
             rt_si32 opts = sc[d]->get_opts();
             u_mode = (u_mode + 1) % 7;
@@ -300,7 +303,7 @@ rt_si32 main_step()
             sc[d]->set_opts(opts);
             switched = 1;
         }
-        if (T_KEYS(RK_F10) || T_KEYS(RK_0))
+        if (T_KEYS(RK_0) || T_KEYS(RK_O))
         {
             o_mode = !o_mode;
             switched = 1;
