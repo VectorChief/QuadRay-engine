@@ -8,17 +8,20 @@ S) Task title: "implement basic unbiased path-tracer (to match smallpt code)"
 3) Implement randomization of diffuse samples over hemisphere
 4) Enable path-tracer in "pause" mode in addition to real-time ray-tracer
 5) Allow image to converge in real-time (add new samples between updates)
-6) Check out CPPRay + youtube video as an example
+6) Check out CPPRay (https://github.com/Harha/CPPRay) + youtube video (C++Ray)
 7) Consider using SIMD pow for proper Gamma-correction with 1.0/2.2, 2.2 exp
 8) Add specular highlights on rough surfaces for path-tracer (SIMD acos, pow)
+9) Add separate self-emittance props to light surfaces in scene definition file
 
 ================================================================================
 === >>> === tasks below are planned for the upcoming 0.7.2 milestone === <<< ===
 ================================================================================
 
 Q) Task title: "add support for quartic (4th order: Torus, Egg) surfaces (RaVi)"
-1) Implement quartic solvers for Torus and Egg from RaVi demo (using SIMD trig)
-2) Add quartic support to custom clipping in engine and tracer
+1) Implement quartic solvers for Torus and Egg from RaVi demo (using SIMD cos)
+2) Add quartic surface support to custom clipping in engine and tracer
+3) (http://www.winosi.onlinehome.de/Ravi.htm) <- rewrite with UniSIMD assembler
+4) (https://github.com/mczero80/RaVi)       <- use this code snapshot as a base
 
 ================================================================================
 === >>> === tasks below are planned for the upcoming 0.7.3 milestone === <<< ===
@@ -27,6 +30,8 @@ Q) Task title: "add support for quartic (4th order: Torus, Egg) surfaces (RaVi)"
 M) Task title: "integrate triangle meshes as an external model-viewer/plug-in"
 1) Implement ray-intersect for triangle meshes from TheDreamMachine
 2) Load triangle meshes from standalone scene files in runtime
+3) (http://thedreammmechanists.blogspot.ru/) <- rewrite with UniSIMD assembler
+4) (https://sourceforge.net/projects/thedreammachine/) <- use this as a base
 
 ================================================================================
 === >>> === tasks below are planned for the forthcoming 0.7.x series === <<< ===
@@ -50,7 +55,6 @@ T) Task title: "consider packed SIMD tile traversal (instead of scanline)"
 
 ================================================================================
 
-
 U) Task title: "implement UV-mapping for quadrics"
 1) Implement trigonometric functions across SIMD targets (check sleef for algos)
 2) Use trigonometric functions to implement UV-mapping for quadrics
@@ -63,6 +67,7 @@ B) Task title: "achieve bit-exact fp-compute across modern SIMD targets"
 2) Rearchitect engine core to minimize ASM enter/leave overheads (in new parts)
 3) Test if deterministic order of IEEE-compatible fp produces bit-exact results
 4) Calculate test image check-sums, compare across modern RISC and x86 targets
+5) Test internal fp-color planes for exact results to avoid hiding discrepancy
 
 ================================================================================
 
