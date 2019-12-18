@@ -30,7 +30,8 @@ RooT demo features:
  - Multi-threading support with core-count (df: 120 threads)
  - Multi-group affinity for Windows threading (> 64 threads)
  - Fullscreen support on Linux, macOS and Windows (-w 0)
- - Offscreen rendering support for benchmarking (-o or F10/'0')
+ - Offscreen rendering support for benchmarking (-o or '0'/'O')
+ - Pause mode (-p or 'P'), update/render stages (-u or '9'/'U')
  - Refer to VERSION file (section 0.6.7) for cli options
 
 QuadRay core features:

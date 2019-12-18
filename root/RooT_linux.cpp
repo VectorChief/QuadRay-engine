@@ -130,16 +130,6 @@ rt_si32 main_term();
 rt_si32 main(rt_si32 argc, rt_char *argv[])
 {
     /* fill in platform's keymap */
-    r_to_p[RK_W]        = KEY_MASK & XK_w;
-    r_to_p[RK_S]        = KEY_MASK & XK_s;
-    r_to_p[RK_A]        = KEY_MASK & XK_a;
-    r_to_p[RK_D]        = KEY_MASK & XK_d;
-
-    r_to_p[RK_UP]       = KEY_MASK & XK_Up;   
-    r_to_p[RK_DOWN]     = KEY_MASK & XK_Down; 
-    r_to_p[RK_LEFT]     = KEY_MASK & XK_Left; 
-    r_to_p[RK_RIGHT]    = KEY_MASK & XK_Right;
-
     r_to_p[RK_F1]       = KEY_MASK & XK_F1;   
     r_to_p[RK_F2]       = KEY_MASK & XK_F2;   
     r_to_p[RK_F3]       = KEY_MASK & XK_F3;   
@@ -153,6 +143,32 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     r_to_p[RK_F11]      = KEY_MASK & XK_F11;  
     r_to_p[RK_F12]      = KEY_MASK & XK_F12;  
 
+    r_to_p[RK_X]        = KEY_MASK & XK_x;
+    r_to_p[RK_C]        = KEY_MASK & XK_c;
+
+    r_to_p[RK_UP]       = KEY_MASK & XK_Up;
+    r_to_p[RK_DOWN]     = KEY_MASK & XK_Down;
+    r_to_p[RK_LEFT]     = KEY_MASK & XK_Left;
+    r_to_p[RK_RIGHT]    = KEY_MASK & XK_Right;
+
+    r_to_p[RK_U]        = KEY_MASK & XK_u;
+    r_to_p[RK_O]        = KEY_MASK & XK_o;
+
+    r_to_p[RK_W]        = KEY_MASK & XK_w;
+    r_to_p[RK_S]        = KEY_MASK & XK_s;
+    r_to_p[RK_A]        = KEY_MASK & XK_a;
+    r_to_p[RK_D]        = KEY_MASK & XK_d;
+
+    r_to_p[RK_Q]        = KEY_MASK & XK_q;
+    r_to_p[RK_E]        = KEY_MASK & XK_e;
+
+    r_to_p[RK_I]        = KEY_MASK & XK_i;
+    r_to_p[RK_L]        = KEY_MASK & XK_l;
+    r_to_p[RK_P]        = KEY_MASK & XK_p;
+
+    r_to_p[RK_T]        = KEY_MASK & XK_t;
+    r_to_p[RK_Y]        = KEY_MASK & XK_y;
+
     r_to_p[RK_0]        = KEY_MASK & XK_0;
     r_to_p[RK_1]        = KEY_MASK & XK_1;
     r_to_p[RK_2]        = KEY_MASK & XK_2;
@@ -163,12 +179,6 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     r_to_p[RK_7]        = KEY_MASK & XK_7;
     r_to_p[RK_8]        = KEY_MASK & XK_8;
     r_to_p[RK_9]        = KEY_MASK & XK_9;
-
-    r_to_p[RK_I]        = KEY_MASK & XK_i;
-    r_to_p[RK_L]        = KEY_MASK & XK_l;
-    r_to_p[RK_P]        = KEY_MASK & XK_p;
-    r_to_p[RK_E]        = KEY_MASK & XK_e;
-    r_to_p[RK_Q]        = KEY_MASK & XK_q;
 
     r_to_p[RK_ESCAPE]   = KEY_MASK & XK_Escape;
 
