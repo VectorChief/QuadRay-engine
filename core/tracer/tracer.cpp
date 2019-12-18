@@ -624,12 +624,10 @@
         movxx_ld(W(RD), Iebx, srf_##pl)
 
 /*
- * Update only relevant fragments of a given
- * SIMD-field accumulating values over multiple passes
- * from the temporary SIMD-field in the context
- * based on the current SIMD-mask.
+ * Update relevant fragments of the
+ * given SIMD-field based on the current SIMD-mask.
  */
-#define STORE_SIMD(lb, pl, XS) /* destroys Xmm0, XS unmasked frags */       \
+#define STORE_SIMD(pl, XS) /* destroys Xmm0, 0-masked XS frags */           \
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))                                  \
         mmvpx_st(W(XS), Mecx, ctx_##pl(0))
 
@@ -2200,11 +2198,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #endif /* RT_FEAT_LIGHTS_AMBIENT */
 
         /* ambient R */
-        STORE_SIMD(LT_amR, COL_R, Xmm1)
+        STORE_SIMD(COL_R, Xmm1)
         /* ambient G */
-        STORE_SIMD(LT_amG, COL_G, Xmm2)
+        STORE_SIMD(COL_G, Xmm2)
         /* ambient B */
-        STORE_SIMD(LT_amB, COL_B, Xmm3)
+        STORE_SIMD(COL_B, Xmm3)
 
 #if RT_FEAT_LIGHTS_DIFFUSE || RT_FEAT_LIGHTS_SPECULAR
 
@@ -2528,11 +2526,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm3, Mecx, ctx_COL_B(0))
 
         /* diffuse + "metal" specular R */
-        STORE_SIMD(LT_mcR, COL_R, Xmm1)
+        STORE_SIMD(COL_R, Xmm1)
         /* diffuse + "metal" specular G */
-        STORE_SIMD(LT_mcG, COL_G, Xmm2)
+        STORE_SIMD(COL_G, Xmm2)
         /* diffuse + "metal" specular B */
-        STORE_SIMD(LT_mcB, COL_B, Xmm3)
+        STORE_SIMD(COL_B, Xmm3)
 
         jmpxx_lb(LT_amb)
 
@@ -2593,11 +2591,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm3, Mecx, ctx_COL_B(0))
 
         /* diffuse + "plain" specular R */
-        STORE_SIMD(LT_pcR, COL_R, Xmm1)
+        STORE_SIMD(COL_R, Xmm1)
         /* diffuse + "plain" specular G */
-        STORE_SIMD(LT_pcG, COL_G, Xmm2)
+        STORE_SIMD(COL_G, Xmm2)
         /* diffuse + "plain" specular B */
-        STORE_SIMD(LT_pcB, COL_B, Xmm3)
+        STORE_SIMD(COL_B, Xmm3)
 
 #endif /* RT_FEAT_LIGHTS_SPECULAR */
 
@@ -2621,11 +2619,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm3, Mecx, ctx_TEX_B)
 
         /* texture R */
-        STORE_SIMD(LT_txR, COL_R, Xmm1)
+        STORE_SIMD(COL_R, Xmm1)
         /* texture G */
-        STORE_SIMD(LT_txG, COL_G, Xmm2)
+        STORE_SIMD(COL_G, Xmm2)
         /* texture B */
-        STORE_SIMD(LT_txB, COL_B, Xmm3)
+        STORE_SIMD(COL_B, Xmm3)
 
     LBL(LT_end)
 
@@ -2964,11 +2962,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm3, Xmm6)
 
         /* transparent R */
-        STORE_SIMD(TR_clR, COL_R, Xmm1)
+        STORE_SIMD(COL_R, Xmm1)
         /* transparent G */
-        STORE_SIMD(TR_clG, COL_G, Xmm2)
+        STORE_SIMD(COL_G, Xmm2)
         /* transparent B */
-        STORE_SIMD(TR_clB, COL_B, Xmm3)
+        STORE_SIMD(COL_B, Xmm3)
 
 /******************************************************************************/
 /*******************************   REFLECTIONS   ******************************/
@@ -3265,11 +3263,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm3, Xmm6)
 
         /* reflection R */
-        STORE_SIMD(RF_clR, COL_R, Xmm1)
+        STORE_SIMD(COL_R, Xmm1)
         /* reflection G */
-        STORE_SIMD(RF_clG, COL_G, Xmm2)
+        STORE_SIMD(COL_G, Xmm2)
         /* reflection B */
-        STORE_SIMD(RF_clB, COL_B, Xmm3)
+        STORE_SIMD(COL_B, Xmm3)
 
         jmpxx_lb(RF_out)
 
