@@ -26,7 +26,7 @@ LIB_LIST =                              \
         -lstdc++
 
 core_test:
-	mips-mti-linux-gnu-g++ -O3 -g -static -EL -mips32r5 -mmsa \
+	mips-mti-linux-gnu-g++ -O3 -g -static -EL -mips32r5 -mmsa -mnan=2008 \
         -DRT_LINUX -DRT_M32 -DRT_128=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=1 -DRT_PATH="../" \
