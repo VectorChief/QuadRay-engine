@@ -12,6 +12,17 @@
 #include <math.h>
 #include <float.h>
 
+#if   defined (RT_WIN32) /* Win32, MSVC ------------------------------------- */
+
+#pragma warning (disable : 4244) /* VC++ 6.0: conversion from double to float */
+#pragma warning (disable : 4305) /* VC++ 6.0: truncation from double to float */
+#pragma warning (disable : 4291) /* VC++ 6.0: operator new no matching delete */
+#pragma warning (disable : 4731) /* VC++ 9.0: frame ptr modified by assembler */
+#pragma warning (disable : 4838) /* VS 2017:  conversion from double to float */
+#pragma warning (disable : 4996) /* VS 2017:  secure form of string functions */
+
+#endif /* ----------------- OS specific ------------------------------------- */
+
 /* Generic types */
 
 typedef float               rt_real;
