@@ -29,7 +29,7 @@ LIB_LIST =                              \
         -lpthread
 
 RooT:
-	mipsel-linux-gnu-g++ -O3 -g -mips32r5 -mmsa \
+	mipsel-linux-gnu-g++ -O3 -g -mips32r5 -mmsa -mnan=2008 \
         -DRT_LINUX -DRT_M32 -DRT_128=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
