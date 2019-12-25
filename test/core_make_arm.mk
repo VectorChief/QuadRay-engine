@@ -28,7 +28,7 @@ LIB_LIST =                              \
         -lstdc++
 
 core_test:
-	arm-linux-gnueabi-g++ -O3 -g -static \
+	arm-linux-gnueabi-g++ -O3 -g -static -march=armv7-a -marm \
         -DRT_LINUX -DRT_ARM -DRT_128=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
