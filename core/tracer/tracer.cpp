@@ -5505,8 +5505,8 @@ rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 simd)
 
     s_mask = s_inf->ver;
 
-    s_mask &= (RT_128) | (RT_256_R8 << 4) | (RT_256 << 8) | (RT_512_R8 << 12) |
-       (RT_512 << 16) | (RT_1K4_R8 << 20) | (RT_1K4 << 24) | (RT_2K8_R8 << 28);
+    s_mask &= (RT_128) | (RT_256_R8) << 4 | (RT_256) << 8 | (RT_512_R8) << 12 |
+       (RT_512) << 16 | (RT_1K4_R8) << 20 | (RT_1K4) << 24 | (RT_2K8_R8) << 28;
 
     rt_si32 i, mask;
 
