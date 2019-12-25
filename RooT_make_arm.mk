@@ -41,7 +41,7 @@ clean:
 
 
 RooT_arm:
-	arm-linux-gnueabi-g++ -O3 -g \
+	arm-linux-gnueabi-g++ -O3 -g -march=armv7-a -marm \
         -DRT_LINUX -DRT_ARM -DRT_128=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
@@ -59,7 +59,7 @@ clean_n900:
 
 
 RooT_arm_n900:
-	arm-linux-gnueabi-g++ -O3 -g \
+	arm-linux-gnueabi-g++ -O3 -g -march=armv7-a -marm \
         -DRT_LINUX -DRT_ARM -DRT_128=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=1 \
@@ -77,7 +77,7 @@ clean_rpiX:
 
 
 RooT_arm_rpi2:
-	arm-linux-gnueabihf-g++ -O3 -g \
+	arm-linux-gnueabihf-g++ -O3 -g -march=armv7-a -marm \
         -DRT_LINUX -DRT_ARM -DRT_128=1+2 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
@@ -85,7 +85,7 @@ RooT_arm_rpi2:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.arm_rpi2
 
 RooT_arm_rpi3:
-	arm-linux-gnueabihf-g++ -O3 -g \
+	arm-linux-gnueabihf-g++ -O3 -g -march=armv7-a -marm \
         -DRT_LINUX -DRT_ARM -DRT_128=1+2+4 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
