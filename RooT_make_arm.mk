@@ -31,6 +31,8 @@ LIB_LIST =                              \
 RooT:
 	g++ -O3 -g -march=armv7-a -marm \
         -DRT_LINUX -DRT_ARM -DRT_128=1 \
-        -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=1 \
-        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=1 -DRT_EMBED_TEX=1 \
+        -DRT_DEBUG=0 -DRT_PATH="./" -DRT_FULLSCREEN=0 \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.arm
+
+# For Maemo/N900 build enable: -DRT_EMBED_FILEIO=1 -DRT_FULLSCREEN=1.
