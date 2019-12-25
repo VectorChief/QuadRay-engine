@@ -103,7 +103,7 @@ class rt_Scene : public rt_LogRedirect, public rt_Registry
 
     /* scene threads array and its
      * platform specific handle */
-    rt_word             thnum;
+    rt_cell             thnum;
     rt_SceneThread    **tharr;
     rt_pntr             tdata;
 
