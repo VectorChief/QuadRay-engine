@@ -1337,18 +1337,18 @@ int main ()
     free(info);
     free(marr);
 
-#if   defined (WIN32) /* Win32, MSVC ---------------------------------------- */
+#if   defined (RT_WIN32) /* Win32, MSVC ------------------------------------- */
 
     RT_LOGI("Type any letter and press ENTER to exit:");
     rt_char str[256]; /* not secure, do not inherit this practice */
     scanf("%s", str); /* not secure, do not inherit this practice */
 
-#endif /* ------------- OS specific ----------------------------------------- */
+#endif /* ----------------- OS specific ------------------------------------- */
 
     return 0;
 }
 
-#if   defined (WIN32) /* Win32, MSVC ---------------------------------------- */
+#if   defined (RT_WIN32) /* Win32, MSVC ------------------------------------- */
 
 #include <windows.h>
 
@@ -1361,7 +1361,7 @@ rt_long get_time()
     return (rt_long)(tm.QuadPart * 1000 / fr.QuadPart);
 }
 
-#elif defined (linux) /* Linux, GCC ----------------------------------------- */
+#elif defined (RT_LINUX) /* Linux, GCC -------------------------------------- */
 
 #include <sys/time.h>
 
@@ -1372,7 +1372,7 @@ rt_long get_time()
     return (rt_long)(tm.tv_sec * 1000 + tm.tv_usec / 1000);
 }
 
-#endif /* ------------- OS specific ----------------------------------------- */
+#endif /* ----------------- OS specific ------------------------------------- */
 
 /******************************************************************************/
 /******************************************************************************/
