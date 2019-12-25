@@ -607,8 +607,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         andpx_rr(Xmm7, Xmm4)
 
-    LBL(CC_end)
-
         movxx_ld(Redi, Medi, elm_NEXT)
         jmpxx_lb(CC_cyc)
 
