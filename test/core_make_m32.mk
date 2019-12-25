@@ -38,7 +38,7 @@ clean:
 
 
 core_test_m32Lr5:
-	mips-mti-linux-gnu-g++ -O3 -g -static -EL -mips32r5 -mmsa \
+	mips-mti-linux-gnu-g++ -O3 -g -static -EL -mips32r5 -mmsa -mnan=2008 \
         -DRT_LINUX -DRT_M32 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -46,7 +46,7 @@ core_test_m32Lr5:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m32Lr5
 
 core_test_m32Br5:
-	mips-mti-linux-gnu-g++ -O3 -g -static -EB -mips32r5 -mmsa \
+	mips-mti-linux-gnu-g++ -O3 -g -static -EB -mips32r5 -mmsa -mnan=2008 \
         -DRT_LINUX -DRT_M32 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -54,7 +54,7 @@ core_test_m32Br5:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m32Br5
 
 core_test_m32Lr6:
-	mips-img-linux-gnu-g++ -O3 -g -static -EL -mips32r6 -mmsa \
+	mips-img-linux-gnu-g++ -O3 -g -static -EL -mips32r6 -mmsa -mnan=2008 \
         -DRT_LINUX -DRT_M32=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -62,7 +62,7 @@ core_test_m32Lr6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m32Lr6
 
 core_test_m32Br6:
-	mips-img-linux-gnu-g++ -O3 -g -static -EB -mips32r6 -mmsa \
+	mips-img-linux-gnu-g++ -O3 -g -static -EB -mips32r6 -mmsa -mnan=2008 \
         -DRT_LINUX -DRT_M32=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
