@@ -6,5 +6,5 @@ SRC_LIST =                          \
 
 simd_test:
 	g++ -O3 -g -static -march=armv7-a -marm \
-        -DRT_ARM -DRT_DEBUG=0 \
+        -DRT_LINUX -DRT_ARM -DRT_DEBUG=0 \
         ${INC_PATH} ${SRC_LIST} -o simd_test.arm
