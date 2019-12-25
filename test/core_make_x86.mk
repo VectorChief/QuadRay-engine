@@ -18,7 +18,7 @@ SRC_LIST =                          \
         core_test.cpp
 
 core_test:
-	g++ -O3 -g -m32 -DRT_PATH="../" \
-        -DRT_LINUX -DRT_X86 -DRT_DEBUG=1 \
+	g++ -O3 -g -static -m32 \
+        -DRT_LINUX -DRT_X86 -DRT_DEBUG=1 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} -o core_test.x86
