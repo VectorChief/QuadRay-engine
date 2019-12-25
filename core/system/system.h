@@ -131,12 +131,12 @@ class rt_List
 extern rt_File      g_log_file;
 extern rt_File      g_err_file;
 
-#if defined (WIN32)
+#if   defined (RT_WIN32)
 
 #define RT_LOGI     g_log_file.print
 #define RT_LOGE     g_err_file.print
 
-#else /* linux */
+#elif defined (RT_LINUX)
 
 #define RT_LOGI(...)                                                        \
         printf(__VA_ARGS__);                                                \
