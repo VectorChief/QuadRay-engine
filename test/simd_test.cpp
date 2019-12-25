@@ -1997,7 +1997,7 @@ rt_cell main(rt_cell argc, rt_char *argv[])
     rt_char str[256]; /* not secure, do not inherit this practice */
     scanf("%s", str); /* not secure, do not inherit this practice */
 
-#endif /* ------------- OS specific ----------------------------------------- */
+#endif /* ----------------- OS specific ------------------------------------- */
 
     return 0;
 }
@@ -2033,7 +2033,7 @@ rt_time get_time()
     return (rt_time)(tm.tv_sec * 1000 + tm.tv_usec / 1000);
 }
 
-#endif /* ------------- OS specific ----------------------------------------- */
+#endif /* ----------------- OS specific ------------------------------------- */
 
 /******************************************************************************/
 /******************************************************************************/
