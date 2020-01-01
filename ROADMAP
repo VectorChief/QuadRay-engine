@@ -85,6 +85,13 @@ C) Task title: "add support for real-time caustics and soft-shadows (from RaVi)"
 
 ================================================================================
 
+N) Task title: "consider using quaternions to represent transform internally"
+   (may require significant redesign of backend structures and code in tracer.*)
+   (better schedule this task for the next major update, also check tasks R, B)
+   (check the difference in compute accuracy between matrices and quaternions)
+
+================================================================================
+
 R) Task title: "reassemble QuadRay from earlier/simpler branches, write docs"
 
 ================================================================================
