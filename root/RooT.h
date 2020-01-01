@@ -206,7 +206,7 @@ rt_byte r_keys[KEY_MASK + 1];
  */
 rt_void print_avgfps()
 {
-    RT_LOGI("---%s----------------  FPS AVG  ----- simd = %4dx%dv%d -\n",
+    RT_LOGI("---%s---------------  FPS AVG  ------ simd = %4dx%dv%d -\n",
                     p_prev ? " p " : "---", n_prev * 128, k_prev, s_prev);
     if (cur_time - run_time > 0)
     {
@@ -224,7 +224,7 @@ rt_void print_avgfps()
  */
 rt_void print_target()
 {
-    RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
+    RT_LOGI("------------------  TARGET CONFIG  ---------------------\n");
     RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d %s\n",
                                n_simd * 128, k_size, s_type, tile_w / 8,
                                1 << a_mode, a_mode ? "(spp)" : "(off)");
@@ -237,7 +237,7 @@ rt_void print_target()
     RT_LOGI("Threads/affinity = %4d/%d, reserved = %d, d%2d, c%2d\n",
                          pfm->get_thnum(), RT_SETAFFINITY, 0, d+1, c+1);
 
-    RT_LOGI("---%s----------------  FPS LOG  ----- ptr/fp = %d%s%d --\n",
+    RT_LOGI("---%s---------------  FPS LOG  ------ ptr/fp = %d%s%d --\n",
                                                   p_mode ? " p " : "---",
                     RT_POINTER, RT_ADDRESS == 32 ? "_" : "f", RT_ELEMENT);
 }
