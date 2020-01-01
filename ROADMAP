@@ -18,10 +18,10 @@ S) Task title: "implement basic unbiased path-tracer (to match smallpt code)"
 ================================================================================
 
 Q) Task title: "add support for quartic (4th order: Torus, Egg) surfaces (RaVi)"
-1) Implement quartic solvers for Torus and Egg from RaVi demo (using SIMD cos)
+1) Implement quartic solvers for Torus and Egg from RaVi demo (using SIMD trig)
+   (http://www.winosi.onlinehome.de/Ravi.htm) <- rewrite with UniSIMD assembler
+   (https://github.com/mczero80/RaVi)       <- use this code snapshot as a base
 2) Add quartic surface support to custom clipping in engine and tracer
-3) (http://www.winosi.onlinehome.de/Ravi.htm) <- rewrite with UniSIMD assembler
-4) (https://github.com/mczero80/RaVi)       <- use this code snapshot as a base
 
 ================================================================================
 === >>> === tasks below are planned for the upcoming 0.7.3 milestone === <<< ===
@@ -29,9 +29,9 @@ Q) Task title: "add support for quartic (4th order: Torus, Egg) surfaces (RaVi)"
 
 M) Task title: "integrate triangle meshes as an external model-viewer/plug-in"
 1) Implement ray-intersect for triangle meshes from TheDreamMachine
+   (http://thedreammmechanists.blogspot.fr/) <- rewrite with UniSIMD assembler
+   (https://sourceforge.net/projects/thedreammachine/) <- use this as a base
 2) Load triangle meshes from standalone scene files in runtime
-3) (http://thedreammmechanists.blogspot.ru/) <- rewrite with UniSIMD assembler
-4) (https://sourceforge.net/projects/thedreammachine/) <- use this as a base
 
 ================================================================================
 === >>> === tasks below are planned for the forthcoming 0.7.x series === <<< ===
