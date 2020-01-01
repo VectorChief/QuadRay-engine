@@ -1,3 +1,8 @@
+v0.7.0a: QuadRay, code name "GIzmo+", 2020-edition ("GIzmo" + 2019 updates)
+  - all new releases from now on will use *X.Y.Za(bc..) naming scheme
+  - all branches start with letter (b), all tags start with letter (v)
+  - first release (tag) on every new branch will be marked with letter (a)
+  - all subsequent minor updates will have letters (b,c,..), tags aren't moving
   - use (U,O) new keys (update/offscreen), drop F9/F10
   - make key-handling more responsive in RooT demo (not skipping next frame)
   - fix window size exceeding screen, add flag to make AA-grid regular
