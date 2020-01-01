@@ -1,13 +1,16 @@
-  - make key-handling more immediate in RooT demo (no skipping next frame)
+  - use (U,O) new keys (update/offscreen), drop F9/F10
+  - make key-handling more responsive in RooT demo (not skipping next frame)
   - fix window size exceeding screen, add flag to make AA-grid regular
   - fix -f option in CORE tests, add optimal mode -o (omit unoptimized run)
   - fix Fresnel flag for metals and other opaque surfaces in tracer
   - fix check for diffuse/specular lighting, add pause-animation mode (-p)
   - use integer indices for primary rays update (makes it SIMD-width agnostic)
+  - clean up STORE_SIMD macro in rendering backend
   - add SIMD flag to replace VMX targets with VSX (on)
-  - add signed BASE ops to combined-arithmetic-jump
+  - add signed BASE ops to combined-arithmetic-jump (arithmetic shift right)
   - add setting-flags BASE arithmetic shift right
-  - make setting-flags BASE ops orthogonal to size/type
+  - make setting-flags BASE ops orthogonal to size/type (cmd**Z**)
+  - add -mips64r6 compiler option to makefiles on MIPS
   - optimize 64-bit SIMD shifts on POWER9, clean up mkj** formatting
   - improve ARM/x86 compatibility in SIMD shifts
   - add SIMD integer multiply instruction (for 32/64-bit elements)
