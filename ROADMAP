@@ -1,4 +1,39 @@
 ================================================================================
+=== >>> === tasks below are planned for the upcoming 0.7.1 milestone === <<< ===
+================================================================================
+
+S) Task title: "implement basic unbiased path-tracer (to match smallpt code)"
+1) Implement randomizers in SIMD across all targets
+2) Implement pixel sub-sampling passes with Tent filter
+3) Implement randomization of diffuse samples over hemisphere
+4) Enable path-tracer in "pause" mode in addition to real-time ray-tracer
+5) Allow image to converge in real-time (add new samples between updates)
+6) Check out CPPRay (https://github.com/Harha/CPPRay) + youtube video (C++Ray)
+7) Consider using SIMD pow for proper Gamma-correction with 1.0/2.2, 2.2 exp
+8) Add specular highlights on rough surfaces for path-tracer (SIMD acos, pow)
+9) Add separate self-emittance props to light surfaces in scene definition file
+
+================================================================================
+=== >>> === tasks below are planned for the upcoming 0.7.2 milestone === <<< ===
+================================================================================
+
+Q) Task title: "add support for quartic (4th order: Torus, Egg) surfaces (RaVi)"
+1) Implement quartic solvers for Torus and Egg from RaVi demo (using SIMD trig)
+   (http://www.winosi.onlinehome.de/Ravi.htm) <- rewrite with UniSIMD assembler
+   (https://github.com/mczero80/RaVi)       <- use this code snapshot as a base
+2) Add quartic surface support to custom clipping in engine and tracer
+
+================================================================================
+=== >>> === tasks below are planned for the upcoming 0.7.3 milestone === <<< ===
+================================================================================
+
+M) Task title: "integrate triangle meshes as an external model-viewer/plug-in"
+1) Implement ray-intersect for triangle meshes from TheDreamMachine
+   (http://thedreammmechanists.blogspot.fr/) <- rewrite with UniSIMD assembler
+   (https://sourceforge.net/projects/thedreammachine/) <- use this as a base
+2) Load triangle meshes from standalone scene files in runtime
+
+================================================================================
 === >>> === tasks below are planned for the forthcoming 0.7.x series === <<< ===
 ================================================================================
 
@@ -17,19 +52,6 @@ T) Task title: "consider packed SIMD tile traversal (instead of scanline)"
 5) Consider replacing SIMD-width-specific backend macros with runtime code
 6) Experiment with work granularity for multi-threading (1 tile?, 1 SIMD?)
 7) Formulate task for ray-sorting optimization to maximize ray-coherency
-
-================================================================================
-
-S) Task title: "implement basic unbiased path-tracer (to match smallpt code)"
-1) Implement randomizers in SIMD across all targets
-2) Implement pixel sub-sampling passes with Tent filter
-3) Implement randomization of diffuse samples over hemisphere
-4) Enable path-tracer in "pause" mode in addition to real-time ray-tracer
-5) Allow image to converge in real-time (add new samples between updates)
-6) Check out CPPRay (https://github.com/Harha/CPPRay) + youtube video (C++Ray)
-7) Consider using SIMD pow for proper Gamma-correction with 1.0/2.2, 2.2 exp
-8) Add specular highlights on rough surfaces for path-tracer (SIMD acos, pow)
-9) Add separate self-emittance props to light surfaces in scene definition file
 
 ================================================================================
 
@@ -56,21 +78,7 @@ I) Task title: "rewrite smallpt with ISPC, use ifilippov/raytracer as a base"
 
 ================================================================================
 
-M) Task title: "integrate triangle meshes as an external model-viewer/plug-in"
-   (http://thedreammmechanists.blogspot.fr/) <- rewrite with UniSIMD assembler
-   (https://sourceforge.net/projects/thedreammachine/) <- use this as a base
-   (https://github.com/VectorChief/UniSIMD-assembler) integrate with QuadRay
-
-================================================================================
-
 C) Task title: "add support for real-time caustics and soft-shadows (from RaVi)"
-   (http://www.winosi.onlinehome.de/Ravi.htm) <- rewrite with UniSIMD assembler
-   (https://github.com/mczero80/RaVi)       <- use this code snapshot as a base
-   (https://github.com/VectorChief/UniSIMD-assembler) integrate with QuadRay
-
-================================================================================
-
-Q) Task title: "add support for quartic (4th order: Torus, Egg) surfaces (RaVi)"
    (http://www.winosi.onlinehome.de/Ravi.htm) <- rewrite with UniSIMD assembler
    (https://github.com/mczero80/RaVi)       <- use this code snapshot as a base
    (https://github.com/VectorChief/UniSIMD-assembler) integrate with QuadRay
@@ -80,6 +88,7 @@ Q) Task title: "add support for quartic (4th order: Torus, Egg) surfaces (RaVi)"
 N) Task title: "consider using quaternions to represent transform internally"
    (may require significant redesign of backend structures and code in tracer.*)
    (better schedule this task for the next major update, also check tasks R, B)
+   (check the difference in compute accuracy between matrices and quaternions)
 
 ================================================================================
 
