@@ -41,7 +41,7 @@ clean:
 
 
 RooT_m64_32Lr6:
-	g++ -O3 -g -pthread -mips64r6 -mabi=64 -mmsa \
+	g++ -O3 -g -pthread -mips64r6 -mmsa -mabi=64 \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -49,7 +49,7 @@ RooT_m64_32Lr6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.m64_32Lr6
 
 RooT_m64_64Lr6:
-	g++ -O3 -g -pthread -mips64r6 -mabi=64 -mmsa \
+	g++ -O3 -g -pthread -mips64r6 -mmsa -mabi=64 \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -57,7 +57,7 @@ RooT_m64_64Lr6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.m64_64Lr6
 
 RooT_m64f32Lr6:
-	g++ -O3 -g -pthread -mips64r6 -mabi=64 -mmsa \
+	g++ -O3 -g -pthread -mips64r6 -mmsa -mabi=64 \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -65,7 +65,7 @@ RooT_m64f32Lr6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.m64f32Lr6
 
 RooT_m64f64Lr6:
-	g++ -O3 -g -pthread -mips64r6 -mabi=64 -mmsa \
+	g++ -O3 -g -pthread -mips64r6 -mmsa -mabi=64 \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -76,7 +76,7 @@ RooT_m64f64Lr6:
 clang: RooT.m64_32Lr6 RooT.m64_64Lr6 RooT.m64f32Lr6 RooT.m64f64Lr6
 
 RooT.m64_32Lr6:
-	clang++ -O3 -g -pthread -mips64r6 -mabi=64 -mmsa \
+	clang++ -O3 -g -pthread -mips64r6 -mmsa -mabi=64 \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -84,7 +84,7 @@ RooT.m64_32Lr6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.m64_32Lr6
 
 RooT.m64_64Lr6:
-	clang++ -O3 -g -pthread -mips64r6 -mabi=64 -mmsa \
+	clang++ -O3 -g -pthread -mips64r6 -mmsa -mabi=64 \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -92,7 +92,7 @@ RooT.m64_64Lr6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.m64_64Lr6
 
 RooT.m64f32Lr6:
-	clang++ -O3 -g -pthread -mips64r6 -mabi=64 -mmsa \
+	clang++ -O3 -g -pthread -mips64r6 -mmsa -mabi=64 \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -100,7 +100,7 @@ RooT.m64f32Lr6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.m64f32Lr6
 
 RooT.m64f64Lr6:
-	clang++ -O3 -g -pthread -mips64r6 -mabi=64 -mmsa \
+	clang++ -O3 -g -pthread -mips64r6 -mmsa -mabi=64 \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
