@@ -57,7 +57,7 @@ I) Task title: "rewrite smallpt with ISPC, use ifilippov/raytracer as a base"
 ================================================================================
 
 M) Task title: "integrate triangle meshes as an external model-viewer/plug-in"
-   (http://thedreammmechanists.blogspot.ru/) <- rewrite with UniSIMD assembler
+   (http://thedreammmechanists.blogspot.fr/) <- rewrite with UniSIMD assembler
    (https://sourceforge.net/projects/thedreammachine/) <- use this as a base
    (https://github.com/VectorChief/UniSIMD-assembler) integrate with QuadRay
 
@@ -74,6 +74,12 @@ Q) Task title: "add support for quartic (4th order: Torus, Egg) surfaces (RaVi)"
    (http://www.winosi.onlinehome.de/Ravi.htm) <- rewrite with UniSIMD assembler
    (https://github.com/mczero80/RaVi)       <- use this code snapshot as a base
    (https://github.com/VectorChief/UniSIMD-assembler) integrate with QuadRay
+
+================================================================================
+
+N) Task title: "consider using quaternions to represent transform internally"
+   (may require significant redesign of backend structures and code in tracer.*)
+   (better schedule this task for the next major update, also check tasks R, B)
 
 ================================================================================
 
