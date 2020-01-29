@@ -320,7 +320,9 @@ rt_OBJECT ob_camera01[] =
  * Needs to be redesigned for proper scale and navigation.
  *
  * Include this scene in RooT demo and run it with:
- * ./Root.x64f32 -x 1024 -y 768 -q -k 1 -i -h
+ * ./RooT.x64f64 -x 1024 -y 768 -q -i -k 1 -h -a -f 500
+ * Consult with comments in RT_FEAT_PT_RANDOM_SAMPLE section
+ * in core/tracer/tracer.cpp to better match smallpt results.
  * Path-tracing mode (-q) is still work in progress.
  */
 

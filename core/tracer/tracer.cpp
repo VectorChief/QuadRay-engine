@@ -1269,7 +1269,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * example: ./RooT.x64f64 -x 1024 -y 768 -a -h -q
          * wait some time, then press 'F4' for an image
          * alternatively: use -f n and -i n to automate
-         * ./core_test.x64f64 -b 18 -o -q -a -i -f 1500 */
+         * ./core_test.x64f64 -b 18 -o -q -a -i -f 1500
+         * use -k 1 option in PT for better performance */
         mulps_rr(Xmm6, Xmm2)
         mulps_rr(Xmm5, Xmm2)
 
@@ -2616,7 +2617,70 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* use reference implementation found at:
          * https://eleni.mutantstargoat.com/portfolio/prj/pt.html
-         * with acos and pow on 2 random numbers */
+         * with acos and pow on 2 random numbers, see below:
+
+            Vector3 sample_phong(const Vector3 &outdir, const Vector3 &n,
+                                 double specexp)
+            {
+                Matrix4x4 mat;
+                Vector3 ldir = normalize(outdir);
+
+                Vector3 ref = reflect(ldir, n);
+
+                double ndotl = dot(ldir, n);
+
+                if (1.0 - ndotl > EPSILON)
+                {
+                    Vector3 ivec, kvec, jvec;
+
+                    // build orthonormal basis
+                    if (fabs(ndotl) < EPSILON)
+                    {
+                        kvec = -normalize(ldir);
+                        jvec = n;
+                        ivec = cross(jvec, kvec);
+                    }
+                    else
+                    {
+                        ivec = normalize(cross(ldir, ref));
+                        jvec = ref;
+                        kvec = cross(ref, ivec);
+                    }
+
+                    mat.matrix[0][0] = ivec.x;
+                    mat.matrix[1][0] = ivec.y;
+                    mat.matrix[2][0] = ivec.z;
+
+                    mat.matrix[0][1] = jvec.x;
+                    mat.matrix[1][1] = jvec.y;
+                    mat.matrix[2][1] = jvec.z;
+
+                    mat.matrix[0][2] = kvec.x;
+                    mat.matrix[1][2] = kvec.y;
+                    mat.matrix[2][2] = kvec.z;
+                }
+
+                double rnd1 = (double)rand() / RAND_MAX;
+                double rnd2 = (double)rand() / RAND_MAX;
+
+                double phi = acos(pow(rnd1, 1.0 / (specexp + 1)));
+                double theta = 2.0 * M_PI * rnd2;
+
+                Vector3 v;
+                v.x = cos(theta) * sin(phi);
+                v.y = cos(phi);
+                v.z = sin(theta) * sin(phi);
+                v.transform(mat);
+
+                return v;
+            }
+        */
+
+        /* pow approximation with power series
+         * may involve calculating log and exp */
+
+        /* any addition of new fields to INFOX
+         * will require adjusting RT_DATA load */
 
         /* add self-emission */
         addps_ld(Xmm1, Medx, mat_COL_R)
