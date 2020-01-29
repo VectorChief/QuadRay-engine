@@ -1033,13 +1033,13 @@
         mulps3rr(W(T1), W(XS), W(XS))                                       \
         movpx_rr(W(XD), W(XS))                                              \
         mulps3rr(W(XS), W(XD), W(T1))                                       \
-        fmaps_ld(W(XD), W(XS), Mebp, inf_SIN_3)                             \
-        mulps3rr(W(XS), W(XS), W(T1))                                       \
-        fmaps_ld(W(XD), W(XS), Mebp, inf_SIN_5)                             \
-        mulps3rr(W(XS), W(XS), W(T1))                                       \
-        fmaps_ld(W(XD), W(XS), Mebp, inf_SIN_7)                             \
-        mulps3rr(W(XS), W(XS), W(T1))                                       \
-        fmaps_ld(W(XD), W(XS), Mebp, inf_SIN_9)
+        fmaps3ld(W(XD), W(XS), Mebp, inf_SIN_3)                             \
+        mulps_rr(W(XS), W(T1))                                              \
+        fmaps3ld(W(XD), W(XS), Mebp, inf_SIN_5)                             \
+        mulps_rr(W(XS), W(T1))                                              \
+        fmaps3ld(W(XD), W(XS), Mebp, inf_SIN_7)                             \
+        mulps_rr(W(XS), W(T1))                                              \
+        fmaps3ld(W(XD), W(XS), Mebp, inf_SIN_9)
 
 /*
  * Calculate power series approximation for cos.
@@ -1048,13 +1048,13 @@
         mulps3rr(W(T1), W(XS), W(XS))                                       \
         movpx_ld(W(XD), Mebp, inf_GPC01)                                    \
         mulps3rr(W(XS), W(XD), W(T1))                                       \
-        fmaps_ld(W(XD), W(XS), Mebp, inf_GPC02)                             \
-        mulps3rr(W(XS), W(XS), W(T1))                                       \
-        fmaps_ld(W(XD), W(XS), Mebp, inf_COS_4)                             \
-        mulps3rr(W(XS), W(XS), W(T1))                                       \
-        fmaps_ld(W(XD), W(XS), Mebp, inf_COS_6)                             \
-        mulps3rr(W(XS), W(XS), W(T1))                                       \
-        fmaps_ld(W(XD), W(XS), Mebp, inf_COS_8)
+        fmaps3ld(W(XD), W(XS), Mebp, inf_GPC02)                             \
+        mulps_rr(W(XS), W(T1))                                              \
+        fmaps3ld(W(XD), W(XS), Mebp, inf_COS_4)                             \
+        mulps_rr(W(XS), W(T1))                                              \
+        fmaps3ld(W(XD), W(XS), Mebp, inf_COS_6)                             \
+        mulps_rr(W(XS), W(T1))                                              \
+        fmaps3ld(W(XD), W(XS), Mebp, inf_COS_8)
 
 /*
  * Replicate subroutine calling behaviour
@@ -1236,10 +1236,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm3, Xmm1)
         subps3rr(Xmm5, Xmm4, Xmm2)
         sqrps_rr(Xmm5, Xmm5)
-        subps3rr(Xmm5, Xmm1, Xmm5)
+        subps3rr(Xmm2, Xmm1, Xmm5)
 
         andpx_rr(Xmm3, Xmm0)
-        annpx_rr(Xmm0, Xmm5)
+        annpx_rr(Xmm0, Xmm2)
         orrpx3rr(Xmm6, Xmm0, Xmm3)
 
         GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
@@ -1252,10 +1252,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subps_rr(Xmm3, Xmm1)
         subps3rr(Xmm5, Xmm4, Xmm2)
         sqrps_rr(Xmm5, Xmm5)
-        subps3rr(Xmm5, Xmm1, Xmm5)
+        subps3rr(Xmm2, Xmm1, Xmm5)
 
         andpx_rr(Xmm3, Xmm0)
-        annpx_rr(Xmm0, Xmm5)
+        annpx_rr(Xmm0, Xmm2)
         orrpx3rr(Xmm5, Xmm0, Xmm3)
 
         movpx_ld(Xmm2, Mebp, inf_GPC02)
