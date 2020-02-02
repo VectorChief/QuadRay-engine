@@ -55,7 +55,7 @@ core_test_a32:
 # sudo apt-get install make g++-aarch64-linux-gnu
 # (recent upstream g++-5-aarch64 series may not fully support ILP32 ABI)
 #
-# Building/running CORE test:
+# Compiling/running CORE test:
 # make -f core_make_a32.mk
 
 # Clang native build should theoretically work too (not tested), use (replace):

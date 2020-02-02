@@ -65,7 +65,7 @@ RooT.p32Bg4:
 # sudo apt-get install make g++ libxext-dev
 # (legacy 32-bit PowerPC target may no longer be supported on latest distros)
 #
-# Building/running RooT demo:
+# Compiling/running RooT demo:
 # make -f RooT_make_p32.mk
 # ./RooT.p32Bg4 (on PowerPC host or QEMU system mode)
 # (hasn't been verified yet due to lack of target host system)

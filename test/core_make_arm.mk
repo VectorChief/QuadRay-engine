@@ -110,7 +110,7 @@ core_test_arm_rpi3:
 # recent QEMU(-2.5) is installed or built from source and in the PATH variable.
 # sudo apt-get install qemu-user
 #
-# Building/running CORE test:
+# Compiling/running CORE test:
 # make -f core_make_arm.mk
 # qemu-arm -cpu cortex-a8  core_test.arm_v1 -i -a -c 1
 # qemu-arm -cpu cortex-a15 core_test.arm_v2 -i -a -c 1

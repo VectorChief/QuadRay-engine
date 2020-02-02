@@ -67,7 +67,7 @@ core_test_x32:
 # sudo apt-get install make g++-multilib
 # (installation of g++-multilib removes any g++ cross-compilers)
 #
-# Building/running CORE test:
+# Compiling/running CORE test:
 # make -f core_make_x32.mk
 # ./core_test.x32 -i -a -c 1
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)

@@ -90,7 +90,7 @@ RooT.x86:
 # when running produced binary (below), where "n" is the number of CPU cores.
 # Otherwise default maximum number of threads (120) will be created.
 #
-# Building/running RooT demo:
+# Compiling/running RooT demo:
 # make -f RooT_make_x86.mk
 # ./RooT.x86
 

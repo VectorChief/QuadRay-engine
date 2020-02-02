@@ -196,7 +196,7 @@ RooT.a64f64sve:
 # sudo apt-get update (on AArch64 host or QEMU system mode)
 # sudo apt-get install make g++ libxext-dev
 #
-# Building/running RooT demo:
+# Compiling/running RooT demo:
 # make -f RooT_make_a64.mk
 # ./RooT.a64f32 (on AArch64 host or QEMU system mode)
 # ./RooT.a64f32sve (on AArch64 host with SVE or QEMU system mode)

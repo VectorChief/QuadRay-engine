@@ -161,14 +161,14 @@ core_test_p64f64Bp7:
 # sudo apt-get install make g++-powerpc64le-linux-gnu
 # sudo apt-get install make g++-powerpc64-linux-gnu
 # (recent g++-5-powerpc64le series target POWER8 and don't work well with -O3)
-# (recent g++-8-powerpc64le series show issues with powf in QEMU, but not on HW)
 #
 # Prerequisites for emulation:
 # recent QEMU(-2.5) is installed or built from source and in the PATH variable.
-# POWER9 target requires more recent QEMU, tested with 3.0.0 and 3.1.0.
+# POWER9 target requires more recent QEMU, tested with 3.x.y series and 4.2.0.
+# QEMU versions 4.x.y prior to 4.2.0 show issues with POWER8/9 fp32 LE targets.
 # sudo apt-get install qemu-user
 #
-# Building/running CORE test:
+# Compiling/running CORE test:
 # make -f core_make_p64.mk
 # qemu-ppc64le -cpu POWER9 core_test.p64f32Lp9 -i -a -c 1
 # qemu-ppc64le -cpu POWER8 core_test.p64f32Lp8 -i -a -c 1
