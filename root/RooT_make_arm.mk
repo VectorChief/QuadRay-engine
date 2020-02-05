@@ -128,7 +128,7 @@ RooT.arm_rpi3:
 # sudo apt-get update (on ARMv7 host or QEMU system mode)
 # sudo apt-get install make g++ libxext-dev
 #
-# Building/running RooT demo:
+# Compiling/running RooT demo:
 # make -f RooT_make_arm.mk
 # ./RooT.arm_v1 (on ARMv7 host or QEMU system mode)
 # (has been tested on Raspberry Pi 2/3 target host system with Raspbian/Ubuntu)

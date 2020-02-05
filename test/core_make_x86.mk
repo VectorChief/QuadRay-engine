@@ -70,7 +70,7 @@ core_test_x86:
 # When building on macOS install Command Line Tools first.
 # http://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
 #
-# Building/running CORE test:
+# Compiling/running CORE test:
 # make -f core_make_x86.mk
 # ./core_test.x86 -i -a -c 1
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)

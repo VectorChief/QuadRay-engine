@@ -109,12 +109,12 @@ RooT.m64f64Lr6:
 
 
 # Prerequisites for the build:
-# native-compiler for MIPS+MSA is installed and in the PATH variable.
+# native-compiler for MIPSr6+MSA is installed and in the PATH variable.
 # sudo apt-get update (on MIPS64 host or QEMU system mode)
 # sudo apt-get install make g++ libxext-dev
-# (recent upstream g++-5-mips64el series may not fully support MSA)
+# (recent upstream g++-8-mipsisa64r6el series support MSA)
 #
-# Building/running RooT demo:
+# Compiling/running RooT demo:
 # make -f RooT_make_m64.mk
 # ./RooT.m64f32Lr6 (on MIPS64 host or QEMU system mode)
 # (hasn't been verified yet due to lack of target host system)

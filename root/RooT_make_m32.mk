@@ -61,12 +61,12 @@ RooT.m32Lr5:
 
 
 # Prerequisites for the build:
-# native-compiler for MIPS+MSA is installed and in the PATH variable.
+# native-compiler for MIPSr5+MSA is installed and in the PATH variable.
 # sudo apt-get update (on MIPS32 host or QEMU system mode)
 # sudo apt-get install make g++ libxext-dev
 # (recent upstream g++-5-mipsel series may not fully support MSA)
 #
-# Building/running RooT demo:
+# Compiling/running RooT demo:
 # make -f RooT_make_m32.mk
 # ./RooT.m32Lr5 (on MIPS32 host or QEMU system mode)
 # (hasn't been verified yet due to lack of target host system)

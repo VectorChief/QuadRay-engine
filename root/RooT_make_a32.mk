@@ -66,7 +66,7 @@ RooT.a32:
 # sudo apt-get install make g++-multilib (plus X11/Xext libs for ILP32 ABI)
 # (recent upstream g++-5-aarch64 series may not fully support ILP32 ABI)
 #
-# Building/running RooT demo:
+# Compiling/running RooT demo:
 # make -f RooT_make_a32.mk
 # ./RooT.a32 (on AArch64 host or QEMU system mode with ILP32 X11/Xext libs)
 # (hasn't been verified yet due to lack of available libs)

@@ -108,7 +108,7 @@ core_test_x64f64:
 # When building on macOS install Command Line Tools first.
 # http://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
 #
-# Building/running CORE test:
+# Compiling/running CORE test:
 # make -f core_make_x64.mk
 # ./core_test.x64f32 -i -a -c 1
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)

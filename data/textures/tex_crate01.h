@@ -9,7 +9,7 @@
 
 /*
  * Texture data below was converted with (run from "test" subfolder):
- * "core_test.x86 -t tex_crate01.bmp", original texture source:
+ * "./core_test.x86 -t tex_crate01.bmp", original texture source:
  * http://free-texture-site.blogspot.ru/2010/10/free-wooden-crate-texture.html
  */
 rt_ui32 dt_tex_crate01[256][256] =

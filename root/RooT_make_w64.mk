@@ -95,7 +95,7 @@ RooT_w64f64:
 # The multi-group threading implementation requires Windows 7 or newer.
 # Remove -D_WIN32_WINNT=0x0601 for compatibility with Windows XP/Vista.
 #
-# Building/running RooT demo:
+# Compiling/running RooT demo:
 # run RooT_make_w64.bat from Windows Explorer or
 # run the following from Command Prompt "cmd":
 # mingw32-make -f RooT_make_w64.mk

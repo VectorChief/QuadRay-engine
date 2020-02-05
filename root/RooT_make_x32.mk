@@ -82,7 +82,7 @@ RooT.x32:
 # sudo apt-get install make g++-multilib (plus X11/Xext libs for x32 ABI)
 # (installation of g++-multilib removes any g++ cross-compilers)
 #
-# Building/running RooT demo:
+# Compiling/running RooT demo:
 # make -f RooT_make_x32.mk
 # ./RooT.x32
 # (hasn't been verified yet due to lack of available libs, SIMD/CORE tests pass)

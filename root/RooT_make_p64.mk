@@ -193,9 +193,8 @@ RooT.p64f64Lp9:
 # sudo apt-get update (on POWER host or QEMU system mode)
 # sudo apt-get install make g++ libxext-dev
 # (recent g++-5-powerpc64le series target POWER8 and don't work well with -O3)
-# (recent g++-8-powerpc64le series show issues with powf in QEMU, but not on HW)
 #
-# Building/running RooT demo:
+# Compiling/running RooT demo:
 # make -f RooT_make_p64.mk
 # ./RooT.p64f32Lp8 (on POWER8 host or QEMU system mode)
 # ./RooT.p64f32Lp9 (on POWER9 host or QEMU system mode)

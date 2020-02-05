@@ -92,7 +92,7 @@ core_test_w64f64:
 # TDM64-GCC compiler for Win32/64 is installed and in the PATH variable.
 # Download tdm64-gcc-5.1.0-2.exe from sourceforge and run the installer.
 #
-# Building/running CORE test:
+# Compiling/running CORE test:
 # run core_make_w64.bat from Windows Explorer or
 # run the following from Command Prompt "cmd":
 # mingw32-make -f core_make_w64.mk
