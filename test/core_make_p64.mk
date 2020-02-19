@@ -84,7 +84,7 @@ build_le: core_test_p64_32Lp8 core_test_p64_64Lp8 \
           core_test_p64f32Lp8 core_test_p64f64Lp8
 
 core_test_p64_32Lp8:
-	powerpc64le-linux-gnu-g++ -O2 -g -static \
+	powerpc64le-linux-gnu-g++ -O2 -g -static -mcpu=power8 \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -92,7 +92,7 @@ core_test_p64_32Lp8:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64_32Lp8
 
 core_test_p64_64Lp8:
-	powerpc64le-linux-gnu-g++ -O2 -g -static \
+	powerpc64le-linux-gnu-g++ -O2 -g -static -mcpu=power8 \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -100,7 +100,7 @@ core_test_p64_64Lp8:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64_64Lp8
 
 core_test_p64f32Lp8:
-	powerpc64le-linux-gnu-g++ -O2 -g -static \
+	powerpc64le-linux-gnu-g++ -O2 -g -static -mcpu=power8 \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -108,7 +108,7 @@ core_test_p64f32Lp8:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64f32Lp8
 
 core_test_p64f64Lp8:
-	powerpc64le-linux-gnu-g++ -O2 -g -static \
+	powerpc64le-linux-gnu-g++ -O2 -g -static -mcpu=power8 \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
