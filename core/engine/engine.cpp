@@ -899,6 +899,13 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_si32 index) :
     RT_SIMD_SET(s_inf->cos_6, -0.0013888888888888888888888888888888888888888);
     RT_SIMD_SET(s_inf->cos_8, +0.0000248015873015873015873015873015873015873);
 
+    /* init polynomial constants for asin, acos */
+    RT_SIMD_SET(s_inf->asn_1, -0.0187293);
+    RT_SIMD_SET(s_inf->asn_2, +0.0742610);
+    RT_SIMD_SET(s_inf->asn_3, -0.2121144);
+    RT_SIMD_SET(s_inf->asn_4, +1.5707288);
+    RT_SIMD_SET(s_inf->tmp_1, +RT_PI_2);
+
     /* allocate cam SIMD structure */
     s_cam = (rt_SIMD_CAMERA *)
             alloc(sizeof(rt_SIMD_CAMERA),
@@ -4371,6 +4378,16 @@ namespace simd_128v4
 rt_void plot_cos(rt_SIMD_INFOX *s_inf);
 }
 
+namespace simd_128v4
+{
+rt_void plot_asin(rt_SIMD_INFOX *s_inf);
+}
+
+namespace simd_128v4
+{
+rt_void plot_acos(rt_SIMD_INFOX *s_inf);
+}
+
 #endif /* RT_PLOT_TRIGS */
 
 /*
@@ -4399,6 +4416,13 @@ rt_void rt_Scene::plot_trigs()
     RT_SIMD_SET(s_inf->cos_4, +0.0416666666666666666666666666666666666666666);
     RT_SIMD_SET(s_inf->cos_6, -0.0013888888888888888888888888888888888888888);
     RT_SIMD_SET(s_inf->cos_8, +0.0000248015873015873015873015873015873015873);
+
+    /* init polynomial constants for asin, acos */
+    RT_SIMD_SET(s_inf->asn_1, -0.0187293);
+    RT_SIMD_SET(s_inf->asn_2, +0.0742610);
+    RT_SIMD_SET(s_inf->asn_3, -0.2121144);
+    RT_SIMD_SET(s_inf->asn_4, +1.5707288);
+    RT_SIMD_SET(s_inf->tmp_1, +RT_PI_2);
 
     /* allocate regs SIMD structure */
     rt_SIMD_REGS *s_reg = (rt_SIMD_REGS *)
@@ -4465,6 +4489,38 @@ rt_void rt_Scene::plot_trigs()
     }
 
     save_frame(990);
+
+    /* asin/acos plotting is not up to scale yet */
+    s = 2.0f / x_res;
+    t = 1.0f / RT_PI;
+
+    memset(frame, 0, x_row * y_res * sizeof(rt_ui32));
+
+    for (i = 0; i < x_res / 4; i++)
+    {
+        s_inf->hor_i[0*4+0] = s*(i*4+0 - x_res/2);
+        s_inf->hor_i[0*4+1] = s*(i*4+1 - x_res/2);
+        s_inf->hor_i[0*4+2] = s*(i*4+2 - x_res/2);
+        s_inf->hor_i[0*4+3] = s*(i*4+3 - x_res/2);
+
+        simd_128v4::plot_acos(s_inf);
+
+        frame[int((1.0f - s_inf->pts_o[0*4+0]*t)*k)*x_row+i*4+0] = 0x000000FF;
+        frame[int((1.0f - s_inf->pts_o[0*4+1]*t)*k)*x_row+i*4+1] = 0x000000FF;
+        frame[int((1.0f - s_inf->pts_o[0*4+2]*t)*k)*x_row+i*4+2] = 0x000000FF;
+        frame[int((1.0f - s_inf->pts_o[0*4+3]*t)*k)*x_row+i*4+3] = 0x000000FF;
+
+#if RT_DEBUG >= 2
+
+        RT_LOGI("acos[%03X] = %f\n", i*4+0, s_inf->o_rfl[0*4+0]);
+        RT_LOGI("acos[%03X] = %f\n", i*4+1, s_inf->o_rfl[0*4+1]);
+        RT_LOGI("acos[%03X] = %f\n", i*4+2, s_inf->o_rfl[0*4+2]);
+        RT_LOGI("acos[%03X] = %f\n", i*4+3, s_inf->o_rfl[0*4+3]);
+
+#endif /* RT_DEBUG */
+    }
+
+    save_frame(900);
 
     ASM_DONE(s_inf)
 

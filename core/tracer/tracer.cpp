@@ -1057,6 +1057,57 @@
         fmaps3ld(W(XD), W(XS), Mebp, inf_COS_8)
 
 /*
+ * Calculate polynomial approximation for asin.
+ * The approximation method is taken from:
+ * https://developer.download.nvidia.com/cg/asin.html
+ * as referenced from:
+ * https://stackoverflow.com/questions/3380628/fast-arc-cos-algorithm
+ */
+#define asnps_rr(XD, XS, T1, T2, T3) /* destroys Xmm0, T1, T2, T3 */        \
+        andpx3ld(W(T1), W(XS), Mebp, inf_GPC04)                             \
+        movpx_ld(W(T3), Mebp, inf_ASN_1)                                    \
+        movpx_ld(W(T2), Mebp, inf_ASN_2)                                    \
+        fmaps3rr(W(T2), W(T3), W(T1))                                       \
+        movpx_ld(W(T3), Mebp, inf_ASN_3)                                    \
+        fmaps3rr(W(T3), W(T2), W(T1))                                       \
+        movpx_ld(W(T2), Mebp, inf_ASN_4)                                    \
+        fmaps3rr(W(T2), W(T3), W(T1))                                       \
+        movpx_ld(W(T3), Mebp, inf_GPC01)                                    \
+        subps_rr(W(T3), W(T1))                                              \
+        sqrps_rr(W(T3), W(T3))                                              \
+        mulps_rr(W(T3), W(T2))                                              \
+        movpx_ld(W(T1), Mebp, inf_TMP_1)                                    \
+        subps_rr(W(T1), W(T3))                                              \
+        andpx3ld(W(T3), W(XS), Mebp, inf_GPC06)                             \
+        xorpx3rr(W(XD), W(T1), W(T3))
+
+/*
+ * Calculate polynomial approximation for acos.
+ * The approximation method is taken from:
+ * https://developer.download.nvidia.com/cg/acos.html
+ * as referenced from:
+ * https://stackoverflow.com/questions/3380628/fast-arc-cos-algorithm
+ */
+#define acsps_rr(XD, XS, T1, T2, T3) /* destroys Xmm0, T1, T2, T3 */        \
+        andpx3ld(W(T1), W(XS), Mebp, inf_GPC04)                             \
+        movpx_ld(W(T3), Mebp, inf_ASN_1)                                    \
+        movpx_ld(W(T2), Mebp, inf_ASN_2)                                    \
+        fmaps3rr(W(T2), W(T3), W(T1))                                       \
+        movpx_ld(W(T3), Mebp, inf_ASN_3)                                    \
+        fmaps3rr(W(T3), W(T2), W(T1))                                       \
+        movpx_ld(W(T2), Mebp, inf_ASN_4)                                    \
+        fmaps3rr(W(T2), W(T3), W(T1))                                       \
+        movpx_ld(W(T3), Mebp, inf_GPC01)                                    \
+        subps_rr(W(T3), W(T1))                                              \
+        sqrps_rr(W(T3), W(T3))                                              \
+        mulps_rr(W(T3), W(T2))                                              \
+        movpx_ld(W(T1), Mebp, inf_TMP_1)                                    \
+        subps3rr(W(T2), W(T1), W(T3))                                       \
+        andpx3ld(W(T3), W(XS), Mebp, inf_GPC06)                             \
+        xorpx_rr(W(T2), W(T3))                                              \
+        subps3rr(W(XD), W(T1), W(T2))
+
+/*
  * Replicate subroutine calling behaviour
  * by saving a given return address tag "tg" in the context's
  * local PTR field, then jumping to the destination address "to".
@@ -2678,9 +2729,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* pow approximation with power series
          * may involve calculating log and exp */
-
-        /* any addition of new fields to INFOX
-         * will require adjusting RT_DATA load */
 
         /* add self-emission */
         addps_ld(Xmm1, Medx, mat_COL_R)
@@ -5127,9 +5175,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* pow approximation with power series
          * may involve calculating log and exp */
 
-        /* any addition of new fields to INFOX
-         * will require adjusting RT_DATA load */
-
 /******************************************************************************/
 /********************************   OBJ DONE   ********************************/
 /******************************************************************************/
@@ -5806,6 +5851,64 @@ rt_void plot_cos(rt_SIMD_INFOX *s_inf)
         cosps_rr(Xmm0, Xmm1, Xmm2)
 
         movpx_st(Xmm0, Mebp, inf_PTS_O)
+
+    ASM_LEAVE(s_inf)
+
+#endif /* RT_PLOT_FUNCS_REF */
+}
+
+/*
+ * Plot asin approximation.
+ */
+rt_void plot_asin(rt_SIMD_INFOX *s_inf)
+{
+#if RT_PLOT_FUNCS_REF
+
+    rt_si32 i;
+
+    for (i = 0; i < 4; i++)
+    {
+        s_inf->pts_o[i] = RT_ASIN32(s_inf->hor_i[i]);
+    }
+
+#else /* RT_PLOT_FUNCS_REF */
+
+    ASM_ENTER(s_inf)
+
+        movpx_ld(Xmm7, Mebp, inf_HOR_I)
+
+        asnps_rr(Xmm6, Xmm7, Xmm1, Xmm2, Xmm3)
+
+        movpx_st(Xmm6, Mebp, inf_PTS_O)
+
+    ASM_LEAVE(s_inf)
+
+#endif /* RT_PLOT_FUNCS_REF */
+}
+
+/*
+ * Plot acos approximation.
+ */
+rt_void plot_acos(rt_SIMD_INFOX *s_inf)
+{
+#if RT_PLOT_FUNCS_REF
+
+    rt_si32 i;
+
+    for (i = 0; i < 4; i++)
+    {
+        s_inf->pts_o[i] = RT_ACOS32(s_inf->hor_i[i]);
+    }
+
+#else /* RT_PLOT_FUNCS_REF */
+
+    ASM_ENTER(s_inf)
+
+        movpx_ld(Xmm7, Mebp, inf_HOR_I)
+
+        acsps_rr(Xmm6, Xmm7, Xmm1, Xmm2, Xmm3)
+
+        movpx_st(Xmm6, Mebp, inf_PTS_O)
 
     ASM_LEAVE(s_inf)
 
