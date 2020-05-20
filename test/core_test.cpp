@@ -595,6 +595,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         o_test[0]();
         scene->plot_frags();
         scene->plot_funcs();
+        scene->plot_trigs();
         delete scene;
         scene = RT_NULL;
         RT_LOGI("Done!\n");

@@ -343,6 +343,7 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
 
     rt_void     plot_frags();
     rt_void     plot_funcs();
+    rt_void     plot_trigs();
 
     rt_si32     get_x_row();
     rt_void     print_state(); /* has global scope and effect on any instance */

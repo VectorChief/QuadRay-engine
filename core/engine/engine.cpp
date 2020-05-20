@@ -4003,6 +4003,7 @@ rt_void rt_Scene::render_num(rt_si32 x, rt_si32 y,
 
 #define RT_PLOT_FRAGS   1   /* 1 enables (on -z) plotting of FSAA samples */
 #define RT_PLOT_FUNCS   1   /* 1 enables (on -z) plotting of Fresnel funcs */
+#define RT_PLOT_TRIGS   1   /* 1 enables (on -z) plotting of sin/cos funcs */
 
 /*
  * Plot fragments into their respective framebuffers then save.
@@ -4353,6 +4354,123 @@ rt_void rt_Scene::plot_funcs()
     save_frame(970);
 
 #endif /* RT_PLOT_FUNCS */
+}
+
+/*
+ * Swap (v4) for available 128-bit target before enabling plot.
+ */
+#if RT_PLOT_TRIGS
+
+namespace simd_128v4
+{
+rt_void plot_sin(rt_SIMD_INFOX *s_inf);
+}
+
+namespace simd_128v4
+{
+rt_void plot_cos(rt_SIMD_INFOX *s_inf);
+}
+
+#endif /* RT_PLOT_TRIGS */
+
+/*
+ * Plot trigonometrics into their respective framebuffers then save.
+ * Scene's framebuffer is first cleaned then overwritten.
+ */
+rt_void rt_Scene::plot_trigs()
+{
+#if RT_PLOT_TRIGS
+
+    /* reserve memory for temporary buffer in the heap */
+    rt_pntr s_ptr = reserve(4000, RT_SIMD_ALIGN);
+
+    /* allocate root SIMD structure */
+    rt_SIMD_INFOX *s_inf = (rt_SIMD_INFOX *)
+            alloc(sizeof(rt_SIMD_INFOX),
+                            RT_SIMD_ALIGN);
+
+    memset(s_inf, 0, sizeof(rt_SIMD_INFOX));
+
+    /* init power series constants for sin, cos */
+    RT_SIMD_SET(s_inf->sin_3, -0.1666666666666666666666666666666666666666666);
+    RT_SIMD_SET(s_inf->sin_5, +0.0083333333333333333333333333333333333333333);
+    RT_SIMD_SET(s_inf->sin_7, -0.0001984126984126984126984126984126984126984);
+    RT_SIMD_SET(s_inf->sin_9, +0.0000027557319223985890652557319223985890652);
+    RT_SIMD_SET(s_inf->cos_4, +0.0416666666666666666666666666666666666666666);
+    RT_SIMD_SET(s_inf->cos_6, -0.0013888888888888888888888888888888888888888);
+    RT_SIMD_SET(s_inf->cos_8, +0.0000248015873015873015873015873015873015873);
+
+    /* allocate regs SIMD structure */
+    rt_SIMD_REGS *s_reg = (rt_SIMD_REGS *)
+            alloc(sizeof(rt_SIMD_REGS),
+                            RT_SIMD_ALIGN);
+
+    ASM_INIT(s_inf, s_reg)
+
+    rt_si32 i, k = (y_res - 1) / 2;
+    rt_fp32 s = RT_2_PI / x_res, t = 0.53f;
+
+    memset(frame, 0, x_row * y_res * sizeof(rt_ui32));
+
+    for (i = 0; i < x_res / 4; i++)
+    {
+        s_inf->hor_i[0*4+0] = s*(i*4+0 - x_res/2);
+        s_inf->hor_i[0*4+1] = s*(i*4+1 - x_res/2);
+        s_inf->hor_i[0*4+2] = s*(i*4+2 - x_res/2);
+        s_inf->hor_i[0*4+3] = s*(i*4+3 - x_res/2);
+
+        simd_128v4::plot_sin(s_inf);
+
+        frame[int((1.0f - s_inf->pts_o[0*4+0]*t)*k)*x_row+i*4+0] = 0x000000FF;
+        frame[int((1.0f - s_inf->pts_o[0*4+1]*t)*k)*x_row+i*4+1] = 0x000000FF;
+        frame[int((1.0f - s_inf->pts_o[0*4+2]*t)*k)*x_row+i*4+2] = 0x000000FF;
+        frame[int((1.0f - s_inf->pts_o[0*4+3]*t)*k)*x_row+i*4+3] = 0x000000FF;
+
+#if RT_DEBUG >= 2
+
+        RT_LOGI("sin[%03X] = %f\n", i*4+0, s_inf->pts_o[0*4+0]);
+        RT_LOGI("sin[%03X] = %f\n", i*4+1, s_inf->pts_o[0*4+1]);
+        RT_LOGI("sin[%03X] = %f\n", i*4+2, s_inf->pts_o[0*4+2]);
+        RT_LOGI("sin[%03X] = %f\n", i*4+3, s_inf->pts_o[0*4+3]);
+
+#endif /* RT_DEBUG */
+    }
+
+    save_frame(980);
+
+    memset(frame, 0, x_row * y_res * sizeof(rt_ui32));
+
+    for (i = 0; i < x_res / 4; i++)
+    {
+        s_inf->hor_i[0*4+0] = s*(i*4+0 - x_res/2);
+        s_inf->hor_i[0*4+1] = s*(i*4+1 - x_res/2);
+        s_inf->hor_i[0*4+2] = s*(i*4+2 - x_res/2);
+        s_inf->hor_i[0*4+3] = s*(i*4+3 - x_res/2);
+
+        simd_128v4::plot_cos(s_inf);
+
+        frame[int((1.0f - s_inf->pts_o[0*4+0]*t)*k)*x_row+i*4+0] = 0x000000FF;
+        frame[int((1.0f - s_inf->pts_o[0*4+1]*t)*k)*x_row+i*4+1] = 0x000000FF;
+        frame[int((1.0f - s_inf->pts_o[0*4+2]*t)*k)*x_row+i*4+2] = 0x000000FF;
+        frame[int((1.0f - s_inf->pts_o[0*4+3]*t)*k)*x_row+i*4+3] = 0x000000FF;
+
+#if RT_DEBUG >= 2
+
+        RT_LOGI("cos[%03X] = %f\n", i*4+0, s_inf->pts_o[0*4+0]);
+        RT_LOGI("cos[%03X] = %f\n", i*4+1, s_inf->pts_o[0*4+1]);
+        RT_LOGI("cos[%03X] = %f\n", i*4+2, s_inf->pts_o[0*4+2]);
+        RT_LOGI("cos[%03X] = %f\n", i*4+3, s_inf->pts_o[0*4+3]);
+
+#endif /* RT_DEBUG */
+    }
+
+    save_frame(990);
+
+    ASM_DONE(s_inf)
+
+    release(s_ptr);
+
+#endif /* RT_PLOT_TRIGS */
 }
 
 /******************************************************************************/

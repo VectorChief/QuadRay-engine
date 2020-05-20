@@ -5754,6 +5754,64 @@ rt_void plot_fresnel_metal_slow(rt_SIMD_INFOP *s_inf)
 #endif /* RT_PLOT_FUNCS_REF */
 }
 
+/*
+ * Plot sin approximation.
+ */
+rt_void plot_sin(rt_SIMD_INFOX *s_inf)
+{
+#if RT_PLOT_FUNCS_REF
+
+    rt_si32 i;
+
+    for (i = 0; i < 4; i++)
+    {
+        s_inf->pts_o[i] = RT_SIN32(s_inf->hor_i[i]);
+    }
+
+#else /* RT_PLOT_FUNCS_REF */
+
+    ASM_ENTER(s_inf)
+
+        movpx_ld(Xmm1, Mebp, inf_HOR_I)
+
+        sinps_rr(Xmm0, Xmm1, Xmm2)
+
+        movpx_st(Xmm0, Mebp, inf_PTS_O)
+
+    ASM_LEAVE(s_inf)
+
+#endif /* RT_PLOT_FUNCS_REF */
+}
+
+/*
+ * Plot cos approximation.
+ */
+rt_void plot_cos(rt_SIMD_INFOX *s_inf)
+{
+#if RT_PLOT_FUNCS_REF
+
+    rt_si32 i;
+
+    for (i = 0; i < 4; i++)
+    {
+        s_inf->pts_o[i] = RT_COS32(s_inf->hor_i[i]);
+    }
+
+#else /* RT_PLOT_FUNCS_REF */
+
+    ASM_ENTER(s_inf)
+
+        movpx_ld(Xmm1, Mebp, inf_HOR_I)
+
+        cosps_rr(Xmm0, Xmm1, Xmm2)
+
+        movpx_st(Xmm0, Mebp, inf_PTS_O)
+
+    ASM_LEAVE(s_inf)
+
+#endif /* RT_PLOT_FUNCS_REF */
+}
+
 #else /* RT_SIMD_CODE */
 
 #include <string.h>
