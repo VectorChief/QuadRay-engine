@@ -104,7 +104,9 @@ class rt_Platform : private rt_LogRedirect, public rt_Heap
     rt_si32             simd_width;
     rt_si32             simd_quads;
 
-    /* common antialiasing mode */
+    /* current SIMD runtime mode */
+    rt_si32             simd;
+    /* current antialiasing mode */
     rt_si32             fsaa;
     /* single tile dimensions in pixels */
     rt_si32             tile_w;

@@ -902,7 +902,11 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     rt_si32 size, type, simd = 0;
 
     simd = (&pfm)->set_simd(simd_init(n_simd, s_type, k_size));
-    a_mode = (&pfm)->set_fsaa(a_mode);
+    if (a_mode != (&pfm)->set_fsaa(a_mode))
+    {
+        RT_LOGI("Requested antialiasing mode not supported, check options\n");
+        return 0;
+    }
     tile_w = (&pfm)->get_tile_w();
 
     size = (simd >> 16) & 0xFF;
