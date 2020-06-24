@@ -5465,15 +5465,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
  */
 rt_void plot_fresnel(rt_SIMD_INFOP *s_inf)
 {
-#if RT_PLOT_FUNCS_REF
+#if RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE)
 
     rt_si32 i;
 
-    for (i = 0; i < 4; i++)
+    for (i = 0; i < RT_SIMD_WIDTH; i++)
     {
-        float n = s_inf->c_rfr[i];
-        float cosI = -s_inf->i_cos[i];
-        float sinT2 = n * n * (1 - cosI * cosI);
+        rt_real n = s_inf->c_rfr[i];
+        rt_real cosI = -s_inf->i_cos[i];
+        rt_real sinT2 = n * n * (1 - cosI * cosI);
 
         if (sinT2 > 1)
         {
@@ -5481,78 +5481,78 @@ rt_void plot_fresnel(rt_SIMD_INFOP *s_inf)
             continue;
         }
 
-        float cosT = sqrt(1 - sinT2);
-        float rOrth = (n * cosI - cosT) / (n * cosI + cosT);
-        float rPar = (cosI - n * cosT) / (cosI + n * cosT);
+        rt_real cosT = RT_SQRT(1 - sinT2);
+        rt_real rOrth = (n * cosI - cosT) / (n * cosI + cosT);
+        rt_real rPar = (cosI - n * cosT) / (cosI + n * cosT);
 
         s_inf->o_rfl[i] = (rOrth * rOrth + rPar * rPar) * 0.5;
     }
 
-#else /* RT_PLOT_FUNCS_REF */
+#elif (defined RT_RENDER_CODE)
 
     ASM_ENTER(s_inf)
 
-        movix_ld(Xmm0, Mebp, inf_I_COS)
-        movix_rr(Xmm4, Xmm0)
+        movpx_ld(Xmm0, Mebp, inf_I_COS)
+        movpx_rr(Xmm4, Xmm0)
 
-        movix_ld(Xmm6, Mebp, inf_C_RFR)
-        mulis_rr(Xmm0, Xmm6)
-        movix_rr(Xmm7, Xmm0)
-        mulis_rr(Xmm7, Xmm7)
-        addis_ld(Xmm7, Mebp, inf_GPC01_32)
-        subis_ld(Xmm7, Mebp, inf_RFR_2)
+        movpx_ld(Xmm6, Mebp, inf_C_RFR)
+        mulps_rr(Xmm0, Xmm6)
+        movpx_rr(Xmm7, Xmm0)
+        mulps_rr(Xmm7, Xmm7)
+        addps_ld(Xmm7, Mebp, inf_GPC01)
+        subps_ld(Xmm7, Mebp, inf_RFR_2)
 
         /* check total inner reflection */
-        xorix_rr(Xmm5, Xmm5)
-        cleis_rr(Xmm5, Xmm7)
+        xorpx_rr(Xmm5, Xmm5)
+        cleps_rr(Xmm5, Xmm7)
 
-        mkjix_rx(Xmm5, NONE, FR_tir)
+        mkjpx_rx(Xmm5, NONE, FR_tir)
 
-        movix_st(Xmm5, Mebp, inf_T_NEW)
+        movpx_st(Xmm5, Mebp, inf_T_NEW)
         jmpxx_lb(FR_cnt)
 
     LBL(FR_tir)
 
-        movix_ld(Xmm5, Mebp, inf_GPC01_32)
-        movix_st(Xmm5, Mebp, inf_O_RFL)
+        movpx_ld(Xmm5, Mebp, inf_GPC01)
+        movpx_st(Xmm5, Mebp, inf_O_RFL)
         jmpxx_lb(FR_end)
 
     LBL(FR_cnt)
 
-        sqris_rr(Xmm7, Xmm7)
-        addis_rr(Xmm0, Xmm7)
+        sqrps_rr(Xmm7, Xmm7)
+        addps_rr(Xmm0, Xmm7)
 
         /* compute Fresnel */
-        movix_rr(Xmm1, Xmm4)
-        movix_rr(Xmm2, Xmm1)
-        mulis_rr(Xmm2, Xmm6)
-        subis_rr(Xmm2, Xmm7)
-        mulis_rr(Xmm7, Xmm6)
-        movix_rr(Xmm3, Xmm1)
-        addis_rr(Xmm1, Xmm7)
-        subis_rr(Xmm3, Xmm7)
-        divis_rr(Xmm0, Xmm2)
-        divis_rr(Xmm1, Xmm3)
-        mulis_rr(Xmm0, Xmm0)
-        mulis_rr(Xmm1, Xmm1)
-        addis_rr(Xmm0, Xmm1)
-        mulis_ld(Xmm0, Mebp, inf_GPC02_32)
-        andix_ld(Xmm0, Mebp, inf_GPC04_32)
+        movpx_rr(Xmm1, Xmm4)
+        movpx_rr(Xmm2, Xmm1)
+        mulps_rr(Xmm2, Xmm6)
+        subps_rr(Xmm2, Xmm7)
+        mulps_rr(Xmm7, Xmm6)
+        movpx_rr(Xmm3, Xmm1)
+        addps_rr(Xmm1, Xmm7)
+        subps_rr(Xmm3, Xmm7)
+        divps_rr(Xmm0, Xmm2)
+        divps_rr(Xmm1, Xmm3)
+        mulps_rr(Xmm0, Xmm0)
+        mulps_rr(Xmm1, Xmm1)
+        addps_rr(Xmm0, Xmm1)
+        mulps_ld(Xmm0, Mebp, inf_GPC02)
+        andpx_ld(Xmm0, Mebp, inf_GPC04)
 
         /* store Fresnel reflectance */
-        movix_ld(Xmm5, Mebp, inf_T_NEW)
-        andix_rr(Xmm0, Xmm5)
-        movix_ld(Xmm4, Mebp, inf_GPC01_32)
-        mulis_rr(Xmm0, Xmm4)
-        annix_rr(Xmm5, Xmm4)
-        orrix_rr(Xmm0, Xmm5)
-        movix_st(Xmm0, Mebp, inf_O_RFL)
+        movpx_ld(Xmm5, Mebp, inf_T_NEW)
+        andpx_rr(Xmm0, Xmm5)
+        movpx_ld(Xmm4, Mebp, inf_GPC01)
+        mulps_rr(Xmm0, Xmm4)
+        annpx_rr(Xmm5, Xmm4)
+        orrpx_rr(Xmm0, Xmm5)
+        movpx_st(Xmm0, Mebp, inf_O_RFL)
 
     LBL(FR_end)
 
     ASM_LEAVE(s_inf)
 
-#endif /* RT_PLOT_FUNCS_REF */
+#endif /* RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE) */
 }
 
 /*
@@ -5561,106 +5561,106 @@ rt_void plot_fresnel(rt_SIMD_INFOP *s_inf)
  */
 rt_void plot_schlick(rt_SIMD_INFOP *s_inf)
 {
-#if RT_PLOT_FUNCS_REF
+#if RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE)
 
     rt_si32 i;
 
-    for (i = 0; i < 4; i++)
+    for (i = 0; i < RT_SIMD_WIDTH; i++)
     {
-        float n = s_inf->c_rfr[i];
-        float r0 = (n - 1) / (n + 1);
+        rt_real n = s_inf->c_rfr[i];
+        rt_real r0 = (n - 1) / (n + 1);
         r0 *= r0;
-        float cosX = -s_inf->i_cos[i];
+        rt_real cosX = -s_inf->i_cos[i];
 
         if (n > 1)
         {
-            float sinT2 = n * n * (1 - cosX * cosX);
+            rt_real sinT2 = n * n * (1 - cosX * cosX);
             if (sinT2 > 1)
             {
                 s_inf->o_rfl[i] = 1;
                 continue;
             }
-            cosX = sqrt(1 - sinT2);
+            cosX = RT_SQRT(1 - sinT2);
         }
 
-        float x = 1 - cosX;
+        rt_real x = 1 - cosX;
         s_inf->o_rfl[i] = r0 + (1 - r0) * x * x * x * x * x;
     }
 
-#else /* RT_PLOT_FUNCS_REF */
+#elif (defined RT_RENDER_CODE)
 
     ASM_ENTER(s_inf)
 
-        movix_ld(Xmm0, Mebp, inf_I_COS)
-        movix_rr(Xmm4, Xmm0)
+        movpx_ld(Xmm0, Mebp, inf_I_COS)
+        movpx_rr(Xmm4, Xmm0)
 
-        movix_ld(Xmm6, Mebp, inf_C_RFR)
-        mulis_rr(Xmm0, Xmm6)
-        movix_rr(Xmm7, Xmm0)
-        mulis_rr(Xmm7, Xmm7)
-        addis_ld(Xmm7, Mebp, inf_GPC01_32)
-        subis_ld(Xmm7, Mebp, inf_RFR_2)
+        movpx_ld(Xmm6, Mebp, inf_C_RFR)
+        mulps_rr(Xmm0, Xmm6)
+        movpx_rr(Xmm7, Xmm0)
+        mulps_rr(Xmm7, Xmm7)
+        addps_ld(Xmm7, Mebp, inf_GPC01)
+        subps_ld(Xmm7, Mebp, inf_RFR_2)
 
         /* check total inner reflection */
-        xorix_rr(Xmm5, Xmm5)
-        cleis_rr(Xmm5, Xmm7)
+        xorpx_rr(Xmm5, Xmm5)
+        cleps_rr(Xmm5, Xmm7)
 
-        mkjix_rx(Xmm5, NONE, SC_tir)
+        mkjpx_rx(Xmm5, NONE, SC_tir)
 
-        movix_st(Xmm5, Mebp, inf_T_NEW)
+        movpx_st(Xmm5, Mebp, inf_T_NEW)
         jmpxx_lb(SC_cnt)
 
     LBL(SC_tir)
 
-        movix_ld(Xmm5, Mebp, inf_GPC01_32)
-        movix_st(Xmm5, Mebp, inf_O_RFL)
+        movpx_ld(Xmm5, Mebp, inf_GPC01)
+        movpx_st(Xmm5, Mebp, inf_O_RFL)
         jmpxx_lb(SC_end)
 
     LBL(SC_cnt)
 
-        sqris_rr(Xmm7, Xmm7)
-        addis_rr(Xmm0, Xmm7)
+        sqrps_rr(Xmm7, Xmm7)
+        addps_rr(Xmm0, Xmm7)
 
         /* compute Schlick */
-        movix_ld(Xmm1, Mebp, inf_GPC01_32)
-        movix_rr(Xmm5, Xmm6)
-        cgtis_rr(Xmm5, Xmm1)
+        movpx_ld(Xmm1, Mebp, inf_GPC01)
+        movpx_rr(Xmm5, Xmm6)
+        cgtps_rr(Xmm5, Xmm1)
 
-        mkjix_rx(Xmm5, NONE, SC_inv)
+        mkjpx_rx(Xmm5, NONE, SC_inv)
 
-        xorix_rr(Xmm4, Xmm4)
-        subis_rr(Xmm4, Xmm7)
+        xorpx_rr(Xmm4, Xmm4)
+        subps_rr(Xmm4, Xmm7)
 
     LBL(SC_inv)
 
-        addis_rr(Xmm4, Xmm1)
-        movix_rr(Xmm0, Xmm6)
-        subis_rr(Xmm0, Xmm1)
-        addis_rr(Xmm6, Xmm1)
-        divis_rr(Xmm0, Xmm6)
-        mulis_rr(Xmm0, Xmm0)
-        subis_rr(Xmm1, Xmm0)
-        movix_rr(Xmm5, Xmm4)
-        mulis_rr(Xmm4, Xmm4)
-        mulis_rr(Xmm4, Xmm4)
-        mulis_rr(Xmm5, Xmm4)
-        mulis_rr(Xmm1, Xmm5)
-        addis_rr(Xmm0, Xmm1)
+        addps_rr(Xmm4, Xmm1)
+        movpx_rr(Xmm0, Xmm6)
+        subps_rr(Xmm0, Xmm1)
+        addps_rr(Xmm6, Xmm1)
+        divps_rr(Xmm0, Xmm6)
+        mulps_rr(Xmm0, Xmm0)
+        subps_rr(Xmm1, Xmm0)
+        movpx_rr(Xmm5, Xmm4)
+        mulps_rr(Xmm4, Xmm4)
+        mulps_rr(Xmm4, Xmm4)
+        mulps_rr(Xmm5, Xmm4)
+        mulps_rr(Xmm1, Xmm5)
+        addps_rr(Xmm0, Xmm1)
 
         /* store Fresnel reflectance */
-        movix_ld(Xmm5, Mebp, inf_T_NEW)
-        andix_rr(Xmm0, Xmm5)
-        movix_ld(Xmm4, Mebp, inf_GPC01_32)
-        mulis_rr(Xmm0, Xmm4)
-        annix_rr(Xmm5, Xmm4)
-        orrix_rr(Xmm0, Xmm5)
-        movix_st(Xmm0, Mebp, inf_O_RFL)
+        movpx_ld(Xmm5, Mebp, inf_T_NEW)
+        andpx_rr(Xmm0, Xmm5)
+        movpx_ld(Xmm4, Mebp, inf_GPC01)
+        mulps_rr(Xmm0, Xmm4)
+        annpx_rr(Xmm5, Xmm4)
+        orrpx_rr(Xmm0, Xmm5)
+        movpx_st(Xmm0, Mebp, inf_O_RFL)
 
     LBL(SC_end)
 
     ASM_LEAVE(s_inf)
 
-#endif /* RT_PLOT_FUNCS_REF */
+#endif /* RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE) */
 }
 
 /*
@@ -5669,56 +5669,56 @@ rt_void plot_schlick(rt_SIMD_INFOP *s_inf)
  */
 rt_void plot_fresnel_metal_fast(rt_SIMD_INFOP *s_inf)
 {
-#if RT_PLOT_FUNCS_REF
+#if RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE)
 
     rt_si32 i;
 
-    for (i = 0; i < 4; i++)
+    for (i = 0; i < RT_SIMD_WIDTH; i++)
     {
-        float CosTheta2 = s_inf->i_cos[i] * s_inf->i_cos[i];
-        float TwoEtaCosTheta = 2 * s_inf->c_rcp[i] * -s_inf->i_cos[i];
+        rt_real CosTheta2 = s_inf->i_cos[i] * s_inf->i_cos[i];
+        rt_real TwoEtaCosTheta = 2 * s_inf->c_rcp[i] * -s_inf->i_cos[i];
 
-        float t0 = s_inf->c_rcp[i] * s_inf->c_rcp[i] + s_inf->ext_2[i];
-        float t1 = t0 * CosTheta2;
-        float Rs = (t0 - TwoEtaCosTheta + CosTheta2) /
+        rt_real t0 = s_inf->c_rcp[i] * s_inf->c_rcp[i] + s_inf->ext_2[i];
+        rt_real t1 = t0 * CosTheta2;
+        rt_real Rs = (t0 - TwoEtaCosTheta + CosTheta2) /
                    (t0 + TwoEtaCosTheta + CosTheta2);
-        float Rp = (t1 - TwoEtaCosTheta + 1) / (t1 + TwoEtaCosTheta + 1);
+        rt_real Rp = (t1 - TwoEtaCosTheta + 1) / (t1 + TwoEtaCosTheta + 1);
 
         s_inf->o_rfl[i] = 0.5 * (Rp + Rs);
     }
 
-#else /* RT_PLOT_FUNCS_REF */
+#elif (defined RT_RENDER_CODE)
 
     ASM_ENTER(s_inf)
 
-        movix_ld(Xmm0, Mebp, inf_I_COS)
-        movix_ld(Xmm6, Mebp, inf_C_RCP)
-        movix_rr(Xmm4, Xmm0)
-        mulis_rr(Xmm4, Xmm6)
-        addis_rr(Xmm4, Xmm4)
-        mulis_rr(Xmm0, Xmm0)
-        mulis_rr(Xmm6, Xmm6)
-        addis_ld(Xmm6, Mebp, inf_EXT_2)
-        movix_rr(Xmm1, Xmm0)
-        mulis_rr(Xmm1, Xmm6)
-        addis_rr(Xmm0, Xmm6)
-        addis_ld(Xmm1, Mebp, inf_GPC01_32)
-        movix_rr(Xmm2, Xmm0)
-        movix_rr(Xmm3, Xmm1)
-        addis_rr(Xmm0, Xmm4)
-        addis_rr(Xmm1, Xmm4)
-        subis_rr(Xmm2, Xmm4)
-        subis_rr(Xmm3, Xmm4)
-        divis_rr(Xmm0, Xmm2)
-        divis_rr(Xmm1, Xmm3)
-        addis_rr(Xmm0, Xmm1)
-        mulis_ld(Xmm0, Mebp, inf_GPC02_32)
-        andix_ld(Xmm0, Mebp, inf_GPC04_32)
-        movix_st(Xmm0, Mebp, inf_O_RFL)
+        movpx_ld(Xmm0, Mebp, inf_I_COS)
+        movpx_ld(Xmm6, Mebp, inf_C_RCP)
+        movpx_rr(Xmm4, Xmm0)
+        mulps_rr(Xmm4, Xmm6)
+        addps_rr(Xmm4, Xmm4)
+        mulps_rr(Xmm0, Xmm0)
+        mulps_rr(Xmm6, Xmm6)
+        addps_ld(Xmm6, Mebp, inf_EXT_2)
+        movpx_rr(Xmm1, Xmm0)
+        mulps_rr(Xmm1, Xmm6)
+        addps_rr(Xmm0, Xmm6)
+        addps_ld(Xmm1, Mebp, inf_GPC01)
+        movpx_rr(Xmm2, Xmm0)
+        movpx_rr(Xmm3, Xmm1)
+        addps_rr(Xmm0, Xmm4)
+        addps_rr(Xmm1, Xmm4)
+        subps_rr(Xmm2, Xmm4)
+        subps_rr(Xmm3, Xmm4)
+        divps_rr(Xmm0, Xmm2)
+        divps_rr(Xmm1, Xmm3)
+        addps_rr(Xmm0, Xmm1)
+        mulps_ld(Xmm0, Mebp, inf_GPC02)
+        andpx_ld(Xmm0, Mebp, inf_GPC04)
+        movpx_st(Xmm0, Mebp, inf_O_RFL)
 
     ASM_LEAVE(s_inf)
 
-#endif /* RT_PLOT_FUNCS_REF */
+#endif /* RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE) */
 }
 
 /*
@@ -5727,86 +5727,86 @@ rt_void plot_fresnel_metal_fast(rt_SIMD_INFOP *s_inf)
  */
 rt_void plot_fresnel_metal_slow(rt_SIMD_INFOP *s_inf)
 {
-#if RT_PLOT_FUNCS_REF
+#if RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE)
 
     rt_si32 i;
 
-    for (i = 0; i < 4; i++)
+    for (i = 0; i < RT_SIMD_WIDTH; i++)
     {
-        float CosTheta = -s_inf->i_cos[i];
-        float Eta2 = s_inf->c_rcp[i] * s_inf->c_rcp[i];
-        float Etak2 = s_inf->ext_2[i];
+        rt_real CosTheta = -s_inf->i_cos[i];
+        rt_real Eta2 = s_inf->c_rcp[i] * s_inf->c_rcp[i];
+        rt_real Etak2 = s_inf->ext_2[i];
 
-        float CosTheta2 = CosTheta * CosTheta;
-        float SinTheta2 = 1 - CosTheta2;
+        rt_real CosTheta2 = CosTheta * CosTheta;
+        rt_real SinTheta2 = 1 - CosTheta2;
 
-        float t0 = Eta2 - Etak2 - SinTheta2;
-        float a2plusb2 = sqrt(t0 * t0 + 4 * Eta2 * Etak2);
-        float t1 = a2plusb2 + CosTheta2;
-        float a = sqrt(0.5f * (a2plusb2 + t0));
-        float t2 = 2 * a * CosTheta;
-        float Rs = (t1 - t2) / (t1 + t2);
+        rt_real t0 = Eta2 - Etak2 - SinTheta2;
+        rt_real a2plusb2 = RT_SQRT(t0 * t0 + 4 * Eta2 * Etak2);
+        rt_real t1 = a2plusb2 + CosTheta2;
+        rt_real a = RT_SQRT(0.5 * (a2plusb2 + t0));
+        rt_real t2 = 2 * a * CosTheta;
+        rt_real Rs = (t1 - t2) / (t1 + t2);
 
-        float t3 = CosTheta2 * a2plusb2 + SinTheta2 * SinTheta2;
-        float t4 = t2 * SinTheta2;
-        float Rp = Rs * (t3 - t4) / (t3 + t4);
+        rt_real t3 = CosTheta2 * a2plusb2 + SinTheta2 * SinTheta2;
+        rt_real t4 = t2 * SinTheta2;
+        rt_real Rp = Rs * (t3 - t4) / (t3 + t4);
 
         s_inf->o_rfl[i] = 0.5 * (Rp + Rs);
     }
 
-#else /* RT_PLOT_FUNCS_REF */
+#elif (defined RT_RENDER_CODE)
 
     ASM_ENTER(s_inf)
 
-        movix_ld(Xmm0, Mebp, inf_I_COS)
-        movix_rr(Xmm4, Xmm0)
-        mulis_rr(Xmm0, Xmm0)
-        movix_ld(Xmm1, Mebp, inf_GPC01_32)
-        subis_rr(Xmm1, Xmm0)
-        movix_ld(Xmm6, Mebp, inf_C_RCP)
-        movix_ld(Xmm5, Mebp, inf_EXT_2)
-        mulis_rr(Xmm6, Xmm6)
-        movix_rr(Xmm7, Xmm6)
-        subis_rr(Xmm6, Xmm5)
-        subis_rr(Xmm6, Xmm1)
-        mulis_rr(Xmm5, Xmm7)
-        movix_ld(Xmm7, Mebp, inf_GPC01_32)
-        addis_ld(Xmm7, Mebp, inf_GPC03_32)
-        mulis_rr(Xmm5, Xmm7)
-        movix_rr(Xmm7, Xmm6)
-        mulis_rr(Xmm7, Xmm7)
-        addis_rr(Xmm7, Xmm5)
-        sqris_rr(Xmm7, Xmm7)
-        addis_rr(Xmm6, Xmm7)
-        mulis_ld(Xmm6, Mebp, inf_GPC02_32)
-        andix_ld(Xmm6, Mebp, inf_GPC04_32)
-        sqris_rr(Xmm6, Xmm6)
-        mulis_rr(Xmm6, Xmm4)
-        addis_rr(Xmm6, Xmm6)
-        movix_rr(Xmm2, Xmm0)
-        addis_rr(Xmm0, Xmm7)
-        mulis_rr(Xmm2, Xmm7)
-        movix_rr(Xmm3, Xmm6)
-        mulis_rr(Xmm3, Xmm1)
-        mulis_rr(Xmm1, Xmm1)
-        addis_rr(Xmm2, Xmm1)
-        movix_rr(Xmm1, Xmm0)
-        addis_rr(Xmm0, Xmm6)
-        subis_rr(Xmm1, Xmm6)
-        divis_rr(Xmm0, Xmm1)
-        movix_rr(Xmm1, Xmm2)
-        addis_rr(Xmm2, Xmm3)
-        subis_rr(Xmm1, Xmm3)
-        divis_rr(Xmm2, Xmm1)
-        mulis_rr(Xmm2, Xmm0)
-        addis_rr(Xmm0, Xmm2)
-        mulis_ld(Xmm0, Mebp, inf_GPC02_32)
-        andix_ld(Xmm0, Mebp, inf_GPC04_32)
-        movix_st(Xmm0, Mebp, inf_O_RFL)
+        movpx_ld(Xmm0, Mebp, inf_I_COS)
+        movpx_rr(Xmm4, Xmm0)
+        mulps_rr(Xmm0, Xmm0)
+        movpx_ld(Xmm1, Mebp, inf_GPC01)
+        subps_rr(Xmm1, Xmm0)
+        movpx_ld(Xmm6, Mebp, inf_C_RCP)
+        movpx_ld(Xmm5, Mebp, inf_EXT_2)
+        mulps_rr(Xmm6, Xmm6)
+        movpx_rr(Xmm7, Xmm6)
+        subps_rr(Xmm6, Xmm5)
+        subps_rr(Xmm6, Xmm1)
+        mulps_rr(Xmm5, Xmm7)
+        movpx_ld(Xmm7, Mebp, inf_GPC01)
+        addps_ld(Xmm7, Mebp, inf_GPC03)
+        mulps_rr(Xmm5, Xmm7)
+        movpx_rr(Xmm7, Xmm6)
+        mulps_rr(Xmm7, Xmm7)
+        addps_rr(Xmm7, Xmm5)
+        sqrps_rr(Xmm7, Xmm7)
+        addps_rr(Xmm6, Xmm7)
+        mulps_ld(Xmm6, Mebp, inf_GPC02)
+        andpx_ld(Xmm6, Mebp, inf_GPC04)
+        sqrps_rr(Xmm6, Xmm6)
+        mulps_rr(Xmm6, Xmm4)
+        addps_rr(Xmm6, Xmm6)
+        movpx_rr(Xmm2, Xmm0)
+        addps_rr(Xmm0, Xmm7)
+        mulps_rr(Xmm2, Xmm7)
+        movpx_rr(Xmm3, Xmm6)
+        mulps_rr(Xmm3, Xmm1)
+        mulps_rr(Xmm1, Xmm1)
+        addps_rr(Xmm2, Xmm1)
+        movpx_rr(Xmm1, Xmm0)
+        addps_rr(Xmm0, Xmm6)
+        subps_rr(Xmm1, Xmm6)
+        divps_rr(Xmm0, Xmm1)
+        movpx_rr(Xmm1, Xmm2)
+        addps_rr(Xmm2, Xmm3)
+        subps_rr(Xmm1, Xmm3)
+        divps_rr(Xmm2, Xmm1)
+        mulps_rr(Xmm2, Xmm0)
+        addps_rr(Xmm0, Xmm2)
+        mulps_ld(Xmm0, Mebp, inf_GPC02)
+        andpx_ld(Xmm0, Mebp, inf_GPC04)
+        movpx_st(Xmm0, Mebp, inf_O_RFL)
 
     ASM_LEAVE(s_inf)
 
-#endif /* RT_PLOT_FUNCS_REF */
+#endif /* RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE) */
 }
 
 /*
@@ -5814,16 +5814,16 @@ rt_void plot_fresnel_metal_slow(rt_SIMD_INFOP *s_inf)
  */
 rt_void plot_sin(rt_SIMD_INFOX *s_inf)
 {
-#if RT_PLOT_FUNCS_REF
+#if RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE)
 
     rt_si32 i;
 
-    for (i = 0; i < 4; i++)
+    for (i = 0; i < RT_SIMD_WIDTH; i++)
     {
-        s_inf->pts_o[i] = RT_SIN32(s_inf->hor_i[i]);
+        s_inf->pts_o[i] = RT_SIN(s_inf->hor_i[i]);
     }
 
-#else /* RT_PLOT_FUNCS_REF */
+#elif (defined RT_RENDER_CODE)
 
     ASM_ENTER(s_inf)
 
@@ -5835,7 +5835,7 @@ rt_void plot_sin(rt_SIMD_INFOX *s_inf)
 
     ASM_LEAVE(s_inf)
 
-#endif /* RT_PLOT_FUNCS_REF */
+#endif /* RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE) */
 }
 
 /*
@@ -5843,16 +5843,16 @@ rt_void plot_sin(rt_SIMD_INFOX *s_inf)
  */
 rt_void plot_cos(rt_SIMD_INFOX *s_inf)
 {
-#if RT_PLOT_FUNCS_REF
+#if RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE)
 
     rt_si32 i;
 
-    for (i = 0; i < 4; i++)
+    for (i = 0; i < RT_SIMD_WIDTH; i++)
     {
-        s_inf->pts_o[i] = RT_COS32(s_inf->hor_i[i]);
+        s_inf->pts_o[i] = RT_COS(s_inf->hor_i[i]);
     }
 
-#else /* RT_PLOT_FUNCS_REF */
+#elif (defined RT_RENDER_CODE)
 
     ASM_ENTER(s_inf)
 
@@ -5864,7 +5864,7 @@ rt_void plot_cos(rt_SIMD_INFOX *s_inf)
 
     ASM_LEAVE(s_inf)
 
-#endif /* RT_PLOT_FUNCS_REF */
+#endif /* RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE) */
 }
 
 /*
@@ -5872,16 +5872,16 @@ rt_void plot_cos(rt_SIMD_INFOX *s_inf)
  */
 rt_void plot_asin(rt_SIMD_INFOX *s_inf)
 {
-#if RT_PLOT_FUNCS_REF
+#if RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE)
 
     rt_si32 i;
 
-    for (i = 0; i < 4; i++)
+    for (i = 0; i < RT_SIMD_WIDTH; i++)
     {
-        s_inf->pts_o[i] = RT_ASIN32(s_inf->hor_i[i]);
+        s_inf->pts_o[i] = RT_ASIN(s_inf->hor_i[i]);
     }
 
-#else /* RT_PLOT_FUNCS_REF */
+#elif (defined RT_RENDER_CODE)
 
 #if RT_DEBUG >= 1
 
@@ -5897,7 +5897,7 @@ rt_void plot_asin(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_DEBUG >= 1 */
 
-#endif /* RT_PLOT_FUNCS_REF */
+#endif /* RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE) */
 }
 
 /*
@@ -5905,16 +5905,16 @@ rt_void plot_asin(rt_SIMD_INFOX *s_inf)
  */
 rt_void plot_acos(rt_SIMD_INFOX *s_inf)
 {
-#if RT_PLOT_FUNCS_REF
+#if RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE)
 
     rt_si32 i;
 
-    for (i = 0; i < 4; i++)
+    for (i = 0; i < RT_SIMD_WIDTH; i++)
     {
-        s_inf->pts_o[i] = RT_ACOS32(s_inf->hor_i[i]);
+        s_inf->pts_o[i] = RT_ACOS(s_inf->hor_i[i]);
     }
 
-#else /* RT_PLOT_FUNCS_REF */
+#elif (defined RT_RENDER_CODE)
 
 #if RT_DEBUG >= 1
 
@@ -5930,7 +5930,7 @@ rt_void plot_acos(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_DEBUG >= 1 */
 
-#endif /* RT_PLOT_FUNCS_REF */
+#endif /* RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE) */
 }
 
 #else /* RT_SIMD_CODE */
