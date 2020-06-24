@@ -68,6 +68,10 @@ W) Task title: "implement ray-sorting optimization to maximize ray-coherency"
 
 ================================================================================
 
+Y) Task title: "experiment with ray-marching algorithms and fractal shapes"
+
+================================================================================
+
 U) Task title: "implement UV-mapping for quadrics"
 1) Implement trigonometric functions across SIMD targets (check sleef for algos)
 2) Use trigonometric functions to implement UV-mapping for quadrics
