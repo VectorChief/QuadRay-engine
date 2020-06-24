@@ -312,7 +312,7 @@ rt_si32 main_step()
                 switched = 1;
             }
         }
-        if (T_KEYS(RK_Q))
+        if (T_KEYS(RK_Q) || T_KEYS(RK_T))
         {
             p_prev = p_mode;
             q_prev = q_mode;
