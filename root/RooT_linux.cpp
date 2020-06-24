@@ -208,11 +208,15 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         if (x_res > WidthOfScreen(screen)
         ||  y_res > HeightOfScreen(screen))
         {
+            RT_LOGI("Window size exceeds screen, try -w 0 for fullscreen\n");
+            return 1;
+            /*
             w_size--;
             x_res = (x_res / (w_size + 1)) * w_size;
             y_res = (y_res / (w_size + 1)) * w_size;
             x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
             RT_LOGI("Window size exceeds screen, resizing: -w %d\n", w_size);
+            */
         }
         else
         {
