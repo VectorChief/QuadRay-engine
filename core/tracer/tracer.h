@@ -35,8 +35,8 @@
  * Recommended naming scheme for C++ types and definitions is given in rtbase.h.
  *
  * Note that DP offsets below accept only 12-bit values (0xFFF),
- * use DF, DG, DH and DV for 14, 15, 16 and 31-bit offsets respectively.
- * SIMD width is taken into account via S and Q from rtarch.h
+ * use DE, DF, DG, DH and DV for 13, 14, 15, 16 and 31-bit offsets respectively.
+ * SIMD width is taken into account via R, T, S and Q from rtbase.h
  */
 
 /******************************************************************************/
