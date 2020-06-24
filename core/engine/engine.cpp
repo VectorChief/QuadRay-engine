@@ -4040,6 +4040,12 @@ rt_void rt_Scene::render_num(rt_si32 x, rt_si32 y,
  */
 rt_void rt_Scene::plot_frags()
 {
+    if (RT_ELEMENT != 32)
+    {
+        /* plotting of funcs and trigs is ignored, use fp32 target */
+        RT_LOGI("(no funcs, use fp32) ");
+    }
+
 #if RT_PLOT_FRAGS
 
     rt_real fdh[8], fdv[8];
@@ -4155,6 +4161,12 @@ rt_void plot_fresnel_metal_slow(rt_SIMD_INFOP *s_inf);
  */
 rt_void rt_Scene::plot_funcs()
 {
+    if (RT_ELEMENT != 32)
+    {
+        /* plotting of funcs and trigs is ignored, use fp32 target */
+        return;
+    }
+
 #if RT_PLOT_FUNCS
 
     /* reserve memory for temporary buffer in the heap */
@@ -4418,6 +4430,12 @@ rt_void plot_acos(rt_SIMD_INFOX *s_inf);
  */
 rt_void rt_Scene::plot_trigs()
 {
+    if (RT_ELEMENT != 32)
+    {
+        /* plotting of funcs and trigs is ignored, use fp32 target */
+        return;
+    }
+
 #if RT_PLOT_TRIGS
 
     /* reserve memory for temporary buffer in the heap */
