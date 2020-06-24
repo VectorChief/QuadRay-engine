@@ -8,9 +8,9 @@ S) Task title: "implement basic unbiased path-tracer (to match smallpt code)"
 3) Implement randomization of diffuse samples over hemisphere
 4) Enable path-tracer in "pause" mode in addition to real-time ray-tracer
 5) Allow image to converge in real-time (add new samples between updates)
-6) Check out CPPRay (https://github.com/Harha/CPPRay) + youtube video (C++Ray)
+6) Check out minpt (https://github.com/hi2p-perim/minpt) for new features
 7) Consider using SIMD pow for proper Gamma-correction with 1.0/2.2, 2.2 exp
-8) Add specular highlights on rough surfaces for path-tracer (SIMD acos, pow)
+8) Add specular highlights on glossy surfaces for path-tracer (SIMD acos, pow)
 9) Add separate self-emittance props to light surfaces in scene definition file
 
 ================================================================================
@@ -51,7 +51,7 @@ T) Task title: "consider packed SIMD tile traversal (instead of scanline)"
 4) New tile area needs to be large enough to fit maximal SIMD width
 5) Consider replacing SIMD-width-specific backend macros with runtime code
 6) Experiment with work granularity for multi-threading (1 tile?, 1 SIMD?)
-7) Formulate task for ray-sorting optimization to maximize ray-coherency (below)
+7) Formulate task for ray-sorting optimization to maximize ray-coherency, task W
 
 ================================================================================
 
