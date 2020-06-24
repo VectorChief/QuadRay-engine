@@ -5465,11 +5465,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
  */
 rt_void plot_fresnel(rt_SIMD_INFOP *s_inf)
 {
-#if RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE)
+#if RT_PLOT_FUNCS_REF
 
     rt_si32 i;
 
-    for (i = 0; i < RT_SIMD_WIDTH; i++)
+    for (i = 0; i < 4; i++)
     {
         rt_real n = s_inf->c_rfr[i];
         rt_real cosI = -s_inf->i_cos[i];
@@ -5488,7 +5488,7 @@ rt_void plot_fresnel(rt_SIMD_INFOP *s_inf)
         s_inf->o_rfl[i] = (rOrth * rOrth + rPar * rPar) * 0.5;
     }
 
-#elif (defined RT_RENDER_CODE)
+#else /* RT_PLOT_FUNCS_REF */
 
     ASM_ENTER(s_inf)
 
@@ -5552,7 +5552,7 @@ rt_void plot_fresnel(rt_SIMD_INFOP *s_inf)
 
     ASM_LEAVE(s_inf)
 
-#endif /* RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE) */
+#endif /* RT_PLOT_FUNCS_REF */
 }
 
 /*
@@ -5561,11 +5561,11 @@ rt_void plot_fresnel(rt_SIMD_INFOP *s_inf)
  */
 rt_void plot_schlick(rt_SIMD_INFOP *s_inf)
 {
-#if RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE)
+#if RT_PLOT_FUNCS_REF
 
     rt_si32 i;
 
-    for (i = 0; i < RT_SIMD_WIDTH; i++)
+    for (i = 0; i < 4; i++)
     {
         rt_real n = s_inf->c_rfr[i];
         rt_real r0 = (n - 1) / (n + 1);
@@ -5587,7 +5587,7 @@ rt_void plot_schlick(rt_SIMD_INFOP *s_inf)
         s_inf->o_rfl[i] = r0 + (1 - r0) * x * x * x * x * x;
     }
 
-#elif (defined RT_RENDER_CODE)
+#else /* RT_PLOT_FUNCS_REF */
 
     ASM_ENTER(s_inf)
 
@@ -5660,7 +5660,7 @@ rt_void plot_schlick(rt_SIMD_INFOP *s_inf)
 
     ASM_LEAVE(s_inf)
 
-#endif /* RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE) */
+#endif /* RT_PLOT_FUNCS_REF */
 }
 
 /*
@@ -5669,11 +5669,11 @@ rt_void plot_schlick(rt_SIMD_INFOP *s_inf)
  */
 rt_void plot_fresnel_metal_fast(rt_SIMD_INFOP *s_inf)
 {
-#if RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE)
+#if RT_PLOT_FUNCS_REF
 
     rt_si32 i;
 
-    for (i = 0; i < RT_SIMD_WIDTH; i++)
+    for (i = 0; i < 4; i++)
     {
         rt_real CosTheta2 = s_inf->i_cos[i] * s_inf->i_cos[i];
         rt_real TwoEtaCosTheta = 2 * s_inf->c_rcp[i] * -s_inf->i_cos[i];
@@ -5687,7 +5687,7 @@ rt_void plot_fresnel_metal_fast(rt_SIMD_INFOP *s_inf)
         s_inf->o_rfl[i] = 0.5 * (Rp + Rs);
     }
 
-#elif (defined RT_RENDER_CODE)
+#else /* RT_PLOT_FUNCS_REF */
 
     ASM_ENTER(s_inf)
 
@@ -5718,7 +5718,7 @@ rt_void plot_fresnel_metal_fast(rt_SIMD_INFOP *s_inf)
 
     ASM_LEAVE(s_inf)
 
-#endif /* RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE) */
+#endif /* RT_PLOT_FUNCS_REF */
 }
 
 /*
@@ -5727,11 +5727,11 @@ rt_void plot_fresnel_metal_fast(rt_SIMD_INFOP *s_inf)
  */
 rt_void plot_fresnel_metal_slow(rt_SIMD_INFOP *s_inf)
 {
-#if RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE)
+#if RT_PLOT_FUNCS_REF
 
     rt_si32 i;
 
-    for (i = 0; i < RT_SIMD_WIDTH; i++)
+    for (i = 0; i < 4; i++)
     {
         rt_real CosTheta = -s_inf->i_cos[i];
         rt_real Eta2 = s_inf->c_rcp[i] * s_inf->c_rcp[i];
@@ -5754,7 +5754,7 @@ rt_void plot_fresnel_metal_slow(rt_SIMD_INFOP *s_inf)
         s_inf->o_rfl[i] = 0.5 * (Rp + Rs);
     }
 
-#elif (defined RT_RENDER_CODE)
+#else /* RT_PLOT_FUNCS_REF */
 
     ASM_ENTER(s_inf)
 
@@ -5806,7 +5806,7 @@ rt_void plot_fresnel_metal_slow(rt_SIMD_INFOP *s_inf)
 
     ASM_LEAVE(s_inf)
 
-#endif /* RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE) */
+#endif /* RT_PLOT_FUNCS_REF */
 }
 
 /*
@@ -5814,16 +5814,16 @@ rt_void plot_fresnel_metal_slow(rt_SIMD_INFOP *s_inf)
  */
 rt_void plot_sin(rt_SIMD_INFOX *s_inf)
 {
-#if RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE)
+#if RT_PLOT_FUNCS_REF
 
     rt_si32 i;
 
-    for (i = 0; i < RT_SIMD_WIDTH; i++)
+    for (i = 0; i < 4; i++)
     {
         s_inf->pts_o[i] = RT_SIN(s_inf->hor_i[i]);
     }
 
-#elif (defined RT_RENDER_CODE)
+#else /* RT_PLOT_FUNCS_REF */
 
     ASM_ENTER(s_inf)
 
@@ -5835,7 +5835,7 @@ rt_void plot_sin(rt_SIMD_INFOX *s_inf)
 
     ASM_LEAVE(s_inf)
 
-#endif /* RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE) */
+#endif /* RT_PLOT_FUNCS_REF */
 }
 
 /*
@@ -5843,16 +5843,16 @@ rt_void plot_sin(rt_SIMD_INFOX *s_inf)
  */
 rt_void plot_cos(rt_SIMD_INFOX *s_inf)
 {
-#if RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE)
+#if RT_PLOT_FUNCS_REF
 
     rt_si32 i;
 
-    for (i = 0; i < RT_SIMD_WIDTH; i++)
+    for (i = 0; i < 4; i++)
     {
         s_inf->pts_o[i] = RT_COS(s_inf->hor_i[i]);
     }
 
-#elif (defined RT_RENDER_CODE)
+#else /* RT_PLOT_FUNCS_REF */
 
     ASM_ENTER(s_inf)
 
@@ -5864,7 +5864,7 @@ rt_void plot_cos(rt_SIMD_INFOX *s_inf)
 
     ASM_LEAVE(s_inf)
 
-#endif /* RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE) */
+#endif /* RT_PLOT_FUNCS_REF */
 }
 
 /*
@@ -5872,16 +5872,16 @@ rt_void plot_cos(rt_SIMD_INFOX *s_inf)
  */
 rt_void plot_asin(rt_SIMD_INFOX *s_inf)
 {
-#if RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE)
+#if RT_PLOT_FUNCS_REF
 
     rt_si32 i;
 
-    for (i = 0; i < RT_SIMD_WIDTH; i++)
+    for (i = 0; i < 4; i++)
     {
         s_inf->pts_o[i] = RT_ASIN(s_inf->hor_i[i]);
     }
 
-#elif (defined RT_RENDER_CODE)
+#else /* RT_PLOT_FUNCS_REF */
 
 #if RT_DEBUG >= 1
 
@@ -5897,7 +5897,7 @@ rt_void plot_asin(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_DEBUG >= 1 */
 
-#endif /* RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE) */
+#endif /* RT_PLOT_FUNCS_REF */
 }
 
 /*
@@ -5905,16 +5905,16 @@ rt_void plot_asin(rt_SIMD_INFOX *s_inf)
  */
 rt_void plot_acos(rt_SIMD_INFOX *s_inf)
 {
-#if RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE)
+#if RT_PLOT_FUNCS_REF
 
     rt_si32 i;
 
-    for (i = 0; i < RT_SIMD_WIDTH; i++)
+    for (i = 0; i < 4; i++)
     {
         s_inf->pts_o[i] = RT_ACOS(s_inf->hor_i[i]);
     }
 
-#elif (defined RT_RENDER_CODE)
+#else /* RT_PLOT_FUNCS_REF */
 
 #if RT_DEBUG >= 1
 
@@ -5930,7 +5930,7 @@ rt_void plot_acos(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_DEBUG >= 1 */
 
-#endif /* RT_PLOT_FUNCS_REF && (defined RT_RENDER_CODE) */
+#endif /* RT_PLOT_FUNCS_REF */
 }
 
 #else /* RT_SIMD_CODE */
