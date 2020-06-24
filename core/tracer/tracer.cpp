@@ -1056,6 +1056,8 @@
         mulps_rr(W(XS), W(T1))                                              \
         fmaps3ld(W(XD), W(XS), Mebp, inf_COS_8)
 
+#if RT_DEBUG >= 1 /* asin/acos under debug as not used yet */
+
 /*
  * Calculate polynomial approximation for asin.
  * The approximation method is taken from:
@@ -1106,6 +1108,8 @@
         andpx3ld(W(T3), W(XS), Mebp, inf_GPC06)                             \
         xorpx_rr(W(T2), W(T3))                                              \
         subps3rr(W(XD), W(T1), W(T2))
+
+#endif /* RT_DEBUG >= 1 */
 
 /*
  * Replicate subroutine calling behaviour
@@ -2729,6 +2733,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* pow approximation with power series
          * may involve calculating log and exp */
+
+        /* any addition of new fields to INFOX
+         * will require adjusting RT_DATA load */
 
         /* add self-emission */
         addps_ld(Xmm1, Medx, mat_COL_R)
@@ -5175,6 +5182,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* pow approximation with power series
          * may involve calculating log and exp */
 
+        /* any addition of new fields to INFOX
+         * will require adjusting RT_DATA load */
+
 /******************************************************************************/
 /********************************   OBJ DONE   ********************************/
 /******************************************************************************/
@@ -5873,6 +5883,8 @@ rt_void plot_asin(rt_SIMD_INFOX *s_inf)
 
 #else /* RT_PLOT_FUNCS_REF */
 
+#if RT_DEBUG >= 1
+
     ASM_ENTER(s_inf)
 
         movpx_ld(Xmm7, Mebp, inf_HOR_I)
@@ -5882,6 +5894,8 @@ rt_void plot_asin(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm6, Mebp, inf_PTS_O)
 
     ASM_LEAVE(s_inf)
+
+#endif /* RT_DEBUG >= 1 */
 
 #endif /* RT_PLOT_FUNCS_REF */
 }
@@ -5902,6 +5916,8 @@ rt_void plot_acos(rt_SIMD_INFOX *s_inf)
 
 #else /* RT_PLOT_FUNCS_REF */
 
+#if RT_DEBUG >= 1
+
     ASM_ENTER(s_inf)
 
         movpx_ld(Xmm7, Mebp, inf_HOR_I)
@@ -5911,6 +5927,8 @@ rt_void plot_acos(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm6, Mebp, inf_PTS_O)
 
     ASM_LEAVE(s_inf)
+
+#endif /* RT_DEBUG >= 1 */
 
 #endif /* RT_PLOT_FUNCS_REF */
 }

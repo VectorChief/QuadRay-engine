@@ -899,12 +899,16 @@ rt_SceneThread::rt_SceneThread(rt_Scene *scene, rt_si32 index) :
     RT_SIMD_SET(s_inf->cos_6, -0.0013888888888888888888888888888888888888888);
     RT_SIMD_SET(s_inf->cos_8, +0.0000248015873015873015873015873015873015873);
 
+#if RT_DEBUG >= 1
+
     /* init polynomial constants for asin, acos */
     RT_SIMD_SET(s_inf->asn_1, -0.0187293);
     RT_SIMD_SET(s_inf->asn_2, +0.0742610);
     RT_SIMD_SET(s_inf->asn_3, -0.2121144);
     RT_SIMD_SET(s_inf->asn_4, +1.5707288);
     RT_SIMD_SET(s_inf->tmp_1, +RT_PI_2);
+
+#endif /* RT_DEBUG >= 1 */
 
     /* allocate cam SIMD structure */
     s_cam = (rt_SIMD_CAMERA *)
@@ -4417,12 +4421,16 @@ rt_void rt_Scene::plot_trigs()
     RT_SIMD_SET(s_inf->cos_6, -0.0013888888888888888888888888888888888888888);
     RT_SIMD_SET(s_inf->cos_8, +0.0000248015873015873015873015873015873015873);
 
+#if RT_DEBUG >= 1
+
     /* init polynomial constants for asin, acos */
     RT_SIMD_SET(s_inf->asn_1, -0.0187293);
     RT_SIMD_SET(s_inf->asn_2, +0.0742610);
     RT_SIMD_SET(s_inf->asn_3, -0.2121144);
     RT_SIMD_SET(s_inf->asn_4, +1.5707288);
     RT_SIMD_SET(s_inf->tmp_1, +RT_PI_2);
+
+#endif /* RT_DEBUG >= 1 */
 
     /* allocate regs SIMD structure */
     rt_SIMD_REGS *s_reg = (rt_SIMD_REGS *)
@@ -4490,6 +4498,8 @@ rt_void rt_Scene::plot_trigs()
 
     save_frame(990);
 
+#if RT_DEBUG >= 1
+
     /* asin/acos plotting is not up to scale yet */
     s = 2.0f / x_res;
     t = 1.0f / RT_PI;
@@ -4521,6 +4531,8 @@ rt_void rt_Scene::plot_trigs()
     }
 
     save_frame(900);
+
+#endif /* RT_DEBUG >= 1 */
 
     ASM_DONE(s_inf)
 

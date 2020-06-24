@@ -16,7 +16,11 @@
  * 16  means 1/16 DP-level  (8-bit displacements) has not been exceeded (Q=1).
  * NOTE: the built-in rt_SIMD_INFO structure is already filled at full 1/16th.
  */
+#if RT_DEBUG >= 1
 #define RT_DATA 2 /* for rt_SIMD_INFOX */
+#else /* RT_DEBUG == 0 */
+#define RT_DATA 4 /* all fit if no debug */
+#endif /* RT_DEBUG == 0 */
 
 #include "rtbase.h"
 
@@ -282,6 +286,10 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_real cos_8[S];
 #define inf_COS_8           DP(Q*0x1F0+0x100*P)
 
+#if RT_DEBUG >= 1
+
+    /* asin/acos under debug as not used yet */
+
     rt_real asn_1[S];
 #define inf_ASN_1           DP(Q*0x200+0x100*P)
 
@@ -308,8 +316,6 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
 
     rt_real pad12[S*8];
 #define inf_PAD12           DP(Q*0x280+0x100*P)
-
-#if RT_DEBUG >= 1
 
     /* quadric debug info */
 
