@@ -51,7 +51,20 @@ T) Task title: "consider packed SIMD tile traversal (instead of scanline)"
 4) New tile area needs to be large enough to fit maximal SIMD width
 5) Consider replacing SIMD-width-specific backend macros with runtime code
 6) Experiment with work granularity for multi-threading (1 tile?, 1 SIMD?)
-7) Formulate task for ray-sorting optimization to maximize ray-coherency
+7) Formulate task for ray-sorting optimization to maximize ray-coherency (below)
+
+================================================================================
+
+W) Task title: "implement ray-sorting optimization to maximize ray-coherency"
+1) Add SIMD-field to rt_SIMD_CONTEXT with pointers to contributing surfaces
+2) Add array of SIMD-buffers for nodes in the hierarchy (per thread, per level)
+3) Process each SIMD through tile-list first before going to the next level
+4) Step 3 separates ray-hit logic from recursive shading (eliminates overdraw)
+5) Copy ray-hits to per node SIMD-buffers with step 1 data collected in step 3
+6) Each per thread, per level section of per node SIMD-buffer is split in half
+7) Full SIMD per node is copied to the 1st half, partial SIMD to the 2nd half
+8) Full SIMD per node is copied using SIMD ops, partial SIMD one by one element
+9) Once either half is filled process it to the next level per node, per thread
 
 ================================================================================
 
