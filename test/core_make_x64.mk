@@ -100,9 +100,12 @@ core_test_x64f64:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.x64f64
 
 
+# On Ubuntu (MATE) 16.04-20.04 add "universe multiverse" to "main restricted"
+# in /etc/apt/sources.list (sudo nano /etc/apt/sources.list) then run:
+# sudo apt-get update
+#
 # Prerequisites for the build:
 # native-compiler for x86_64 is installed and in the PATH variable.
-# sudo apt-get update
 # sudo apt-get install make g++
 #
 # When building on macOS install Command Line Tools first.
@@ -115,8 +118,7 @@ core_test_x64f64:
 # Use "-c 1" option to reduce test time when emulating with Intel SDE
 
 # Clang native build works too (takes much longer prior to 3.8), use (replace):
-# clang++ (in place of g++) on Ubuntu add "universe" to /etc/apt/sources.list
-# sudo apt-get update
+# clang++ (in place of g++)
 # sudo apt-get install clang
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
