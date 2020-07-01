@@ -3994,7 +3994,7 @@ rt_void rt_Scene::plot_funcs()
     ASM_INIT(s_inf, s_reg)
 
     rt_si32 i, h = y_res - 1;
-    rt_real s = 1.57f / x_res;
+    rt_fp32 s = RT_PI_2 / x_res;
 
     RT_SIMD_SET32(s_inf->c_rfr, (1.0/1.5));
     RT_SIMD_SET32(s_inf->rfr_2, (1.0/1.5)*(1.0/1.5));
@@ -4003,10 +4003,10 @@ rt_void rt_Scene::plot_funcs()
 
     for (i = 0; i < x_res / 4; i++)
     {
-        s_inf->i_cos[0*4+0] = -cosf(s*(i*4+0));
-        s_inf->i_cos[0*4+1] = -cosf(s*(i*4+1));
-        s_inf->i_cos[0*4+2] = -cosf(s*(i*4+2));
-        s_inf->i_cos[0*4+3] = -cosf(s*(i*4+3));
+        s_inf->i_cos[0*4+0] = -RT_COS32(s*(i*4+0));
+        s_inf->i_cos[0*4+1] = -RT_COS32(s*(i*4+1));
+        s_inf->i_cos[0*4+2] = -RT_COS32(s*(i*4+2));
+        s_inf->i_cos[0*4+3] = -RT_COS32(s*(i*4+3));
 
         simd_128v4::plot_fresnel(s_inf);
 
@@ -4031,10 +4031,10 @@ rt_void rt_Scene::plot_funcs()
 
     for (i = 0; i < x_res / 4; i++)
     {
-        s_inf->i_cos[0*4+0] = -cosf(s*(i*4+0));
-        s_inf->i_cos[0*4+1] = -cosf(s*(i*4+1));
-        s_inf->i_cos[0*4+2] = -cosf(s*(i*4+2));
-        s_inf->i_cos[0*4+3] = -cosf(s*(i*4+3));
+        s_inf->i_cos[0*4+0] = -RT_COS32(s*(i*4+0));
+        s_inf->i_cos[0*4+1] = -RT_COS32(s*(i*4+1));
+        s_inf->i_cos[0*4+2] = -RT_COS32(s*(i*4+2));
+        s_inf->i_cos[0*4+3] = -RT_COS32(s*(i*4+3));
 
         simd_128v4::plot_schlick(s_inf);
 
@@ -4062,10 +4062,10 @@ rt_void rt_Scene::plot_funcs()
 
     for (i = 0; i < x_res / 4; i++)
     {
-        s_inf->i_cos[0*4+0] = -cosf(s*(i*4+0));
-        s_inf->i_cos[0*4+1] = -cosf(s*(i*4+1));
-        s_inf->i_cos[0*4+2] = -cosf(s*(i*4+2));
-        s_inf->i_cos[0*4+3] = -cosf(s*(i*4+3));
+        s_inf->i_cos[0*4+0] = -RT_COS32(s*(i*4+0));
+        s_inf->i_cos[0*4+1] = -RT_COS32(s*(i*4+1));
+        s_inf->i_cos[0*4+2] = -RT_COS32(s*(i*4+2));
+        s_inf->i_cos[0*4+3] = -RT_COS32(s*(i*4+3));
 
         simd_128v4::plot_fresnel(s_inf);
 
@@ -4090,10 +4090,10 @@ rt_void rt_Scene::plot_funcs()
 
     for (i = 0; i < x_res / 4; i++)
     {
-        s_inf->i_cos[0*4+0] = -cosf(s*(i*4+0));
-        s_inf->i_cos[0*4+1] = -cosf(s*(i*4+1));
-        s_inf->i_cos[0*4+2] = -cosf(s*(i*4+2));
-        s_inf->i_cos[0*4+3] = -cosf(s*(i*4+3));
+        s_inf->i_cos[0*4+0] = -RT_COS32(s*(i*4+0));
+        s_inf->i_cos[0*4+1] = -RT_COS32(s*(i*4+1));
+        s_inf->i_cos[0*4+2] = -RT_COS32(s*(i*4+2));
+        s_inf->i_cos[0*4+3] = -RT_COS32(s*(i*4+3));
 
         simd_128v4::plot_schlick(s_inf);
 
@@ -4121,10 +4121,10 @@ rt_void rt_Scene::plot_funcs()
 
     for (i = 0; i < x_res / 4; i++)
     {
-        s_inf->i_cos[0*4+0] = -cosf(s*(i*4+0));
-        s_inf->i_cos[0*4+1] = -cosf(s*(i*4+1));
-        s_inf->i_cos[0*4+2] = -cosf(s*(i*4+2));
-        s_inf->i_cos[0*4+3] = -cosf(s*(i*4+3));
+        s_inf->i_cos[0*4+0] = -RT_COS32(s*(i*4+0));
+        s_inf->i_cos[0*4+1] = -RT_COS32(s*(i*4+1));
+        s_inf->i_cos[0*4+2] = -RT_COS32(s*(i*4+2));
+        s_inf->i_cos[0*4+3] = -RT_COS32(s*(i*4+3));
 
         simd_128v4::plot_fresnel_metal_fast(s_inf);
 
@@ -4149,10 +4149,10 @@ rt_void rt_Scene::plot_funcs()
 
     for (i = 0; i < x_res / 4; i++)
     {
-        s_inf->i_cos[0*4+0] = -cosf(s*(i*4+0));
-        s_inf->i_cos[0*4+1] = -cosf(s*(i*4+1));
-        s_inf->i_cos[0*4+2] = -cosf(s*(i*4+2));
-        s_inf->i_cos[0*4+3] = -cosf(s*(i*4+3));
+        s_inf->i_cos[0*4+0] = -RT_COS32(s*(i*4+0));
+        s_inf->i_cos[0*4+1] = -RT_COS32(s*(i*4+1));
+        s_inf->i_cos[0*4+2] = -RT_COS32(s*(i*4+2));
+        s_inf->i_cos[0*4+3] = -RT_COS32(s*(i*4+3));
 
         simd_128v4::plot_fresnel_metal_slow(s_inf);
 
@@ -4192,11 +4192,11 @@ rt_void rt_Scene::plot_funcs()
     /* plot reference and actual Gamma color conversion */
     for (i = 0, s = r; i <= r; i++)
     {
-        frame[(y+int((1.0f-RT_POW(i/s,1/2.2))*s))*x_row+x+i] = 0x00FF0000;
-        frame[(y+int((1.0f-RT_POW(i/s,  2.2))*s))*x_row+x+i] = 0x00FF0000;
+        frame[(y+int((1.0f-RT_POW32(i/s,1/2.2))*s))*x_row+x+i] = 0x00FF0000;
+        frame[(y+int((1.0f-RT_POW32(i/s,  2.2))*s))*x_row+x+i] = 0x00FF0000;
 
-        frame[(y+int((1.0f-RT_POW(i/s,1/2.0))*s))*x_row+x+i] = 0x0000FF00;
-        frame[(y+int((1.0f-RT_POW(i/s,  2.0))*s))*x_row+x+i] = 0x0000FF00;
+        frame[(y+int((1.0f-RT_POW32(i/s,1/2.0))*s))*x_row+x+i] = 0x0000FF00;
+        frame[(y+int((1.0f-RT_POW32(i/s,  2.0))*s))*x_row+x+i] = 0x0000FF00;
     }
 
     save_frame(970);
