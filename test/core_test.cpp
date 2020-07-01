@@ -14,7 +14,7 @@
 /*******************************   DEFINITIONS   ******************************/
 /******************************************************************************/
 
-#define RUN_LEVEL           18
+#define SUB_TEST            18
 #define CYC_SIZE            3
 
 #define RT_X_RES            800
@@ -44,7 +44,7 @@ rt_ui32    *frame       = RT_NULL;
 rt_Scene   *scene       = RT_NULL;
 
 rt_si32     n_init      = 0;            /* subtest-init (from command-line) */
-rt_si32     n_done      = RUN_LEVEL-1;  /* subtest-done (from command-line) */
+rt_si32     n_done      = SUB_TEST-1;   /* subtest-done (from command-line) */
 rt_si32     f_num       =-1;        /* number-of-frames (from command-line) */
 rt_time     f_time      = 16;       /* frame-delta-(ms) (from command-line) */
 rt_si32     n_simd      = 0;        /* SIMD-native-size (from command-line) */
@@ -183,10 +183,10 @@ rt_void frame_max(rt_ui32 *fd)
 rt_Platform pfm(sys_alloc, sys_free);
 
 /******************************************************************************/
-/******************************   RUN LEVEL  1   ******************************/
+/*******************************   SUB TEST  1   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >=  1
+#if SUB_TEST >=  1
 
 #include "scn_test01.h"
 
@@ -196,13 +196,13 @@ rt_void o_test01()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL  1 */
+#endif /* SUB_TEST  1 */
 
 /******************************************************************************/
-/******************************   RUN LEVEL  2   ******************************/
+/*******************************   SUB TEST  2   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >=  2
+#if SUB_TEST >=  2
 
 #include "scn_test02.h"
 
@@ -212,13 +212,13 @@ rt_void o_test02()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL  2 */
+#endif /* SUB_TEST  2 */
 
 /******************************************************************************/
-/******************************   RUN LEVEL  3   ******************************/
+/*******************************   SUB TEST  3   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >=  3
+#if SUB_TEST >=  3
 
 #include "scn_test03.h"
 
@@ -228,13 +228,13 @@ rt_void o_test03()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL  3 */
+#endif /* SUB_TEST  3 */
 
 /******************************************************************************/
-/******************************   RUN LEVEL  4   ******************************/
+/*******************************   SUB TEST  4   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >=  4
+#if SUB_TEST >=  4
 
 #include "scn_test04.h"
 
@@ -244,13 +244,13 @@ rt_void o_test04()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL  4 */
+#endif /* SUB_TEST  4 */
 
 /******************************************************************************/
-/******************************   RUN LEVEL  5   ******************************/
+/*******************************   SUB TEST  5   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >=  5
+#if SUB_TEST >=  5
 
 #include "scn_test05.h"
 
@@ -260,13 +260,13 @@ rt_void o_test05()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL  5 */
+#endif /* SUB_TEST  5 */
 
 /******************************************************************************/
-/******************************   RUN LEVEL  6   ******************************/
+/*******************************   SUB TEST  6   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >=  6
+#if SUB_TEST >=  6
 
 #include "scn_test06.h"
 
@@ -276,13 +276,13 @@ rt_void o_test06()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL  6 */
+#endif /* SUB_TEST  6 */
 
 /******************************************************************************/
-/******************************   RUN LEVEL  7   ******************************/
+/*******************************   SUB TEST  7   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >=  7
+#if SUB_TEST >=  7
 
 #include "scn_test07.h"
 
@@ -292,13 +292,13 @@ rt_void o_test07()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL  7 */
+#endif /* SUB_TEST  7 */
 
 /******************************************************************************/
-/******************************   RUN LEVEL  8   ******************************/
+/*******************************   SUB TEST  8   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >=  8
+#if SUB_TEST >=  8
 
 #include "scn_test08.h"
 
@@ -308,13 +308,13 @@ rt_void o_test08()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL  8 */
+#endif /* SUB_TEST  8 */
 
 /******************************************************************************/
-/******************************   RUN LEVEL  9   ******************************/
+/*******************************   SUB TEST  9   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >=  9
+#if SUB_TEST >=  9
 
 #include "scn_test09.h"
 
@@ -324,13 +324,13 @@ rt_void o_test09()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL  9 */
+#endif /* SUB_TEST  9 */
 
 /******************************************************************************/
-/******************************   RUN LEVEL 10   ******************************/
+/*******************************   SUB TEST 10   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >= 10
+#if SUB_TEST >= 10
 
 #include "scn_test10.h"
 
@@ -340,13 +340,13 @@ rt_void o_test10()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL 10 */
+#endif /* SUB_TEST 10 */
 
 /******************************************************************************/
-/******************************   RUN LEVEL 11   ******************************/
+/*******************************   SUB TEST 11   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >= 11
+#if SUB_TEST >= 11
 
 #include "scn_test11.h"
 
@@ -356,13 +356,13 @@ rt_void o_test11()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL 11 */
+#endif /* SUB_TEST 11 */
 
 /******************************************************************************/
-/******************************   RUN LEVEL 12   ******************************/
+/*******************************   SUB TEST 12   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >= 12
+#if SUB_TEST >= 12
 
 #include "scn_test12.h"
 
@@ -372,13 +372,13 @@ rt_void o_test12()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL 12 */
+#endif /* SUB_TEST 12 */
 
 /******************************************************************************/
-/******************************   RUN LEVEL 13   ******************************/
+/*******************************   SUB TEST 13   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >= 13
+#if SUB_TEST >= 13
 
 #include "scn_test13.h"
 
@@ -388,13 +388,13 @@ rt_void o_test13()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL 13 */
+#endif /* SUB_TEST 13 */
 
 /******************************************************************************/
-/******************************   RUN LEVEL 14   ******************************/
+/*******************************   SUB TEST 14   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >= 14
+#if SUB_TEST >= 14
 
 #include "scn_test14.h"
 
@@ -404,13 +404,13 @@ rt_void o_test14()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL 14 */
+#endif /* SUB_TEST 14 */
 
 /******************************************************************************/
-/******************************   RUN LEVEL 15   ******************************/
+/*******************************   SUB TEST 15   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >= 15
+#if SUB_TEST >= 15
 
 #include "scn_test15.h"
 
@@ -420,13 +420,13 @@ rt_void o_test15()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL 15 */
+#endif /* SUB_TEST 15 */
 
 /******************************************************************************/
-/******************************   RUN LEVEL 16   ******************************/
+/*******************************   SUB TEST 16   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >= 16
+#if SUB_TEST >= 16
 
 #include "scn_test16.h"
 
@@ -436,13 +436,13 @@ rt_void o_test16()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL 16 */
+#endif /* SUB_TEST 16 */
 
 /******************************************************************************/
-/******************************   RUN LEVEL 17   ******************************/
+/*******************************   SUB TEST 17   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >= 17
+#if SUB_TEST >= 17
 
 #include "scn_test17.h"
 
@@ -452,13 +452,13 @@ rt_void o_test17()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL 17 */
+#endif /* SUB_TEST 17 */
 
 /******************************************************************************/
-/******************************   RUN LEVEL 18   ******************************/
+/*******************************   SUB TEST 18   ******************************/
 /******************************************************************************/
 
-#if RUN_LEVEL >= 18
+#if SUB_TEST >= 18
 
 #include "scn_test18.h"
 
@@ -468,7 +468,7 @@ rt_void o_test18()
                                x_res, y_res, x_row, RT_NULL, &pfm);
 }
 
-#endif /* RUN_LEVEL 18 */
+#endif /* SUB_TEST 18 */
 
 /******************************************************************************/
 /*********************************   TABLES   *********************************/
@@ -476,79 +476,79 @@ rt_void o_test18()
 
 typedef rt_void (*testXX)();
 
-testXX o_test[RUN_LEVEL] =
+testXX o_test[SUB_TEST] =
 {
-#if RUN_LEVEL >=  1
+#if SUB_TEST >=  1
     o_test01,
-#endif /* RUN_LEVEL  1 */
+#endif /* SUB_TEST  1 */
 
-#if RUN_LEVEL >=  2
+#if SUB_TEST >=  2
     o_test02,
-#endif /* RUN_LEVEL  2 */
+#endif /* SUB_TEST  2 */
 
-#if RUN_LEVEL >=  3
+#if SUB_TEST >=  3
     o_test03,
-#endif /* RUN_LEVEL  3 */
+#endif /* SUB_TEST  3 */
 
-#if RUN_LEVEL >=  4
+#if SUB_TEST >=  4
     o_test04,
-#endif /* RUN_LEVEL  4 */
+#endif /* SUB_TEST  4 */
 
-#if RUN_LEVEL >=  5
+#if SUB_TEST >=  5
     o_test05,
-#endif /* RUN_LEVEL  5 */
+#endif /* SUB_TEST  5 */
 
-#if RUN_LEVEL >=  6
+#if SUB_TEST >=  6
     o_test06,
-#endif /* RUN_LEVEL  6 */
+#endif /* SUB_TEST  6 */
 
-#if RUN_LEVEL >=  7
+#if SUB_TEST >=  7
     o_test07,
-#endif /* RUN_LEVEL  7 */
+#endif /* SUB_TEST  7 */
 
-#if RUN_LEVEL >=  8
+#if SUB_TEST >=  8
     o_test08,
-#endif /* RUN_LEVEL  8 */
+#endif /* SUB_TEST  8 */
 
-#if RUN_LEVEL >=  9
+#if SUB_TEST >=  9
     o_test09,
-#endif /* RUN_LEVEL  9 */
+#endif /* SUB_TEST  9 */
 
-#if RUN_LEVEL >= 10
+#if SUB_TEST >= 10
     o_test10,
-#endif /* RUN_LEVEL 10 */
+#endif /* SUB_TEST 10 */
 
-#if RUN_LEVEL >= 11
+#if SUB_TEST >= 11
     o_test11,
-#endif /* RUN_LEVEL 11 */
+#endif /* SUB_TEST 11 */
 
-#if RUN_LEVEL >= 12
+#if SUB_TEST >= 12
     o_test12,
-#endif /* RUN_LEVEL 12 */
+#endif /* SUB_TEST 12 */
 
-#if RUN_LEVEL >= 13
+#if SUB_TEST >= 13
     o_test13,
-#endif /* RUN_LEVEL 13 */
+#endif /* SUB_TEST 13 */
 
-#if RUN_LEVEL >= 14
+#if SUB_TEST >= 14
     o_test14,
-#endif /* RUN_LEVEL 14 */
+#endif /* SUB_TEST 14 */
 
-#if RUN_LEVEL >= 15
+#if SUB_TEST >= 15
     o_test15,
-#endif /* RUN_LEVEL 15 */
+#endif /* SUB_TEST 15 */
 
-#if RUN_LEVEL >= 16
+#if SUB_TEST >= 16
     o_test16,
-#endif /* RUN_LEVEL 16 */
+#endif /* SUB_TEST 16 */
 
-#if RUN_LEVEL >= 17
+#if SUB_TEST >= 17
     o_test17,
-#endif /* RUN_LEVEL 17 */
+#endif /* SUB_TEST 17 */
 
-#if RUN_LEVEL >= 18
+#if SUB_TEST >= 18
     o_test18,
-#endif /* RUN_LEVEL 18 */
+#endif /* SUB_TEST 18 */
 };
 
 /******************************************************************************/
@@ -628,7 +628,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             {
                 t += (argv[k][l-1] - '0') * r;
             }
-            if (t >= 1 && t <= RUN_LEVEL)
+            if (t >= 1 && t <= SUB_TEST)
             {
                 RT_LOGI("Subtest-index-init overridden: %d\n", t);
                 n_init = t-1;
@@ -645,7 +645,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             {
                 t += (argv[k][l-1] - '0') * r;
             }
-            if (t >= 1 && t <= RUN_LEVEL)
+            if (t >= 1 && t <= SUB_TEST)
             {
                 RT_LOGI("Subtest-index-done overridden: %d\n", t);
                 n_done = t-1;
@@ -921,7 +921,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
     frame = (rt_ui32 *)sys_alloc(x_row * y_res * sizeof(rt_ui32));
 
-    RT_LOGI("-------------------  TARGET CONFIG  --------------------\n");
+    RT_LOGI("------------------  TARGET CONFIG  ---------------------\n");
     RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d %s\n",
                                n_simd * 128, k_size, s_type, tile_w / 8,
                                1 << a_mode, a_mode ? "(spp)" : "(off)");
@@ -935,7 +935,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
     for (i = n_init; i <= n_done; i++)
     {
-        RT_LOGI("-------------------  RUN LEVEL = %2d  - ptr/fp = %d%s%d --\n",
+        RT_LOGI("--------------------  SUB TEST = %2d  - ptr/fp = %d%s%d --\n",
                     i+1, RT_POINTER, RT_ADDRESS == 32 ? "_" : "f", RT_ELEMENT);
         try
         {
