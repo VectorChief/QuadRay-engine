@@ -571,7 +571,7 @@ rt_Platform::rt_Platform(rt_FUNC_ALLOC f_alloc, rt_FUNC_FREE f_free,
 
     /* init rendering backend,
      * default SIMD runtime target will be chosen */
-    fsaa  = RT_FSAA_NO;
+    fsaa = RT_FSAA_NO;
     set_simd(0);
 }
 
@@ -627,13 +627,31 @@ rt_void simd_version(rt_SIMD_INFOX *s_inf)
  */
 rt_si32 rt_Platform::set_simd(rt_si32 simd)
 {
-    /* working with simd in the old format */
     simd = switch0(s_inf, simd);
 
     simd_quads = (simd & 0xFF) * ((simd >> 16) & 0xFF);
     simd_width = (simd_quads * 128) / RT_ELEMENT;
 
+    /* code below blocks SIMD target switch if incompatible with current AA */
+
+    rt_si32 fsaa = this->fsaa;
+
     set_fsaa(fsaa);
+
+    if (this->fsaa != fsaa)
+    {
+        this->fsaa = fsaa;
+        simd = this->simd;
+
+        simd = switch0(s_inf, simd);
+
+        simd_quads = (simd & 0xFF) * ((simd >> 16) & 0xFF);
+        simd_width = (simd_quads * 128) / RT_ELEMENT;
+    }
+
+    /* code above blocks SIMD target switch if incompatible with current AA */
+
+    this->simd = simd;
 
     return simd;
 }

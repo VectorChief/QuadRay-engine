@@ -374,9 +374,10 @@ rt_si32 main_step()
         }
         if (T_KEYS(RK_F2) || T_KEYS(RK_2))
         {
+            rt_si32 a_prev = a_mode;
             a_mode = (a_mode + 1) % (pfm->get_fsaa_max() + 1);
             a_mode = pfm->set_fsaa(a_mode);
-            switched = 1;
+            switched = a_prev != a_mode ? 1 : switched;
         }
         if (T_KEYS(RK_F3) || T_KEYS(RK_3))
         {
@@ -942,11 +943,24 @@ rt_si32 main_init()
         pfm = new rt_Platform(sys_alloc, sys_free, thnum,
                               init_threads, term_threads,
                               update_scene, render_scene);
+    }
+    catch (rt_Exception e)
+    {
+        RT_LOGE("Exception in main_init, %s %d: %s\n",
+                i+1 ? "scene" : "platform", i+1, e.err);
+        return 0;
+    }
 
-        simd = pfm->set_simd(simd_init(n_simd, s_type, k_size));
-        a_mode = pfm->set_fsaa(a_mode);
-        tile_w = pfm->get_tile_w();
+    simd = pfm->set_simd(simd_init(n_simd, s_type, k_size));
+    if (a_mode != pfm->set_fsaa(a_mode))
+    {
+        RT_LOGI("Requested antialiasing mode not supported, check options\n");
+        return 0;
+    }
+    tile_w = pfm->get_tile_w();
 
+    try
+    {
         for (i = 0; i < n; i++)
         {
             sc[i] = new(pfm) rt_Scene(sc_rt[i],
