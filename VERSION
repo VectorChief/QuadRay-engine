@@ -41,6 +41,21 @@
   - add preliminary support for POWER9 fp128 SIMD ops (not tested)
   - add preliminary support for ARMv8.2 fp16 SIMD ops (not tested)
 
+v0.7.0d: QuadRay, code name "GIzmo+d"
+  - clean up task descriptions in roadmap
+  - add notes for Ubuntu, QEMU, MIPS cross-compilers
+  - add Ubuntu (MATE) 20.04 LTS to makefile notes
+  - update standalone MIPS compiler to 2020.06-01
+  - change RUN_LEVEL to SUB_TEST for better wording
+  - clean up comment about displacement values
+  - add initial documentation for the assembler
+  - add sin/cos and log/exp math definitions to rtbase
+  - block antialiasing adjustment when limited by SIMD
+  - block window resizing when exceeds screen
+  - use portable definitions in plotters, clean up in engine and tracer
+  - add new task to roadmap for ray-marching algorithms
+  - add new task to roadmap for ray-sorting optimization
+
 v0.7.0c: QuadRay, code name "GIzmo++", celebration edition
   - celebrating C++ and its various compilers
   - add notes for Ubuntu Server on Raspberry Pi 4
