@@ -89,7 +89,7 @@ B) Task title: "achieve bit-exact fp-compute across modern SIMD targets"
 ================================================================================
 
 I) Task title: "rewrite smallpt with ISPC, use ifilippov/raytracer as a base"
-   (https://github.com/munificent/smallpt)  <- old performance baseline (C++)
+   (https://www.kevinbeason.com/smallpt/)   <- old performance baseline (C++)
    (https://github.com/ifilippov/raytracer) <- new performance baseline (ISPC)
    (https://github.com/ispc/ispc)  compare with QuadRay's path-tracer (task S)
 
@@ -133,7 +133,7 @@ O) Task title: "consider support for more operating systems"
 1) Create DEB/RPM packages for Linux (consider new formats like Snap & Flatpak)
 2) Test the engine (RooT demo, CORE/SIMD tests) with Free/OpenBSD
 3) Write an Android app for RooT demo, use engine's core as native/jni library
-4) Port the engine (RooT demo, CORE/SIMD tests) to Apple's MacOS, iOS
-5) Perform feasibility study for Tizen, Sailfish, NuttX porting
+4) Port the engine (RooT demo, CORE/SIMD tests) to Apple's macOS, iOS
+5) Perform feasibility study for Xbox One/Series X, PS4/5 porting, VR support
 
 ================================================================================
