@@ -44,6 +44,9 @@ CRITICAL_SECTION critSec;
 #define TG 64
 #endif /* defined RT_WIN64 */
 
+#define TS 2                            /* thread affinity step: 1,2 */
+#define TK ((TS) >> 1)                  /* thread affinity kick: derived */
+
 /******************************************************************************/
 /**********************************   MAIN   **********************************/
 /******************************************************************************/
@@ -583,23 +586,23 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
         && (pam & (rt_uptr)(ULL(1) << a)) != 0)
         {
             g = a;
-            a += 2; /* <- allocate to physical cores first */
+            a += TS; /* <- allocate to physical cores first (TS == 2) */
         }
         else
         {
-            k = 1 - k; /* <- allocate to logical cores second */
+            k = TK - k; /* <- allocate to logical cores second (TK == 1) */
             a = k;
             if ((pam & (rt_uptr)(ULL(1) << a)) != 0)
             {
                 g = a;
-                a += 2;
+                a += TS;
             }
             else
             {
                 k = 0;
                 a = k;
                 g = a;
-                a += 2;
+                a += TS;
             }
             if (feedback && k == 0)
             {
@@ -619,7 +622,7 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
         {
             ga.Mask = ULL(1) << a;
             ga.Group = g;
-            a += 2; /* <- allocate to physical cores first */
+            a += TS; /* <- allocate to physical cores first (TS == 2) */
         }
         else
         {
@@ -632,11 +635,11 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
             {
                 ga.Mask = ULL(1) << a;
                 ga.Group = g;
-                a += 2;
+                a += TS;
             }
             else
             {
-                k = 1 - k; /* <- allocate to logical cores second */
+                k = TK - k; /* <- allocate to logical cores second (TK == 1) */
                 a = k;
                 g = 0;
                 ga.Mask = ULL(1) << a;
@@ -646,7 +649,7 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
                 {
                     ga.Mask = ULL(1) << a;
                     ga.Group = g;
-                    a += 2;
+                    a += TS;
                 }
                 else
                 {
@@ -655,7 +658,7 @@ rt_pntr init_threads(rt_si32 thnum, rt_Platform *pfm)
                     g = 0;
                     ga.Mask = ULL(1) << a;
                     ga.Group = g;
-                    a += 2;
+                    a += TS;
                 }
                 if (feedback && k == 0)
                 {
