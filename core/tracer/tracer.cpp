@@ -4464,9 +4464,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(FF_cyc)
 
-        shlxx_ri(Reax, IB(L-1))
+#if (L == 1)
         movyx_ld(Redx, Iecx, ctx_C_BUF(0))
-        shrxx_ri(Reax, IB(L-1))
+#else /* (L == 2) */
+        movyx_ld(Redx, Jecx, ctx_C_BUF(0))
+#endif /* (L == 2) */
 
         movwx_st(Redx, Iebx, DP(0))
 
