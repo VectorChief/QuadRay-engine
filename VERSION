@@ -41,7 +41,20 @@
   - add preliminary support for POWER9 fp128 SIMD ops (not tested)
   - add preliminary support for ARMv8.2 fp16 SIMD ops (not tested)
 
-v0.7.0d: QuadRay, code name "GIzmo+d"
+v0.7.0e: QuadRay, code name "GIzmo+e", 2021 extended support
+  - clarify instructions for POWER8 server, Raspberry Pi 3/4
+  - update links and comments in project files
+  - make comment for compiler swapping on MIPS more generic
+  - update mappings for byte/char SIMD ops
+  - update TDM64-GCC compiler reference to version 9.2.0
+  - update copyright year to 2021
+  - update comments for remainders and scaled addressing
+  - optimize remainder ops on POWER9
+  - add scaled-indexed addressing modes
+  - use scaled-indexed addressing in tracer
+  - make thread affinity step configurable on Windows
+
+v0.7.0d: QuadRay, code name "GIzmo+d", documentation edition
   - clean up task descriptions in roadmap
   - add notes for Ubuntu, QEMU, MIPS cross-compilers
   - add Ubuntu (MATE) 20.04 LTS to makefile notes
