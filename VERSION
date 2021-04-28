@@ -1,3 +1,5 @@
+v0.7.1a: QuadRay, code name "GIzmo+1a", first development release
+  - add asin/acos SIMD meta instructions (asnps/acsps) to tracer
   - allow changing inherited pause-mode in path-tracer
   - allow path-tracer in all scenes (demo, test) for further development
   - optimizing out path-tracer per scene significantly reduces memory footprint
