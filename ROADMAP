@@ -1,19 +1,4 @@
 ================================================================================
-=== >>> === tasks below are planned for the upcoming 0.7.1 milestone === <<< ===
-================================================================================
-
-S) Task title: "implement basic unbiased path-tracer (to match smallpt code)"
-1) Implement randomizers in SIMD across all targets
-2) Implement pixel sub-sampling passes with Tent filter
-3) Implement randomization of diffuse samples over hemisphere
-4) Enable path-tracer in "pause" mode in addition to real-time ray-tracer
-5) Allow image to converge in real-time (add new samples between updates)
-6) Check out minpt (https://github.com/hi2p-perim/minpt) for new features
-7) Consider using SIMD pow for proper Gamma-correction with 1.0/2.2, 2.2 exp
-8) Add specular highlights on glossy surfaces for path-tracer (SIMD acos, pow)
-9) Add separate self-emittance props to light surfaces in scene definition file
-
-================================================================================
 === >>> === tasks below are planned for the upcoming 0.7.2 milestone === <<< ===
 ================================================================================
 
@@ -85,6 +70,10 @@ B) Task title: "achieve bit-exact fp-compute across modern SIMD targets"
 3) Test if deterministic order of IEEE-compatible fp produces bit-exact results
 4) Calculate test image check-sums, compare across modern RISC and x86 targets
 5) Test internal fp-color planes for exact results to avoid hiding discrepancy
+6) Check out minpt (https://github.com/hi2p-perim/minpt) for new features
+7) Consider using SIMD pow for proper Gamma-correction with 1.0/2.2, 2.2 exp
+8) Add specular highlights on glossy surfaces for path-tracer (SIMD acos, pow)
+9) Add separate self-emittance props to light surfaces in scene definition file
 
 ================================================================================
 
