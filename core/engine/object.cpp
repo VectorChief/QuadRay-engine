@@ -4131,8 +4131,11 @@ rt_Material::rt_Material(rt_Registry *rg, rt_SIDE *sd, rt_MATERIAL *mat) :
     RT_SIMD_SET(s_mat->clamp, (rt_real)255);
     RT_SIMD_SET(s_mat->cmask, (rt_elem)255);
 
-    RT_SIMD_SET(s_mat->l_dff, mat->lgt[0]);
-    RT_SIMD_SET(s_mat->l_spc, mat->lgt[1]);
+    rt_real f = 1.0f - (mat->prp[0] + mat->prp[1]);
+    f = RT_MAX(f, 0.0f);
+
+    RT_SIMD_SET(s_mat->l_dff, mat->lgt[0] * f);
+    RT_SIMD_SET(s_mat->l_spc, mat->lgt[1] * f);
     s_mat->l_pow[0] = (rt_ui32)(mat->lgt[2] * 16.0f); /* fixed-point 28.4-bit */
 
     RT_SIMD_SET(s_mat->c_rfl, mat->prp[0]);

@@ -3618,23 +3618,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(TR_mix)
 
-        /* consider making format parameters
-         * cumulative to avoid modulation */
-        movpx_ld(Xmm0, Mebp, inf_GPC01)
-        subps_ld(Xmm0, Medx, mat_C_TRN)
-        subps_ld(Xmm0, Medx, mat_C_RFL)
-        xorpx_rr(Xmm7, Xmm7)
-        cleps_rr(Xmm7, Xmm0)
-        andpx_rr(Xmm0, Xmm7)
-
         movpx_ld(Xmm4, Mecx, ctx_COL_R(0))
         movpx_ld(Xmm5, Mecx, ctx_COL_G(0))
         movpx_ld(Xmm6, Mecx, ctx_COL_B(0))
-
-        /* modulate light with surface props */
-        mulps_rr(Xmm4, Xmm0)
-        mulps_rr(Xmm5, Xmm0)
-        mulps_rr(Xmm6, Xmm0)
 
         /* accumulate colors */
         addps_rr(Xmm1, Xmm4)
