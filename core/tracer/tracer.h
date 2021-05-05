@@ -19,7 +19,7 @@
 #if RT_DEBUG >= 1
 #define RT_DATA 2 /* for rt_SIMD_INFOX */
 #else /* RT_DEBUG == 0 */
-#define RT_DATA 4 /* all fit if no debug */
+#define RT_DATA 2 /* for rt_SIMD_CONTEXT, before SIMD-buffers are complete */
 #endif /* RT_DEBUG == 0 */
 
 #include "rtbase.h"
@@ -439,6 +439,93 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
 /*********************************   CONTEXT   ********************************/
 /******************************************************************************/
 
+/* implement color accumulation on forward propagation (keep pixel index)
+ * contribute pixel fragment of a given execution branch to fp-color planes
+ * eliminate SIMD-context cross-referencing (in conic singularity solver)
+ * implement SIMD-buffer flipping (with two instances or internally)
+ *
+ * initial condition: col = 0.0f; mul = 1.0f;
+ * generic step pt: col += mul * e; mul *= f;
+ * generic step rf: col += mul * l; mul *= r;
+ *
+ * SIMD-buffers: surfaces * levels * threads; (ref)
+ * SIMD-buffers: renderer * levels * threads; (opt)
+ * SIMD-context: levels + 1;
+ */
+
+struct rt_SIMD_BUFFER
+{
+    /* index */
+
+    rt_uelm index[S*2];
+#define bfr_INDEX(nx)       DP(Q*0x000*2 + nx)
+
+    /* ray */
+
+    rt_real ray_x[S*2];
+#define bfr_RAY_X(nx)       DP(Q*0x010*2 + nx)
+
+    rt_real ray_y[S*2];
+#define bfr_RAY_Y(nx)       DP(Q*0x020*2 + nx)
+
+    rt_real ray_z[S*2];
+#define bfr_RAY_Z(nx)       DP(Q*0x030*2 + nx)
+
+    /* hit */
+
+    rt_real hit_x[S*2];
+#define bfr_HIT_X(nx)       DP(Q*0x040*2 + nx)
+
+    rt_real hit_y[S*2];
+#define bfr_HIT_Y(nx)       DP(Q*0x050*2 + nx)
+
+    rt_real hit_z[S*2];
+#define bfr_HIT_Z(nx)       DP(Q*0x060*2 + nx)
+
+    /* color */
+
+    rt_real col_r[S*2];
+#define bfr_COL_R(nx)       DP(Q*0x070*2 + nx)
+
+    rt_real col_g[S*2];
+#define bfr_COL_G(nx)       DP(Q*0x080*2 + nx)
+
+    rt_real col_b[S*2];
+#define bfr_COL_B(nx)       DP(Q*0x090*2 + nx)
+
+    /* mul */
+
+    rt_real mul_r[S*2];
+#define bfr_MUL_R(nx)       DP(Q*0x0A0*2 + nx)
+
+    rt_real mul_g[S*2];
+#define bfr_MUL_G(nx)       DP(Q*0x0B0*2 + nx)
+
+    rt_real mul_b[S*2];
+#define bfr_MUL_B(nx)       DP(Q*0x0C0*2 + nx)
+
+    /* originating surface pointers/sides */
+
+    rt_uelm org_p[S*2];
+#define bfr_ORG_P(nx)       DP(Q*0x0D0*2 + nx)
+
+    rt_uelm org_h[S*2];
+#define bfr_ORG_H(nx)       DP(Q*0x0E0*2 + nx)
+
+    rt_uelm org_s[S*2];
+#define bfr_ORG_S(nx)       DP(Q*0x0F0*2 + nx)
+
+    /* count */
+
+    rt_ui32 count[R];
+#define bfr_COUNT(nx)       DP(Q*0x100*2 + nx)
+
+};
+
+/* buffer struct size for path-tracer */
+#define RT_BUFFER_SIZE      (Q * 0x100*2 + Q * 0x010)
+#define RT_BUFFER_POOL      (RT_BUFFER_SIZE * RT_STACK_DEPTH * 2)
+
 /*
  * SIMD context structure keeps track of current state. New contexts for
  * secondary rays can be stacked upon previous ones by shifting pointer with
@@ -615,83 +702,118 @@ struct rt_SIMD_CONTEXT
     /* packed scalar fields */
 
     rt_ui64 param[R];
-#define ctx_PARAM(nx)       DP(Q*0x2A0+C + nx*2)
+#define ctx_PARAM(nx)       DP(Q*0x2A0+C + (nx)*2)
 
     rt_ui64 local[R];
-#define ctx_LOCAL(nx)       DP(Q*0x2C0+C + nx*2)
+#define ctx_LOCAL(nx)       DP(Q*0x2C0+C + (nx)*2)
+
+    /* receiving surface pointers/sides */
+
+    rt_ui64 srf_p[R];
+#define ctx_SRF_P(nx)       DP(Q*0x2E0+C + (nx)*2)
+
+    rt_ui32 srf_s[R];
+#define ctx_SRF_S(nx)       DP(Q*0x300 + nx)
+
+    /* mult accum */
+
+    rt_real mul_r[S];
+#define ctx_MUL_R(nx)       DP(Q*0x310 + nx)
+
+    rt_real mul_g[S];
+#define ctx_MUL_G(nx)       DP(Q*0x320 + nx)
+
+    rt_real mul_b[S];
+#define ctx_MUL_B(nx)       DP(Q*0x330 + nx)
+
+    /* pixel index */
+
+    rt_uelm index[S];
+#define ctx_INDEX(nx)       DP(Q*0x340 + nx)
+
+    /* originating surface pointers/sides */
+
+    rt_uelm org_p[S];
+#define ctx_ORG_P(nx)       DP(Q*0x350 + nx)
+
+    rt_uelm org_h[S];
+#define ctx_ORG_H(nx)       DP(Q*0x360 + nx)
+
+    rt_uelm org_s[S];
+#define ctx_ORG_S(nx)       DP(Q*0x370 + nx)
 
     /* root sorting masks */
 
     rt_elem amask[S];
-#define ctx_AMASK           DP(Q*0x2E0)
+#define ctx_AMASK           DP(Q*0x380)
 
     rt_elem dmask[S];
-#define ctx_DMASK           DP(Q*0x2F0)
+#define ctx_DMASK           DP(Q*0x390)
 
     /* aux fields for path-tracer */
 
     rt_real f_rnd[S];
-#define ctx_F_RND           DP(Q*0x300)
+#define ctx_F_RND           DP(Q*0x3A0)
 
     rt_real f_prb[S];
-#define ctx_F_PRB           DP(Q*0x310)
+#define ctx_F_PRB           DP(Q*0x3B0)
 
     rt_real m_trn[S];
-#define ctx_M_TRN           DP(Q*0x320)
+#define ctx_M_TRN           DP(Q*0x3C0)
 
     rt_real m_rfl[S];
-#define ctx_M_RFL           DP(Q*0x330)
+#define ctx_M_RFL           DP(Q*0x3D0)
 
     rt_real c_trn[S];
-#define ctx_C_TRN           DP(Q*0x340)
+#define ctx_C_TRN           DP(Q*0x3E0)
 
     rt_real c_rfl[S];
-#define ctx_C_RFL           DP(Q*0x350)
+#define ctx_C_RFL           DP(Q*0x3F0)
 
-    /* overlapping next context,
+    /* overlapping next context (clip here when SIMD-buffers are done, RT_DATA),
      * new depth min */
 
     rt_real t_new[S];
-#define ctx_T_NEW           DP(Q*0x360)
+#define ctx_T_NEW           DP(Q*0x400)
 
     /* hit point,
      * new origin */
 
     rt_real hit_x[S];
-#define ctx_HIT_X           DP(Q*0x370)
+#define ctx_HIT_X           DP(Q*0x410)
 
     rt_real hit_y[S];
-#define ctx_HIT_Y           DP(Q*0x380)
+#define ctx_HIT_Y           DP(Q*0x420)
 
     rt_real hit_z[S];
-#define ctx_HIT_Z           DP(Q*0x390)
+#define ctx_HIT_Z           DP(Q*0x430)
 
     /* new ray */
 
-#define ctx_NEW_O           DP(Q*0x3A0)
+#define ctx_NEW_O           DP(Q*0x440)
 
     rt_real new_x[S];
-#define ctx_NEW_X           DP(Q*0x3A0)
+#define ctx_NEW_X           DP(Q*0x440)
 
     rt_real new_y[S];
-#define ctx_NEW_Y           DP(Q*0x3B0)
+#define ctx_NEW_Y           DP(Q*0x450)
 
     rt_real new_z[S];
-#define ctx_NEW_Z           DP(Q*0x3C0)
+#define ctx_NEW_Z           DP(Q*0x460)
 
     rt_real new_i[S];
-#define ctx_NEW_I           DP(Q*0x3D0)
+#define ctx_NEW_I           DP(Q*0x470)
 
     rt_real new_j[S];
-#define ctx_NEW_J           DP(Q*0x3E0)
+#define ctx_NEW_J           DP(Q*0x480)
 
     rt_real new_k[S];
-#define ctx_NEW_K           DP(Q*0x3F0)
+#define ctx_NEW_K           DP(Q*0x490)
 
 };
 
 /* context stack step for secondary rays */
-#define RT_STACK_STEP       (Q * 0x360)
+#define RT_STACK_STEP       (Q * 0x400)
 
 /******************************************************************************/
 /*********************************   CAMERA   *********************************/
@@ -919,10 +1041,13 @@ struct rt_SIMD_SURFACE
     rt_real t_eps[S];
 #define srf_T_EPS           DP(Q*0x110)
 
-    /* reserved area 1 */
+    /* originating surface pointers */
 
-    rt_elem pad01[S*2];
-#define srf_PAD01           DP(Q*0x120)
+    rt_uelm org_p[S];
+#define srf_ORG_P           DP(Q*0x120)
+
+    rt_uelm org_h[S];
+#define srf_ORG_H           DP(Q*0x130)
 
     /* transform coeffs */
 
@@ -981,19 +1106,33 @@ struct rt_SIMD_SURFACE
     rt_real scj_z[S];
 #define srf_SCJ_Z           DP(Q*0x230)
 
+    /* pass/side constants */
+
+    rt_uelm pbout[S];
+#define srf_PBOUT           DP(Q*0x240)
+
+    rt_uelm pbinn[S];
+#define srf_PBINN           DP(Q*0x250)
+
+    rt_uelm ptout[S];
+#define srf_PTOUT           DP(Q*0x260)
+
+    rt_uelm ptinn[S];
+#define srf_PTINN           DP(Q*0x270)
+
     /* misc tags/pointers */
 
     rt_si32 srf_t[4];
-#define srf_SRF_T(nx)       DP(Q*0x240 + nx)
+#define srf_SRF_T(nx)       DP(Q*0x280 + nx)
 
     rt_pntr msc_p[4];
-#define srf_MSC_P(nx)       DP(Q*0x240+0x010+0x000*P+E + nx*P)
+#define srf_MSC_P(nx)       DP(Q*0x280+0x010+0x000*P+E + (nx)*P)
 
     rt_pntr mat_p[4];
-#define srf_MAT_P(nx)       DP(Q*0x240+0x010+0x010*P+E + nx*P)
+#define srf_MAT_P(nx)       DP(Q*0x280+0x010+0x010*P+E + (nx)*P)
 
     rt_pntr lst_p[4];
-#define srf_LST_P(nx)       DP(Q*0x240+0x010+0x020*P+E + nx*P)
+#define srf_LST_P(nx)       DP(Q*0x280+0x010+0x020*P+E + (nx)*P)
 
 };
 

@@ -76,6 +76,7 @@
 #define RT_FEAT_PT_SPLIT_DEPTH      1
 #define RT_FEAT_PT_SPLIT_FRESNEL    1
 #define RT_FEAT_PT_RANDOM_SAMPLE    1
+#define RT_FEAT_PT_BUFFERS          0   /* experimental, not yet completed */
 
 #if RT_FEAT_GAMMA
 #define GAMMA(x)    x
@@ -528,6 +529,29 @@
  * jump to "lo" if ray cannot possibly hit the same surface from side "sd"
  * under given circumstances (even though it would due to hit inaccuracy).
  */
+
+#if RT_FEAT_PT_BUFFERS
+
+#define CHECK_SIDE(lb, lo, sd) /* destroys Reax, Xmm0, Xmm2, Xmm5 */        \
+        movpx_ld(Xmm0, Mecx, ctx_ORG_P(0))                                  \
+        ceqps_ld(Xmm0, Mebx, srf_ORG_P)                                     \
+        movpx_ld(Xmm2, Mecx, ctx_ORG_H(0))                                  \
+        ceqps_ld(Xmm2, Mebx, srf_ORG_H)                                     \
+        andpx_rr(Xmm0, Xmm2)                                                \
+        movxx_ri(Reax, IB(sd))                                              \
+        mulxx_ri(Reax, IM(Q*16))                                            \
+        movpx_ld(Xmm2, Mebx, srf_PBINN)                                     \
+        subpx_ld(Xmm2, Iebx, srf_PBOUT)                                     \
+        ceqps_ld(Xmm2, Mecx, ctx_ORG_S)                                     \
+        movpx_ld(Xmm5, Mebx, srf_PTOUT)                                     \
+        addpx_ld(Xmm5, Iebx, srf_PBOUT)                                     \
+        ceqps_ld(Xmm5, Mecx, ctx_ORG_S)                                     \
+        orrpx_rr(Xmm2, Xmm5)                                                \
+        andpx_rr(Xmm0, Xmm2)                                                \
+        notpx_rx(Xmm0)
+
+#else /* RT_FEAT_PT_BUFFERS */
+
 #define CHECK_SIDE(lb, lo, sd) /* destroys Reax */                          \
         cmjxx_rm(Rebx, Mecx, ctx_PARAM(OBJ),                                \
                  NE_x, lb)                                                  \
@@ -538,6 +562,8 @@
         cmjxx_ri(Reax, IB(2 + sd),                                          \
                  EQ_x, lo)                                                  \
     LBL(lb)
+
+#endif /* RT_FEAT_PT_BUFFERS */
 
 /*
  * Check if ray is a shadow ray, then check
@@ -661,6 +687,131 @@
         movyx_st(Reax, Mecx, ctx_C_BUF(0x##pn))                             \
     LBL(lb##pn)
 
+#define STORE_FRAG(lb, pn) /* reads Rebx, Redx */                           \
+        cmjyx_mz(Mecx, ctx_TMASK(0x##pn),                                   \
+                 EQ_x, lb##pn)                                              \
+        movxx_st(Rebx, Mecx, ctx_SRF_P(0x##pn / L))                         \
+        movwx_st(Redx, Mecx, ctx_SRF_S(0x##pn / L))                         \
+    LBL(lb##pn)
+
+#define SLICE_FRAG(lb, pn) /* destroys Reax, Rebx, Redx */                  \
+        cmjxx_mz(Mecx, ctx_SRF_P(0x##pn / L),                               \
+                 EQ_x, lb##pn)                                              \
+        movwx_ld(Redx, Mecx, ctx_SRF_S(0x##pn / L))                         \
+        mulwx_ri(Redx, IV(RT_BUFFER_POOL / 2))                              \
+        movxx_ri(Reax, IH(RT_BUFFER_SIZE))                                  \
+        mulxx_ld(Reax, Mebp, inf_DEPTH)                                     \
+        addxx_rr(Redx, Reax)                                                \
+        movxx_ld(Rebx, Mecx, ctx_SRF_P(0x##pn / L))                         \
+        addxx_ld(Redx, Mebx, srf_MSC_P(PTR))                                \
+        movwx_ld(Reax, Medx, bfr_COUNT(PTR))                                \
+        mulwx_ri(Reax, IB(4*L))                                             \
+        movyx_ld(Rebx, Mecx, ctx_INDEX(0x##pn))                             \
+        movyx_st(Rebx, Iedx, bfr_INDEX(0))                                  \
+        movyx_ld(Rebx, Mecx, ctx_RAY_X(0x##pn))                             \
+        movyx_st(Rebx, Iedx, bfr_RAY_X(0))                                  \
+        movyx_ld(Rebx, Mecx, ctx_RAY_Y(0x##pn))                             \
+        movyx_st(Rebx, Iedx, bfr_RAY_Y(0))                                  \
+        movyx_ld(Rebx, Mecx, ctx_RAY_Z(0x##pn))                             \
+        movyx_st(Rebx, Iedx, bfr_RAY_Z(0))                                  \
+        movyx_ld(Rebx, Mecx, ctx_HIT_X(0x##pn))                             \
+        movyx_st(Rebx, Iedx, bfr_HIT_X(0))                                  \
+        movyx_ld(Rebx, Mecx, ctx_HIT_Y(0x##pn))                             \
+        movyx_st(Rebx, Iedx, bfr_HIT_Y(0))                                  \
+        movyx_ld(Rebx, Mecx, ctx_HIT_Z(0x##pn))                             \
+        movyx_st(Rebx, Iedx, bfr_HIT_Z(0))                                  \
+        movyx_ld(Rebx, Mecx, ctx_COL_R(0x##pn))                             \
+        movyx_st(Rebx, Iedx, bfr_COL_R(0))                                  \
+        movyx_ld(Rebx, Mecx, ctx_COL_G(0x##pn))                             \
+        movyx_st(Rebx, Iedx, bfr_COL_G(0))                                  \
+        movyx_ld(Rebx, Mecx, ctx_COL_B(0x##pn))                             \
+        movyx_st(Rebx, Iedx, bfr_COL_B(0))                                  \
+        movyx_ld(Rebx, Mecx, ctx_MUL_R(0x##pn))                             \
+        movyx_st(Rebx, Iedx, bfr_MUL_R(0))                                  \
+        movyx_ld(Rebx, Mecx, ctx_MUL_G(0x##pn))                             \
+        movyx_st(Rebx, Iedx, bfr_MUL_G(0))                                  \
+        movyx_ld(Rebx, Mecx, ctx_MUL_B(0x##pn))                             \
+        movyx_st(Rebx, Iedx, bfr_MUL_B(0))                                  \
+        movyx_ld(Rebx, Mecx, ctx_ORG_P(0x##pn))                             \
+        movyx_st(Rebx, Iedx, bfr_ORG_P(0))                                  \
+        movyx_ld(Rebx, Mecx, ctx_ORG_H(0x##pn))                             \
+        movyx_st(Rebx, Iedx, bfr_ORG_H(0))                                  \
+        movyx_ld(Rebx, Mecx, ctx_ORG_S(0x##pn))                             \
+        movyx_st(Rebx, Iedx, bfr_ORG_S(0))                                  \
+        addwx_mi(Medx, bfr_COUNT(PTR), IB(1))                               \
+    LBL(lb##pn)
+
+#define STORE_BUFF() /* destroys Xmm0, reads Recx, Redx */                  \
+        movpx_ld(Xmm0, Medx, bfr_INDEX(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_INDEX(0))                                  \
+        cneps_ld(Xmm0, Mebp, inf_GPC07)                                     \
+        movpx_st(Xmm0, Mecx, ctx_TMASK(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_RAY_X(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_RAY_X(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_RAY_Y(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_RAY_Y(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_RAY_Z(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_RAY_Z(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_HIT_X(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_HIT_X(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_HIT_Y(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_HIT_Y(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_HIT_Z(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_HIT_Z(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_COL_R(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_COL_R(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_COL_G(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_COL_G(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_COL_B(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_COL_B(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_MUL_R(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_MUL_R(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_MUL_G(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_MUL_G(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_MUL_B(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_MUL_B(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_ORG_P(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_ORG_P(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_ORG_H(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_ORG_H(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_ORG_S(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_ORG_S(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_INDEX(RT_SIMD_WIDTH*4*L))                  \
+        movpx_st(Xmm0, Medx, bfr_INDEX(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_RAY_X(RT_SIMD_WIDTH*4*L))                  \
+        movpx_st(Xmm0, Medx, bfr_RAY_X(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_RAY_Y(RT_SIMD_WIDTH*4*L))                  \
+        movpx_st(Xmm0, Medx, bfr_RAY_Y(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_RAY_Z(RT_SIMD_WIDTH*4*L))                  \
+        movpx_st(Xmm0, Medx, bfr_RAY_Z(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_HIT_X(RT_SIMD_WIDTH*4*L))                  \
+        movpx_st(Xmm0, Medx, bfr_HIT_X(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_HIT_Y(RT_SIMD_WIDTH*4*L))                  \
+        movpx_st(Xmm0, Medx, bfr_HIT_Y(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_HIT_Z(RT_SIMD_WIDTH*4*L))                  \
+        movpx_st(Xmm0, Medx, bfr_HIT_Z(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_COL_R(RT_SIMD_WIDTH*4*L))                  \
+        movpx_st(Xmm0, Medx, bfr_COL_R(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_COL_G(RT_SIMD_WIDTH*4*L))                  \
+        movpx_st(Xmm0, Medx, bfr_COL_G(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_COL_B(RT_SIMD_WIDTH*4*L))                  \
+        movpx_st(Xmm0, Medx, bfr_COL_B(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_MUL_R(RT_SIMD_WIDTH*4*L))                  \
+        movpx_st(Xmm0, Medx, bfr_MUL_R(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_MUL_G(RT_SIMD_WIDTH*4*L))                  \
+        movpx_st(Xmm0, Medx, bfr_MUL_G(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_MUL_B(RT_SIMD_WIDTH*4*L))                  \
+        movpx_st(Xmm0, Medx, bfr_MUL_B(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_ORG_P(RT_SIMD_WIDTH*4*L))                  \
+        movpx_st(Xmm0, Medx, bfr_ORG_P(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_ORG_H(RT_SIMD_WIDTH*4*L))                  \
+        movpx_st(Xmm0, Medx, bfr_ORG_H(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_ORG_S(RT_SIMD_WIDTH*4*L))                  \
+        movpx_st(Xmm0, Medx, bfr_ORG_S(0))                                  \
+        subwx_mi(Medx, bfr_COUNT(PTR), IB(RT_SIMD_WIDTH))                   \
+        movpx_ld(Xmm0, Mebp, inf_GPC07)                                     \
+        movpx_st(Xmm0, Medx, bfr_INDEX(RT_SIMD_WIDTH*4*L))
+
 #define PAINT_COLX(cl, pl) /* destroys Reax, Xmm0, reads Xmm2, Xmm7 */      \
         movpx_ld(Xmm0, Mecx, ctx_C_BUF(0))                                  \
         shrpx_ri(Xmm0, IB(0x##cl))                                          \
@@ -688,6 +839,18 @@
         PAINT_COLX(08, TEX_G)                                               \
         PAINT_COLX(00, TEX_B)
 
+#define STORE_SPTR(lb)                                                      \
+        STORE_FRAG(lb, 00)                                                  \
+        STORE_FRAG(lb, 04)                                                  \
+        STORE_FRAG(lb, 08)                                                  \
+        STORE_FRAG(lb, 0C)
+
+#define SLICE_SPTR(lb)                                                      \
+        SLICE_FRAG(lb, 00)                                                  \
+        SLICE_FRAG(lb, 04)                                                  \
+        SLICE_FRAG(lb, 08)                                                  \
+        SLICE_FRAG(lb, 0C)
+
 #elif RT_ELEMENT == 64
 
 #define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
@@ -699,6 +862,14 @@
         PAINT_COLX(10, TEX_R)                                               \
         PAINT_COLX(08, TEX_G)                                               \
         PAINT_COLX(00, TEX_B)
+
+#define STORE_SPTR(lb)                                                      \
+        STORE_FRAG(lb, 00)                                                  \
+        STORE_FRAG(lb, 08)
+
+#define SLICE_SPTR(lb)                                                      \
+        SLICE_FRAG(lb, 00)                                                  \
+        SLICE_FRAG(lb, 08)
 
 #endif /* RT_ELEMENT */
 
@@ -722,6 +893,26 @@
         PAINT_COLX(08, TEX_G)                                               \
         PAINT_COLX(00, TEX_B)
 
+#define STORE_SPTR(lb)                                                      \
+        STORE_FRAG(lb, 00)                                                  \
+        STORE_FRAG(lb, 04)                                                  \
+        STORE_FRAG(lb, 08)                                                  \
+        STORE_FRAG(lb, 0C)                                                  \
+        STORE_FRAG(lb, 10)                                                  \
+        STORE_FRAG(lb, 14)                                                  \
+        STORE_FRAG(lb, 18)                                                  \
+        STORE_FRAG(lb, 1C)
+
+#define SLICE_SPTR(lb)                                                      \
+        SLICE_FRAG(lb, 00)                                                  \
+        SLICE_FRAG(lb, 04)                                                  \
+        SLICE_FRAG(lb, 08)                                                  \
+        SLICE_FRAG(lb, 0C)                                                  \
+        SLICE_FRAG(lb, 10)                                                  \
+        SLICE_FRAG(lb, 14)                                                  \
+        SLICE_FRAG(lb, 18)                                                  \
+        SLICE_FRAG(lb, 1C)
+
 #elif RT_ELEMENT == 64
 
 #define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
@@ -735,6 +926,18 @@
         PAINT_COLX(10, TEX_R)                                               \
         PAINT_COLX(08, TEX_G)                                               \
         PAINT_COLX(00, TEX_B)
+
+#define STORE_SPTR(lb)                                                      \
+        STORE_FRAG(lb, 00)                                                  \
+        STORE_FRAG(lb, 08)                                                  \
+        STORE_FRAG(lb, 10)                                                  \
+        STORE_FRAG(lb, 18)
+
+#define SLICE_SPTR(lb)                                                      \
+        SLICE_FRAG(lb, 00)                                                  \
+        SLICE_FRAG(lb, 08)                                                  \
+        SLICE_FRAG(lb, 10)                                                  \
+        SLICE_FRAG(lb, 18)
 
 #endif /* RT_ELEMENT */
 
@@ -766,6 +969,42 @@
         PAINT_COLX(08, TEX_G)                                               \
         PAINT_COLX(00, TEX_B)
 
+#define STORE_SPTR(lb)                                                      \
+        STORE_FRAG(lb, 00)                                                  \
+        STORE_FRAG(lb, 04)                                                  \
+        STORE_FRAG(lb, 08)                                                  \
+        STORE_FRAG(lb, 0C)                                                  \
+        STORE_FRAG(lb, 10)                                                  \
+        STORE_FRAG(lb, 14)                                                  \
+        STORE_FRAG(lb, 18)                                                  \
+        STORE_FRAG(lb, 1C)                                                  \
+        STORE_FRAG(lb, 20)                                                  \
+        STORE_FRAG(lb, 24)                                                  \
+        STORE_FRAG(lb, 28)                                                  \
+        STORE_FRAG(lb, 2C)                                                  \
+        STORE_FRAG(lb, 30)                                                  \
+        STORE_FRAG(lb, 34)                                                  \
+        STORE_FRAG(lb, 38)                                                  \
+        STORE_FRAG(lb, 3C)
+
+#define SLICE_SPTR(lb)                                                      \
+        SLICE_FRAG(lb, 00)                                                  \
+        SLICE_FRAG(lb, 04)                                                  \
+        SLICE_FRAG(lb, 08)                                                  \
+        SLICE_FRAG(lb, 0C)                                                  \
+        SLICE_FRAG(lb, 10)                                                  \
+        SLICE_FRAG(lb, 14)                                                  \
+        SLICE_FRAG(lb, 18)                                                  \
+        SLICE_FRAG(lb, 1C)                                                  \
+        SLICE_FRAG(lb, 20)                                                  \
+        SLICE_FRAG(lb, 24)                                                  \
+        SLICE_FRAG(lb, 28)                                                  \
+        SLICE_FRAG(lb, 2C)                                                  \
+        SLICE_FRAG(lb, 30)                                                  \
+        SLICE_FRAG(lb, 34)                                                  \
+        SLICE_FRAG(lb, 38)                                                  \
+        SLICE_FRAG(lb, 3C)
+
 #elif RT_ELEMENT == 64
 
 #define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
@@ -783,6 +1022,26 @@
         PAINT_COLX(10, TEX_R)                                               \
         PAINT_COLX(08, TEX_G)                                               \
         PAINT_COLX(00, TEX_B)
+
+#define STORE_SPTR(lb)                                                      \
+        STORE_FRAG(lb, 00)                                                  \
+        STORE_FRAG(lb, 08)                                                  \
+        STORE_FRAG(lb, 10)                                                  \
+        STORE_FRAG(lb, 18)                                                  \
+        STORE_FRAG(lb, 20)                                                  \
+        STORE_FRAG(lb, 28)                                                  \
+        STORE_FRAG(lb, 30)                                                  \
+        STORE_FRAG(lb, 38)
+
+#define SLICE_SPTR(lb)                                                      \
+        SLICE_FRAG(lb, 00)                                                  \
+        SLICE_FRAG(lb, 08)                                                  \
+        SLICE_FRAG(lb, 10)                                                  \
+        SLICE_FRAG(lb, 18)                                                  \
+        SLICE_FRAG(lb, 20)                                                  \
+        SLICE_FRAG(lb, 28)                                                  \
+        SLICE_FRAG(lb, 30)                                                  \
+        SLICE_FRAG(lb, 38)
 
 #endif /* RT_ELEMENT */
 
@@ -830,6 +1089,74 @@
         PAINT_COLX(08, TEX_G)                                               \
         PAINT_COLX(00, TEX_B)
 
+#define STORE_SPTR(lb)                                                      \
+        STORE_FRAG(lb, 00)                                                  \
+        STORE_FRAG(lb, 04)                                                  \
+        STORE_FRAG(lb, 08)                                                  \
+        STORE_FRAG(lb, 0C)                                                  \
+        STORE_FRAG(lb, 10)                                                  \
+        STORE_FRAG(lb, 14)                                                  \
+        STORE_FRAG(lb, 18)                                                  \
+        STORE_FRAG(lb, 1C)                                                  \
+        STORE_FRAG(lb, 20)                                                  \
+        STORE_FRAG(lb, 24)                                                  \
+        STORE_FRAG(lb, 28)                                                  \
+        STORE_FRAG(lb, 2C)                                                  \
+        STORE_FRAG(lb, 30)                                                  \
+        STORE_FRAG(lb, 34)                                                  \
+        STORE_FRAG(lb, 38)                                                  \
+        STORE_FRAG(lb, 3C)                                                  \
+        STORE_FRAG(lb, 40)                                                  \
+        STORE_FRAG(lb, 44)                                                  \
+        STORE_FRAG(lb, 48)                                                  \
+        STORE_FRAG(lb, 4C)                                                  \
+        STORE_FRAG(lb, 50)                                                  \
+        STORE_FRAG(lb, 54)                                                  \
+        STORE_FRAG(lb, 58)                                                  \
+        STORE_FRAG(lb, 5C)                                                  \
+        STORE_FRAG(lb, 60)                                                  \
+        STORE_FRAG(lb, 64)                                                  \
+        STORE_FRAG(lb, 68)                                                  \
+        STORE_FRAG(lb, 6C)                                                  \
+        STORE_FRAG(lb, 70)                                                  \
+        STORE_FRAG(lb, 74)                                                  \
+        STORE_FRAG(lb, 78)                                                  \
+        STORE_FRAG(lb, 7C)
+
+#define SLICE_SPTR(lb)                                                      \
+        SLICE_FRAG(lb, 00)                                                  \
+        SLICE_FRAG(lb, 04)                                                  \
+        SLICE_FRAG(lb, 08)                                                  \
+        SLICE_FRAG(lb, 0C)                                                  \
+        SLICE_FRAG(lb, 10)                                                  \
+        SLICE_FRAG(lb, 14)                                                  \
+        SLICE_FRAG(lb, 18)                                                  \
+        SLICE_FRAG(lb, 1C)                                                  \
+        SLICE_FRAG(lb, 20)                                                  \
+        SLICE_FRAG(lb, 24)                                                  \
+        SLICE_FRAG(lb, 28)                                                  \
+        SLICE_FRAG(lb, 2C)                                                  \
+        SLICE_FRAG(lb, 30)                                                  \
+        SLICE_FRAG(lb, 34)                                                  \
+        SLICE_FRAG(lb, 38)                                                  \
+        SLICE_FRAG(lb, 3C)                                                  \
+        SLICE_FRAG(lb, 40)                                                  \
+        SLICE_FRAG(lb, 44)                                                  \
+        SLICE_FRAG(lb, 48)                                                  \
+        SLICE_FRAG(lb, 4C)                                                  \
+        SLICE_FRAG(lb, 50)                                                  \
+        SLICE_FRAG(lb, 54)                                                  \
+        SLICE_FRAG(lb, 58)                                                  \
+        SLICE_FRAG(lb, 5C)                                                  \
+        SLICE_FRAG(lb, 60)                                                  \
+        SLICE_FRAG(lb, 64)                                                  \
+        SLICE_FRAG(lb, 68)                                                  \
+        SLICE_FRAG(lb, 6C)                                                  \
+        SLICE_FRAG(lb, 70)                                                  \
+        SLICE_FRAG(lb, 74)                                                  \
+        SLICE_FRAG(lb, 78)                                                  \
+        SLICE_FRAG(lb, 7C)
+
 #elif RT_ELEMENT == 64
 
 #define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
@@ -855,6 +1182,42 @@
         PAINT_COLX(10, TEX_R)                                               \
         PAINT_COLX(08, TEX_G)                                               \
         PAINT_COLX(00, TEX_B)
+
+#define STORE_SPTR(lb)                                                      \
+        STORE_FRAG(lb, 00)                                                  \
+        STORE_FRAG(lb, 08)                                                  \
+        STORE_FRAG(lb, 10)                                                  \
+        STORE_FRAG(lb, 18)                                                  \
+        STORE_FRAG(lb, 20)                                                  \
+        STORE_FRAG(lb, 28)                                                  \
+        STORE_FRAG(lb, 30)                                                  \
+        STORE_FRAG(lb, 38)                                                  \
+        STORE_FRAG(lb, 40)                                                  \
+        STORE_FRAG(lb, 48)                                                  \
+        STORE_FRAG(lb, 50)                                                  \
+        STORE_FRAG(lb, 58)                                                  \
+        STORE_FRAG(lb, 60)                                                  \
+        STORE_FRAG(lb, 68)                                                  \
+        STORE_FRAG(lb, 70)                                                  \
+        STORE_FRAG(lb, 78)
+
+#define SLICE_SPTR(lb)                                                      \
+        SLICE_FRAG(lb, 00)                                                  \
+        SLICE_FRAG(lb, 08)                                                  \
+        SLICE_FRAG(lb, 10)                                                  \
+        SLICE_FRAG(lb, 18)                                                  \
+        SLICE_FRAG(lb, 20)                                                  \
+        SLICE_FRAG(lb, 28)                                                  \
+        SLICE_FRAG(lb, 30)                                                  \
+        SLICE_FRAG(lb, 38)                                                  \
+        SLICE_FRAG(lb, 40)                                                  \
+        SLICE_FRAG(lb, 48)                                                  \
+        SLICE_FRAG(lb, 50)                                                  \
+        SLICE_FRAG(lb, 58)                                                  \
+        SLICE_FRAG(lb, 60)                                                  \
+        SLICE_FRAG(lb, 68)                                                  \
+        SLICE_FRAG(lb, 70)                                                  \
+        SLICE_FRAG(lb, 78)
 
 #endif /* RT_ELEMENT */
 
@@ -934,6 +1297,138 @@
         PAINT_COLX(08, TEX_G)                                               \
         PAINT_COLX(00, TEX_B)
 
+#define STORE_SPTR(lb)                                                      \
+        STORE_FRAG(lb, 00)                                                  \
+        STORE_FRAG(lb, 04)                                                  \
+        STORE_FRAG(lb, 08)                                                  \
+        STORE_FRAG(lb, 0C)                                                  \
+        STORE_FRAG(lb, 10)                                                  \
+        STORE_FRAG(lb, 14)                                                  \
+        STORE_FRAG(lb, 18)                                                  \
+        STORE_FRAG(lb, 1C)                                                  \
+        STORE_FRAG(lb, 20)                                                  \
+        STORE_FRAG(lb, 24)                                                  \
+        STORE_FRAG(lb, 28)                                                  \
+        STORE_FRAG(lb, 2C)                                                  \
+        STORE_FRAG(lb, 30)                                                  \
+        STORE_FRAG(lb, 34)                                                  \
+        STORE_FRAG(lb, 38)                                                  \
+        STORE_FRAG(lb, 3C)                                                  \
+        STORE_FRAG(lb, 40)                                                  \
+        STORE_FRAG(lb, 44)                                                  \
+        STORE_FRAG(lb, 48)                                                  \
+        STORE_FRAG(lb, 4C)                                                  \
+        STORE_FRAG(lb, 50)                                                  \
+        STORE_FRAG(lb, 54)                                                  \
+        STORE_FRAG(lb, 58)                                                  \
+        STORE_FRAG(lb, 5C)                                                  \
+        STORE_FRAG(lb, 60)                                                  \
+        STORE_FRAG(lb, 64)                                                  \
+        STORE_FRAG(lb, 68)                                                  \
+        STORE_FRAG(lb, 6C)                                                  \
+        STORE_FRAG(lb, 70)                                                  \
+        STORE_FRAG(lb, 74)                                                  \
+        STORE_FRAG(lb, 78)                                                  \
+        STORE_FRAG(lb, 7C)                                                  \
+        STORE_FRAG(lb, 80)                                                  \
+        STORE_FRAG(lb, 84)                                                  \
+        STORE_FRAG(lb, 88)                                                  \
+        STORE_FRAG(lb, 8C)                                                  \
+        STORE_FRAG(lb, 90)                                                  \
+        STORE_FRAG(lb, 94)                                                  \
+        STORE_FRAG(lb, 98)                                                  \
+        STORE_FRAG(lb, 9C)                                                  \
+        STORE_FRAG(lb, A0)                                                  \
+        STORE_FRAG(lb, A4)                                                  \
+        STORE_FRAG(lb, A8)                                                  \
+        STORE_FRAG(lb, AC)                                                  \
+        STORE_FRAG(lb, B0)                                                  \
+        STORE_FRAG(lb, B4)                                                  \
+        STORE_FRAG(lb, B8)                                                  \
+        STORE_FRAG(lb, BC)                                                  \
+        STORE_FRAG(lb, C0)                                                  \
+        STORE_FRAG(lb, C4)                                                  \
+        STORE_FRAG(lb, C8)                                                  \
+        STORE_FRAG(lb, CC)                                                  \
+        STORE_FRAG(lb, D0)                                                  \
+        STORE_FRAG(lb, D4)                                                  \
+        STORE_FRAG(lb, D8)                                                  \
+        STORE_FRAG(lb, DC)                                                  \
+        STORE_FRAG(lb, E0)                                                  \
+        STORE_FRAG(lb, E4)                                                  \
+        STORE_FRAG(lb, E8)                                                  \
+        STORE_FRAG(lb, EC)                                                  \
+        STORE_FRAG(lb, F0)                                                  \
+        STORE_FRAG(lb, F4)                                                  \
+        STORE_FRAG(lb, F8)                                                  \
+        STORE_FRAG(lb, FC)
+
+#define SLICE_SPTR(lb)                                                      \
+        SLICE_FRAG(lb, 00)                                                  \
+        SLICE_FRAG(lb, 04)                                                  \
+        SLICE_FRAG(lb, 08)                                                  \
+        SLICE_FRAG(lb, 0C)                                                  \
+        SLICE_FRAG(lb, 10)                                                  \
+        SLICE_FRAG(lb, 14)                                                  \
+        SLICE_FRAG(lb, 18)                                                  \
+        SLICE_FRAG(lb, 1C)                                                  \
+        SLICE_FRAG(lb, 20)                                                  \
+        SLICE_FRAG(lb, 24)                                                  \
+        SLICE_FRAG(lb, 28)                                                  \
+        SLICE_FRAG(lb, 2C)                                                  \
+        SLICE_FRAG(lb, 30)                                                  \
+        SLICE_FRAG(lb, 34)                                                  \
+        SLICE_FRAG(lb, 38)                                                  \
+        SLICE_FRAG(lb, 3C)                                                  \
+        SLICE_FRAG(lb, 40)                                                  \
+        SLICE_FRAG(lb, 44)                                                  \
+        SLICE_FRAG(lb, 48)                                                  \
+        SLICE_FRAG(lb, 4C)                                                  \
+        SLICE_FRAG(lb, 50)                                                  \
+        SLICE_FRAG(lb, 54)                                                  \
+        SLICE_FRAG(lb, 58)                                                  \
+        SLICE_FRAG(lb, 5C)                                                  \
+        SLICE_FRAG(lb, 60)                                                  \
+        SLICE_FRAG(lb, 64)                                                  \
+        SLICE_FRAG(lb, 68)                                                  \
+        SLICE_FRAG(lb, 6C)                                                  \
+        SLICE_FRAG(lb, 70)                                                  \
+        SLICE_FRAG(lb, 74)                                                  \
+        SLICE_FRAG(lb, 78)                                                  \
+        SLICE_FRAG(lb, 7C)                                                  \
+        SLICE_FRAG(lb, 80)                                                  \
+        SLICE_FRAG(lb, 84)                                                  \
+        SLICE_FRAG(lb, 88)                                                  \
+        SLICE_FRAG(lb, 8C)                                                  \
+        SLICE_FRAG(lb, 90)                                                  \
+        SLICE_FRAG(lb, 94)                                                  \
+        SLICE_FRAG(lb, 98)                                                  \
+        SLICE_FRAG(lb, 9C)                                                  \
+        SLICE_FRAG(lb, A0)                                                  \
+        SLICE_FRAG(lb, A4)                                                  \
+        SLICE_FRAG(lb, A8)                                                  \
+        SLICE_FRAG(lb, AC)                                                  \
+        SLICE_FRAG(lb, B0)                                                  \
+        SLICE_FRAG(lb, B4)                                                  \
+        SLICE_FRAG(lb, B8)                                                  \
+        SLICE_FRAG(lb, BC)                                                  \
+        SLICE_FRAG(lb, C0)                                                  \
+        SLICE_FRAG(lb, C4)                                                  \
+        SLICE_FRAG(lb, C8)                                                  \
+        SLICE_FRAG(lb, CC)                                                  \
+        SLICE_FRAG(lb, D0)                                                  \
+        SLICE_FRAG(lb, D4)                                                  \
+        SLICE_FRAG(lb, D8)                                                  \
+        SLICE_FRAG(lb, DC)                                                  \
+        SLICE_FRAG(lb, E0)                                                  \
+        SLICE_FRAG(lb, E4)                                                  \
+        SLICE_FRAG(lb, E8)                                                  \
+        SLICE_FRAG(lb, EC)                                                  \
+        SLICE_FRAG(lb, F0)                                                  \
+        SLICE_FRAG(lb, F4)                                                  \
+        SLICE_FRAG(lb, F8)                                                  \
+        SLICE_FRAG(lb, FC)
+
 #elif RT_ELEMENT == 64
 
 #define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
@@ -975,6 +1470,74 @@
         PAINT_COLX(10, TEX_R)                                               \
         PAINT_COLX(08, TEX_G)                                               \
         PAINT_COLX(00, TEX_B)
+
+#define STORE_SPTR(lb)                                                      \
+        STORE_FRAG(lb, 00)                                                  \
+        STORE_FRAG(lb, 08)                                                  \
+        STORE_FRAG(lb, 10)                                                  \
+        STORE_FRAG(lb, 18)                                                  \
+        STORE_FRAG(lb, 20)                                                  \
+        STORE_FRAG(lb, 28)                                                  \
+        STORE_FRAG(lb, 30)                                                  \
+        STORE_FRAG(lb, 38)                                                  \
+        STORE_FRAG(lb, 40)                                                  \
+        STORE_FRAG(lb, 48)                                                  \
+        STORE_FRAG(lb, 50)                                                  \
+        STORE_FRAG(lb, 58)                                                  \
+        STORE_FRAG(lb, 60)                                                  \
+        STORE_FRAG(lb, 68)                                                  \
+        STORE_FRAG(lb, 70)                                                  \
+        STORE_FRAG(lb, 78)                                                  \
+        STORE_FRAG(lb, 80)                                                  \
+        STORE_FRAG(lb, 88)                                                  \
+        STORE_FRAG(lb, 90)                                                  \
+        STORE_FRAG(lb, 98)                                                  \
+        STORE_FRAG(lb, A0)                                                  \
+        STORE_FRAG(lb, A8)                                                  \
+        STORE_FRAG(lb, B0)                                                  \
+        STORE_FRAG(lb, B8)                                                  \
+        STORE_FRAG(lb, C0)                                                  \
+        STORE_FRAG(lb, C8)                                                  \
+        STORE_FRAG(lb, D0)                                                  \
+        STORE_FRAG(lb, D8)                                                  \
+        STORE_FRAG(lb, E0)                                                  \
+        STORE_FRAG(lb, E8)                                                  \
+        STORE_FRAG(lb, F0)                                                  \
+        STORE_FRAG(lb, F8)
+
+#define SLICE_SPTR(lb)                                                      \
+        SLICE_FRAG(lb, 00)                                                  \
+        SLICE_FRAG(lb, 08)                                                  \
+        SLICE_FRAG(lb, 10)                                                  \
+        SLICE_FRAG(lb, 18)                                                  \
+        SLICE_FRAG(lb, 20)                                                  \
+        SLICE_FRAG(lb, 28)                                                  \
+        SLICE_FRAG(lb, 30)                                                  \
+        SLICE_FRAG(lb, 38)                                                  \
+        SLICE_FRAG(lb, 40)                                                  \
+        SLICE_FRAG(lb, 48)                                                  \
+        SLICE_FRAG(lb, 50)                                                  \
+        SLICE_FRAG(lb, 58)                                                  \
+        SLICE_FRAG(lb, 60)                                                  \
+        SLICE_FRAG(lb, 68)                                                  \
+        SLICE_FRAG(lb, 70)                                                  \
+        SLICE_FRAG(lb, 78)                                                  \
+        SLICE_FRAG(lb, 80)                                                  \
+        SLICE_FRAG(lb, 88)                                                  \
+        SLICE_FRAG(lb, 90)                                                  \
+        SLICE_FRAG(lb, 98)                                                  \
+        SLICE_FRAG(lb, A0)                                                  \
+        SLICE_FRAG(lb, A8)                                                  \
+        SLICE_FRAG(lb, B0)                                                  \
+        SLICE_FRAG(lb, B8)                                                  \
+        SLICE_FRAG(lb, C0)                                                  \
+        SLICE_FRAG(lb, C8)                                                  \
+        SLICE_FRAG(lb, D0)                                                  \
+        SLICE_FRAG(lb, D8)                                                  \
+        SLICE_FRAG(lb, E0)                                                  \
+        SLICE_FRAG(lb, E8)                                                  \
+        SLICE_FRAG(lb, F0)                                                  \
+        SLICE_FRAG(lb, F8)
 
 #endif /* RT_ELEMENT */
 
@@ -3978,6 +4541,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movwx_ld(Reax, Mecx, ctx_LOCAL(PTR))
 
+#if RT_FEAT_PT_BUFFERS
+
+        cmjwx_ri(Reax, IB(7),
+                 EQ_x, SR_rt7)
+        cmjwx_ri(Reax, IB(8),
+                 EQ_x, SR_rt8)
+
+#endif /* RT_FEAT_PT_BUFFERS */
+
         cmjwx_ri(Reax, IB(1),
                  EQ_x, SR_rt1)
         cmjwx_ri(Reax, IB(2),
@@ -4156,9 +4728,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         andpx_rr(Xmm7, Xmm3)                    /* tmask &= lmask */
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
         CHECK_MASK(PL_rt2, NONE, Xmm7)
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
+
+#if RT_FEAT_PT_BUFFERS
+
+        movwx_ri(Redx, IB(RT_FLAG_SIDE_OUTER))
+        STORE_SPTR(PL_rt1)
+
+        jmpxx_lb(PL_rt2)
+
+#endif /* RT_FEAT_PT_BUFFERS */
 
         /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
         SUBROUTINE(1, PL_mat)
 
 /******************************************************************************/
@@ -4169,9 +4750,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         xorpx_ld(Xmm7, Mecx, ctx_XMASK)         /* tmask ^= XMASK */
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
+
+#if RT_FEAT_PT_BUFFERS
+
+        movwx_ri(Redx, IB(RT_FLAG_SIDE_INNER))
+        STORE_SPTR(PL_rt2)
+
+        jmpxx_lb(OO_end)
+
+#endif /* RT_FEAT_PT_BUFFERS */
 
         /* material */
-        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
         SUBROUTINE(2, PL_mat)
 
         jmpxx_lb(OO_end)
@@ -4738,7 +5328,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subwx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* outer side */
+        movpx_ld(Xmm0, Mebp, inf_GPC07)
         CHECK_SIDE(QD_sd1, QD_rt2, RT_FLAG_SIDE_OUTER)
+        movpx_st(Xmm0, Mecx, ctx_TMASK(0))
 
         /* division check */
         cmjwx_mz(Mecx, ctx_XMISC(PTR),
@@ -4761,11 +5353,23 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* clipping */
         SUBROUTINE(3, CC_clp)
+        andpx_ld(Xmm7, Mecx, ctx_TMASK(0))
         CHECK_MASK(QD_rs2, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
+#if RT_FEAT_PT_BUFFERS
+
+        movwx_ri(Redx, IB(RT_FLAG_SIDE_OUTER))
+        STORE_SPTR(QD_rt1)
+
+        jmpxx_lb(QD_rp1)
+
+#endif /* RT_FEAT_PT_BUFFERS */
+
         /* material */
         SUBROUTINE(4, QD_mtr)
+
+    LBL(QD_rp1)
 
         /* side count check */
         cmjwx_mz(Mecx, ctx_XMISC(FLG),
@@ -4793,7 +5397,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
                  NE_x, QD_gs2)
         movxx_mi(Mebp, inf_Q_DBG, IB(4))
 
-        jmpxx_lb(QD_gr2)        
+        jmpxx_lb(QD_gr2)
 
     LBL(QD_gs2)
 
@@ -4820,7 +5424,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         subwx_mi(Mecx, ctx_XMISC(FLG), IB(1))
 
         /* inner side */
+        movpx_ld(Xmm0, Mebp, inf_GPC07)
         CHECK_SIDE(QD_sd2, QD_rt1, RT_FLAG_SIDE_INNER)
+        movpx_st(Xmm0, Mecx, ctx_TMASK(0))
 
         /* division check */
         cmjwx_mz(Mecx, ctx_XMISC(PTR),
@@ -4843,11 +5449,23 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* clipping */
         SUBROUTINE(5, CC_clp)
+        andpx_ld(Xmm7, Mecx, ctx_TMASK(0))
         CHECK_MASK(QD_rs1, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
+#if RT_FEAT_PT_BUFFERS
+
+        movwx_ri(Redx, IB(RT_FLAG_SIDE_INNER))
+        STORE_SPTR(QD_rt2)
+
+        jmpxx_lb(QD_rp2)
+
+#endif /* RT_FEAT_PT_BUFFERS */
+
         /* material */
         SUBROUTINE(6, QD_mtr)
+
+    LBL(QD_rp2)
 
         /* side count check */
         cmjwx_mz(Mecx, ctx_XMISC(FLG),
@@ -5181,6 +5799,68 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(OO_cyc)
 
     LBL(OO_out)
+
+#if RT_FEAT_PT_BUFFERS
+
+        SLICE_SPTR(OO_out)
+
+        movxx_ld(Resi, Mebp, inf_LST)
+
+    LBL(OO_mat)
+
+        cmjxx_rz(Resi,
+                 NE_x, OO_mtr)
+
+        jmpxx_lb(OO_fin)
+
+    LBL(OO_mtr)
+
+        movxx_ld(Rebx, Mesi, elm_SIMD)
+
+        movwx_ri(Redx, IB(RT_FLAG_SIDE_OUTER))
+        mulwx_ri(Redx, IV(RT_BUFFER_POOL / 2))
+        movxx_ri(Reax, IH(RT_BUFFER_SIZE))
+        mulxx_ld(Reax, Mebp, inf_DEPTH)
+        addxx_rr(Redx, Reax)
+        addxx_ld(Redx, Mebx, srf_MSC_P(PTR))
+
+        cmjxx_mi(Medx, bfr_COUNT(PTR), IB(RT_SIMD_WIDTH),
+                 LT_x, OO_sd1)
+
+        STORE_BUFF()
+
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
+
+        /* material */
+        SUBROUTINE(7, QD_mtr)
+
+    LBL(OO_sd1)
+
+        movwx_ri(Redx, IB(RT_FLAG_SIDE_INNER))
+        mulwx_ri(Redx, IV(RT_BUFFER_POOL / 2))
+        movxx_ri(Reax, IH(RT_BUFFER_SIZE))
+        mulxx_ld(Reax, Mebp, inf_DEPTH)
+        addxx_rr(Redx, Reax)
+        addxx_ld(Redx, Mebx, srf_MSC_P(PTR))
+
+        cmjxx_mi(Medx, bfr_COUNT(PTR), IB(RT_SIMD_WIDTH),
+                 LT_x, OO_sd2)
+
+        STORE_BUFF()
+
+        movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
+
+        /* material */
+        SUBROUTINE(8, QD_mtr)
+
+    LBL(OO_sd2)
+
+        movxx_ld(Resi, Mesi, elm_NEXT)
+        jmpxx_lb(OO_mat)
+
+    LBL(OO_fin)
+
+#endif /* RT_FEAT_PT_BUFFERS */
 
         movwx_ld(Reax, Mecx, ctx_PARAM(PTR))
 

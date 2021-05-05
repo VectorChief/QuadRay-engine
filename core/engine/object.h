@@ -548,6 +548,10 @@ class rt_Surface : public rt_Node, public rt_List<rt_Surface>
      * where bvnode is not allowed */
     rt_ELEM            *trn;
 
+    /* tiles list in framebuffer
+     * prepared for rendering */
+    rt_ELEM            *tls;
+
     /* surface shape extension to
      * bounding box and volume */
     rt_SHAPE           *shape;

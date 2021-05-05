@@ -725,6 +725,9 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
     s_srf = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
     memset(s_srf, 0, ssize);
     s_srf->srf_t[3] = tag;
+/*
+    s_srf->msc_p[0] = rg->alloc(RT_BUFFER_POOL, RT_SIMD_ALIGN);
+*/
 
 #if 0 /* surface's misc pointers description */
 
@@ -733,7 +736,7 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
     s_srf->srf_t[2];    /* clip ptr, filled in update0 */
     s_srf->srf_t[3];    /* surf tag */
 
-    s_srf->msc_p[0];    /* screen tiles */
+    s_srf->msc_p[0];    /* SIMD-buffers */
     s_srf->msc_p[1];    /* surf flg, filled in update0 */
     s_srf->msc_p[2];    /* custom clippers */
     s_srf->msc_p[3];    /* trnode's simd ptr */
@@ -753,6 +756,14 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_srf->sbase, 0);
     RT_SIMD_SET(s_srf->smask, (rt_uelm)0x80000000 << (RT_ELEMENT - 32));
     RT_SIMD_SET(s_srf->c_def, -1);
+
+    RT_SIMD_SET(s_srf->org_p, (rt_uelm)((rt_ui64)s_srf));
+    RT_SIMD_SET(s_srf->org_h, (rt_uelm)((rt_ui64)s_srf >> 32));
+
+    RT_SIMD_SET(s_srf->pbout, 0);
+    RT_SIMD_SET(s_srf->pbinn, 1);
+    RT_SIMD_SET(s_srf->ptout, 2);
+    RT_SIMD_SET(s_srf->ptinn, 3);
 
     RT_SIMD_SET(s_srf->d_eps, RT_DEPS_THRESHOLD);
     RT_SIMD_SET(s_srf->t_eps, RT_TEPS_THRESHOLD);

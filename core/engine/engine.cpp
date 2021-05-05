@@ -1987,7 +1987,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
     /* as temporary memory pool is released after every frame,
      * always rebuild the list even if the scene hasn't changed */
 
-    srf->s_srf->msc_p[0] = RT_NULL;
+    srf->tls = RT_NULL;
 
 #if RT_OPTS_TILING != 0
     if ((scene->opts & RT_OPTS_TILING) == 0)
@@ -2135,7 +2135,7 @@ rt_void rt_SceneThread::stile(rt_Surface *srf)
         }
     }
 
-    rt_ELEM **ptr = RT_GET_ADR(srf->s_srf->msc_p[0]);
+    rt_ELEM **ptr = RT_GET_ADR(srf->tls);
 
     /* fill marked tiles with surface data */
     for (i = 0; i < scene->tiles_in_col; i++)
@@ -3192,7 +3192,7 @@ rt_void rt_Scene::render(rt_time time)
 
             rt_Surface *srf = (rt_Surface *)nd;
 
-            rt_ELEM *tls = (rt_ELEM *)srf->s_srf->msc_p[0], *trn;
+            rt_ELEM *tls = srf->tls, *trn;
 
             if (srf->trnode != RT_NULL && srf->trnode != srf)
             {
