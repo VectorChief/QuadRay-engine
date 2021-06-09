@@ -694,6 +694,25 @@
         movwx_st(Redx, Mecx, ctx_SRF_S(0x##pn / L))                         \
     LBL(lb##pn)
 
+#define FRAME_FRAG(lb, pn) /* destroys Reax, Redx, Xmm0 */                  \
+        cmjyx_mz(Mecx, ctx_TMASK(0x##pn),                                   \
+                 EQ_x, lb##pn)                                              \
+        movyx_ld(Reax, Mecx, ctx_INDEX(0x##pn))                             \
+        shlxx_ri(Reax, IB(L+1))                                             \
+        movxx_ld(Redx, Mebp, inf_PTR_R)                                     \
+        movss_ld(Xmm0, Iedx, DP(0))                                         \
+        addss_ld(Xmm0, Mecx, ctx_COL_R(0x##pn))                             \
+        movss_st(Xmm0, Iedx, DP(0))                                         \
+        movxx_ld(Redx, Mebp, inf_PTR_G)                                     \
+        movss_ld(Xmm0, Iedx, DP(0))                                         \
+        addss_ld(Xmm0, Mecx, ctx_COL_G(0x##pn))                             \
+        movss_st(Xmm0, Iedx, DP(0))                                         \
+        movxx_ld(Redx, Mebp, inf_PTR_B)                                     \
+        movss_ld(Xmm0, Iedx, DP(0))                                         \
+        addss_ld(Xmm0, Mecx, ctx_COL_B(0x##pn))                             \
+        movss_st(Xmm0, Iedx, DP(0))                                         \
+    LBL(lb##pn)
+
 #define SLICE_FRAG(lb, pn) /* destroys Reax, Rebx, Redx */                  \
         cmjxx_mz(Mecx, ctx_SRF_P(0x##pn / L),                               \
                  EQ_x, lb##pn)                                              \
@@ -851,6 +870,12 @@
         SLICE_FRAG(lb, 08)                                                  \
         SLICE_FRAG(lb, 0C)
 
+#define FRAME_SPTR(lb)                                                      \
+        FRAME_FRAG(lb, 00)                                                  \
+        FRAME_FRAG(lb, 04)                                                  \
+        FRAME_FRAG(lb, 08)                                                  \
+        FRAME_FRAG(lb, 0C)
+
 #elif RT_ELEMENT == 64
 
 #define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
@@ -870,6 +895,10 @@
 #define SLICE_SPTR(lb)                                                      \
         SLICE_FRAG(lb, 00)                                                  \
         SLICE_FRAG(lb, 08)
+
+#define FRAME_SPTR(lb)                                                      \
+        FRAME_FRAG(lb, 00)                                                  \
+        FRAME_FRAG(lb, 08)
 
 #endif /* RT_ELEMENT */
 
@@ -913,6 +942,16 @@
         SLICE_FRAG(lb, 18)                                                  \
         SLICE_FRAG(lb, 1C)
 
+#define FRAME_SPTR(lb)                                                      \
+        FRAME_FRAG(lb, 00)                                                  \
+        FRAME_FRAG(lb, 04)                                                  \
+        FRAME_FRAG(lb, 08)                                                  \
+        FRAME_FRAG(lb, 0C)                                                  \
+        FRAME_FRAG(lb, 10)                                                  \
+        FRAME_FRAG(lb, 14)                                                  \
+        FRAME_FRAG(lb, 18)                                                  \
+        FRAME_FRAG(lb, 1C)
+
 #elif RT_ELEMENT == 64
 
 #define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
@@ -938,6 +977,12 @@
         SLICE_FRAG(lb, 08)                                                  \
         SLICE_FRAG(lb, 10)                                                  \
         SLICE_FRAG(lb, 18)
+
+#define FRAME_SPTR(lb)                                                      \
+        FRAME_FRAG(lb, 00)                                                  \
+        FRAME_FRAG(lb, 08)                                                  \
+        FRAME_FRAG(lb, 10)                                                  \
+        FRAME_FRAG(lb, 18)
 
 #endif /* RT_ELEMENT */
 
@@ -1005,6 +1050,24 @@
         SLICE_FRAG(lb, 38)                                                  \
         SLICE_FRAG(lb, 3C)
 
+#define FRAME_SPTR(lb)                                                      \
+        FRAME_FRAG(lb, 00)                                                  \
+        FRAME_FRAG(lb, 04)                                                  \
+        FRAME_FRAG(lb, 08)                                                  \
+        FRAME_FRAG(lb, 0C)                                                  \
+        FRAME_FRAG(lb, 10)                                                  \
+        FRAME_FRAG(lb, 14)                                                  \
+        FRAME_FRAG(lb, 18)                                                  \
+        FRAME_FRAG(lb, 1C)                                                  \
+        FRAME_FRAG(lb, 20)                                                  \
+        FRAME_FRAG(lb, 24)                                                  \
+        FRAME_FRAG(lb, 28)                                                  \
+        FRAME_FRAG(lb, 2C)                                                  \
+        FRAME_FRAG(lb, 30)                                                  \
+        FRAME_FRAG(lb, 34)                                                  \
+        FRAME_FRAG(lb, 38)                                                  \
+        FRAME_FRAG(lb, 3C)
+
 #elif RT_ELEMENT == 64
 
 #define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
@@ -1042,6 +1105,16 @@
         SLICE_FRAG(lb, 28)                                                  \
         SLICE_FRAG(lb, 30)                                                  \
         SLICE_FRAG(lb, 38)
+
+#define FRAME_SPTR(lb)                                                      \
+        FRAME_FRAG(lb, 00)                                                  \
+        FRAME_FRAG(lb, 08)                                                  \
+        FRAME_FRAG(lb, 10)                                                  \
+        FRAME_FRAG(lb, 18)                                                  \
+        FRAME_FRAG(lb, 20)                                                  \
+        FRAME_FRAG(lb, 28)                                                  \
+        FRAME_FRAG(lb, 30)                                                  \
+        FRAME_FRAG(lb, 38)
 
 #endif /* RT_ELEMENT */
 
@@ -1157,6 +1230,40 @@
         SLICE_FRAG(lb, 78)                                                  \
         SLICE_FRAG(lb, 7C)
 
+#define FRAME_SPTR(lb)                                                      \
+        FRAME_FRAG(lb, 00)                                                  \
+        FRAME_FRAG(lb, 04)                                                  \
+        FRAME_FRAG(lb, 08)                                                  \
+        FRAME_FRAG(lb, 0C)                                                  \
+        FRAME_FRAG(lb, 10)                                                  \
+        FRAME_FRAG(lb, 14)                                                  \
+        FRAME_FRAG(lb, 18)                                                  \
+        FRAME_FRAG(lb, 1C)                                                  \
+        FRAME_FRAG(lb, 20)                                                  \
+        FRAME_FRAG(lb, 24)                                                  \
+        FRAME_FRAG(lb, 28)                                                  \
+        FRAME_FRAG(lb, 2C)                                                  \
+        FRAME_FRAG(lb, 30)                                                  \
+        FRAME_FRAG(lb, 34)                                                  \
+        FRAME_FRAG(lb, 38)                                                  \
+        FRAME_FRAG(lb, 3C)                                                  \
+        FRAME_FRAG(lb, 40)                                                  \
+        FRAME_FRAG(lb, 44)                                                  \
+        FRAME_FRAG(lb, 48)                                                  \
+        FRAME_FRAG(lb, 4C)                                                  \
+        FRAME_FRAG(lb, 50)                                                  \
+        FRAME_FRAG(lb, 54)                                                  \
+        FRAME_FRAG(lb, 58)                                                  \
+        FRAME_FRAG(lb, 5C)                                                  \
+        FRAME_FRAG(lb, 60)                                                  \
+        FRAME_FRAG(lb, 64)                                                  \
+        FRAME_FRAG(lb, 68)                                                  \
+        FRAME_FRAG(lb, 6C)                                                  \
+        FRAME_FRAG(lb, 70)                                                  \
+        FRAME_FRAG(lb, 74)                                                  \
+        FRAME_FRAG(lb, 78)                                                  \
+        FRAME_FRAG(lb, 7C)
+
 #elif RT_ELEMENT == 64
 
 #define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
@@ -1218,6 +1325,24 @@
         SLICE_FRAG(lb, 68)                                                  \
         SLICE_FRAG(lb, 70)                                                  \
         SLICE_FRAG(lb, 78)
+
+#define FRAME_SPTR(lb)                                                      \
+        FRAME_FRAG(lb, 00)                                                  \
+        FRAME_FRAG(lb, 08)                                                  \
+        FRAME_FRAG(lb, 10)                                                  \
+        FRAME_FRAG(lb, 18)                                                  \
+        FRAME_FRAG(lb, 20)                                                  \
+        FRAME_FRAG(lb, 28)                                                  \
+        FRAME_FRAG(lb, 30)                                                  \
+        FRAME_FRAG(lb, 38)                                                  \
+        FRAME_FRAG(lb, 40)                                                  \
+        FRAME_FRAG(lb, 48)                                                  \
+        FRAME_FRAG(lb, 50)                                                  \
+        FRAME_FRAG(lb, 58)                                                  \
+        FRAME_FRAG(lb, 60)                                                  \
+        FRAME_FRAG(lb, 68)                                                  \
+        FRAME_FRAG(lb, 70)                                                  \
+        FRAME_FRAG(lb, 78)
 
 #endif /* RT_ELEMENT */
 
@@ -1429,6 +1554,72 @@
         SLICE_FRAG(lb, F8)                                                  \
         SLICE_FRAG(lb, FC)
 
+#define FRAME_SPTR(lb)                                                      \
+        FRAME_FRAG(lb, 00)                                                  \
+        FRAME_FRAG(lb, 04)                                                  \
+        FRAME_FRAG(lb, 08)                                                  \
+        FRAME_FRAG(lb, 0C)                                                  \
+        FRAME_FRAG(lb, 10)                                                  \
+        FRAME_FRAG(lb, 14)                                                  \
+        FRAME_FRAG(lb, 18)                                                  \
+        FRAME_FRAG(lb, 1C)                                                  \
+        FRAME_FRAG(lb, 20)                                                  \
+        FRAME_FRAG(lb, 24)                                                  \
+        FRAME_FRAG(lb, 28)                                                  \
+        FRAME_FRAG(lb, 2C)                                                  \
+        FRAME_FRAG(lb, 30)                                                  \
+        FRAME_FRAG(lb, 34)                                                  \
+        FRAME_FRAG(lb, 38)                                                  \
+        FRAME_FRAG(lb, 3C)                                                  \
+        FRAME_FRAG(lb, 40)                                                  \
+        FRAME_FRAG(lb, 44)                                                  \
+        FRAME_FRAG(lb, 48)                                                  \
+        FRAME_FRAG(lb, 4C)                                                  \
+        FRAME_FRAG(lb, 50)                                                  \
+        FRAME_FRAG(lb, 54)                                                  \
+        FRAME_FRAG(lb, 58)                                                  \
+        FRAME_FRAG(lb, 5C)                                                  \
+        FRAME_FRAG(lb, 60)                                                  \
+        FRAME_FRAG(lb, 64)                                                  \
+        FRAME_FRAG(lb, 68)                                                  \
+        FRAME_FRAG(lb, 6C)                                                  \
+        FRAME_FRAG(lb, 70)                                                  \
+        FRAME_FRAG(lb, 74)                                                  \
+        FRAME_FRAG(lb, 78)                                                  \
+        FRAME_FRAG(lb, 7C)                                                  \
+        FRAME_FRAG(lb, 80)                                                  \
+        FRAME_FRAG(lb, 84)                                                  \
+        FRAME_FRAG(lb, 88)                                                  \
+        FRAME_FRAG(lb, 8C)                                                  \
+        FRAME_FRAG(lb, 90)                                                  \
+        FRAME_FRAG(lb, 94)                                                  \
+        FRAME_FRAG(lb, 98)                                                  \
+        FRAME_FRAG(lb, 9C)                                                  \
+        FRAME_FRAG(lb, A0)                                                  \
+        FRAME_FRAG(lb, A4)                                                  \
+        FRAME_FRAG(lb, A8)                                                  \
+        FRAME_FRAG(lb, AC)                                                  \
+        FRAME_FRAG(lb, B0)                                                  \
+        FRAME_FRAG(lb, B4)                                                  \
+        FRAME_FRAG(lb, B8)                                                  \
+        FRAME_FRAG(lb, BC)                                                  \
+        FRAME_FRAG(lb, C0)                                                  \
+        FRAME_FRAG(lb, C4)                                                  \
+        FRAME_FRAG(lb, C8)                                                  \
+        FRAME_FRAG(lb, CC)                                                  \
+        FRAME_FRAG(lb, D0)                                                  \
+        FRAME_FRAG(lb, D4)                                                  \
+        FRAME_FRAG(lb, D8)                                                  \
+        FRAME_FRAG(lb, DC)                                                  \
+        FRAME_FRAG(lb, E0)                                                  \
+        FRAME_FRAG(lb, E4)                                                  \
+        FRAME_FRAG(lb, E8)                                                  \
+        FRAME_FRAG(lb, EC)                                                  \
+        FRAME_FRAG(lb, F0)                                                  \
+        FRAME_FRAG(lb, F4)                                                  \
+        FRAME_FRAG(lb, F8)                                                  \
+        FRAME_FRAG(lb, FC)
+
 #elif RT_ELEMENT == 64
 
 #define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
@@ -1538,6 +1729,40 @@
         SLICE_FRAG(lb, E8)                                                  \
         SLICE_FRAG(lb, F0)                                                  \
         SLICE_FRAG(lb, F8)
+
+#define FRAME_SPTR(lb)                                                      \
+        FRAME_FRAG(lb, 00)                                                  \
+        FRAME_FRAG(lb, 08)                                                  \
+        FRAME_FRAG(lb, 10)                                                  \
+        FRAME_FRAG(lb, 18)                                                  \
+        FRAME_FRAG(lb, 20)                                                  \
+        FRAME_FRAG(lb, 28)                                                  \
+        FRAME_FRAG(lb, 30)                                                  \
+        FRAME_FRAG(lb, 38)                                                  \
+        FRAME_FRAG(lb, 40)                                                  \
+        FRAME_FRAG(lb, 48)                                                  \
+        FRAME_FRAG(lb, 50)                                                  \
+        FRAME_FRAG(lb, 58)                                                  \
+        FRAME_FRAG(lb, 60)                                                  \
+        FRAME_FRAG(lb, 68)                                                  \
+        FRAME_FRAG(lb, 70)                                                  \
+        FRAME_FRAG(lb, 78)                                                  \
+        FRAME_FRAG(lb, 80)                                                  \
+        FRAME_FRAG(lb, 88)                                                  \
+        FRAME_FRAG(lb, 90)                                                  \
+        FRAME_FRAG(lb, 98)                                                  \
+        FRAME_FRAG(lb, A0)                                                  \
+        FRAME_FRAG(lb, A8)                                                  \
+        FRAME_FRAG(lb, B0)                                                  \
+        FRAME_FRAG(lb, B8)                                                  \
+        FRAME_FRAG(lb, C0)                                                  \
+        FRAME_FRAG(lb, C8)                                                  \
+        FRAME_FRAG(lb, D0)                                                  \
+        FRAME_FRAG(lb, D8)                                                  \
+        FRAME_FRAG(lb, E0)                                                  \
+        FRAME_FRAG(lb, E8)                                                  \
+        FRAME_FRAG(lb, F0)                                                  \
+        FRAME_FRAG(lb, F8)
 
 #endif /* RT_ELEMENT */
 
