@@ -562,13 +562,13 @@ struct rt_SIMD_CONTEXT
 #define ctx_RAY_O           DP(Q*0x040)
 
     rt_real ray_x[S];
-#define ctx_RAY_X           DP(Q*0x040)
+#define ctx_RAY_X(nx)       DP(Q*0x040 + nx)
 
     rt_real ray_y[S];
-#define ctx_RAY_Y           DP(Q*0x050)
+#define ctx_RAY_Y(nx)       DP(Q*0x050 + nx)
 
     rt_real ray_z[S];
-#define ctx_RAY_Z           DP(Q*0x060)
+#define ctx_RAY_Z(nx)       DP(Q*0x060 + nx)
 
     rt_real ray_i[S];
 #define ctx_RAY_I           DP(Q*0x070)
@@ -780,13 +780,13 @@ struct rt_SIMD_CONTEXT
      * new origin */
 
     rt_real hit_x[S];
-#define ctx_HIT_X           DP(Q*0x410)
+#define ctx_HIT_X(nx)       DP(Q*0x410 + nx)
 
     rt_real hit_y[S];
-#define ctx_HIT_Y           DP(Q*0x420)
+#define ctx_HIT_Y(nx)       DP(Q*0x420 + nx)
 
     rt_real hit_z[S];
-#define ctx_HIT_Z           DP(Q*0x430)
+#define ctx_HIT_Z(nx)       DP(Q*0x430 + nx)
 
     /* new ray */
 
