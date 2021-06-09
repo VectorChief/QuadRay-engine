@@ -3612,6 +3612,8 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
     RT_SIMD_SET(s_cam->col_b, amb[RT_B]);
     RT_SIMD_SET(s_cam->l_amb, amb[RT_A]);
 
+    RT_SIMD_SET(s_cam->x_row, (rt_real)x_row);
+
 /*  rt_SIMD_CONTEXT */
 
     rt_SIMD_CONTEXT *s_ctx = tharr[index]->s_ctx;

@@ -903,6 +903,11 @@ struct rt_SIMD_CAMERA
     rt_real col_b[S];
 #define cam_COL_B           DP(Q*0x130)
 
+    /* index update */
+
+    rt_real x_row[S];
+#define cam_X_ROW           DP(Q*0x140)
+
 };
 
 /******************************************************************************/

@@ -2130,6 +2130,21 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm0, Mebp, inf_HOR_I)         /* hor_s <- HOR_I */
         movpx_ld(Xmm7, Mebp, inf_VER_I)         /* ver_s <- VER_I */
 
+#if RT_FEAT_PT_BUFFERS
+
+        movpx_ld(Xmm4, Medx, cam_X_ROW)         /* x_row <- X_ROW */
+        mulps_rr(Xmm4, Xmm7)                    /* x_row *= ver_s */
+        addps_rr(Xmm4, Xmm0)                    /* x_row += hor_s */
+        cvnps_rr(Xmm4, Xmm4)                    /* x_row in x_row */
+        movpx_st(Xmm4, Mecx, ctx_INDEX)         /* x_row -> INDEX */
+
+        movpx_ld(Xmm4, Mebp, inf_GPC01)         /* one_f <- +1.0f */
+        movpx_st(Xmm4, Mecx, ctx_MUL_R)         /* one_f -> MUL_R */
+        movpx_st(Xmm4, Mecx, ctx_MUL_G)         /* one_f -> MUL_G */
+        movpx_st(Xmm4, Mecx, ctx_MUL_B)         /* one_f -> MUL_B */
+
+#endif /* RT_FEAT_PT_BUFFERS */
+
         addps_ld(Xmm0, Medx, cam_HOR_A)         /* hor_s += HOR_A */
         addps_ld(Xmm7, Medx, cam_VER_A)         /* ver_s += VER_A */
 
@@ -4367,9 +4382,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm1, Mecx, ctx_MUL_R)
         movpx_ld(Xmm2, Mecx, ctx_MUL_G)
         movpx_ld(Xmm3, Mecx, ctx_MUL_B)
+        movpx_ld(Xmm4, Mecx, ctx_INDEX)
 
         movpx_ld(Xmm0, Mecx, ctx_C_TRN)
-
         mulps_rr(Xmm1, Xmm0)
         mulps_rr(Xmm2, Xmm0)
         mulps_rr(Xmm3, Xmm0)
@@ -4387,6 +4402,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm1, Mecx, ctx_MUL_R)
         movpx_st(Xmm2, Mecx, ctx_MUL_G)
         movpx_st(Xmm3, Mecx, ctx_MUL_B)
+        movpx_st(Xmm4, Mecx, ctx_INDEX)
 
 #endif /* RT_FEAT_PT_BUFFERS */
 
@@ -4709,9 +4725,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm1, Mecx, ctx_MUL_R)
         movpx_ld(Xmm2, Mecx, ctx_MUL_G)
         movpx_ld(Xmm3, Mecx, ctx_MUL_B)
+        movpx_ld(Xmm4, Mecx, ctx_INDEX)
 
         movpx_ld(Xmm0, Mecx, ctx_C_RFL)
-
         mulps_rr(Xmm1, Xmm0)
         mulps_rr(Xmm2, Xmm0)
         mulps_rr(Xmm3, Xmm0)
@@ -4729,6 +4745,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm1, Mecx, ctx_MUL_R)
         movpx_st(Xmm2, Mecx, ctx_MUL_G)
         movpx_st(Xmm3, Mecx, ctx_MUL_B)
+        movpx_st(Xmm4, Mecx, ctx_INDEX)
 
 #endif /* RT_FEAT_PT_BUFFERS */
 
