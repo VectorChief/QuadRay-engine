@@ -4021,6 +4021,24 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(LT_end)
 
+#if RT_FEAT_PT_BUFFERS
+
+        movpx_ld(Xmm1, Mecx, ctx_COL_R)
+        movpx_ld(Xmm2, Mecx, ctx_COL_G)
+        movpx_ld(Xmm3, Mecx, ctx_COL_B)
+
+        mulps_ld(Xmm1, Mecx, ctx_MUL_R)
+        mulps_ld(Xmm2, Mecx, ctx_MUL_G)
+        mulps_ld(Xmm3, Mecx, ctx_MUL_B)
+
+        movpx_st(Xmm1, Mecx, ctx_COL_R)
+        movpx_st(Xmm2, Mecx, ctx_COL_G)
+        movpx_st(Xmm3, Mecx, ctx_COL_B)
+
+        FRAME_SPTR(LT_end)
+
+#endif /* RT_FEAT_PT_BUFFERS */
+
 /******************************************************************************/
 /******************************   TRANSPARENCY   ******************************/
 /******************************************************************************/
@@ -4344,11 +4362,33 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_SHOW_BOUND */
 
+#if RT_FEAT_PT_BUFFERS
+
+        movpx_ld(Xmm1, Mecx, ctx_MUL_R)
+        movpx_ld(Xmm2, Mecx, ctx_MUL_G)
+        movpx_ld(Xmm3, Mecx, ctx_MUL_B)
+
+        movpx_ld(Xmm0, Mecx, ctx_C_TRN)
+
+        mulps_rr(Xmm1, Xmm0)
+        mulps_rr(Xmm2, Xmm0)
+        mulps_rr(Xmm3, Xmm0)
+
+#endif /* RT_FEAT_PT_BUFFERS */
+
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))      /* load tmask */
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
         orrxx_ri(Reax, IB(RT_FLAG_PASS_THRU))
         addxx_ri(Recx, IH(RT_STACK_STEP))
         subxx_mi(Mebp, inf_DEPTH, IB(1))
+
+#if RT_FEAT_PT_BUFFERS
+
+        movpx_st(Xmm1, Mecx, ctx_MUL_R)
+        movpx_st(Xmm2, Mecx, ctx_MUL_G)
+        movpx_st(Xmm3, Mecx, ctx_MUL_B)
+
+#endif /* RT_FEAT_PT_BUFFERS */
 
         movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
         movxx_st(Redx, Mecx, ctx_PARAM(LST))    /* save material */
@@ -4664,11 +4704,33 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_XPTR(Resi, LST_P(SRF))
 
+#if RT_FEAT_PT_BUFFERS
+
+        movpx_ld(Xmm1, Mecx, ctx_MUL_R)
+        movpx_ld(Xmm2, Mecx, ctx_MUL_G)
+        movpx_ld(Xmm3, Mecx, ctx_MUL_B)
+
+        movpx_ld(Xmm0, Mecx, ctx_C_RFL)
+
+        mulps_rr(Xmm1, Xmm0)
+        mulps_rr(Xmm2, Xmm0)
+        mulps_rr(Xmm3, Xmm0)
+
+#endif /* RT_FEAT_PT_BUFFERS */
+
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))      /* load tmask */
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
         orrxx_ri(Reax, IB(RT_FLAG_PASS_BACK))
         addxx_ri(Recx, IH(RT_STACK_STEP))
         subxx_mi(Mebp, inf_DEPTH, IB(1))
+
+#if RT_FEAT_PT_BUFFERS
+
+        movpx_st(Xmm1, Mecx, ctx_MUL_R)
+        movpx_st(Xmm2, Mecx, ctx_MUL_G)
+        movpx_st(Xmm3, Mecx, ctx_MUL_B)
+
+#endif /* RT_FEAT_PT_BUFFERS */
 
         movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
         movxx_st(Redx, Mecx, ctx_PARAM(LST))    /* save material */
