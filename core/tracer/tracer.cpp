@@ -6422,6 +6422,210 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(YY_out)
 
+#if RT_FEAT_PT_BUFFERS
+
+#if RT_FEAT_MULTITHREADING
+
+        movxx_ld(Reax, Mebp, inf_INDEX)
+        movxx_st(Reax, Mebp, inf_FRM_Y)
+
+#else /* RT_FEAT_MULTITHREADING */
+
+        movxx_mi(Mebp, inf_FRM_Y, IB(0))
+
+#endif /* RT_FEAT_MULTITHREADING */
+
+    LBL(TY_cyc)
+
+        movxx_ld(Reax, Mebp, inf_FRM_Y)
+        cmjxx_rm(Reax, Mebp, inf_FRM_H,
+                 LT_x, TY_ini)
+
+        jmpxx_lb(TY_out)
+
+    LBL(TY_ini)
+
+        mulxx_ld(Reax, Mebp, inf_FRM_ROW)
+        shlxx_ri(Reax, IB(2))
+        addxx_ld(Reax, Mebp, inf_FRAME)
+        movxx_st(Reax, Mebp, inf_FRM)
+
+        movxx_mi(Mebp, inf_FRM_X, IB(0))
+
+    LBL(TX_cyc)
+
+        movxx_ld(Rebx, Mebp, inf_FSAA)
+        movxx_ri(Resi, IM(RT_SIMD_QUADS*16))
+
+        movxx_ld(Reax, Mebp, inf_FRM_Y)
+        mulxx_ld(Reax, Mebp, inf_FRM_ROW)
+        addxx_ld(Reax, Mebp, inf_FRM_X)
+        shlxx_ri(Reax, IB(L+1))
+        shlxx_rr(Reax, Rebx)
+
+        movxx_ld(Redx, Mebp, inf_PTR_R)
+        movpx_ld(Xmm0, Iedx, DP(0))
+        movpx_st(Xmm0, Mecx, ctx_COL_R(0))
+
+        movxx_ld(Redx, Mebp, inf_PTR_G)
+        movpx_ld(Xmm0, Iedx, DP(0))
+        movpx_st(Xmm0, Mecx, ctx_COL_G(0))
+
+        movxx_ld(Redx, Mebp, inf_PTR_B)
+        movpx_ld(Xmm0, Iedx, DP(0))
+        movpx_st(Xmm0, Mecx, ctx_COL_B(0))
+
+        /* clamp fp colors to 1.0 limit */
+        movpx_ld(Xmm1, Mebp, inf_GPC01)
+
+        movpx_ld(Xmm0, Mecx, ctx_COL_R(0))
+        minps_rr(Xmm0, Xmm1)
+        movpx_st(Xmm0, Mecx, ctx_COL_R(0))
+
+        movpx_ld(Xmm0, Mecx, ctx_COL_G(0))
+        minps_rr(Xmm0, Xmm1)
+        movpx_st(Xmm0, Mecx, ctx_COL_G(0))
+
+        movpx_ld(Xmm0, Mecx, ctx_COL_B(0))
+        minps_rr(Xmm0, Xmm1)
+        movpx_st(Xmm0, Mecx, ctx_COL_B(0))
+
+#if RT_FEAT_ANTIALIASING
+
+        cmjxx_rz(Rebx,
+                 EQ_x, TA_out)
+
+    LBL(TA_cyc)
+
+        /* half fp colors for each pass */
+        movpx_ld(Xmm1, Mebp, inf_GPC02)
+        andpx_ld(Xmm1, Mebp, inf_GPC04)
+
+        movpx_ld(Xmm0, Mecx, ctx_COL_R(0))
+        mulps_rr(Xmm0, Xmm1)
+        movpx_st(Xmm0, Mecx, ctx_COL_R(0))
+
+        movpx_ld(Xmm0, Mecx, ctx_COL_G(0))
+        mulps_rr(Xmm0, Xmm1)
+        movpx_st(Xmm0, Mecx, ctx_COL_G(0))
+
+        movpx_ld(Xmm0, Mecx, ctx_COL_B(0))
+        mulps_rr(Xmm0, Xmm1)
+        movpx_st(Xmm0, Mecx, ctx_COL_B(0))
+
+        /* select code-paths from quads */
+        xorxx_rr(Reax, Reax)
+        movxx_rr(Redx, Resi)
+
+        cmjxx_ri(Redx, IB(16),
+                 GT_x, TA_qds)
+
+        xorlx_rr(Xmm0, Xmm0)
+
+        movlx_ld(Xmm1, Mecx, ctx_COL_R(0x00))
+        adpls_rr(Xmm1, Xmm0)
+        movlx_ld(Xmm2, Mecx, ctx_COL_G(0x00))
+        adpls_rr(Xmm2, Xmm0)
+        movlx_ld(Xmm3, Mecx, ctx_COL_B(0x00))
+        adpls_rr(Xmm3, Xmm0)
+
+        movlx_st(Xmm1, Mecx, ctx_COL_R(0x00))
+        movlx_st(Xmm2, Mecx, ctx_COL_G(0x00))
+        movlx_st(Xmm3, Mecx, ctx_COL_B(0x00))
+
+        jmpxx_lb(TA_end)
+
+    LBL(TA_qds)
+
+        movlx_ld(Xmm1, Iecx, ctx_COL_R(0x00))
+        adpls_ld(Xmm1, Iecx, ctx_COL_R(0x10))
+        movlx_ld(Xmm2, Iecx, ctx_COL_G(0x00))
+        adpls_ld(Xmm2, Iecx, ctx_COL_G(0x10))
+        movlx_ld(Xmm3, Iecx, ctx_COL_B(0x00))
+        adpls_ld(Xmm3, Iecx, ctx_COL_B(0x10))
+
+        shrxx_ri(Reax, IB(1))
+        movlx_st(Xmm1, Iecx, ctx_COL_R(0x00))
+        movlx_st(Xmm2, Iecx, ctx_COL_G(0x00))
+        movlx_st(Xmm3, Iecx, ctx_COL_B(0x00))
+        shlxx_ri(Reax, IB(1))
+
+        addxx_ri(Reax, IB(32))
+        subxx_ri(Redx, IB(32))
+
+        cmjxx_rz(Redx,
+                 NE_x, TA_qds)
+
+    LBL(TA_end)
+
+        subxx_ri(Rebx, IB(1))
+        shrxx_ri(Resi, IB(1))
+
+        cmjxx_rz(Rebx,
+                 NE_x, TA_cyc)
+
+    LBL(TA_out)
+
+#endif /* RT_FEAT_ANTIALIASING */
+
+        /* convert fp colors to integer */
+        movxx_ld(Redx, Mebp, inf_CAM)           /* edx needed in FRAME_SIMD */
+
+        movxx_ld(Reax, Mecx, ctx_PARAM(FLG))    /* load Gamma prop */
+        movxx_st(Reax, Mecx, ctx_LOCAL(FLG))    /* save Gamma prop */
+
+        FRAME_SIMD(TF_rtx)
+
+        movxx_ld(Rebx, Mebp, inf_FRM_X)
+        shlxx_ri(Rebx, IB(2))
+        addxx_ld(Rebx, Mebp, inf_FRM)
+
+        xorxx_rr(Reax, Reax)
+
+    LBL(TF_cyc)
+
+#if (L == 1)
+        movyx_ld(Redx, Iecx, ctx_C_BUF(0))
+#else /* (L == 2) */
+        movyx_ld(Redx, Jecx, ctx_C_BUF(0))
+#endif /* (L == 2) */
+
+        movwx_st(Redx, Iebx, DP(0))
+
+        subxx_ri(Resi, IB(4*L))
+        addxx_ri(Reax, IB(4))
+
+        cmjxx_rz(Resi,
+                 NE_x, TF_cyc)
+
+        shrxx_ri(Reax, IB(2))
+        addxx_st(Reax, Mebp, inf_FRM_X)
+
+        movxx_ld(Reax, Mebp, inf_FRM_X)
+        cmjxx_rm(Reax, Mebp, inf_FRM_W,
+                 GE_x, TY_end)
+
+        jmpxx_lb(TX_cyc)
+
+    LBL(TY_end)
+
+#if RT_FEAT_MULTITHREADING
+
+        movxx_ld(Reax, Mebp, inf_THNUM)
+        addxx_st(Reax, Mebp, inf_FRM_Y)
+
+#else /* RT_FEAT_MULTITHREADING */
+
+        addxx_mi(Mebp, inf_FRM_Y, IB(1))
+
+#endif /* RT_FEAT_MULTITHREADING */
+
+        jmpxx_lb(TY_cyc)
+
+    LBL(TY_out)
+
+#endif /* RT_FEAT_PT_BUFFERS */
+
     ASM_LEAVE(s_inf)
 
 /******************************************************************************/
