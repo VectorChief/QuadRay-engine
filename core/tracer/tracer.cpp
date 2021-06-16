@@ -169,9 +169,9 @@
         movyx_st(Reax, Mecx, ctx_C_BUF(0x04))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x08))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x0C))                               \
-        PAINT_COLX(10, COL_R(0))                                            \
-        PAINT_COLX(08, COL_G(0))                                            \
-        PAINT_COLX(00, COL_B(0))
+        PAINT_COLX(lb, 10, COL_R(0))                                        \
+        PAINT_COLX(lb, 08, COL_G(0))                                        \
+        PAINT_COLX(lb, 00, COL_B(0))
 
 #elif RT_ELEMENT == 64
 
@@ -179,9 +179,9 @@
         movyx_ri(Reax, IV(cl))                                              \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x00))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x08))                               \
-        PAINT_COLX(10, COL_R(0))                                            \
-        PAINT_COLX(08, COL_G(0))                                            \
-        PAINT_COLX(00, COL_B(0))
+        PAINT_COLX(lb, 10, COL_R(0))                                        \
+        PAINT_COLX(lb, 08, COL_G(0))                                        \
+        PAINT_COLX(lb, 00, COL_B(0))
 
 #endif /* RT_ELEMENT */
 
@@ -199,9 +199,9 @@
         movyx_st(Reax, Mecx, ctx_C_BUF(0x14))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x18))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x1C))                               \
-        PAINT_COLX(10, COL_R(0))                                            \
-        PAINT_COLX(08, COL_G(0))                                            \
-        PAINT_COLX(00, COL_B(0))
+        PAINT_COLX(lb, 10, COL_R(0))                                        \
+        PAINT_COLX(lb, 08, COL_G(0))                                        \
+        PAINT_COLX(lb, 00, COL_B(0))
 
 #elif RT_ELEMENT == 64
 
@@ -211,9 +211,9 @@
         movyx_st(Reax, Mecx, ctx_C_BUF(0x08))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x10))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x18))                               \
-        PAINT_COLX(10, COL_R(0))                                            \
-        PAINT_COLX(08, COL_G(0))                                            \
-        PAINT_COLX(00, COL_B(0))
+        PAINT_COLX(lb, 10, COL_R(0))                                        \
+        PAINT_COLX(lb, 08, COL_G(0))                                        \
+        PAINT_COLX(lb, 00, COL_B(0))
 
 #endif /* RT_ELEMENT */
 
@@ -239,9 +239,9 @@
         movyx_st(Reax, Mecx, ctx_C_BUF(0x34))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x38))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x3C))                               \
-        PAINT_COLX(10, COL_R(0))                                            \
-        PAINT_COLX(08, COL_G(0))                                            \
-        PAINT_COLX(00, COL_B(0))
+        PAINT_COLX(lb, 10, COL_R(0))                                        \
+        PAINT_COLX(lb, 08, COL_G(0))                                        \
+        PAINT_COLX(lb, 00, COL_B(0))
 
 #elif RT_ELEMENT == 64
 
@@ -255,9 +255,9 @@
         movyx_st(Reax, Mecx, ctx_C_BUF(0x28))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x30))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x38))                               \
-        PAINT_COLX(10, COL_R(0))                                            \
-        PAINT_COLX(08, COL_G(0))                                            \
-        PAINT_COLX(00, COL_B(0))
+        PAINT_COLX(lb, 10, COL_R(0))                                        \
+        PAINT_COLX(lb, 08, COL_G(0))                                        \
+        PAINT_COLX(lb, 00, COL_B(0))
 
 #endif /* RT_ELEMENT */
 
@@ -299,9 +299,9 @@
         movyx_st(Reax, Mecx, ctx_C_BUF(0x74))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x78))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x7C))                               \
-        PAINT_COLX(10, COL_R(0))                                            \
-        PAINT_COLX(08, COL_G(0))                                            \
-        PAINT_COLX(00, COL_B(0))
+        PAINT_COLX(lb, 10, COL_R(0))                                        \
+        PAINT_COLX(lb, 08, COL_G(0))                                        \
+        PAINT_COLX(lb, 00, COL_B(0))
 
 #elif RT_ELEMENT == 64
 
@@ -323,9 +323,9 @@
         movyx_st(Reax, Mecx, ctx_C_BUF(0x68))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x70))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x78))                               \
-        PAINT_COLX(10, COL_R(0))                                            \
-        PAINT_COLX(08, COL_G(0))                                            \
-        PAINT_COLX(00, COL_B(0))
+        PAINT_COLX(lb, 10, COL_R(0))                                        \
+        PAINT_COLX(lb, 08, COL_G(0))                                        \
+        PAINT_COLX(lb, 00, COL_B(0))
 
 #endif /* RT_ELEMENT */
 
@@ -399,9 +399,9 @@
         movyx_st(Reax, Mecx, ctx_C_BUF(0xF4))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0xF8))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0xFC))                               \
-        PAINT_COLX(10, COL_R(0))                                            \
-        PAINT_COLX(08, COL_G(0))                                            \
-        PAINT_COLX(00, COL_B(0))
+        PAINT_COLX(lb, 10, COL_R(0))                                        \
+        PAINT_COLX(lb, 08, COL_G(0))                                        \
+        PAINT_COLX(lb, 00, COL_B(0))
 
 #elif RT_ELEMENT == 64
 
@@ -439,9 +439,9 @@
         movyx_st(Reax, Mecx, ctx_C_BUF(0xE8))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0xF0))                               \
         movyx_st(Reax, Mecx, ctx_C_BUF(0xF8))                               \
-        PAINT_COLX(10, COL_R(0))                                            \
-        PAINT_COLX(08, COL_G(0))                                            \
-        PAINT_COLX(00, COL_B(0))
+        PAINT_COLX(lb, 10, COL_R(0))                                        \
+        PAINT_COLX(lb, 08, COL_G(0))                                        \
+        PAINT_COLX(lb, 00, COL_B(0))
 
 #endif /* RT_ELEMENT */
 
@@ -831,32 +831,32 @@
         movpx_ld(Xmm0, Mebp, inf_GPC07)                                     \
         movpx_st(Xmm0, Medx, bfr_INDEX(RT_SIMD_WIDTH*4*L))
 
-#define PAINT_COLX(cl, pl) /* destroys Reax, Xmm0, reads Xmm2, Xmm7 */      \
+#define PAINT_COLX(lb, cl, pl) /* destroys Reax, Xmm0, reads Xmm2, Xmm7 */  \
         movpx_ld(Xmm0, Mecx, ctx_C_BUF(0))                                  \
         shrpx_ri(Xmm0, IB(0x##cl))                                          \
         andpx_rr(Xmm0, Xmm7)                                                \
         cvnpn_rr(Xmm0, Xmm0)                                                \
         divps_rr(Xmm0, Xmm2)                                                \
-        CHECK_PROP(GM_p##cl, RT_PROP_GAMMA)                                 \
+        CHECK_PROP(lb##GM_p##cl, RT_PROP_GAMMA)                             \
   GAMMA(mulps_rr(Xmm0, Xmm0)) /* gamma-to-linear colorspace conversion */   \
-    LBL(GM_p##cl)                                                           \
+    LBL(lb##GM_p##cl)                                                       \
         movpx_st(Xmm0, Mecx, ctx_##pl)
 
 #if   RT_SIMD_QUADS == 1
 
 #if   RT_ELEMENT == 32
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
-        movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
+#define PAINT_SIMD(lb) /* destroys Reax, Xmm0, Xmm2, Xmm7, reads Xmm1 */    \
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))                                  \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 04)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
         PAINT_FRAG(lb, 0C)                                                  \
         movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
-        PAINT_COLX(10, TEX_R)                                               \
-        PAINT_COLX(08, TEX_G)                                               \
-        PAINT_COLX(00, TEX_B)
+        PAINT_COLX(lb, 10, TEX_R)                                           \
+        PAINT_COLX(lb, 08, TEX_G)                                           \
+        PAINT_COLX(lb, 00, TEX_B)
 
 #define STORE_SPTR(lb)                                                      \
         STORE_FRAG(lb, 00)                                                  \
@@ -878,15 +878,15 @@
 
 #elif RT_ELEMENT == 64
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
-        movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
+#define PAINT_SIMD(lb) /* destroys Reax, Xmm0, Xmm2, Xmm7, reads Xmm1 */    \
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))                                  \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
         movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
-        PAINT_COLX(10, TEX_R)                                               \
-        PAINT_COLX(08, TEX_G)                                               \
-        PAINT_COLX(00, TEX_B)
+        PAINT_COLX(lb, 10, TEX_R)                                           \
+        PAINT_COLX(lb, 08, TEX_G)                                           \
+        PAINT_COLX(lb, 00, TEX_B)
 
 #define STORE_SPTR(lb)                                                      \
         STORE_FRAG(lb, 00)                                                  \
@@ -906,8 +906,8 @@
 
 #if   RT_ELEMENT == 32
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
-        movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
+#define PAINT_SIMD(lb) /* destroys Reax, Xmm0, Xmm2, Xmm7, reads Xmm1 */    \
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))                                  \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 04)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
@@ -918,9 +918,9 @@
         PAINT_FRAG(lb, 1C)                                                  \
         movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
-        PAINT_COLX(10, TEX_R)                                               \
-        PAINT_COLX(08, TEX_G)                                               \
-        PAINT_COLX(00, TEX_B)
+        PAINT_COLX(lb, 10, TEX_R)                                           \
+        PAINT_COLX(lb, 08, TEX_G)                                           \
+        PAINT_COLX(lb, 00, TEX_B)
 
 #define STORE_SPTR(lb)                                                      \
         STORE_FRAG(lb, 00)                                                  \
@@ -954,17 +954,17 @@
 
 #elif RT_ELEMENT == 64
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
-        movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
+#define PAINT_SIMD(lb) /* destroys Reax, Xmm0, Xmm2, Xmm7, reads Xmm1 */    \
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))                                  \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
         PAINT_FRAG(lb, 10)                                                  \
         PAINT_FRAG(lb, 18)                                                  \
         movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
-        PAINT_COLX(10, TEX_R)                                               \
-        PAINT_COLX(08, TEX_G)                                               \
-        PAINT_COLX(00, TEX_B)
+        PAINT_COLX(lb, 10, TEX_R)                                           \
+        PAINT_COLX(lb, 08, TEX_G)                                           \
+        PAINT_COLX(lb, 00, TEX_B)
 
 #define STORE_SPTR(lb)                                                      \
         STORE_FRAG(lb, 00)                                                  \
@@ -990,8 +990,8 @@
 
 #if   RT_ELEMENT == 32
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
-        movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
+#define PAINT_SIMD(lb) /* destroys Reax, Xmm0, Xmm2, Xmm7, reads Xmm1 */    \
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))                                  \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 04)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
@@ -1010,9 +1010,9 @@
         PAINT_FRAG(lb, 3C)                                                  \
         movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
-        PAINT_COLX(10, TEX_R)                                               \
-        PAINT_COLX(08, TEX_G)                                               \
-        PAINT_COLX(00, TEX_B)
+        PAINT_COLX(lb, 10, TEX_R)                                           \
+        PAINT_COLX(lb, 08, TEX_G)                                           \
+        PAINT_COLX(lb, 00, TEX_B)
 
 #define STORE_SPTR(lb)                                                      \
         STORE_FRAG(lb, 00)                                                  \
@@ -1070,8 +1070,8 @@
 
 #elif RT_ELEMENT == 64
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
-        movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
+#define PAINT_SIMD(lb) /* destroys Reax, Xmm0, Xmm2, Xmm7, reads Xmm1 */    \
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))                                  \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
         PAINT_FRAG(lb, 10)                                                  \
@@ -1082,9 +1082,9 @@
         PAINT_FRAG(lb, 38)                                                  \
         movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
-        PAINT_COLX(10, TEX_R)                                               \
-        PAINT_COLX(08, TEX_G)                                               \
-        PAINT_COLX(00, TEX_B)
+        PAINT_COLX(lb, 10, TEX_R)                                           \
+        PAINT_COLX(lb, 08, TEX_G)                                           \
+        PAINT_COLX(lb, 00, TEX_B)
 
 #define STORE_SPTR(lb)                                                      \
         STORE_FRAG(lb, 00)                                                  \
@@ -1122,8 +1122,8 @@
 
 #if   RT_ELEMENT == 32
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
-        movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
+#define PAINT_SIMD(lb) /* destroys Reax, Xmm0, Xmm2, Xmm7, reads Xmm1 */    \
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))                                  \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 04)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
@@ -1158,9 +1158,9 @@
         PAINT_FRAG(lb, 7C)                                                  \
         movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
-        PAINT_COLX(10, TEX_R)                                               \
-        PAINT_COLX(08, TEX_G)                                               \
-        PAINT_COLX(00, TEX_B)
+        PAINT_COLX(lb, 10, TEX_R)                                           \
+        PAINT_COLX(lb, 08, TEX_G)                                           \
+        PAINT_COLX(lb, 00, TEX_B)
 
 #define STORE_SPTR(lb)                                                      \
         STORE_FRAG(lb, 00)                                                  \
@@ -1266,8 +1266,8 @@
 
 #elif RT_ELEMENT == 64
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
-        movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
+#define PAINT_SIMD(lb) /* destroys Reax, Xmm0, Xmm2, Xmm7, reads Xmm1 */    \
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))                                  \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
         PAINT_FRAG(lb, 10)                                                  \
@@ -1286,9 +1286,9 @@
         PAINT_FRAG(lb, 78)                                                  \
         movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
-        PAINT_COLX(10, TEX_R)                                               \
-        PAINT_COLX(08, TEX_G)                                               \
-        PAINT_COLX(00, TEX_B)
+        PAINT_COLX(lb, 10, TEX_R)                                           \
+        PAINT_COLX(lb, 08, TEX_G)                                           \
+        PAINT_COLX(lb, 00, TEX_B)
 
 #define STORE_SPTR(lb)                                                      \
         STORE_FRAG(lb, 00)                                                  \
@@ -1350,8 +1350,8 @@
 
 #if   RT_ELEMENT == 32
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
-        movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
+#define PAINT_SIMD(lb) /* destroys Reax, Xmm0, Xmm2, Xmm7, reads Xmm1 */    \
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))                                  \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 04)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
@@ -1418,9 +1418,9 @@
         PAINT_FRAG(lb, FC)                                                  \
         movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
-        PAINT_COLX(10, TEX_R)                                               \
-        PAINT_COLX(08, TEX_G)                                               \
-        PAINT_COLX(00, TEX_B)
+        PAINT_COLX(lb, 10, TEX_R)                                           \
+        PAINT_COLX(lb, 08, TEX_G)                                           \
+        PAINT_COLX(lb, 00, TEX_B)
 
 #define STORE_SPTR(lb)                                                      \
         STORE_FRAG(lb, 00)                                                  \
@@ -1622,8 +1622,8 @@
 
 #elif RT_ELEMENT == 64
 
-#define PAINT_SIMD(lb, XS) /* destroys Reax, Xmm0, Xmm2, Xmm7 */            \
-        movpx_st(W(XS), Mecx, ctx_C_PTR(0))                                 \
+#define PAINT_SIMD(lb) /* destroys Reax, Xmm0, Xmm2, Xmm7, reads Xmm1 */    \
+        movpx_st(Xmm1, Mecx, ctx_C_PTR(0))                                  \
         PAINT_FRAG(lb, 00)                                                  \
         PAINT_FRAG(lb, 08)                                                  \
         PAINT_FRAG(lb, 10)                                                  \
@@ -1658,9 +1658,9 @@
         PAINT_FRAG(lb, F8)                                                  \
         movpx_ld(Xmm2, Medx, mat_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, mat_CMASK)                                     \
-        PAINT_COLX(10, TEX_R)                                               \
-        PAINT_COLX(08, TEX_G)                                               \
-        PAINT_COLX(00, TEX_B)
+        PAINT_COLX(lb, 10, TEX_R)                                           \
+        PAINT_COLX(lb, 08, TEX_G)                                           \
+        PAINT_COLX(lb, 00, TEX_B)
 
 #define STORE_SPTR(lb)                                                      \
         STORE_FRAG(lb, 00)                                                  \
@@ -1773,24 +1773,24 @@
  * the fully computed color values from the context's
  * COL_R, COL_G, COL_B SIMD-fields into the specified location.
  */
-#define FRAME_COLX(cl, pl) /* destroys Reax, Xmm0, Xmm1, reads Xmm2, Xmm7 */\
-        movpx_ld(Xmm1, Mecx, ctx_##pl(0))                                   \
-        CHECK_PROP(GM_f##cl, RT_PROP_GAMMA)                                 \
+#define FRAME_COLX(lb, cl, pl) /* destroys Reax, Xmm0, Xmm1 */              \
+        movpx_ld(Xmm1, Mecx, ctx_##pl(0))            /* reads Xmm2, Xmm7 */ \
+        CHECK_PROP(lb##GM_f##cl, RT_PROP_GAMMA)                             \
   GAMMA(sqrps_rr(Xmm1, Xmm1)) /* linear-to-gamma colorspace conversion */   \
-    LBL(GM_f##cl)                                                           \
+    LBL(lb##GM_f##cl)                                                       \
         mulps_rr(Xmm1, Xmm2)                                                \
         cvnps_rr(Xmm1, Xmm1)                                                \
         andpx_rr(Xmm1, Xmm7)                                                \
         shlpx_ri(Xmm1, IB(0x##cl))                                          \
         orrpx_rr(Xmm0, Xmm1)
 
-#define FRAME_SIMD() /* destroys Reax, Xmm0, Xmm1, Xmm2, Xmm7, reads Redx */\
-        xorpx_rr(Xmm0, Xmm0)                                                \
+#define FRAME_SIMD(lb) /* destroys Reax, Xmm0, Xmm1, Xmm2, Xmm7 */          \
+        xorpx_rr(Xmm0, Xmm0)                               /* reads Redx */ \
         movpx_ld(Xmm2, Medx, cam_CLAMP)                                     \
         movpx_ld(Xmm7, Medx, cam_CMASK)                                     \
-        FRAME_COLX(10, COL_R)                                               \
-        FRAME_COLX(08, COL_G)                                               \
-        FRAME_COLX(00, COL_B)                                               \
+        FRAME_COLX(lb, 10, COL_R)                                           \
+        FRAME_COLX(lb, 08, COL_G)                                           \
+        FRAME_COLX(lb, 00, COL_B)                                           \
         movpx_st(Xmm0, Mecx, ctx_C_BUF(0))
 
 /*
@@ -3182,7 +3182,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_TEXTURING */
 
-        PAINT_SIMD(MT_rtx, Xmm1)
+        PAINT_SIMD(MT_rtx)
 
 /******************************************************************************/
 /*********************************   LIGHTS   *********************************/
@@ -6342,7 +6342,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movxx_ld(Reax, Mecx, ctx_PARAM(FLG))    /* load Gamma prop */
         movxx_st(Reax, Mecx, ctx_LOCAL(FLG))    /* save Gamma prop */
 
-        FRAME_SIMD()
+        FRAME_SIMD(FF_rtx)
 
         movxx_ld(Rebx, Mebp, inf_FRM_X)
         shlxx_ri(Rebx, IB(2))
