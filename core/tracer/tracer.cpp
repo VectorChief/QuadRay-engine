@@ -5036,10 +5036,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_PT_BUFFERS
 
+        CHECK_FLAG(PL_bf1, PARAM, RT_FLAG_SHAD)
+
+        jmpxx_lb(PL_mt1)
+
+    LBL(PL_bf1)
+
         movwx_ri(Redx, IB(RT_FLAG_SIDE_OUTER))
         STORE_SPTR(PL_rt1)
 
         jmpxx_lb(PL_rt2)
+
+    LBL(PL_mt1)
 
 #endif /* RT_FEAT_PT_BUFFERS */
 
@@ -5058,10 +5066,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_PT_BUFFERS
 
+        CHECK_FLAG(PL_bf2, PARAM, RT_FLAG_SHAD)
+
+        jmpxx_lb(PL_mt2)
+
+    LBL(PL_bf2)
+
         movwx_ri(Redx, IB(RT_FLAG_SIDE_INNER))
         STORE_SPTR(PL_rt2)
 
         jmpxx_lb(OO_end)
+
+    LBL(PL_mt2)
 
 #endif /* RT_FEAT_PT_BUFFERS */
 
@@ -5663,10 +5679,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_PT_BUFFERS
 
+        CHECK_FLAG(QD_bf1, PARAM, RT_FLAG_SHAD)
+
+        jmpxx_lb(QD_mt1)
+
+    LBL(QD_bf1)
+
         movwx_ri(Redx, IB(RT_FLAG_SIDE_OUTER))
         STORE_SPTR(QD_rt1)
 
         jmpxx_lb(QD_rp1)
+
+    LBL(QD_mt1)
 
 #endif /* RT_FEAT_PT_BUFFERS */
 
@@ -5759,10 +5783,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_PT_BUFFERS
 
+        CHECK_FLAG(QD_bf2, PARAM, RT_FLAG_SHAD)
+
+        jmpxx_lb(QD_mt2)
+
+    LBL(QD_bf2)
+
         movwx_ri(Redx, IB(RT_FLAG_SIDE_INNER))
         STORE_SPTR(QD_rt2)
 
         jmpxx_lb(QD_rp2)
+
+    LBL(QD_mt2)
 
 #endif /* RT_FEAT_PT_BUFFERS */
 
