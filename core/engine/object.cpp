@@ -725,9 +725,10 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
     s_srf = (rt_SIMD_SURFACE *)rg->alloc(ssize, RT_SIMD_ALIGN);
     memset(s_srf, 0, ssize);
     s_srf->srf_t[3] = tag;
-/*
+#if 0 /* enable for SIMD-buffers (1 thread only for now) */
     s_srf->msc_p[0] = rg->alloc(RT_BUFFER_POOL, RT_SIMD_ALIGN);
-*/
+    memset(s_srf->msc_p[0], 255, RT_BUFFER_POOL);
+#endif  /* enable for SIMD-buffers (1 thread only for now) */
 
 #if 0 /* surface's misc pointers description */
 

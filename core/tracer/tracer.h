@@ -524,7 +524,7 @@ struct rt_SIMD_BUFFER
 
 /* buffer struct size for path-tracer */
 #define RT_BUFFER_SIZE      (Q * 0x100*2 + Q * 0x010)
-#define RT_BUFFER_POOL      (RT_BUFFER_SIZE * RT_STACK_DEPTH * 2)
+#define RT_BUFFER_POOL      (RT_BUFFER_SIZE * (RT_STACK_DEPTH + 1) * 2)
 
 /*
  * SIMD context structure keeps track of current state. New contexts for
@@ -793,13 +793,13 @@ struct rt_SIMD_CONTEXT
 #define ctx_NEW_O           DP(Q*0x440)
 
     rt_real new_x[S];
-#define ctx_NEW_X           DP(Q*0x440)
+#define ctx_NEW_X(nx)       DP(Q*0x440 + nx)
 
     rt_real new_y[S];
-#define ctx_NEW_Y           DP(Q*0x450)
+#define ctx_NEW_Y(nx)       DP(Q*0x450 + nx)
 
     rt_real new_z[S];
-#define ctx_NEW_Z           DP(Q*0x460)
+#define ctx_NEW_Z(nx)       DP(Q*0x460 + nx)
 
     rt_real new_i[S];
 #define ctx_NEW_I           DP(Q*0x470)

@@ -3310,6 +3310,10 @@ rt_void rt_Scene::render(rt_time time)
     { /* -->---->-- skip render0 -->---->-- */
 #endif /* RT_OPTS_RENDER_EXT0 */
 
+#if 0 /* enable for SIMD-buffers */
+    reset_color();
+#endif /* enable for SIMD-buffers */
+
     /* multi-threaded render */
 #if RT_OPTS_THREAD != 0
     if ((opts & RT_OPTS_THREAD) != 0 && this == pfm->get_cur_scene()
