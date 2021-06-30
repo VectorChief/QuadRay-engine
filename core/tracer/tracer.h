@@ -460,70 +460,81 @@ struct rt_SIMD_BUFFER
     rt_uelm index[S*2];
 #define bfr_INDEX(nx)       DP(Q*0x000*2 + nx)
 
+    /* org */
+
+    rt_real org_x[S*2];
+#define bfr_ORG_X(nx)       DP(Q*0x010*2 + nx)
+
+    rt_real org_y[S*2];
+#define bfr_ORG_Y(nx)       DP(Q*0x020*2 + nx)
+
+    rt_real org_z[S*2];
+#define bfr_ORG_Z(nx)       DP(Q*0x030*2 + nx)
+
     /* ray */
 
     rt_real ray_x[S*2];
-#define bfr_RAY_X(nx)       DP(Q*0x010*2 + nx)
+#define bfr_RAY_X(nx)       DP(Q*0x040*2 + nx)
 
     rt_real ray_y[S*2];
-#define bfr_RAY_Y(nx)       DP(Q*0x020*2 + nx)
+#define bfr_RAY_Y(nx)       DP(Q*0x050*2 + nx)
 
     rt_real ray_z[S*2];
-#define bfr_RAY_Z(nx)       DP(Q*0x030*2 + nx)
+#define bfr_RAY_Z(nx)       DP(Q*0x060*2 + nx)
 
-    /* hit */
+    /* hit (local, for normals and texturing) */
 
     rt_real hit_x[S*2];
-#define bfr_HIT_X(nx)       DP(Q*0x040*2 + nx)
+#define bfr_HIT_X(nx)       DP(Q*0x070*2 + nx)
 
     rt_real hit_y[S*2];
-#define bfr_HIT_Y(nx)       DP(Q*0x050*2 + nx)
+#define bfr_HIT_Y(nx)       DP(Q*0x080*2 + nx)
 
     rt_real hit_z[S*2];
-#define bfr_HIT_Z(nx)       DP(Q*0x060*2 + nx)
+#define bfr_HIT_Z(nx)       DP(Q*0x090*2 + nx)
 
     /* color */
 
     rt_real col_r[S*2];
-#define bfr_COL_R(nx)       DP(Q*0x070*2 + nx)
+#define bfr_COL_R(nx)       DP(Q*0x0A0*2 + nx)
 
     rt_real col_g[S*2];
-#define bfr_COL_G(nx)       DP(Q*0x080*2 + nx)
+#define bfr_COL_G(nx)       DP(Q*0x0B0*2 + nx)
 
     rt_real col_b[S*2];
-#define bfr_COL_B(nx)       DP(Q*0x090*2 + nx)
+#define bfr_COL_B(nx)       DP(Q*0x0C0*2 + nx)
 
     /* mul */
 
     rt_real mul_r[S*2];
-#define bfr_MUL_R(nx)       DP(Q*0x0A0*2 + nx)
+#define bfr_MUL_R(nx)       DP(Q*0x0D0*2 + nx)
 
     rt_real mul_g[S*2];
-#define bfr_MUL_G(nx)       DP(Q*0x0B0*2 + nx)
+#define bfr_MUL_G(nx)       DP(Q*0x0E0*2 + nx)
 
     rt_real mul_b[S*2];
-#define bfr_MUL_B(nx)       DP(Q*0x0C0*2 + nx)
+#define bfr_MUL_B(nx)       DP(Q*0x0F0*2 + nx)
 
     /* originating surface pointers/sides */
 
     rt_uelm org_p[S*2];
-#define bfr_ORG_P(nx)       DP(Q*0x0D0*2 + nx)
+#define bfr_ORG_P(nx)       DP(Q*0x100*2 + nx)
 
     rt_uelm org_h[S*2];
-#define bfr_ORG_H(nx)       DP(Q*0x0E0*2 + nx)
+#define bfr_ORG_H(nx)       DP(Q*0x110*2 + nx)
 
     rt_uelm org_s[S*2];
-#define bfr_ORG_S(nx)       DP(Q*0x0F0*2 + nx)
+#define bfr_ORG_S(nx)       DP(Q*0x120*2 + nx)
 
     /* count */
 
     rt_ui32 count[R];
-#define bfr_COUNT(nx)       DP(Q*0x100*2 + nx)
+#define bfr_COUNT(nx)       DP(Q*0x130*2 + nx)
 
 };
 
 /* buffer struct size for path-tracer */
-#define RT_BUFFER_SIZE      (Q * 0x100*2 + Q * 0x010)
+#define RT_BUFFER_SIZE      (Q * 0x130*2 + Q * 0x010)
 #define RT_BUFFER_POOL      (RT_BUFFER_SIZE * (RT_STACK_DEPTH + 1) * 2)
 
 /*
@@ -802,13 +813,13 @@ struct rt_SIMD_CONTEXT
 #define ctx_NEW_Z(nx)       DP(Q*0x460 + nx)
 
     rt_real new_i[S];
-#define ctx_NEW_I           DP(Q*0x470)
+#define ctx_NEW_I(nx)       DP(Q*0x470 + nx)
 
     rt_real new_j[S];
-#define ctx_NEW_J           DP(Q*0x480)
+#define ctx_NEW_J(nx)       DP(Q*0x480 + nx)
 
     rt_real new_k[S];
-#define ctx_NEW_K           DP(Q*0x490)
+#define ctx_NEW_K(nx)       DP(Q*0x490 + nx)
 
 };
 
