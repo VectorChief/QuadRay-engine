@@ -3310,9 +3310,9 @@ rt_void rt_Scene::render(rt_time time)
     { /* -->---->-- skip render0 -->---->-- */
 #endif /* RT_OPTS_RENDER_EXT0 */
 
-#if 0 /* enable for SIMD-buffers */
+#if 0 /* enable for SIMD-buffers (RT mode, PT requires accumulation) */
     reset_color();
-#endif /* enable for SIMD-buffers */
+#endif /* enable for SIMD-buffers (RT mode, PT requires accumulation) */
 
     /* multi-threaded render */
 #if RT_OPTS_THREAD != 0
@@ -3480,6 +3480,10 @@ rt_void rt_Scene::update_slice(rt_si32 index, rt_si32 phase)
 
             /* update surface's backend-related parts */
             pfm->update0(srf->s_srf);
+
+#if 0 /* SIMD-buffers don't normally require reset between frames */
+            memset(srf->s_srf->msc_p[0], 255, RT_BUFFER_POOL);
+#endif /* enable for SIMD-buffers as a debug option if needed */
         }
     }
 }

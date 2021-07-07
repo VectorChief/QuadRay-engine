@@ -19,7 +19,7 @@
 #if RT_DEBUG >= 1
 #define RT_DATA 2 /* for rt_SIMD_INFOX */
 #else /* RT_DEBUG == 0 */
-#define RT_DATA 2 /* for rt_SIMD_CONTEXT, before SIMD-buffers are complete */
+#define RT_DATA 2 /* for rt_SIMD_CONTEXT (with SIMD-buffers) */
 #endif /* RT_DEBUG == 0 */
 
 #include "rtbase.h"
@@ -441,12 +441,11 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
 
 /* implement color accumulation on forward propagation (keep pixel index)
  * contribute pixel fragment of a given execution branch to fp-color planes
- * eliminate SIMD-context cross-referencing (in conic singularity solver)
  * implement SIMD-buffer flipping (with two instances or internally)
  *
  * initial condition: col = 0.0f; mul = 1.0f;
- * generic step pt: col += mul * e; mul *= f;
- * generic step rf: col += mul * l; mul *= r;
+ * generic step PT: col += mul * e; mul *= f;
+ * generic step RT: col += mul * l; mul *= r;
  *
  * SIMD-buffers: surfaces * levels * threads; (ref)
  * SIMD-buffers: renderer * levels * threads; (opt)
@@ -460,7 +459,7 @@ struct rt_SIMD_BUFFER
     rt_uelm index[S*2];
 #define bfr_INDEX(nx)       DP(Q*0x000*2 + nx)
 
-    /* org */
+    /* org (hit, new ray's origin) */
 
     rt_real org_x[S*2];
 #define bfr_ORG_X(nx)       DP(Q*0x010*2 + nx)
@@ -471,7 +470,7 @@ struct rt_SIMD_BUFFER
     rt_real org_z[S*2];
 #define bfr_ORG_Z(nx)       DP(Q*0x030*2 + nx)
 
-    /* ray */
+    /* ray (current, incoming for surface) */
 
     rt_real ray_x[S*2];
 #define bfr_RAY_X(nx)       DP(Q*0x040*2 + nx)
@@ -764,25 +763,25 @@ struct rt_SIMD_CONTEXT
     /* aux fields for path-tracer */
 
     rt_real f_rnd[S];
-#define ctx_F_RND           DP(Q*0x3A0)
+#define ctx_F_RND(nx)       DP(Q*0x3A0 + nx)
 
     rt_real f_prb[S];
-#define ctx_F_PRB           DP(Q*0x3B0)
+#define ctx_F_PRB(nx)       DP(Q*0x3B0 + nx)
 
     rt_real m_trn[S];
-#define ctx_M_TRN           DP(Q*0x3C0)
+#define ctx_M_TRN(nx)       DP(Q*0x3C0 + nx)
 
     rt_real m_rfl[S];
-#define ctx_M_RFL           DP(Q*0x3D0)
+#define ctx_M_RFL(nx)       DP(Q*0x3D0 + nx)
 
     rt_real c_trn[S];
-#define ctx_C_TRN           DP(Q*0x3E0)
+#define ctx_C_TRN(nx)       DP(Q*0x3E0 + nx)
 
     rt_real c_rfl[S];
-#define ctx_C_RFL           DP(Q*0x3F0)
+#define ctx_C_RFL(nx)       DP(Q*0x3F0 + nx)
 
-    /* overlapping next context (clip here when SIMD-buffers are done, RT_DATA),
-     * new depth min */
+    /* overlapping next context (clip here to keep RT_DATA == 4),
+     * new depth min            (consider linked list of contexts) */
 
     rt_real t_new[S];
 #define ctx_T_NEW           DP(Q*0x400)

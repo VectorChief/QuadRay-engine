@@ -76,7 +76,11 @@
 #define RT_FEAT_PT_SPLIT_DEPTH      1
 #define RT_FEAT_PT_SPLIT_FRESNEL    1
 #define RT_FEAT_PT_RANDOM_SAMPLE    1
-#define RT_FEAT_PT_BUFFERS          0   /* experimental, not yet completed */
+
+#define RT_FEAT_PT_BUFFERS          0   /* works in RT with 1 thread (no PT yet)
+                                           set RT_THREADS_NUM to 1 in engine.h
+                                           enable SIMD-buffers code sections in
+                                           engine.cpp and object.cpp */
 
 #if RT_FEAT_GAMMA
 #define GAMMA(x)    x
@@ -530,27 +534,27 @@
  * under given circumstances (even though it would due to hit inaccuracy).
  */
 
-#if RT_FEAT_PT_BUFFERS
+#if 0 /* SIMD-version of a macro may be required for later implementations */
 
 #define CHECK_SIDE(lb, lo, sd) /* destroys Reax, Xmm0, Xmm2, Xmm5 */        \
         movpx_ld(Xmm0, Mecx, ctx_ORG_P(0))                                  \
-        ceqps_ld(Xmm0, Mebx, srf_ORG_P)                                     \
+        ceqpx_ld(Xmm0, Mebx, srf_ORG_P)                                     \
         movpx_ld(Xmm2, Mecx, ctx_ORG_H(0))                                  \
-        ceqps_ld(Xmm2, Mebx, srf_ORG_H)                                     \
+        ceqpx_ld(Xmm2, Mebx, srf_ORG_H)                                     \
         andpx_rr(Xmm0, Xmm2)                                                \
         movxx_ri(Reax, IB(sd))                                              \
         mulxx_ri(Reax, IM(Q*16))                                            \
         movpx_ld(Xmm2, Mebx, srf_PBINN)                                     \
         subpx_ld(Xmm2, Iebx, srf_PBOUT)                                     \
-        ceqps_ld(Xmm2, Mecx, ctx_ORG_S(0))                                  \
+        ceqpx_ld(Xmm2, Mecx, ctx_ORG_S(0))                                  \
         movpx_ld(Xmm5, Mebx, srf_PTOUT)                                     \
         addpx_ld(Xmm5, Iebx, srf_PBOUT)                                     \
-        ceqps_ld(Xmm5, Mecx, ctx_ORG_S(0))                                  \
+        ceqpx_ld(Xmm5, Mecx, ctx_ORG_S(0))                                  \
         orrpx_rr(Xmm2, Xmm5)                                                \
         andpx_rr(Xmm0, Xmm2)                                                \
         notpx_rx(Xmm0)
 
-#else /* RT_FEAT_PT_BUFFERS */
+#endif
 
 #define CHECK_SIDE(lb, lo, sd) /* destroys Reax */                          \
         cmjxx_rm(Rebx, Mecx, ctx_PARAM(OBJ),                                \
@@ -562,8 +566,6 @@
         cmjxx_ri(Reax, IB(2 + sd),                                          \
                  EQ_x, lo)                                                  \
     LBL(lb)
-
-#endif /* RT_FEAT_PT_BUFFERS */
 
 /*
  * Check if ray is a shadow ray, then check
@@ -687,9 +689,34 @@
         movyx_st(Reax, Mecx, ctx_C_BUF(0x##pn))                             \
     LBL(lb##pn)
 
-#define STORE_FRAG(lb, pn) /* reads Rebx, Redx */                           \
+#define STORE_FRAG(lb, pn) /* destroys Reax, reads Rebx, Redx */            \
         cmjyx_mz(Mecx, ctx_TMASK(0x##pn),                                   \
                  EQ_x, lb##pn)                                              \
+        movyx_ld(Reax, Mecx, ctx_HIT_X(0x##pn))                             \
+        movyx_st(Reax, Mecx, ctx_F_RND(0x##pn))                             \
+        movyx_ld(Reax, Mecx, ctx_HIT_Y(0x##pn))                             \
+        movyx_st(Reax, Mecx, ctx_M_TRN(0x##pn))                             \
+        movyx_ld(Reax, Mecx, ctx_HIT_Z(0x##pn))                             \
+        movyx_st(Reax, Mecx, ctx_C_TRN(0x##pn))                             \
+        cmjwx_mz(Mebx, srf_A_MAP(RT_L*4),                                   \
+                 EQ_x, lb##pn##XYZ)                                         \
+        movyx_ld(Reax, Mecx, ctx_NEW_I(0x##pn))                             \
+        movyx_st(Reax, Mecx, ctx_F_PRB(0x##pn))                             \
+        movyx_ld(Reax, Mecx, ctx_NEW_J(0x##pn))                             \
+        movyx_st(Reax, Mecx, ctx_M_RFL(0x##pn))                             \
+        movyx_ld(Reax, Mecx, ctx_NEW_K(0x##pn))                             \
+        movyx_st(Reax, Mecx, ctx_C_RFL(0x##pn))                             \
+        jmpxx_lb(lb##pn##end)                                               \
+    LBL(lb##pn##XYZ)                                                        \
+        movyx_ld(Reax, Mecx, ctx_NEW_X(0x##pn))                             \
+        movyx_st(Reax, Mecx, ctx_F_PRB(0x##pn))                             \
+        movyx_ld(Reax, Mecx, ctx_NEW_Y(0x##pn))                             \
+        movyx_st(Reax, Mecx, ctx_M_RFL(0x##pn))                             \
+        movyx_ld(Reax, Mecx, ctx_NEW_Z(0x##pn))                             \
+        movyx_st(Reax, Mecx, ctx_C_RFL(0x##pn))                             \
+    LBL(lb##pn##end)                                                        \
+        movyx_ld(Reax, Mecx, ctx_T_VAL(0x##pn))                             \
+        movyx_st(Reax, Mecx, ctx_T_BUF(0x##pn))                             \
         movxx_st(Rebx, Mecx, ctx_SRF_P(0x##pn / L))                         \
         movwx_st(Redx, Mecx, ctx_SRF_S(0x##pn / L))                         \
     LBL(lb##pn)
@@ -730,11 +757,11 @@
         mulwx_ri(Reax, IB(4*L))                                             \
         movyx_ld(Rebx, Mecx, ctx_INDEX(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_INDEX(0))                                  \
-        movyx_ld(Rebx, Mecx, ctx_HIT_X(0x##pn))                             \
+        movyx_ld(Rebx, Mecx, ctx_F_RND(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_ORG_X(0))                                  \
-        movyx_ld(Rebx, Mecx, ctx_HIT_Y(0x##pn))                             \
+        movyx_ld(Rebx, Mecx, ctx_M_TRN(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_ORG_Y(0))                                  \
-        movyx_ld(Rebx, Mecx, ctx_HIT_Z(0x##pn))                             \
+        movyx_ld(Rebx, Mecx, ctx_C_TRN(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_ORG_Z(0))                                  \
         movyx_ld(Rebx, Mecx, ctx_RAY_X(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_RAY_X(0))                                  \
@@ -742,41 +769,30 @@
         movyx_st(Rebx, Iedx, bfr_RAY_Y(0))                                  \
         movyx_ld(Rebx, Mecx, ctx_RAY_Z(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_RAY_Z(0))                                  \
-        cmjwx_mz(Medx, bfr_COUNT(FLG),                                      \
-                 EQ_x, lb##pn##XYZ)                                         \
-        movyx_ld(Rebx, Mecx, ctx_NEW_I(0x##pn))                             \
+        movyx_ld(Rebx, Mecx, ctx_F_PRB(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_HIT_X(0))                                  \
-        movyx_ld(Rebx, Mecx, ctx_NEW_J(0x##pn))                             \
+        movyx_ld(Rebx, Mecx, ctx_M_RFL(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_HIT_Y(0))                                  \
-        movyx_ld(Rebx, Mecx, ctx_NEW_K(0x##pn))                             \
+        movyx_ld(Rebx, Mecx, ctx_C_RFL(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_HIT_Z(0))                                  \
-        jmpxx_lb(lb##pn##end)                                               \
-    LBL(lb##pn##XYZ)                                                        \
-        movyx_ld(Rebx, Mecx, ctx_NEW_X(0x##pn))                             \
-        movyx_st(Rebx, Iedx, bfr_HIT_X(0))                                  \
-        movyx_ld(Rebx, Mecx, ctx_NEW_Y(0x##pn))                             \
-        movyx_st(Rebx, Iedx, bfr_HIT_Y(0))                                  \
-        movyx_ld(Rebx, Mecx, ctx_NEW_Z(0x##pn))                             \
-        movyx_st(Rebx, Iedx, bfr_HIT_Z(0))                                  \
-    LBL(lb##pn##end)                                                        \
-        movyx_ld(Rebx, Mecx, ctx_COL_R(0x##pn))                             \
+     /* movyx_ld(Rebx, Mecx, ctx_COL_R(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_COL_R(0))                                  \
         movyx_ld(Rebx, Mecx, ctx_COL_G(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_COL_G(0))                                  \
         movyx_ld(Rebx, Mecx, ctx_COL_B(0x##pn))                             \
-        movyx_st(Rebx, Iedx, bfr_COL_B(0))                                  \
+        movyx_st(Rebx, Iedx, bfr_COL_B(0)) */                               \
         movyx_ld(Rebx, Mecx, ctx_MUL_R(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_MUL_R(0))                                  \
         movyx_ld(Rebx, Mecx, ctx_MUL_G(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_MUL_G(0))                                  \
         movyx_ld(Rebx, Mecx, ctx_MUL_B(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_MUL_B(0))                                  \
-        movyx_ld(Rebx, Mecx, ctx_ORG_P(0x##pn))                             \
+     /* movyx_ld(Rebx, Mecx, ctx_ORG_P(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_ORG_P(0))                                  \
         movyx_ld(Rebx, Mecx, ctx_ORG_H(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_ORG_H(0))                                  \
         movyx_ld(Rebx, Mecx, ctx_ORG_S(0x##pn))                             \
-        movyx_st(Rebx, Iedx, bfr_ORG_S(0))                                  \
+        movyx_st(Rebx, Iedx, bfr_ORG_S(0)) */                               \
         addwx_mi(Medx, bfr_COUNT(PTR), IB(1))                               \
     LBL(lb##pn)
 
@@ -814,24 +830,24 @@
         movpx_ld(Xmm0, Medx, bfr_HIT_Z(0))                                  \
         movpx_st(Xmm0, Mecx, ctx_NEW_Z(0))                                  \
     LBL(lb##end)                                                            \
-        movpx_ld(Xmm0, Medx, bfr_COL_R(0))                                  \
+     /* movpx_ld(Xmm0, Medx, bfr_COL_R(0))                                  \
         movpx_st(Xmm0, Mecx, ctx_COL_R(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_COL_G(0))                                  \
         movpx_st(Xmm0, Mecx, ctx_COL_G(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_COL_B(0))                                  \
-        movpx_st(Xmm0, Mecx, ctx_COL_B(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_COL_B(0)) */                               \
         movpx_ld(Xmm0, Medx, bfr_MUL_R(0))                                  \
         movpx_st(Xmm0, Mecx, ctx_MUL_R(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_MUL_G(0))                                  \
         movpx_st(Xmm0, Mecx, ctx_MUL_G(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_MUL_B(0))                                  \
         movpx_st(Xmm0, Mecx, ctx_MUL_B(0))                                  \
-        movpx_ld(Xmm0, Medx, bfr_ORG_P(0))                                  \
+     /* movpx_ld(Xmm0, Medx, bfr_ORG_P(0))                                  \
         movpx_st(Xmm0, Mecx, ctx_ORG_P(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_ORG_H(0))                                  \
         movpx_st(Xmm0, Mecx, ctx_ORG_H(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_ORG_S(0))                                  \
-        movpx_st(Xmm0, Mecx, ctx_ORG_S(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_ORG_S(0)) */                               \
         movpx_ld(Xmm0, Medx, bfr_INDEX(RT_SIMD_WIDTH*4*L))                  \
         movpx_st(Xmm0, Medx, bfr_INDEX(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_ORG_X(RT_SIMD_WIDTH*4*L))                  \
@@ -852,24 +868,24 @@
         movpx_st(Xmm0, Medx, bfr_HIT_Y(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_HIT_Z(RT_SIMD_WIDTH*4*L))                  \
         movpx_st(Xmm0, Medx, bfr_HIT_Z(0))                                  \
-        movpx_ld(Xmm0, Medx, bfr_COL_R(RT_SIMD_WIDTH*4*L))                  \
+     /* movpx_ld(Xmm0, Medx, bfr_COL_R(RT_SIMD_WIDTH*4*L))                  \
         movpx_st(Xmm0, Medx, bfr_COL_R(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_COL_G(RT_SIMD_WIDTH*4*L))                  \
         movpx_st(Xmm0, Medx, bfr_COL_G(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_COL_B(RT_SIMD_WIDTH*4*L))                  \
-        movpx_st(Xmm0, Medx, bfr_COL_B(0))                                  \
+        movpx_st(Xmm0, Medx, bfr_COL_B(0)) */                               \
         movpx_ld(Xmm0, Medx, bfr_MUL_R(RT_SIMD_WIDTH*4*L))                  \
         movpx_st(Xmm0, Medx, bfr_MUL_R(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_MUL_G(RT_SIMD_WIDTH*4*L))                  \
         movpx_st(Xmm0, Medx, bfr_MUL_G(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_MUL_B(RT_SIMD_WIDTH*4*L))                  \
         movpx_st(Xmm0, Medx, bfr_MUL_B(0))                                  \
-        movpx_ld(Xmm0, Medx, bfr_ORG_P(RT_SIMD_WIDTH*4*L))                  \
+     /* movpx_ld(Xmm0, Medx, bfr_ORG_P(RT_SIMD_WIDTH*4*L))                  \
         movpx_st(Xmm0, Medx, bfr_ORG_P(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_ORG_H(RT_SIMD_WIDTH*4*L))                  \
         movpx_st(Xmm0, Medx, bfr_ORG_H(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_ORG_S(RT_SIMD_WIDTH*4*L))                  \
-        movpx_st(Xmm0, Medx, bfr_ORG_S(0))                                  \
+        movpx_st(Xmm0, Medx, bfr_ORG_S(0)) */                               \
         movpx_ld(Xmm0, Mebp, inf_GPC07)                                     \
         movpx_st(Xmm0, Medx, bfr_INDEX(RT_SIMD_WIDTH*4*L))
 
@@ -2253,8 +2269,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movxx_ld(Rebx, Mesi, elm_SIMD)
 
-#if RT_FEAT_PT_BUFFERS == 0
-
         /* use local (potentially adjusted)
          * hit point (from unused normal fields)
          * as local diff for secondary rays
@@ -2279,8 +2293,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm3, Iecx, ctx_DFF_Z)
 
     LBL(OO_loc)
-
-#endif /* RT_FEAT_PT_BUFFERS == 0 */
 
 #if RT_FEAT_TRANSFORM_ARRAY
 
@@ -2328,15 +2340,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_TRANSFORM_ARRAY */
 
-#if RT_FEAT_PT_BUFFERS == 0
-
         /* bypass computation for local diff
          * when used with secondary rays
          * originating from the same surface */
         cmjxx_rm(Rebx, Mecx, ctx_PARAM(OBJ),
                  EQ_x, OO_ray)
-
-#endif /* RT_FEAT_PT_BUFFERS == 0 */
 
         /* compute diff */
         movpx_ld(Xmm1, Mecx, ctx_ORG_X)
@@ -3243,8 +3251,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 /******************************************************************************/
 
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))
-        movpx_st(Xmm0, Mecx, ctx_F_RND)
-        movpx_st(Xmm0, Mecx, ctx_F_PRB)
+        movpx_st(Xmm0, Mecx, ctx_F_RND(0))
+        movpx_st(Xmm0, Mecx, ctx_F_PRB(0))
         /* use context's available fields
          * as temporary storage for TMASK */
 
@@ -3273,8 +3281,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
 
         cltps_rr(Xmm0, Xmm4)
-        andpx_ld(Xmm0, Mecx, ctx_F_PRB)
-        movpx_st(Xmm0, Mecx, ctx_F_PRB)
+        andpx_ld(Xmm0, Mecx, ctx_F_PRB(0))
+        movpx_st(Xmm0, Mecx, ctx_F_PRB(0))
         movpx_st(Xmm0, Mecx, ctx_TMASK(0))
         /* use context's available fields
          * as temporary storage for TMASK */
@@ -3600,7 +3608,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm3, Medx, mat_COL_B)
 
         /* restore TMASK from storage */
-        movpx_ld(Xmm0, Mecx, ctx_F_RND)
+        movpx_ld(Xmm0, Mecx, ctx_F_RND(0))
         movpx_st(Xmm0, Mecx, ctx_TMASK(0))
 
         /* radiance R */
@@ -4115,19 +4123,19 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         FETCH_XPTR(Redx, MAT_P(PTR))
 
         movpx_ld(Xmm0, Medx, mat_C_TRN)
-        movpx_st(Xmm0, Mecx, ctx_C_TRN)
+        movpx_st(Xmm0, Mecx, ctx_C_TRN(0))
         movpx_ld(Xmm0, Medx, mat_C_RFL)
-        movpx_st(Xmm0, Mecx, ctx_C_RFL)
+        movpx_st(Xmm0, Mecx, ctx_C_RFL(0))
 
         /* set new TMASK from storage */
-        movpx_ld(Xmm0, Mecx, ctx_F_PRB)
+        movpx_ld(Xmm0, Mecx, ctx_F_PRB(0))
         movpx_st(Xmm0, Mecx, ctx_TMASK(0))
-        movpx_st(Xmm0, Mecx, ctx_M_TRN)
-        movpx_st(Xmm0, Mecx, ctx_M_RFL)
-
-        CHECK_MASK(TR_end, NONE, Xmm0)
+        movpx_st(Xmm0, Mecx, ctx_M_TRN(0))
+        movpx_st(Xmm0, Mecx, ctx_M_RFL(0))
 
 #if RT_FEAT_TRANSPARENCY
+
+        CHECK_MASK(TR_end, NONE, Xmm0)
 
         CHECK_PROP(TR_opq, RT_PROP_OPAQUE)
 
@@ -4196,8 +4204,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* check total inner reflection */
         xorpx_rr(Xmm5, Xmm5)
         cleps_rr(Xmm5, Xmm7)
-        andpx_ld(Xmm5, Mecx, ctx_M_TRN)
-        movpx_st(Xmm5, Mecx, ctx_M_TRN)
+        andpx_ld(Xmm5, Mecx, ctx_M_TRN(0))
+        movpx_st(Xmm5, Mecx, ctx_M_TRN(0))
         movpx_st(Xmm5, Mecx, ctx_TMASK(0))
         /* T_NEW was used as temporary storage
          * for total inner reflection mask
@@ -4215,10 +4223,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm0, Medx, mat_C_TRN)
 
         xorpx_rr(Xmm4, Xmm4)
-        movpx_st(Xmm4, Mecx, ctx_C_TRN)
+        movpx_st(Xmm4, Mecx, ctx_C_TRN(0))
         movpx_ld(Xmm5, Medx, mat_C_RFL)
         addps_rr(Xmm5, Xmm0)
-        movpx_st(Xmm5, Mecx, ctx_C_RFL)
+        movpx_st(Xmm5, Mecx, ctx_C_RFL(0))
         /* F_RFL is no longer used for Fresnel
          * with new fields added for path-tracer */
 
@@ -4333,7 +4341,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* recombine Fresnel with
          * total inner reflection mask */
-        movpx_ld(Xmm5, Mecx, ctx_M_TRN)
+        movpx_ld(Xmm5, Mecx, ctx_M_TRN(0))
         andpx_rr(Xmm0, Xmm5)
         movpx_ld(Xmm4, Medx, mat_C_TRN)
         mulps_rr(Xmm0, Xmm4)
@@ -4348,10 +4356,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * add to static reflectivity */
         movpx_ld(Xmm4, Medx, mat_C_TRN)
         subps_rr(Xmm4, Xmm0)
-        movpx_st(Xmm4, Mecx, ctx_C_TRN)
+        movpx_st(Xmm4, Mecx, ctx_C_TRN(0))
         movpx_ld(Xmm5, Medx, mat_C_RFL)
         addps_rr(Xmm5, Xmm0)
-        movpx_st(Xmm5, Mecx, ctx_C_RFL)
+        movpx_st(Xmm5, Mecx, ctx_C_RFL(0))
         /* F_RFL is no longer used for Fresnel
          * with new fields added for path-tracer */
 
@@ -4376,12 +4384,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_rr(Xmm5, Xmm0)
         cgeps_rr(Xmm0, Xmm7)
-        andpx_ld(Xmm0, Mecx, ctx_M_TRN)
-        movpx_st(Xmm0, Mecx, ctx_M_TRN)
+        andpx_ld(Xmm0, Mecx, ctx_M_TRN(0))
+        movpx_st(Xmm0, Mecx, ctx_M_TRN(0))
         movpx_rr(Xmm1, Xmm5)
         cltps_rr(Xmm1, Xmm7)
-        andpx_ld(Xmm1, Mecx, ctx_M_RFL)
-        movpx_st(Xmm1, Mecx, ctx_M_RFL)
+        andpx_ld(Xmm1, Mecx, ctx_M_RFL(0))
+        movpx_st(Xmm1, Mecx, ctx_M_RFL(0))
 
         movpx_rr(Xmm5, Xmm4)
         movpx_ld(Xmm2, Mebp, inf_GPC01)
@@ -4389,9 +4397,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         divps_rr(Xmm5, Xmm2)
         divps_rr(Xmm6, Xmm7)
         andpx_rr(Xmm5, Xmm0)
-        movpx_st(Xmm5, Mecx, ctx_C_TRN)
+        movpx_st(Xmm5, Mecx, ctx_C_TRN(0))
         andpx_rr(Xmm6, Xmm1)
-        movpx_st(Xmm6, Mecx, ctx_C_RFL)
+        movpx_st(Xmm6, Mecx, ctx_C_RFL(0))
 
 #endif /* RT_FEAT_PT && RT_FEAT_PT_SPLIT_FRESNEL */
 
@@ -4399,7 +4407,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_FRESNEL */
 
-        movpx_ld(Xmm0, Mecx, ctx_M_TRN)
+        movpx_ld(Xmm0, Mecx, ctx_M_TRN(0))
 
         CHECK_MASK(TR_end, NONE, Xmm0)
 
@@ -4438,7 +4446,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm3, Mecx, ctx_MUL_B(0))
         movpx_ld(Xmm4, Mecx, ctx_INDEX(0))
 
-        movpx_ld(Xmm0, Mecx, ctx_C_TRN)
+        movpx_ld(Xmm0, Mecx, ctx_C_TRN(0))
         mulps_rr(Xmm1, Xmm0)
         mulps_rr(Xmm2, Xmm0)
         mulps_rr(Xmm3, Xmm0)
@@ -4500,7 +4508,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addxx_mi(Mebp, inf_DEPTH, IB(1))
         subxx_ri(Recx, IH(RT_STACK_STEP))
 
-        movpx_ld(Xmm0, Mecx, ctx_C_TRN)
+        movpx_ld(Xmm0, Mecx, ctx_C_TRN(0))
 
         mulps_rr(Xmm1, Xmm0)
         mulps_rr(Xmm2, Xmm0)
@@ -4530,7 +4538,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm3, Xmm6)
 
         /* restore TMASK from storage */
-        movpx_ld(Xmm0, Mecx, ctx_F_RND)
+        movpx_ld(Xmm0, Mecx, ctx_F_RND(0))
         movpx_st(Xmm0, Mecx, ctx_TMASK(0))
 
         /* transparent R */
@@ -4552,7 +4560,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(RF_ini)
 
-        movpx_ld(Xmm0, Mecx, ctx_M_RFL)
+        movpx_ld(Xmm0, Mecx, ctx_M_RFL(0))
 
         CHECK_MASK(RF_out, NONE, Xmm0)
 
@@ -4755,7 +4763,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movpx_ld(Xmm5, Medx, mat_C_RFL)
         addps_rr(Xmm5, Xmm0)
-        movpx_st(Xmm5, Mecx, ctx_C_RFL)
+        movpx_st(Xmm5, Mecx, ctx_C_RFL(0))
         /* F_RFL is no longer used for Fresnel
          * with new fields added for path-tracer */
 
@@ -4785,7 +4793,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm3, Mecx, ctx_MUL_B(0))
         movpx_ld(Xmm4, Mecx, ctx_INDEX(0))
 
-        movpx_ld(Xmm0, Mecx, ctx_C_RFL)
+        movpx_ld(Xmm0, Mecx, ctx_C_RFL(0))
         mulps_rr(Xmm1, Xmm0)
         mulps_rr(Xmm2, Xmm0)
         mulps_rr(Xmm3, Xmm0)
@@ -4847,7 +4855,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addxx_mi(Mebp, inf_DEPTH, IB(1))
         subxx_ri(Recx, IH(RT_STACK_STEP))
 
-        movpx_ld(Xmm0, Mecx, ctx_C_RFL)
+        movpx_ld(Xmm0, Mecx, ctx_C_RFL(0))
 
         mulps_rr(Xmm1, Xmm0)
         mulps_rr(Xmm2, Xmm0)
@@ -4867,7 +4875,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_rr(Xmm3, Xmm6)
 
         /* restore TMASK from storage */
-        movpx_ld(Xmm0, Mecx, ctx_F_RND)
+        movpx_ld(Xmm0, Mecx, ctx_F_RND(0))
         movpx_st(Xmm0, Mecx, ctx_TMASK(0))
 
         /* reflection R */
@@ -6206,6 +6214,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_PT_BUFFERS
 
+        CHECK_FLAG(OO_spr, PARAM, RT_FLAG_SHAD)
+
+        jmpxx_lb(OO_fin)
+
+    LBL(OO_spr)
+
     /* slice processed list into respective SIMD-buffers */
 
         SLICE_SPTR(OO_out)
@@ -6282,14 +6296,22 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         cmjwx_ri(Reax, IB(0),
                  EQ_x, XX_end)
+#if RT_FEAT_PT
         cmjwx_ri(Reax, IB(4),
                  EQ_x, PT_ret)
+#endif /* RT_FEAT_PT */
+#if RT_FEAT_LIGHTS_SHADOWS
         cmjwx_ri(Reax, IB(1),
                  EQ_x, LT_ret)
-        cmjwx_ri(Reax, IB(2),
-                 EQ_x, RF_ret)
+#endif /* RT_FEAT_LIGHTS_SHADOWS */
+#if RT_FEAT_TRANSPARENCY
         cmjwx_ri(Reax, IB(3),
                  EQ_x, TR_ret)
+#endif /* RT_FEAT_TRANSPARENCY */
+#if RT_FEAT_REFLECTIONS || RT_FEAT_FRESNEL
+        cmjwx_ri(Reax, IB(2),
+                 EQ_x, RF_ret)
+#endif /* RT_FEAT_REFLECTIONS || RT_FEAT_FRESNEL */
 
 /******************************************************************************/
 /********************************   HOR SCAN   ********************************/
@@ -6607,24 +6629,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjxx_mz(Mebp, inf_DEPTH,
                  EQ_x, TO_out)
 
+        movxx_ld(Reax, Mecx, ctx_PARAM(FLG))
+
         addxx_ri(Recx, IH(RT_STACK_STEP))
         subxx_mi(Mebp, inf_DEPTH, IB(1))
 
-        movxx_ld(Redx, Mebp, inf_CAM)
-        movpx_ld(Xmm0, Medx, cam_T_MAX)         /* tmp_v <- T_MAX */
-        movpx_st(Xmm0, Mecx, ctx_T_BUF(0))      /* tmp_v -> T_BUF */
-
-        xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
-        movpx_st(Xmm0, Mecx, ctx_C_BUF(0))      /* tmp_v -> C_BUF */
-        movpx_st(Xmm0, Mecx, ctx_COL_R(0))      /* tmp_v -> COL_R */
-        movpx_st(Xmm0, Mecx, ctx_COL_G(0))      /* tmp_v -> COL_G */
-        movpx_st(Xmm0, Mecx, ctx_COL_B(0))      /* tmp_v -> COL_B */
-
-        movpx_st(Xmm0, Mecx, ctx_T_MIN)         /* tmp_v -> T_MIN */
-        adrpx_ld(Reax, Mecx, ctx_LOCAL(0))
-        movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
-        addxx_ri(Reax, IM(RT_SIMD_QUADS*16))
-        movpx_st(Xmm0, Oeax, PLAIN)             /* tmp_v -> LOCAL */
+        movxx_st(Reax, Mecx, ctx_PARAM(FLG))
 
         jmpxx_lb(TO_ctx)
 
