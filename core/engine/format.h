@@ -56,9 +56,11 @@
 #define RT_OPTS_INSERT_EXT1     (0 << 17)
 #define RT_OPTS_INSERT_EXT2     (0 << 18)
 #define RT_OPTS_REMOVE          (0 << 19)
+
 #define RT_OPTS_GAMMA           (1 << 20) /* turns off Gamma when set to 1 */
 #define RT_OPTS_FRESNEL         (1 << 21) /* turns off Fresnel when set to 1 */
 
+#define RT_OPTS_BUFFERS         (1 << 24) /* prohibits SIMD-buffers if 1 */
 #define RT_OPTS_PT              (1 << 25) /* prohibits path-tracer if 1 */
 
 /* extra options (update) */
@@ -79,6 +81,7 @@
 #define RT_OPTS_NONE            (                                           \
         RT_OPTS_GAMMA           |                                           \
         RT_OPTS_FRESNEL         |                                           \
+        RT_OPTS_BUFFERS         |                                           \
         RT_OPTS_PT              )
 
 #define RT_OPTS_FULL            (                                           \
@@ -103,6 +106,7 @@
         RT_OPTS_REMOVE          |                                           \
         RT_OPTS_GAMMA           |                                           \
         RT_OPTS_FRESNEL         |                                           \
+        RT_OPTS_BUFFERS         |                                           \
         RT_OPTS_PT              )
 
 /*

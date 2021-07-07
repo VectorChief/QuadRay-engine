@@ -77,10 +77,11 @@
 #define RT_FEAT_PT_SPLIT_FRESNEL    1
 #define RT_FEAT_PT_RANDOM_SAMPLE    1
 
-#define RT_FEAT_PT_BUFFERS          0   /* works in RT with 1 thread (no PT yet)
+#define RT_FEAT_BUFFERS             0   /* works in RT with 1 thread (no PT yet)
                                            set RT_THREADS_NUM to 1 in engine.h
-                                           enable SIMD-buffers code sections in
-                                           engine.cpp and object.cpp */
+                                           set RT_OPTS_BUFFERS to 0 in format.h
+                                           set RT_OFFS_BUFFERS to 0 in tracer.h
+                                           set RT_FEAT_BUFFERS to 1 above */
 
 #if RT_FEAT_GAMMA
 #define GAMMA(x)    x
@@ -533,29 +534,6 @@
  * jump to "lo" if ray cannot possibly hit the same surface from side "sd"
  * under given circumstances (even though it would due to hit inaccuracy).
  */
-
-#if 0 /* SIMD-version of a macro may be required for later implementations */
-
-#define CHECK_SIDE(lb, lo, sd) /* destroys Reax, Xmm0, Xmm2, Xmm5 */        \
-        movpx_ld(Xmm0, Mecx, ctx_ORG_P(0))                                  \
-        ceqpx_ld(Xmm0, Mebx, srf_ORG_P)                                     \
-        movpx_ld(Xmm2, Mecx, ctx_ORG_H(0))                                  \
-        ceqpx_ld(Xmm2, Mebx, srf_ORG_H)                                     \
-        andpx_rr(Xmm0, Xmm2)                                                \
-        movxx_ri(Reax, IB(sd))                                              \
-        mulxx_ri(Reax, IM(Q*16))                                            \
-        movpx_ld(Xmm2, Mebx, srf_PBINN)                                     \
-        subpx_ld(Xmm2, Iebx, srf_PBOUT)                                     \
-        ceqpx_ld(Xmm2, Mecx, ctx_ORG_S(0))                                  \
-        movpx_ld(Xmm5, Mebx, srf_PTOUT)                                     \
-        addpx_ld(Xmm5, Iebx, srf_PBOUT)                                     \
-        ceqpx_ld(Xmm5, Mecx, ctx_ORG_S(0))                                  \
-        orrpx_rr(Xmm2, Xmm5)                                                \
-        andpx_rr(Xmm0, Xmm2)                                                \
-        notpx_rx(Xmm0)
-
-#endif
-
 #define CHECK_SIDE(lb, lo, sd) /* destroys Reax */                          \
         cmjxx_rm(Rebx, Mecx, ctx_PARAM(OBJ),                                \
                  NE_x, lb)                                                  \
@@ -775,24 +753,12 @@
         movyx_st(Rebx, Iedx, bfr_HIT_Y(0))                                  \
         movyx_ld(Rebx, Mecx, ctx_C_RFL(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_HIT_Z(0))                                  \
-     /* movyx_ld(Rebx, Mecx, ctx_COL_R(0x##pn))                             \
-        movyx_st(Rebx, Iedx, bfr_COL_R(0))                                  \
-        movyx_ld(Rebx, Mecx, ctx_COL_G(0x##pn))                             \
-        movyx_st(Rebx, Iedx, bfr_COL_G(0))                                  \
-        movyx_ld(Rebx, Mecx, ctx_COL_B(0x##pn))                             \
-        movyx_st(Rebx, Iedx, bfr_COL_B(0)) */                               \
         movyx_ld(Rebx, Mecx, ctx_MUL_R(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_MUL_R(0))                                  \
         movyx_ld(Rebx, Mecx, ctx_MUL_G(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_MUL_G(0))                                  \
         movyx_ld(Rebx, Mecx, ctx_MUL_B(0x##pn))                             \
         movyx_st(Rebx, Iedx, bfr_MUL_B(0))                                  \
-     /* movyx_ld(Rebx, Mecx, ctx_ORG_P(0x##pn))                             \
-        movyx_st(Rebx, Iedx, bfr_ORG_P(0))                                  \
-        movyx_ld(Rebx, Mecx, ctx_ORG_H(0x##pn))                             \
-        movyx_st(Rebx, Iedx, bfr_ORG_H(0))                                  \
-        movyx_ld(Rebx, Mecx, ctx_ORG_S(0x##pn))                             \
-        movyx_st(Rebx, Iedx, bfr_ORG_S(0)) */                               \
         addwx_mi(Medx, bfr_COUNT(PTR), IB(1))                               \
     LBL(lb##pn)
 
@@ -830,24 +796,12 @@
         movpx_ld(Xmm0, Medx, bfr_HIT_Z(0))                                  \
         movpx_st(Xmm0, Mecx, ctx_NEW_Z(0))                                  \
     LBL(lb##end)                                                            \
-     /* movpx_ld(Xmm0, Medx, bfr_COL_R(0))                                  \
-        movpx_st(Xmm0, Mecx, ctx_COL_R(0))                                  \
-        movpx_ld(Xmm0, Medx, bfr_COL_G(0))                                  \
-        movpx_st(Xmm0, Mecx, ctx_COL_G(0))                                  \
-        movpx_ld(Xmm0, Medx, bfr_COL_B(0))                                  \
-        movpx_st(Xmm0, Mecx, ctx_COL_B(0)) */                               \
         movpx_ld(Xmm0, Medx, bfr_MUL_R(0))                                  \
         movpx_st(Xmm0, Mecx, ctx_MUL_R(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_MUL_G(0))                                  \
         movpx_st(Xmm0, Mecx, ctx_MUL_G(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_MUL_B(0))                                  \
         movpx_st(Xmm0, Mecx, ctx_MUL_B(0))                                  \
-     /* movpx_ld(Xmm0, Medx, bfr_ORG_P(0))                                  \
-        movpx_st(Xmm0, Mecx, ctx_ORG_P(0))                                  \
-        movpx_ld(Xmm0, Medx, bfr_ORG_H(0))                                  \
-        movpx_st(Xmm0, Mecx, ctx_ORG_H(0))                                  \
-        movpx_ld(Xmm0, Medx, bfr_ORG_S(0))                                  \
-        movpx_st(Xmm0, Mecx, ctx_ORG_S(0)) */                               \
         movpx_ld(Xmm0, Medx, bfr_INDEX(RT_SIMD_WIDTH*4*L))                  \
         movpx_st(Xmm0, Medx, bfr_INDEX(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_ORG_X(RT_SIMD_WIDTH*4*L))                  \
@@ -868,24 +822,12 @@
         movpx_st(Xmm0, Medx, bfr_HIT_Y(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_HIT_Z(RT_SIMD_WIDTH*4*L))                  \
         movpx_st(Xmm0, Medx, bfr_HIT_Z(0))                                  \
-     /* movpx_ld(Xmm0, Medx, bfr_COL_R(RT_SIMD_WIDTH*4*L))                  \
-        movpx_st(Xmm0, Medx, bfr_COL_R(0))                                  \
-        movpx_ld(Xmm0, Medx, bfr_COL_G(RT_SIMD_WIDTH*4*L))                  \
-        movpx_st(Xmm0, Medx, bfr_COL_G(0))                                  \
-        movpx_ld(Xmm0, Medx, bfr_COL_B(RT_SIMD_WIDTH*4*L))                  \
-        movpx_st(Xmm0, Medx, bfr_COL_B(0)) */                               \
         movpx_ld(Xmm0, Medx, bfr_MUL_R(RT_SIMD_WIDTH*4*L))                  \
         movpx_st(Xmm0, Medx, bfr_MUL_R(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_MUL_G(RT_SIMD_WIDTH*4*L))                  \
         movpx_st(Xmm0, Medx, bfr_MUL_G(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_MUL_B(RT_SIMD_WIDTH*4*L))                  \
         movpx_st(Xmm0, Medx, bfr_MUL_B(0))                                  \
-     /* movpx_ld(Xmm0, Medx, bfr_ORG_P(RT_SIMD_WIDTH*4*L))                  \
-        movpx_st(Xmm0, Medx, bfr_ORG_P(0))                                  \
-        movpx_ld(Xmm0, Medx, bfr_ORG_H(RT_SIMD_WIDTH*4*L))                  \
-        movpx_st(Xmm0, Medx, bfr_ORG_H(0))                                  \
-        movpx_ld(Xmm0, Medx, bfr_ORG_S(RT_SIMD_WIDTH*4*L))                  \
-        movpx_st(Xmm0, Medx, bfr_ORG_S(0)) */                               \
         movpx_ld(Xmm0, Mebp, inf_GPC07)                                     \
         movpx_st(Xmm0, Medx, bfr_INDEX(RT_SIMD_WIDTH*4*L))
 
@@ -2188,7 +2130,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm0, Mebp, inf_HOR_I)         /* hor_s <- HOR_I */
         movpx_ld(Xmm7, Mebp, inf_VER_I)         /* ver_s <- VER_I */
 
-#if RT_FEAT_PT_BUFFERS
+#if RT_FEAT_BUFFERS
 
         movpx_ld(Xmm4, Medx, cam_X_ROW)         /* x_row <- X_ROW */
         mulps_rr(Xmm4, Xmm7)                    /* x_row *= ver_s */
@@ -2205,7 +2147,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm4, Mecx, ctx_SRF_P(0))      /* tmp_v -> SRF_P */
         movpx_st(Xmm4, Mecx, ctx_SRF_P(RT_SIMD_WIDTH*2*L))
 
-#endif /* RT_FEAT_PT_BUFFERS */
+#endif /* RT_FEAT_BUFFERS */
 
         addps_ld(Xmm0, Medx, cam_HOR_A)         /* hor_s += HOR_A */
         addps_ld(Xmm7, Medx, cam_VER_A)         /* ver_s += VER_A */
@@ -4098,7 +4040,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(LT_end)
 
-#if RT_FEAT_PT_BUFFERS
+#if RT_FEAT_BUFFERS
 
         movpx_ld(Xmm1, Mecx, ctx_COL_R(0))
         movpx_ld(Xmm2, Mecx, ctx_COL_G(0))
@@ -4114,7 +4056,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FRAME_SPTR(LT_end)
 
-#endif /* RT_FEAT_PT_BUFFERS */
+#endif /* RT_FEAT_BUFFERS */
 
 /******************************************************************************/
 /******************************   TRANSPARENCY   ******************************/
@@ -4439,7 +4381,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_SHOW_BOUND */
 
-#if RT_FEAT_PT_BUFFERS
+#if RT_FEAT_BUFFERS
 
         movpx_ld(Xmm1, Mecx, ctx_MUL_R(0))
         movpx_ld(Xmm2, Mecx, ctx_MUL_G(0))
@@ -4451,7 +4393,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm2, Xmm0)
         mulps_rr(Xmm3, Xmm0)
 
-#endif /* RT_FEAT_PT_BUFFERS */
+#endif /* RT_FEAT_BUFFERS */
 
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))      /* load tmask */
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
@@ -4459,7 +4401,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addxx_ri(Recx, IH(RT_STACK_STEP))
         subxx_mi(Mebp, inf_DEPTH, IB(1))
 
-#if RT_FEAT_PT_BUFFERS
+#if RT_FEAT_BUFFERS
 
         movpx_st(Xmm1, Mecx, ctx_MUL_R(0))
         movpx_st(Xmm2, Mecx, ctx_MUL_G(0))
@@ -4470,7 +4412,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm4, Mecx, ctx_SRF_P(0))      /* tmp_v -> SRF_P */
         movpx_st(Xmm4, Mecx, ctx_SRF_P(RT_SIMD_WIDTH*2*L))
 
-#endif /* RT_FEAT_PT_BUFFERS */
+#endif /* RT_FEAT_BUFFERS */
 
         movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
         movxx_st(Redx, Mecx, ctx_PARAM(LST))    /* save material */
@@ -4786,7 +4728,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         FETCH_XPTR(Resi, LST_P(SRF))
 
-#if RT_FEAT_PT_BUFFERS
+#if RT_FEAT_BUFFERS
 
         movpx_ld(Xmm1, Mecx, ctx_MUL_R(0))
         movpx_ld(Xmm2, Mecx, ctx_MUL_G(0))
@@ -4798,7 +4740,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm2, Xmm0)
         mulps_rr(Xmm3, Xmm0)
 
-#endif /* RT_FEAT_PT_BUFFERS */
+#endif /* RT_FEAT_BUFFERS */
 
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))      /* load tmask */
         movxx_ld(Reax, Mecx, ctx_LOCAL(FLG))
@@ -4806,7 +4748,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addxx_ri(Recx, IH(RT_STACK_STEP))
         subxx_mi(Mebp, inf_DEPTH, IB(1))
 
-#if RT_FEAT_PT_BUFFERS
+#if RT_FEAT_BUFFERS
 
         movpx_st(Xmm1, Mecx, ctx_MUL_R(0))
         movpx_st(Xmm2, Mecx, ctx_MUL_G(0))
@@ -4817,7 +4759,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm4, Mecx, ctx_SRF_P(0))      /* tmp_v -> SRF_P */
         movpx_st(Xmm4, Mecx, ctx_SRF_P(RT_SIMD_WIDTH*2*L))
 
-#endif /* RT_FEAT_PT_BUFFERS */
+#endif /* RT_FEAT_BUFFERS */
 
         movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
         movxx_st(Redx, Mecx, ctx_PARAM(LST))    /* save material */
@@ -4915,7 +4857,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         movwx_ld(Reax, Mecx, ctx_LOCAL(PTR))
 
-#if RT_FEAT_PT_BUFFERS
+#if RT_FEAT_BUFFERS
 #if 1 /* return points for flush after the cycle */
         cmjwx_ri(Reax, IB(7),
                  EQ_x, SR_rt7)
@@ -4928,7 +4870,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjwx_ri(Reax, IB(11),
                  EQ_x, SR_rt11)
 #endif
-#endif /* RT_FEAT_PT_BUFFERS */
+#endif /* RT_FEAT_BUFFERS */
 
         cmjwx_ri(Reax, IB(1),
                  EQ_x, SR_rt1)
@@ -5110,7 +5052,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_MASK(PL_rt2, NONE, Xmm7)
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_OUTER))
 
-#if RT_FEAT_PT_BUFFERS
+#if RT_FEAT_BUFFERS
 
         CHECK_FLAG(PL_bf1, PARAM, RT_FLAG_SHAD)
 
@@ -5125,7 +5067,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(PL_mt1)
 
-#endif /* RT_FEAT_PT_BUFFERS */
+#endif /* RT_FEAT_BUFFERS */
 
         /* material */
         SUBROUTINE(1, PL_mat)
@@ -5140,7 +5082,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
         movxx_mi(Mecx, ctx_LOCAL(FLG), IB(RT_FLAG_SIDE_INNER))
 
-#if RT_FEAT_PT_BUFFERS
+#if RT_FEAT_BUFFERS
 
         CHECK_FLAG(PL_bf2, PARAM, RT_FLAG_SHAD)
 
@@ -5155,7 +5097,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(PL_mt2)
 
-#endif /* RT_FEAT_PT_BUFFERS */
+#endif /* RT_FEAT_BUFFERS */
 
         /* material */
         SUBROUTINE(2, PL_mat)
@@ -5753,7 +5695,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_MASK(QD_rs2, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
-#if RT_FEAT_PT_BUFFERS
+#if RT_FEAT_BUFFERS
 
         CHECK_FLAG(QD_bf1, PARAM, RT_FLAG_SHAD)
 
@@ -5768,7 +5710,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(QD_mt1)
 
-#endif /* RT_FEAT_PT_BUFFERS */
+#endif /* RT_FEAT_BUFFERS */
 
         /* material */
         SUBROUTINE(4, QD_mtr)
@@ -5857,7 +5799,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_MASK(QD_rs1, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))      /* tmask -> TMASK */
 
-#if RT_FEAT_PT_BUFFERS
+#if RT_FEAT_BUFFERS
 
         CHECK_FLAG(QD_bf2, PARAM, RT_FLAG_SHAD)
 
@@ -5872,7 +5814,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(QD_mt2)
 
-#endif /* RT_FEAT_PT_BUFFERS */
+#endif /* RT_FEAT_BUFFERS */
 
         /* material */
         SUBROUTINE(6, QD_mtr)
@@ -6212,7 +6154,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(OO_out)
 
-#if RT_FEAT_PT_BUFFERS
+#if RT_FEAT_BUFFERS
 
         CHECK_FLAG(OO_spr, PARAM, RT_FLAG_SHAD)
 
@@ -6290,7 +6232,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(OO_fin)
 
-#endif /* RT_FEAT_PT_BUFFERS */
+#endif /* RT_FEAT_BUFFERS */
 
         movwx_ld(Reax, Mecx, ctx_PARAM(PTR))
 
@@ -6556,7 +6498,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(YY_out)
 
-#if RT_FEAT_PT_BUFFERS
+#if RT_FEAT_BUFFERS
 
     /* flush SIMD-buffers after the frame */
 
@@ -6640,9 +6582,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(TO_out)
 
-#endif /* RT_FEAT_PT_BUFFERS */
+#endif /* RT_FEAT_BUFFERS */
 
-#if RT_FEAT_PT_BUFFERS
+#if RT_FEAT_BUFFERS
 
     /* flush fp-color planes after the frame */
 
@@ -6685,16 +6627,21 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         shlxx_ri(Reax, IB(L+1))
         shlxx_rr(Reax, Rebx)
 
+        xorpx_rr(Xmm1, Xmm1)
+
         movxx_ld(Redx, Mebp, inf_PTR_R)
         movpx_ld(Xmm0, Iedx, DP(0))
+        movpx_st(Xmm1, Iedx, DP(0)) /* reset fp-color planes for RT */
         movpx_st(Xmm0, Mecx, ctx_COL_R(0))
 
         movxx_ld(Redx, Mebp, inf_PTR_G)
         movpx_ld(Xmm0, Iedx, DP(0))
+        movpx_st(Xmm1, Iedx, DP(0)) /* reset fp-color planes for RT */
         movpx_st(Xmm0, Mecx, ctx_COL_G(0))
 
         movxx_ld(Redx, Mebp, inf_PTR_B)
         movpx_ld(Xmm0, Iedx, DP(0))
+        movpx_st(Xmm1, Iedx, DP(0)) /* reset fp-color planes for RT */
         movpx_st(Xmm0, Mecx, ctx_COL_B(0))
 
         /* clamp fp colors to 1.0 limit */
@@ -6846,7 +6793,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(TY_out)
 
-#endif /* RT_FEAT_PT_BUFFERS */
+#endif /* RT_FEAT_BUFFERS */
 
     ASM_LEAVE(s_inf)
 

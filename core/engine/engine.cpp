@@ -3310,9 +3310,9 @@ rt_void rt_Scene::render(rt_time time)
     { /* -->---->-- skip render0 -->---->-- */
 #endif /* RT_OPTS_RENDER_EXT0 */
 
-#if 0 /* enable for SIMD-buffers (RT mode, PT requires accumulation) */
+#if 0 /* SIMD-buffers don't normally require reset between frames */
     reset_color();
-#endif /* enable for SIMD-buffers (RT mode, PT requires accumulation) */
+#endif /* enable for SIMD-buffers as a debug option if needed */
 
     /* multi-threaded render */
 #if RT_OPTS_THREAD != 0
