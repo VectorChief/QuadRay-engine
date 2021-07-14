@@ -726,11 +726,11 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
     memset(s_srf, 0, ssize);
     s_srf->srf_t[3] = tag;
 
-    /* allocate SIMD-buffers (1 thread only for now) */
+    /* allocate SIMD-buffers (with actual number of threads) */
     if ((rg->opts & RT_OPTS_BUFFERS) == 0)
     {
-        s_srf->msc_p[0] = rg->alloc(RT_BUFFER_POOL, RT_SIMD_ALIGN);
-        memset(s_srf->msc_p[0], 255, RT_BUFFER_POOL);
+        s_srf->msc_p[0] = rg->alloc(RT_BUFFER_POOL*rg->thr_num, RT_SIMD_ALIGN);
+        memset(s_srf->msc_p[0], 255, RT_BUFFER_POOL*rg->thr_num);
     }
 
 #if 0 /* surface's misc pointers description */

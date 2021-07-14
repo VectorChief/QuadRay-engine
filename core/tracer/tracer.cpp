@@ -77,8 +77,7 @@
 #define RT_FEAT_PT_SPLIT_FRESNEL    1
 #define RT_FEAT_PT_RANDOM_SAMPLE    1
 
-#define RT_FEAT_BUFFERS             0   /* works in RT with 1 thread (no PT yet)
-                                           set RT_THREADS_NUM to 1 in engine.h
+#define RT_FEAT_BUFFERS             0   /* works in RT with threads (no PT yet)
                                            set RT_OPTS_BUFFERS to 0 in format.h
                                            set RT_OFFS_BUFFERS to 0 in tracer.h
                                            set RT_FEAT_BUFFERS to 1 above */
@@ -721,10 +720,13 @@
 #define SLICE_FRAG(lb, pn) /* destroys Reax, Rebx, Redx */                  \
         cmjxx_mz(Mecx, ctx_SRF_P(0x##pn / L),                               \
                  EQ_x, lb##pn)                                              \
+        movxx_ld(Rebx, Mebp, inf_INDEX)                                     \
+        mulxx_ri(Rebx, IV(RT_BUFFER_POOL))                                  \
         movwx_ld(Redx, Mecx, ctx_SRF_S(0x##pn / L))                         \
         mulwx_ri(Redx, IV(RT_BUFFER_POOL / 2))                              \
         movxx_ri(Reax, IH(RT_BUFFER_SIZE))                                  \
         mulxx_ld(Reax, Mebp, inf_DEPTH)                                     \
+        addxx_rr(Redx, Rebx)                                                \
         addxx_rr(Redx, Reax)                                                \
         movxx_ld(Rebx, Mecx, ctx_SRF_P(0x##pn / L))                         \
         addxx_ld(Redx, Mebx, srf_MSC_P(PTR))                                \
@@ -2008,6 +2010,16 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addxx_ld(Reax, Mebp, inf_FRAME)
         movxx_st(Reax, Mebp, inf_FRM)
 
+#if RT_FEAT_BUFFERS
+
+        movpx_ld(Xmm0, Mebp, inf_VER_I)         /* index <- VER_I */
+        mulps_ld(Xmm0, Medx, cam_X_ROW)         /* index *= X_ROW */
+        cvnps_rr(Xmm0, Xmm0)                    /* index in index */
+        addpx_ld(Xmm0, Medx, cam_INDEX)         /* index += INDEX */
+        movpx_st(Xmm0, Mecx, ctx_INDEX(0))      /* index -> INDEX */
+
+#endif /* RT_FEAT_BUFFERS */
+
 #if RT_FEAT_PT
 
         subxx_ld(Reax, Mebp, inf_FRAME)
@@ -2131,12 +2143,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm7, Mebp, inf_VER_I)         /* ver_s <- VER_I */
 
 #if RT_FEAT_BUFFERS
-
-        movpx_ld(Xmm4, Medx, cam_X_ROW)         /* x_row <- X_ROW */
-        mulps_rr(Xmm4, Xmm7)                    /* x_row *= ver_s */
-        addps_rr(Xmm4, Xmm0)                    /* x_row += hor_s */
-        cvnps_rr(Xmm4, Xmm4)                    /* x_row in x_row */
-        movpx_st(Xmm4, Mecx, ctx_INDEX(0))      /* x_row -> INDEX */
 
         movpx_ld(Xmm4, Mebp, inf_GPC01)         /* one_f <- +1.0f */
         movpx_st(Xmm4, Mecx, ctx_MUL_R(0))      /* one_f -> MUL_R */
@@ -3570,21 +3576,21 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(LT_reg)
 
+        movpx_ld(Xmm1, Mecx, ctx_TEX_R)
+        movpx_ld(Xmm2, Mecx, ctx_TEX_G)
+        movpx_ld(Xmm3, Mecx, ctx_TEX_B)
+
+#if RT_FEAT_LIGHTS
+
         CHECK_PROP(LT_lgt, RT_PROP_LIGHT)
 
         jmpxx_lb(LT_set)
 
     LBL(LT_lgt)
 
-#if RT_FEAT_LIGHTS
-
 #if RT_FEAT_LIGHTS_AMBIENT
 
         movxx_ld(Redx, Mebp, inf_CAM)
-
-        movpx_ld(Xmm1, Mecx, ctx_TEX_R)
-        movpx_ld(Xmm2, Mecx, ctx_TEX_G)
-        movpx_ld(Xmm3, Mecx, ctx_TEX_B)
 
 #if RT_FEAT_LIGHTS_COLORED
 
@@ -3610,16 +3616,40 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_LIGHTS_AMBIENT */
 
-        /* ambient R */
+#endif /* RT_FEAT_LIGHTS */
+
+        FETCH_XPTR(Redx, MAT_P(PTR))
+
+        movpx_ld(Xmm0, Mebp, inf_GPC01)
+        subps_ld(Xmm0, Medx, mat_C_TRN)
+        subps_ld(Xmm0, Medx, mat_C_RFL)
+        xorpx_rr(Xmm7, Xmm7)
+        cleps_rr(Xmm7, Xmm0)
+        andpx_rr(Xmm0, Xmm7)
+
+        /* modulate light with surface props */
+        mulps_rr(Xmm1, Xmm0)
+        mulps_rr(Xmm2, Xmm0)
+        mulps_rr(Xmm3, Xmm0)
+
+    LBL(LT_set)
+
+        /* texture * ambient R */
         STORE_SIMD(COL_R, Xmm1)
-        /* ambient G */
+        /* texture * ambient G */
         STORE_SIMD(COL_G, Xmm2)
-        /* ambient B */
+        /* texture * ambient B */
         STORE_SIMD(COL_B, Xmm3)
+
+#if RT_FEAT_LIGHTS
 
 #if RT_FEAT_LIGHTS_DIFFUSE || RT_FEAT_LIGHTS_SPECULAR
 
         FETCH_XPTR(Redi, LST_P(LGT))
+
+        CHECK_PROP(LT_cyc, RT_PROP_LIGHT)
+
+        jmpxx_lb(LT_end)
 
     LBL(LT_cyc)
 
@@ -4019,24 +4049,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_LIGHTS_DIFFUSE, RT_FEAT_LIGHTS_SPECULAR */
 
-        jmpxx_lb(LT_end)
-
 #endif /* RT_FEAT_LIGHTS */
-
-    LBL(LT_set)
-
-        /* consider merging with "ambient"
-         * section at the top of "lights" */
-        movpx_ld(Xmm1, Mecx, ctx_TEX_R)
-        movpx_ld(Xmm2, Mecx, ctx_TEX_G)
-        movpx_ld(Xmm3, Mecx, ctx_TEX_B)
-
-        /* texture R */
-        STORE_SIMD(COL_R, Xmm1)
-        /* texture G */
-        STORE_SIMD(COL_G, Xmm2)
-        /* texture B */
-        STORE_SIMD(COL_B, Xmm3)
 
     LBL(LT_end)
 
@@ -6166,6 +6179,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         SLICE_SPTR(OO_out)
 
+        movpx_ld(Xmm0, Mecx, ctx_INDEX(0))
+        movpx_st(Xmm0, Mecx, ctx_XMASK)
+
     /* flush SIMD-buffers after the cycle */
 
         movxx_ld(Resi, Mebp, inf_LST)
@@ -6179,13 +6195,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(OO_mtr)
 
-        movxx_ld(Rebx, Mesi, elm_SIMD)
-
+        movxx_ld(Rebx, Mebp, inf_INDEX)
+        mulxx_ri(Rebx, IV(RT_BUFFER_POOL))
         movwx_ri(Redx, IB(RT_FLAG_SIDE_OUTER))
         mulwx_ri(Redx, IV(RT_BUFFER_POOL / 2))
         movxx_ri(Reax, IH(RT_BUFFER_SIZE))
         mulxx_ld(Reax, Mebp, inf_DEPTH)
+        addxx_rr(Redx, Rebx)
         addxx_rr(Redx, Reax)
+        movxx_ld(Rebx, Mesi, elm_SIMD)
         addxx_ld(Redx, Mebx, srf_MSC_P(PTR))
 
         movwx_ld(Reax, Medx, bfr_COUNT(PTR))
@@ -6204,11 +6222,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(OO_sd1)
 
+        movxx_ld(Rebx, Mebp, inf_INDEX)
+        mulxx_ri(Rebx, IV(RT_BUFFER_POOL))
         movwx_ri(Redx, IB(RT_FLAG_SIDE_INNER))
         mulwx_ri(Redx, IV(RT_BUFFER_POOL / 2))
         movxx_ri(Reax, IH(RT_BUFFER_SIZE))
         mulxx_ld(Reax, Mebp, inf_DEPTH)
+        addxx_rr(Redx, Rebx)
         addxx_rr(Redx, Reax)
+        movxx_ld(Rebx, Mesi, elm_SIMD)
         addxx_ld(Redx, Mebx, srf_MSC_P(PTR))
 
         movwx_ld(Reax, Medx, bfr_COUNT(PTR))
@@ -6231,6 +6253,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(OO_mat)
 
     LBL(OO_fin)
+
+        movpx_ld(Xmm0, Mecx, ctx_XMASK)
+        movpx_st(Xmm0, Mecx, ctx_INDEX(0))
 
 #endif /* RT_FEAT_BUFFERS */
 
@@ -6456,6 +6481,14 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addps_ld(Xmm0, Medx, cam_HOR_U)         /* hor_i += HOR_U */
         movpx_st(Xmm0, Mebp, inf_HOR_I)         /* hor_i -> HOR_I */
 
+#if RT_FEAT_BUFFERS
+
+        movpx_ld(Xmm0, Mecx, ctx_INDEX(0))      /* index <- INDEX */
+        addpx_ld(Xmm0, Medx, cam_IDX_H)         /* index += IDX_H */
+        movpx_st(Xmm0, Mecx, ctx_INDEX(0))      /* index -> INDEX */
+
+#endif /* RT_FEAT_BUFFERS */
+
 #if RT_FEAT_TILING
 
         movxx_ld(Reax, Mebp, inf_FRM_X)
@@ -6515,13 +6548,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(TO_mtr)
 
-        movxx_ld(Rebx, Mesi, elm_SIMD)
-
+        movxx_ld(Rebx, Mebp, inf_INDEX)
+        mulxx_ri(Rebx, IV(RT_BUFFER_POOL))
         movwx_ri(Redx, IB(RT_FLAG_SIDE_OUTER))
         mulwx_ri(Redx, IV(RT_BUFFER_POOL / 2))
         movxx_ri(Reax, IH(RT_BUFFER_SIZE))
         mulxx_ld(Reax, Mebp, inf_DEPTH)
+        addxx_rr(Redx, Rebx)
         addxx_rr(Redx, Reax)
+        movxx_ld(Rebx, Mesi, elm_SIMD)
         addxx_ld(Redx, Mebx, srf_MSC_P(PTR))
 
         movwx_ld(Reax, Medx, bfr_COUNT(PTR))
@@ -6540,11 +6575,15 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(TO_sd1)
 
+        movxx_ld(Rebx, Mebp, inf_INDEX)
+        mulxx_ri(Rebx, IV(RT_BUFFER_POOL))
         movwx_ri(Redx, IB(RT_FLAG_SIDE_INNER))
         mulwx_ri(Redx, IV(RT_BUFFER_POOL / 2))
         movxx_ri(Reax, IH(RT_BUFFER_SIZE))
         mulxx_ld(Reax, Mebp, inf_DEPTH)
+        addxx_rr(Redx, Rebx)
         addxx_rr(Redx, Reax)
+        movxx_ld(Rebx, Mesi, elm_SIMD)
         addxx_ld(Redx, Mebx, srf_MSC_P(PTR))
 
         movwx_ld(Reax, Medx, bfr_COUNT(PTR))

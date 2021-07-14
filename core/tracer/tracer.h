@@ -7,7 +7,7 @@
 #ifndef RT_TRACER_H
 #define RT_TRACER_H
 
-#define RT_OFFS_BUFFERS         (Q*0x0A0)*1 /* SIMD-buffers: 0 - on, 1 - off */
+#define RT_OFFS_BUFFERS         0x0A0*1 /* SIMD-buffers: 0 - on, 1 - off */
 
 /*
  * RT_DATA determines the maximum load-level for data structures in code-base.
@@ -733,75 +733,75 @@ struct rt_SIMD_CONTEXT
     /* root sorting masks */
 
     rt_elem amask[S];
-#define ctx_AMASK           DP(Q*0x380 - RT_OFFS_BUFFERS)
+#define ctx_AMASK           DP(Q*0x380 - Q*RT_OFFS_BUFFERS)
 
     rt_elem dmask[S];
-#define ctx_DMASK           DP(Q*0x390 - RT_OFFS_BUFFERS)
+#define ctx_DMASK           DP(Q*0x390 - Q*RT_OFFS_BUFFERS)
 
     /* aux fields for path-tracer */
 
     rt_real f_rnd[S];
-#define ctx_F_RND(nx)       DP(Q*0x3A0 - RT_OFFS_BUFFERS + nx)
+#define ctx_F_RND(nx)       DP(Q*0x3A0 - Q*RT_OFFS_BUFFERS + nx)
 
     rt_real f_prb[S];
-#define ctx_F_PRB(nx)       DP(Q*0x3B0 - RT_OFFS_BUFFERS + nx)
+#define ctx_F_PRB(nx)       DP(Q*0x3B0 - Q*RT_OFFS_BUFFERS + nx)
 
     rt_real m_trn[S];
-#define ctx_M_TRN(nx)       DP(Q*0x3C0 - RT_OFFS_BUFFERS + nx)
+#define ctx_M_TRN(nx)       DP(Q*0x3C0 - Q*RT_OFFS_BUFFERS + nx)
 
     rt_real m_rfl[S];
-#define ctx_M_RFL(nx)       DP(Q*0x3D0 - RT_OFFS_BUFFERS + nx)
+#define ctx_M_RFL(nx)       DP(Q*0x3D0 - Q*RT_OFFS_BUFFERS + nx)
 
     rt_real c_trn[S];
-#define ctx_C_TRN(nx)       DP(Q*0x3E0 - RT_OFFS_BUFFERS + nx)
+#define ctx_C_TRN(nx)       DP(Q*0x3E0 - Q*RT_OFFS_BUFFERS + nx)
 
     rt_real c_rfl[S];
-#define ctx_C_RFL(nx)       DP(Q*0x3F0 - RT_OFFS_BUFFERS + nx)
+#define ctx_C_RFL(nx)       DP(Q*0x3F0 - Q*RT_OFFS_BUFFERS + nx)
 
     /* overlapping next context (clip here to keep RT_DATA == 4),
      * new depth min            (consider linked list of contexts) */
 
     rt_real t_new[S];
-#define ctx_T_NEW           DP(Q*0x400 - RT_OFFS_BUFFERS)
+#define ctx_T_NEW           DP(Q*0x400 - Q*RT_OFFS_BUFFERS)
 
     /* hit point,
      * new origin */
 
     rt_real hit_x[S];
-#define ctx_HIT_X(nx)       DP(Q*0x410 - RT_OFFS_BUFFERS + nx)
+#define ctx_HIT_X(nx)       DP(Q*0x410 - Q*RT_OFFS_BUFFERS + nx)
 
     rt_real hit_y[S];
-#define ctx_HIT_Y(nx)       DP(Q*0x420 - RT_OFFS_BUFFERS + nx)
+#define ctx_HIT_Y(nx)       DP(Q*0x420 - Q*RT_OFFS_BUFFERS + nx)
 
     rt_real hit_z[S];
-#define ctx_HIT_Z(nx)       DP(Q*0x430 - RT_OFFS_BUFFERS + nx)
+#define ctx_HIT_Z(nx)       DP(Q*0x430 - Q*RT_OFFS_BUFFERS + nx)
 
     /* new ray */
 
-#define ctx_NEW_O           DP(Q*0x440 - RT_OFFS_BUFFERS)
+#define ctx_NEW_O           DP(Q*0x440 - Q*RT_OFFS_BUFFERS)
 
     rt_real new_x[S];
-#define ctx_NEW_X(nx)       DP(Q*0x440 - RT_OFFS_BUFFERS + nx)
+#define ctx_NEW_X(nx)       DP(Q*0x440 - Q*RT_OFFS_BUFFERS + nx)
 
     rt_real new_y[S];
-#define ctx_NEW_Y(nx)       DP(Q*0x450 - RT_OFFS_BUFFERS + nx)
+#define ctx_NEW_Y(nx)       DP(Q*0x450 - Q*RT_OFFS_BUFFERS + nx)
 
     rt_real new_z[S];
-#define ctx_NEW_Z(nx)       DP(Q*0x460 - RT_OFFS_BUFFERS + nx)
+#define ctx_NEW_Z(nx)       DP(Q*0x460 - Q*RT_OFFS_BUFFERS + nx)
 
     rt_real new_i[S];
-#define ctx_NEW_I(nx)       DP(Q*0x470 - RT_OFFS_BUFFERS + nx)
+#define ctx_NEW_I(nx)       DP(Q*0x470 - Q*RT_OFFS_BUFFERS + nx)
 
     rt_real new_j[S];
-#define ctx_NEW_J(nx)       DP(Q*0x480 - RT_OFFS_BUFFERS + nx)
+#define ctx_NEW_J(nx)       DP(Q*0x480 - Q*RT_OFFS_BUFFERS + nx)
 
     rt_real new_k[S];
-#define ctx_NEW_K(nx)       DP(Q*0x490 - RT_OFFS_BUFFERS + nx)
+#define ctx_NEW_K(nx)       DP(Q*0x490 - Q*RT_OFFS_BUFFERS + nx)
 
 };
 
 /* context stack step for secondary rays */
-#define RT_STACK_STEP       (Q * 0x400 - RT_OFFS_BUFFERS)
+#define RT_STACK_STEP       (Q * 0x400 - Q*RT_OFFS_BUFFERS)
 
 /******************************************************************************/
 /*********************************   CAMERA   *********************************/
@@ -891,10 +891,16 @@ struct rt_SIMD_CAMERA
     rt_real col_b[S];
 #define cam_COL_B           DP(Q*0x130)
 
-    /* index update */
+    /* index template and update */
 
     rt_real x_row[S];
 #define cam_X_ROW           DP(Q*0x140)
+
+    rt_elem index[S];
+#define cam_INDEX           DP(Q*0x150)
+
+    rt_elem idx_h[S];
+#define cam_IDX_H           DP(Q*0x160)
 
 };
 

@@ -139,6 +139,9 @@ class rt_Registry : public rt_Heap
 
     public:
 
+    /* actual number of threads */
+    rt_si32             thr_num;
+
     /* optimization flags */
     rt_si32             opts;
 
@@ -158,7 +161,7 @@ class rt_Registry : public rt_Heap
                     srf_head(RT_NULL), srf_num(0),
                     tex_head(RT_NULL), tex_num(0),
                     mat_head(RT_NULL), mat_num(0),
-                    opts(RT_OPTS_FULL), rel(RT_NULL) { }
+                    thr_num(0), opts(RT_OPTS_FULL), rel(RT_NULL) { }
 
     virtual
    ~rt_Registry() { }

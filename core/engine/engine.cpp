@@ -2829,6 +2829,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
     thnum = pfm->thnum;
     tdata = pfm->tdata;
 
+    thr_num = thnum; /* for registry of object hierarchy */
+
     f_update = pfm->f_update;
     f_render = pfm->f_render;
 
@@ -2901,14 +2903,13 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
     depth = RT_MAX(RT_STACK_DEPTH, 0);
     opts &= ~scn->opts;
 
-    if ((opts & RT_OPTS_PT) == 0)
+    pseed = RT_NULL;
+    ptr_r = RT_NULL;
+    ptr_g = RT_NULL;
+    ptr_b = RT_NULL;
+
+    if ((opts & RT_OPTS_PT) == 0 || (opts & RT_OPTS_BUFFERS) == 0)
     {
-        /* alloc framebuffer's seed-plane for path-tracer */
-        pseed = (rt_elem *)
-                alloc(4 * x_row * y_res * sizeof(rt_elem), RT_SIMD_ALIGN);
-
-                /* pseed is initialized in reset_pseed() */
-
         /* alloc framebuffer's color-planes for path-tracer */
         ptr_r = (rt_real *)
                 alloc(4 * x_row * y_res * sizeof(rt_real), RT_SIMD_ALIGN);
@@ -2919,12 +2920,17 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
 
                 /* ptr_* is initialized in reset_color() */
     }
-    else
+    if ((opts & RT_OPTS_BUFFERS) == 0)
     {
-        pseed = RT_NULL;
-        ptr_r = RT_NULL;
-        ptr_g = RT_NULL;
-        ptr_b = RT_NULL;
+        reset_color();
+    }
+    if ((opts & RT_OPTS_PT) == 0)
+    {
+        /* alloc framebuffer's seed-plane for path-tracer */
+        pseed = (rt_elem *)
+                alloc(4 * x_row * y_res * sizeof(rt_elem), RT_SIMD_ALIGN);
+
+                /* pseed is initialized in reset_pseed() */
     }
 
     pt_on = RT_FALSE;
@@ -3620,7 +3626,8 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
     RT_SIMD_SET(s_cam->col_b, amb[RT_B]);
     RT_SIMD_SET(s_cam->l_amb, amb[RT_A]);
 
-    RT_SIMD_SET(s_cam->x_row, (rt_real)x_row);
+    RT_SIMD_SET(s_cam->x_row, (rt_real)(x_row << pfm->fsaa));
+    RT_SIMD_SET(s_cam->idx_h, pfm->simd_width);
 
 /*  rt_SIMD_CONTEXT */
 
@@ -3653,6 +3660,7 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
      * makes related fp-math independent from SIMD width */
     for (i = 0; i < pfm->simd_width; i++)
     {
+        s_cam->index[i] = i;
         s_inf->hor_c[i] = fhi[i];
 
         s_inf->hor_i[i] = fhi[i];
