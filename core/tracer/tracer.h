@@ -168,8 +168,8 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
 #define inf_PSEED           DP(Q*0x100+0x00C*P+E)
 
 
-    rt_cell index;
-#define inf_INDEX           DP(Q*0x100+0x010*P+E)
+    rt_cell thndx;
+#define inf_THNDX           DP(Q*0x100+0x010*P+E)
 
     rt_word thnum;
 #define inf_THNUM           DP(Q*0x100+0x014*P+E)
@@ -239,8 +239,14 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
     rt_pntr prngs;
 #define inf_PRNGS           DP(Q*0x100+0x064*P+E)
 
-    rt_word pad11[38];
-#define inf_PAD11           DP(Q*0x100+0x068*P+E)
+    rt_pntr srf_e;
+#define inf_SRF_E           DP(Q*0x100+0x068*P+E)
+
+    rt_word srf_s;
+#define inf_SRF_S           DP(Q*0x100+0x06C*P+E)
+
+    rt_word pad11[36];
+#define inf_PAD11           DP(Q*0x100+0x070*P+E)
 
     rt_uelm prngf[S];
 #define inf_PRNGF           DP(Q*0x100+0x100*P)
@@ -703,10 +709,13 @@ struct rt_SIMD_CONTEXT
 
     /* receiving surface pointers/sides */
 
-    rt_ui64 srf_p[R];
-#define ctx_SRF_P(nx)       DP(Q*0x2E0+C + (nx)*2)
+    rt_uelm srf_p[S];
+#define ctx_SRF_P(nx)       DP(Q*0x2E0+H + nx)
 
-    rt_ui32 srf_s[R];
+    rt_uelm srf_h[S];
+#define ctx_SRF_H(nx)       DP(Q*0x2F0+H + nx)
+
+    rt_elem srf_s[S];
 #define ctx_SRF_S(nx)       DP(Q*0x300 + nx)
 
     /* mult accum */
@@ -1040,8 +1049,13 @@ struct rt_SIMD_SURFACE
     rt_real t_eps[S];
 #define srf_T_EPS           DP(Q*0x110)
 
-    rt_elem pad01[S*2];
-#define srf_PAD01           DP(Q*0x120)
+    /* surface pointers */
+
+    rt_uelm srf_p[S];
+#define srf_SRF_P           DP(Q*0x120)
+
+    rt_uelm srf_h[S];
+#define srf_SRF_H           DP(Q*0x130)
 
     /* transform coeffs */
 
@@ -1100,19 +1114,27 @@ struct rt_SIMD_SURFACE
     rt_real scj_z[S];
 #define srf_SCJ_Z           DP(Q*0x230)
 
+    /* surface sides */
+
+    rt_elem srf_o[S];
+#define srf_SRF_O           DP(Q*0x240)
+
+    rt_elem srf_i[S];
+#define srf_SRF_I           DP(Q*0x250)
+
     /* misc tags/pointers */
 
     rt_si32 srf_t[4];
-#define srf_SRF_T(nx)       DP(Q*0x240 + nx)
+#define srf_SRF_T(nx)       DP(Q*0x260 + nx)
 
     rt_pntr msc_p[4];
-#define srf_MSC_P(nx)       DP(Q*0x240+0x010+0x000*P+E + (nx)*P)
+#define srf_MSC_P(nx)       DP(Q*0x260+0x010+0x000*P+E + (nx)*P)
 
     rt_pntr mat_p[4];
-#define srf_MAT_P(nx)       DP(Q*0x240+0x010+0x010*P+E + (nx)*P)
+#define srf_MAT_P(nx)       DP(Q*0x260+0x010+0x010*P+E + (nx)*P)
 
     rt_pntr lst_p[4];
-#define srf_LST_P(nx)       DP(Q*0x240+0x010+0x020*P+E + (nx)*P)
+#define srf_LST_P(nx)       DP(Q*0x260+0x010+0x020*P+E + (nx)*P)
 
 };
 

@@ -761,6 +761,12 @@ rt_Node::rt_Node(rt_Registry *rg, rt_Object *parent,
     RT_SIMD_SET(s_srf->smask, (rt_uelm)0x80000000 << (RT_ELEMENT - 32));
     RT_SIMD_SET(s_srf->c_def, -1);
 
+    RT_SIMD_SET(s_srf->srf_p, (rt_uelm)(rt_ui32)((rt_ui64)s_srf & 0xFFFFFFFF));
+    RT_SIMD_SET(s_srf->srf_h, (rt_uelm)(rt_ui32)((rt_ui64)s_srf >> 32));
+
+    RT_SIMD_SET(s_srf->srf_o, 0); /* relies on RT_FLAG_SIDE_OUTER definition */
+    RT_SIMD_SET(s_srf->srf_i, 1); /* relies on RT_FLAG_SIDE_INNER definition */
+
     RT_SIMD_SET(s_srf->d_eps, RT_DEPS_THRESHOLD);
     RT_SIMD_SET(s_srf->t_eps, RT_TEPS_THRESHOLD);
 }

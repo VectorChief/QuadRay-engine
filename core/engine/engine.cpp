@@ -3649,7 +3649,7 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
     s_inf->cam = s_cam;
     s_inf->lst = clist;
 
-    s_inf->index = index;
+    s_inf->thndx = index;
     s_inf->thnum = thnum;
     s_inf->depth = depth;
     s_inf->fsaa  = pfm->fsaa;
