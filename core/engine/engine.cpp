@@ -3488,7 +3488,7 @@ rt_void rt_Scene::update_slice(rt_si32 index, rt_si32 phase)
             pfm->update0(srf->s_srf);
 
 #if 0 /* SIMD-buffers don't normally require reset between frames */
-            memset(srf->s_srf->msc_p[0], 255, RT_BUFFER_POOL);
+            memset(srf->s_srf->msc_p[0], 255, RT_BUFFER_POOL*thnum);
 #endif /* enable for SIMD-buffers as a debug option if needed */
         }
     }

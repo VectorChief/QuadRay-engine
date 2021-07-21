@@ -718,7 +718,7 @@ struct rt_SIMD_CONTEXT
     rt_elem srf_s[S];
 #define ctx_SRF_S(nx)       DP(Q*0x300 + nx)
 
-    /* mult accum */
+    /* color factor */
 
     rt_real mul_r[S];
 #define ctx_MUL_R(nx)       DP(Q*0x310 + nx)
