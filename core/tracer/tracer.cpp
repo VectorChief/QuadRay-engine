@@ -78,7 +78,7 @@
 #define RT_FEAT_PT_RANDOM_SAMPLE    1
 
 #define RT_FEAT_BUFFERS_HITX        0   /* SIMD version of storing HITs if 1 */
-#define RT_FEAT_BUFFERS             0   /* works in RT (PT not same SIMD width)
+#define RT_FEAT_BUFFERS             0   /* works in both RT and PT modes always
                                            set RT_OPTS_BUFFERS to 0 in format.h
                                            set RT_OFFS_BUFFERS to 0 in tracer.h
                                            set RT_FEAT_BUFFERS to 1 above */
@@ -656,6 +656,20 @@
  * the current depth values. Also perform
  * pointer dereferencing for color fetching.
  */
+
+#if RT_FEAT_BUFFERS
+
+#define PAINT_FRAG(lb, pn) /* destroys Reax */                              \
+        cmjyx_mz(Mecx, ctx_TMASK(0x##pn),                                   \
+                 EQ_x, lb##pn)                                              \
+        movyx_ld(Reax, Mecx, ctx_C_PTR(0x##pn))                             \
+        addxx_ld(Reax, Medx, mat_TEX_P)                                     \
+        movwx_ld(Reax, Oeax, PLAIN)                                         \
+        movyx_st(Reax, Mecx, ctx_C_BUF(0x##pn))                             \
+    LBL(lb##pn)
+
+#else /* RT_FEAT_BUFFERS */
+
 #define PAINT_FRAG(lb, pn) /* destroys Reax */                              \
         cmjyx_mz(Mecx, ctx_TMASK(0x##pn),                                   \
                  EQ_x, lb##pn)                                              \
@@ -666,6 +680,8 @@
         movwx_ld(Reax, Oeax, PLAIN)                                         \
         movyx_st(Reax, Mecx, ctx_C_BUF(0x##pn))                             \
     LBL(lb##pn)
+
+#endif /* RT_FEAT_BUFFERS */
 
 #if RT_FEAT_BUFFERS_HITX
 
@@ -783,6 +799,8 @@
         movyx_st(Rebx, Medx, bfr_MUL_G(0))                                  \
         movyx_ld(Rebx, Mecx, ctx_MUL_B(0x##pn))                             \
         movyx_st(Rebx, Medx, bfr_MUL_B(0))                                  \
+        movyx_ld(Rebx, Mecx, ctx_C_BUF(0x##pn))                             \
+        movyx_st(Rebx, Medx, bfr_PRNGS(0))                                  \
         subxx_rr(Redx, Reax)                                                \
         addwx_mi(Medx, bfr_COUNT(PTR), IB(1))                               \
         addwx_mi(Medx, bfr_COUNT(LST), IB(1))                               \
@@ -840,7 +858,9 @@
         movpx_ld(Xmm0, Medx, bfr_MUL_G(0))                                  \
         movpx_st(Xmm0, Mecx, ctx_MUL_G(0))                                  \
         movpx_ld(Xmm0, Medx, bfr_MUL_B(0))                                  \
-        movpx_st(Xmm0, Mecx, ctx_MUL_B(0))
+        movpx_st(Xmm0, Mecx, ctx_MUL_B(0))                                  \
+        movpx_ld(Xmm0, Medx, bfr_PRNGS(0))                                  \
+        movpx_st(Xmm0, Mecx, ctx_T_BUF(0))
 
 #if RT_FEAT_BUFFERS_HITX
 
@@ -1878,13 +1898,29 @@
  * Seed (inf_PRNGS) must be initialized outside along with other constants.
  * Only applies to active SIMD elements according to current TMASK.
  */
-#define GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */        \
+
+#if RT_FEAT_BUFFERS
+
+#define GET_RANDOM_I(pl) /* -> Xmm7, destroys Xmm0, Reax, reads TMASK */    \
+        movpx_ld(Xmm0, Mecx, ctx_TMASK(0))                                  \
+        movpx_ld(Xmm7, Mecx, ctx_##pl(0))                                   \
+        mulpx_ld(Xmm7, Mebp, inf_PRNGF)                                     \
+        addpx_ld(Xmm7, Mebp, inf_PRNGA)                                     \
+        mmvpx_st(Xmm7, Mecx, ctx_##pl(0))
+
+#else /* RT_FEAT_BUFFERS */
+
+#define GET_RANDOM_I(pl) /* -> Xmm7, destroys Xmm0, Reax, reads TMASK */    \
         movpx_ld(Xmm0, Mecx, ctx_TMASK(0))                                  \
         movxx_ld(Reax, Mebp, inf_PRNGS)                                     \
         movpx_ld(Xmm7, Oeax, PLAIN)                                         \
         mulpx_ld(Xmm7, Mebp, inf_PRNGF)                                     \
         addpx_ld(Xmm7, Mebp, inf_PRNGA)                                     \
-        mmvpx_st(Xmm7, Oeax, PLAIN)                                         \
+        mmvpx_st(Xmm7, Oeax, PLAIN)
+
+#endif /* RT_FEAT_BUFFERS */
+
+#define GET_RANDOM_F() /* -> Xmm0, reads Xmm7 */                            \
         movpx_rr(Xmm0, Xmm7)                                                \
         movpx_ld(Xmm7, Mebp, inf_PRNGM)                                     \
   SHIFT(shrpx_ri(Xmm0, IB(32-RT_PRNG)))                                     \
@@ -1893,6 +1929,10 @@
         cvnpn_rr(Xmm7, Xmm7)                                                \
         addps_ld(Xmm7, Mebp, inf_GPC01)                                     \
         divps_rr(Xmm0, Xmm7)
+
+#define GET_RANDOM(pl) /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */      \
+        GET_RANDOM_I(pl)                                                    \
+        GET_RANDOM_F()
 
 /*
  * Calculate power series approximation for sin.
@@ -2157,6 +2197,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #if RT_FEAT_BUFFERS
 
+        movxx_ld(Reax, Mebp, inf_PRNGS)
+        movpx_ld(Xmm0, Oeax, PLAIN)             /* tmp_v <- PRNGS */
+        movpx_st(Xmm0, Mecx, ctx_C_BUF(0))      /* tmp_v -> C_BUF */
+
         movxx_ld(Rebx, Mebp, inf_FSAA)
 
         movxx_ld(Reax, Mebp, inf_FRM_Y)
@@ -2190,7 +2234,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm7, Mebp, inf_GPC07)
         movpx_st(Xmm7, Mecx, ctx_TMASK(0))
 
-        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
+        GET_RANDOM(C_BUF) /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
 
         addps_rr(Xmm0, Xmm0)
         movpx_rr(Xmm2, Xmm0)
@@ -2206,7 +2250,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         annpx_rr(Xmm0, Xmm2)
         orrpx3rr(Xmm6, Xmm0, Xmm3)
 
-        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
+        GET_RANDOM(C_BUF) /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
 
         addps_rr(Xmm0, Xmm0)
         movpx_rr(Xmm2, Xmm0)
@@ -3355,7 +3399,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         maxps_ld(Xmm4, Mecx, ctx_TEX_G)
         maxps_ld(Xmm4, Mecx, ctx_TEX_B)
 
-        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
+        GET_RANDOM(T_BUF) /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
 
         cltps_rr(Xmm0, Xmm4)
         andpx_ld(Xmm0, Mecx, ctx_F_PRB(0))
@@ -3480,7 +3524,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         /* compute random sample over hemisphere */
 
-        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
+        GET_RANDOM(T_BUF) /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
 
         movpx_rr(Xmm6, Xmm0)
         movpx_ld(Xmm0, Mebp, inf_GPC01)
@@ -3492,7 +3536,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         mulps_rr(Xmm2, Xmm0)
         mulps_rr(Xmm3, Xmm0)
 
-        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
+        GET_RANDOM(T_BUF) /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
 
         addps_rr(Xmm0, Xmm0)
         mulps_ld(Xmm0, Medx, mat_GPC10)
@@ -3556,6 +3600,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm2, Mecx, ctx_MUL_G(0))
         movpx_ld(Xmm3, Mecx, ctx_MUL_B(0))
         movpx_ld(Xmm4, Mecx, ctx_INDEX(0))
+        movpx_ld(Xmm5, Mecx, ctx_T_BUF(0))      /* load PRNGS (<- shader) */
 
         movpx_ld(Xmm0, Medx, mat_L_DFF)
         mulps_rr(Xmm1, Xmm0)
@@ -3575,19 +3620,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         addxx_ri(Recx, IH(RT_STACK_STEP))
         subxx_mi(Mebp, inf_DEPTH, IB(1))
 
-#if RT_FEAT_BUFFERS
-
-        movpx_st(Xmm1, Mecx, ctx_MUL_R(0))
-        movpx_st(Xmm2, Mecx, ctx_MUL_G(0))
-        movpx_st(Xmm3, Mecx, ctx_MUL_B(0))
-        movpx_st(Xmm4, Mecx, ctx_INDEX(0))
-
-        xorpx_rr(Xmm4, Xmm4)                    /* tmp_v <-     0 */
-        movpx_st(Xmm4, Mecx, ctx_SRF_P(-H))     /* tmp_v -> SRF_P */
-        movpx_st(Xmm4, Mecx, ctx_SRF_H(-H))     /* tmp_v -> SRF_H */
-
-#endif /* RT_FEAT_BUFFERS */
-
         movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
         movxx_st(Redx, Mecx, ctx_PARAM(LST))    /* save material */
         movxx_st(Rebx, Mecx, ctx_PARAM(OBJ))    /* originating surface */
@@ -3603,6 +3635,20 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_COL_R(0))      /* tmp_v -> COL_R */
         movpx_st(Xmm0, Mecx, ctx_COL_G(0))      /* tmp_v -> COL_G */
         movpx_st(Xmm0, Mecx, ctx_COL_B(0))      /* tmp_v -> COL_B */
+
+#if RT_FEAT_BUFFERS
+
+        movpx_st(Xmm1, Mecx, ctx_MUL_R(0))
+        movpx_st(Xmm2, Mecx, ctx_MUL_G(0))
+        movpx_st(Xmm3, Mecx, ctx_MUL_B(0))
+        movpx_st(Xmm4, Mecx, ctx_INDEX(0))
+        movpx_st(Xmm5, Mecx, ctx_C_BUF(0))      /* save PRNGS (-> solver) */
+
+        xorpx_rr(Xmm4, Xmm4)                    /* tmp_v <-     0 */
+        movpx_st(Xmm4, Mecx, ctx_SRF_P(-H))     /* tmp_v -> SRF_P */
+        movpx_st(Xmm4, Mecx, ctx_SRF_H(-H))     /* tmp_v -> SRF_H */
+
+#endif /* RT_FEAT_BUFFERS */
 
         movpx_st(Xmm0, Mecx, ctx_T_MIN)         /* tmp_v -> T_MIN */
         movpx_st(Xmm0, Mecx, ctx_LOCAL(-C/2))   /* tmp_v -> LOCAL */
@@ -4498,7 +4544,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjxx_mi(Mebp, inf_DEPTH, IB(RT_STACK_DEPTH - 2),
                  GT_x, TR_frn)
 
-        GET_RANDOM() /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
+        GET_RANDOM(T_BUF) /* -> Xmm0, destroys Xmm7, Reax, reads TMASK */
 
         movpx_rr(Xmm6, Xmm5)
         addps3rr(Xmm7, Xmm4, Xmm5)
@@ -4572,6 +4618,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm2, Mecx, ctx_MUL_G(0))
         movpx_ld(Xmm3, Mecx, ctx_MUL_B(0))
         movpx_ld(Xmm4, Mecx, ctx_INDEX(0))
+        movpx_ld(Xmm5, Mecx, ctx_T_BUF(0))      /* load PRNGS (<- shader) */
 
         movpx_ld(Xmm0, Mecx, ctx_C_TRN(0))
         mulps_rr(Xmm1, Xmm0)
@@ -4585,19 +4632,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         orrxx_ri(Reax, IB(RT_FLAG_PASS_THRU))
         addxx_ri(Recx, IH(RT_STACK_STEP))
         subxx_mi(Mebp, inf_DEPTH, IB(1))
-
-#if RT_FEAT_BUFFERS
-
-        movpx_st(Xmm1, Mecx, ctx_MUL_R(0))
-        movpx_st(Xmm2, Mecx, ctx_MUL_G(0))
-        movpx_st(Xmm3, Mecx, ctx_MUL_B(0))
-        movpx_st(Xmm4, Mecx, ctx_INDEX(0))
-
-        xorpx_rr(Xmm4, Xmm4)                    /* tmp_v <-     0 */
-        movpx_st(Xmm4, Mecx, ctx_SRF_P(-H))     /* tmp_v -> SRF_P */
-        movpx_st(Xmm4, Mecx, ctx_SRF_H(-H))     /* tmp_v -> SRF_H */
-
-#endif /* RT_FEAT_BUFFERS */
 
         movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
         movxx_st(Redx, Mecx, ctx_PARAM(LST))    /* save material */
@@ -4614,6 +4648,20 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_COL_R(0))      /* tmp_v -> COL_R */
         movpx_st(Xmm0, Mecx, ctx_COL_G(0))      /* tmp_v -> COL_G */
         movpx_st(Xmm0, Mecx, ctx_COL_B(0))      /* tmp_v -> COL_B */
+
+#if RT_FEAT_BUFFERS
+
+        movpx_st(Xmm1, Mecx, ctx_MUL_R(0))
+        movpx_st(Xmm2, Mecx, ctx_MUL_G(0))
+        movpx_st(Xmm3, Mecx, ctx_MUL_B(0))
+        movpx_st(Xmm4, Mecx, ctx_INDEX(0))
+        movpx_st(Xmm5, Mecx, ctx_C_BUF(0))      /* save PRNGS (-> solver) */
+
+        xorpx_rr(Xmm4, Xmm4)                    /* tmp_v <-     0 */
+        movpx_st(Xmm4, Mecx, ctx_SRF_P(-H))     /* tmp_v -> SRF_P */
+        movpx_st(Xmm4, Mecx, ctx_SRF_H(-H))     /* tmp_v -> SRF_H */
+
+#endif /* RT_FEAT_BUFFERS */
 
         movpx_st(Xmm0, Mecx, ctx_T_MIN)         /* tmp_v -> T_MIN */
         movpx_st(Xmm0, Mecx, ctx_LOCAL(-C/2))   /* tmp_v -> LOCAL */
@@ -4932,6 +4980,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm2, Mecx, ctx_MUL_G(0))
         movpx_ld(Xmm3, Mecx, ctx_MUL_B(0))
         movpx_ld(Xmm4, Mecx, ctx_INDEX(0))
+        movpx_ld(Xmm5, Mecx, ctx_T_BUF(0))      /* load PRNGS (<- shader) */
 
         movpx_ld(Xmm0, Mecx, ctx_C_RFL(0))
         mulps_rr(Xmm1, Xmm0)
@@ -4945,19 +4994,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         orrxx_ri(Reax, IB(RT_FLAG_PASS_BACK))
         addxx_ri(Recx, IH(RT_STACK_STEP))
         subxx_mi(Mebp, inf_DEPTH, IB(1))
-
-#if RT_FEAT_BUFFERS
-
-        movpx_st(Xmm1, Mecx, ctx_MUL_R(0))
-        movpx_st(Xmm2, Mecx, ctx_MUL_G(0))
-        movpx_st(Xmm3, Mecx, ctx_MUL_B(0))
-        movpx_st(Xmm4, Mecx, ctx_INDEX(0))
-
-        xorpx_rr(Xmm4, Xmm4)                    /* tmp_v <-     0 */
-        movpx_st(Xmm4, Mecx, ctx_SRF_P(-H))     /* tmp_v -> SRF_P */
-        movpx_st(Xmm4, Mecx, ctx_SRF_H(-H))     /* tmp_v -> SRF_H */
-
-#endif /* RT_FEAT_BUFFERS */
 
         movxx_st(Reax, Mecx, ctx_PARAM(FLG))    /* context flags */
         movxx_st(Redx, Mecx, ctx_PARAM(LST))    /* save material */
@@ -4974,6 +5010,20 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm0, Mecx, ctx_COL_R(0))      /* tmp_v -> COL_R */
         movpx_st(Xmm0, Mecx, ctx_COL_G(0))      /* tmp_v -> COL_G */
         movpx_st(Xmm0, Mecx, ctx_COL_B(0))      /* tmp_v -> COL_B */
+
+#if RT_FEAT_BUFFERS
+
+        movpx_st(Xmm1, Mecx, ctx_MUL_R(0))
+        movpx_st(Xmm2, Mecx, ctx_MUL_G(0))
+        movpx_st(Xmm3, Mecx, ctx_MUL_B(0))
+        movpx_st(Xmm4, Mecx, ctx_INDEX(0))
+        movpx_st(Xmm5, Mecx, ctx_C_BUF(0))      /* save PRNGS (-> solver) */
+
+        xorpx_rr(Xmm4, Xmm4)                    /* tmp_v <-     0 */
+        movpx_st(Xmm4, Mecx, ctx_SRF_P(-H))     /* tmp_v -> SRF_P */
+        movpx_st(Xmm4, Mecx, ctx_SRF_H(-H))     /* tmp_v -> SRF_H */
+
+#endif /* RT_FEAT_BUFFERS */
 
         movpx_st(Xmm0, Mecx, ctx_T_MIN)         /* tmp_v -> T_MIN */
         movpx_st(Xmm0, Mecx, ctx_LOCAL(-C/2))   /* tmp_v -> LOCAL */
@@ -6424,6 +6474,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(OO_XYZ)
 
+        movpx_ld(Xmm0, Mecx, ctx_C_BUF(0))
+        movpx_st(Xmm0, Mecx, ctx_T_BUF(0))
+
         movpx_ld(Xmm0, Mebp, inf_GPC07)
         movpx_st(Xmm0, Mecx, ctx_TMASK(0))
 
@@ -6581,6 +6634,22 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         cmjxx_mz(Mebp, inf_PT_ON,
                  EQ_x, FF_clm)
+
+#if RT_FEAT_BUFFERS
+
+        movpx_ld(Xmm7, Mebp, inf_GPC07)
+        movpx_st(Xmm7, Mecx, ctx_TMASK(0))
+
+        movxx_ld(Reax, Mebp, inf_PRNGS)
+        movpx_ld(Xmm0, Oeax, PLAIN)             /* prngs <- PRNGS */
+        movpx_st(Xmm0, Mecx, ctx_C_BUF(0))      /* prngs -> C_BUF */
+
+        GET_RANDOM_I(C_BUF) /* -> Xmm7, destroys Xmm0, Reax, reads TMASK */
+
+        movxx_ld(Reax, Mebp, inf_PRNGS)
+        movpx_st(Xmm7, Oeax, PLAIN)             /* prngs -> PRNGS */
+
+#endif /* RT_FEAT_BUFFERS */
 
         addxx_st(Resi, Mebp, inf_PRNGS)
 
@@ -6840,9 +6909,6 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #if RT_FEAT_BUFFERS
 
     /* flush SIMD-buffers after the frame */
-
-        movxx_ld(Reax, Mebp, inf_PSEED)
-        movxx_st(Reax, Mebp, inf_PRNGS)
 
     LBL(TO_ctx)
 

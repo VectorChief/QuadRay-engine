@@ -513,15 +513,20 @@ struct rt_SIMD_BUFFER
     rt_real mul_b[S*2];
 #define bfr_MUL_B(nx)       DP(Q*0x0C0*2 + nx)
 
+    /* PRNG seed */
+
+    rt_elem prngs[S*2];
+#define bfr_PRNGS(nx)       DP(Q*0x0D0*2 + nx)
+
     /* count */
 
     rt_ui32 count[R];
-#define bfr_COUNT(nx)       DP(Q*0x0D0*2 + nx)
+#define bfr_COUNT(nx)       DP(Q*0x0E0*2 + nx)
 
 };
 
 /* buffer struct size for path-tracer */
-#define RT_BUFFER_SIZE      (Q * 0x0D0*2 + Q * 0x010)
+#define RT_BUFFER_SIZE      (Q * 0x0E0*2 + Q * 0x010)
 #define RT_BUFFER_POOL      (RT_BUFFER_SIZE * (RT_STACK_DEPTH + 1) * 2)
 
 /*
