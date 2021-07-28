@@ -7,7 +7,8 @@
 #ifndef RT_TRACER_H
 #define RT_TRACER_H
 
-#define RT_OFFS_BUFFERS         0x0A0*1 /* SIMD-buffers: 0 - on, 1 - off */
+#define RT_OFFS_BUFFERS_ACC     0x060*0 /* accum-colors: *0 - off, *1 - on */
+#define RT_OFFS_BUFFERS         0x0A0*0 /* SIMD-buffers: *0 - off, *1 - on */
 
 /*
  * RT_DATA determines the maximum load-level for data structures in code-base.
@@ -20,9 +21,9 @@
  */
 #if RT_DEBUG >= 1
 #define RT_DATA 2 /* for rt_SIMD_INFOX */
-#elif RT_OFFS_BUFFERS == 0
+#elif RT_OFFS_BUFFERS
 #define RT_DATA 2 /* for rt_SIMD_CONTEXT (with SIMD-buffers) */
-#else /* RT_DEBUG == 0, RT_OFFS_BUFFERS != 0 */
+#else /* RT_DEBUG == 0, RT_OFFS_BUFFERS == 0 */
 #define RT_DATA 4 /* for rt_SIMD_CONTEXT (without SIMD-buffers) */
 #endif /* RT_DEBUG == 0 */
 
@@ -449,19 +450,20 @@ struct rt_SIMD_INFOX : public rt_SIMD_INFO
 /*********************************   CONTEXT   ********************************/
 /******************************************************************************/
 
-/* implement color accumulation on forward propagation (keep pixel index)
- * contribute pixel fragment of a given execution branch to fp-color planes
- * implement SIMD-buffer flipping (with two instances or internally)
- *
- * initial condition: col = 0.0f; mul = 1.0f;
- * generic step PT: col += mul * e; mul *= f;
- * generic step RT: col += mul * l; mul *= r;
- *
- * SIMD-buffers: surfaces * levels * threads; (ref)
- * SIMD-buffers: renderer * levels * threads; (opt)
- * SIMD-context: levels + 1;
+/*
+ * SIMD buffer structure accumulates rays between solver/shader passes.
+ * When enabled SIMD-buffers employ the following techniques:
+ *   implement color accumulation on forward propagation (keep pixel index)
+ *   contribute pixel fragment of a given execution branch to fp-color planes
+ *   implement SIMD-buffer flipping (with two instances or internally)
+ *   initial condition: acc = 0.0f; mul = 1.0f;
+ *   generic step PT: acc += mul * e; mul *= f;
+ *   generic step RT: acc += mul * l; mul *= r;
+ *   SIMD-buffers: surfaces * levels * threads; (ref)
+ *   SIMD-buffers: renderer * levels * threads; (opt)
+ *   SIMD-context: levels + 1;
+ * Structure is read-write in backend.
  */
-
 struct rt_SIMD_BUFFER
 {
     /* index */
@@ -513,20 +515,35 @@ struct rt_SIMD_BUFFER
     rt_real mul_b[S*2];
 #define bfr_MUL_B(nx)       DP(Q*0x0C0*2 + nx)
 
+#if RT_OFFS_BUFFERS_ACC
+
+    /* acc (color accum before storing) */
+
+    rt_real acc_r[S*2];
+#define bfr_ACC_R(nx)       DP(Q*0x0D0*2 + nx)
+
+    rt_real acc_g[S*2];
+#define bfr_ACC_G(nx)       DP(Q*0x0E0*2 + nx)
+
+    rt_real acc_b[S*2];
+#define bfr_ACC_B(nx)       DP(Q*0x0F0*2 + nx)
+
+#endif /* RT_OFFS_BUFFERS_ACC */
+
     /* PRNG seed */
 
     rt_elem prngs[S*2];
-#define bfr_PRNGS(nx)       DP(Q*0x0D0*2 + nx)
+#define bfr_PRNGS(nx)       DP(Q*0x0D0*2 + Q*RT_OFFS_BUFFERS_ACC + nx)
 
     /* count */
 
     rt_ui32 count[R];
-#define bfr_COUNT(nx)       DP(Q*0x0E0*2 + nx)
+#define bfr_COUNT(nx)       DP(Q*0x0E0*2 + Q*RT_OFFS_BUFFERS_ACC + nx)
 
 };
 
 /* buffer struct size for path-tracer */
-#define RT_BUFFER_SIZE      (Q * 0x0E0*2 + Q * 0x010)
+#define RT_BUFFER_SIZE      (Q * 0x0E0*2 + Q*RT_OFFS_BUFFERS_ACC + Q * 0x010)
 #define RT_BUFFER_POOL      (RT_BUFFER_SIZE * (RT_STACK_DEPTH + 1) * 2)
 
 /*
@@ -710,7 +727,7 @@ struct rt_SIMD_CONTEXT
     rt_ui64 local[R];
 #define ctx_LOCAL(nx)       DP(Q*0x2C0+C + (nx)*2)
 
-#if RT_OFFS_BUFFERS == 0
+#if RT_OFFS_BUFFERS
 
     /* receiving surface pointers/sides */
 
@@ -734,6 +751,26 @@ struct rt_SIMD_CONTEXT
     rt_real mul_b[S];
 #define ctx_MUL_B(nx)       DP(Q*0x330 + nx)
 
+#if RT_OFFS_BUFFERS_ACC
+
+    /* color accum */
+
+    rt_real acc_r[S];
+#define ctx_ACC_R(nx)       DP(Q*0x340 + nx)
+
+    rt_real acc_g[S];
+#define ctx_ACC_G(nx)       DP(Q*0x350 + nx)
+
+    rt_real acc_b[S];
+#define ctx_ACC_B(nx)       DP(Q*0x360 + nx)
+
+    /* pixel index */
+
+    rt_uelm index[S];
+#define ctx_INDEX(nx)       DP(Q*0x370 + nx)
+
+#else /* RT_OFFS_BUFFERS_ACC */
+
     /* pixel index */
 
     rt_uelm index[S];
@@ -742,80 +779,82 @@ struct rt_SIMD_CONTEXT
     rt_elem pad01[S*3];
 #define ctx_PAD01(nx)       DP(Q*0x350 + nx)
 
-#endif /* RT_OFFS_BUFFERS == 0 */
+#endif /* RT_OFFS_BUFFERS_ACC */
+
+#endif /* RT_OFFS_BUFFERS */
 
     /* root sorting masks */
 
     rt_elem amask[S];
-#define ctx_AMASK           DP(Q*0x380 - Q*RT_OFFS_BUFFERS)
+#define ctx_AMASK           DP(Q*0x2E0 + Q*RT_OFFS_BUFFERS)
 
     rt_elem dmask[S];
-#define ctx_DMASK           DP(Q*0x390 - Q*RT_OFFS_BUFFERS)
+#define ctx_DMASK           DP(Q*0x2F0 + Q*RT_OFFS_BUFFERS)
 
     /* aux fields for path-tracer */
 
     rt_real f_rnd[S];
-#define ctx_F_RND(nx)       DP(Q*0x3A0 - Q*RT_OFFS_BUFFERS + nx)
+#define ctx_F_RND(nx)       DP(Q*0x300 + Q*RT_OFFS_BUFFERS + nx)
 
     rt_real f_prb[S];
-#define ctx_F_PRB(nx)       DP(Q*0x3B0 - Q*RT_OFFS_BUFFERS + nx)
+#define ctx_F_PRB(nx)       DP(Q*0x310 + Q*RT_OFFS_BUFFERS + nx)
 
     rt_real m_trn[S];
-#define ctx_M_TRN(nx)       DP(Q*0x3C0 - Q*RT_OFFS_BUFFERS + nx)
+#define ctx_M_TRN(nx)       DP(Q*0x320 + Q*RT_OFFS_BUFFERS + nx)
 
     rt_real m_rfl[S];
-#define ctx_M_RFL(nx)       DP(Q*0x3D0 - Q*RT_OFFS_BUFFERS + nx)
+#define ctx_M_RFL(nx)       DP(Q*0x330 + Q*RT_OFFS_BUFFERS + nx)
 
     rt_real c_trn[S];
-#define ctx_C_TRN(nx)       DP(Q*0x3E0 - Q*RT_OFFS_BUFFERS + nx)
+#define ctx_C_TRN(nx)       DP(Q*0x340 + Q*RT_OFFS_BUFFERS + nx)
 
     rt_real c_rfl[S];
-#define ctx_C_RFL(nx)       DP(Q*0x3F0 - Q*RT_OFFS_BUFFERS + nx)
+#define ctx_C_RFL(nx)       DP(Q*0x350 + Q*RT_OFFS_BUFFERS + nx)
 
     /* overlapping next context (clip here to keep RT_DATA == 4),
      * new depth min            (consider linked list of contexts) */
 
     rt_real t_new[S];
-#define ctx_T_NEW           DP(Q*0x400 - Q*RT_OFFS_BUFFERS)
+#define ctx_T_NEW           DP(Q*0x360 + Q*RT_OFFS_BUFFERS)
 
     /* hit point,
      * new origin */
 
     rt_real hit_x[S];
-#define ctx_HIT_X(nx)       DP(Q*0x410 - Q*RT_OFFS_BUFFERS + nx)
+#define ctx_HIT_X(nx)       DP(Q*0x370 + Q*RT_OFFS_BUFFERS + nx)
 
     rt_real hit_y[S];
-#define ctx_HIT_Y(nx)       DP(Q*0x420 - Q*RT_OFFS_BUFFERS + nx)
+#define ctx_HIT_Y(nx)       DP(Q*0x380 + Q*RT_OFFS_BUFFERS + nx)
 
     rt_real hit_z[S];
-#define ctx_HIT_Z(nx)       DP(Q*0x430 - Q*RT_OFFS_BUFFERS + nx)
+#define ctx_HIT_Z(nx)       DP(Q*0x390 + Q*RT_OFFS_BUFFERS + nx)
 
     /* new ray */
 
-#define ctx_NEW_O           DP(Q*0x440 - Q*RT_OFFS_BUFFERS)
+#define ctx_NEW_O           DP(Q*0x3A0 + Q*RT_OFFS_BUFFERS)
 
     rt_real new_x[S];
-#define ctx_NEW_X(nx)       DP(Q*0x440 - Q*RT_OFFS_BUFFERS + nx)
+#define ctx_NEW_X(nx)       DP(Q*0x3A0 + Q*RT_OFFS_BUFFERS + nx)
 
     rt_real new_y[S];
-#define ctx_NEW_Y(nx)       DP(Q*0x450 - Q*RT_OFFS_BUFFERS + nx)
+#define ctx_NEW_Y(nx)       DP(Q*0x3B0 + Q*RT_OFFS_BUFFERS + nx)
 
     rt_real new_z[S];
-#define ctx_NEW_Z(nx)       DP(Q*0x460 - Q*RT_OFFS_BUFFERS + nx)
+#define ctx_NEW_Z(nx)       DP(Q*0x3C0 + Q*RT_OFFS_BUFFERS + nx)
 
     rt_real new_i[S];
-#define ctx_NEW_I(nx)       DP(Q*0x470 - Q*RT_OFFS_BUFFERS + nx)
+#define ctx_NEW_I(nx)       DP(Q*0x3D0 + Q*RT_OFFS_BUFFERS + nx)
 
     rt_real new_j[S];
-#define ctx_NEW_J(nx)       DP(Q*0x480 - Q*RT_OFFS_BUFFERS + nx)
+#define ctx_NEW_J(nx)       DP(Q*0x3E0 + Q*RT_OFFS_BUFFERS + nx)
 
     rt_real new_k[S];
-#define ctx_NEW_K(nx)       DP(Q*0x490 - Q*RT_OFFS_BUFFERS + nx)
+#define ctx_NEW_K(nx)       DP(Q*0x3F0 + Q*RT_OFFS_BUFFERS + nx)
 
 };
 
 /* context stack step for secondary rays */
-#define RT_STACK_STEP       (Q * 0x400 - Q*RT_OFFS_BUFFERS)
+#define RT_STACK_STEP       (Q * 0x360 + Q*RT_OFFS_BUFFERS)
 
 /******************************************************************************/
 /*********************************   CAMERA   *********************************/
