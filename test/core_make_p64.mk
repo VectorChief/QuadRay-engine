@@ -49,7 +49,7 @@ build_p9: core_test_p64_32Lp9 core_test_p64_64Lp9 \
 
 core_test_p64_32Lp9:
 	powerpc64le-linux-gnu-g++ -O2 -g -static \
-        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -57,7 +57,7 @@ core_test_p64_32Lp9:
 
 core_test_p64_64Lp9:
 	powerpc64le-linux-gnu-g++ -O2 -g -static \
-        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -65,7 +65,7 @@ core_test_p64_64Lp9:
 
 core_test_p64f32Lp9:
 	powerpc64le-linux-gnu-g++ -O2 -g -static \
-        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -73,7 +73,7 @@ core_test_p64f32Lp9:
 
 core_test_p64f64Lp9:
 	powerpc64le-linux-gnu-g++ -O2 -g -static \
-        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 -DRT_512=1+2 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -85,7 +85,7 @@ build_le: core_test_p64_32Lp8 core_test_p64_64Lp8 \
 
 core_test_p64_32Lp8:
 	powerpc64le-linux-gnu-g++ -O2 -g -static -mcpu=power8 \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -93,7 +93,7 @@ core_test_p64_32Lp8:
 
 core_test_p64_64Lp8:
 	powerpc64le-linux-gnu-g++ -O2 -g -static -mcpu=power8 \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -101,7 +101,7 @@ core_test_p64_64Lp8:
 
 core_test_p64f32Lp8:
 	powerpc64le-linux-gnu-g++ -O2 -g -static -mcpu=power8 \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -109,7 +109,7 @@ core_test_p64f32Lp8:
 
 core_test_p64f64Lp8:
 	powerpc64le-linux-gnu-g++ -O2 -g -static -mcpu=power8 \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -121,7 +121,7 @@ build_be: core_test_p64_32Bp7 core_test_p64_64Bp7 \
 
 core_test_p64_32Bp7:
 	powerpc64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -129,7 +129,7 @@ core_test_p64_32Bp7:
 
 core_test_p64_64Bp7:
 	powerpc64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -137,7 +137,7 @@ core_test_p64_64Bp7:
 
 core_test_p64f32Bp7:
 	powerpc64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -145,7 +145,7 @@ core_test_p64f32Bp7:
 
 core_test_p64f64Bp7:
 	powerpc64-linux-gnu-g++ -O3 -g -static \
-        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
+        -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -185,6 +185,8 @@ core_test_p64f64Bp7:
 # 256-bit SIMD is achieved by combining pairs of 128-bit registers/instructions
 # 512-bit SIMD is achieved by combining quads of 128-bit registers/instructions
 # For 30 256-bit VSX2/3 registers on POWER8/9 targets use (replace): RT_256=4+8
+# For 15 512-bit VSX2/3 registers on POWER8/9 targets use (replace): RT_512=1+2
+# SIMD-buffers only work up to RT_256=1+2 due to instruction limitation (no 512)
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 # or refer to the corresponding simd_make_***.mk file.

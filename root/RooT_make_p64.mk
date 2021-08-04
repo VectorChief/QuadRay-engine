@@ -213,6 +213,7 @@ RooT.p64f64Lp9:
 # 512-bit SIMD is achieved by combining quads of 128-bit registers/instructions
 # For 30 256-bit VSX2/3 registers on POWER8/9 targets use (replace): RT_256=4+8
 # For 15 512-bit VSX2/3 registers on POWER8/9 targets use (replace): RT_512=1+2
+# SIMD-buffers only work up to RT_256=1+2 due to instruction limitation (no 512)
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h
 # or refer to the corresponding simd_make_***.mk file.
