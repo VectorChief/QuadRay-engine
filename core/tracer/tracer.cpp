@@ -6233,7 +6233,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* material */
         SUBROUTINE(4, QD_mtr)
 
+#if RT_FEAT_BUFFERS
+
     LBL(QD_rp1)
+
+#endif /* RT_FEAT_BUFFERS */
 
         /* side count check */
         cmjwx_mz(Mecx, ctx_XMISC(FLG),
@@ -6334,7 +6338,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* material */
         SUBROUTINE(6, QD_mtr)
 
+#if RT_FEAT_BUFFERS
+
     LBL(QD_rp2)
+
+#endif /* RT_FEAT_BUFFERS */
 
         /* side count check */
         cmjwx_mz(Mecx, ctx_XMISC(FLG),
@@ -8139,6 +8147,18 @@ rt_void rt_Platform::update0(rt_SIMD_SURFACE *s_srf)
 #endif /* (RT_POINTER - RT_ADDRESS) */
 
 /*
+ * When ASM sections are used together with non-trivial logic written in C/C++
+ * in the same function, optimizing compilers may produce inconsistent results
+ * with optimization levels higher than O0 (tested both clang and g++).
+ * Using separate functions for ASM and C/C++ resolves the issue
+ * if the ASM function is not inlined (thus calling it via function pointer).
+ */
+typedef rt_void (*testXX)(rt_SIMD_INFOX *);
+
+volatile
+testXX v_simd = simd_version;
+
+/*
  * Backend's global entry point (hence 0).
  * Set current runtime SIMD target with "simd" equal to
  * SIMD native-size (1,..,16) in 0th (lowest) byte
@@ -8162,7 +8182,7 @@ rt_si32 rt_Platform::switch0(rt_SIMD_INFOX *s_inf, rt_si32 simd)
 
 #endif /* (RT_POINTER - RT_ADDRESS) */
 
-    simd_version(s_inf);
+    v_simd(s_inf);
 
     s_mask = s_inf->ver;
 
