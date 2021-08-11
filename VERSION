@@ -1,3 +1,12 @@
+v0.7.0f: QuadRay, code name "GIzmo+f", fixes and tests
+  - fix displacement encodings on MIPS
+  - add testing for displacement levels and types
+  - update makefiles to support ancient HW (SSE2, SSE1 has issue with cvzps)
+  - update SIMD test framework, add scripts for test automation
+  - update comments for QEMU 5.2.0 and QEMU 6.0.0 (require ninja-build)
+  - update CORE test framework, add scripts for test automation
+  - fix feature flags in tracer, clean up comments
+
 v0.7.0e: QuadRay, code name "GIzmo+e", 2021 extended support
   - clarify instructions for POWER8 server, Raspberry Pi 3/4
   - update links and comments in project files
