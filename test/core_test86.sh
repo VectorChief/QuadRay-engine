@@ -1,9 +1,10 @@
 #!/bin/sh
 # Intended for x86_64 Linux test environment
 # with multilib capabilities (64-bit Linux Mint 18 tested)
+# run this script after bulid_multi.sh with multilib-compiler installed
 
 # run before core_test64.sh to check all 18 image-sets
-# run after core_test64.sh to compare results in place
+# run core_test64.sh after to compare results in place
 # to change antialiasing mode (n = 2, 4) use/add: -a n
 # to draw target-specific numbers in images use/add: -h
 
