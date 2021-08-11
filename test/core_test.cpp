@@ -55,8 +55,9 @@ rt_si32     t_diff      = 3;          /* diff-threshold (from command-line) */
 rt_si32     r_test      =-CYC_SIZE;   /* test-redundant (from command-line) */
 rt_bool     v_mode      = RT_FALSE;     /* verbose mode (from command-line) */
 rt_bool     p_mode      = RT_FALSE;     /* pixhunt mode (from command-line) */
-rt_bool     i_mode      = RT_FALSE;     /* imaging mode (from command-line) */
+rt_si32     i_mode      = 0;            /* imaging mode (from command-line) */
 rt_bool     h_mode      = RT_FALSE;     /* shownum mode (from command-line) */
+rt_bool     l_mode      = RT_FALSE;     /* log-off mode (from command-line) */
 rt_bool     o_mode      = RT_FALSE;     /* optimal mode (from command-line) */
 rt_si32     a_mode      = RT_FSAA_NO;   /* antialiasing (from command-line) */
 
@@ -124,6 +125,7 @@ rt_si32 frame_cmp(rt_ui32 *f1, rt_ui32 *f2)
 
             ret = 1;
 
+            if (!l_mode)
             RT_LOGI("Frames differ (%06X %06X) at x = %d, y = %d\n",
                         f1[j*x_row + i], f2[j*x_row + i], i, j);
 
@@ -137,7 +139,7 @@ rt_si32 frame_cmp(rt_ui32 *f1, rt_ui32 *f2)
 
     if (v_mode && ret == 0)
     {
-        RT_LOGI("Frames are identical\n");
+        if (!l_mode) RT_LOGI("Frames are identical\n");
     }
 
     return ret;
@@ -559,7 +561,15 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 {
     rt_si32 k, l, r, t;
 
-    if (argc >= 2)
+    for (k = 1; k < argc; k++)
+    {
+        if (strcmp(argv[k], "-l") == 0)
+        {
+            l_mode = RT_TRUE;
+        }
+    }
+
+    if (argc >= 2 && !l_mode)
     {
         RT_LOGI("--------------------------------------------------------\n");
         RT_LOGI("Usage options are given below:\n");
@@ -575,10 +585,12 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -y n, override y-resolution, where new y-value <= 65535\n");
         RT_LOGI(" -d n, override diff-threshold for qualification, n >= 0\n");
         RT_LOGI(" -c n, override counter of redundant test cycles, n >= 1\n");
+        RT_LOGI(" -i n, append image-idx within imaging mode, 0 <= n <= 9\n");
         RT_LOGI(" -v, enable verbose mode, print all pixel spots (> diff)\n");
         RT_LOGI(" -p, enable pixhunt mode, print isolated pixels (> diff)\n");
         RT_LOGI(" -i, enable imaging mode, save images before-after-diffs\n");
         RT_LOGI(" -h, enable shownum mode, activate screen-number drawing\n");
+        RT_LOGI(" -l, enable log-off mode, no printing to file and screen\n");
         RT_LOGI(" -o, enable optimal mode, omit unoptimized rendering run\n");
         RT_LOGI(" -a n, enable antialiasing, 2 for 2x, 4 for 4x, 8 for 8x\n");
         RT_LOGI(" -t tex1 tex2 texn, convert images in data/textures/tex*\n");
@@ -589,34 +601,34 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
     if (argc >= 2 && strcmp(argv[1], "-z") == 0)
     {
-        RT_LOGI("Plotting samples/functions: ");
+        if (!l_mode) RT_LOGI("Plotting samples/functions: ");
         o_test[0]();
         scene->plot_frags();
         scene->plot_funcs();
         delete scene;
         scene = RT_NULL;
-        RT_LOGI("Done!\n");
+        if (!l_mode) RT_LOGI("Done!\n");
         return 0;
     }
 
     if (argc >= 3 && strcmp(argv[1], "-t") == 0)
     {
-        RT_LOGI("Converting textures:\n[");
+        if (!l_mode) RT_LOGI("Converting textures:\n[");
         rt_Heap *hp = new rt_Heap(sys_alloc, sys_free);
         for (k = 2; k < argc; k++)
         {
             r = convert_image(hp, argv[k]);
             if (r == 0)
             {
-                RT_LOGI("x");
+                if (!l_mode) RT_LOGI("x");
             }
             else
             {
-                RT_LOGI(".");
+                if (!l_mode) RT_LOGI(".");
             }
         }
         delete hp;
-        RT_LOGI("]\nDone!\n");
+        if (!l_mode) RT_LOGI("]\nDone!\n");
         return 0;
     }
 
@@ -630,12 +642,12 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             }
             if (t >= 1 && t <= SUB_TEST)
             {
-                RT_LOGI("Subtest-index-init overridden: %d\n", t);
+                if (!l_mode) RT_LOGI("Subtest-index-init overridden: %d\n", t);
                 n_init = t-1;
             }
             else
             {
-                RT_LOGI("Subtest-index-init value out of range\n");
+                if (!l_mode) RT_LOGI("Subtest-index-init value out of range\n");
                 return 0;
             }
         }
@@ -647,12 +659,12 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             }
             if (t >= 1 && t <= SUB_TEST)
             {
-                RT_LOGI("Subtest-index-done overridden: %d\n", t);
+                if (!l_mode) RT_LOGI("Subtest-index-done overridden: %d\n", t);
                 n_done = t-1;
             }
             else
             {
-                RT_LOGI("Subtest-index-done value out of range\n");
+                if (!l_mode) RT_LOGI("Subtest-index-done value out of range\n");
                 return 0;
             }
         }
@@ -664,12 +676,12 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             }
             if (t >= 0)
             {
-                RT_LOGI("Number-of-frames: %d\n", t);
+                if (!l_mode) RT_LOGI("Number-of-frames: %d\n", t);
                 f_num = t;
             }
             else
             {
-                RT_LOGI("Number-of-frames value out of range\n");
+                if (!l_mode) RT_LOGI("Number-of-frames value out of range\n");
                 return 0;
             }
         }
@@ -681,12 +693,12 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             }
             if (t >= 0)
             {
-                RT_LOGI("Frame-delta (ms): %d\n", t);
+                if (!l_mode) RT_LOGI("Frame-delta (ms): %d\n", t);
                 f_time = t;
             }
             else
             {
-                RT_LOGI("Frame-delta (ms) value out of range\n");
+                if (!l_mode) RT_LOGI("Frame-delta (ms) value out of range\n");
                 return 0;
             }
         }
@@ -699,12 +711,12 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             if (t == 1   || t == 2   || t == 4   || t == 8    || t == 16
             ||  t == 128 || t == 256 || t == 512 || t == 1024 || t == 2048)
             {
-                RT_LOGI("SIMD-native-size overridden: %d\n", t);
+                if (!l_mode) RT_LOGI("SIMD-native-size overridden: %d\n", t);
                 n_simd = t >= 128 ? t / 128 : t;
             }
             else
             {
-                RT_LOGI("SIMD-native-size value out of range\n");
+                if (!l_mode) RT_LOGI("SIMD-native-size value out of range\n");
                 return 0;
             }
         }
@@ -713,12 +725,12 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             t = argv[k][0] - '0';
             if (strlen(argv[k]) == 1 && (t == 1 || t == 2 || t == 4))
             {
-                RT_LOGI("SIMD-size-factor overridden: %d\n", t);
+                if (!l_mode) RT_LOGI("SIMD-size-factor overridden: %d\n", t);
                 k_size = t;
             }
             else
             {
-                RT_LOGI("SIMD-size-factor value out of range\n");
+                if (!l_mode) RT_LOGI("SIMD-size-factor value out of range\n");
                 return 0;
             }
         }
@@ -730,12 +742,12 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             }
             if (t == 1 || t == 2 || t == 4 || t == 8 || t == 16 || t == 32)
             {
-                RT_LOGI("SIMD-sub-variant overridden: %d\n", t);
+                if (!l_mode) RT_LOGI("SIMD-sub-variant overridden: %d\n", t);
                 s_type = t;
             }
             else
             {
-                RT_LOGI("SIMD-sub-variant value out of range\n");
+                if (!l_mode) RT_LOGI("SIMD-sub-variant value out of range\n");
                 return 0;
             }
         }
@@ -744,12 +756,12 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             t = argv[k][0] - '0';
             if (strlen(argv[k]) == 1 && t >= 1 && t <= 9)
             {
-                RT_LOGI("Window-rect-size overridden: %d\n", t);
+                if (!l_mode) RT_LOGI("Window-rect-size overridden: %d\n", t);
                 w_size = t;
             }
             else
             {
-                RT_LOGI("Window-rect-size value out of range\n");
+                if (!l_mode) RT_LOGI("Window-rect-size value out of range\n");
                 return 0;
             }
         }
@@ -761,12 +773,12 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             }
             if (t >= 1 && t <= 65535)
             {
-                RT_LOGI("X-resolution overridden: %d\n", t);
+                if (!l_mode) RT_LOGI("X-resolution overridden: %d\n", t);
                 x_res = t;
             }
             else
             {
-                RT_LOGI("X-resolution value out of range\n");
+                if (!l_mode) RT_LOGI("X-resolution value out of range\n");
                 return 0;
             }
         }
@@ -778,12 +790,12 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             }
             if (t >= 1 && t <= 65535)
             {
-                RT_LOGI("Y-resolution overridden: %d\n", t);
+                if (!l_mode) RT_LOGI("Y-resolution overridden: %d\n", t);
                 y_res = t;
             }
             else
             {
-                RT_LOGI("Y-resolution value out of range\n");
+                if (!l_mode) RT_LOGI("Y-resolution value out of range\n");
                 return 0;
             }
         }
@@ -795,12 +807,12 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             }
             if (t >= 0)
             {
-                RT_LOGI("Diff-threshold overridden: %d\n", t);
+                if (!l_mode) RT_LOGI("Diff-threshold overridden: %d\n", t);
                 t_diff = t;
             }
             else
             {
-                RT_LOGI("Diff-threshold value out of range\n");
+                if (!l_mode) RT_LOGI("Diff-threshold value out of range\n");
                 return 0;
             }
         }
@@ -812,39 +824,52 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             }
             if (t >= 1)
             {
-                RT_LOGI("Test-redundant overridden: %d\n", t);
+                if (!l_mode) RT_LOGI("Test-redundant overridden: %d\n", t);
                 r_test = t;
             }
             else
             {
-                RT_LOGI("Test-redundant value out of range\n");
+                if (!l_mode) RT_LOGI("Test-redundant value out of range\n");
                 return 0;
             }
         }
         if (k < argc && strcmp(argv[k], "-v") == 0 && !v_mode)
         {
             v_mode = RT_TRUE;
-            RT_LOGI("Verbose mode enabled: %d\n", v_mode);
+            if (!l_mode) RT_LOGI("Verbose mode enabled: %d\n", v_mode);
         }
         if (k < argc && strcmp(argv[k], "-p") == 0 && !p_mode)
         {
             p_mode = RT_TRUE;
-            RT_LOGI("Pixhunt mode enabled: %d\n", p_mode);
+            if (!l_mode) RT_LOGI("Pixhunt mode enabled: %d\n", p_mode);
         }
-        if (k < argc && strcmp(argv[k], "-i") == 0 && !i_mode)
+        if (k < argc && strcmp(argv[k], "-i") == 0)
         {
-            i_mode = RT_TRUE;
-            RT_LOGI("Imaging mode enabled: %d\n", i_mode);
+            i_mode = 1;
+            if (++k < argc)
+            {
+                t = argv[k][0] - '0';
+                if (strlen(argv[k]) == 1 && t >= 0 && t <= 9)
+                {
+                    i_mode = -(t + 1);
+                }
+                else
+                {
+                    k--;
+                }
+            }
+            if (!l_mode) RT_LOGI("Imaging mode enabled: %s%d\n",
+                i_mode < 0 ? "i " : "", i_mode < 0 ?-i_mode-1: i_mode);
         }
         if (k < argc && strcmp(argv[k], "-h") == 0 && !h_mode)
         {
             h_mode = RT_TRUE;
-            RT_LOGI("Shownum mode enabled: %d\n", h_mode);
+            if (!l_mode) RT_LOGI("Shownum mode enabled: %d\n", h_mode);
         }
         if (k < argc && strcmp(argv[k], "-o") == 0 && !o_mode)
         {
             o_mode = RT_TRUE;
-            RT_LOGI("Optimal mode enabled: %d\n", o_mode);
+            if (!l_mode) RT_LOGI("Optimal mode enabled: %d\n", o_mode);
         }
         if (k < argc && strcmp(argv[k], "-a") == 0)
         {
@@ -867,13 +892,13 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
                     k--;
                 }
             }            
-            RT_LOGI("Antialiasing request: %d\n", 1 << a_mode);
+            if (!l_mode) RT_LOGI("Antialiasing request: %d\n", 1 << a_mode);
         }
     }
 
     if (r_test != -CYC_SIZE && f_num != -1)
     {
-        RT_LOGI("Test-redundant overridden: %d (-f)\n", f_num);
+        if (!l_mode) RT_LOGI("Test-redundant overridden: %d (-f)\n", f_num);
     }
     if (f_num != -1)
     {
@@ -896,6 +921,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     simd = (&pfm)->set_simd(simd_init(n_simd, s_type, k_size));
     if (a_mode != (&pfm)->set_fsaa(a_mode))
     {
+        if (!l_mode)
         RT_LOGI("Requested antialiasing mode not supported, check options\n");
         return 0;
     }
@@ -910,6 +936,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
     ||  (s_type != 0 && s_type != type)
     ||  (n_simd != 0 && n_simd != simd && n_simd != simd * size))
     {
+        if (!l_mode)
         RT_LOGI("Chosen SIMD target not supported, check -n/-k/-s options\n");
         return 0;
     }
@@ -921,20 +948,24 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
     frame = (rt_ui32 *)sys_alloc(x_row * y_res * sizeof(rt_ui32));
 
-    RT_LOGI("------------------  TARGET CONFIG  ---------------------\n");
-    RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d %s\n",
-                               n_simd * 128, k_size, s_type, tile_w / 8,
-                               1 << a_mode, a_mode ? "(spp)" : "(off)");
-    RT_LOGI("Framebuffer X-row = %5d, ptr = %016" PR_Z "X\n",
-                                                 x_row, (rt_full)frame);
-    RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d  %s\n",
-                                              x_res, y_res, 0, !h_mode,
-                                                    o_mode ? "o" : " ");
+    if (!l_mode)
+    {
+        RT_LOGI("------------------  TARGET CONFIG  ---------------------\n");
+        RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d %s\n",
+                                   n_simd * 128, k_size, s_type, tile_w / 8,
+                                   1 << a_mode, a_mode ? "(spp)" : "(off)");
+        RT_LOGI("Framebuffer X-row = %5d, ptr = %016" PR_Z "X\n",
+                                                     x_row, (rt_full)frame);
+        RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d  %s\n",
+                                                  x_res, y_res, 0, !h_mode,
+                                                        o_mode ? "o" : " ");
+    }
 
     rt_si32 i, j;
 
     for (i = n_init; i <= n_done; i++)
     {
+        if (!l_mode)
         RT_LOGI("--------------------  SUB TEST = %2d  - ptr/fp = %d%s%d --\n",
                     i+1, RT_POINTER, RT_ADDRESS == 32 ? "_" : "f", RT_ELEMENT);
         try
@@ -960,7 +991,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
             time2 = get_time();
             tN = time2 - time1;
-            RT_LOGI("Time N = %d\n", (rt_si32)tN);
+            if (!l_mode) RT_LOGI("Time N = %d\n", (rt_si32)tN);
 
             if (h_mode)
             {
@@ -974,7 +1005,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
             if (i_mode)
             {
-                scene->save_frame((i+1) * 10 + 0);
+                scene->save_frame((i+1) * 10 + 0 + RT_MAX(0, -i_mode*1000));
             }
 
             frame_cpy(frame, scene->get_frame());
@@ -999,7 +1030,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
             time2 = get_time();
             tF = time2 - time1;
-            RT_LOGI("Time F = %d\n", (rt_si32)tF);
+            if (!l_mode) RT_LOGI("Time F = %d\n", (rt_si32)tF);
 
             if (h_mode)
             {
@@ -1013,7 +1044,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
             if (i_mode)
             {
-                scene->save_frame((i+1) * 10 + 1);
+                scene->save_frame((i+1) * 10 + 1 + RT_MAX(0, -i_mode*1000));
             }
 
             if (!o_mode)
@@ -1026,13 +1057,13 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
             frame_dff(scene->get_frame(), frame);
             if (i_mode)
             {
-                scene->save_frame((i+1) * 10 + 2);
+                scene->save_frame((i+1) * 10 + 2 + RT_MAX(0, -i_mode*1000));
             }
 
             frame_max(scene->get_frame());
             if (i_mode)
             {
-                scene->save_frame((i+1) * 10 + 3);
+                scene->save_frame((i+1) * 10 + 3 + RT_MAX(0, -i_mode*1000));
             }
 
             } /* --<----<-- skip diff --<----<-- */
@@ -1042,8 +1073,9 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         }
         catch (rt_Exception e)
         {
-            RT_LOGE("Exception in test %d: %s\n", i+1, e.err);
+            if (!l_mode) RT_LOGE("Exception in test %d: %s\n", i+1, e.err);
         }
+        if (!l_mode)
         RT_LOGI("--%s--------------------------------- simd = %4dx%dv%d -\n",
                         o_mode ? " o " : "---", n_simd * 128, k_size, s_type);
     }
@@ -1052,6 +1084,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
 #if (defined RT_WIN32) || (defined RT_WIN64) /* Win32, MSVC -- Win64, GCC --- */
 
+    if (!l_mode)
     RT_LOGI("Type any letter and press ENTER to exit:");
     rt_char str[80];
     scanf("%79s", str);
@@ -1139,6 +1172,7 @@ rt_pntr sys_alloc(rt_size size)
 
 #if RT_DEBUG >= 2
 
+    if (!l_mode)
     RT_LOGI("ALLOC PTR = %016" PR_Z "X, size = %ld\n", (rt_full)ptr, size);
 
 #endif /* RT_DEBUG */
@@ -1177,6 +1211,7 @@ rt_void sys_free(rt_pntr ptr, rt_size size)
 
 #if RT_DEBUG >= 2
 
+    if (!l_mode)
     RT_LOGI("FREED PTR = %016" PR_Z "X, size = %ld\n", (rt_full)ptr, size);
 
 #endif /* RT_DEBUG */
@@ -1238,6 +1273,7 @@ rt_pntr sys_alloc(rt_size size)
 
 #if RT_DEBUG >= 2
 
+    if (!l_mode)
     RT_LOGI("ALLOC PTR = %016" PR_Z "X, size = %ld\n", (rt_full)ptr, size);
 
 #endif /* RT_DEBUG */
@@ -1276,6 +1312,7 @@ rt_void sys_free(rt_pntr ptr, rt_size size)
 
 #if RT_DEBUG >= 2
 
+    if (!l_mode)
     RT_LOGI("FREED PTR = %016" PR_Z "X, size = %ld\n", (rt_full)ptr, size);
 
 #endif /* RT_DEBUG */

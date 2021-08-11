@@ -3648,7 +3648,16 @@ rt_ui32* rt_Scene::get_frame()
  */
 rt_void rt_Scene::save_frame(rt_si32 index)
 {
-    rt_char name[] = "scrXXX.bmp";
+    rt_char name[20];
+
+    if (index < 1000)
+    {
+        strncpy(name, "scrXXX.bmp", 20);
+    }
+    else
+    {
+        strncpy(name, "scrXXX-Y.bmp", 20);
+    }
 
     /* prepare filename string */
     name[5] = '0' + (index % 10);
@@ -3656,6 +3665,13 @@ rt_void rt_Scene::save_frame(rt_si32 index)
     name[4] = '0' + (index % 10);
     index /= 10;
     name[3] = '0' + (index % 10);
+
+    if (index >= 10)
+    {
+        index /= 10;
+        index -= 1;
+        name[7] = '0' + (index % 10);
+    }
 
     /* prepare frame's image */
     rt_TEX tex;
