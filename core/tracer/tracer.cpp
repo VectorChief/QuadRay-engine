@@ -127,11 +127,11 @@
 /*    **                ** ctx_PARAM(LST) ** ctx_PARAM(OBJ) **                */
 /******************************************************************************/
 /*    ** srf_LST_P(SRF) ** ctx_PARAM(LST) ** ctx_PARAM(OBJ) ** srf_MAT_P(PTR) */
-/* RF **      Resi      **      Redi      **      Rebx      **      Redx      */
+/* TR **      Resi      **      Redi      **      Rebx      **      Redx      */
 /*    **                **                ** ctx_PARAM(OBJ) ** ctx_PARAM(LST) */
 /******************************************************************************/
 /*    ** srf_LST_P(SRF) **                ** ctx_PARAM(OBJ) ** srf_MAT_P(PTR) */
-/* TR **      Resi      **      Redi      **      Rebx      **      Redx      */
+/* RF **      Resi      **      Redi      **      Rebx      **      Redx      */
 /*    **                **                ** ctx_PARAM(OBJ) ** ctx_PARAM(LST) */
 /******************************************************************************/
 /*    ** ctx_LOCAL(LST) **                ** ctx_PARAM(OBJ) ** ctx_PARAM(LST) */
@@ -2151,7 +2151,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_TEXTURING */
 
-        PAINT_SIMD(MT_rtx, Xmm1)
+        PAINT_SIMD(MT_rtx, Xmm1) /* destroys Reax, Xmm0, Xmm2, Xmm7 */
 
 /******************************************************************************/
 /*********************************   LIGHTS   *********************************/
@@ -2639,9 +2639,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
 #endif /* RT_FEAT_FRESNEL */
 
-#if RT_FEAT_TRANSPARENCY
-
         FETCH_XPTR(Redx, MAT_P(PTR))
+
+#if RT_FEAT_TRANSPARENCY
 
         CHECK_PROP(TR_opq, RT_PROP_OPAQUE)
 
@@ -3446,7 +3446,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
                  EQ_x, OO_end)
 
         /* "k" section */
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        INDEX_AXIS(RT_K)                        /* Reax  <-     k */
         MOVXR_LD(Xmm4, Iecx, ctx_DFF_O)         /* dff_k <- DFF_K */
         MOVXR_LD(Xmm3, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
         xorpx_ld(Xmm4, Mebx, srf_SMASK)         /* dff_k = -dff_k */
@@ -3465,7 +3465,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         CHECK_MASK(OO_end, NONE, Xmm7)
         movpx_st(Xmm7, Mecx, ctx_XMASK)         /* xmask -> XMASK */
 
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        INDEX_AXIS(RT_K)                        /* Reax  <-     k */
         MOVXR_LD(Xmm3, Iecx, ctx_RAY_O)         /* ray_k <- RAY_K */
         xorpx_rr(Xmm0, Xmm0)                    /* tmp_v <-     0 */
 
@@ -3514,13 +3514,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
          * for texturing, if enabled */
         CHECK_PROP(PL_tex, RT_PROP_TEXTURE)
 
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        INDEX_AXIS(RT_I)                        /* Reax  <-     i */
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
         MOVXR_LD(Xmm4, Iecx, ctx_NEW_O)         /* loc_i <- NEW_I */
         movpx_st(Xmm4, Mecx, ctx_TEX_U)         /* loc_i -> TEX_U */
 
-        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        INDEX_AXIS(RT_J)                        /* Reax  <-     j */
         /* use next context's RAY fields (NEW)
          * as temporary storage for local HIT */
         MOVXR_LD(Xmm5, Iecx, ctx_NEW_O)         /* loc_j <- NEW_J */
@@ -3535,13 +3535,13 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         /* compute normal, if enabled */
         CHECK_PROP(PL_nrm, RT_PROP_NORMAL)
 
-        INDEX_AXIS(RT_I)                        /* eax   <-     i */
+        INDEX_AXIS(RT_I)                        /* Reax  <-     i */
         MOVZR_ST(Xmm4, Iecx, ctx_NRM_O)         /* 0     -> NRM_I */
 
-        INDEX_AXIS(RT_J)                        /* eax   <-     j */
+        INDEX_AXIS(RT_J)                        /* Reax  <-     j */
         MOVZR_ST(Xmm5, Iecx, ctx_NRM_O)         /* 0     -> NRM_J */
 
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        INDEX_AXIS(RT_K)                        /* Reax  <-     k */
         movpx_ld(Xmm6, Mebp, inf_GPC01)         /* tmp_v <- +1.0f */
         xorpx_rr(Xmm6, Xmm7)                    /* tmp_v ^= tside */
         MOVXR_ST(Xmm6, Iecx, ctx_NRM_O)         /* tmp_v -> NRM_K */
@@ -3559,7 +3559,7 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
     LBL(PL_clp)
 
-        INDEX_AXIS(RT_K)                        /* eax   <-     k */
+        INDEX_AXIS(RT_K)                        /* Reax  <-     k */
         /* use context's normal fields (NRM)
          * as temporary storage for clipping */
         MOVXR_LD(Xmm4, Iecx, ctx_NRM_O)         /* dff_k <- NRM_K */
@@ -4329,12 +4329,18 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 
         cmjwx_ri(Reax, IB(0),
                  EQ_x, XX_end)
+#if RT_FEAT_LIGHTS_SHADOWS
         cmjwx_ri(Reax, IB(1),
                  EQ_x, LT_ret)
-        cmjwx_ri(Reax, IB(2),
-                 EQ_x, RF_ret)
+#endif /* RT_FEAT_LIGHTS_SHADOWS */
+#if RT_FEAT_TRANSPARENCY
         cmjwx_ri(Reax, IB(3),
                  EQ_x, TR_ret)
+#endif /* RT_FEAT_TRANSPARENCY */
+#if RT_FEAT_REFLECTIONS || RT_FEAT_FRESNEL
+        cmjwx_ri(Reax, IB(2),
+                 EQ_x, RF_ret)
+#endif /* RT_FEAT_REFLECTIONS || RT_FEAT_FRESNEL */
 
 /******************************************************************************/
 /********************************   HOR SCAN   ********************************/
@@ -4449,12 +4455,12 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
 #endif /* RT_FEAT_ANTIALIASING */
 
         /* convert fp colors to integer */
-        movxx_ld(Redx, Mebp, inf_CAM)           /* edx needed in FRAME_SIMD */
+        movxx_ld(Redx, Mebp, inf_CAM)           /* Redx is used in FRAME_SIMD */
 
         movxx_ld(Reax, Mecx, ctx_PARAM(FLG))    /* load Gamma prop */
         movxx_st(Reax, Mecx, ctx_LOCAL(FLG))    /* save Gamma prop */
 
-        FRAME_SIMD()
+        FRAME_SIMD() /* destroys Reax, Xmm0, Xmm1, Xmm2, Xmm7, reads Redx */
 
         movxx_ld(Rebx, Mebp, inf_FRM_X)
         shlxx_ri(Rebx, IB(2))
