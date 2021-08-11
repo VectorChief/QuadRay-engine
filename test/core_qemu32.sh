@@ -1,15 +1,16 @@
 #!/bin/sh
 # Intended for x86_64 Linux test environment
 # with QEMU linux-user mode installed (64-bit Ubuntu MATE 20.04 LTS tested)
+# run this script after bulid_cross.sh with 32-bit cross-compilers installed
 
-# run before core_test64.sh to check all 18 image-sets
-# run after core_test64.sh to compare results in place
+# run before core_qemu64.sh to check all 18 image-sets
+# run after core_qemu64.sh to compare results in place
 # to change antialiasing mode (n = 2, 4) use/add: -a n
 # to draw target-specific numbers in images use/add: -h
 
 
 echo "========================================================"
-echo "=== running core_test32 in background, check ../dump ==="
+echo "=== running core_qemu32 in background, check ../dump ==="
 echo "=== wait for all 18 image-sets to be present: scr18* ==="
 echo "=== use top to monitor when all qemu-* have finished ==="
 echo "========================================================"
