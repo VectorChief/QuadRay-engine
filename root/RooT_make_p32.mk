@@ -51,7 +51,7 @@ RooT_p32Bg4:
 clang: RooT.p32Bg4
 
 RooT.p32Bg4:
-	clang++ -O3 -g -pthread \
+	clang++ -O0 -g -pthread \
         -DRT_LINUX -DRT_P32 -DRT_128=4 -DRT_256_R8=4 -DRT_SIMD_COMPAT_VSX=0 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \

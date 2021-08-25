@@ -80,6 +80,8 @@ core_test_p32Bp9:
 # On Ubuntu (MATE) 16.04-20.04 add "universe multiverse" to "main restricted"
 # in /etc/apt/sources.list (sudo nano /etc/apt/sources.list) then run:
 # sudo apt-get update
+# (Ubuntu MATE is set up for an update without a need to edit the file)
+# (extended repositories "universe multiverse" are only needed for clang)
 #
 # Prerequisites for the build:
 # (cross-)compiler for PowerPC is installed and in the PATH variable.
@@ -101,7 +103,7 @@ core_test_p32Bp9:
 # Use "-c 1" option to reduce test time when emulating with QEMU
 
 # Clang native build should theoretically work too (not tested), use (replace):
-# clang++ (in place of ...-g++) on PowerPC host
+# clang++ -O0 (in place of ...-g++ -O3) on PowerPC host (G4)
 # sudo apt-get install clang
 
 # core_test uses runtime SIMD target selection, multiple can be specified above

@@ -120,7 +120,7 @@ build_be: core_test_p64_32Bp7 core_test_p64_64Bp7 \
           core_test_p64f32Bp7 core_test_p64f64Bp7
 
 core_test_p64_32Bp7:
-	powerpc64-linux-gnu-g++ -O3 -g -static \
+	powerpc64-linux-gnu-g++ -O2 -g -static \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -128,7 +128,7 @@ core_test_p64_32Bp7:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64_32Bp7
 
 core_test_p64_64Bp7:
-	powerpc64-linux-gnu-g++ -O3 -g -static \
+	powerpc64-linux-gnu-g++ -O2 -g -static \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -136,7 +136,7 @@ core_test_p64_64Bp7:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64_64Bp7
 
 core_test_p64f32Bp7:
-	powerpc64-linux-gnu-g++ -O3 -g -static \
+	powerpc64-linux-gnu-g++ -O2 -g -static \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -144,7 +144,7 @@ core_test_p64f32Bp7:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.p64f32Bp7
 
 core_test_p64f64Bp7:
-	powerpc64-linux-gnu-g++ -O3 -g -static \
+	powerpc64-linux-gnu-g++ -O2 -g -static \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 -DRT_512=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -155,6 +155,8 @@ core_test_p64f64Bp7:
 # On Ubuntu (MATE) 16.04-20.04 add "universe multiverse" to "main restricted"
 # in /etc/apt/sources.list (sudo nano /etc/apt/sources.list) then run:
 # sudo apt-get update
+# (Ubuntu MATE is set up for an update without a need to edit the file)
+# (extended repositories "universe multiverse" are only needed for clang)
 #
 # Prerequisites for the build:
 # (cross-)compiler for 64-bit POWER is installed and in the PATH variable.
@@ -177,7 +179,7 @@ core_test_p64f64Bp7:
 # Use "-c 1" option to reduce test time when emulating with QEMU
 
 # Clang native build works too (takes much longer prior to 3.8), use (replace):
-# clang++ (in place of ...-g++) on 64-bit POWER host (Tyan TN71-BP012 POWER8)
+# clang++ -O0 (in place of ...-g++ -O2) on 64-bit POWER host (Tyan TN71-BP012)
 # sudo apt-get install clang
 
 # core_test uses runtime SIMD target selection, multiple can be specified above
