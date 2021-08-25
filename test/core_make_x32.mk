@@ -54,7 +54,7 @@ clean:
 core_test_x32:
 	g++ -O3 -g -mx32 \
         -DRT_LINUX -DRT_X32 -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
-        -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_2K8_R8=0 \
+        -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_SIMD_COMPAT_SSE=2 \
         -DRT_POINTER=32 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
@@ -64,6 +64,8 @@ core_test_x32:
 # On Ubuntu (MATE) 16.04-20.04 add "universe multiverse" to "main restricted"
 # in /etc/apt/sources.list (sudo nano /etc/apt/sources.list) then run:
 # sudo apt-get update
+# (Ubuntu MATE is set up for an update without a need to edit the file)
+# (extended repositories "universe multiverse" are only needed for clang)
 #
 # Prerequisites for the build:
 # multilib-compiler for x86_64 is installed and in the PATH variable.

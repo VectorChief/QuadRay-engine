@@ -110,7 +110,13 @@ core_test_m64f64Br6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m64f64Br6
 
 
-# On Ubuntu (MATE) 16.04-20.04 download MIPS toolchain:
+# On Ubuntu (MATE) 16.04-20.04 add "universe multiverse" to "main restricted"
+# in /etc/apt/sources.list (sudo nano /etc/apt/sources.list) then run:
+# sudo apt-get update
+# (Ubuntu MATE is set up for an update without a need to edit the file)
+# (extended repositories "universe multiverse" are only needed for clang)
+#
+# Download and unpack MIPS toolchain:
 # https://www.mips.com/develop/tools/codescape-mips-sdk/
 # https://codescape.mips.com/components/toolchain/2020.06-01/downloads.html
 #
@@ -140,7 +146,7 @@ core_test_m64f64Br6:
 # Use "-c 1" option to reduce test time when emulating with QEMU
 
 # Clang native build should theoretically work too (not tested), use (replace):
-# clang++ (in place of ...-g++) on MIPS64 host
+# clang++ -O0 (in place of ...-g++ -O3) on MIPS64r6 host (I6400/P6600)
 # sudo apt-get install clang
 
 # core_test uses runtime SIMD target selection, multiple can be specified above

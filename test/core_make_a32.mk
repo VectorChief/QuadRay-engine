@@ -49,6 +49,8 @@ core_test_a32:
 # On Ubuntu (MATE) 16.04-20.04 add "universe multiverse" to "main restricted"
 # in /etc/apt/sources.list (sudo nano /etc/apt/sources.list) then run:
 # sudo apt-get update
+# (Ubuntu MATE is set up for an update without a need to edit the file)
+# (extended repositories "universe multiverse" are only needed for clang)
 #
 # Prerequisites for the build:
 # (cross-)compiler for AArch64 is installed and in the PATH variable.
@@ -59,7 +61,7 @@ core_test_a32:
 # make -f core_make_a32.mk
 
 # Clang native build should theoretically work too (not tested), use (replace):
-# clang++ (in place of ...-g++) on AArch64 host (Raspberry Pi 3)
+# clang++ (in place of ...-g++) on AArch64 host (Raspberry Pi 3/4)
 # sudo apt-get install clang
 
 # core_test uses runtime SIMD target selection, multiple can be specified above

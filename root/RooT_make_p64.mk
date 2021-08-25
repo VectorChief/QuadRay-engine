@@ -121,7 +121,7 @@ clang: clang_p8 clang_p9
 clang_p8: RooT.p64_32Lp8 RooT.p64_64Lp8 RooT.p64f32Lp8 RooT.p64f64Lp8
 
 RooT.p64_32Lp8:
-	clang++ -O3 -g -pthread -mcpu=power8 \
+	clang++ -O0 -g -pthread -mcpu=power8 \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -129,7 +129,7 @@ RooT.p64_32Lp8:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_32Lp8
 
 RooT.p64_64Lp8:
-	clang++ -O3 -g -pthread -mcpu=power8 \
+	clang++ -O0 -g -pthread -mcpu=power8 \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -137,7 +137,7 @@ RooT.p64_64Lp8:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_64Lp8
 
 RooT.p64f32Lp8:
-	clang++ -O3 -g -pthread -mcpu=power8 \
+	clang++ -O0 -g -pthread -mcpu=power8 \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -145,7 +145,7 @@ RooT.p64f32Lp8:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f32Lp8
 
 RooT.p64f64Lp8:
-	clang++ -O3 -g -pthread -mcpu=power8 \
+	clang++ -O0 -g -pthread -mcpu=power8 \
         -DRT_LINUX -DRT_P64 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -156,7 +156,7 @@ RooT.p64f64Lp8:
 clang_p9: RooT.p64_32Lp9 RooT.p64_64Lp9 RooT.p64f32Lp9 RooT.p64f64Lp9
 
 RooT.p64_32Lp9:
-	clang++ -O3 -g -pthread \
+	clang++ -O0 -g -pthread \
         -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -164,7 +164,7 @@ RooT.p64_32Lp9:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_32Lp9
 
 RooT.p64_64Lp9:
-	clang++ -O3 -g -pthread \
+	clang++ -O0 -g -pthread \
         -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -172,7 +172,7 @@ RooT.p64_64Lp9:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64_64Lp9
 
 RooT.p64f32Lp9:
-	clang++ -O3 -g -pthread \
+	clang++ -O0 -g -pthread \
         -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
@@ -180,7 +180,7 @@ RooT.p64f32Lp9:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f32Lp9
 
 RooT.p64f64Lp9:
-	clang++ -O3 -g -pthread \
+	clang++ -O0 -g -pthread \
         -DRT_LINUX -DRT_P64 -DRT_128=1+2 -DRT_256=1+2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" -DRT_FULLSCREEN=0 \
