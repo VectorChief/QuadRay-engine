@@ -3511,7 +3511,7 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
     /* adjust ray steppers according to antialiasing mode */
     rt_real fha[RT_SIMD_WIDTH], fhi[RT_SIMD_WIDTH], fhu; /* h - hor */
     rt_real fva[RT_SIMD_WIDTH], fvi[RT_SIMD_WIDTH], fvu; /* v - ver */
-    rt_si32 i;
+    rt_si32 i, n;
 
     if (pfm->fsaa == RT_FSAA_NO)
     {
@@ -3666,22 +3666,28 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
 
     RT_SIMD_SET(s_inf->pts_c, pts_c);
 
-    /* use of integer indices for primary rays update
-     * makes related fp-math independent from SIMD width */
-    for (i = 0; i < pfm->simd_width; i++)
+    for (n = RT_MAX(1, pt_on); n > 0; n--)
     {
-        s_cam->index[i] = i;
-        s_inf->hor_c[i] = fhi[i];
+        /* use of integer indices for primary rays update
+         * makes related fp-math independent from SIMD width */
+        for (i = 0; i < pfm->simd_width; i++)
+        {
+            s_cam->index[i] = i;
+            s_inf->hor_c[i] = fhi[i];
 
-        s_inf->hor_i[i] = fhi[i];
-        s_inf->ver_i[i] = fvi[i];
+            s_inf->hor_i[i] = fhi[i];
+            s_inf->ver_i[i] = fvi[i];
 
-        s_cam->hor_a[i] = fha[i];
-        s_cam->ver_a[i] = fva[i];
+            s_cam->hor_a[i] = fha[i];
+            s_cam->ver_a[i] = fva[i];
+        }
+
+        s_inf->depth = depth;
+        RT_SIMD_SET(s_ctx->wmask, -1);
+
+        /* render frame based on tilebuffer */
+        pfm->render0(s_inf);
     }
-
-    /* render frame based on tilebuffer */
-    pfm->render0(s_inf);
 }
 
 /*
@@ -3783,18 +3789,21 @@ rt_si32 rt_Scene::set_opts(rt_si32 opts)
 }
 
 /*
- * Set path-tracer mode to: 0 - off, 1 - on.
+ * Set path-tracer mode to: 0 - off, n - on (number of frames between updates).
  */
 rt_si32 rt_Scene::set_pton(rt_si32 pton)
 {
-    rt_si32 pt_on = this->pt_on;
-
-    this->pt_on = pton != 0 && ((opts & RT_OPTS_PT) == 0);
-
-    if (this->pt_on && !pt_on)
+    if ((opts & RT_OPTS_PT) == 0) /* if path-tracer is not optimized out */
     {
-        reset_pseed();
-        reset_color();
+        rt_si32 pt_on = this->pt_on;
+
+        this->pt_on = pton;
+
+        if (this->pt_on && !pt_on)
+        {
+            reset_pseed();
+            reset_color();
+        }
     }
 
     return this->pt_on;

@@ -50,6 +50,7 @@ rt_si32     tile_w                  = 0;                    /* tile width */
 
 rt_time     b_time      = 0;        /* time-begins-(ms) (from command-line) */
 rt_time     e_time      =-1;        /* time-ending-(ms) (from command-line) */
+rt_si32     m_num       = 1;        /* frames-in-update (from command-line) */
 rt_si32     f_num       =-1;        /* number-of-frames (from command-line) */
 rt_time     f_time      =-1;        /* frame-delta-(ms) (from command-line) */
 rt_si32     n_simd      = 0;        /* SIMD-native-size (from command-line) */
@@ -248,9 +249,16 @@ rt_void print_avgfps()
 rt_void print_target()
 {
     RT_LOGI("------------------  TARGET CONFIG  ---------------------\n");
+    if (q_mode)
+    {
+    RT_LOGI("SIMD size/type = %4dx%dv%d, updatePT = %d, FSAA = %d %s\n",
+                               n_simd * 128, k_size, s_type, m_num,
+                               1 << a_mode, a_mode ? "(spp)" : "(off)");
+    } else {
     RT_LOGI("SIMD size/type = %4dx%dv%d, tile_W = %dxW, FSAA = %d %s\n",
                                n_simd * 128, k_size, s_type, tile_w / 8,
                                1 << a_mode, a_mode ? "(spp)" : "(off)");
+    }
     RT_LOGI("Framebuffer X-row = %5d, ptr = %016" PR_Z "X\n",
                        sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
     RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d  %s %s\n",
@@ -304,6 +312,34 @@ rt_si32 main_step()
 
             rt_si32 q_test = sc[d]->set_pton(q_mode != 0);
             if (q_test != (q_mode != 0))
+            {
+                q_mode = q_prev;
+                /* to enable path-tracer in a particular scene
+                 * add RT_OPTS_PT to the list of optimizations
+                 * to be turned off in scene definition struct */
+                RT_LOGI("%s\n", str);
+                RT_LOGI("Quasi-realistic mode: %d (off), %s\n", q_mode,
+                                            "add RT_OPTS_PT per scene");
+                RT_LOGI("%s\n", str);
+            }
+            else
+            {
+                switched = 1;
+            }
+        }
+        if (T_KEYS(RK_E) || T_KEYS(RK_Y))
+        {
+            if (m_num > 5)
+            {
+                m_num = 1;
+            }
+            else
+            {
+                m_num = (m_num % 5) + 1;
+            }
+
+            rt_si32 q_test = sc[d]->set_pton(q_mode ? m_num : 0);
+            if (q_test != (q_mode ? m_num : 0))
             {
                 q_mode = q_prev;
                 /* to enable path-tracer in a particular scene
@@ -572,7 +608,7 @@ rt_si32 main_step()
         if (!h_mode)
         {
             sc[d]->render_num(x_res-30, 10, -1, 2, (rt_si32)fps);
-            sc[d]->render_num(x_res-10, 10, -1, 2, tile_w / 8);
+            sc[d]->render_num(x_res-10, 10, -1, 2, q_mode ? m_num : tile_w / 8);
             sc[d]->render_num(x_res-10, 34, -1, 2, 1 << a_mode);
             sc[d]->render_num(      30, 10, +1, 2, n_simd * 128);
             sc[d]->render_num(      10, 10, +1, 2, k_size);
@@ -623,6 +659,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -c n, specify default camera-idx, where 1 <= n <= c_num\n");
         RT_LOGI(" -b n, specify time (ms) at which testing begins, n >= 0\n");
         RT_LOGI(" -e n, specify time (ms) at which testing ends, n >= min\n");
+        RT_LOGI(" -m n, specify # of path-tracer frames in update, n >= 1\n");
         RT_LOGI(" -f n, specify # of consecutive frames to render, n >= 0\n");
         RT_LOGI(" -g n, specify delta (ms) for consecutive frames, n >= 0\n");
         RT_LOGI(" -n n, override SIMD-native-size, where new simd is 1.16\n");
@@ -714,6 +751,23 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             else
             {
                 RT_LOGI("Closing-test-time value out of range\n");
+                return 0;
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-m") == 0 && ++k < argc)
+        {
+            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            {
+                t += (argv[k][l-1] - '0') * r;
+            }
+            if (t >= 1)
+            {
+                RT_LOGI("Frames-in-update: %d\n", t);
+                m_num = t;
+            }
+            else
+            {
+                RT_LOGI("Frames-in-update value out of range\n");
                 return 0;
             }
         }
@@ -1080,8 +1134,8 @@ rt_si32 main_init()
     }
     sc[d]->set_opts(opts);
 
-    rt_si32 q_test = sc[d]->set_pton(q_mode != 0);
-    if (q_test != (q_mode != 0))
+    rt_si32 q_test = sc[d]->set_pton(q_mode ? m_num : 0);
+    if (q_test != (q_mode ? m_num : 0))
     {
         q_mode = RT_FALSE;
         /* to enable path-tracer in a particular scene
