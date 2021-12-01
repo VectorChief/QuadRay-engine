@@ -255,14 +255,14 @@ rt_void print_target()
                        sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
     RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d  %s %s\n",
                                           x_res, y_res, l_mode, h_mode,
-            q_mode == 2 ? "P" : p_mode ? "p" : " ", q_mode ? "q" : " ");
+                                p_mode ? "p" : " ", q_mode ? "q" : " ");
     RT_LOGI("Window-rect X-res = %5d, Y-res = %4d, u %d, o %d\n",
                                           x_win, y_win, u_mode, o_mode);
     RT_LOGI("Threads/affinity = %4d/%d, reserved = %d, d%2d, c%2d\n",
                          pfm->get_thnum(), RT_SETAFFINITY, 0, d+1, c+1);
 
     RT_LOGI("---%s%s-------------  FPS LOG  ------ ptr/fp = %d%s%d --\n",
-      q_mode == 2 ? " P " : p_mode ? " p " : "---", q_mode ? "q " : "--",
+                            p_mode ? " p " : "---", q_mode ? "q " : "--",
                     RT_POINTER, RT_ADDRESS == 32 ? "_" : "f", RT_ELEMENT);
 }
 
@@ -293,44 +293,18 @@ rt_si32 main_step()
         }
         if (T_KEYS(RK_P))
         {
-            if (q_mode)
-            {
-                p_mode = q_mode - 1;
-                p_mode = !p_mode;
-                q_mode = 1 + p_mode;
-                p_mode = RT_TRUE;
-                q_prev = q_mode; /* <-- update here as switched is 0 */
-                RT_LOGI("%s\n", str);
-                RT_LOGI("---%s%s----- changing inherited pause mode --%s\n",
-                            q_mode == 2 ? " P " : " p ", "q ", "----------");
-                RT_LOGI("%s\n", str);
-            }
-            else
-            {
-                p_prev = p_mode;
-                p_mode = !p_mode;
-                switched = 1;
-            }
+            p_prev = p_mode;
+            p_mode = !p_mode;
+            switched = 1;
         }
         if (T_KEYS(RK_Q) || T_KEYS(RK_T))
         {
-            p_prev = p_mode;
             q_prev = q_mode;
-            if (q_mode)
-            {
-                p_mode = q_mode - 1;
-                q_mode = 0;
-            }
-            else
-            {
-                q_mode = 1 + p_mode;
-                p_mode = RT_TRUE;
-            }
+            q_mode = !q_mode;
 
             rt_si32 q_test = sc[d]->set_pton(q_mode != 0);
             if (q_test != (q_mode != 0))
             {
-                p_mode = p_prev;
                 q_mode = q_prev;
                 /* to enable path-tracer in a particular scene
                  * add RT_OPTS_PT to the list of optimizations
@@ -667,8 +641,9 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -q, quake mode, enables path-tracing for quality lights\n");
         RT_LOGI(" -u n, 1-3/4 serial update/render, 5/6 update/render off\n");
         RT_LOGI(" -o, offscreen-frame mode, turns off window-rect updates\n");
+        RT_LOGI(" -a, enable 4x antialiasing by default, 8x not supported\n");
         RT_LOGI(" -a n, enable antialiasing, 2 for 2x, 4 for 4x, 8 for 8x\n");
-        RT_LOGI("options -d n, -c n, ... , ... , ... , -a can be combined\n");
+        RT_LOGI("options -d n  ... ... ... ... ...  -a n can all be mixed\n");
         RT_LOGI("--------------------------------------------------------\n");
     }
 
@@ -1114,11 +1089,6 @@ rt_si32 main_init()
          * to be turned off in scene definition struct */
         RT_LOGI("Quasi-realistic mode: %d (off), %s\n", q_mode,
                                     "add RT_OPTS_PT per scene");
-    }
-    if (q_mode)
-    {
-        q_mode += p_mode;
-        p_mode = RT_TRUE;
     }
 
     d_prev = d;

@@ -1190,6 +1190,7 @@ rt_Array::rt_Array(rt_Registry *rg, rt_Object *parent,
 
     /* reset array's changed status */
     arr_changed = 0;
+    scn_changed = 0;
 
     /* reset array's accumulated light */
     memset(&col, 0, sizeof(rt_COL));
@@ -1756,6 +1757,8 @@ rt_void rt_Array::update_object(rt_time time, rt_si32 flags,
 
     update_matrix(mtx);
 
+    scn_changed = 0;
+
     rt_si32 i;
 
     /* update every object in array including sub-arrays (recursive),
@@ -1765,6 +1768,15 @@ rt_void rt_Array::update_object(rt_time time, rt_si32 flags,
     {
         obj_arr[i]->update_object(time, flags | mtx_has_trm | obj_changed,
                                   this->trnode, *pmtx);
+
+        if (RT_IS_ARRAY(obj_arr[i]))
+        {
+            scn_changed |= ((rt_Array *)obj_arr[i])->scn_changed;
+        }
+        else
+        {
+            scn_changed |= obj_arr[i]->obj_changed;
+        }
     }
 }
 

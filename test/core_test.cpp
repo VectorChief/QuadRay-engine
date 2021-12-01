@@ -594,10 +594,11 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -l, enable log-off mode, no printing to file and screen\n");
         RT_LOGI(" -o, enable optimal mode, omit unoptimized rendering run\n");
         RT_LOGI(" -q, enable quality mode, activate path-tracing lighting\n");
+        RT_LOGI(" -a, enable 4x antialiasing by default, 8x not supported\n");
         RT_LOGI(" -a n, enable antialiasing, 2 for 2x, 4 for 4x, 8 for 8x\n");
         RT_LOGI(" -t tex1 tex2 texn, convert images in data/textures/tex*\n");
         RT_LOGI(" -z, plot Fresnel/Gamma functions & antialiasing samples\n");
-        RT_LOGI("options -b, .., -a can be combined, -t/-z are standalone\n");
+        RT_LOGI("options -b n ... -a n can be mixed, -t/-z are standalone\n");
         RT_LOGI("--------------------------------------------------------\n");
     }
 

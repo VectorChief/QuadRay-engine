@@ -465,8 +465,12 @@ class rt_Array : public rt_Node, public rt_List<rt_Array>
     rt_si32             obj_num;
 
     /* non-zero if array itself or
-     * some of its sub-objects changed */
+     * some of its renderables changed */
     rt_si32             arr_changed;
+
+    /* non-zero if array itself or
+     * some of its sub-objects changed */
+    rt_si32             scn_changed;
 
     /* cumulative luminosity
      * of all lights in array */

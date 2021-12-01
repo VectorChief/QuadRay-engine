@@ -2933,6 +2933,7 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
                 /* pseed is initialized in reset_pseed() */
     }
 
+    pts_c = 0.0f;
     pt_on = RT_FALSE;
 
     /* instantiate object hierarchy */
@@ -3047,6 +3048,11 @@ rt_void rt_Scene::render(rt_time time)
 
     /* phase 0.5, hierarchical update of arrays' transform matrices */
     root->update_object(time, 0, RT_NULL, iden4);
+
+    if (pt_on && root->scn_changed)
+    {
+        reset_color();
+    }
 
     /* 1st phase of multi-threaded update */
 #if RT_OPTS_THREAD != 0
@@ -3335,6 +3341,8 @@ rt_void rt_Scene::render(rt_time time)
     {
         render_scene(this, -thnum, 1);
     }
+
+    pts_c = tharr[0]->s_inf->pts_c[0];
 
 #if RT_OPTS_RENDER_EXT0 != 0
     } /* --<----<-- skip render0 --<----<-- */
@@ -3656,6 +3664,8 @@ rt_void rt_Scene::render_slice(rt_si32 index, rt_si32 phase)
 
     s_inf->pt_on = pt_on;
 
+    RT_SIMD_SET(s_inf->pts_c, pts_c);
+
     /* use of integer indices for primary rays update
      * makes related fp-math independent from SIMD width */
     for (i = 0; i < pfm->simd_width; i++)
@@ -3740,6 +3750,8 @@ rt_void rt_Scene::reset_color()
     {
         return;
     }
+
+    pts_c = 0.0f;
 
     memset(ptr_r, 0, 4 * x_row * y_res * sizeof(rt_real));
     memset(ptr_g, 0, 4 * x_row * y_res * sizeof(rt_real));
