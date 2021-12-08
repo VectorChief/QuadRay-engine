@@ -12,6 +12,12 @@
 #include "engine.h"
 #include "all_scn.h"
 
+/* enable test scene for smallpt-based path-tracer
+ * enable SIMD buffers for 5x performance in PT mode
+ * set RT_FEAT_BUFFERS to 1 in core/tracer/tracer.cpp
+ * set RT_OFFS_BUFFERS to 0x0A0*1 in core/tracer/tracer.h
+ * set RT_OPTS_BUFFERS to (0 << 24) in core/engine/format.h
+ */
 #define RT_TEST_PT      0
 
 #if RT_TEST_PT != 0
@@ -310,8 +316,8 @@ rt_si32 main_step()
             q_prev = q_mode;
             q_mode = !q_mode;
 
-            rt_si32 q_test = sc[d]->set_pton(q_mode != 0);
-            if (q_test != (q_mode != 0))
+            rt_si32 q_test = sc[d]->set_pton(q_mode ? m_num : 0);
+            if (q_test != (q_mode ? m_num : 0))
             {
                 q_mode = q_prev;
                 /* to enable path-tracer in a particular scene
@@ -561,6 +567,18 @@ rt_si32 main_step()
             c = sc[d]->get_cam_idx();
             pfm->set_cur_scene(sc[d]);
             switched = d_prev != d ? 1 : switched;
+            rt_si32 q_test = sc[d]->set_pton(q_mode ? m_num : 0);
+            if (q_test != (q_mode ? m_num : 0))
+            {
+                q_mode = q_prev;
+                /* to enable path-tracer in a particular scene
+                 * add RT_OPTS_PT to the list of optimizations
+                 * to be turned off in scene definition struct */
+                RT_LOGI("%s\n", str);
+                RT_LOGI("Quasi-realistic mode: %d (off), %s\n", q_mode,
+                                            "add RT_OPTS_PT per scene");
+                RT_LOGI("%s\n", str);
+            }
         }
 
 #if RT_OPTS_UPDATE_EXT0 != 0
