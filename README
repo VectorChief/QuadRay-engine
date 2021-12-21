@@ -10,9 +10,9 @@ Initial documentation for the assembler is provided in core/config/rtdocs.h.
 At present, Intel SSE/SSE2/SSE4 and AVX/AVX2/AVX-512 (32/64-bit x86 ISAs),
 ARMv7 NEON/NEONv2, ARMv8 AArch32 and AArch64 NEON, SVE (32/64-bit ARM ISAs),
 MIPS 32/64-bit r5/r6 MSA and POWER 32/64-bit VMX/VSX (little/big-endian ISAs)
-are mostly implemented (w/ horizontal reductions) although scalar improvements,
-wider SIMD vectors with zeroing/merging predicates in 3/4-operand instructions,
-cross-precision fp-converters as well as sub-word (byte/half) integer SIMD ops
+are mostly implemented (w/ horizontal reductions and byte/half SIMD+BASE ops)
+although scalar improvements, wider SIMD vectors with zeroing/merging predicates
+in 3/4-operand instructions, cross-precision fp-converters on modern CPU targets
 are planned as extensions to current 2/3-operand SPMD-driven vertical SIMD ISA.
 
 The project has a test framework for Linux/GCC/Clang and Windows/VC++/TDM64-GCC.
@@ -37,8 +37,8 @@ RooT demo features:
  - Refer to VERSION file (section 0.6.7) for cli options
 
 QuadRay core features:
- - Full set of plane+(unified)quadric solvers
- - Custom clipping (by surface), boolean ops
+ - Full set of plane + quadric solvers
+ - Custom clipping (with surface), boolean ops
  - Full geometry transform (hierarchical)
  - Basic RGB texturing for planes, no UV-mapping yet
  - Ambient+diffuse+specular+attenuation lights
@@ -50,4 +50,4 @@ QuadRay core features:
  - Statically-linkable data format (C/C++ structs)
  - Programmable animators for all objects (below root)
  - 8 registers deep SIMD rendering pipeline (core/tracer)
- - Written on UniSIMD assembler
+ - Written in UniSIMD assembler
