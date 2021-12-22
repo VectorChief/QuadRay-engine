@@ -2936,6 +2936,8 @@ rt_Scene::rt_Scene(rt_SCENE *scn, /* "frame" must be SIMD-aligned or NULL */
     pts_c = 0.0f;
     pt_on = RT_FALSE;
 
+    fsaa = pfm->fsaa;
+
     /* instantiate object hierarchy */
     memset(&rootobj, 0, sizeof(rt_OBJECT));
 
@@ -3049,9 +3051,10 @@ rt_void rt_Scene::render(rt_time time)
     /* phase 0.5, hierarchical update of arrays' transform matrices */
     root->update_object(time, 0, RT_NULL, iden4);
 
-    if (pt_on && root->scn_changed)
+    if (pt_on && (root->scn_changed || pfm->fsaa != fsaa))
     {
         reset_color();
+        fsaa = pfm->fsaa;
     }
 
     /* 1st phase of multi-threaded update */

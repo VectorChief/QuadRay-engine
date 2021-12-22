@@ -17,6 +17,8 @@
  * set RT_FEAT_BUFFERS to 1 in core/tracer/tracer.cpp
  * set RT_OFFS_BUFFERS to 0x0A0*1 in core/tracer/tracer.h
  * set RT_OPTS_BUFFERS to (0 << 24) in core/engine/format.h
+ * to enable path-tracer in runtime press Q (or T) or pass -q
+ * to change the number of frames between updates press E (or Y)
  */
 #define RT_TEST_PT      0
 
@@ -335,13 +337,13 @@ rt_si32 main_step()
         }
         if (T_KEYS(RK_E) || T_KEYS(RK_Y))
         {
-            if (m_num > 5)
+            if (m_num > 9)
             {
                 m_num = 1;
             }
             else
             {
-                m_num = (m_num % 5) + 1;
+                m_num = (m_num % 9) + 1;
             }
 
             rt_si32 q_test = sc[d]->set_pton(q_mode ? m_num : 0);

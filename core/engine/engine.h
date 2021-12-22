@@ -312,6 +312,8 @@ class rt_Scene : private rt_Registry, public rt_List<rt_Scene>
     /* accumulated ambient color */
     rt_vec4             amb;
 
+    /* current antialiasing mode */
+    rt_si32             fsaa;
     /* root of the object hierarchy */
     rt_Array           *root;
     /* current camera */
