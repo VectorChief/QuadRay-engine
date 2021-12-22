@@ -33,7 +33,8 @@ RooT demo features:
  - Multi-group affinity for Windows threading (> 64 threads)
  - Fullscreen support on Linux, macOS and Windows (-w 0)
  - Offscreen rendering support for benchmarking (-o or '0'/'O')
- - Pause mode (-p or 'P'), update/render stages (-u or '9'/'U')
+ - Pause mode (-p or 'P'), update/render stages (-u n or '9'/'U')
+ - Quake mode (-q or 'Q'/'T'), frames in update (-m n or 'E'/'Y')
  - Refer to VERSION file (section 0.6.7) for cli options
 
 QuadRay core features:
@@ -41,10 +42,10 @@ QuadRay core features:
  - Custom clipping (with surface), boolean ops
  - Full geometry transform (hierarchical)
  - Basic RGB texturing for planes, no UV-mapping yet
- - Ambient+diffuse+specular+attenuation lights
+ - Ambient + diffuse + specular + attenuation lights
  - All lights are colored points with infinite range
  - Hard shadows (opaque) from all light sources
- - Reflections/refractions+translucency w/ Fresnel (df: off)
+ - Reflections/refractions + translucency, Fresnel (df: off)
  - Fullscreen 2x/4x antialiasing, Gamma correction (df: off)
  - Tiled scanline rendering, custom tree-like accelerators
  - Statically-linkable data format (C/C++ structs)
