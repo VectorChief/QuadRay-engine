@@ -1,7 +1,7 @@
 QuadRay engine is a realtime raytracing project aimed at full SIMD utilization
 on ARM, MIPS, POWER and x86 architectures. The efficient use of SIMD is achieved
 by processing four rays at a time to match SIMD register width (hence the name).
-The rendering core of the engine is written on a unified SIMD assembler
+The rendering core of the engine is written in a unified SIMD assembler
 allowing single assembler code to be compatible with different processor
 architectures, thus reducing the need to maintain multiple parallel versions.
 
@@ -29,7 +29,7 @@ RooT demo features:
  - Runtime toggling of FPS logging (on F5/'L')
  - Runtime switching of SIMD targets (F6/'6', F7/'7', F8/'8')
  - Runtime scene selection (F11/'1'), hide nums (F12/'5')
- - Multi-threading support with core-count (df: 120 threads)
+ - Multi-threading support with core count (df: 120 threads)
  - Multi-group affinity for Windows threading (> 64 threads)
  - Fullscreen support on Linux, macOS and Windows (-w 0)
  - Offscreen rendering support for benchmarking (-o or '0'/'O')
@@ -51,4 +51,5 @@ QuadRay core features:
  - Statically-linkable data format (C/C++ structs)
  - Programmable animators for all objects (below root)
  - 8 registers deep SIMD rendering pipeline (core/tracer)
+ - Preliminary support for path-tracer with SIMD buffers
  - Written in UniSIMD assembler
