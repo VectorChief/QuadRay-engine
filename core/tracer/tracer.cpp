@@ -13,11 +13,11 @@
 /*
  * tracer.cpp: Implementation of the raytracing rendering backend.
  *
- * Raytracing rendering subsystem of the engine responsible for determining
+ * Raytracing rendering subsystem of the engine is responsible for determining
  * pixel colors in the framebuffer by tracing rays of light back from camera
  * through scene objects (surfaces) to light sources.
  *
- * Computation of ray intersections with scene surfaces is written on
+ * Computation of ray intersections with scene surfaces is written in
  * a unified SIMD macro assembler (rtarch.h) for maximum performance.
  *
  * The efficient use of SIMD is achieved by processing four rays at a time
@@ -26,8 +26,9 @@
  * with manual register allocation scheme to avoid unnecessary copying.
  *
  * Unified SIMD macro assembler is designed to be compatible with different
- * processor architectures, while maintaining strictly defined common API,
- * thus application logic can be written and maintained in one place (here).
+ * processor architectures, while maintaining clearly defined common API,
+ * thus application logic can be written and maintained in one place
+ * without code replication (refer to core/config/rtdocs.h for documentation).
  */
 
 /******************************************************************************/

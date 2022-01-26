@@ -3054,8 +3054,10 @@ rt_void rt_Scene::render(rt_time time)
     if (pt_on && (root->scn_changed || pfm->fsaa != fsaa))
     {
         reset_color();
-        fsaa = pfm->fsaa;
     }
+
+    /* update current antialiasing mode per scene */
+    fsaa = pfm->fsaa;
 
     /* 1st phase of multi-threaded update */
 #if RT_OPTS_THREAD != 0

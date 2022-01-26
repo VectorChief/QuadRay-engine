@@ -20,7 +20,9 @@
  * to enable path-tracer in runtime press Q (or T) or pass -q
  * to change the number of frames between updates press E (or Y)
  */
+#ifndef RT_TEST_PT
 #define RT_TEST_PT      0
+#endif /* RT_TEST_PT */
 
 #if RT_TEST_PT != 0
 #include "../test/scenes/scn_test17.h" /* RaVi - glass cube */
@@ -78,7 +80,11 @@ rt_time     l_time      = 500;        /* fpslogupd-(ms) (from command-line) */
 rt_bool     l_mode      = RT_FALSE;        /* fpslogoff (from command-line) */
 rt_bool     h_mode      = RT_FALSE;        /* hide mode (from command-line) */
 rt_bool     p_mode      = RT_FALSE;       /* pause mode (from command-line) */
+#if RT_TEST_PT != 0
+rt_bool     q_mode      = RT_TRUE;        /* quake mode (from command-line) */
+#else  /* RT_TEST_PT */
 rt_bool     q_mode      = RT_FALSE;       /* quake mode (from command-line) */
+#endif /* RT_TEST_PT */
 rt_si32     u_mode      = 0; /* update/render threadoff (from command-line) */
 rt_bool     o_mode      = RT_FALSE;        /* offscreen (from command-line) */
 rt_si32     a_mode      = RT_FSAA_NO;      /* FSAA mode (from command-line) */
