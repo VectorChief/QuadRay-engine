@@ -5,7 +5,7 @@
 /******************************************************************************/
 
 #ifndef RT_REGS
-#define RT_REGS 16   /* define maximum of available SIMD registers for code */
+#define RT_REGS 16  /* define maximum of available SIMD registers for code */
 #endif /* RT_REGS */
 
 #undef  RT_SIMD

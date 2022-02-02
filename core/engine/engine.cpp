@@ -3794,7 +3794,15 @@ rt_si32 rt_Scene::set_opts(rt_si32 opts)
 }
 
 /*
- * Set path-tracer mode to: 0 - off, n - on (number of frames between updates).
+ * Get path-tracer mode: 0 - off, n - on (number of frames between updates).
+ */
+rt_si32 rt_Scene::get_pton()
+{
+    return this->pt_on;
+}
+
+/*
+ * Set path-tracer mode: 0 - off, n - on (number of frames between updates).
  */
 rt_si32 rt_Scene::set_pton(rt_si32 pton)
 {

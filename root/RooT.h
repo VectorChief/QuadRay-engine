@@ -12,16 +12,18 @@
 #include "engine.h"
 #include "all_scn.h"
 
-/* enable test scene for smallpt-based path-tracer
+/* enable test scenes for smallpt-based path-tracer
  * enable SIMD buffers for 5x performance in PT mode
  * set RT_FEAT_BUFFERS to 1 in core/tracer/tracer.cpp
  * set RT_OFFS_BUFFERS to 0x0A0*1 in core/tracer/tracer.h
  * set RT_OPTS_BUFFERS to (0 << 24) in core/engine/format.h
+ * to enable path-tracer support in every scene engine-wide
+ * set RT_OPTS_PT to (0 << 25) in core/engine/format.h
  * to enable path-tracer in runtime press Q (or T) or pass -q
  * to change the number of frames between updates press E (or Y)
  */
 #ifndef RT_TEST_PT
-#define RT_TEST_PT      0
+#define RT_TEST_PT      1
 #endif /* RT_TEST_PT */
 
 #if RT_TEST_PT != 0
@@ -85,6 +87,7 @@ rt_bool     q_mode      = RT_TRUE;        /* quake mode (from command-line) */
 #else  /* RT_TEST_PT */
 rt_bool     q_mode      = RT_FALSE;       /* quake mode (from command-line) */
 #endif /* RT_TEST_PT */
+rt_bool     q_test      = RT_FALSE;       /* quake mode (from actual scene) */
 rt_si32     u_mode      = 0; /* update/render threadoff (from command-line) */
 rt_bool     o_mode      = RT_FALSE;        /* offscreen (from command-line) */
 rt_si32     a_mode      = RT_FSAA_NO;      /* FSAA mode (from command-line) */
@@ -244,7 +247,7 @@ rt_byte r_keys[KEY_MASK + 1];
 rt_void print_avgfps()
 {
     RT_LOGI("---%s%s-------------  FPS AVG  ------ simd = %4dx%dv%d -\n",
-      q_prev == 2 ? " P " : p_prev ? " p " : "---", q_prev ? "q " : "--",
+                            p_prev ? " p " : "---", q_prev ? "q " : "--",
                                             n_prev * 128, k_prev, s_prev);
     if (cur_time - run_time > 0)
     {
@@ -263,7 +266,7 @@ rt_void print_avgfps()
 rt_void print_target()
 {
     RT_LOGI("------------------  TARGET CONFIG  ---------------------\n");
-    if (q_mode)
+    if (q_test)
     {
     RT_LOGI("SIMD size/type = %4dx%dv%d, updatePT = %d, FSAA = %d %s\n",
                                n_simd * 128, k_size, s_type, m_num,
@@ -277,16 +280,18 @@ rt_void print_target()
                        sc[d]->get_x_row(), (rt_full)sc[d]->get_frame());
     RT_LOGI("Framebuffer X-res = %5d, Y-res = %4d, l %d, h %d  %s %s\n",
                                           x_res, y_res, l_mode, h_mode,
-                                p_mode ? "p" : " ", q_mode ? "q" : " ");
+                                p_mode ? "p" : " ", q_test ? "q" : " ");
     RT_LOGI("Window-rect X-res = %5d, Y-res = %4d, u %d, o %d\n",
                                           x_win, y_win, u_mode, o_mode);
     RT_LOGI("Threads/affinity = %4d/%d, reserved = %d, d%2d, c%2d\n",
                          pfm->get_thnum(), RT_SETAFFINITY, 0, d+1, c+1);
 
     RT_LOGI("---%s%s-------------  FPS LOG  ------ ptr/fp = %d%s%d --\n",
-                            p_mode ? " p " : "---", q_mode ? "q " : "--",
+                            p_mode ? " p " : "---", q_test ? "q " : "--",
                     RT_POINTER, RT_ADDRESS == 32 ? "_" : "f", RT_ELEMENT);
 }
+
+rt_pstr str = "--------------------------------------------------------";
 
 /*
  * Event loop's main step.
@@ -299,7 +304,6 @@ rt_si32 main_step()
     }
 
     rt_si32 g = d; /* current scene for save_frame at the end of each run */
-    rt_pstr str = "--------------------------------------------------------";
 
     try
     {
@@ -322,51 +326,62 @@ rt_si32 main_step()
         if (T_KEYS(RK_Q) || T_KEYS(RK_T))
         {
             q_prev = q_mode;
-            q_mode = !q_mode;
-
-            rt_si32 q_test = sc[d]->set_pton(q_mode ? m_num : 0);
-            if (q_test != (q_mode ? m_num : 0))
+            do
             {
-                q_mode = q_prev;
-                /* to enable path-tracer in a particular scene
-                 * add RT_OPTS_PT to the list of optimizations
-                 * to be turned off in scene definition struct */
-                RT_LOGI("%s\n", str);
-                RT_LOGI("Quasi-realistic mode: %d (off), %s\n", q_mode,
-                                            "add RT_OPTS_PT per scene");
-                RT_LOGI("%s\n", str);
+                q_test = sc[d]->set_pton(q_mode ? m_num : 0) > 0 ? q_mode : 0;
+                if (q_test != q_mode)
+                {
+                    q_mode = q_prev;
+                    /* to enable path-tracer in a particular scene
+                     * add RT_OPTS_PT to the list of optimizations
+                     * to be turned off in scene definition struct */
+                    /*
+                    RT_LOGI("%s\n", str);
+                    RT_LOGI("Quasi-realistic mode: %d (off), %s\n", q_test,
+                                                "add RT_OPTS_PT per scene");
+                    RT_LOGI("%s\n", str);
+                    */
+                    break;
+                }
+                if (q_prev != q_mode)
+                {
+                    switched = 1;
+                    break;
+                }
+                q_mode = !q_mode;
             }
-            else
-            {
-                switched = 1;
-            }
+            while (RT_TRUE);
         }
         if (T_KEYS(RK_E) || T_KEYS(RK_Y))
         {
-            if (m_num > 9)
+            if (q_mode)
             {
-                m_num = 1;
-            }
-            else
-            {
-                m_num = (m_num % 9) + 1;
-            }
-
-            rt_si32 q_test = sc[d]->set_pton(q_mode ? m_num : 0);
-            if (q_test != (q_mode ? m_num : 0))
-            {
-                q_mode = q_prev;
-                /* to enable path-tracer in a particular scene
-                 * add RT_OPTS_PT to the list of optimizations
-                 * to be turned off in scene definition struct */
-                RT_LOGI("%s\n", str);
-                RT_LOGI("Quasi-realistic mode: %d (off), %s\n", q_mode,
-                                            "add RT_OPTS_PT per scene");
-                RT_LOGI("%s\n", str);
-            }
-            else
-            {
-                switched = 1;
+                q_test = sc[d]->set_pton(q_mode ? m_num : 0) > 0 ? q_mode : 0;
+                if (q_test != q_mode)
+                {
+                    /* to enable path-tracer in a particular scene
+                     * add RT_OPTS_PT to the list of optimizations
+                     * to be turned off in scene definition struct */
+                    /*
+                    RT_LOGI("%s\n", str);
+                    RT_LOGI("Quasi-realistic mode: %d (off), %s\n", q_test,
+                                                "add RT_OPTS_PT per scene");
+                    RT_LOGI("%s\n", str);
+                    */
+                }
+                else
+                {
+                    if (m_num > 9)
+                    {
+                        m_num = 1;
+                    }
+                    else
+                    {
+                        m_num = (m_num % 9) + 1;
+                    }
+                    switched = 1;
+                }
+                q_test = sc[d]->set_pton(q_mode ? m_num : 0) > 0 ? q_mode : 0;
             }
         }
         if (T_KEYS(RK_9) || T_KEYS(RK_U))
@@ -575,17 +590,19 @@ rt_si32 main_step()
             c = sc[d]->get_cam_idx();
             pfm->set_cur_scene(sc[d]);
             switched = d_prev != d ? 1 : switched;
-            rt_si32 q_test = sc[d]->set_pton(q_mode ? m_num : 0);
-            if (q_test != (q_mode ? m_num : 0))
+            q_prev = q_test;
+            q_test = sc[d]->set_pton(q_mode ? m_num : 0) > 0 ? q_mode : 0;
+            if (q_test != q_mode)
             {
-                q_mode = q_prev;
                 /* to enable path-tracer in a particular scene
                  * add RT_OPTS_PT to the list of optimizations
                  * to be turned off in scene definition struct */
+                /*
                 RT_LOGI("%s\n", str);
-                RT_LOGI("Quasi-realistic mode: %d (off), %s\n", q_mode,
+                RT_LOGI("Quasi-realistic mode: %d (off), %s\n", q_test,
                                             "add RT_OPTS_PT per scene");
                 RT_LOGI("%s\n", str);
+                */
             }
         }
 
@@ -606,6 +623,18 @@ rt_si32 main_step()
             switched = 0;
 
             print_avgfps();
+
+            if (q_test != q_mode)
+            {
+                /* to enable path-tracer in a particular scene
+                 * add RT_OPTS_PT to the list of optimizations
+                 * to be turned off in scene definition struct */
+                RT_LOGI("%s\n", str);
+                RT_LOGI("Quasi-realistic mode: %d (off), %s\n", q_test,
+                                            "add RT_OPTS_PT per scene");
+                RT_LOGI("%s\n", str);
+            }
+
             print_target();
 
             d_prev = d;
@@ -634,7 +663,7 @@ rt_si32 main_step()
         if (!h_mode)
         {
             sc[d]->render_num(x_res-30, 10, -1, 2, (rt_si32)fps);
-            sc[d]->render_num(x_res-10, 10, -1, 2, q_mode ? m_num : tile_w / 8);
+            sc[d]->render_num(x_res-10, 10, -1, 2, q_test ? m_num : tile_w / 8);
             sc[d]->render_num(x_res-10, 34, -1, 2, 1 << a_mode);
             sc[d]->render_num(      30, 10, +1, 2, n_simd * 128);
             sc[d]->render_num(      10, 10, +1, 2, k_size);
@@ -1160,15 +1189,17 @@ rt_si32 main_init()
     }
     sc[d]->set_opts(opts);
 
-    rt_si32 q_test = sc[d]->set_pton(q_mode ? m_num : 0);
-    if (q_test != (q_mode ? m_num : 0))
+    q_test = sc[d]->set_pton(q_mode ? m_num : 0) > 0 ? q_mode : 0;
+    if (q_test != q_mode)
     {
         q_mode = RT_FALSE;
         /* to enable path-tracer in a particular scene
          * add RT_OPTS_PT to the list of optimizations
          * to be turned off in scene definition struct */
-        RT_LOGI("Quasi-realistic mode: %d (off), %s\n", q_mode,
+        RT_LOGI("%s\n", str);
+        RT_LOGI("Quasi-realistic mode: %d (off), %s\n", q_test,
                                     "add RT_OPTS_PT per scene");
+        RT_LOGI("%s\n", str);
     }
 
     d_prev = d;

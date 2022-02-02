@@ -152,22 +152,27 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     }
 
     /* acquire screen settings */
+    /* in physical pixels
     EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &DevMode);
+    */
+    /* in scaled dimensions */
+    DevMode.dmPelsWidth  = GetSystemMetrics(SM_CXSCREEN);
+    DevMode.dmPelsHeight = GetSystemMetrics(SM_CYSCREEN);
 
     while (w_size > 0)
     {
         if (x_res > (rt_si32)DevMode.dmPelsWidth
         ||  y_res > (rt_si32)DevMode.dmPelsHeight)
         {
+            /*
             RT_LOGI("Window size exceeds screen, try -w 0 for fullscreen\n");
             return 1;
-            /*
+            */
             w_size--;
             x_res = (x_res / (w_size + 1)) * w_size;
             y_res = (y_res / (w_size + 1)) * w_size;
             x_row = (x_res+RT_SIMD_WIDTH-1) & ~(RT_SIMD_WIDTH-1);
             RT_LOGI("Window size exceeds screen, resizing: -w %d\n", w_size);
-            */
         }
         else
         {

@@ -12,7 +12,7 @@
 echo "========================================================"
 echo "=== running core_test64 in background, check ../dump ==="
 echo "=== wait for all 18 image-sets to be present: scr18* ==="
-echo "=== use top to monitor when all core-* have finished ==="
+echo "=== use top to monitor when all core_* have finished ==="
 echo "========================================================"
 
 ./core_test.x64f32 -n 1 -c 1 -o -l -i 0 &

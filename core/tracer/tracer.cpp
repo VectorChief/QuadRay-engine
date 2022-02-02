@@ -11,14 +11,14 @@
 /******************************************************************************/
 
 /*
- * tracer.cpp: Implementation of the raytracing rendering backend.
+ * tracer.cpp: Implementation of raytracing rendering backend.
  *
  * Raytracing rendering subsystem of the engine is responsible for determining
  * pixel colors in the framebuffer by tracing rays of light back from camera
  * through scene objects (surfaces) to light sources.
  *
  * Computation of ray intersections with scene surfaces is written in
- * a unified SIMD macro assembler (rtarch.h) for maximum performance.
+ * a unified SIMD macro assembler (rtbase.h) for maximum performance.
  *
  * The efficient use of SIMD is achieved by processing four rays at a time
  * to match SIMD register width (hence the name of the project) as well as
@@ -85,7 +85,7 @@
 #define RT_FEAT_BUFFERS_ACC         0   /* accumulate colors through buffers */
 #define RT_FEAT_BUFFERS_HIT         1   /* SIMD version of storing HITs if 1 */
 #define RT_FEAT_BUFFERS_OPT         1   /* skip buffering when not necessary */
-#define RT_FEAT_BUFFERS             0   /* buffer rays between solver/shader */
+#define RT_FEAT_BUFFERS             1   /* buffer rays between solver/shader */
                                         /* set RT_OPTS_BUFFERS to 0 in format.h
                                            set RT_OFFS_BUFFERS to 1 in tracer.h
                                            set RT_FEAT_BUFFERS to 1 above

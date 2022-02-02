@@ -8,7 +8,7 @@
 #define RT_TRACER_H
 
 #define RT_OFFS_BUFFERS_ACC     0x060*0 /* accum-colors: *0 - off, *1 - on */
-#define RT_OFFS_BUFFERS         0x0A0*0 /* SIMD-buffers: *0 - off, *1 - on */
+#define RT_OFFS_BUFFERS         0x0A0*1 /* SIMD-buffers: *0 - off, *1 - on */
 
 /*
  * RT_DATA determines the maximum load-level for data structures in code-base.

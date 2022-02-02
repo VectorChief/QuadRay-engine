@@ -22,8 +22,8 @@ namespace scn_test17
 rt_PLANE pl_floor01 =
 {
     {      /*   RT_I,       RT_J,       RT_K    */
-/* min */   {   -4.0,       -4.0,      -RT_INF  },
-/* max */   {   +4.0,       +4.0,      +RT_INF  },
+/* min */   {   -8.0,       -8.0,      -RT_INF  },
+/* max */   {   +8.0,       +8.0,      +RT_INF  },
         {
 /* OUTER        RT_U,       RT_V    */
 /* scl */   {    2.0,        2.0    },
@@ -208,7 +208,7 @@ rt_OBJECT ob_tree[] =
     },
     {
         {  /*   RT_X,       RT_Y,       RT_Z    */
-/* scl */   {    1.0,        1.0,        1.0    },
+/* scl */   {    5.0,        5.0,        5.0    },
 /* rot */   {    0.0,        0.0,        0.0    },
 /* pos */   {    6.0,       -6.0,        6.5    },
         },

@@ -60,7 +60,7 @@
 #define RT_OPTS_GAMMA           (1 << 20) /* turns off Gamma when set to 1 */
 #define RT_OPTS_FRESNEL         (1 << 21) /* turns off Fresnel when set to 1 */
 
-#define RT_OPTS_BUFFERS         (1 << 24) /* prohibits SIMD-buffers if 1 */
+#define RT_OPTS_BUFFERS         (0 << 24) /* prohibits SIMD-buffers if 1 */
 #define RT_OPTS_PT              (1 << 25) /* prohibits path-tracer if 1 */
 
 /* extra options (update) */
