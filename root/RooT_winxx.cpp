@@ -306,7 +306,7 @@ rt_pntr sys_alloc(rt_size size)
 {
     EnterCriticalSection(&critSec);
 
-#if RT_POINTER == 64
+#if (RT_POINTER - RT_ADDRESS) != 0
 
     /* loop around RT_ADDRESS_MAX boundary */
     if (s_ptr >= RT_ADDRESS_MAX - size)
@@ -326,11 +326,11 @@ rt_pntr sys_alloc(rt_size size)
     /* advance with allocation granularity */
     s_ptr = (rt_byte *)ptr + ((size + s_step - 1) / s_step) * s_step;
 
-#else /* RT_POINTER == 32 */
+#else /* (RT_POINTER - RT_ADDRESS) */
 
     rt_pntr ptr = malloc(size);
 
-#endif /* RT_POINTER */
+#endif /* (RT_POINTER - RT_ADDRESS) */
 
 #if RT_DEBUG >= 2
 
@@ -364,15 +364,15 @@ rt_void sys_free(rt_pntr ptr, rt_size size)
 {
     EnterCriticalSection(&critSec);
 
-#if RT_POINTER == 64
+#if (RT_POINTER - RT_ADDRESS) != 0
 
     VirtualFree(ptr, 0, MEM_RELEASE);
 
-#else /* RT_POINTER == 32 */
+#else /* (RT_POINTER - RT_ADDRESS) */
 
     free(ptr);
 
-#endif /* RT_POINTER */
+#endif /* (RT_POINTER - RT_ADDRESS) */
 
 #if RT_DEBUG >= 2
 

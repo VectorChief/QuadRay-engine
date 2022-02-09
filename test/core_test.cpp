@@ -1156,7 +1156,7 @@ SYSTEM_INFO s_sys = {0};
  */
 rt_pntr sys_alloc(rt_size size)
 {
-#if RT_POINTER == 64
+#if (RT_POINTER - RT_ADDRESS) != 0
 
     /* loop around RT_ADDRESS_MAX boundary */
     if (s_ptr >= RT_ADDRESS_MAX - size)
@@ -1176,11 +1176,11 @@ rt_pntr sys_alloc(rt_size size)
     /* advance with allocation granularity */
     s_ptr = (rt_byte *)ptr + ((size + s_step - 1) / s_step) * s_step;
 
-#else /* RT_POINTER == 32 */
+#else /* (RT_POINTER - RT_ADDRESS) */
 
     rt_pntr ptr = malloc(size);
 
-#endif /* RT_POINTER */
+#endif /* (RT_POINTER - RT_ADDRESS) */
 
 #if RT_DEBUG >= 2
 
@@ -1211,15 +1211,15 @@ rt_pntr sys_alloc(rt_size size)
  */
 rt_void sys_free(rt_pntr ptr, rt_size size)
 {
-#if RT_POINTER == 64
+#if (RT_POINTER - RT_ADDRESS) != 0
 
     VirtualFree(ptr, 0, MEM_RELEASE);
 
-#else /* RT_POINTER == 32 */
+#else /* (RT_POINTER - RT_ADDRESS) */
 
     free(ptr);
 
-#endif /* RT_POINTER */
+#endif /* (RT_POINTER - RT_ADDRESS) */
 
 #if RT_DEBUG >= 2
 
@@ -1243,7 +1243,7 @@ rt_time get_time()
     return (rt_time)(tm.tv_sec * 1000 + tm.tv_usec / 1000);
 }
 
-#if RT_POINTER == 64
+#if (RT_POINTER - RT_ADDRESS) != 0
 
 #include <sys/mman.h>
 
@@ -1251,7 +1251,7 @@ rt_time get_time()
 #define MAP_ANONYMOUS MAP_ANON  /* workaround for macOS compilation */
 #endif /* macOS still cannot allocate with mmap within 32-bit range */
 
-#endif /* RT_POINTER */
+#endif /* (RT_POINTER - RT_ADDRESS) */
 
 /*
  * Allocate memory from system heap.
@@ -1259,7 +1259,7 @@ rt_time get_time()
  */
 rt_pntr sys_alloc(rt_size size)
 {
-#if RT_POINTER == 64
+#if (RT_POINTER - RT_ADDRESS) != 0
 
     /* loop around RT_ADDRESS_MAX boundary */
     /* in 64/32-bit hybrid mode addresses can't have sign bit
@@ -1277,11 +1277,11 @@ rt_pntr sys_alloc(rt_size size)
      * mmap should round toward closest correct page boundary */
     s_ptr = (rt_byte *)ptr + ((size + 4095) / 4096) * 4096;
 
-#else /* RT_POINTER == 32 */
+#else /* (RT_POINTER - RT_ADDRESS) */
 
     rt_pntr ptr = malloc(size);
 
-#endif /* RT_POINTER */
+#endif /* (RT_POINTER - RT_ADDRESS) */
 
 #if RT_DEBUG >= 2
 
@@ -1312,15 +1312,15 @@ rt_pntr sys_alloc(rt_size size)
  */
 rt_void sys_free(rt_pntr ptr, rt_size size)
 {
-#if RT_POINTER == 64
+#if (RT_POINTER - RT_ADDRESS) != 0
 
     munmap(ptr, size);
 
-#else /* RT_POINTER == 32 */
+#else /* (RT_POINTER - RT_ADDRESS) */
 
     free(ptr);
 
-#endif /* RT_POINTER */
+#endif /* (RT_POINTER - RT_ADDRESS) */
 
 #if RT_DEBUG >= 2
 
