@@ -4626,10 +4626,10 @@ rt_void rt_Scene::plot_trigs()
 
 #if RT_DEBUG >= 2
 
-        RT_LOGI("acos[%03X] = %f\n", i*4+0, s_inf->o_rfl[0*4+0]);
-        RT_LOGI("acos[%03X] = %f\n", i*4+1, s_inf->o_rfl[0*4+1]);
-        RT_LOGI("acos[%03X] = %f\n", i*4+2, s_inf->o_rfl[0*4+2]);
-        RT_LOGI("acos[%03X] = %f\n", i*4+3, s_inf->o_rfl[0*4+3]);
+        RT_LOGI("acos[%03X] = %f\n", i*4+0, s_inf->pts_o[0*4+0]);
+        RT_LOGI("acos[%03X] = %f\n", i*4+1, s_inf->pts_o[0*4+1]);
+        RT_LOGI("acos[%03X] = %f\n", i*4+2, s_inf->pts_o[0*4+2]);
+        RT_LOGI("acos[%03X] = %f\n", i*4+3, s_inf->pts_o[0*4+3]);
 
 #endif /* RT_DEBUG */
     }
