@@ -39,8 +39,8 @@
  * Conditional compilation flags
  * for respective segments of code.
  */
-#define RT_SHOW_TILES               0
-#define RT_SHOW_BOUND               0   /* <- needs RT_OPTS_TILING to be 0 */
+#define RT_SHOW_TILES               0   /* <- needs to be reworked to work */
+#define RT_SHOW_BOUND               0   /* <- needs to be reworked to work */
 #define RT_QUAD_DEBUG               0   /* <- needs RT_DEBUG to be enabled
                                                with RT_THREADS_NUM equal 1 */
 #define RT_PLOT_FUNCS_REF           0   /* set to 1 to plot reference code */
@@ -2778,9 +2778,9 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_ld(Xmm1, Iebx, srf_SBASE)
         movpx_st(Xmm1, Mebp, inf_TSIDE)
 
-        movpx_st(Xmm4, Mebp, inf_HIT_X(0))
-        movpx_st(Xmm5, Mebp, inf_HIT_Y(0))
-        movpx_st(Xmm6, Mebp, inf_HIT_Z(0))
+        movpx_st(Xmm4, Mebp, inf_HIT_X)
+        movpx_st(Xmm5, Mebp, inf_HIT_Y)
+        movpx_st(Xmm6, Mebp, inf_HIT_Z)
 
     LBL(QD_go4)
 
@@ -5991,11 +5991,11 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         movpx_st(Xmm2, Mebp, inf_DFF_Z)
 
         movpx_ld(Xmm5, Iecx, ctx_RAY_X(0))
-        movpx_st(Xmm5, Mebp, inf_RAY_X(0))
+        movpx_st(Xmm5, Mebp, inf_RAY_X)
         movpx_ld(Xmm5, Iecx, ctx_RAY_Y(0))
-        movpx_st(Xmm5, Mebp, inf_RAY_Y(0))
+        movpx_st(Xmm5, Mebp, inf_RAY_Y)
         movpx_ld(Xmm5, Iecx, ctx_RAY_Z(0))
-        movpx_st(Xmm5, Mebp, inf_RAY_Z(0))
+        movpx_st(Xmm5, Mebp, inf_RAY_Z)
 
         movpx_st(Xmm1, Mebp, inf_A_VAL)
         movpx_st(Xmm4, Mebp, inf_B_VAL)
@@ -6915,10 +6915,10 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         cmjwx_ri(Reax, IB(4),
                  EQ_x, PT_ret)
 #endif /* RT_FEAT_PT */
-#if RT_FEAT_LIGHTS_SHADOWS
+#if RT_FEAT_LIGHTS && RT_FEAT_LIGHTS_SHADOWS
         cmjwx_ri(Reax, IB(1),
                  EQ_x, LT_ret)
-#endif /* RT_FEAT_LIGHTS_SHADOWS */
+#endif /* RT_FEAT_LIGHTS && RT_FEAT_LIGHTS_SHADOWS */
 #if RT_FEAT_TRANSPARENCY
         cmjwx_ri(Reax, IB(3),
                  EQ_x, TR_ret)
@@ -7410,6 +7410,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         shlxx_ri(Reax, IB(L+1))
         shlxx_rr(Reax, Rebx)
 
+#if RT_FEAT_PT
+
         cmjxx_mz(Mebp, inf_PT_ON,
                  EQ_x, TX_rtf)
 
@@ -7429,6 +7431,8 @@ rt_void render0(rt_SIMD_INFOX *s_inf)
         jmpxx_lb(TX_ptf)
 
     LBL(TX_rtf)
+
+#endif /* RT_FEAT_PT */
 
         /* flush fp-color planes for RT */
         xorpx_rr(Xmm1, Xmm1)

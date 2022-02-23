@@ -19,6 +19,7 @@
  * set RT_OPTS_BUFFERS to (0 << 24) in core/engine/format.h
  * to enable path-tracer support in every scene engine-wide
  * set RT_OPTS_PT to (0 << 25) in core/engine/format.h
+ * to toggle path-tracer in runtime press Q (or T) or pass -t (on by default)
  * to change the number of frames between updates press E (or Y) or pass -m n
  * to reduce the number of frames between updates press R, press Tab to reset
  * to enable path-tracer from command-line pass -q (doesn't toggle if enabled)
@@ -794,6 +795,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -h, hide-screen-num mode, turns off info-number drawing\n");
         RT_LOGI(" -p, pause mode, stops animation from starting time (ms)\n");
         RT_LOGI(" -q, quake mode, enables path-tracing for quality lights\n");
+        RT_LOGI(" -t, trace mode, toggles path-tracing for quality lights\n");
         RT_LOGI(" -u n, 1-3/4 serial update/render, 5/6 update/render off\n");
         RT_LOGI(" -o, offscreen-frame mode, turns off window-rect updates\n");
         RT_LOGI(" -a, enable 4x antialiasing by default, 8x not supported\n");
@@ -972,18 +974,48 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
                 return 0;
             }
         }
-        if (k < argc && strcmp(argv[k], "-t") == 0 && ++k < argc)
+        if (k < argc && strcmp(argv[k], "-t") == 0)
         {
-            for (l = strlen(argv[k]), r = 1, t = 0; l > 0; l--, r *= 10)
+            t = 0;
+            if (++k < argc)
+            {
+                if (argv[k][0] != '-')
+                {
+                    t = -1;
+                }
+                k--;
+            }
+            if (t == 0)
+            {
+                q_mode = !q_mode;
+                RT_LOGI("Quasi-realistic mode: %d\n", q_mode);
+            }
+        }
+        if (k < argc && strcmp(argv[k], "-t") == 0)
+        {
+            l = 0;
+            if (++k < argc)
+            {
+                if (argv[k][0] != '-')
+                {
+                    l = strlen(argv[k]);
+                }
+                else
+                {
+                    k--;
+                }
+            }
+            for (r = 1, t = 0; l > 0; l--, r *= 10)
             {
                 t += (argv[k][l-1] - '0') * r;
             }
-            if (t >= 0 && t <= 1000)
+            if (t >= 1 && t <= 1000)
             {
                 RT_LOGI("Thread-pool size overridden: %d\n", t);
                 t_pool = t;
             }
             else
+            if (t != 0)
             {
                 RT_LOGI("Thread-pool size value out of range\n");
                 return 0;
