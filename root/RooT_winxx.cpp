@@ -75,9 +75,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     r_to_p[RK_F11]      = KEY_MASK & VK_F11;
     r_to_p[RK_F12]      = KEY_MASK & VK_F12;
 
-    r_to_p[RK_X]        = KEY_MASK & 'X';
-    r_to_p[RK_C]        = KEY_MASK & 'C';
-
     r_to_p[RK_UP]       = KEY_MASK & VK_UP;
     r_to_p[RK_DOWN]     = KEY_MASK & VK_DOWN;
     r_to_p[RK_LEFT]     = KEY_MASK & VK_LEFT;
@@ -91,8 +88,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     r_to_p[RK_A]        = KEY_MASK & 'A';
     r_to_p[RK_D]        = KEY_MASK & 'D';
 
+    r_to_p[RK_TAB]      = KEY_MASK & VK_TAB;
     r_to_p[RK_Q]        = KEY_MASK & 'Q';
     r_to_p[RK_E]        = KEY_MASK & 'E';
+    r_to_p[RK_R]        = KEY_MASK & 'R';
 
     r_to_p[RK_I]        = KEY_MASK & 'I';
     r_to_p[RK_L]        = KEY_MASK & 'L';
@@ -100,6 +99,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
     r_to_p[RK_T]        = KEY_MASK & 'T';
     r_to_p[RK_Y]        = KEY_MASK & 'Y';
+
+    r_to_p[RK_X]        = KEY_MASK & 'X';
+    r_to_p[RK_C]        = KEY_MASK & 'C';
 
     r_to_p[RK_0]        = KEY_MASK & '0';
     r_to_p[RK_1]        = KEY_MASK & '1';

@@ -19,8 +19,9 @@
  * set RT_OPTS_BUFFERS to (0 << 24) in core/engine/format.h
  * to enable path-tracer support in every scene engine-wide
  * set RT_OPTS_PT to (0 << 25) in core/engine/format.h
- * to enable path-tracer in runtime press Q (or T) or pass -q
- * to change the number of frames between updates press E (or Y)
+ * to change the number of frames between updates press E (or Y) or pass -m n
+ * to reduce the number of frames between updates press R, press Tab to reset
+ * to enable path-tracer from command-line pass -q (doesn't toggle if enabled)
  */
 #ifndef RT_TEST_PT
 #define RT_TEST_PT      1
@@ -159,9 +160,6 @@ rt_void frame_to_screen(rt_ui32 *frame, rt_si32 x_row);
 #define RK_F11              11
 #define RK_F12              12
 
-#define RK_X                13
-#define RK_C                14
-
 #define RK_UP               15
 #define RK_DOWN             16
 #define RK_LEFT             17
@@ -175,8 +173,10 @@ rt_void frame_to_screen(rt_ui32 *frame, rt_si32 x_row);
 #define RK_A                23
 #define RK_D                24
 
+#define RK_TAB              13
 #define RK_Q                25
 #define RK_E                26
+#define RK_R                14
 
 #define RK_I                27
 #define RK_L                28
@@ -184,6 +184,9 @@ rt_void frame_to_screen(rt_ui32 *frame, rt_si32 x_row);
 
 #define RK_T                30
 #define RK_Y                31
+
+#define RK_X                32
+#define RK_C                33
 
 #define RK_0                50
 #define RK_1                51
@@ -323,6 +326,34 @@ rt_si32 main_step()
             p_mode = !p_mode;
             switched = 1;
         }
+        if (T_KEYS(RK_TAB))
+        {
+            if (q_mode)
+            {
+                q_test = sc[d]->set_pton(q_mode ? m_num : 0) > 0 ? q_mode : 0;
+                if (q_test != q_mode)
+                {
+                    /* to enable path-tracer in a particular scene
+                     * add RT_OPTS_PT to the list of optimizations
+                     * to be turned off in scene definition struct */
+                    /*
+                    RT_LOGI("%s\n", str);
+                    RT_LOGI("Quasi-realistic mode: %d (off), %s\n", q_test,
+                                                "add RT_OPTS_PT per scene");
+                    RT_LOGI("%s\n", str);
+                    */
+                }
+                else
+                {
+                    if (m_num > 1)
+                    {
+                        m_num = 1;
+                        switched = 1;
+                    }
+                }
+                q_test = sc[d]->set_pton(q_mode ? m_num : 0) > 0 ? q_mode : 0;
+            }
+        }
         if (T_KEYS(RK_Q) || T_KEYS(RK_T))
         {
             q_prev = q_mode;
@@ -378,6 +409,38 @@ rt_si32 main_step()
                     else
                     {
                         m_num = (m_num % 9) + 1;
+                    }
+                    switched = 1;
+                }
+                q_test = sc[d]->set_pton(q_mode ? m_num : 0) > 0 ? q_mode : 0;
+            }
+        }
+        if (T_KEYS(RK_R))
+        {
+            if (q_mode)
+            {
+                q_test = sc[d]->set_pton(q_mode ? m_num : 0) > 0 ? q_mode : 0;
+                if (q_test != q_mode)
+                {
+                    /* to enable path-tracer in a particular scene
+                     * add RT_OPTS_PT to the list of optimizations
+                     * to be turned off in scene definition struct */
+                    /*
+                    RT_LOGI("%s\n", str);
+                    RT_LOGI("Quasi-realistic mode: %d (off), %s\n", q_test,
+                                                "add RT_OPTS_PT per scene");
+                    RT_LOGI("%s\n", str);
+                    */
+                }
+                else
+                {
+                    if (m_num > 9)
+                    {
+                        m_num = 1;
+                    }
+                    else
+                    {
+                        m_num = m_num <= 1 ? 9 : m_num - 1;
                     }
                     switched = 1;
                 }
