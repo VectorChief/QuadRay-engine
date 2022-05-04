@@ -7,7 +7,8 @@ INC_PATH =                                  \
         -I../data/materials/                \
         -I../data/objects/                  \
         -I../data/scenes/                   \
-        -I../data/textures/
+        -I../data/textures/                 \
+        -I/usr/X11/include/
 
 SRC_LIST =                                  \
         ../core/engine/engine.cpp           \
@@ -28,7 +29,8 @@ SRC_LIST =                                  \
         ../core/tracer/tracer_2K8v4_r8.cpp  \
         RooT_linux.cpp
 
-LIB_PATH =
+LIB_PATH =                                  \
+        -L/usr/X11/lib/
 
 LIB_LIST =                                  \
         -lm                                 \
@@ -39,12 +41,29 @@ LIB_LIST =                                  \
 
 
 build: build_a64 build_a64sve
+clang: clang_a64 clang_a64sve
 
 strip:
 	strip RooT.a64*
 
 clean:
 	rm RooT.a64*
+
+macOS:
+	mv RooT.a64_32 RooT.d64_32
+	mv RooT.a64_64 RooT.d64_64
+	mv RooT.a64f32 RooT.d64f32
+	mv RooT.a64f64 RooT.d64f64
+	mv RooT.a64_32sve RooT.d64_32sve
+	mv RooT.a64_64sve RooT.d64_64sve
+	mv RooT.a64f32sve RooT.d64f32sve
+	mv RooT.a64f64sve RooT.d64f64sve
+
+macRD:
+	rm -fr RooT.a64*.dSYM/
+
+macRM:
+	rm RooT.d64*
 
 
 build_a64: RooT_a64_32 RooT_a64_64 RooT_a64f32 RooT_a64f64
@@ -117,8 +136,6 @@ RooT_a64f64sve:
         -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.a64f64sve
 
-
-clang: clang_a64 clang_a64sve
 
 clang_a64: RooT.a64_32 RooT.a64_64 RooT.a64f32 RooT.a64f64
 

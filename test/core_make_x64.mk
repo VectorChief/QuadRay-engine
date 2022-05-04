@@ -43,6 +43,7 @@ LIB_LIST =                                  \
 
 
 build: core_test_x64_32 core_test_x64_64 core_test_x64f32 core_test_x64f64
+clang: core_test.x64_32 core_test.x64_64 core_test.x64f32 core_test.x64f64
 
 strip:
 	strip core_test.x64*
@@ -92,6 +93,43 @@ core_test_x64f32:
 
 core_test_x64f64:
 	g++ -O3 -g \
+        -DRT_LINUX -DRT_X64 -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
+        -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_SIMD_COMPAT_SSE=2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.x64f64
+
+
+core_test.x64_32:
+	clang++ -O3 -g \
+        -DRT_LINUX -DRT_X64 -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
+        -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_SIMD_COMPAT_SSE=2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.x64_32
+
+core_test.x64_64:
+	clang++ -O3 -g \
+        -DRT_LINUX -DRT_X64 -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
+        -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_SIMD_COMPAT_SSE=2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.x64_64
+
+core_test.x64f32:
+	clang++ -O3 -g \
+        -DRT_LINUX -DRT_X64 -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
+        -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_SIMD_COMPAT_SSE=2 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.x64f32
+
+core_test.x64f64:
+	clang++ -O3 -g \
         -DRT_LINUX -DRT_X64 -DRT_128=2+4+8 -DRT_256_R8=4 -DRT_256=1+2+8 \
         -DRT_512_R8=1+2 -DRT_512=1+2 -DRT_1K4=1+2 -DRT_SIMD_COMPAT_SSE=2 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \

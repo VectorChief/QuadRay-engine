@@ -36,12 +36,32 @@ LIB_LIST =                                  \
 
 
 build: build_a64 build_a64sve
+clang: clang_a64 clang_a64sve
 
 strip:
 	aarch64-linux-gnu-strip core_test.a64*
 
 clean:
 	rm core_test.a64*
+
+macOS:
+	mv core_test.a64_32 core_test.d64_32
+	mv core_test.a64_64 core_test.d64_64
+	mv core_test.a64f32 core_test.d64f32
+	mv core_test.a64f64 core_test.d64f64
+	mv core_test.a64_32sve core_test.d64_32sve
+	mv core_test.a64_64sve core_test.d64_64sve
+	mv core_test.a64f32sve core_test.d64f32sve
+	mv core_test.a64f64sve core_test.d64f64sve
+
+macRD:
+	rm -fr core_test.a64*.dSYM/
+
+macST:
+	strip core_test.a64*
+
+macRM:
+	rm core_test.d64*
 
 
 build_a64: core_test_a64_32 core_test_a64_64 core_test_a64f32 core_test_a64f64
@@ -108,6 +128,77 @@ core_test_a64f32sve:
 
 core_test_a64f64sve:
 	aarch64-linux-gnu-g++ -O3 -g -static \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a64f64sve
+
+
+clang_a64: core_test.a64_32 core_test.a64_64 core_test.a64f32 core_test.a64f64
+
+core_test.a64_32:
+	clang++ -O3 -g \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a64_32
+
+core_test.a64_64:
+	clang++ -O3 -g \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a64_64
+
+core_test.a64f32:
+	clang++ -O3 -g \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a64f32
+
+core_test.a64f64:
+	clang++ -O3 -g \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a64f64
+
+
+clang_a64sve: core_test.a64_32sve core_test.a64_64sve \
+              core_test.a64f32sve core_test.a64f64sve
+
+core_test.a64_32sve:
+	clang++ -O3 -g \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a64_32sve
+
+core_test.a64_64sve:
+	clang++ -O3 -g \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
+        -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a64_64sve
+
+core_test.a64f32sve:
+	clang++ -O3 -g \
+        -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
+        -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
+        -DRT_DEBUG=0 -DRT_PATH="../" \
+        -DRT_EMBED_STDOUT=0 -DRT_EMBED_FILEIO=0 -DRT_EMBED_TEX=1 \
+        ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a64f32sve
+
+core_test.a64f64sve:
+	clang++ -O3 -g \
         -DRT_LINUX -DRT_A64 -DRT_128=1 -DRT_256=1+4 -DRT_512=1+4 -DRT_1K4=1+4 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
