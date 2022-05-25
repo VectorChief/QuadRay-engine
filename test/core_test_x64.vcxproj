@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\core\engine\engine.cpp" />
+    <ClCompile Include="..\core\engine\object.cpp" />
+    <ClCompile Include="..\core\engine\rtgeom.cpp" />
+    <ClCompile Include="..\core\engine\rtimag.cpp" />
+    <ClCompile Include="..\core\system\system.cpp" />
+    <ClCompile Include="..\core\tracer\tracer.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_128v2.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_128v4.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_128v8.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_1K4v1.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_1K4v2.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_256v1.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_256v2.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_256v4_r8.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_256v8.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_2K8v1_r8.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_2K8v2_r8.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_512v1.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_512v1_r8.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_512v2.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_512v2_r8.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_512v4.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_512v8.cpp" />
+    <ClCompile Include="core_test.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\core\config\rtarch.h" />
+    <ClInclude Include="..\core\config\rtarch_x32.h" />
+    <ClInclude Include="..\core\config\rtarch_x32_128x1v2.h" />
+    <ClInclude Include="..\core\config\rtarch_x32_128x1v4.h" />
+    <ClInclude Include="..\core\config\rtarch_x32_128x1v8.h" />
+    <ClInclude Include="..\core\config\rtarch_x32_128x2v4.h" />
+    <ClInclude Include="..\core\config\rtarch_x32_256x1v2.h" />
+    <ClInclude Include="..\core\config\rtarch_x32_256x1v8.h" />
+    <ClInclude Include="..\core\config\rtarch_x32_256x2v2.h" />
+    <ClInclude Include="..\core\config\rtarch_x32_512x1v8.h" />
+    <ClInclude Include="..\core\config\rtarch_x32_512x2v2.h" />
+    <ClInclude Include="..\core\config\rtarch_x32_512x4v2.h" />
+    <ClInclude Include="..\core\config\rtarch_x64.h" />
+    <ClInclude Include="..\core\config\rtarch_x64_128x1v2.h" />
+    <ClInclude Include="..\core\config\rtarch_x64_128x1v4.h" />
+    <ClInclude Include="..\core\config\rtarch_x64_128x1v8.h" />
+    <ClInclude Include="..\core\config\rtarch_x64_128x2v4.h" />
+    <ClInclude Include="..\core\config\rtarch_x64_256x1v2.h" />
+    <ClInclude Include="..\core\config\rtarch_x64_256x1v8.h" />
+    <ClInclude Include="..\core\config\rtarch_x64_256x2v2.h" />
+    <ClInclude Include="..\core\config\rtarch_x64_512x1v8.h" />
+    <ClInclude Include="..\core\config\rtarch_x64_512x2v2.h" />
+    <ClInclude Include="..\core\config\rtarch_x64_512x4v2.h" />
+    <ClInclude Include="..\core\config\rtarch_xHB.h" />
+    <ClInclude Include="..\core\config\rtarch_xHB_128x1v2.h" />
+    <ClInclude Include="..\core\config\rtarch_xHB_128x1v4.h" />
+    <ClInclude Include="..\core\config\rtarch_xHB_128x1v8.h" />
+    <ClInclude Include="..\core\config\rtarch_xHB_128x2v4.h" />
+    <ClInclude Include="..\core\config\rtarch_xHB_256x1v2.h" />
+    <ClInclude Include="..\core\config\rtarch_xHB_256x1v8.h" />
+    <ClInclude Include="..\core\config\rtarch_xHB_256x2v2.h" />
+    <ClInclude Include="..\core\config\rtarch_xHB_512x1v8.h" />
+    <ClInclude Include="..\core\config\rtarch_xHB_512x2v2.h" />
+    <ClInclude Include="..\core\config\rtarch_xHB_512x4v2.h" />
+    <ClInclude Include="..\core\config\rtarch_xHF_128x1v2.h" />
+    <ClInclude Include="..\core\config\rtarch_xHF_256x1v8.h" />
+    <ClInclude Include="..\core\config\rtarch_xHF_512x1v8.h" />
+    <ClInclude Include="..\core\config\rtarch_xHF_512x2v2.h" />
+    <ClInclude Include="..\core\config\rtarch_xHF_512x4v2.h" />
+    <ClInclude Include="..\core\config\rtbase.h" />
+    <ClInclude Include="..\core\config\rtconf.h" />
+    <ClInclude Include="..\core\config\rtdocs.h" />
+    <ClInclude Include="..\core\config\rtzero.h" />
+    <ClInclude Include="..\core\engine\engine.h" />
+    <ClInclude Include="..\core\engine\format.h" />
+    <ClInclude Include="..\core\engine\object.h" />
+    <ClInclude Include="..\core\engine\rtgeom.h" />
+    <ClInclude Include="..\core\engine\rtimag.h" />
+    <ClInclude Include="..\core\system\system.h" />
+    <ClInclude Include="..\core\tracer\tracer.h" />
+    <ClInclude Include="..\data\materials\all_mat.h" />
+    <ClInclude Include="..\data\objects\all_obj.h" />
+    <ClInclude Include="..\data\objects\obj_aliencube.h" />
+    <ClInclude Include="..\data\objects\obj_frametable.h" />
+    <ClInclude Include="..\data\scenes\all_scn.h" />
+    <ClInclude Include="..\data\scenes\scn_demo01.h" />
+    <ClInclude Include="..\data\scenes\scn_demo02.h" />
+    <ClInclude Include="..\data\scenes\scn_demo03.h" />
+    <ClInclude Include="..\data\textures\all_tex.h" />
+    <ClInclude Include="..\data\textures\tex_crate01.h" />
+    <ClInclude Include="scenes\scn_test01.h" />
+    <ClInclude Include="scenes\scn_test02.h" />
+    <ClInclude Include="scenes\scn_test03.h" />
+    <ClInclude Include="scenes\scn_test04.h" />
+    <ClInclude Include="scenes\scn_test05.h" />
+    <ClInclude Include="scenes\scn_test06.h" />
+    <ClInclude Include="scenes\scn_test07.h" />
+    <ClInclude Include="scenes\scn_test08.h" />
+    <ClInclude Include="scenes\scn_test09.h" />
+    <ClInclude Include="scenes\scn_test10.h" />
+    <ClInclude Include="scenes\scn_test11.h" />
+    <ClInclude Include="scenes\scn_test12.h" />
+    <ClInclude Include="scenes\scn_test13.h" />
+    <ClInclude Include="scenes\scn_test14.h" />
+    <ClInclude Include="scenes\scn_test15.h" />
+    <ClInclude Include="scenes\scn_test16.h" />
+    <ClInclude Include="scenes\scn_test17.h" />
+    <ClInclude Include="scenes\scn_test18.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{8b5c8d18-e058-40ac-8749-0efb7a0726ce}</ProjectGuid>
+    <RootNamespace>coretestx64</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>ClangCL</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>ClangCL</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/I "../core/config/" /I "../core/engine/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/scenes/" /I "../data/textures/" /I "../test/scenes/" /D "RT_WIN64" /D "RT_X64" /D RT_128=2+4+8  /D RT_256_R8=4 /D RT_256=1+2 /D RT_512_R8=1+2 /D RT_512=1+2 /D RT_1K4=1+2 /D RT_SIMD_COMPAT_SSE=2 /D RT_POINTER=64 /D RT_ADDRESS=64  /D RT_ELEMENT=32 /D RT_ENDIAN=0 /D RT_DEBUG=1 /D RT_PATH="../" /D RT_EMBED_STDOUT=0 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/I "../core/config/" /I "../core/engine/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/scenes/" /I "../data/textures/" /I "../test/scenes/" /D "RT_WIN64" /D "RT_X64" /D RT_128=2+4+8  /D RT_256_R8=4 /D RT_256=1+2 /D RT_512_R8=1+2 /D RT_512=1+2 /D RT_1K4=1+2 /D RT_SIMD_COMPAT_SSE=2 /D RT_POINTER=64 /D RT_ADDRESS=64  /D RT_ELEMENT=32 /D RT_ENDIAN=0 /D RT_DEBUG=0 /D RT_PATH="../" /D RT_EMBED_STDOUT=0 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
