@@ -35,8 +35,9 @@
 
 #define RT_X_RES        800
 #define RT_Y_RES        480
+#define RT_TITLE        "QuadRay engine demo, (C) 2013-2022 VectorChief"
 
-rt_astr     title       = "QuadRay engine demo, (C) 2013-2022 VectorChief";
+rt_astr     title       = RT_TITLE;
 rt_si32     x_win       = RT_X_RES; /* window-rect (client) x-resolution */
 rt_si32     y_win       = RT_Y_RES; /* window-rect (client) y-resolution */
 rt_si32     x_res       = RT_X_RES;
