@@ -47,7 +47,30 @@
 #include "tracer.h"
 #include "format.h"
 
-namespace simd_512v1
+#undef  RT_FEAT_PT
+#undef  RT_FEAT_BUFFERS
+#define RT_FEAT_PT                  0
+#define RT_FEAT_BUFFERS             0
+
+#undef  STORE_SIMD
+#undef  PAINT_FRAG
+#undef  GET_RANDOM_I
+
+namespace rt_simd_512v1
+{
+#include "tracer.cpp"
+}
+
+#undef  RT_FEAT_PT
+#undef  RT_FEAT_BUFFERS
+#define RT_FEAT_PT                  1
+#define RT_FEAT_BUFFERS             1
+
+#undef  STORE_SIMD
+#undef  PAINT_FRAG
+#undef  GET_RANDOM_I
+
+namespace pt_simd_512v1
 {
 #include "tracer.cpp"
 }

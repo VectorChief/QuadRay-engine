@@ -4201,22 +4201,22 @@ rt_void rt_Scene::plot_frags()
  */
 #if RT_PLOT_FUNCS
 
-namespace simd_128v4
+namespace rt_simd_128v4
 {
 rt_void plot_fresnel(rt_SIMD_INFOP *s_inf);
 }
 
-namespace simd_128v4
+namespace rt_simd_128v4
 {
 rt_void plot_schlick(rt_SIMD_INFOP *s_inf);
 }
 
-namespace simd_128v4
+namespace rt_simd_128v4
 {
 rt_void plot_fresnel_metal_fast(rt_SIMD_INFOP *s_inf);
 }
 
-namespace simd_128v4
+namespace rt_simd_128v4
 {
 rt_void plot_fresnel_metal_slow(rt_SIMD_INFOP *s_inf);
 }
@@ -4269,7 +4269,7 @@ rt_void rt_Scene::plot_funcs()
         s_inf->i_cos[0*4+2] = -RT_COS(s*(i*4+2));
         s_inf->i_cos[0*4+3] = -RT_COS(s*(i*4+3));
 
-        simd_128v4::plot_fresnel(s_inf);
+        rt_simd_128v4::plot_fresnel(s_inf);
 
         frame[rt_si32((1.0f-s_inf->o_rfl[0*4+0])*h)*x_row+i*4+0] = 0x000000FF;
         frame[rt_si32((1.0f-s_inf->o_rfl[0*4+1])*h)*x_row+i*4+1] = 0x000000FF;
@@ -4297,7 +4297,7 @@ rt_void rt_Scene::plot_funcs()
         s_inf->i_cos[0*4+2] = -RT_COS(s*(i*4+2));
         s_inf->i_cos[0*4+3] = -RT_COS(s*(i*4+3));
 
-        simd_128v4::plot_schlick(s_inf);
+        rt_simd_128v4::plot_schlick(s_inf);
 
         frame[rt_si32((1.0f-s_inf->o_rfl[0*4+0])*h)*x_row+i*4+0] = 0x00FF0000;
         frame[rt_si32((1.0f-s_inf->o_rfl[0*4+1])*h)*x_row+i*4+1] = 0x00FF0000;
@@ -4328,7 +4328,7 @@ rt_void rt_Scene::plot_funcs()
         s_inf->i_cos[0*4+2] = -RT_COS(s*(i*4+2));
         s_inf->i_cos[0*4+3] = -RT_COS(s*(i*4+3));
 
-        simd_128v4::plot_fresnel(s_inf);
+        rt_simd_128v4::plot_fresnel(s_inf);
 
         frame[rt_si32((1.0f-s_inf->o_rfl[0*4+0])*h)*x_row+i*4+0] = 0x000000FF;
         frame[rt_si32((1.0f-s_inf->o_rfl[0*4+1])*h)*x_row+i*4+1] = 0x000000FF;
@@ -4356,7 +4356,7 @@ rt_void rt_Scene::plot_funcs()
         s_inf->i_cos[0*4+2] = -RT_COS(s*(i*4+2));
         s_inf->i_cos[0*4+3] = -RT_COS(s*(i*4+3));
 
-        simd_128v4::plot_schlick(s_inf);
+        rt_simd_128v4::plot_schlick(s_inf);
 
         frame[rt_si32((1.0f-s_inf->o_rfl[0*4+0])*h)*x_row+i*4+0] = 0x00FF0000;
         frame[rt_si32((1.0f-s_inf->o_rfl[0*4+1])*h)*x_row+i*4+1] = 0x00FF0000;
@@ -4387,7 +4387,7 @@ rt_void rt_Scene::plot_funcs()
         s_inf->i_cos[0*4+2] = -RT_COS(s*(i*4+2));
         s_inf->i_cos[0*4+3] = -RT_COS(s*(i*4+3));
 
-        simd_128v4::plot_fresnel_metal_fast(s_inf);
+        rt_simd_128v4::plot_fresnel_metal_fast(s_inf);
 
         frame[rt_si32((1.0f-s_inf->o_rfl[0*4+0])*h)*x_row+i*4+0] = 0x000000FF;
         frame[rt_si32((1.0f-s_inf->o_rfl[0*4+1])*h)*x_row+i*4+1] = 0x000000FF;
@@ -4415,7 +4415,7 @@ rt_void rt_Scene::plot_funcs()
         s_inf->i_cos[0*4+2] = -RT_COS(s*(i*4+2));
         s_inf->i_cos[0*4+3] = -RT_COS(s*(i*4+3));
 
-        simd_128v4::plot_fresnel_metal_slow(s_inf);
+        rt_simd_128v4::plot_fresnel_metal_slow(s_inf);
 
         frame[rt_si32((1.0f-s_inf->o_rfl[0*4+0])*h)*x_row+i*4+0] = 0x000000FF;
         frame[rt_si32((1.0f-s_inf->o_rfl[0*4+1])*h)*x_row+i*4+1] = 0x000000FF;
@@ -4470,22 +4470,22 @@ rt_void rt_Scene::plot_funcs()
  */
 #if RT_PLOT_TRIGS
 
-namespace simd_128v4
+namespace rt_simd_128v4
 {
 rt_void plot_sin(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_128v4
+namespace rt_simd_128v4
 {
 rt_void plot_cos(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_128v4
+namespace rt_simd_128v4
 {
 rt_void plot_asin(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_128v4
+namespace rt_simd_128v4
 {
 rt_void plot_acos(rt_SIMD_INFOX *s_inf);
 }
@@ -4555,7 +4555,7 @@ rt_void rt_Scene::plot_trigs()
         s_inf->hor_i[0*4+2] = s*(i*4+2 - x_res/2);
         s_inf->hor_i[0*4+3] = s*(i*4+3 - x_res/2);
 
-        simd_128v4::plot_sin(s_inf);
+        rt_simd_128v4::plot_sin(s_inf);
 
         frame[rt_si32((1.0f-s_inf->pts_o[0*4+0]*t)*k)*x_row+i*4+0] = 0x000000FF;
         frame[rt_si32((1.0f-s_inf->pts_o[0*4+1]*t)*k)*x_row+i*4+1] = 0x000000FF;
@@ -4583,7 +4583,7 @@ rt_void rt_Scene::plot_trigs()
         s_inf->hor_i[0*4+2] = s*(i*4+2 - x_res/2);
         s_inf->hor_i[0*4+3] = s*(i*4+3 - x_res/2);
 
-        simd_128v4::plot_cos(s_inf);
+        rt_simd_128v4::plot_cos(s_inf);
 
         frame[rt_si32((1.0f-s_inf->pts_o[0*4+0]*t)*k)*x_row+i*4+0] = 0x000000FF;
         frame[rt_si32((1.0f-s_inf->pts_o[0*4+1]*t)*k)*x_row+i*4+1] = 0x000000FF;
@@ -4617,7 +4617,7 @@ rt_void rt_Scene::plot_trigs()
         s_inf->hor_i[0*4+2] = s*(i*4+2 - x_res/2);
         s_inf->hor_i[0*4+3] = s*(i*4+3 - x_res/2);
 
-        simd_128v4::plot_acos(s_inf);
+        rt_simd_128v4::plot_acos(s_inf);
 
         frame[rt_si32((1.0f-s_inf->pts_o[0*4+0]*t)*k)*x_row+i*4+0] = 0x000000FF;
         frame[rt_si32((1.0f-s_inf->pts_o[0*4+1]*t)*k)*x_row+i*4+1] = 0x000000FF;

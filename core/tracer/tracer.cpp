@@ -73,7 +73,9 @@
 #define RT_FEAT_TRANSFORM_ARRAY     1   /* <- breaks TA in the engine if 0 */
 #define RT_FEAT_BOUND_VOL_ARRAY     1
 
+#ifndef RT_FEAT_PT
 #define RT_FEAT_PT                  1
+#endif /* RT_FEAT_PT */
 #define RT_FEAT_PT_SPLIT_DEPTH      1
 #define RT_FEAT_PT_SPLIT_FRESNEL    1
 #define RT_FEAT_PT_RANDOM_SAMPLE    1
@@ -85,7 +87,9 @@
 #define RT_FEAT_BUFFERS_ACC         0   /* accumulate colors through buffers */
 #define RT_FEAT_BUFFERS_HIT         1   /* SIMD version of storing HITs if 1 */
 #define RT_FEAT_BUFFERS_OPT         1   /* skip buffering when not necessary */
+#ifndef RT_FEAT_BUFFERS
 #define RT_FEAT_BUFFERS             1   /* buffer rays between solver/shader */
+#endif /* RT_FEAT_BUFFERS */
                                         /* set RT_OPTS_BUFFERS to 0 in format.h
                                            set RT_OFFS_BUFFERS to 1 in tracer.h
                                            set RT_FEAT_BUFFERS to 1 above
@@ -8228,107 +8232,216 @@ rt_si32 rt_Platform::switch0(rt_SIMD_INFOX *s_inf, rt_si32 simd)
 /*********************************   RENDER   *********************************/
 /******************************************************************************/
 
-namespace simd_128v1
+/* RT domain */
+
+namespace rt_simd_128v1
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_128v2
+namespace rt_simd_128v2
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_128v4
+namespace rt_simd_128v4
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_128v8
+namespace rt_simd_128v8
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_256v4_r8
+namespace rt_simd_256v4_r8
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_256v1
+namespace rt_simd_256v1
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_256v2
+namespace rt_simd_256v2
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_256v4
+namespace rt_simd_256v4
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_256v8
+namespace rt_simd_256v8
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_512v1_r8
+namespace rt_simd_512v1_r8
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_512v2_r8
+namespace rt_simd_512v2_r8
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_512v1
+namespace rt_simd_512v1
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_512v2
+namespace rt_simd_512v2
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_512v4
+namespace rt_simd_512v4
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_512v8
+namespace rt_simd_512v8
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_1K4v1
+namespace rt_simd_1K4v1
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_1K4v2
+namespace rt_simd_1K4v2
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_1K4v4
+namespace rt_simd_1K4v4
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_2K8v1_r8
+namespace rt_simd_2K8v1_r8
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_2K8v2_r8
+namespace rt_simd_2K8v2_r8
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
 
-namespace simd_2K8v4_r8
+namespace rt_simd_2K8v4_r8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+/* PT domain */
+
+namespace pt_simd_128v1
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_128v2
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_128v4
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_128v8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_256v4_r8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_256v1
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_256v2
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_256v4
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_256v8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_512v1_r8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_512v2_r8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_512v1
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_512v2
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_512v4
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_512v8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_1K4v1
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_1K4v2
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_1K4v4
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_2K8v1_r8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_2K8v2_r8
+{
+rt_void render0(rt_SIMD_INFOX *s_inf);
+}
+
+namespace pt_simd_2K8v4_r8
 {
 rt_void render0(rt_SIMD_INFOX *s_inf);
 }
@@ -8340,117 +8453,241 @@ rt_void render0(rt_SIMD_INFOX *s_inf);
  */
 rt_void rt_Platform::render0(rt_SIMD_INFOX *s_inf)
 {
+    if (s_inf->pt_on == 0)
+    {
+/* RT domain */
+
     switch (s_mode)
     {
 #if (RT_2K8_R8 & 4)
         case 0x40000000:
-        simd_2K8v4_r8::render0(s_inf);
+        rt_simd_2K8v4_r8::render0(s_inf);
         break;
 #endif /* RT_2K8_R8 & 4 */
 #if (RT_2K8_R8 & 2)
         case 0x20000000:
-        simd_2K8v2_r8::render0(s_inf);
+        rt_simd_2K8v2_r8::render0(s_inf);
         break;
 #endif /* RT_2K8_R8 & 2 */
 #if (RT_2K8_R8 & 1)
         case 0x10000000:
-        simd_2K8v1_r8::render0(s_inf);
+        rt_simd_2K8v1_r8::render0(s_inf);
         break;
 #endif /* RT_2K8_R8 & 1 */
 #if (RT_1K4 & 4)
         case 0x04000000:
-        simd_1K4v4::render0(s_inf);
+        rt_simd_1K4v4::render0(s_inf);
         break;
 #endif /* RT_1K4 & 4 */
 #if (RT_1K4 & 2)
         case 0x02000000:
-        simd_1K4v2::render0(s_inf);
+        rt_simd_1K4v2::render0(s_inf);
         break;
 #endif /* RT_1K4 & 2 */
 #if (RT_1K4 & 1)
         case 0x01000000:
-        simd_1K4v1::render0(s_inf);
+        rt_simd_1K4v1::render0(s_inf);
         break;
 #endif /* RT_1K4 & 1 */
 #if (RT_512 & 8)
         case 0x00080000:
-        simd_512v8::render0(s_inf);
+        rt_simd_512v8::render0(s_inf);
         break;
 #endif /* RT_512 & 8 */
 #if (RT_512 & 4)
         case 0x00040000:
-        simd_512v4::render0(s_inf);
+        rt_simd_512v4::render0(s_inf);
         break;
 #endif /* RT_512 & 4 */
 #if (RT_512 & 2)
         case 0x00020000:
-        simd_512v2::render0(s_inf);
+        rt_simd_512v2::render0(s_inf);
         break;
 #endif /* RT_512 & 2 */
 #if (RT_512 & 1)
         case 0x00010000:
-        simd_512v1::render0(s_inf);
+        rt_simd_512v1::render0(s_inf);
         break;
 #endif /* RT_512 & 1 */
 #if (RT_512_R8 & 2)
         case 0x00002000:
-        simd_512v2_r8::render0(s_inf);
+        rt_simd_512v2_r8::render0(s_inf);
         break;
 #endif /* RT_512_R8 & 2 */
 #if (RT_512_R8 & 1)
         case 0x00001000:
-        simd_512v1_r8::render0(s_inf);
+        rt_simd_512v1_r8::render0(s_inf);
         break;
 #endif /* RT_512_R8 & 1 */
 #if (RT_256 & 8)
         case 0x00000800:
-        simd_256v8::render0(s_inf);
+        rt_simd_256v8::render0(s_inf);
         break;
 #endif /* RT_256 & 8 */
 #if (RT_256 & 4)
         case 0x00000400:
-        simd_256v4::render0(s_inf);
+        rt_simd_256v4::render0(s_inf);
         break;
 #endif /* RT_256 & 4 */
 #if (RT_256 & 2)
         case 0x00000200:
-        simd_256v2::render0(s_inf);
+        rt_simd_256v2::render0(s_inf);
         break;
 #endif /* RT_256 & 2 */
 #if (RT_256 & 1)
         case 0x00000100:
-        simd_256v1::render0(s_inf);
+        rt_simd_256v1::render0(s_inf);
         break;
 #endif /* RT_256 & 1 */
 #if (RT_256_R8 & 4)
         case 0x00000040:
-        simd_256v4_r8::render0(s_inf);
+        rt_simd_256v4_r8::render0(s_inf);
         break;
 #endif /* RT_256_R8 & 4 */
 #if (RT_128 & 8)
         case 0x00000008:
-        simd_128v8::render0(s_inf);
+        rt_simd_128v8::render0(s_inf);
         break;
 #endif /* RT_128 & 8 */
 #if (RT_128 & 4)
         case 0x00000004:
-        simd_128v4::render0(s_inf);
+        rt_simd_128v4::render0(s_inf);
         break;
 #endif /* RT_128 & 4 */
 #if (RT_128 & 2)
         case 0x00000002:
-        simd_128v2::render0(s_inf);
+        rt_simd_128v2::render0(s_inf);
         break;
 #endif /* RT_128 & 2 */
 #if (RT_128 & 1)
         case 0x00000001:
-        simd_128v1::render0(s_inf);
+        rt_simd_128v1::render0(s_inf);
         break;
 #endif /* RT_128 & 1 */
 
         default:
         break;
     }
+
+    }
+    else /* domain check */
+    {
+
+/* PT domain */
+
+    switch (s_mode)
+    {
+#if (RT_2K8_R8 & 4)
+        case 0x40000000:
+        pt_simd_2K8v4_r8::render0(s_inf);
+        break;
+#endif /* RT_2K8_R8 & 4 */
+#if (RT_2K8_R8 & 2)
+        case 0x20000000:
+        pt_simd_2K8v2_r8::render0(s_inf);
+        break;
+#endif /* RT_2K8_R8 & 2 */
+#if (RT_2K8_R8 & 1)
+        case 0x10000000:
+        pt_simd_2K8v1_r8::render0(s_inf);
+        break;
+#endif /* RT_2K8_R8 & 1 */
+#if (RT_1K4 & 4)
+        case 0x04000000:
+        pt_simd_1K4v4::render0(s_inf);
+        break;
+#endif /* RT_1K4 & 4 */
+#if (RT_1K4 & 2)
+        case 0x02000000:
+        pt_simd_1K4v2::render0(s_inf);
+        break;
+#endif /* RT_1K4 & 2 */
+#if (RT_1K4 & 1)
+        case 0x01000000:
+        pt_simd_1K4v1::render0(s_inf);
+        break;
+#endif /* RT_1K4 & 1 */
+#if (RT_512 & 8)
+        case 0x00080000:
+        pt_simd_512v8::render0(s_inf);
+        break;
+#endif /* RT_512 & 8 */
+#if (RT_512 & 4)
+        case 0x00040000:
+        pt_simd_512v4::render0(s_inf);
+        break;
+#endif /* RT_512 & 4 */
+#if (RT_512 & 2)
+        case 0x00020000:
+        pt_simd_512v2::render0(s_inf);
+        break;
+#endif /* RT_512 & 2 */
+#if (RT_512 & 1)
+        case 0x00010000:
+        pt_simd_512v1::render0(s_inf);
+        break;
+#endif /* RT_512 & 1 */
+#if (RT_512_R8 & 2)
+        case 0x00002000:
+        pt_simd_512v2_r8::render0(s_inf);
+        break;
+#endif /* RT_512_R8 & 2 */
+#if (RT_512_R8 & 1)
+        case 0x00001000:
+        pt_simd_512v1_r8::render0(s_inf);
+        break;
+#endif /* RT_512_R8 & 1 */
+#if (RT_256 & 8)
+        case 0x00000800:
+        pt_simd_256v8::render0(s_inf);
+        break;
+#endif /* RT_256 & 8 */
+#if (RT_256 & 4)
+        case 0x00000400:
+        pt_simd_256v4::render0(s_inf);
+        break;
+#endif /* RT_256 & 4 */
+#if (RT_256 & 2)
+        case 0x00000200:
+        pt_simd_256v2::render0(s_inf);
+        break;
+#endif /* RT_256 & 2 */
+#if (RT_256 & 1)
+        case 0x00000100:
+        pt_simd_256v1::render0(s_inf);
+        break;
+#endif /* RT_256 & 1 */
+#if (RT_256_R8 & 4)
+        case 0x00000040:
+        pt_simd_256v4_r8::render0(s_inf);
+        break;
+#endif /* RT_256_R8 & 4 */
+#if (RT_128 & 8)
+        case 0x00000008:
+        pt_simd_128v8::render0(s_inf);
+        break;
+#endif /* RT_128 & 8 */
+#if (RT_128 & 4)
+        case 0x00000004:
+        pt_simd_128v4::render0(s_inf);
+        break;
+#endif /* RT_128 & 4 */
+#if (RT_128 & 2)
+        case 0x00000002:
+        pt_simd_128v2::render0(s_inf);
+        break;
+#endif /* RT_128 & 2 */
+#if (RT_128 & 1)
+        case 0x00000001:
+        pt_simd_128v1::render0(s_inf);
+        break;
+#endif /* RT_128 & 1 */
+
+        default:
+        break;
+    }
+
+    } /* end of domain check */
 
     if (s_inf->ctx != RT_NULL)
     {
