@@ -32,9 +32,9 @@ run for x64 architecture:
     make -f RooT_make_x64.mk -j4
     ./RooT.x64f32
 run for a64 architecture:
-    make -f RooT_make_a64.mk -j4
+    make -f RooT_make_a64.mk clang -j4
     ./RooT.a64f32
-Alternatively, use clang option (make -f RooT_make_*64.mk clang -j4).
+Alternatively, use clang option for x64 (make -f RooT_make_x64.mk clang -j4).
 
 To build QuadRay engine demo on Windows using Visual Studio,
 download and install Visual Studio 2022 or later (with clang option enabled),
@@ -81,9 +81,9 @@ run for x64 architecture:
     make -f core_make_x64.mk -j4
     ./core_test.x64f32
 run for a64 architecture:
-    make -f core_make_a64.mk -j4
+    make -f core_make_a64.mk clang -j4
     ./core_test.a64f32
-Alternatively, use clang option (make -f core_make_*64.mk clang -j4).
+Alternatively, use clang option for x64 (make -f core_make_x64.mk clang -j4).
 
 To build CORE test framework on Windows using Visual Studio,
 download and install Visual Studio 2022 or later (with clang option enabled),
@@ -130,9 +130,9 @@ run for x64 architecture:
     make -f simd_make_x64.mk -j4
     ./simd_test.x64f32
 run for a64 architecture:
-    make -f simd_make_a64.mk -j4
+    make -f simd_make_a64.mk clang -j4
     ./simd_test.a64f32
-Alternatively, use clang option (make -f simd_make_*64.mk clang -j4).
+Alternatively, use clang option for x64 (make -f simd_make_x64.mk clang -j4).
 
 To build SIMD test framework on Windows using Visual Studio,
 download and install Visual Studio 2022 or later (with clang option enabled),
