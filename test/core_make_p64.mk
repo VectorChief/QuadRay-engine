@@ -176,7 +176,7 @@ core_test_p64f64Bp7:
 # Compiling/running CORE test:
 # make -f core_make_p64.mk
 # qemu-ppc64le -cpu POWER9 core_test.p64f32Lp9 -i -a -c 1
-# qemu-ppc64le -cpu POWER8 core_test.p64f32Lp8 -i -a -c 1
+# qemu-ppc64le -cpu POWER8 core_test.p64f32Lp8 -i -a -c 1 (POWER9, Ubuntu 22.04)
 # qemu-ppc64   -cpu POWER7 core_test.p64f32Bp7 -i -a -c 1
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)
 # Use "-c 1" option to reduce test time when emulating with QEMU
