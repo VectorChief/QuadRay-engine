@@ -11,6 +11,7 @@
 /******************************************************************************/
 
 #include <windows.h>
+#include <tchar.h>
 
 static HINSTANCE   hInst;
 static HWND        hWnd;
@@ -77,7 +78,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     MSG msg;
     hInst = hInstance;
 
-    TCHAR wnd_class[] = "RooT";
+    TCHAR wnd_class[] = _T("RooT");
 
     WNDCLASSEX wcex;
 
@@ -103,7 +104,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
     RECT wRect, cRect;
 
-    hWnd = CreateWindow(wnd_class, title,
+    hWnd = CreateWindow(wnd_class, _T(RT_TITLE),
                 WS_OVERLAPPED | WS_SYSMENU | WS_MINIMIZEBOX,
                 CW_USEDEFAULT, CW_USEDEFAULT, x_res, y_res,
                 NULL, NULL, hInst, NULL);
