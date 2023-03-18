@@ -690,7 +690,7 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
     elm->temp = srf->bvbox;
 
     /* prepare surface's trnode/bvnode list for searching */
-    rt_ELEM *nxt, *lst = srf->trn;
+    rt_ELEM *nxt = RT_NULL, *lst = srf->trn;
 
 #if RT_OPTS_VARRAY != 0
     if ((scene->opts & RT_OPTS_VARRAY) != 0)
@@ -853,7 +853,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_Surface *srf)
         }
     }
 
-    rt_ELEM *end, *tlp, *cur, *ipt, *jpt;
+    rt_ELEM *end = RT_NULL, *tlp = RT_NULL, *cur = RT_NULL,
+            *ipt = RT_NULL, *jpt = RT_NULL;
 
     /* phase 2, find the "end" of the strict-order-chain from "elm",
      * order value "no swap" is considered strict */
