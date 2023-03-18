@@ -230,5 +230,49 @@ SOURCE=..\data\textures\tex_crate01.h
 # End Source File
 # End Group
 # End Group
+# Begin Group "test"
+
+# PROP Default_Filter ""
+# Begin Group "scenes"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\scenes\scn_test01.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\scenes\scn_test02.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\scenes\scn_test03.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\scenes\scn_test04.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\scenes\scn_test05.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\scenes\scn_test06.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\scenes\scn_test07.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\scenes\scn_test08.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\scenes\scn_test09.h
+# End Source File
+# End Group
+# End Group
 # End Target
 # End Project
