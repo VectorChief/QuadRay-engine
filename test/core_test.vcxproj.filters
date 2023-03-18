@@ -155,5 +155,17 @@
     <ClInclude Include="scenes\scn_test09.h">
       <Filter>test\scenes</Filter>
     </ClInclude>
+    <ClInclude Include="scenes\scn_test10.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test11.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test12.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test13.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

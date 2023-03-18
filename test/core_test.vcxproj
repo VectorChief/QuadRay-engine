@@ -110,6 +110,10 @@
     <ClInclude Include="scenes\scn_test07.h" />
     <ClInclude Include="scenes\scn_test08.h" />
     <ClInclude Include="scenes\scn_test09.h" />
+    <ClInclude Include="scenes\scn_test10.h" />
+    <ClInclude Include="scenes\scn_test11.h" />
+    <ClInclude Include="scenes\scn_test12.h" />
+    <ClInclude Include="scenes\scn_test13.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

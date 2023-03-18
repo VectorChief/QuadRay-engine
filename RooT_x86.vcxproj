@@ -49,7 +49,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalOptions>/I "core/config/" /I "core/engine/" /I "core/system/" /I "core/tracer/" /I "data/materials/" /I "data/objects/" /I "data/scenes/" /I "data/textures/" /D RT_PATH="./" /D "RT_WIN32" /D "RT_X86" /D RT_DEBUG=1 /D RT_EMBED_STDOUT=1 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D RT_FULLSCREEN=0 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/I "core/config/" /I "core/engine/" /I "core/system/" /I "core/tracer/" /I "data/materials/" /I "data/objects/" /I "data/scenes/" /I "data/textures/" /I "test/scenes/" /D RT_PATH="./" /D "RT_WIN32" /D "RT_X86" /D RT_DEBUG=1 /D RT_EMBED_STDOUT=1 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D RT_FULLSCREEN=0 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -64,7 +64,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalOptions>/I "core/config/" /I "core/engine/" /I "core/system/" /I "core/tracer/" /I "data/materials/" /I "data/objects/" /I "data/scenes/" /I "data/textures/" /D RT_PATH="./" /D "RT_WIN32" /D "RT_X86" /D RT_DEBUG=0 /D RT_EMBED_STDOUT=1 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D RT_FULLSCREEN=0 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/I "core/config/" /I "core/engine/" /I "core/system/" /I "core/tracer/" /I "data/materials/" /I "data/objects/" /I "data/scenes/" /I "data/textures/" /I "test/scenes/" /D RT_PATH="./" /D "RT_WIN32" /D "RT_X86" /D RT_DEBUG=0 /D RT_EMBED_STDOUT=1 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 /D RT_FULLSCREEN=0 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
