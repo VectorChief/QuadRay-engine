@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{546c4538-3a55-44d0-b33a-4adea1ef4117}</ProjectGuid>
+    <RootNamespace>coretest</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/I "../core/config/" /I "../core/engine/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/textures/" /I "scenes/" /D RT_PATH="../" /D "RT_WIN32" /D "RT_X86" /D RT_128=1+2+4 /D RT_256=1+2 /D RT_POINTER=32 /D RT_ADDRESS=32 /D RT_ENDIAN=0 /D RT_DEBUG=1 /D RT_EMBED_STDOUT=0 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/I "../core/config/" /I "../core/engine/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/textures/" /I "scenes/" /D RT_PATH="../" /D "RT_WIN32" /D "RT_X86" /D RT_128=1+2+4 /D RT_256=1+2 /D RT_POINTER=32 /D RT_ADDRESS=32 /D RT_ENDIAN=0 /D RT_DEBUG=0 /D RT_EMBED_STDOUT=0 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\core\engine\engine.cpp" />
+    <ClCompile Include="..\core\engine\object.cpp" />
+    <ClCompile Include="..\core\engine\rtgeom.cpp" />
+    <ClCompile Include="..\core\engine\rtimag.cpp" />
+    <ClCompile Include="..\core\system\system.cpp" />
+    <ClCompile Include="..\core\tracer\tracer.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_128v1.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_128v2.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_128v4.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_256v1.cpp" />
+    <ClCompile Include="..\core\tracer\tracer_256v2.cpp" />
+    <ClCompile Include="core_test.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\core\config\rtarch.h" />
+    <ClInclude Include="..\core\config\rtarch_x86.h" />
+    <ClInclude Include="..\core\config\rtarch_x86_128.h" />
+    <ClInclude Include="..\core\config\rtarch_x86_256.h" />
+    <ClInclude Include="..\core\config\rtbase.h" />
+    <ClInclude Include="..\core\config\rtconf.h" />
+    <ClInclude Include="..\core\engine\engine.h" />
+    <ClInclude Include="..\core\engine\format.h" />
+    <ClInclude Include="..\core\engine\object.h" />
+    <ClInclude Include="..\core\engine\rtgeom.h" />
+    <ClInclude Include="..\core\engine\rtimag.h" />
+    <ClInclude Include="..\core\system\system.h" />
+    <ClInclude Include="..\core\tracer\tracer.h" />
+    <ClInclude Include="..\data\materials\all_mat.h" />
+    <ClInclude Include="..\data\objects\all_obj.h" />
+    <ClInclude Include="..\data\objects\obj_aliencube.h" />
+    <ClInclude Include="..\data\objects\obj_frametable.h" />
+    <ClInclude Include="..\data\scenes\all_scn.h" />
+    <ClInclude Include="..\data\scenes\scn_demo01.h" />
+    <ClInclude Include="..\data\scenes\scn_demo02.h" />
+    <ClInclude Include="..\data\textures\all_tex.h" />
+    <ClInclude Include="..\data\textures\tex_crate01.h" />
+    <ClInclude Include="scenes\scn_test01.h" />
+    <ClInclude Include="scenes\scn_test02.h" />
+    <ClInclude Include="scenes\scn_test03.h" />
+    <ClInclude Include="scenes\scn_test04.h" />
+    <ClInclude Include="scenes\scn_test05.h" />
+    <ClInclude Include="scenes\scn_test06.h" />
+    <ClInclude Include="scenes\scn_test07.h" />
+    <ClInclude Include="scenes\scn_test08.h" />
+    <ClInclude Include="scenes\scn_test09.h" />
+    <ClInclude Include="scenes\scn_test10.h" />
+    <ClInclude Include="scenes\scn_test11.h" />
+    <ClInclude Include="scenes\scn_test12.h" />
+    <ClInclude Include="scenes\scn_test13.h" />
+    <ClInclude Include="scenes\scn_test14.h" />
+    <ClInclude Include="scenes\scn_test15.h" />
+    <ClInclude Include="scenes\scn_test16.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
