@@ -11,6 +11,7 @@
 /******************************************************************************/
 
 #include <windows.h>
+#include <tchar.h>
 
 static HINSTANCE   hInst;
 static HWND        hWnd;
@@ -26,7 +27,7 @@ static BITMAPINFO  DIBinfo =
     1,                                  /* biPlanes */
     32,                                 /* biBitCount */
     BI_RGB,                             /* biCompression */
-    x_res * y_res * sizeof(rt_ui32),    /* biSizeImage */
+    (DWORD)(x_res * y_res * 4),         /* biSizeImage */
     0,                                  /* biXPelsPerMeter */
     0,                                  /* biYPelsPerMeter */
     0,                                  /* biClrUsed */
@@ -79,7 +80,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     MSG msg;
     hInst = hInstance;
 
-    TCHAR wnd_class[] = "RooT";
+    TCHAR wnd_class[] = _T("RooT");
 
     WNDCLASSEX wcex;
 
@@ -105,7 +106,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
     RECT wRect, cRect;
 
-    hWnd = CreateWindow(wnd_class, title,
+    hWnd = CreateWindow(wnd_class, _T(RT_TITLE),
                 WS_OVERLAPPED | WS_SYSMENU | WS_MINIMIZEBOX,
                 CW_USEDEFAULT, CW_USEDEFAULT, x_res, y_res,
                 NULL, NULL, hInst, NULL);
@@ -206,7 +207,7 @@ rt_pntr sys_alloc(rt_size size)
 
 #if RT_DEBUG >= 1
 
-    RT_LOGI("ALLOC PTR = %016"PR_Z"X, size = %ld\n", (rt_full)ptr, size);
+    RT_LOGI("ALLOC PTR = %016" PR_Z "X, size = %ld\n", (rt_full)ptr, size);
 
 #endif /* RT_DEBUG */
 
@@ -248,7 +249,7 @@ rt_void sys_free(rt_pntr ptr, rt_size size)
 
 #if RT_DEBUG >= 1
 
-    RT_LOGI("FREED PTR = %016"PR_Z"X, size = %ld\n", (rt_full)ptr, size);
+    RT_LOGI("FREED PTR = %016" PR_Z "X, size = %ld\n", (rt_full)ptr, size);
 
 #endif /* RT_DEBUG */
 

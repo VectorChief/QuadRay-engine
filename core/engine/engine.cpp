@@ -685,7 +685,7 @@ rt_void rt_SceneThread::tiling(rt_vec2 p1, rt_vec2 p2)
  */
 rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
 {
-    rt_ELEM *elm = RT_NULL, *nxt;
+    rt_ELEM *elm = RT_NULL, *nxt = RT_NULL;
 
     if (tem == RT_NULL && obj != RT_NULL && RT_IS_LIGHT(obj))
     {
@@ -907,7 +907,8 @@ rt_ELEM* rt_SceneThread::insert(rt_Object *obj, rt_ELEM **ptr, rt_ELEM *tem)
         return elm;
     }
 
-    rt_ELEM *end, *tlp, *cur, *ipt, *jpt;
+    rt_ELEM *end = RT_NULL, *tlp = RT_NULL, *cur = RT_NULL,
+            *ipt = RT_NULL, *jpt = RT_NULL;
 
     /* phase 2, find the "end" of the strict-order-chain from "elm",
      * order value "no swap" is considered strict */
