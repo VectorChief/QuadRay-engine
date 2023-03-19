@@ -11,6 +11,7 @@
 /******************************************************************************/
 
 #include <windows.h>
+#include <tchar.h>
 
 HINSTANCE   hInst;
 HWND        hWnd;
@@ -119,7 +120,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     MSG msg;
     hInst = hInstance;
 
-    TCHAR wnd_class[] = "RooT";
+    TCHAR wnd_class[] = _T("RooT");
 
     WNDCLASSEX wcex;
 
@@ -143,7 +144,12 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     }
 
     /* acquire screen settings */
+    /* in physical pixels
     EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &DevMode);
+    */
+    /* in scaled dimensions */
+    DevMode.dmPelsWidth = GetSystemMetrics(SM_CXSCREEN);
+    DevMode.dmPelsHeight = GetSystemMetrics(SM_CYSCREEN);
 
     while (w_size > 0)
     {
@@ -193,7 +199,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     if (w_size == 0)
     {
         /* create fullscreen window */
-        hWnd = CreateWindow(wnd_class, title,
+        hWnd = CreateWindow(wnd_class, _T(RT_TITLE),
                     WS_POPUP,
                     CW_USEDEFAULT, CW_USEDEFAULT, x_win, y_win,
                     NULL, NULL, hInst, NULL);
@@ -207,7 +213,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     else
     {
         /* create window */
-        hWnd = CreateWindow(wnd_class, title,
+        hWnd = CreateWindow(wnd_class, _T(RT_TITLE),
                     WS_OVERLAPPED | WS_SYSMENU | WS_MINIMIZEBOX,
                     CW_USEDEFAULT, CW_USEDEFAULT, x_win, y_win,
                     NULL, NULL, hInst, NULL);
