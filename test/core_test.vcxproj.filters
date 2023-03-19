@@ -1,0 +1,228 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="core">
+      <UniqueIdentifier>{7d11a2c1-80d1-4da0-acd4-fb60157a0d5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\config">
+      <UniqueIdentifier>{db83449d-6e84-4eb9-b480-ba725bae926a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\system">
+      <UniqueIdentifier>{f5ed43ee-53d1-40e9-b8a5-7f49c86fd77f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\tracer">
+      <UniqueIdentifier>{32542da1-3ddd-4aed-bd92-7e8e6d10a41d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\engine">
+      <UniqueIdentifier>{cd8d97c4-2a4f-4e19-ba88-3841332557da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="data">
+      <UniqueIdentifier>{6fd4954a-9f84-4089-96f3-4700f1d61a5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="data\materials">
+      <UniqueIdentifier>{ad9d65a7-6cde-4399-b968-43664cdb6b80}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="data\scenes">
+      <UniqueIdentifier>{a6739286-fdbf-4702-8149-d867f16acabe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="data\textures">
+      <UniqueIdentifier>{f9a94843-be66-4d21-8c27-bda11503414f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="data\objects">
+      <UniqueIdentifier>{9699f722-9a2f-4a44-a71e-ae1ff02764fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test">
+      <UniqueIdentifier>{30eaa6f5-a748-4e32-852f-9305607bbe2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test\scenes">
+      <UniqueIdentifier>{66f82a0d-8a52-42c6-91e9-f1918476c381}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="core_test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\engine\engine.cpp">
+      <Filter>core\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\engine\object.cpp">
+      <Filter>core\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\engine\rtgeom.cpp">
+      <Filter>core\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\engine\rtimag.cpp">
+      <Filter>core\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\system\system.cpp">
+      <Filter>core\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\tracer\tracer.cpp">
+      <Filter>core\tracer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\tracer\tracer_128v1.cpp">
+      <Filter>core\tracer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\tracer\tracer_128v2.cpp">
+      <Filter>core\tracer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\tracer\tracer_256v1.cpp">
+      <Filter>core\tracer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\tracer\tracer_256v2.cpp">
+      <Filter>core\tracer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\tracer\tracer_128v4.cpp">
+      <Filter>core\tracer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\tracer\tracer_128v8.cpp">
+      <Filter>core\tracer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\tracer\tracer_512v1.cpp">
+      <Filter>core\tracer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\tracer\tracer_512v2.cpp">
+      <Filter>core\tracer</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\core\config\rtarch.h">
+      <Filter>core\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\config\rtarch_x86.h">
+      <Filter>core\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\config\rtbase.h">
+      <Filter>core\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\config\rtconf.h">
+      <Filter>core\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\engine\engine.h">
+      <Filter>core\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\engine\format.h">
+      <Filter>core\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\engine\object.h">
+      <Filter>core\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\engine\rtgeom.h">
+      <Filter>core\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\engine\rtimag.h">
+      <Filter>core\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\system\system.h">
+      <Filter>core\system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\tracer\tracer.h">
+      <Filter>core\tracer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\data\materials\all_mat.h">
+      <Filter>data\materials</Filter>
+    </ClInclude>
+    <ClInclude Include="..\data\objects\all_obj.h">
+      <Filter>data\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\data\scenes\all_scn.h">
+      <Filter>data\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\data\scenes\scn_demo01.h">
+      <Filter>data\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\data\textures\all_tex.h">
+      <Filter>data\textures</Filter>
+    </ClInclude>
+    <ClInclude Include="..\data\textures\tex_crate01.h">
+      <Filter>data\textures</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test01.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test02.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test03.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test04.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test05.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test06.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test07.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test08.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test09.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test10.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test11.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test12.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test13.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test14.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test15.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="scenes\scn_test16.h">
+      <Filter>test\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\data\scenes\scn_demo02.h">
+      <Filter>data\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\data\objects\obj_aliencube.h">
+      <Filter>data\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\data\objects\obj_frametable.h">
+      <Filter>data\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\config\rtarch_x86_128x1v4.h">
+      <Filter>core\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\config\rtarch_x86_128x1v8.h">
+      <Filter>core\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\config\rtarch_x86_256x1v2.h">
+      <Filter>core\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\config\rtarch_x86_512x1v2.h">
+      <Filter>core\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\data\scenes\scn_demo03.h">
+      <Filter>data\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\config\rtzero.h">
+      <Filter>core\config</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
