@@ -3998,7 +3998,7 @@ rt_si32 switch0(rt_SIMD_INFOX *s_inf, rt_si32 mode)
 
 #if (RT_POINTER - RT_ADDRESS) != 0 && RT_DEBUG >= 1
 
-    RT_LOGI("S_INF PTR = %016"RT_PR64"X\n", (rt_full)s_inf);
+    RT_LOGI("S_INF PTR = %016" RT_PR64 "X\n", (rt_full)s_inf);
 
 #endif /* (RT_POINTER - RT_ADDRESS) && RT_DEBUG */
 
