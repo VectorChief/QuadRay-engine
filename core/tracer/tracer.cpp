@@ -17,7 +17,7 @@
  * pixel colors in the framebuffer by tracing rays of light back from camera
  * through scene objects (surfaces) to light sources.
  *
- * Computation of ray intersections with scene surfaces is written on
+ * Computation of ray intersections with scene surfaces is written in
  * a unified SIMD macro assembler (rtarch.h) for maximum performance.
  *
  * The efficient use of SIMD is achieved by processing four rays at a time
