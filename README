@@ -1,7 +1,7 @@
 QuadRay engine is a realtime raytracer project aimed at full SIMD utilization
 on both ARM and x86 architectures. The efficient use of SIMD is achieved by
 processing four rays at a time to match SIMD register width (hence the name).
-The rendering core of the engine is written on a unified SIMD assembler,
+The rendering core of the engine is written in a unified SIMD assembler,
 allowing single assembler code to be compatible with different processor
 architectures, thus reducing the need to maintain multiple parallel versions.
 
@@ -9,6 +9,6 @@ At present, Intel SSE2 (32-bit x86 ISA) and ARM NEON (32-bit ARMv7 ISA)
 are two primary targets although wider SIMD, 64-bit addressing along with
 more available registers and other architectures can be supported by design.
 Preliminary naming scheme for potential future targets as well as extended
-core and SIMD register files can be found in core/config/rtarch.h file.
+BASE and SIMD register files can be found in core/config/rtarch.h file.
 Instructions for resolving dependencies and building the binaries
 for supported platforms can be found in the accompanying INSTALL file.

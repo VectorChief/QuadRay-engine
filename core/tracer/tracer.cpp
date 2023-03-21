@@ -24,7 +24,7 @@
  * pixel colors in the framebuffer by tracing rays of light back from camera
  * through scene objects (surfaces) to light sources.
  *
- * Computation of ray intersections with scene surfaces is written on
+ * Computation of ray intersections with scene surfaces is written in
  * a unified SIMD macro assembler (rtarch.h) for maximum performance.
  *
  * The efficient use of SIMD is achieved by processing four rays at a time
@@ -40,7 +40,7 @@
  * are two primary targets although wider SIMD, 64-bit addressing along with
  * more available registers and other architectures can be supported by design.
  * Preliminary naming scheme for potential future targets as well as extended
- * core and SIMD register files can be found in core/config/rtarch.h file.
+ * BASE and SIMD register files can be found in core/config/rtarch.h file.
  */
 
 /******************************************************************************/
