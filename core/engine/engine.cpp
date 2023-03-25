@@ -3895,7 +3895,7 @@ rt_void rt_Scene::plot_frags()
 {
     if (RT_ELEMENT != 32)
     {
-        /* plotting of funcs and trigs is ignored, use fp32 target */
+        /* plotting of funcs is ignored, use fp32 target */
         RT_LOGI("(no funcs, use fp32) ");
     }
 
@@ -4016,7 +4016,7 @@ rt_void rt_Scene::plot_funcs()
 {
     if (RT_ELEMENT != 32)
     {
-        /* plotting of funcs and trigs is ignored, use fp32 target */
+        /* plotting of funcs is ignored, use fp32 target */
         return;
     }
 
