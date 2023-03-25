@@ -206,7 +206,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalOptions>/I "../core/config/" /I "../core/engine/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/scenes/" /I "../data/textures/" /I "../test/scenes/" /D "RT_WIN64" /D "RT_X64" /D RT_128=2+4+8  /D RT_256_R8=4 /D RT_256=1+2 /D RT_512_R8=1+2 /D RT_512=1+2 /D RT_1K4=1+2 /D RT_SIMD_COMPAT_SSE=2 /D RT_POINTER=64 /D RT_ADDRESS=64  /D RT_ELEMENT=32 /D RT_ENDIAN=0 /D RT_DEBUG=1 /D RT_PATH="../" /D RT_EMBED_STDOUT=0 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/I "../core/config/" /I "../core/engine/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/scenes/" /I "../data/textures/" /I "../test/scenes/" -Wno-unused-function -Wno-missing-braces -Wno-deprecated-declarations -Wno-sometimes-uninitialized -Wno-unused-but-set-variable /D "RT_WIN64" /D "RT_X64" /D RT_128=2+4+8  /D RT_256_R8=4 /D RT_256=1+2 /D RT_512_R8=1+2 /D RT_512=1+2 /D RT_1K4=1+2 /D RT_SIMD_COMPAT_SSE=2 /D RT_POINTER=64 /D RT_ADDRESS=64  /D RT_ELEMENT=32 /D RT_ENDIAN=0 /D RT_DEBUG=1 /D RT_PATH="../" /D RT_EMBED_STDOUT=0 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -221,7 +221,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalOptions>/I "../core/config/" /I "../core/engine/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/scenes/" /I "../data/textures/" /I "../test/scenes/" /D "RT_WIN64" /D "RT_X64" /D RT_128=2+4+8  /D RT_256_R8=4 /D RT_256=1+2 /D RT_512_R8=1+2 /D RT_512=1+2 /D RT_1K4=1+2 /D RT_SIMD_COMPAT_SSE=2 /D RT_POINTER=64 /D RT_ADDRESS=64  /D RT_ELEMENT=32 /D RT_ENDIAN=0 /D RT_DEBUG=0 /D RT_PATH="../" /D RT_EMBED_STDOUT=0 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/I "../core/config/" /I "../core/engine/" /I "../core/system/" /I "../core/tracer/" /I "../data/materials/" /I "../data/objects/" /I "../data/scenes/" /I "../data/textures/" /I "../test/scenes/" -Wno-unused-function -Wno-missing-braces -Wno-deprecated-declarations -Wno-sometimes-uninitialized -Wno-unused-but-set-variable /D "RT_WIN64" /D "RT_X64" /D RT_128=2+4+8  /D RT_256_R8=4 /D RT_256=1+2 /D RT_512_R8=1+2 /D RT_512=1+2 /D RT_1K4=1+2 /D RT_SIMD_COMPAT_SSE=2 /D RT_POINTER=64 /D RT_ADDRESS=64  /D RT_ELEMENT=32 /D RT_ENDIAN=0 /D RT_DEBUG=0 /D RT_PATH="../" /D RT_EMBED_STDOUT=0 /D RT_EMBED_FILEIO=0 /D RT_EMBED_TEX=1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
