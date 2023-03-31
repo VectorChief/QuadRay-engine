@@ -37,14 +37,14 @@ RooT demo features:
  - Refer to VERSION file (section 0.6.7) for cli options
 
 QuadRay core features:
- - Full set of plane+(unified)quadric solvers
+ - Full set of plane + quadric solvers
  - Custom clipping (with surface), boolean ops
  - Full geometry transform (hierarchical)
  - Basic RGB texturing for planes, no UV-mapping yet
- - Ambient+diffuse+specular+attenuation lights
+ - Ambient + diffuse + specular + attenuation lights
  - All lights are colored points with infinite range
  - Hard shadows (opaque) from all light sources
- - Reflections/refractions+translucency w/ Fresnel (df: off)
+ - Reflections/refractions + translucency, Fresnel (df: off)
  - Fullscreen 2x/4x antialiasing, Gamma correction (df: off)
  - Tiled scanline rendering, custom tree-like accelerators
  - Statically-linkable data format (C/C++ structs)
