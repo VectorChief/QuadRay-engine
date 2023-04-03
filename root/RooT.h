@@ -42,14 +42,14 @@ rt_time     b_time      = 0;        /* time-begins-(ms) (from command-line) */
 rt_time     e_time      =-1;        /* time-ending-(ms) (from command-line) */
 rt_si32     f_num       =-1;        /* number-of-frames (from command-line) */
 rt_time     f_time      =-1;        /* frame-delta-(ms) (from command-line) */
-rt_si32     n_simd      = 0;        /* SIMD-native-size (from command-line) */
-rt_si32     k_size      = 0;        /* SIMD-size-factor (from command-line) */
-rt_si32     s_type      = 0;        /* SIMD-sub-variant (from command-line) */
-rt_si32     t_pool      = 0;        /* Thread-pool-size (from command-line) */
+rt_si32     n_simd      = 0;        /* SIMD native size (from command-line) */
+rt_si32     k_size      = 0;        /* SIMD size-factor (from command-line) */
+rt_si32     s_type      = 0;        /* SIMD sub-variant (from command-line) */
+rt_si32     t_pool      = 0;        /* Thread-pool size (from command-line) */
 #if RT_FULLSCREEN == 1
-rt_si32     w_size      = 0;        /* Window-rect-size (from command-line) */
+rt_si32     w_size      = 0;        /* Window-rect size (from command-line) */
 #else  /* RT_FULLSCREEN */
-rt_si32     w_size      = 1;        /* Window-rect-size (from command-line) */
+rt_si32     w_size      = 1;        /* Window-rect size (from command-line) */
 #endif /* RT_FULLSCREEN */
 rt_si32     x_new       = 0;        /* New x-resolution (from command-line) */
 rt_si32     y_new       = 0;        /* New y-resolution (from command-line) */
@@ -167,9 +167,9 @@ rt_pstr *estr = RT_NULL;
 /* state tracking variables */
 rt_si32 d_prev = -1;        /* prev demo-scene */
 rt_si32 c_prev = -1;        /* prev camera-idx */
-rt_si32 n_prev = -1;        /* prev SIMD-native-size */
-rt_si32 k_prev = -1;        /* prev SIMD-size-factor */
-rt_si32 s_prev = -1;        /* prev SIMD-sub-variant */
+rt_si32 n_prev = -1;        /* prev SIMD native size */
+rt_si32 k_prev = -1;        /* prev SIMD size-factor */
+rt_si32 s_prev = -1;        /* prev SIMD sub-variant */
 rt_si32 p_prev = -1;        /* prev pause mode */
 
 /* time counter variables */
@@ -578,11 +578,11 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
         RT_LOGI(" -e n, specify time (ms) at which testing ends, n >= min\n");
         RT_LOGI(" -f n, specify # of consecutive frames to render, n >= 0\n");
         RT_LOGI(" -g n, specify delta (ms) for consecutive frames, n >= 0\n");
-        RT_LOGI(" -n n, override SIMD-native-size, where new simd is 1.16\n");
-        RT_LOGI(" -k n, override SIMD-size-factor, where new size is 1..4\n");
-        RT_LOGI(" -s n, override SIMD-sub-variant, where new type is 1.32\n");
-        RT_LOGI(" -t n, override thread-pool-size, where new size <= 1000\n");
-        RT_LOGI(" -w n, override window-rect-size, where new size is 1..9\n");
+        RT_LOGI(" -n n, override SIMD native size, where new simd is 1.16\n");
+        RT_LOGI(" -k n, override SIMD size-factor, where new size is 1..4\n");
+        RT_LOGI(" -s n, override SIMD sub-variant, where new type is 1.32\n");
+        RT_LOGI(" -t n, override thread-pool size, where new size <= 1000\n");
+        RT_LOGI(" -w n, override window-rect size, where new size is 1..9\n");
         RT_LOGI(" -w 0, activate window-less mode, full native resolution\n");
         RT_LOGI(" -x n, override x-resolution, where new x-value <= 65535\n");
         RT_LOGI(" -y n, override y-resolution, where new y-value <= 65535\n");
@@ -711,12 +711,12 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             if (t == 1   || t == 2   || t == 4   || t == 8    || t == 16
             ||  t == 128 || t == 256 || t == 512 || t == 1024 || t == 2048)
             {
-                RT_LOGI("SIMD-native-size overridden: %d\n", t);
+                RT_LOGI("SIMD native size overridden: %d\n", t);
                 n_simd = t >= 128 ? t / 128 : t;
             }
             else
             {
-                RT_LOGI("SIMD-native-size value out of range\n");
+                RT_LOGI("SIMD native size value out of range\n");
                 return 0;
             }
         }
@@ -725,12 +725,12 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             t = argv[k][0] - '0';
             if (strlen(argv[k]) == 1 && (t == 1 || t == 2 || t == 4))
             {
-                RT_LOGI("SIMD-size-factor overridden: %d\n", t);
+                RT_LOGI("SIMD size-factor overridden: %d\n", t);
                 k_size = t;
             }
             else
             {
-                RT_LOGI("SIMD-size-factor value out of range\n");
+                RT_LOGI("SIMD size-factor value out of range\n");
                 return 0;
             }
         }
@@ -742,12 +742,12 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             }
             if (t == 1 || t == 2 || t == 4 || t == 8 || t == 16 || t == 32)
             {
-                RT_LOGI("SIMD-sub-variant overridden: %d\n", t);
+                RT_LOGI("SIMD sub-variant overridden: %d\n", t);
                 s_type = t;
             }
             else
             {
-                RT_LOGI("SIMD-sub-variant value out of range\n");
+                RT_LOGI("SIMD sub-variant value out of range\n");
                 return 0;
             }
         }
@@ -759,12 +759,12 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             }
             if (t >= 0 && t <= 1000)
             {
-                RT_LOGI("Thread-pool-size overridden: %d\n", t);
+                RT_LOGI("Thread-pool size overridden: %d\n", t);
                 t_pool = t;
             }
             else
             {
-                RT_LOGI("Thread-pool-size value out of range\n");
+                RT_LOGI("Thread-pool size value out of range\n");
                 return 0;
             }
         }
@@ -773,12 +773,12 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
             t = argv[k][0] - '0';
             if (strlen(argv[k]) == 1 && t >= 0 && t <= 9)
             {
-                RT_LOGI("Window-rect-size overridden: %d\n", t);
+                RT_LOGI("Window-rect size overridden: %d\n", t);
                 w_size = t;
             }
             else
             {
-                RT_LOGI("Window-rect-size value out of range\n");
+                RT_LOGI("Window-rect size value out of range\n");
                 return 0;
             }
         }
@@ -916,7 +916,7 @@ rt_si32 args_init(rt_si32 argc, rt_char *argv[])
                 {
                     k--;
                 }
-            }            
+            }
             RT_LOGI("Antialiasing request: %d\n", 1 << a_mode);
         }
     }
