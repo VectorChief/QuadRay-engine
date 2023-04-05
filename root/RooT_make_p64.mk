@@ -81,8 +81,8 @@ RooT_p64f64Lp8:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o RooT.p64f64Lp8
 
 
-# forcing -mcpu=power8 for power9 targets is a workaround for GCC 11 bug
-# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109004
+# using -mcpu=power8 for power9 targets is a workaround for QEMU 6.2.0 bug
+# https://bugs.launchpad.net/ubuntu/+source/qemu/+bug/2011832
 
 build_p9: RooT_p64_32Lp9 RooT_p64_64Lp9 RooT_p64f32Lp9 RooT_p64f64Lp9
 
