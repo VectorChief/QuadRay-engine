@@ -21,8 +21,11 @@ qemu-aarch64 -cpu max,sve-max-vq=4 core_test.a64f32sve -c 1 -o -l -i 4 &
 qemu-mips64el -cpu I6400 core_test.m64f32Lr6 -c 1 -o -l -i 5 &
 qemu-mips64   -cpu I6400 core_test.m64f32Br6 -c 1 -o -l -i 6 &
 
+# forcing -cpu power9 for power8 targets is a workaround for Ubuntu 22.04 LTS
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109007
+
 qemu-ppc64   -cpu POWER7 core_test.p64f32Bp7 -c 1 -o -l -i 7 &
-qemu-ppc64le -cpu POWER8 core_test.p64f32Lp8 -c 1 -o -l -i 8 &
+qemu-ppc64le -cpu POWER9 core_test.p64f32Lp8 -c 1 -o -l -i 8 &
 qemu-ppc64le -cpu POWER9 core_test.p64f32Lp9 -c 1 -o -l -i 9 &
 
 
