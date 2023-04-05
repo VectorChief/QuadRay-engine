@@ -21,9 +21,11 @@ qemu-arm -cpu cortex-a15 core_test.arm_v2 -c 1 -o -l -i 2 &
 qemu-mipsel -cpu P5600 core_test.m32Lr5 -c 1 -o -l -i 5 &
 qemu-mips   -cpu P5600 core_test.m32Br5 -c 1 -o -l -i 6 &
 
+# ppc64abi32 targets are deprecated since QEMU 5.2.0 (dropped in Ubuntu 22.04)
+
 qemu-ppc        -cpu G4     core_test.p32Bg4 -c 1 -o -l -i 4 &
-qemu-ppc64abi32 -cpu POWER7 core_test.p32Bp7 -c 1 -o -l -i 7 &
-qemu-ppc64abi32 -cpu POWER8 core_test.p32Bp8 -c 1 -o -l -i 8 &
-qemu-ppc64abi32 -cpu POWER9 core_test.p32Bp9 -c 1 -o -l -i 9 &
+#qemu-ppc64abi32 -cpu POWER7 core_test.p32Bp7 -c 1 -o -l -i 7 &
+#qemu-ppc64abi32 -cpu POWER8 core_test.p32Bp8 -c 1 -o -l -i 8 &
+#qemu-ppc64abi32 -cpu POWER9 core_test.p32Bp9 -c 1 -o -l -i 9 &
 
 
