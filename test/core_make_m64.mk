@@ -31,8 +31,8 @@ LIB_LIST =                                  \
 build: build_le build_be
 
 strip:
-	mipsisa64r6el-linux-gnuabi64-strip core_test.m64???Lr6
-	mipsisa64r6-linux-gnuabi64-strip core_test.m64???Br6
+	mips-mti-linux-gnu-strip core_test.m64???Lr6
+	mips-mti-linux-gnu-strip core_test.m64???Br6
 
 clean:
 	rm core_test.m64*
@@ -42,8 +42,7 @@ build_le: core_test_m64_32Lr6 core_test_m64_64Lr6 \
           core_test_m64f32Lr6 core_test_m64f64Lr6
 
 core_test_m64_32Lr6:
-	mipsisa64r6el-linux-gnuabi64-g++ -O3 -g -static -EL \
-                                                    -mips64r6 -mmsa -mabi=64 \
+	mips-mti-linux-gnu-g++ -O3 -g -static -EL -mips64r6 -mmsa -mabi=64 \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -51,8 +50,7 @@ core_test_m64_32Lr6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m64_32Lr6
 
 core_test_m64_64Lr6:
-	mipsisa64r6el-linux-gnuabi64-g++ -O3 -g -static -EL \
-                                                    -mips64r6 -mmsa -mabi=64 \
+	mips-mti-linux-gnu-g++ -O3 -g -static -EL -mips64r6 -mmsa -mabi=64 \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -60,8 +58,7 @@ core_test_m64_64Lr6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m64_64Lr6
 
 core_test_m64f32Lr6:
-	mipsisa64r6el-linux-gnuabi64-g++ -O3 -g -static -EL \
-                                                    -mips64r6 -mmsa -mabi=64 \
+	mips-mti-linux-gnu-g++ -O3 -g -static -EL -mips64r6 -mmsa -mabi=64 \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -69,8 +66,7 @@ core_test_m64f32Lr6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m64f32Lr6
 
 core_test_m64f64Lr6:
-	mipsisa64r6el-linux-gnuabi64-g++ -O3 -g -static -EL \
-                                                    -mips64r6 -mmsa -mabi=64 \
+	mips-mti-linux-gnu-g++ -O3 -g -static -EL -mips64r6 -mmsa -mabi=64 \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=0 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -82,8 +78,7 @@ build_be: core_test_m64_32Br6 core_test_m64_64Br6 \
           core_test_m64f32Br6 core_test_m64f64Br6
 
 core_test_m64_32Br6:
-	mipsisa64r6-linux-gnuabi64-g++ -O3 -g -static -EB \
-                                                    -mips64r6 -mmsa -mabi=64 \
+	mips-mti-linux-gnu-g++ -O3 -g -static -EB -mips64r6 -mmsa -mabi=64 \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -91,8 +86,7 @@ core_test_m64_32Br6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m64_32Br6
 
 core_test_m64_64Br6:
-	mipsisa64r6-linux-gnuabi64-g++ -O3 -g -static -EB \
-                                                    -mips64r6 -mmsa -mabi=64 \
+	mips-mti-linux-gnu-g++ -O3 -g -static -EB -mips64r6 -mmsa -mabi=64 \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=32 -DRT_ELEMENT=64 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -100,8 +94,7 @@ core_test_m64_64Br6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m64_64Br6
 
 core_test_m64f32Br6:
-	mipsisa64r6-linux-gnuabi64-g++ -O3 -g -static -EB \
-                                                    -mips64r6 -mmsa -mabi=64 \
+	mips-mti-linux-gnu-g++ -O3 -g -static -EB -mips64r6 -mmsa -mabi=64 \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=32 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -109,8 +102,7 @@ core_test_m64f32Br6:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.m64f32Br6
 
 core_test_m64f64Br6:
-	mipsisa64r6-linux-gnuabi64-g++ -O3 -g -static -EB \
-                                                    -mips64r6 -mmsa -mabi=64 \
+	mips-mti-linux-gnu-g++ -O3 -g -static -EB -mips64r6 -mmsa -mabi=64 \
         -DRT_LINUX -DRT_M64=6 -DRT_128=1 -DRT_256=1 \
         -DRT_POINTER=64 -DRT_ADDRESS=64 -DRT_ELEMENT=64 -DRT_ENDIAN=1 \
         -DRT_DEBUG=0 -DRT_PATH="../" \
@@ -137,8 +129,8 @@ core_test_m64f64Br6:
 # Starting from Ubuntu (MATE) 19.10 upstream (cross-)compiler supports MSA.
 # sudo apt-get install make g++-mipsisa64r6el-linux-gnuabi64
 # sudo apt-get install make g++-mipsisa64r6-linux-gnuabi64
-# (replace mipsisa64r6el-linux-gnuabi64 with mips-mti-linux-gnu for LE)
-# (replace mipsisa64r6-linux-gnuabi64 with mips-mti-linux-gnu for BE)
+# (replace mips-mti-linux-gnu with mipsisa64r6el-linux-gnuabi64 for LE)
+# (replace mips-mti-linux-gnu with mipsisa64r6-linux-gnuabi64 for BE)
 #
 # Prerequisites for emulation:
 # recent QEMU(-2.7) is installed or built from source and in the PATH variable.
