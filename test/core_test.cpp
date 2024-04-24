@@ -1002,7 +1002,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
             time2 = get_time();
             tN = time2 - time1;
-            if (!l_mode) RT_LOGI("Time N = %d\n", (rt_si32)tN);
+            if (!l_mode) RT_LOGI("Time N   = %6d\n", (rt_si32)tN);
 
             if (h_mode)
             {
@@ -1042,7 +1042,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 
             time2 = get_time();
             tF = time2 - time1;
-            if (!l_mode) RT_LOGI("Time F = %d\n", (rt_si32)tF);
+            if (!l_mode) RT_LOGI("Time F   = %6d\n", (rt_si32)tF);
 
             if (h_mode)
             {
