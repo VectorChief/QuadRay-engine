@@ -131,7 +131,7 @@ rt_si32 main(rt_si32 argc, rt_char *argv[])
 {
     /* workaround for out of memory on older Macs with SIMD buffers enabled */
 #ifdef __APPLE__
-    thnum               = RT_THREADS_NUM / 2; /* limit threads to fix allocs */
+    thnum               = RT_THREADS_NUM / 8; /* limit threads to fix allocs */
 #endif /* __APPLE__ */
 
     /* fill in platform's keymap */
