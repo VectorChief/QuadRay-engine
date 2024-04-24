@@ -252,7 +252,7 @@ rt_byte r_keys[KEY_MASK + 1];
 rt_void print_avgfps()
 {
     RT_LOGI("---%s%s-------------  FPS AVG  ------ simd = %4dx%dv%d -\n",
-                            p_prev ? " p " : "---", q_prev ? "q " : "--",
+           p_prev ? " p " : q_prev ? "-- " : "---", q_prev ? "q " : "--",
                                             n_prev * 128, k_prev, s_prev);
     if (cur_time - run_time > 0)
     {
@@ -262,7 +262,7 @@ rt_void print_avgfps()
     {
         avg = (rt_real)0;
     }
-    RT_LOGI("AVG = %.2f\n", avg);
+    RT_LOGI("AVG   = %9.2f\n", avg);
 }
 
 /*
@@ -292,7 +292,7 @@ rt_void print_target()
                          pfm->get_thnum(), RT_SETAFFINITY, 0, d+1, c+1);
 
     RT_LOGI("---%s%s-------------  FPS LOG  ------ ptr/fp = %d%s%d --\n",
-                            p_mode ? " p " : "---", q_test ? "q " : "--",
+           p_mode ? " p " : q_test ? "-- " : "---", q_test ? "q " : "--",
                     RT_POINTER, RT_ADDRESS == 32 ? "_" : "f", RT_ELEMENT);
 }
 
@@ -365,6 +365,7 @@ rt_si32 main_step()
                 if (q_test != q_mode)
                 {
                     q_mode = q_prev;
+                    q_prev = q_test;
                     /* to enable path-tracer in a particular scene
                      * add RT_OPTS_PT to the list of optimizations
                      * to be turned off in scene definition struct */
@@ -518,7 +519,7 @@ rt_si32 main_step()
 
             if (!l_mode)
             {
-                RT_LOGI("FPS = %.2f\n", fps);
+                RT_LOGI("FPS   = %9.2f\n", fps);
             }
         }
         if (e_time >= 0 && anim_time >= e_time)
@@ -708,7 +709,7 @@ rt_si32 main_step()
             k_prev = k_size;
             s_prev = s_type;
             p_prev = p_mode;
-            q_prev = q_mode;
+            q_prev = q_test;
 
             glb = 0;
             run_time = cur_time;
@@ -1288,7 +1289,6 @@ rt_si32 main_init()
     q_test = sc[d]->set_pton(q_mode ? m_num : 0) > 0 ? q_mode : 0;
     if (q_test != q_mode)
     {
-        q_mode = RT_FALSE;
         /* to enable path-tracer in a particular scene
          * add RT_OPTS_PT to the list of optimizations
          * to be turned off in scene definition struct */
@@ -1304,7 +1304,7 @@ rt_si32 main_init()
     k_prev = k_size;
     s_prev = s_type;
     p_prev = p_mode;
-    q_prev = q_mode;
+    q_prev = q_test;
 
     print_target();
 
