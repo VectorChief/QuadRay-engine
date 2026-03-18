@@ -63,7 +63,6 @@ RooT.a32:
 # multilib-compiler for AArch64 is installed and in the PATH variable,
 # sudo apt-get update (on AArch64 host or QEMU system mode)
 # sudo apt-get install make g++-multilib (plus X11/Xext libs for ILP32 ABI)
-# (recent upstream g++-5-aarch64 series may not fully support ILP32 ABI)
 #
 # Compiling/running RooT demo:
 # make -f RooT_make_a32.mk

@@ -194,7 +194,6 @@ RooT.p64f64Lp9:
 # native-compiler for 64-bit POWER is installed and in the PATH variable.
 # sudo apt-get update (on POWER host or QEMU system mode)
 # sudo apt-get install make g++ libxext-dev
-# (recent g++-5-powerpc64le series target POWER8 and don't work well with -O3)
 #
 # Compiling/running RooT demo:
 # make -f RooT_make_p64.mk

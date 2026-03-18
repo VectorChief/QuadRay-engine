@@ -82,13 +82,6 @@ RooT.x86:
 # sudo apt-get install make g++-multilib libxext-dev:i386 (x86_64 host, Mint 18)
 # (installation of g++-multilib removes any g++ cross-compilers)
 #
-# When building on macOS install Command Line Tools and XQuartz first.
-# http://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
-# https://www.youtube.com/watch?v=uS4zTqfwSSQ  https://www.xquartz.org/
-# As pthread affinity features are not supported on a Mac, use "-t n" option
-# when running produced binary (below), where "n" is the number of CPU cores.
-# Otherwise default maximum number of threads (120) will be created.
-#
 # Compiling/running RooT demo:
 # make -f RooT_make_x86.mk
 # ./RooT.x86

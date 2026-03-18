@@ -45,7 +45,7 @@ core_test_a32:
         ${INC_PATH} ${SRC_LIST} ${LIB_PATH} ${LIB_LIST} -o core_test.a32
 
 
-# On Ubuntu (MATE) 16.04-22.04 add "universe multiverse" to "main restricted"
+# On Ubuntu (MATE) 16.04-26.04 add "universe multiverse" to "main restricted"
 # in /etc/apt/sources.list (sudo nano /etc/apt/sources.list) then run:
 # sudo apt-get update
 # (Ubuntu MATE is set up for an update without a need to edit the file)
@@ -54,7 +54,6 @@ core_test_a32:
 # Prerequisites for the build:
 # (cross-)compiler for AArch64 is installed and in the PATH variable.
 # sudo apt-get install make g++-aarch64-linux-gnu
-# (recent upstream g++-5-aarch64 series may not fully support ILP32 ABI)
 #
 # Compiling/running CORE test:
 # make -f core_make_a32.mk

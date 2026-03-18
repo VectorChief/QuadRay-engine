@@ -63,7 +63,6 @@ RooT.m32Lr5:
 # native-compiler for MIPSr5+MSA is installed and in the PATH variable.
 # sudo apt-get update (on MIPS32 host or QEMU system mode)
 # sudo apt-get install make g++ libxext-dev
-# (recent upstream g++-5-mipsel series may not fully support MSA)
 #
 # Compiling/running RooT demo:
 # make -f RooT_make_m32.mk

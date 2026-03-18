@@ -111,7 +111,6 @@ RooT.m64f64Lr6:
 # native-compiler for MIPSr6+MSA is installed and in the PATH variable.
 # sudo apt-get update (on MIPS64 host or QEMU system mode)
 # sudo apt-get install make g++ libxext-dev
-# (recent upstream g++-8-mipsisa64r6el series support MSA)
 #
 # Compiling/running RooT demo:
 # make -f RooT_make_m64.mk
