@@ -31,8 +31,7 @@ SRC_LIST =                                  \
 LIB_PATH =
 
 LIB_LIST =                                  \
-        -lm                                 \
-        -lstdc++
+        -lm
 
 
 build: core_test_p32Bg4 core_test_p32Bp7 core_test_p32Bp8 core_test_p32Bp9

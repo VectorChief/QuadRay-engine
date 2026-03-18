@@ -39,7 +39,6 @@ LIB_PATH =
 
 LIB_LIST =                                  \
         -lm                                 \
-        -lstdc++                            \
         -lgdi32
 
 

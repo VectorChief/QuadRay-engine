@@ -29,8 +29,7 @@ SRC_LIST =                                  \
 LIB_PATH =
 
 LIB_LIST =                                  \
-        -lm                                 \
-        -lstdc++
+        -lm
 
 
 build: core_test_x86

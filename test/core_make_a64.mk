@@ -31,8 +31,7 @@ SRC_LIST =                                  \
 LIB_PATH =
 
 LIB_LIST =                                  \
-        -lm                                 \
-        -lstdc++
+        -lm
 
 
 build: build_a64 build_a64sve

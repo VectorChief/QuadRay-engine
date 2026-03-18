@@ -41,7 +41,6 @@ LIB_PATH =                                  \
 
 LIB_LIST =                                  \
         -lm                                 \
-        -lstdc++                            \
         -lX11                               \
         -lXext                              \
         -lpthread

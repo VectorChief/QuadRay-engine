@@ -30,8 +30,7 @@ SRC_LIST =                                  \
 LIB_PATH =
 
 LIB_LIST =                                  \
-        -lm                                 \
-        -lstdc++
+        -lm
 
 
 build: build_p9 build_le build_be
