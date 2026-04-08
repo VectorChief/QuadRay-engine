@@ -148,7 +148,7 @@ core_test.x64f64:
 # sudo apt-get install make g++
 #
 # When building on macOS install Command Line Tools first.
-# http://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
+# https://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
 #
 # Compiling/running CORE test:
 # make -f core_make_x64.mk

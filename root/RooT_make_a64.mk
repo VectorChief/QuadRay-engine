@@ -212,6 +212,13 @@ RooT.a64f64sve:
 # sudo apt-get update (on AArch64 host or QEMU system mode)
 # sudo apt-get install make g++ libxext-dev
 #
+# When building on macOS install Command Line Tools and XQuartz first.
+# https://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
+# https://www.youtube.com/watch?v=uS4zTqfwSSQ  https://www.xquartz.org/
+# As pthread affinity features are not supported on a Mac, use "-t n" option
+# when running produced binary (below), where "n" is the number of CPU cores.
+# Otherwise default maximum number of threads (120) will be created.
+#
 # Compiling/running RooT demo:
 # make -f RooT_make_a64.mk
 # ./RooT.a64f32 (on AArch64 host or QEMU system mode)

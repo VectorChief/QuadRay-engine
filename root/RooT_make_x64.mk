@@ -148,7 +148,7 @@ RooT.x64f64:
 # sudo apt-get install make g++ libxext-dev
 #
 # When building on macOS install Command Line Tools and XQuartz first.
-# http://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
+# https://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
 # https://www.youtube.com/watch?v=uS4zTqfwSSQ  https://www.xquartz.org/
 # As pthread affinity features are not supported on a Mac, use "-t n" option
 # when running produced binary (below), where "n" is the number of CPU cores.

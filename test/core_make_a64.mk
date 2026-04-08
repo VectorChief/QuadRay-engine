@@ -219,6 +219,9 @@ core_test.a64f64sve:
 # recent QEMU(-8.2) is installed or built from source and in the PATH variable.
 # sudo apt-get install qemu-user
 #
+# When building on macOS install Command Line Tools first.
+# https://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
+#
 # Compiling/running CORE test:
 # make -f core_make_a64.mk
 # qemu-aarch64 -cpu cortex-a57 core_test.a64f32 -i -a -c 1
