@@ -88,15 +88,15 @@ core_test_z64f64:
 #
 # Compiling/running SIMD test:
 # make -f core_make_z64.mk
-# qemu-s390x    -cpu max core_test.z64_32 -i -a -c 1
-# qemu-s390x    -cpu max core_test.z64_64 -i -a -c 1
-# qemu-s390x    -cpu max core_test.z64f32 -i -a -c 1
-# qemu-s390x    -cpu max core_test.z64f64 -i -a -c 1
+# qemu-s390x    -cpu max core_test.z64_32 -i -a -c 1 -k 1 (x2 backends broken)
+# qemu-s390x    -cpu max core_test.z64_64 -i -a -c 1 -k 1 (drop -a -k 1 to see)
+# qemu-s390x    -cpu max core_test.z64f32 -i -a -c 1 -k 1 (x2 backends broken)
+# qemu-s390x    -cpu max core_test.z64f64 -i -a -c 1 -k 1 (drop -a -k 1 to see)
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)
 # Use "-c 1" option to reduce test time when emulating with QEMU
 
 # Clang native build should theoretically work too (not tested), use (replace):
-# clang++ -O0 (in place of ...-g++ -O3) on s390x host (z13/z14)
+# clang++ -O0 (in place of ...-g++ -O3) on s390x host (z15/z17)
 # sudo apt-get install clang
 
 # For interpretation of SIMD build flags check compatibility layer in rtzero.h.
