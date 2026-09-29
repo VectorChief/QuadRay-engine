@@ -88,10 +88,10 @@ core_test_z64f64:
 #
 # Compiling/running SIMD test:
 # make -f core_make_z64.mk
-# qemu-s390x    -cpu max core_test.z64_32 -i -a -c 1 -k 1 (x2 backends broken)
-# qemu-s390x    -cpu max core_test.z64_64 -i -a -c 1 -k 1 (drop -a -k 1 to see)
-# qemu-s390x    -cpu max core_test.z64f32 -i -a -c 1 -k 1 (x2 backends broken)
-# qemu-s390x    -cpu max core_test.z64f64 -i -a -c 1 -k 1 (drop -a -k 1 to see)
+# qemu-s390x    -cpu max core_test.z64_32 -i -a -c 1
+# qemu-s390x    -cpu max core_test.z64_64 -i -a -c 1
+# qemu-s390x    -cpu max core_test.z64f32 -i -a -c 1
+# qemu-s390x    -cpu max core_test.z64f64 -i -a -c 1
 # (should produce antialiased "-a" images "-i" in the ../dump subfolder)
 # Use "-c 1" option to reduce test time when emulating with QEMU
 
